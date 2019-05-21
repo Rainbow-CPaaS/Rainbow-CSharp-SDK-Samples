@@ -24,8 +24,8 @@ namespace Sample_Contacts
         private static readonly ILog log = LogManager.GetLogger(typeof(SampleContactForm));
 
         //Define Rainbow Application Id, Secret Key and Host Name
-        const string APP_ID = "b9c60f20196f11e982c63fe49ad024eb";
-        const string APP_SECRET_KEY = "aWbd8uawAzpQjVkW0HkzB52ZjPeNO5qisBD5xeaKhoscUGs8v0Cd6MkELCfmgrtD";
+        const string APP_ID = "YOUR APP ID";
+        const string APP_SECRET_KEY = "YOUR SECRET KEY";
         const string HOST_NAME = "sandbox.openrainbow.com";
 
         const string LOGIN_USER1 = "christophe.irles@al-enterprise.com";
