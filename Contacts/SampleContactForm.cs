@@ -1,12 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 using Rainbow;
@@ -28,11 +23,11 @@ namespace Sample_Contacts
         const string APP_SECRET_KEY = "YOUR SECRET KEY";
         const string HOST_NAME = "sandbox.openrainbow.com";
 
-        const string LOGIN_USER1 = "christophe.irles@al-enterprise.com";
-        const string PASSWORD_USER1 = "Back9fun!!!";
+        const string LOGIN_USER1 = "YOUR LOGIN";
+        const string PASSWORD_USER1 = "YOUR PASSWORD";
 
         // Define Rainbow objects
-        Rainbow.Application rainbowApplication; // To store Rainbow Applicationobject
+        Rainbow.Application rainbowApplication; // To store Rainbow Application object
         Contacts rainbowContacts;               // To store Rainbow Contacts object
         Contact rainbowMyContact;               // To store My contact (i.e. the one connected to Rainbow Server)
         List<Contact> rainbowContactsList;      // To store contacts list of my roster
