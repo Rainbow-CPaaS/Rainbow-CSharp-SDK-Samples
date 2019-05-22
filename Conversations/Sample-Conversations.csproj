@@ -6,8 +6,8 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{894673BE-3ACD-4D96-B5E5-87EE1AF8CD8F}</ProjectGuid>
     <OutputType>WinExe</OutputType>
-    <RootNamespace>Sample_Contacts</RootNamespace>
-    <AssemblyName>Sample-Contacts</AssemblyName>
+    <RootNamespace>Sample_Conversations</RootNamespace>
+    <AssemblyName>Sample-Conversations</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>

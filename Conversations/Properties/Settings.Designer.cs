@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Sample_Contacts.Properties {
+namespace Sample_Conversations.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]

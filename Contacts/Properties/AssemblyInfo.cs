@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -8,9 +8,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("Sample-Contacts")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("ALE-SCCM")]
+[assembly: AssemblyCompany("ALE-International")]
 [assembly: AssemblyProduct("Sample-Contacts")]
-[assembly: AssemblyCopyright("Copyright © ALE-SCCM 2019")]
+[assembly: AssemblyCopyright("Copyright © ALE-International 2019")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

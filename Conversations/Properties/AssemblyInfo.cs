@@ -1,16 +1,16 @@
-﻿using System.Reflection;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 // Les informations générales relatives à un assembly dépendent de
 // l'ensemble d'attributs suivant. Changez les valeurs de ces attributs pour modifier les informations
 // associées à un assembly.
-[assembly: AssemblyTitle("Sample-Contacts")]
+[assembly: AssemblyTitle("Sample-Conversations-Favorites")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("ALE-SCCM")]
-[assembly: AssemblyProduct("Sample-Contacts")]
-[assembly: AssemblyCopyright("Copyright © ALE-SCCM 2019")]
+[assembly: AssemblyCompany("ALE-International")]
+[assembly: AssemblyProduct("Sample-Conversations-Favorites")]
+[assembly: AssemblyCopyright("Copyright © ALE-International 2019")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // Le GUID suivant est pour l'ID de la typelib si ce projet est exposé à COM
-[assembly: Guid("894673be-3acd-4d96-b5e5-87ee1af8cd8f")]
+[assembly: Guid("894673be-3acd-4d96-b5e5-87ee1af8cd9e")]
 
 // Les informations de version pour un assembly se composent des quatre valeurs suivantes :
 //
