@@ -15,5 +15,5 @@ They are listed in order of priority if you just start to use the SDK.
 | [Instant Messaging](https://github.com/Rainbow-CPaaS/Rainbow-CSharp-SDK-Samples/tree/master/InstantMessaging) | Send, receive simple IM messages, manage presence |
 
 To have more info about the SDK:
-- check [Getting started guide](https://hub.openrainbow.com/#/documentation/doc/csharp/guides/001_getting_started.md)
-- check [API documentation](https://hub.openrainbow.com/#/documentation/doc/csharp/api/Rainbow.Application.md)
+- check [Getting started guide](https://hub.openrainbow.com/#/documentation/doc/sdk/csharp/guides/001_getting_started)
+- check [API documentation](https://hub.openrainbow.com/#/documentation/doc/sdk/csharp/api/Rainbow.Application)
