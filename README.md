@@ -17,3 +17,12 @@ They are listed in order of priority if you just start to use the SDK.
 To have more info about the SDK:
 - check [Getting started guide](https://hub.openrainbow.com/#/documentation/doc/sdk/csharp/guides/001_getting_started)
 - check [API documentation](https://hub.openrainbow.com/#/documentation/doc/sdk/csharp/api/Rainbow.Application)
+
+# Rainbow API HUB
+---
+
+This SDK is using the Rainbow Hub environment.
+
+Full details [here](https://hub.openrainbow.net/)
+ 
+This environment is based on the [Rainbow service](https://www.openrainbow.com/) 
