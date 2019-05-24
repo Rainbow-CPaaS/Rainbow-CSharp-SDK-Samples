@@ -10,4 +10,6 @@ This simple application permits to understand how :
 - To set / unset isTyping 
 - To update is presence level
 - To get presence level of contacts in roster
+- To load archived messages in conversation
+- To mark message as read
 

@@ -36,10 +36,11 @@ namespace Sample_Contacts
         List<Contact> rainbowContactsList;          // To store contacts list of my roster
         List<Conversation> rainbowConversationsList;// To store conversations list
 
-        //
+        // Facilitator objects for this sample
         bool contactSelected = false;
         String idSelected = null;
         bool selectionCorrect = false;
+        string lastMessageIDReceived = null;
 
         // Define delegate to update SampleContactForm components
         delegate void StringArgReturningVoidDelegate(string value);
@@ -108,137 +109,7 @@ namespace Sample_Contacts
             rainbowContactsList = new List<Contact>();
         }
 
-        private void RainbowInstantMessaging_ReceiptReceived(object sender, Rainbow.Events.ReceiptReceivedEventArgs e)
-        {
-            //e.MessageId
-        }
-
-        private void RainbowInstantMessaging_UserTypingChanged(object sender, Rainbow.Events.UserTypingEventArgs e)
-        {
-            //e.ContactJid
-            //e.ConversationId
-
-            bool concernCurrentSelection = false;
-            string contactDisplayName = "";
-
-            // Check if event recevied concern the form selection or not
-            if (selectionCorrect)
-            {
-                Conversation conversation = rainbowConversations.GetConversationByIdFromCache(e.ConversationId);
-                if (contactSelected)
-                {
-                    if (conversation != null)
-                    {
-                        concernCurrentSelection = ((conversation.Type == Conversation.ConversationType.User) && (idSelected == conversation.PeerId));
-
-                        Contact contact = rainbowContacts.GetContactFromContactId(idSelected);
-                        contactDisplayName = GetContactDisplayName(contact);
-                    }
-                    else
-                    {
-                        AddStateLine($"ContactSelected - No conversation found ...");
-                        return;
-                    }
-                }
-                else
-                {
-                    concernCurrentSelection = (idSelected == e.ConversationId);
-                    if (conversation != null)
-                    {
-                        if (conversation.Type == Conversation.ConversationType.User)
-                        {
-                            Contact contact = rainbowContacts.GetContactFromContactId(conversation.PeerId);
-                            contactDisplayName = GetContactDisplayName(contact);
-                        }
-                        else
-                        {
-                            contactDisplayName = conversation.Name;
-                            if (String.IsNullOrEmpty(contactDisplayName))
-                                contactDisplayName = conversation.Id;
-                        }
-                    }
-                    else
-                    {
-                        AddStateLine($"ConversationSelected - No conversation found ...");
-                        return;
-                    }
-                }
-
-                if (concernCurrentSelection)
-                {
-                    if (e.IsTyping)
-                        AddStateLine($"[{contactDisplayName}] is typing in the CURRENT SELECTED conversation.");
-                    else
-                        AddStateLine($"[{contactDisplayName}] is no more typing in the CURRENT SELECTED conversation.");
-                }
-                else
-                {
-                    if (e.IsTyping)
-                        AddStateLine($"[{contactDisplayName}] is typing in ANOTHER conversation.");
-                    else
-                        AddStateLine($"[{contactDisplayName}] is no more typing in ANOTHER conversation.");
-                }
-            }
-        }
-
-        private void RainbowInstantMessaging_MessageReceived(object sender, Rainbow.Events.MessageEventArgs e)
-        {
-            //e.ContactJid
-            //e.ConversationId
-            bool concernCurrentSelection = false;
-            string contactDisplayName = "";
-
-            // Check if event recevied concern the form selection or not
-            if (selectionCorrect)
-            {
-                Conversation conversation = rainbowConversations.GetConversationByIdFromCache(e.ConversationId);
-                if (contactSelected)
-                {
-                    if (conversation != null)
-                    {
-                        concernCurrentSelection = ((conversation.Type == Conversation.ConversationType.User) && (idSelected == conversation.PeerId));
-
-                        Contact contact = rainbowContacts.GetContactFromContactId(idSelected);
-                        contactDisplayName = GetContactDisplayName(contact);
-                    }
-                    else
-                    {
-                        AddStateLine($"ContactSelected - No conversation found ...");
-                        return;
-                    }
-                }
-                else
-                {
-                    concernCurrentSelection = (idSelected == e.ConversationId);
-                    if (conversation != null)
-                    {
-                        if (conversation.Type == Conversation.ConversationType.User)
-                        {
-                            Contact contact = rainbowContacts.GetContactFromContactId(conversation.PeerId);
-                            contactDisplayName = GetContactDisplayName(contact);
-                        }
-                        else
-                        {
-                            contactDisplayName = conversation.Name;
-                            if (String.IsNullOrEmpty(contactDisplayName))
-                                contactDisplayName = conversation.Id;
-                        }
-                    }
-                    else
-                    {
-                        AddStateLine($"ConversationSelected - No conversation found ...");
-                        return;
-                    }
-                }
-
-                string msg = $"[{SerializeDateTime(e.Message.Date)}] [{contactDisplayName}]: [{e.Message.Content}]";
-                if (concernCurrentSelection)
-                    AddMessageInStream(msg);
-                else
-                    AddStateLine($"Message received in another conversation - {msg}");
-            }
-        }
-
+ 
     #endregion INIT METHODS
 
     #region METHOD TO UPDATE SampleConversationForm COMPONENTS
@@ -257,7 +128,7 @@ namespace Sample_Contacts
             }
             else
             {
-                tbState.AppendText(info + "\r\n");
+                tbState.AppendText("\r\n" + info);
             }
         }
 
@@ -266,16 +137,30 @@ namespace Sample_Contacts
         /// </summary>
         /// <param name="info"></param>
 
-        private void AddMessageInStream(String msg)
+        private void AddMessageInStream(String message)
         {
             if (tbMessagesExchanged.InvokeRequired)
             {
                 StringArgReturningVoidDelegate d = new StringArgReturningVoidDelegate(AddMessageInStream);
-                this.Invoke(d, new object[] { msg });
+                this.Invoke(d, new object[] { message });
             }
             else
             {
-                tbMessagesExchanged.AppendText(msg + "\r\n");
+                tbMessagesExchanged.AppendText("\r\n" + message);
+            }
+        }
+
+        private void AddOlderMessagesInStrem(String messages)
+        {
+            if (tbMessagesExchanged.InvokeRequired)
+            {
+                StringArgReturningVoidDelegate d = new StringArgReturningVoidDelegate(AddOlderMessagesInStrem);
+                this.Invoke(d, new object[] { messages });
+            }
+            else
+            {
+                tbMessagesExchanged.Text = messages + tbMessagesExchanged.Text;
+
             }
         }
 
@@ -606,7 +491,137 @@ namespace Sample_Contacts
             UpdateConversationsListComboBox();
         }
 
-        
+        private void RainbowInstantMessaging_ReceiptReceived(object sender, Rainbow.Events.ReceiptReceivedEventArgs e)
+        {
+            //e.MessageId
+        }
+
+        private void RainbowInstantMessaging_UserTypingChanged(object sender, Rainbow.Events.UserTypingEventArgs e)
+        {
+            //e.ContactJid
+            //e.ConversationId
+
+            bool concernCurrentSelection = false;
+            string contactDisplayName = "";
+
+            // Check if event recevied concern the form selection or not
+            if (selectionCorrect)
+            {
+                Conversation conversation = rainbowConversations.GetConversationByIdFromCache(e.ConversationId);
+                if (contactSelected)
+                {
+                    if (conversation != null)
+                    {
+                        concernCurrentSelection = ((conversation.Type == Conversation.ConversationType.User) && (idSelected == conversation.PeerId));
+
+                        Contact contact = rainbowContacts.GetContactFromContactId(idSelected);
+                        contactDisplayName = GetContactDisplayName(contact);
+                    }
+                    else
+                    {
+                        AddStateLine($"ContactSelected - No conversation found ...");
+                        return;
+                    }
+                }
+                else
+                {
+                    concernCurrentSelection = (idSelected == e.ConversationId);
+                    if (conversation != null)
+                    {
+                        if (conversation.Type == Conversation.ConversationType.User)
+                        {
+                            Contact contact = rainbowContacts.GetContactFromContactId(conversation.PeerId);
+                            contactDisplayName = GetContactDisplayName(contact);
+                        }
+                        else
+                        {
+                            contactDisplayName = conversation.Name;
+                            if (String.IsNullOrEmpty(contactDisplayName))
+                                contactDisplayName = conversation.Id;
+                        }
+                    }
+                    else
+                    {
+                        AddStateLine($"ConversationSelected - No conversation found ...");
+                        return;
+                    }
+                }
+
+                if (concernCurrentSelection)
+                {
+                    if (e.IsTyping)
+                        AddStateLine($"[{contactDisplayName}] is typing in the CURRENT SELECTED conversation.");
+                    else
+                        AddStateLine($"[{contactDisplayName}] is no more typing in the CURRENT SELECTED conversation.");
+                }
+                else
+                {
+                    if (e.IsTyping)
+                        AddStateLine($"[{contactDisplayName}] is typing in ANOTHER conversation.");
+                    else
+                        AddStateLine($"[{contactDisplayName}] is no more typing in ANOTHER conversation.");
+                }
+            }
+        }
+
+        private void RainbowInstantMessaging_MessageReceived(object sender, Rainbow.Events.MessageEventArgs e)
+        {
+            bool concernCurrentSelection = false;
+            string contactDisplayName = "";
+
+            // Check if event recevied concern the form selection or not
+            if (selectionCorrect)
+            {
+                Conversation conversation = rainbowConversations.GetConversationByIdFromCache(e.ConversationId);
+                if (contactSelected)
+                {
+                    if (conversation != null)
+                    {
+                        concernCurrentSelection = ((conversation.Type == Conversation.ConversationType.User) && (idSelected == conversation.PeerId));
+                        Contact contact = rainbowContacts.GetContactFromContactId(idSelected);
+                        contactDisplayName = GetContactDisplayName(contact);
+                    }
+                    else
+                    {
+                        AddStateLine($"ContactSelected - No conversation found ...");
+                        return;
+                    }
+                }
+                else
+                {
+                    concernCurrentSelection = (idSelected == e.ConversationId);
+                    if (conversation != null)
+                    {
+                        if (conversation.Type == Conversation.ConversationType.User)
+                        {
+                            Contact contact = rainbowContacts.GetContactFromContactId(conversation.PeerId);
+                            contactDisplayName = GetContactDisplayName(contact);
+                        }
+                        else
+                        {
+                            contactDisplayName = conversation.Name;
+                            if (String.IsNullOrEmpty(contactDisplayName))
+                                contactDisplayName = conversation.Id;
+                        }
+                    }
+                    else
+                    {
+                        AddStateLine($"ConversationSelected - No conversation found ...");
+                        return;
+                    }
+                }
+
+                string msg = $"[{SerializeDateTime(e.Message.Date)}] [{contactDisplayName}]: [{e.Message.Content}]";
+                if (concernCurrentSelection)
+                {
+                    AddMessageInStream(msg);
+                    lastMessageIDReceived = e.Message.Id;
+                }
+                else
+                    AddStateLine($"Message received in another conversation - {msg}");
+            }
+        }
+
     #endregion EVENTS FIRED BY RAINBOW SDK
 
     #region EVENTS FIRED BY SampleContactForm ELEMENTS
@@ -662,6 +677,7 @@ namespace Sample_Contacts
                 UpdateSelectionInfo();
 
                 ClearMessageStream();
+                lastMessageIDReceived = null;
             }
         }
 
@@ -678,6 +694,7 @@ namespace Sample_Contacts
                 UpdateSelectionInfo();
 
                 ClearMessageStream();
+                lastMessageIDReceived = null;
             }
         }
 
@@ -800,6 +817,143 @@ namespace Sample_Contacts
         private void cbIsTypingStatus_CheckedChanged(object sender, EventArgs e)
         {
             tbMessage_TextChanged(sender, e);
+        }
+
+        private void btnMarkLastMessageRead_Click(object sender, EventArgs e)
+        {
+            if (!rainbowApplication.IsConnected())
+                return;
+
+            if (lastMessageIDReceived == null)
+            {
+                AddStateLine($"Ther is no message to mark as read ...");
+                return;
+            }
+
+            if (selectionCorrect)
+            {
+                Conversation conversation;
+                if (contactSelected)
+                {
+                    string conversationId = rainbowConversations.GetConversationIdByPeerIdFromCache(idSelected);
+                    conversation = rainbowConversations.GetConversationByIdFromCache(conversationId);
+                    if (conversation == null)
+                    {
+                        AddStateLine($"Conversation not found for this contact: [{idSelected}]");
+                        return;
+                    }
+                }
+                else
+                {
+                    conversation = rainbowConversations.GetConversationByIdFromCache(idSelected);
+                    if (conversation == null)
+                    {
+                        AddStateLine($"Conversation not found for this conversation ID: [{idSelected}]");
+                        return;
+                    }
+                }
+
+                if (conversation != null)
+                {
+                    rainbowInstantMessaging.MarkMessageAsRead(conversation.Id, lastMessageIDReceived, callback =>
+                    {
+                        if (!callback.Result.Success)
+                        {
+                            string logLine = String.Format("Impossible to mark message [{1}] as read :\r\n{0}", Util.SerialiseSdkError(callback.Result), lastMessageIDReceived);
+                            AddStateLine(logLine);
+                            log.WarnFormat(logLine);
+                        }
+                        else
+                        {
+                            AddStateLine("Message marked as read");
+                        }
+                    });
+                }
+            }
+
+        }
+
+        private void btnLoadOlderMessages_Click(object sender, EventArgs e)
+        {
+            if (!rainbowApplication.IsConnected())
+                return;
+
+            if (selectionCorrect)
+            {
+                Conversation conversation;
+                string contactDisplayName = "";
+                if (contactSelected)
+                {
+                    string conversationId = rainbowConversations.GetConversationIdByPeerIdFromCache(idSelected);
+                    conversation = rainbowConversations.GetConversationByIdFromCache(conversationId);
+                    if (conversation == null)
+                    {
+                        AddStateLine($"Conversation not found for this contact: [{idSelected}]");
+                        return;
+                    }
+                    else
+                    {
+                        Contact contact = rainbowContacts.GetContactFromContactId(idSelected);
+                        contactDisplayName = GetContactDisplayName(contact);
+                    }
+                }
+                else
+                {
+                    conversation = rainbowConversations.GetConversationByIdFromCache(idSelected);
+                    if (conversation == null)
+                    {
+                        AddStateLine($"Conversation not found for this conversation ID: [{idSelected}]");
+                        return;
+                    }
+                    else
+                    {
+                        if (conversation.Type == Conversation.ConversationType.User)
+                        {
+                            Contact contact = rainbowContacts.GetContactFromContactId(conversation.PeerId);
+                            contactDisplayName = GetContactDisplayName(contact);
+                        }
+                        else
+                        {
+                            contactDisplayName = conversation.Name;
+                            if (String.IsNullOrEmpty(contactDisplayName))
+                                contactDisplayName = conversation.Id;
+                        }
+                    }
+                }
+
+                if (conversation != null)
+                {
+                    rainbowInstantMessaging.GetMessagesFromConversationId(conversation.Id, 20, callback =>
+                    {
+                        if (callback.Result.Success)
+                        {
+                            List<Rainbow.Model.Message> list = callback.Data;
+                            int nb = list.Count;
+                            if (nb > 0)
+                            {
+                                AddStateLine($"We found [{nb}] older messages in this conversation");
+
+                                string msgList = "";
+                                foreach (Rainbow.Model.Message message in list)
+                                {
+                                    msgList = $"\r\n[{SerializeDateTime(message.Date)}] [{contactDisplayName}]: [{message.Content}]" + msgList;
+                                }
+                                AddOlderMessagesInStrem(msgList);
+                            }
+                            else
+                            {
+                                AddStateLine("There is no more older message in this conversation");
+                            }
+                        }
+                        else
+                        {
+                            string logLine = String.Format("Impossible to get older messages from conversatiob[{1}] :\r\n{0}", Util.SerialiseSdkError(callback.Result), conversation.Id);
+                            AddStateLine(logLine);
+                            log.WarnFormat(logLine);
+                        }
+                    });
+                }
+            }
         }
 
     #endregion EVENTS FIRED BY SampleContactForm ELEMENTS
@@ -932,8 +1086,8 @@ namespace Sample_Contacts
                         .ToString("yyyy-MM-ddTHH:mm:ssZ");
         }
 
-        #endregion UTIL METHODS
+    #endregion UTIL METHODS
 
-
+    
     }
 }

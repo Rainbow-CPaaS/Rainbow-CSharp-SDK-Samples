@@ -100,6 +100,7 @@
             this.tbState.Location = new System.Drawing.Point(8, 399);
             this.tbState.Multiline = true;
             this.tbState.Name = "tbState";
+            this.tbState.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             this.tbState.Size = new System.Drawing.Size(784, 173);
             this.tbState.TabIndex = 52;
             // 
@@ -154,6 +155,7 @@
             this.tbMessagesExchanged.Location = new System.Drawing.Point(8, 153);
             this.tbMessagesExchanged.Multiline = true;
             this.tbMessagesExchanged.Name = "tbMessagesExchanged";
+            this.tbMessagesExchanged.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             this.tbMessagesExchanged.Size = new System.Drawing.Size(784, 189);
             this.tbMessagesExchanged.TabIndex = 61;
             // 
@@ -201,7 +203,7 @@
             this.btnLoadOlderMessages.TabIndex = 66;
             this.btnLoadOlderMessages.Text = "Load older messages";
             this.btnLoadOlderMessages.UseVisualStyleBackColor = true;
-            this.btnLoadOlderMessages.Visible = false;
+            this.btnLoadOlderMessages.Click += new System.EventHandler(this.btnLoadOlderMessages_Click);
             // 
             // cbIsTypingStatus
             // 
@@ -224,7 +226,7 @@
             this.btnMarkLastMessageRead.TabIndex = 68;
             this.btnMarkLastMessageRead.Text = "Mark last message as read";
             this.btnMarkLastMessageRead.UseVisualStyleBackColor = true;
-            this.btnMarkLastMessageRead.Visible = false;
+            this.btnMarkLastMessageRead.Click += new System.EventHandler(this.btnMarkLastMessageRead_Click);
             // 
             // label6
             // 
