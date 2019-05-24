@@ -49,14 +49,14 @@
     <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>packages\Newtonsoft.Json.10.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
-    <Reference Include="Rainbow.CSharp.SDK, Version=0.0.0.4, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\Rainbow.CSharp.SDK.0.0.0.4\lib\net461\Rainbow.CSharp.SDK.dll</HintPath>
+    <Reference Include="Rainbow.CSharp.SDK, Version=0.0.0.5, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\Rainbow.CSharp.SDK.0.0.0.5\lib\net461\Rainbow.CSharp.SDK.dll</HintPath>
     </Reference>
     <Reference Include="RestSharp, Version=106.6.9.0, Culture=neutral, PublicKeyToken=598062e77f915f75, processorArchitecture=MSIL">
       <HintPath>packages\RestSharp.106.6.9\lib\net452\RestSharp.dll</HintPath>
     </Reference>
-    <Reference Include="Sharp.Ws.Xmpp, Version=0.0.0.4, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\Sharp.Ws.Xmpp.0.0.0.4\lib\net461\Sharp.Ws.Xmpp.dll</HintPath>
+    <Reference Include="Sharp.Ws.Xmpp, Version=0.0.0.5, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\Sharp.Ws.Xmpp.0.0.0.5\lib\net461\Sharp.Ws.Xmpp.dll</HintPath>
     </Reference>
     <Reference Include="SuperSocket.ClientEngine, Version=0.10.0.0, Culture=neutral, PublicKeyToken=ee9af13f57f00acc, processorArchitecture=MSIL">
       <HintPath>packages\SuperSocket.ClientEngine.Core.0.10.0\lib\net45\SuperSocket.ClientEngine.dll</HintPath>

@@ -293,7 +293,7 @@ namespace Sample_Contacts
                 int i, nb;
                 string str;
 
-                str = SerializePresence(presence);
+                str = Util.SerializePresence(presence);
                 nb = cbPresenceList.Items.Count;
 
                 for(i=0; i<nb; i++)
@@ -419,7 +419,7 @@ namespace Sample_Contacts
                     Presence presence = rainbowContacts.GetPresenceFromContactId(contactId);
                     if (presence == null) // It means this user is offline
                         presence = new Presence(PresenceLevel.Offline, "");
-                    tbContactPresence.Text = SerializePresence(presence);
+                    tbContactPresence.Text = Util.SerializePresence(presence);
                 }
                 else
                     tbContactPresence.Text = "no presence in this context";
@@ -455,15 +455,15 @@ namespace Sample_Contacts
         {
             if (e.Jid == rainbowMyContact.Jid_im)
             {
-                AddStateLine($"Your presence changed to [{SerializePresence(e.Presence)}]");
+                AddStateLine($"Your presence changed to [{Util.SerializePresence(e.Presence)}]");
             }
             else
             {
                 Contact contact = rainbowContacts.GetContactFromContactJid(e.Jid);
                 if(contact == null)
-                    AddStateLine($"Presence changed for [{e.Jid}]: {SerializePresence(e.Presence)}");
+                    AddStateLine($"Presence changed for [{e.Jid}]: {Util.SerializePresence(e.Presence)}");
                 else
-                    AddStateLine($"Presence changed for [{GetContactDisplayName(contact)}]: {SerializePresence(e.Presence)}");
+                    AddStateLine($"Presence changed for [{GetContactDisplayName(contact)}]: {Util.SerializePresence(e.Presence)}");
             }
         }
 
@@ -706,7 +706,7 @@ namespace Sample_Contacts
             ListItem item = (ListItem)cbPresenceList.SelectedItem;
             if (item != null)
             {
-                Presence presence = UnserializePresence(item.Text);
+                Presence presence = Util.UnserializePresence(item.Text);
                 if (presence == null)
                 {
                     string logLine = String.Format("Impossible to unserialize presence: [{0}]", item.Text);
@@ -959,69 +959,6 @@ namespace Sample_Contacts
     #endregion EVENTS FIRED BY SampleContactForm ELEMENTS
 
     #region UTIL METHODS
-
-        private string SerializePresence(Presence presence)
-        {
-            string result;
-
-            if (presence.PresenceLevel == Rainbow.Model.PresenceLevel.Online)
-                result = Rainbow.Model.PresenceLevel.Online;
-            else if (presence.PresenceLevel == Rainbow.Model.PresenceLevel.Offline)
-                result = Rainbow.Model.PresenceLevel.Offline;
-            else if (presence.PresenceLevel == Rainbow.Model.PresenceLevel.Xa)
-                result = Rainbow.Model.PresenceLevel.Xa;
-            else if (presence.PresenceLevel == Rainbow.Model.PresenceLevel.Away)
-                result = Rainbow.Model.PresenceLevel.Away;
-            else if (presence.PresenceLevel == Rainbow.Model.PresenceLevel.Dnd)
-            {
-                if( (presence.PresenceDetails != null) && (presence.PresenceDetails.Length > 0) )
-                    result = Rainbow.Model.PresenceLevel.Dnd + "-" + PresenceDetails.Presentation;
-                else
-                    result = Rainbow.Model.PresenceLevel.Dnd;
-            }
-            else if (presence.PresenceLevel == Rainbow.Model.PresenceLevel.Busy)
-            {
-                if ((presence.PresenceDetails != null) && (presence.PresenceDetails.Length > 0))
-                    result = Rainbow.Model.PresenceLevel.Busy + "-" + presence.PresenceDetails;
-                else
-                    result = Rainbow.Model.PresenceLevel.Busy;
-            }
-            else
-                result = "unknown";
-
-            return result;
-        }
-
-        private Presence UnserializePresence(string str)
-        {
-            string presenceLevel  = "";
-            string presenceDetails = "";
-
-            if (str == Rainbow.Model.PresenceLevel.Online)
-                presenceLevel = Rainbow.Model.PresenceLevel.Online;
-            else if (str == Rainbow.Model.PresenceLevel.Offline)
-                presenceLevel = Rainbow.Model.PresenceLevel.Offline;
-            else if (str == Rainbow.Model.PresenceLevel.Xa)
-                presenceLevel = Rainbow.Model.PresenceLevel.Xa;
-            else if (str == Rainbow.Model.PresenceLevel.Away)
-                presenceLevel = Rainbow.Model.PresenceLevel.Away;
-            else if (str.StartsWith(Rainbow.Model.PresenceLevel.Dnd))
-            {
-                presenceLevel = Rainbow.Model.PresenceLevel.Dnd;
-                if (str.Length > 4)
-                    presenceDetails = str.Substring(4); ;
-            }
-            else if (str.StartsWith(Rainbow.Model.PresenceLevel.Busy))
-                {
-                presenceLevel = Rainbow.Model.PresenceLevel.Busy;
-                if (str.Length > 5)
-                    presenceDetails = str.Substring(5);
-            }
-            else
-                return null;
-
-            return new Presence(presenceLevel, presenceDetails);
-        }
 
         private string GetContactDisplayName(Contact contact)
         {
