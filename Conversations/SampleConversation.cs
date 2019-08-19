@@ -26,7 +26,6 @@ namespace Sample_Contacts
         const string LOGIN_USER1 = "YOUR LOGIN";
         const string PASSWORD_USER1 = "YOUR PASSWORD";
 
-
         // Define Rainbow objects
         Rainbow.Application rainbowApplication;     // To store Rainbow Application object
         Contacts rainbowContacts;                   // To store Rainbow Contacts object
@@ -44,7 +43,7 @@ namespace Sample_Contacts
         delegate void ContactArgReturningVoidDelegate(Contact value);
         delegate void VoidDelegate();
 
-        #region INIT METHODS
+#region INIT METHODS
 
         public SampleConversationForm()
         {
@@ -99,9 +98,9 @@ namespace Sample_Contacts
             rainbowContactsList = new List<Contact>();
         }
 
-        #endregion INIT METHODS
+#endregion INIT METHODS
 
-        #region METHOD TO UPDATE SampleConversationForm COMPONENTS
+#region METHOD TO UPDATE SampleConversationForm COMPONENTS
 
         /// <summary>
         /// Permits to add a new sting in the text box at the bottom of the form: it permits to log things happening
@@ -213,14 +212,31 @@ namespace Sample_Contacts
                 foreach (Favorite favorite in rainbowFavoritesList)
                 {
                     string peerId = favorite.PeerId;
-                    Contact contact = rainbowContacts.GetContactFromContactId(peerId);
-                    if (contact != null)
+                    
+                    // Is-it a favorite with a User ?
+                    if (favorite.Type == Rainbow.Model.FavoriteType.User)
                     {
-                        string displayName = contact.DisplayName;
-                        if (String.IsNullOrEmpty(displayName))
-                            displayName = $"{contact.LastName} {contact.FirstName}";
-                        ListItem item = new ListItem(displayName, favorite.Id);
-                        cbFavoritesList.Items.Add(item);
+                        Contact contact = rainbowContacts.GetContactFromContactId(peerId);
+                        if (contact != null)
+                        {
+                            string displayName = contact.DisplayName;
+                            if (String.IsNullOrEmpty(displayName))
+                                displayName = $"{contact.LastName} {contact.FirstName}";
+                            ListItem item = new ListItem(displayName, favorite.Id);
+                            cbFavoritesList.Items.Add(item);
+                        }
+                    }
+                    // Is-it a favorite with a Bubble/Room ?
+                    else if (favorite.Type == Rainbow.Model.FavoriteType.Room)
+                    {
+                        String conversationId = rainbowConversations.GetConversationIdByPeerIdFromCache(peerId);
+                        Conversation conversation = rainbowConversations.GetConversationByIdFromCache(conversationId);
+                        if (conversation != null)
+                        {
+                            string displayName = conversation.Name;
+                            ListItem item = new ListItem(displayName, favorite.Id);
+                            cbFavoritesList.Items.Add(item);
+                        }
                     }
                 }
 
@@ -288,6 +304,19 @@ namespace Sample_Contacts
             }
         }
 
+        private void EnableAddConversationToFavorite(bool enable)
+        {
+            if (btnConversationAddToFavorite.InvokeRequired)
+            {
+                BoolArgReturningVoidDelegate d = new BoolArgReturningVoidDelegate(EnableAddConversationToFavorite);
+                this.Invoke(d, new object[] { enable });
+            }
+            else
+            {
+                btnConversationAddToFavorite.Enabled = enable;
+            }
+        }
+
         private void EnableAddContactToFavorite(bool enable)
         {
             if (btnContactAddToFavorite.InvokeRequired)
@@ -321,6 +350,30 @@ namespace Sample_Contacts
             }
         }
 
+        private void CheckConversationsSelectedAsFavorite()
+        {
+            if (cbContactsList.InvokeRequired)
+            {
+                VoidDelegate d = new VoidDelegate(CheckConversationsSelectedAsFavorite);
+                this.Invoke(d);
+            }
+            else
+            {
+                ListItem item = (ListItem)cbConversationsList.SelectedItem;
+                if (item != null)
+                {
+                    string conversationId = item.Value;
+                    Conversation conversation = rainbowConversations.GetConversationByIdFromCache(conversationId);
+                    if (conversation != null)
+                    {
+                        // Check if selected item is in favorites
+                        Favorite favorite = rainbowFavorites.GetFavoriteByPeerId(conversation.PeerId);
+                        EnableAddConversationToFavorite(favorite == null);
+                    }
+                }
+            }
+        }
+
         private void CheckContactSelectedAsConversation()
         {
             if (cbContactsList.InvokeRequired)
@@ -341,9 +394,9 @@ namespace Sample_Contacts
             }
         }
 
-        #endregion METHOD TO UPDATE SampleConversationForm COMPONEnTS
+#endregion METHOD TO UPDATE SampleConversationForm COMPONENTS
 
-        #region EVENTS FIRED BY RAINBOW SDK
+#region EVENTS FIRED BY RAINBOW SDK
 
         private void RainbowApplication_ConnectionStateChanged(object sender, Rainbow.Events.ConnectionStateEventArgs e)
         {
@@ -375,6 +428,7 @@ namespace Sample_Contacts
             AddStateLine($"A Favorite has been removed:[{e.Favorite.Id}]");
             UpdateFavoritesListComboBox();
             CheckContactSelectedAsFavorite();
+            CheckConversationsSelectedAsFavorite();
         }
 
         private void RainbowFavorites_FavoriteCreated(object sender, Rainbow.Events.FavoriteEventArgs e)
@@ -382,6 +436,7 @@ namespace Sample_Contacts
             AddStateLine($"A Favorite has been created:[{e.Favorite.Id}]");
             UpdateFavoritesListComboBox();
             CheckContactSelectedAsFavorite();
+            CheckConversationsSelectedAsFavorite();
         }
 
         private void RainbowConversations_ConversationRemoved(object sender, Rainbow.Events.ConversationEventArgs e)
@@ -411,9 +466,10 @@ namespace Sample_Contacts
             AddStateLine($"A Contact has been added:[{e.Jid}]");
             UpdateContactsListComboBox();
         }
-        #endregion EVENTS FIRED BY RAINBOW SDK
 
-        #region EVENTS FIRED BY SampleContactForm ELEMENTS
+#endregion EVENTS FIRED BY RAINBOW SDK
+
+#region EVENTS FIRED BY SampleContactForm ELEMENTS
 
         private void btnLoginLogout_Click(object sender, EventArgs e)
         {
@@ -490,6 +546,7 @@ namespace Sample_Contacts
                         AddStateLine($"Favorite[{id}] has been removed");
                         GetAllFavorites();
                         CheckContactSelectedAsFavorite();
+                        CheckConversationsSelectedAsFavorite();
                     }
                     else
                     {
@@ -519,6 +576,7 @@ namespace Sample_Contacts
                                 AddStateLine($"Favorite position[{id}] has been updated");
                                 GetAllFavorites();
                                 CheckContactSelectedAsFavorite();
+                                CheckConversationsSelectedAsFavorite();
                             }
                             else
                             {
@@ -599,9 +657,53 @@ namespace Sample_Contacts
             CheckContactSelectedAsConversation();
         }
 
-        #endregion EVENTS FIRED BY SampleContactForm ELEMENTS
+        private void btnConversationAddToFavorite_Click(object sender, EventArgs e)
+        {
+            ListItem item = (ListItem)cbConversationsList.SelectedItem;
+            if (item != null)
+            {
+                string conversationId = item.Value;
+                Conversation conversation = rainbowConversations.GetConversationByIdFromCache(conversationId);
+                if (conversation == null)
+                {
+                    AddStateLine($"No conversation object found with this ID:{conversationId}");
+                    return;
+                }
+                string peerId = conversation.PeerId;
 
-        #region UTIL METHODS
+                String favoriteType;
+                if (conversation.Type == Conversation.ConversationType.User)
+                    favoriteType = Rainbow.Model.FavoriteType.User;
+                else
+                    favoriteType = Rainbow.Model.FavoriteType.Room;
+
+                rainbowFavorites.CreateFavorite(peerId, favoriteType, callback =>
+                {
+                    if (callback.Result.Success)
+                    {
+                        AddStateLine($"Favorite with [{conversationId}] has been created");
+                        GetAllFavorites();
+                        CheckContactSelectedAsFavorite();
+                        CheckConversationsSelectedAsFavorite();
+                    }
+                    else
+                    {
+                        string logLine = String.Format("Impossible to create favorite with [{1}]:\r\n{0}", Util.SerialiseSdkError(callback.Result), conversationId);
+                        AddStateLine(logLine);
+                        log.WarnFormat(logLine);
+                    }
+                });
+            }
+        }
+
+        private void cbConversationsList_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            CheckConversationsSelectedAsFavorite();
+        }
+
+#endregion EVENTS FIRED BY SampleContactForm ELEMENTS
+
+#region UTIL METHODS
 
         private void GetAllContacts()
         {
@@ -657,7 +759,7 @@ namespace Sample_Contacts
             });
         }
 
-        #endregion UTIL METHODS
+#endregion UTIL METHODS
 
     }
 }

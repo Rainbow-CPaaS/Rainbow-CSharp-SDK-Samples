@@ -47,6 +47,7 @@
             this.tbFavoritePosition = new System.Windows.Forms.TextBox();
             this.label4 = new System.Windows.Forms.Label();
             this.btnFavoritePosition = new System.Windows.Forms.Button();
+            this.btnConversationAddToFavorite = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // label21
@@ -107,6 +108,7 @@
             this.cbConversationsList.Name = "cbConversationsList";
             this.cbConversationsList.Size = new System.Drawing.Size(188, 21);
             this.cbConversationsList.TabIndex = 54;
+            this.cbConversationsList.SelectedIndexChanged += new System.EventHandler(this.cbConversationsList_SelectedIndexChanged);
             // 
             // label1
             // 
@@ -148,7 +150,7 @@
             // 
             // btnConversationRemove
             // 
-            this.btnConversationRemove.Location = new System.Drawing.Point(88, 67);
+            this.btnConversationRemove.Location = new System.Drawing.Point(14, 66);
             this.btnConversationRemove.Name = "btnConversationRemove";
             this.btnConversationRemove.Size = new System.Drawing.Size(133, 23);
             this.btnConversationRemove.TabIndex = 60;
@@ -221,11 +223,22 @@
             this.btnFavoritePosition.UseVisualStyleBackColor = true;
             this.btnFavoritePosition.Click += new System.EventHandler(this.btnFavoritePosition_Click);
             // 
+            // btnConversationAddToFavorite
+            // 
+            this.btnConversationAddToFavorite.Location = new System.Drawing.Point(153, 66);
+            this.btnConversationAddToFavorite.Name = "btnConversationAddToFavorite";
+            this.btnConversationAddToFavorite.Size = new System.Drawing.Size(133, 23);
+            this.btnConversationAddToFavorite.TabIndex = 69;
+            this.btnConversationAddToFavorite.Text = "Add to favorite";
+            this.btnConversationAddToFavorite.UseVisualStyleBackColor = true;
+            this.btnConversationAddToFavorite.Click += new System.EventHandler(this.btnConversationAddToFavorite_Click);
+            // 
             // SampleConversationForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 584);
+            this.Controls.Add(this.btnConversationAddToFavorite);
             this.Controls.Add(this.btnFavoritePosition);
             this.Controls.Add(this.label4);
             this.Controls.Add(this.tbFavoritePosition);
@@ -272,6 +285,7 @@
         private System.Windows.Forms.TextBox tbFavoritePosition;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.Button btnFavoritePosition;
+        private System.Windows.Forms.Button btnConversationAddToFavorite;
     }
 }
 
