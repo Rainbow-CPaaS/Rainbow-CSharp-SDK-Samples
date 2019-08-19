@@ -386,6 +386,12 @@ namespace Sample_Contacts
                                 tbSelectionInfo.Text = $"Conversation-User:[{displayName}]";
                                 selectionCorrect = true;
                             }
+                            else if (conversation.Type == Conversation.ConversationType.Room)
+                            {
+                                displayName = conversation.Name;
+                                tbSelectionInfo.Text = $"Conversation-Room:[{displayName}]";
+                                selectionCorrect = true;
+                            }
                             else if (conversation.Type == Conversation.ConversationType.Bot)
                             {
                                 displayName = conversation.Name;
@@ -934,10 +940,9 @@ namespace Sample_Contacts
                                 AddStateLine($"We found [{nb}] older messages in this conversation");
 
                                 string msgList = "";
+                                string newLine = "\r\n\r\n*****************************************************************************************\r\n";
                                 foreach (Rainbow.Model.Message message in list)
-                                {
-                                    msgList = $"\r\n[{SerializeDateTime(message.Date)}] [{contactDisplayName}]: [{message.Content}]" + msgList;
-                                }
+                                    msgList = $"{newLine}{message.ToString()}" + msgList;
                                 AddOlderMessagesInStrem(msgList);
                             }
                             else
