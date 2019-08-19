@@ -561,8 +561,9 @@ namespace Sample_Contacts
                 {
                     if (callback.Result.Success)
                     {
-                        rainbowContactsListFound = callback.Data;
-                        AddStateLine($"Nb contacts found with [{search}]: {rainbowContactsListFound.Count}");
+                        SearchContactsResult result = callback.Data;
+                        rainbowContactsListFound = result.ContactsList;
+                        AddStateLine($"Nb rainbow contacts found with [{search}]: {rainbowContactsListFound.Count}");
                         UpdateContactsListFoundComboBox();
                     }
                     else
