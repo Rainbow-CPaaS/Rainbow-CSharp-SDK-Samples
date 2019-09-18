@@ -671,8 +671,8 @@ namespace Sample_Telephony
                 RainbowTelephony_TelephonyStatusUpdated(this, new TelephonyStatusEventArgs(false));
                 
                 // Need default constructor in SDK - to add in new release
-                //RainbowTelephony_CallForwardStatusUpdated(this, new CallForwardStatusEventArgs(new CallForwardStatus()));
-                //RainbowTelephony_NomadicStatusUpdated(this, new NomadicStatusEventArgs(new NomadicStatus()));
+                RainbowTelephony_CallForwardStatusUpdated(this, new CallForwardStatusEventArgs(new CallForwardStatus()));
+                RainbowTelephony_NomadicStatusUpdated(this, new NomadicStatusEventArgs(new NomadicStatus()));
             }
 
         }
