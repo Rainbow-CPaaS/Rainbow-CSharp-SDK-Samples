@@ -69,6 +69,7 @@
             this.lblVMInfo = new System.Windows.Forms.Label();
             this.label9 = new System.Windows.Forms.Label();
             this.gbFirstCall = new System.Windows.Forms.GroupBox();
+            this.tbCall1Participants = new System.Windows.Forms.TextBox();
             this.cbCall1Dtmf = new System.Windows.Forms.ComboBox();
             this.btn3Call1 = new System.Windows.Forms.Button();
             this.btn2Call1 = new System.Windows.Forms.Button();
@@ -86,6 +87,7 @@
             this.tbCall1Id = new System.Windows.Forms.TextBox();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.tbCall2Participants = new System.Windows.Forms.TextBox();
             this.cbCall2Dtmf = new System.Windows.Forms.ComboBox();
             this.btn3Call2 = new System.Windows.Forms.Button();
             this.btn2Call2 = new System.Windows.Forms.Button();
@@ -104,8 +106,6 @@
             this.tbCall2Id = new System.Windows.Forms.TextBox();
             this.btCallTransfer = new System.Windows.Forms.Button();
             this.btCallConference = new System.Windows.Forms.Button();
-            this.tbCall1Participants = new System.Windows.Forms.TextBox();
-            this.tbCall2Participants = new System.Windows.Forms.TextBox();
             this.tbMakeCall = new System.Windows.Forms.TextBox();
             this.btMakeCall = new System.Windows.Forms.Button();
             this.gbCallFwd.SuspendLayout();
@@ -548,6 +548,16 @@
             this.gbFirstCall.TabStop = false;
             this.gbFirstCall.Text = "Call 1";
             // 
+            // tbCall1Participants
+            // 
+            this.tbCall1Participants.Location = new System.Drawing.Point(87, 93);
+            this.tbCall1Participants.Multiline = true;
+            this.tbCall1Participants.Name = "tbCall1Participants";
+            this.tbCall1Participants.ReadOnly = true;
+            this.tbCall1Participants.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            this.tbCall1Participants.Size = new System.Drawing.Size(280, 33);
+            this.tbCall1Participants.TabIndex = 106;
+            // 
             // cbCall1Dtmf
             // 
             this.cbCall1Dtmf.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
@@ -735,6 +745,16 @@
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Call 2";
             // 
+            // tbCall2Participants
+            // 
+            this.tbCall2Participants.Location = new System.Drawing.Point(87, 93);
+            this.tbCall2Participants.Multiline = true;
+            this.tbCall2Participants.Name = "tbCall2Participants";
+            this.tbCall2Participants.ReadOnly = true;
+            this.tbCall2Participants.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            this.tbCall2Participants.Size = new System.Drawing.Size(280, 33);
+            this.tbCall2Participants.TabIndex = 107;
+            // 
             // cbCall2Dtmf
             // 
             this.cbCall2Dtmf.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
@@ -916,26 +936,6 @@
             this.btCallConference.Text = "Conference";
             this.btCallConference.UseVisualStyleBackColor = true;
             this.btCallConference.Click += new System.EventHandler(this.btCallConference_Click);
-            // 
-            // tbCall1Participants
-            // 
-            this.tbCall1Participants.Location = new System.Drawing.Point(87, 93);
-            this.tbCall1Participants.Multiline = true;
-            this.tbCall1Participants.Name = "tbCall1Participants";
-            this.tbCall1Participants.ReadOnly = true;
-            this.tbCall1Participants.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.tbCall1Participants.Size = new System.Drawing.Size(280, 33);
-            this.tbCall1Participants.TabIndex = 106;
-            // 
-            // tbCall2Participants
-            // 
-            this.tbCall2Participants.Location = new System.Drawing.Point(87, 93);
-            this.tbCall2Participants.Multiline = true;
-            this.tbCall2Participants.Name = "tbCall2Participants";
-            this.tbCall2Participants.ReadOnly = true;
-            this.tbCall2Participants.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.tbCall2Participants.Size = new System.Drawing.Size(280, 33);
-            this.tbCall2Participants.TabIndex = 107;
             // 
             // tbMakeCall
             // 

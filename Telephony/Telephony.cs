@@ -54,7 +54,7 @@ namespace Sample_Telephony
         delegate void CallArgReturningVoidDelegate(Call value);
 
 
-        #region INIT METHODS
+    #region INIT METHODS
         public SampleTelephonyForm()
         {
             InitializeComponent();
