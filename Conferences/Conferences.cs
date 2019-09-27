@@ -28,19 +28,12 @@ namespace Sample_Conferences.csproj
         private static readonly ILog log = LogManager.GetLogger(typeof(SampleConferencesForm));
 
         //Define Rainbow Application Id, Secret Key and Host Name
-        //const string APP_ID = "YOUR APP ID";
-        //const string APP_SECRET_KEY = "YOUR SECRET KEY";
-        //const string HOST_NAME = "sandbox.openrainbow.com";
+        const string APP_ID = "YOUR APP ID";
+        const string APP_SECRET_KEY = "YOUR SECRET KEY";
+        const string HOST_NAME = "sandbox.openrainbow.com";
 
-        //const string LOGIN_USER1 = "YOUR LOGIN";
-        //const string PASSWORD_USER1 = "YOUR PASSWORD";
-
-        const string APP_ID = "6f8c5910725b11e9b55c81be00bebc2c";
-        const string APP_SECRET_KEY = "qSmr71s7idLiKRmhXGNNIOpPJynliqrS2sHKy3Wzk6ytauRSP13qebuJQmRHGwTN";
-        const string HOST_NAME = "openrainbow.net";
-
-        const string LOGIN_USER1 = "irlesuser1@sophia.com";
-        const string PASSWORD_USER1 = "Rainbow1!";
+        const string LOGIN_USER1 = "YOUR LOGIN";
+        const string PASSWORD_USER1 = "YOUR PASSWORD";
 
         // Define Rainbow objects
         Rainbow.Application rainbowApplication;     // To store Rainbow Application object
@@ -144,6 +137,7 @@ namespace Sample_Conferences.csproj
             conferenceInProgress = e.Conference;
 
             AddStateLine("Conference Updated: " + conferenceInProgress.ToString());
+            log.DebugFormat("Conference Updated: " + conferenceInProgress.ToString());
 
             UpdateConferenceInProgress();
         }
@@ -192,6 +186,8 @@ namespace Sample_Conferences.csproj
             }
             else
             {
+                log.DebugFormat("[UpdateConferenceInProgress] - IN");
+
                 if(conferenceInProgress != null)
                 {
                     if (conferenceInProgress.Active)
@@ -283,11 +279,14 @@ namespace Sample_Conferences.csproj
                     // Reset publishers
                     UpdateConferencePublishers(null);
                 }
+
+                log.DebugFormat("[UpdateConferenceInProgress] - OUT");
             }
         }
 
         private void UpdateConferenceParticipants(List<Conference.Participant> list)
         {
+            log.DebugFormat("[UpdateConferenceParticipants] - IN");
             if ( (list != null) && (list.Count > 0) )
             {
                 // Try to always display the participant already selected (if any)
@@ -335,10 +334,12 @@ namespace Sample_Conferences.csproj
             btnConferenceMute.Enabled = cbAsModerator.Checked;
             btnConferenceLock.Enabled = cbAsModerator.Checked;
             btnConferenceStop.Enabled = cbAsModerator.Checked;
+            log.DebugFormat("[UpdateConferenceParticipants] - OUT");
         }
 
         private void UpdateConferencePublishers(List<Conference.Publisher> list)
         {
+            log.DebugFormat("[UpdateConferencePublishers] - IN");
             if ((list != null) && (list.Count > 0))
             {
                 // Try to always display the publisher already selected (if any)
@@ -368,7 +369,9 @@ namespace Sample_Conferences.csproj
                 cbPublishersList.SelectedIndex = -1;
                 cbPublishersList.Items.Clear();
             }
+            log.DebugFormat("[UpdateConferencePublishers] - OUT");
         }
+
         /// <summary>
         /// Permits to update Login / logout btn
         /// </summary>
@@ -418,10 +421,9 @@ namespace Sample_Conferences.csproj
             }
             else
             {
-                if (String.IsNullOrEmpty(tbState.Text))
-                    tbState.AppendText(info);
-                else
-                    tbState.AppendText("\r\n" + info);
+                DateTime dateTime = DateTime.Now;
+                String output = String.Format("{0}{1} - {2}", String.IsNullOrEmpty(tbState.Text)? "" : "\r\n", dateTime.ToString("o"), info);
+                tbState.AppendText(output);
             }
         }
 
@@ -686,7 +688,8 @@ namespace Sample_Conferences.csproj
         {
             if(conferenceInProgress != null)
             {
-                if( cbParticipantsList.SelectedIndex < conferenceInProgress.Participants.Count)
+                if ( (cbParticipantsList.SelectedIndex < conferenceInProgress.Participants.Count)
+                    && (cbParticipantsList.SelectedIndex >= 0) )
                 {
                     Conference.Participant participant = conferenceInProgress.Participants[cbParticipantsList.SelectedIndex];
 
@@ -711,7 +714,8 @@ namespace Sample_Conferences.csproj
         {
             if (conferenceInProgress != null)
             {
-                if (cbPublishersList.SelectedIndex < conferenceInProgress.Publishers.Count)
+                if ( (cbPublishersList.SelectedIndex < conferenceInProgress.Publishers.Count)
+                    && (cbPublishersList.SelectedIndex >= 0) )
                 {
                     Conference.Publisher publisher = conferenceInProgress.Publishers[cbPublishersList.SelectedIndex];
 
