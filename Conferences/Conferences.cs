@@ -42,7 +42,7 @@ namespace Sample_Conferences.csproj
         Contacts rainbowContacts;                   // To store Rainbow Contacts object
         Contact rainbowMyContact;                   // To store My contact (i.e. the one connected to Rainbow Server)
 
-        Conference conferenceInProgress;            // To Store the confrence in progress - For the exampl, we considre to have only ONE Conference in same time
+        Conference conferenceInProgress;            // To Store the conference in progress - In this example, we consider to have only ONE Conference in same time
 
         // Define delegate to update SampleConferencesForm components
         delegate void VoidDelegate();
