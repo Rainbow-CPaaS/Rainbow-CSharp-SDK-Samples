@@ -9,6 +9,7 @@ using Rainbow.Model;
 
 using log4net;
 using log4net.Config;
+
 using System.Web.UI.WebControls;
 
 namespace Sample_Contacts
@@ -39,7 +40,7 @@ namespace Sample_Contacts
         delegate void ContactArgReturningVoidDelegate(Contact value);
         delegate void VoidDelegate();
 
-        #region INIT METHODS
+    #region INIT METHODS
 
         public SampleContactForm()
         {
@@ -92,9 +93,9 @@ namespace Sample_Contacts
             rainbowContactsListFound = new List<Contact>(); ;
         }
 
-        #endregion INIT METHODS
+    #endregion INIT METHODS
         
-        #region METHOD TO UPDATE SampleContactForm COMPONEnTS
+    #region METHOD TO UPDATE SampleContactForm COMPONEnTS
 
         /// <summary>
         /// Permits to add a new sting in the text box at the bottom of the form: it permits to log things happening
@@ -313,9 +314,9 @@ namespace Sample_Contacts
             }
         }
 
-        #endregion METHOD TO UPDATE SampleContactForm COMPONEnTS
+    #endregion METHOD TO UPDATE SampleContactForm COMPONEnTS
 
-        #region EVENTS FIRED BY RAINBOW SDK
+    #region EVENTS FIRED BY RAINBOW SDK
 
         private void RainbowApplication_ConnectionStateChanged(object sender, Rainbow.Events.ConnectionStateEventArgs e)
         {
@@ -354,11 +355,15 @@ namespace Sample_Contacts
 
         private void RainbowContacts_ContactInfoChanged(object sender, Rainbow.Events.JidEventArgs e)
         {
-            throw new NotImplementedException();
+            if (e.Jid == rainbowMyContact.Jid_im)
+                AddStateLine($"The server has confirmed the update of my contact information");
+            else
+                AddStateLine($"A contact has changed its information - JID:[{e.Jid}]");
         }
-        #endregion EVENTS FIRED BY RAINBOW SDK
 
-        #region EVENTS FIRED BY SampleContactForm ELEMENTS
+    #endregion EVENTS FIRED BY RAINBOW SDK
+
+    #region EVENTS FIRED BY SampleContactForm ELEMENTS
 
         private void btnLoginLogout_Click(object sender, EventArgs e)
         {
@@ -383,6 +388,9 @@ namespace Sample_Contacts
                     {
                         // Since we are connected, we get the current contact object
                         rainbowMyContact = rainbowContacts.GetCurrentContact();
+
+                        if (String.IsNullOrEmpty(rainbowMyContact.Timezone))
+                            rainbowMyContact.Timezone = "Europe/Paris";
 
                         UpdateMyContactElements();
                     }
@@ -530,7 +538,8 @@ namespace Sample_Contacts
                 {
                     if (callback.Result.Success)
                     {
-                        System.Drawing.Image img = callback.Data;
+                        byte[] data = callback.Data;
+                        System.Drawing.Image img = GetImageFromBytes(ref data);
                         if (img != null)
                         {
                             UpdateContactAvatar(img);
@@ -651,9 +660,9 @@ namespace Sample_Contacts
             }
         }
 
-        #endregion EVENTS FIRED BY SampleContactForm ELEMENTS
+    #endregion EVENTS FIRED BY SampleContactForm ELEMENTS
 
-        #region UTIL METHODS
+    #region UTIL METHODS
 
         private void GetAvatarFromCurrentContact()
         {
@@ -664,7 +673,8 @@ namespace Sample_Contacts
             {
                 if (callback.Result.Success)
                 {
-                    System.Drawing.Image img = callback.Data;
+                    byte[] data = callback.Data;
+                    System.Drawing.Image img = GetImageFromBytes(ref data);
                     if (img != null)
                     {
                         UpdateMyAvatar(img);
@@ -704,9 +714,23 @@ namespace Sample_Contacts
             });
         }
 
+        private System.Drawing.Image GetImageFromBytes(ref byte[] data)
+        {
+            System.Drawing.Image result = null;
+            try
+            {
+                using (var ms = new MemoryStream(data))
+                    result = System.Drawing.Image.FromStream(ms);
+            }
+            catch (Exception e)
+            {
+                log.WarnFormat("[GetImageFromBytes] Exception\r\n", Rainbow.Util.SerializeException(e));
+            }
+            return result;
+        }
 
         #endregion UTIL METHODS
 
- 
+
     }
 }
