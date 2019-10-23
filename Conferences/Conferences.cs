@@ -240,11 +240,17 @@ namespace Sample_Conferences.csproj
                         else
                             btnConferenceMute.Text = "Mute";
 
-                        /// Conference - global lock
-                        if (conferenceInProgress.Locked)
-                            btnConferenceLock.Text = "Unlock";
+                        if (cbIsPersonalConference.Checked)
+                        {
+                            btnConferenceLock.Enabled = true;
+                            /// Conference - global lock
+                            if (conferenceInProgress.Locked)
+                                btnConferenceLock.Text = "Unlock";
+                            else
+                                btnConferenceLock.Text = "Lock";
+                        }
                         else
-                            btnConferenceLock.Text = "Lock";
+                            btnConferenceLock.Enabled = false;
 
                         // Update participants
                         UpdateConferenceParticipants(conferenceInProgress.Participants);
@@ -650,18 +656,21 @@ namespace Sample_Conferences.csproj
         {
             if (conferenceInProgress != null)
             {
-                rainbowBubbles.ConferenceLockOrUnlock(conferenceInProgress.Id, !conferenceInProgress.Locked, callback =>
+                if (rainbowBubbles.PersonalConferenceGetId() == conferenceInProgress.Id)
                 {
-                    if (callback.Result.Success)
+                    rainbowBubbles.PersonalConferenceLockOrUnlock(!conferenceInProgress.Locked, callback =>
                     {
-                        AddStateLine(String.Format("Personal Conference - Lock/Unlock done"));
-                    }
-                    else
-                    {
-                        AddStateLine("Pb to Lock/Unlock Personal Conference ...");
-                        log.DebugFormat("Pb to Lock/Unlock Personal Conference - error:[{0}]", Util.SerialiseSdkError(callback.Result));
-                    }
-                });
+                        if (callback.Result.Success)
+                        {
+                            AddStateLine(String.Format("Personal Conference - Lock/Unlock done"));
+                        }
+                        else
+                        {
+                            AddStateLine("Pb to Lock/Unlock Personal Conference ...");
+                            log.DebugFormat("Pb to Lock/Unlock Personal Conference - error:[{0}]", Util.SerialiseSdkError(callback.Result));
+                        }
+                    });
+                }
             }
         }
 
