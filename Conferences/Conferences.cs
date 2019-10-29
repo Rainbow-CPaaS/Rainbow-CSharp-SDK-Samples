@@ -25,7 +25,7 @@ namespace Sample_Conferences.csproj
     {
 
         // Define log object
-        private static readonly ILog log = LogManager.GetLogger(typeof(SampleConferencesForm));
+        private static readonly ILog log = LogConfigurator.GetLogger(typeof(SampleConferencesForm));
 
         //Define Rainbow Application Id, Secret Key and Host Name
         const string APP_ID = "YOUR APP ID";
@@ -63,7 +63,8 @@ namespace Sample_Conferences.csproj
             tbLogin.Text = LOGIN_USER1;
             tbPassword.Text = PASSWORD_USER1;
 
-            InitializeLog();
+            log.Info("==============================================================");
+            log.Info("SampleConference started");
 
             InitializeRainbowSDK();
         }
@@ -78,8 +79,7 @@ namespace Sample_Conferences.csproj
             if (fileInfo != null)
                 XmlConfigurator.Configure(fileInfo);
 
-            log.Info("==============================================================");
-            log.Info("SampleConference started");
+            
         }
 
         private void InitializeRainbowSDK()

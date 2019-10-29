@@ -17,7 +17,7 @@ namespace Sample_Contacts
     public partial class SampleContactForm : Form
     {
         // Define log object
-        private static readonly ILog log = LogManager.GetLogger(typeof(SampleContactForm));
+        private static readonly ILog log = LogConfigurator.GetLogger(typeof(SampleContactForm));
 
         //Define Rainbow Application Id, Secret Key and Host Name
         const string APP_ID = "YOUR APP ID";
@@ -48,23 +48,10 @@ namespace Sample_Contacts
             tbLogin.Text = LOGIN_USER1;
             tbPassword.Text = PASSWORD_USER1;
 
-            InitializeLog();
-
-            InitializeRainbowSDK();
-        }
-
-        private void InitializeLog()
-        {
-            string logPath = @".\..\..\log4netConfiguration.xml";
-            FileInfo fileInfo = new FileInfo(logPath);
-
-            bool result = File.Exists(logPath);
-
-            if (fileInfo != null)
-                XmlConfigurator.Configure(fileInfo);
-
             log.Info("==============================================================");
             log.Info("SampleContact started");
+
+            InitializeRainbowSDK();
         }
 
         private void InitializeRainbowSDK()

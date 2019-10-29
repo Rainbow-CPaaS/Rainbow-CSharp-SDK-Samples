@@ -22,7 +22,7 @@ namespace Sample_Telephony
     public partial class SampleTelephonyForm : Form
     {
         // Define log object
-        private static readonly ILog log = LogManager.GetLogger(typeof(SampleTelephonyForm));
+        private static readonly ILog log = LogConfigurator.GetLogger(typeof(SampleTelephonyForm));
 
         //Define Rainbow Application Id, Secret Key and Host Name
         const string APP_ID = "YOUR APP ID";
@@ -65,23 +65,10 @@ namespace Sample_Telephony
             cbCall1Dtmf.SelectedIndex = 0;
             cbCall2Dtmf.SelectedIndex = 0;
 
-            InitializeLog();
-
-            InitializeRainbowSDK();
-        }
-
-        private void InitializeLog()
-        {
-            string logPath = @".\..\..\log4netConfiguration.xml";
-            FileInfo fileInfo = new FileInfo(logPath);
-
-            bool result = File.Exists(logPath);
-
-            if (fileInfo != null)
-                XmlConfigurator.Configure(fileInfo);
-
             log.Info("==============================================================");
             log.Info("SampleTelephony started");
+
+            InitializeRainbowSDK();
         }
 
         private void InitializeRainbowSDK()

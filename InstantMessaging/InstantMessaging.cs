@@ -16,7 +16,7 @@ namespace Sample_Contacts
     public partial class SampleInstantMessagingForm : Form
     {
         // Define log object
-        private static readonly ILog log = LogManager.GetLogger(typeof(SampleInstantMessagingForm));
+        private static readonly ILog log = LogConfigurator.GetLogger(typeof(SampleInstantMessagingForm));
 
         //Define Rainbow Application Id, Secret Key and Host Name
         const string APP_ID = "YOUR APP ID";
@@ -60,23 +60,10 @@ namespace Sample_Contacts
 
             SetDefaultPresenceList();
 
-            InitializeLog();
-
-            InitializeRainbowSDK();
-        }
-
-        private void InitializeLog()
-        {
-            string logPath = @".\..\..\log4netConfiguration.xml";
-            FileInfo fileInfo = new FileInfo(logPath);
-
-            bool result = File.Exists(logPath);
-
-            if (fileInfo != null)
-                XmlConfigurator.Configure(fileInfo);
-
             log.Info("==============================================================");
             log.Info("SampleInstantMessaging started");
+
+            InitializeRainbowSDK();
         }
 
         private void InitializeRainbowSDK()
