@@ -1,7 +1,7 @@
 ![Rainbow](../logo_rainbow.png)
 
  
-# Rainbow-CSharp-SDK - Sample Conversations / Favorites
+# Rainbow-CSharp-SDK - Sample Conversations / Favorites - Xamarin.Mac
 ---
 
 This simple application permits to understand how :

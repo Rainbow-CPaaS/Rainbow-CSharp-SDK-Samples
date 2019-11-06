@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{9C26037E-A456-48D8-9CC2-AE3528453513}</ProjectGuid>
+    <ProjectTypeGuids>{A3F8F2AB-B479-4A4A-A458-A89E7DC349F1};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>SampleConversation</RootNamespace>
+    <AssemblyName>SampleConversation</AssemblyName>
+    <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
+    <TargetFrameworkIdentifier>Xamarin.Mac</TargetFrameworkIdentifier>
+    <MonoMacResourcePrefix>Resources</MonoMacResourcePrefix>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug</OutputPath>
+    <DefineConstants>DEBUG;</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <EnableCodeSigning>false</EnableCodeSigning>
+    <CodeSigningKey>Mac Developer</CodeSigningKey>
+    <CreatePackage>false</CreatePackage>
+    <EnablePackageSigning>false</EnablePackageSigning>
+    <IncludeMonoRuntime>false</IncludeMonoRuntime>
+    <UseSGen>true</UseSGen>
+    <UseRefCounting>true</UseRefCounting>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <EnableCodeSigning>false</EnableCodeSigning>
+    <CreatePackage>true</CreatePackage>
+    <EnablePackageSigning>false</EnablePackageSigning>
+    <IncludeMonoRuntime>true</IncludeMonoRuntime>
+    <UseSGen>true</UseSGen>
+    <UseRefCounting>true</UseRefCounting>
+    <LinkMode>SdkOnly</LinkMode>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="Xamarin.Mac" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="RestSharp">
+      <HintPath>..\packages\RestSharp.106.6.10\lib\netstandard2.0\RestSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.IdentityModel.Logging">
+      <HintPath>..\packages\Microsoft.IdentityModel.Logging.5.6.0\lib\netstandard2.0\Microsoft.IdentityModel.Logging.dll</HintPath>
+    </Reference>
+    <Reference Include="SuperSocket.ClientEngine">
+      <HintPath>..\packages\SuperSocket.ClientEngine.Core.0.10.0\lib\netstandard1.3\SuperSocket.ClientEngine.dll</HintPath>
+    </Reference>
+    <Reference Include="log4net">
+      <HintPath>..\packages\log4net.2.0.8\lib\netstandard1.3\log4net.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\packages\Newtonsoft.Json.12.0.2\lib\netstandard2.0\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.IdentityModel.Tokens">
+      <HintPath>..\packages\Microsoft.IdentityModel.Tokens.5.6.0\lib\netstandard2.0\Microsoft.IdentityModel.Tokens.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.IdentityModel.JsonWebTokens">
+      <HintPath>..\packages\Microsoft.IdentityModel.JsonWebTokens.5.6.0\lib\netstandard2.0\Microsoft.IdentityModel.JsonWebTokens.dll</HintPath>
+    </Reference>
+    <Reference Include="System.IdentityModel.Tokens.Jwt">
+      <HintPath>..\packages\System.IdentityModel.Tokens.Jwt.5.6.0\lib\netstandard2.0\System.IdentityModel.Tokens.Jwt.dll</HintPath>
+    </Reference>
+    <Reference Include="WebSocket4Net">
+      <HintPath>..\packages\WebSocket4Net.0.15.2\lib\netstandard1.3\WebSocket4Net.dll</HintPath>
+    </Reference>
+    <Reference Include="Sharp.Ws.Xmpp">
+      <HintPath>..\packages\Sharp.Ws.Xmpp.1.3.0\lib\netstandard2.0\Sharp.Ws.Xmpp.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Xml" />
+    <Reference Include="Rainbow.CSharp.SDK">
+      <HintPath>..\packages\Rainbow.CSharp.SDK.1.3.0\lib\netstandard2.0\Rainbow.CSharp.SDK.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\Contents.json" />
+    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\AppIcon-128.png" />
+    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\AppIcon-128%402x.png" />
+    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\AppIcon-16.png" />
+    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\AppIcon-16%402x.png" />
+    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\AppIcon-256.png" />
+    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\AppIcon-256%402x.png" />
+    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\AppIcon-32.png" />
+    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\AppIcon-32%402x.png" />
+    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\AppIcon-512.png" />
+    <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\AppIcon-512%402x.png" />
+    <ImageAsset Include="Assets.xcassets\Contents.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Resources\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Info.plist" />
+    <None Include="Entitlements.plist" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Main.cs" />
+    <Compile Include="AppDelegate.cs" />
+    <Compile Include="ViewController.cs" />
+    <Compile Include="ViewController.designer.cs">
+      <DependentUpon>ViewController.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <InterfaceDefinition Include="Main.storyboard" />
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath)\Xamarin\Mac\Xamarin.Mac.CSharp.targets" />
+</Project>
