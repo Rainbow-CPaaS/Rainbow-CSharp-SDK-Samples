@@ -1,4 +1,4 @@
-![Rainbow](../logo_rainbow.png)
+![Rainbow](../../logo_rainbow.png)
 
  
 # Rainbow-CSharp-SDK - Sample Conferences
