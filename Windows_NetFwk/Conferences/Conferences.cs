@@ -69,19 +69,6 @@ namespace Sample_Conferences.csproj
             InitializeRainbowSDK();
         }
 
-        private void InitializeLog()
-        {
-            string logPath = @".\..\..\log4netConfiguration.xml";
-            FileInfo fileInfo = new FileInfo(logPath);
-
-            bool result = File.Exists(logPath);
-
-            if (fileInfo != null)
-                XmlConfigurator.Configure(fileInfo);
-
-            
-        }
-
         private void InitializeRainbowSDK()
         {
             rainbowApplication = new Rainbow.Application(); ;

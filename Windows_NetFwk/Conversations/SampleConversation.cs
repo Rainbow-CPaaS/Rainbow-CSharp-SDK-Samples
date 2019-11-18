@@ -26,6 +26,7 @@ namespace Sample_Contacts
         const string LOGIN_USER1 = "YOUR LOGIN";
         const string PASSWORD_USER1 = "YOUR PASSWORD";
 
+
         // Define Rainbow objects
         Rainbow.Application rainbowApplication;     // To store Rainbow Application object
         Contacts rainbowContacts;                   // To store Rainbow Contacts object
@@ -199,31 +200,34 @@ namespace Sample_Contacts
                 foreach (Favorite favorite in rainbowFavoritesList)
                 {
                     string peerId = favorite.PeerId;
-                    
+
+                    log.DebugFormat("UpdateFavoritesListComboBox - peerID:[{0}] - type:[{1}]", peerId, favorite.Type);
+
                     // Is-it a favorite with a User ?
                     if (favorite.Type == Rainbow.Model.FavoriteType.User)
                     {
+
                         Contact contact = rainbowContacts.GetContactFromContactId(peerId);
-                        if (contact != null)
-                        {
-                            string displayName = contact.DisplayName;
-                            if (String.IsNullOrEmpty(displayName))
-                                displayName = $"{contact.LastName} {contact.FirstName}";
-                            ListItem item = new ListItem(displayName, favorite.Id);
-                            cbFavoritesList.Items.Add(item);
-                        }
+                        //if (contact != null)
+                        //{
+                        //    string displayName = contact.DisplayName;
+                        //    if (String.IsNullOrEmpty(displayName))
+                        //        displayName = $"{contact.LastName} {contact.FirstName}";
+                        //    //ListItem item = new ListItem(displayName, favorite.Id);
+                        //    //cbFavoritesList.Items.Add(item);
+                        //}
                     }
                     // Is-it a favorite with a Bubble/Room ?
                     else if (favorite.Type == Rainbow.Model.FavoriteType.Room)
                     {
-                        String conversationId = rainbowConversations.GetConversationIdByPeerIdFromCache(peerId);
-                        Conversation conversation = rainbowConversations.GetConversationByIdFromCache(conversationId);
-                        if (conversation != null)
-                        {
-                            string displayName = conversation.Name;
-                            ListItem item = new ListItem(displayName, favorite.Id);
-                            cbFavoritesList.Items.Add(item);
-                        }
+                        //String conversationId = rainbowConversations.GetConversationIdByPeerIdFromCache(peerId);
+                        //Conversation conversation = rainbowConversations.GetConversationByIdFromCache(conversationId);
+                        //if (conversation != null)
+                        //{
+                        //    string displayName = conversation.Name;
+                        //    //ListItem item = new ListItem(displayName, favorite.Id);
+                        //    //cbFavoritesList.Items.Add(item);
+                        //}
                     }
                 }
 
