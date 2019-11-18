@@ -1,7 +1,7 @@
 ![Rainbow](../../logo_rainbow.png)
 
  
-# Rainbow-CSharp-SDK - Sample Instant Messaging
+ # Rainbow-CSharp-SDK - Sample Instant Messaging - Xamarin.Mac
 ---
 
 This simple application permits to understand how :
