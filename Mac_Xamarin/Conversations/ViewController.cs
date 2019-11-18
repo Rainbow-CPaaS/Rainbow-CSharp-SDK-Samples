@@ -16,12 +16,12 @@ namespace SampleConversation
     {
         private static readonly log4net.ILog log = Rainbow.LogConfigurator.GetLogger(typeof(ViewController));
 
-        const string APP_ID = "13e64960d92411e9804b052406772593";
-        const string APP_SECRET_KEY = "uqWvzNXeqmSUEkHDZsLVs6S9JkCPDxvwkNOFVe6afpimaWsA1uykBx0TdoSMWnDg";
+        const string APP_ID = "YOUR_APP_ID";
+        const string APP_SECRET_KEY = "YOUR_SECRET_KEY";
         const string HOSTNAME = "sandbox.openrainbow.com";
 
-        const string LOGIN = "wednesday.addams@mycompany.com";
-        const string PASSWORD = "wednesdayAddams1*";
+        const string LOGIN = "YOUR_LOGIN";
+        const string PASSWORD = "YOUR_PASSWORD";
 
         // Define Rainbow objects
         Application rainbowApplication;         // To store Rainbow Application object
