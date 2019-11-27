@@ -69,9 +69,11 @@
 
                 <!-- MESSAGE LIST - START -->
                 <ListView Grid.Row="0" 
-			        x:Name="ConversationsListView" 
+			        x:Name="MessagesListView" 
                     ItemTemplate="{StaticResource MessageViewCellTemplateSelector}" 
                     ItemsSource="{Binding MessagesList}"
+                    ItemSelected="MessagesListView_OnItemSelected" 
+			        ItemTapped="MessagesListView_OnItemTapped" 
 			        HasUnevenRows="True"
 			        SeparatorVisibility="None" 
                     VerticalOptions="End"/>
