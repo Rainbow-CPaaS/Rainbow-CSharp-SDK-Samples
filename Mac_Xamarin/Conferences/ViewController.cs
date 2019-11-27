@@ -12,12 +12,12 @@ namespace SampleConferences
     {
         private static readonly log4net.ILog log = Rainbow.LogConfigurator.GetLogger(typeof(ViewController));
 
-        const string APP_ID = "6f8c5910725b11e9b55c81be00bebc2c";
-        const string APP_SECRET_KEY = "qSmr71s7idLiKRmhXGNNIOpPJynliqrS2sHKy3Wzk6ytauRSP13qebuJQmRHGwTN";
-        const string HOSTNAME = "openrainbow.net";
+        const string APP_ID = "YOUR_APP_ID";
+        const string APP_SECRET_KEY = "YOUR_APP_SECRET_KEY";
+        const string HOSTNAME = "sandbox.openrainbow.com";
 
-        const string LOGIN = "aliciawebrtc@jmr.test.openrainbow.net";
-        const string PASSWORD = "1!Poulette";
+        const string LOGIN = "YOUR_LOGIN";
+        const string PASSWORD = "YOUR_PASSWORD";
 
         // Define Rainbow objects
         Rainbow.Application rainbowApplication;     // To store Rainbow Application object
