@@ -55,7 +55,8 @@ namespace Rainbow.Helpers
         private BackgroundWorker backgroundWorkerUnkownContact = null;
 
         private Boolean allowToAskContactInfo = false;
-        private readonly List<String> contactsUnknown = new List<String>(); // Store Id of contacts with info
+        private readonly List<String> contactsUnknownById = new List<String>(); // Store Id of unknow contacts
+        private readonly List<String> contactsUnknownByJid = new List<String>(); // Store Jid of unknow contacts
 
         #region Define folder path variables
         // Store folders path where Contact Avatars are stored
@@ -548,6 +549,150 @@ namespace Rainbow.Helpers
             return result;
         }
 
+        public String GetContactAvatarPath(String contactId)
+        {
+            if (!InitDone())
+                return null;
+
+            String pathRounded;
+            String pathOriginal;
+            String pathInitials;
+
+            // Check rounded avatar
+            pathRounded = Path.Combine(folderContactAvatarRounded, contactId + ".png");
+            if (File.Exists(pathRounded))
+                return pathRounded;
+
+            // Since there is no rounded avatar, we'll dwl the avatar
+            AddContactAvatarToDownload(contactId);
+
+            //// Check original avatar
+            pathOriginal = Path.Combine(folderContactAvatarOriginals, contactId + ".png");
+            //if (File.Exists(pathOriginal))
+            //{
+            //    avatar = GetRoundedAvatarUsingFile(pathOriginal);
+            //    if (avatar != null)
+            //    {
+            //        avatar.Save(pathRounded);
+            //        avatar.Dispose();
+            //        return pathRounded;
+            //    }
+            //}
+
+            // Check avatar with initials
+            pathInitials = Path.Combine(folderContactAvatarInitials, contactId + ".png");
+            if (File.Exists(pathInitials))
+            {
+                // We always recreate "Initial Avatar" if we don't know first its initials / displayName
+                if (avatarsData.contactsInfo.ContainsKey(contactId))
+                    return pathInitials;
+                else
+                {
+                    try
+                    {
+                        File.Delete(pathInitials);
+                    }
+                    catch
+                    {
+                    }
+                }
+            }
+
+            // We need to create avatar using initials
+            Contact contact = contacts.GetContactFromContactId(contactId);
+            if (contact != null)
+            {
+                String displayName = Util.GetContactDisplayName(contact, firstNameFirst);
+                String initials = Util.GetContactInitials(contact, firstNameFirst);
+
+                avatarsData.contactsInfo.Remove(contactId);
+                avatarsData.contactsInfo.Add(contactId, new Tuple<string, string>(initials, displayName));
+
+                Stream stream = GetAvatarUsingInitials(initials, GetColorFromDisplayName(displayName), "#FFFFFF");
+                // Save as "original" image if necessary
+                if (!File.Exists(pathOriginal))
+                {
+                    if ((stream != null) && (stream.Length != 0))
+                    {
+                        using (Stream file = File.Create(pathOriginal))
+                        {
+                            stream.CopyTo(file);
+                            // Return to first position
+                            stream.Seek(0, SeekOrigin.Begin);
+                        }
+                    }
+                }
+
+                // Create "initials" image and save it
+                if (!File.Exists(pathInitials))
+                {
+                    stream = GetRoundedFromSquareImage(stream);
+                    if ((stream != null) && (stream.Length != 0))
+                    {
+                        using (Stream file = File.Create(pathInitials))
+                        {
+                            stream.CopyTo(file);
+                            // Return to first position
+                            stream.Seek(0, SeekOrigin.Begin);
+                        }
+                    }
+                }
+                return pathInitials;
+            }
+            else
+            {
+                // Add this contactId to pool of unknown contact
+                AddUnknownContactToPoolById(contactId);
+
+                // Get unknown avatar
+                String unknownPath = Path.Combine(folderContactAvatarInitials, "unknown.png");
+                if (!File.Exists(unknownPath))
+                {
+                    // Create unknown avatar
+                    Stream stream = GetRoundedAvatarUsingInitials("?", GetColorFromDisplayName("?"), "#FFFFFF");
+                    if ((stream != null) && (stream.Length != 0))
+                    {
+                        using (Stream file = File.Create(unknownPath))
+                        {
+                            stream.CopyTo(file);
+                            // Return to first position
+                            stream.Seek(0, SeekOrigin.Begin);
+                        }
+                    }
+                }
+                return unknownPath;
+            }
+        }
+
+        public String GetBubbleAvatarPath(String bubbleId)
+        {
+            if (!InitDone())
+                return null;
+
+            List<String> membersId = null;
+            // If we don't have any members yet about this bubble, we store them
+            if (!avatarsData.bubblesMember.ContainsKey(bubbleId))
+                membersId = StoreBubbleMembers(bubbleId);
+
+            // Check rounded avatar
+            String path = Path.Combine(folderBubbleAvatarRounded, bubbleId + ".png");
+            if (File.Exists(path))
+                return path;
+
+            // Since there is no rounded avatar, we'll dwl the avatar
+            AddBubbleAvatarToDownload(bubbleId);
+
+            // Store bubble members (iy any)
+            if (membersId == null)
+                membersId = StoreBubbleMembers(bubbleId);
+
+            // Create bubble avatar using members
+            if (membersId != null)
+                path = GetRoundedBubbleAvatarPath(bubbleId, membersId);
+
+            return path;
+        }
+
         public static AvatarPool Instance
         {
             get
@@ -728,150 +873,6 @@ namespace Rainbow.Helpers
             }
         }
 
-        public String GetContactAvatarPath(String contactId)
-        {
-            if (!InitDone())
-                return null;
-
-            String pathRounded;
-            String pathOriginal;
-            String pathInitials;
-
-            // Check rounded avatar
-            pathRounded = Path.Combine(folderContactAvatarRounded, contactId + ".png");
-            if (File.Exists(pathRounded))
-                return pathRounded;
-
-            // Since there is no rounded avatar, we'll dwl the avatar
-            AddContactAvatarToDownload(contactId);
-
-            //// Check original avatar
-            pathOriginal = Path.Combine(folderContactAvatarOriginals, contactId + ".png");
-            //if (File.Exists(pathOriginal))
-            //{
-            //    avatar = GetRoundedAvatarUsingFile(pathOriginal);
-            //    if (avatar != null)
-            //    {
-            //        avatar.Save(pathRounded);
-            //        avatar.Dispose();
-            //        return pathRounded;
-            //    }
-            //}
-
-            // Check avatar with initials
-            pathInitials = Path.Combine(folderContactAvatarInitials, contactId + ".png");
-            if (File.Exists(pathInitials))
-            {
-                // We always recreate "Initial Avatar" if we don't know first its initials / displayName
-                if (avatarsData.contactsInfo.ContainsKey(contactId))
-                    return pathInitials;
-                else
-                {
-                    try
-                    {
-                        File.Delete(pathInitials);
-                    }
-                    catch
-                    {
-                    }
-                }
-            }
-
-            // We need to create avatar using initials
-            Contact contact = contacts.GetContactFromContactId(contactId);
-            if (contact != null)
-            {
-                String displayName = Util.GetContactDisplayName(contact, firstNameFirst);
-                String initials = Util.GetContactInitials(contact, firstNameFirst);
-
-                avatarsData.contactsInfo.Remove(contactId);
-                avatarsData.contactsInfo.Add(contactId, new Tuple<string, string>(initials, displayName));
-
-                Stream stream = GetAvatarUsingInitials(initials, GetColorFromDisplayName(displayName), "#FFFFFF");
-                // Save as "original" image if necessary
-                if (!File.Exists(pathOriginal))
-                { 
-                    if ((stream != null) && (stream.Length != 0))
-                    {
-                        using (Stream file = File.Create(pathOriginal))
-                        {
-                            stream.CopyTo(file);
-                            // Return to first position
-                            stream.Seek(0, SeekOrigin.Begin);
-                        }
-                    }
-                }
-
-                // Create "initials" image and save it
-                if (!File.Exists(pathInitials))
-                {
-                    stream = GetRoundedFromSquareImage(stream);
-                    if ((stream != null) && (stream.Length != 0))
-                    {
-                        using (Stream file = File.Create(pathInitials))
-                        {
-                            stream.CopyTo(file);
-                            // Return to first position
-                            stream.Seek(0, SeekOrigin.Begin);
-                        }
-                    }
-                }
-                return pathInitials;
-            }
-            else
-            {
-                // Add this contactId to pool of unknown contact
-                AddUnknownContactToPool(contactId);
-
-                // Get unknown avatar
-                String unknownPath = Path.Combine(folderContactAvatarInitials, "unknown.png");
-                if (!File.Exists(unknownPath))
-                {
-                    // Create unknown avatar
-                    Stream stream = GetRoundedAvatarUsingInitials("?", GetColorFromDisplayName("?"), "#FFFFFF");
-                    if ( (stream != null) && (stream.Length != 0) )
-                    {
-                        using (Stream file = File.Create(unknownPath))
-                        {
-                            stream.CopyTo(file);
-                            // Return to first position
-                            stream.Seek(0, SeekOrigin.Begin);
-                        }
-                    }
-                }
-                return unknownPath;
-            }
-        }
-
-        public String GetBubbleAvatarPath(String bubbleId)
-        {
-            if (!InitDone())
-                return null;
-
-            List<String> membersId = null;
-            // If we don't have any members yet about this bubble, we store them
-            if (!avatarsData.bubblesMember.ContainsKey(bubbleId))
-                membersId = StoreBubbleMembers(bubbleId);
-
-            // Check rounded avatar
-            String path = Path.Combine(folderBubbleAvatarRounded, bubbleId + ".png");
-            if (File.Exists(path))
-                return path;
-
-            // Since there is no rounded avatar, we'll dwl the avatar
-            AddBubbleAvatarToDownload(bubbleId);
-
-            // Store bubble members (iy any)
-            if (membersId == null)
-                membersId = StoreBubbleMembers(bubbleId);
-
-            // Create bubble avatar using members
-            if (membersId != null)
-                path = GetRoundedBubbleAvatarPath(bubbleId, membersId);
-
-            return path;
-        }
-
         private List<String> StoreBubbleMembers(String bubbleId)
         {
             List<String> membersId;
@@ -936,12 +937,22 @@ namespace Rainbow.Helpers
             return initDone;
         }
 
-        private void AddUnknownContactToPool(String contactId)
+        public void AddUnknownContactToPoolById(String contactId)
         {
-            if (!contactsUnknown.Contains(contactId))
+            if (!contactsUnknownById.Contains(contactId))
             {
-                log.DebugFormat("[AddUnknownContactToPool] contactId:[{0}]", contactId);
-                contactsUnknown.Add(contactId);
+                log.DebugFormat("[AddUnknownContactToPoolById] contactId:[{0}]", contactId);
+                contactsUnknownById.Add(contactId);
+                UseUnknowContactsPool();
+            }
+        }
+
+        public void AddUnknownContactToPoolByJid(String contactJid)
+        {
+            if (!contactsUnknownByJid.Contains(contactJid))
+            {
+                log.DebugFormat("[AddUnknownContactToPoolByJid] contactJid:[{0}]", contactJid);
+                contactsUnknownByJid.Add(contactJid);
                 UseUnknowContactsPool();
             }
         }
@@ -956,10 +967,18 @@ namespace Rainbow.Helpers
                 backgroundWorkerUnkownContact = new BackgroundWorker();
                 backgroundWorkerUnkownContact.DoWork += BackgroundWorkerUnkownContact_DoWork;
                 backgroundWorkerUnkownContact.WorkerSupportsCancellation = true;
+                backgroundWorkerUnkownContact.RunWorkerCompleted += BackgroundWorkerUnkownContact_RunWorkerCompleted;
             }
 
             if (!backgroundWorkerUnkownContact.IsBusy)
                 backgroundWorkerUnkownContact.RunWorkerAsync();
+        }
+
+        private void BackgroundWorkerUnkownContact_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            if( (contactsUnknownById.Count > 0)
+                ||(contactsUnknownByJid.Count > 0) )
+                UseUnknowContactsPool();
         }
 
         private void BackgroundWorkerUnkownContact_DoWork(object sender, DoWorkEventArgs e)
@@ -967,32 +986,54 @@ namespace Rainbow.Helpers
             Boolean continueWork;
             int index = 0;
             String contactId;
+            String contactJid;
 
-            log.Debug("[BackgroundWorkerUnkownContact_DoWork] - IN");
+            log.DebugFormat("[BackgroundWorkerUnkownContact_DoWork] - IN - nbUnknownById:[{0}] - nbUnknownByJid:[{1}]", contactsUnknownById.Count, contactsUnknownByJid.Count);
             do
             {
-                if (contactsUnknown.Count > 0)
+                if (contactsUnknownById.Count > 0)
                 {
                     // Check index
-                    if (index >= contactsUnknown.Count)
+                    if (index >= contactsUnknownById.Count)
                         index = 0;
 
-                    contactId = contactsUnknown[index];
-                    log.DebugFormat("[BackgroundWorkerUnkownContact_DoWork] Ask contact info - START - Contact:[{0}]", contactId);
-                    if (AskContactInfo(contactId))
+                    contactId = contactsUnknownById[index];
+                    log.DebugFormat("[BackgroundWorkerUnkownContact_DoWork] Ask contact info - START - ContactId:[{0}]", contactId);
+                    if (AskContactInfoById(contactId))
                     {
-                        contactsUnknown.Remove(contactId);
-                        log.DebugFormat("[BackgroundWorkerUnkownContact_DoWork] Ask contact info - END - SUCCESS - Contact:[{0}]", contactId);
+                        contactsUnknownById.Remove(contactId);
+                        log.DebugFormat("[BackgroundWorkerUnkownContact_DoWork] Ask contact info - END - SUCCESS - ContactId:[{0}]", contactId);
                     }
                     else
                     {
                         // Download failed - we try for another contact
                         index++;
-                        log.DebugFormat("[BackgroundWorkerDonwload_DoWork] Ask contact info- END - FAILED - Contact:[{0}]", contactId);
+                        log.DebugFormat("[BackgroundWorkerDonwload_DoWork] Ask contact info- END - FAILED - ContactId:[{0}]", contactId);
+                    }
+                }
+                else if (contactsUnknownByJid.Count > 0)
+                {
+                    // Check index
+                    if (index >= contactsUnknownByJid.Count)
+                        index = 0;
+
+                    contactJid = contactsUnknownByJid[index];
+                    log.DebugFormat("[BackgroundWorkerUnkownContact_DoWork] Ask contact info - START - ContactJid:[{0}]", contactJid);
+                    if (AskContactInfoByJid(contactJid))
+                    {
+                        contactsUnknownByJid.Remove(contactJid);
+                        log.DebugFormat("[BackgroundWorkerUnkownContact_DoWork] Ask contact info - END - SUCCESS - ContactJid:[{0}]", contactJid);
+                    }
+                    else
+                    {
+                        // Download failed - we try for another contact
+                        index++;
+                        log.DebugFormat("[BackgroundWorkerDonwload_DoWork] Ask contact info- END - FAILED - ContactJid:[{0}]", contactJid);
                     }
                 }
 
-                continueWork = allowToAskContactInfo && (contactsUnknown.Count > 0);
+                continueWork = allowToAskContactInfo 
+                    && ( (contactsUnknownById.Count > 0) || (contactsUnknownByJid.Count > 0) );
 
             }
             while (continueWork);
@@ -1000,12 +1041,29 @@ namespace Rainbow.Helpers
             log.Debug("[BackgroundWorkerUnkownContact_DoWork] - OUT");
         }
 
-        private Boolean AskContactInfo(String contactId)
+        private Boolean AskContactInfoById(String contactId)
         {
             Boolean result = false;
             ManualResetEvent manualEvent = new ManualResetEvent(false);
 
             contacts.GetContactFromContactIdFromServer(contactId, callback =>
+            {
+                result = callback.Result.Success;
+                manualEvent.Set();
+            });
+
+            manualEvent.WaitOne();
+            manualEvent.Dispose();
+
+            return result;
+        }
+
+        private Boolean AskContactInfoByJid(String contactJid)
+        {
+            Boolean result = false;
+            ManualResetEvent manualEvent = new ManualResetEvent(false);
+
+            contacts.GetContactFromContactJidFromServer(contactJid, callback =>
             {
                 result = callback.Result.Success;
                 manualEvent.Set();
