@@ -5,7 +5,7 @@
 
     <!-- BINDING  - Message object -->
 
-    <Grid RowSpacing="0" ColumnSpacing="4" Padding="0" BackgroundColor="{Binding Conversation.BackgroundColor}" HorizontalOptions="FillAndExpand">
+    <Grid RowSpacing="0" ColumnSpacing="4" Padding="0" HorizontalOptions="FillAndExpand">
         <Grid.ColumnDefinitions>
             <!-- SPACE -->
             <ColumnDefinition Width="4" />
