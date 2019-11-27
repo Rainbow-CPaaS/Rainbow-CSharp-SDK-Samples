@@ -1,0 +1,62 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ViewCell xmlns="http://xamarin.com/schemas/2014/forms" 
+            xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+            x:Class="InstantMessaging.CustomCells.MessageViewCellCurrentUser">
+
+    <!-- BINDING  - Message object -->
+
+    <Grid RowSpacing="0" ColumnSpacing="4" Padding="0" BackgroundColor="{Binding Conversation.BackgroundColor}" HorizontalOptions="FillAndExpand">
+        <Grid.ColumnDefinitions>
+            <!-- SPACE -->
+            <ColumnDefinition Width="4" />
+            <!-- AVATAR -->
+            <ColumnDefinition Width="40" />
+            <!-- BODY -->
+            <ColumnDefinition Width="*" />
+            <!-- SPACE -->
+            <ColumnDefinition Width="4" />
+        </Grid.ColumnDefinitions>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="4" />
+        </Grid.RowDefinitions>
+
+        <!-- AVATAR -->
+        <!--
+        <StackLayout Grid.Row="0" Grid.Column="1"
+                    HorizontalOptions="Center" VerticalOptions="End"
+                    Padding="0" Spacing="0" IsVisible="True">
+            <Image Source="{Binding AvatarSource}"
+                   Aspect="AspectFit" 
+                   WidthRequest="40" HeightRequest="40"
+                   VerticalOptions="Center" HorizontalOptions="Center"/>
+        </StackLayout>
+        -->
+
+        <!-- BODY -->
+        <Frame Grid.Row="0" Grid.Column="2"
+            BackgroundColor="LightGray"
+            CornerRadius="8" 
+            Padding="8"
+            VerticalOptions="Center"
+            HorizontalOptions="End"
+            HasShadow="False"
+            IsClippedToBounds="False">
+            <Grid RowSpacing="0" ColumnSpacing="0" Padding="0" >
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <Label Grid.Row="0" Grid.Column="0" HorizontalOptions="Start" TextColor="Black" FontSize="Medium"  VerticalOptions="Center" Text="{Binding Body}"/>
+                <Label Grid.Row="1" Grid.Column="0" HorizontalOptions="End" TextColor="Gray" FontSize="Micro"  VerticalOptions="Center" Text="{Binding MessageDateDisplay}"/>
+
+            </Grid>
+        </Frame>
+    </Grid>
+</ViewCell>
