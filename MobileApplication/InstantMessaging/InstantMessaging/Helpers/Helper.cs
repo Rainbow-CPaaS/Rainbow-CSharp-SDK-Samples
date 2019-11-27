@@ -8,10 +8,14 @@ using Rainbow;
 using Rainbow.Helpers;
 using Rainbow.Model;
 
+using log4net;
+
 namespace InstantMessaging.Helpers
 {
     public static class Helper
     {
+        private static readonly ILog log = LogConfigurator.GetLogger(typeof(Helper));
+
         public static String GetTempFolder()
         {
             return System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal);
@@ -173,7 +177,9 @@ namespace InstantMessaging.Helpers
                 else
                 {
                     message.BackgroundColor = Rainbow.Helpers.AvatarPool.GetColorFromDisplayName("");
-                    XamarinApplication.RbContacts.GetContactFromContactJidFromServer(rbMessage.FromJid, null);
+                
+                    // We ask to have more info about this contact usin AvatarPool
+                    avatarPool.AddUnknownContactToPoolByJid(rbMessage.FromJid);
                 }
 
                 // We have the display name only in Room / Bubble context

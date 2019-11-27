@@ -14,7 +14,7 @@ using InstantMessaging.Helpers;
 
 using log4net;
 using System.IO;
-
+using System.Threading.Tasks;
 
 namespace InstantMessaging
 {
@@ -30,11 +30,15 @@ namespace InstantMessaging
         private InstantMessaging.App XamarinApplication;
 
 
-        private List<String> contactsListInvolved = new List<String>(); // To store list of contacts involved in this Conversation
-
         private Object lockObservableMessagesList = new Object(); // To lock access to the observable collection: 'MessagesList'
+        private Object lockContactsListInvolved = new Object(); // To lock access to: 'contactsListInvolved'
+
+        private List<String> contactsListInvolved = new List<String>(); // To store list of contacts involved in this Conversation (by Jid)
+
 
         public ConversationLight Conversation { get; } // Need to be public - Used as Binding from XAML
+
+        
         public ObservableRangeCollection<InstantMessaging.Model.Message> MessagesList { get; } // Need to be public - Used as Binding from XAML
 
         /// <summary>
@@ -81,35 +85,41 @@ namespace InstantMessaging
 
                 // Get Messages
                 List<Rainbow.Model.Message> rbMessagesList = XamarinApplication.RbInstantMessaging.GetAllMessagesFromConversationIdFromCache(conversationId);
-                if(rbMessagesList.Count > 0)
+                if (rbMessagesList.Count > 0)
                 {
                     ResetModelWithRbMessages(rbMessagesList);
                 }
                 else
                 {
-                    XamarinApplication.RbInstantMessaging.GetMessagesFromConversationId(conversationId, 20, callback =>
-                    {
-                        if(callback.Result.Success)
+                    Task task = new Task(() =>
+                        XamarinApplication.RbInstantMessaging.GetMessagesFromConversationId(conversationId, 20, callback =>
                         {
-                            ResetModelWithRbMessages(callback.Data);
-                        }
-                        else
-                        {
-                            //TODO
-                        }
-                    });
+                            if (callback.Result.Success)
+                            {
+                                ResetModelWithRbMessages(callback.Data);
+                            }
+                            else
+                            {
+                                //TODO
+                            }
+                        })
+                    );
+                    task.Start();
                 }
             }
         }
 
 #region PRIVATE METHOD
 
-        private void AddContactInvolved(String peerId)
+        private void AddContactInvolved(String peerJid)
         {
-            if (!contactsListInvolved.Contains(peerId))
+            lock (lockContactsListInvolved)
             {
-                log.DebugFormat("[AddContactInvolved] - ContactId:[{0}]", peerId);
-                contactsListInvolved.Add(peerId);
+                if (!contactsListInvolved.Contains(peerJid))
+                {
+                    //log.DebugFormat("[AddContactInvolved] - ContactJid:[{0}]", peerJid);
+                    contactsListInvolved.Add(peerJid);
+                }
             }
         }
 
@@ -123,26 +133,71 @@ namespace InstantMessaging
                 {
                     messagesList.Insert(0, msg);
                     msg.AvatarSource = Helper.GetContactAvatarImageSource(msg.PeerId);
-                    AddContactInvolved(msg.PeerId);
+                    AddContactInvolved(msg.PeerJid);
                 }
             }
-
-            lock(lockObservableMessagesList)
+            lock (lockObservableMessagesList)
                 MessagesList.ReplaceRange(messagesList);
+
         }
 
-        private List<InstantMessaging.Model.Message> GetMessagesByPeerId(String peerId)
+        private List<InstantMessaging.Model.Message> GetMessagesByPeerJid(String peerJid)
         {
             List<InstantMessaging.Model.Message> result = new List<InstantMessaging.Model.Message>();
             lock (lockObservableMessagesList)
             {
                 foreach(InstantMessaging.Model.Message msg  in MessagesList)
                 {
-                    if (msg.PeerId == peerId)
+                    if (msg.PeerJid == peerJid)
                         result.Add(msg);
                 }
             }
             return result;
+        }
+
+        private void UpdateMessagesForJid(String peerJid, bool updateAvatar, bool updateDisplayName )
+        {
+            if (contactsListInvolved.Contains(peerJid))
+            {
+                Contact contact = XamarinApplication.RbContacts.GetContactFromContactJid(peerJid);
+                if (contact != null)
+                {
+                    log.DebugFormat("[UpdateMessagesForJid] peerJid:[{0}] - peerId:[{1}] - updateAvatar[{2}] - updateDisplayName:[{3}]", peerJid, contact.Id, updateAvatar, updateDisplayName);
+                    ImageSource imageSource;
+                    String displayName;
+                    
+                    if (updateAvatar)
+                        imageSource = Helper.GetContactAvatarImageSource(contact.Id);
+                    else
+                        imageSource = null;
+
+                    if (updateDisplayName)
+                        displayName = Util.GetContactDisplayName(contact, AvatarPool.Instance.GetFirstNameFirst());
+                    else
+                        displayName = null;
+
+                    List<InstantMessaging.Model.Message> messages = GetMessagesByPeerJid(peerJid);
+                    lock (lockObservableMessagesList)
+                    {
+                        foreach (InstantMessaging.Model.Message message in messages)
+                        {
+                            if (updateAvatar)
+                                message.AvatarSource = imageSource;
+
+                            if (updateDisplayName)
+                            {
+                                message.PeerDisplayName = displayName;
+                                message.BackgroundColor = Rainbow.Helpers.AvatarPool.GetColorFromDisplayName(message.PeerDisplayName);
+                            }
+
+                        }
+                    }
+                }
+                else
+                    log.WarnFormat("[UpdateMessagesForJid] peerJid:[{0}] found but related contact not found", peerJid);
+            }
+            else
+                log.WarnFormat("[UpdateMessagesForJid] peerJid:[{0}] not found in this conversationId:[{1}]", peerJid, peerId);
         }
 
 #endregion PRIVATE METHOD
@@ -155,55 +210,14 @@ namespace InstantMessaging
 
         private void RbContacts_ContactInfoChanged(object sender, Rainbow.Events.JidEventArgs e)
         {
-            Contact contact = XamarinApplication.RbContacts.GetContactFromContactJid(e.Jid);
-            if (contact != null)
-            {
-                log.DebugFormat("[RbContacts_ContactInfoChanged] contactId:[{0}]", contact.Id);
-                if (contactsListInvolved.Contains(contact.Id))
-                {
-                    log.DebugFormat("[RbContacts_ContactInfoChanged] contactId:[{0}] - Found in conversation stream", contact.Id);
-                    String displayName = Util.GetContactDisplayName(contact, AvatarPool.Instance.GetFirstNameFirst());
-
-                    List<InstantMessaging.Model.Message> messages = GetMessagesByPeerId(contact.Id);
-                    lock (lockObservableMessagesList)
-                    {
-                        foreach (InstantMessaging.Model.Message message in messages)
-                        {
-                            log.DebugFormat("[RbContacts_ContactInfoChanged] contactId:[{0}] - Found in conversation stream - update messageId:[{1}]", contact.Id, message.Id);
-                            message.PeerDisplayName = displayName;
-                            message.BackgroundColor = Rainbow.Helpers.AvatarPool.GetColorFromDisplayName(message.PeerDisplayName);
-                        }
-                    }
-                }
-            }
+            // Need to update this contact in each messages (not avatar part)
+            UpdateMessagesForJid(e.Jid, false, true);
         }
 
         private void RbContacts_ContactAdded(object sender, Rainbow.Events.JidEventArgs e)
         {
-            Contact contact = XamarinApplication.RbContacts.GetContactFromContactJid(e.Jid);
-            if (contact != null)
-            {
-                log.DebugFormat("[RbContacts_ContactAdded] contactId:[{0}]", contact.Id);
-                if (contactsListInvolved.Contains(contact.Id))
-                {
-                    log.DebugFormat("[RbContacts_ContactAdded] contactId:[{0}] - Found in conversation stream ", contact.Id);
-                    ImageSource imageSource = Helper.GetContactAvatarImageSource(contact.Id);
-                    String displayName = Util.GetContactDisplayName(contact, AvatarPool.Instance.GetFirstNameFirst());
-
-                    List<InstantMessaging.Model.Message> messages = GetMessagesByPeerId(contact.Id);
-                    lock (lockObservableMessagesList)
-                    {
-                        foreach (InstantMessaging.Model.Message message in messages)
-                        {
-                            log.DebugFormat("[RbContacts_ContactAdded] contactId:[{0}] - Found in conversation stream - update messageId:[{1}]", contact.Id, message.Id);
-                            message.AvatarSource = imageSource;
-                            message.PeerDisplayName = displayName;
-                            message.BackgroundColor = Rainbow.Helpers.AvatarPool.GetColorFromDisplayName(message.PeerDisplayName);
-                            
-                        }
-                    }
-                }
-            }
+            // Need to update this contact in each messages (avatar + display name)
+            UpdateMessagesForJid(e.Jid, true, true);
         }
 
 #endregion EVENTS FROM RAINBOW SDK
@@ -232,22 +246,10 @@ namespace InstantMessaging
                     Conversation.AvatarSource = Helper.GetConversationAvatarImageSource(Conversation);
             }
 
-            // Check Avatar in Messages Stream
-            if (contactsListInvolved.Contains(e.Id))
-            {
-                ImageSource imageSource = Helper.GetContactAvatarImageSource(e.Id);
-                if (imageSource != null)
-                {
-                    List<InstantMessaging.Model.Message> messages = GetMessagesByPeerId(e.Id);
-                    lock (lockObservableMessagesList)
-                    {
-                        foreach (InstantMessaging.Model.Message msg in messages)
-                        {
-                            msg.AvatarSource = imageSource;
-                        }
-                    }
-                }
-            }
+            // Need to update this contact in each messages (just avatar part)
+            Contact contact = XamarinApplication.RbContacts.GetContactFromContactId(e.Id);
+            if (contact != null)
+                UpdateMessagesForJid(contact.Jid_im, true, false);
         }
 
 #endregion EVENTS FROM AVATAR POOL
