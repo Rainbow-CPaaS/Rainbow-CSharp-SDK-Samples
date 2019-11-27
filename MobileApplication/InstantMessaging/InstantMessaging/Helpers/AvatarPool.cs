@@ -394,7 +394,6 @@ namespace Rainbow.Helpers
             }
         }
 
-
         public void SetApplication(ref Application application)
         {
             this.application = application;

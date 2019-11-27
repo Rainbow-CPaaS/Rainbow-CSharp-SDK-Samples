@@ -375,7 +375,7 @@ namespace InstantMessaging
                 conversation.LastMessageDateTime = rbConversation.LastMessageDate;
 
                 // Humanized the DateTime
-                conversation.MessageTimeDisplay = Helpers.Helper.Humanize(conversation.LastMessageDateTime);
+                conversation.MessageTimeDisplay = Helpers.Helper.HumanizeDateTime(conversation.LastMessageDateTime);
             }
             return conversation;
         }
@@ -427,7 +427,7 @@ namespace InstantMessaging
             lock (lockObservableConversations)
             {
                 foreach (ConversationLight conversation in Conversations)
-                    conversation.MessageTimeDisplay = Helpers.Helper.Humanize(conversation.LastMessageDateTime);
+                    conversation.MessageTimeDisplay = Helpers.Helper.HumanizeDateTime(conversation.LastMessageDateTime);
             }
 
             // We ask the next update 

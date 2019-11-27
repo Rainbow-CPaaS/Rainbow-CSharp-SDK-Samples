@@ -41,7 +41,7 @@ namespace InstantMessaging.Helpers
         /// </summary>
         /// <param name="dt"><see cref="DateTime"/>DateTime object to humanize</param>
         /// <returns><see cref="String"/>Humanized String</returns>
-        public static String Humanize(DateTime dt)
+        public static String HumanizeDateTime(DateTime dt)
         {
             String result;
 
@@ -58,6 +58,60 @@ namespace InstantMessaging.Helpers
                 result = dtLocalTime.ToString("dd MMM yy H:mm");
 
             return result;
+        }
+
+        /// <summary>
+        /// Return the value formatted to include at most three
+        /// non-zero digits and at most two digits after the
+        /// decimal point. Examples:
+        ///         1
+        ///       123
+        ///        12.3
+        ///         1.23
+        ///         0.12
+        /// </summary>
+        /// <param name="value"><see cref="double"/>Double value to format</param>
+        /// <returns></returns>
+        private static string ThreeNonZeroDigits(double value)
+        {
+            if (value >= 100)
+            {
+                // No digits after the decimal.
+                return value.ToString("0,0");
+            }
+            else if (value >= 10)
+            {
+                // One digit after the decimal.
+                return value.ToString("0.0");
+            }
+            else
+            {
+                // Two digits after the decimal.
+                return value.ToString("0.00");
+            }
+        }
+
+        /// <summary>
+        /// Return a string describing the value as a file size. For example, 1.23 MB. 
+        /// </summary>
+        /// <param name="fileSizeInOctet"><see cref="double"/>Double value to format</param>
+        /// <returns></returns>
+        public static string HumanizeFileSize(this double fileSizeInOctet)
+        {
+            string[] suffixes = { "bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"};
+            for (int i = 0; i < suffixes.Length; i++)
+            {
+                if (fileSizeInOctet <= (Math.Pow(1024, i + 1)))
+                {
+                    return ThreeNonZeroDigits(fileSizeInOctet /
+                        Math.Pow(1024, i)) +
+                        " " + suffixes[i];
+                }
+            }
+
+            return ThreeNonZeroDigits(fileSizeInOctet /
+                Math.Pow(1024, suffixes.Length - 1)) +
+                " " + suffixes[suffixes.Length - 1];
         }
 
         /// <summary>
@@ -151,7 +205,7 @@ namespace InstantMessaging.Helpers
                 conversation.LastMessageDateTime = rbConversation.LastMessageDate;
 
                 // Humanized the DateTime
-                conversation.MessageTimeDisplay = Helpers.Helper.Humanize(conversation.LastMessageDateTime);
+                conversation.MessageTimeDisplay = Helpers.Helper.HumanizeDateTime(conversation.LastMessageDateTime);
             }
             return conversation;
         }
@@ -187,9 +241,25 @@ namespace InstantMessaging.Helpers
 
                 message.Id = rbMessage.Id;
                 message.PeerJid = rbMessage.FromJid;
-                message.Body = rbMessage.Content;
+                
                 message.MessageDateTime = rbMessage.Date;
-                message.MessageDateDisplay = Humanize(rbMessage.Date);
+                message.MessageDateDisplay = HumanizeDateTime(rbMessage.Date);
+
+                String content;
+                if (rbMessage.Content != null)
+                    content = rbMessage.Content;
+                else
+                    content = "";
+
+                // FileAttachment
+                if (rbMessage.FileAttachment != null)
+                {
+                    if (!String.IsNullOrEmpty(content))
+                        content += "\r\n";
+                    content += String.Format("File: \"{0}\"\r\nSize: {1}", rbMessage.FileAttachment.Name, HumanizeFileSize(rbMessage.FileAttachment.Size));
+                }
+                message.Body = content;
+
             }
             return message;
         }
@@ -304,8 +374,5 @@ namespace InstantMessaging.Helpers
             }
             return result;
         }
-
-
-
     }
 }
