@@ -14,7 +14,7 @@
     <ContentPage.Content>
         <StackLayout Orientation="Vertical">
             <!-- TITLE BAR - START -->
-            <Grid RowSpacing="0" ColumnSpacing="4" Padding="0" BackgroundColor="Gray" HorizontalOptions="FillAndExpand" VerticalOptions="Start">
+            <Grid RowSpacing="0" ColumnSpacing="4" Padding="0" BackgroundColor="LightGray" HorizontalOptions="FillAndExpand" VerticalOptions="Start">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="40" /> <!-- BACK BTN -->
                     <ColumnDefinition Width="40" /> <!-- AVATAR -->
@@ -50,8 +50,8 @@
 
                 <!-- NAME AND TOPIC -->
                 <StackLayout Grid.Row="0" Grid.Column="2" Orientation="Vertical" VerticalOptions="Center" HorizontalOptions="StartAndExpand" Spacing="0">
-                    <Label HorizontalOptions="StartAndExpand" TextColor="White" FontSize="Medium" MaxLines="1" LineBreakMode="TailTruncation" VerticalOptions="Center" Text="{Binding Conversation.Name}"/>
-                    <Label HorizontalOptions="StartAndExpand" TextColor="#DDDDDD" FontSize="Small" MaxLines="1" LineBreakMode="TailTruncation" VerticalOptions="Center" Text="{Binding Conversation.Topic}" IsVisible="{Binding Conversation.TopicIsVisible}"/>
+                    <Label HorizontalOptions="StartAndExpand" TextColor="Black" FontSize="Medium" MaxLines="1" LineBreakMode="TailTruncation" VerticalOptions="Center" Text="{Binding Conversation.Name}"/>
+                    <Label HorizontalOptions="StartAndExpand" TextColor="DarkGray" FontSize="Small" MaxLines="1" LineBreakMode="TailTruncation" VerticalOptions="Center" Text="{Binding Conversation.Topic}" IsVisible="{Binding Conversation.TopicIsVisible}"/>
                 </StackLayout>
 
                 <!-- MORE BTN -->
@@ -63,7 +63,10 @@
             <!-- MESSAGE LIST + INPUT TEXT - START -->
             <Grid RowSpacing="0" ColumnSpacing="0" Padding="0" VerticalOptions="EndAndExpand">
                 <Grid.RowDefinitions>
+                    <!-- MESSAGE LIST -->
                     <RowDefinition Height="*" />
+
+                    <!-- INPUT TEXT + SEND BTN -->
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
@@ -72,15 +75,29 @@
 			        x:Name="MessagesListView" 
                     ItemTemplate="{StaticResource MessageViewCellTemplateSelector}" 
                     ItemsSource="{Binding MessagesList}"
-                    ItemSelected="MessagesListView_OnItemSelected" 
-			        ItemTapped="MessagesListView_OnItemTapped" 
 			        HasUnevenRows="True"
 			        SeparatorVisibility="None" 
-                    VerticalOptions="End"/>
+                    VerticalOptions="End">
+                </ListView>
                 <!-- MESSAGE LIST - END -->
+                
+                <!-- LOADING  INDICATOR OVER MESSAGE LIST - START -->
+                <StackLayout Grid.Row="0" 
+                             x:Name="MessagesListViewLoadingIndicator"
+                             Opacity="0.5" 
+                             BackgroundColor="White"
+                             HorizontalOptions="FillAndExpand" 
+                             VerticalOptions="FillAndExpand"
+                             IsVisible="{Binding ConversationStream.LoadingIndicatorIsVisible}">
+                    <StackLayout HorizontalOptions="Center" 
+                                 VerticalOptions="Center">
+                        <Label Text="Loading" FontSize="Large" VerticalOptions="Center" HorizontalOptions="Center" TextColor="Black"/>
+                    </StackLayout>
+                </StackLayout>
+                <!-- LOADING  INDICATOR OVER MESSAGE LIST - END -->
 
-                <!-- INPUT TEXT - START -->
-                <StackLayout Orientation="Horizontal" Grid.Row="1" Padding="10" BackgroundColor="#EFEFEF">
+                <!-- INPUT TEXT + SEND BTN  - START -->
+                <StackLayout Grid.Row="1" Orientation="Horizontal" Padding="10" BackgroundColor="#EFEFEF">
                     <Entry 
 			            HorizontalOptions="FillAndExpand" 
 				        HeightRequest="25" 
@@ -89,7 +106,8 @@
 				        Text="Enter your text here  ..."/>
                     <Button Text="Send" />
                 </StackLayout>
-                <!-- INPUT TEXT - END -->
+                <!-- INPUT TEXT + SEND BTN  - END -->
+                
             </Grid>
             <!-- MESSAGE LIST + INPUT TEXT - END -->
 

@@ -1,26 +1,29 @@
 ﻿using System;
+using System.IO;
 using System.Collections.Generic;
-using System.Threading;
+
+using System.Threading.Tasks;
 
 using Xamarin.Forms;
 
 using MvvmHelpers;
 
+using InstantMessaging.Helpers;
+using InstantMessaging.Model;
+
 using Rainbow;
 using Rainbow.Helpers;
 using Rainbow.Model;
 
-using InstantMessaging.Helpers;
-
 using log4net;
-using System.IO;
-using System.Threading.Tasks;
 
 namespace InstantMessaging
 {
     public class ConversationStreamViewModel : BaseViewModel
     {
         private static readonly ILog log = LogConfigurator.GetLogger(typeof(ConversationStreamViewModel));
+
+        private static int NB_MESSAGE_LOADED_BY_ROW = 40;
 
         private String peerId; // PeerId of this Conversation
         private String conversationId; // ConversationId of this Conversation
@@ -29,17 +32,29 @@ namespace InstantMessaging
         private AvatarPool avatarPool;
         private InstantMessaging.App XamarinApplication;
 
-
         private Object lockObservableMessagesList = new Object(); // To lock access to the observable collection: 'MessagesList'
         private Object lockContactsListInvolved = new Object(); // To lock access to: 'contactsListInvolved'
 
         private List<String> contactsListInvolved = new List<String>(); // To store list of contacts involved in this Conversation (by Jid)
 
 
-        public ConversationLight Conversation { get; } // Need to be public - Used as Binding from XAML
+        private Boolean noMoreOlderMessagesAvailable = false;
+        private Boolean loadingOlderMessages = false;
+        private Boolean waitingScrollingDueToLoadingOlderMessages = false;
+        private int nbOlderMessagesFound = 0;
 
         
+#region XAML BINDING ELEMENTS
+
+        public ConversationLight Conversation { get; } // Need to be public - Used as Binding from XAML
+
         public ObservableRangeCollection<InstantMessaging.Model.Message> MessagesList { get; } // Need to be public - Used as Binding from XAML
+
+        public ConversationStream ConversationStream { get; }  // Need to be public - Used as Binding from XAML
+
+#endregion XAML BINDING ELEMENTS
+
+#region PUBLIC METHODS
 
         /// <summary>
         /// Constructor
@@ -65,6 +80,10 @@ namespace InstantMessaging
             this.peerId = peerId;
             conversationId = XamarinApplication.RbConversations.GetConversationIdByPeerIdFromCache(peerId);
 
+            // Create default ConversationStream object
+            ConversationStream = new ConversationStream();
+            ConversationStream.LoadingIndicatorIsVisible = "False";
+
             // Create default MessagesList  object
             MessagesList = new ObservableRangeCollection<InstantMessaging.Model.Message>();
 
@@ -85,45 +104,87 @@ namespace InstantMessaging
 
                 // Get Messages
                 List<Rainbow.Model.Message> rbMessagesList = XamarinApplication.RbInstantMessaging.GetAllMessagesFromConversationIdFromCache(conversationId);
-                if (rbMessagesList.Count > 0)
+                if (rbMessagesList != null)
                 {
-                    ResetModelWithRbMessages(rbMessagesList);
+                    if (rbMessagesList.Count > 0)
+                        AddToModelRbMessages(rbMessagesList);
+
+                    if (rbMessagesList.Count < NB_MESSAGE_LOADED_BY_ROW)
+                        LoadMoreMessages();
                 }
                 else
-                {
-                    Task task = new Task(() =>
-                        XamarinApplication.RbInstantMessaging.GetMessagesFromConversationId(conversationId, 20, callback =>
-                        {
-                            if (callback.Result.Success)
-                            {
-                                ResetModelWithRbMessages(callback.Data);
-                            }
-                            else
-                            {
-                                //TODO
-                            }
-                        })
-                    );
-                    task.Start();
-                }
+                    LoadMoreMessages();
             }
         }
+
+        public void ScrollingDueToLoadingOlderMessagesDone()
+        {
+            waitingScrollingDueToLoadingOlderMessages = false;
+            ConversationStream.LoadingIndicatorIsVisible = "False";
+        }
+
+        public bool WaitingScrollingDueToLoadingOlderMessages()
+        {
+            return waitingScrollingDueToLoadingOlderMessages;
+        }
+
+        public int NbOlderMessagesFound()
+        {
+            return nbOlderMessagesFound;
+        }
+
+        public Boolean CanLoadMoreMessages()
+        {
+            if (noMoreOlderMessagesAvailable || loadingOlderMessages || waitingScrollingDueToLoadingOlderMessages)
+                return false;
+            return true;
+        }
+
+        public void LoadMoreMessages()
+        {
+            // We are starting to load older messages
+            loadingOlderMessages = true;
+
+            // Display "loading indicator"
+            ConversationStream.LoadingIndicatorIsVisible = "True";
+
+            Task task = new Task(() =>
+                XamarinApplication.RbInstantMessaging.GetMessagesFromConversationId(conversationId, NB_MESSAGE_LOADED_BY_ROW, callback =>
+                {
+                    if (callback.Result.Success)
+                    {
+                        // We store the number of older message found
+                        nbOlderMessagesFound = callback.Data.Count;
+
+                        if (callback.Data.Count == 0)
+                        {
+                            // We store the fact that we have no more older message to found
+                            noMoreOlderMessagesAvailable = true;
+                        }
+                        else
+                        {
+                            // We store the fact that we will now wait to scroll to message before to ask older messages
+                            // Must been done before to add element to model
+                            waitingScrollingDueToLoadingOlderMessages = true;
+
+                            AddToModelRbMessages(callback.Data);
+                        }
+                        // We have stopped to load older messages
+                        loadingOlderMessages = false;
+                    }
+                    else
+                    {
+                        //TODO
+                    }
+                }) );
+            task.Start();
+        }
+
+#endregion PUBLIC METHODS
 
 #region PRIVATE METHOD
 
-        private void AddContactInvolved(String peerJid)
-        {
-            lock (lockContactsListInvolved)
-            {
-                if (!contactsListInvolved.Contains(peerJid))
-                {
-                    //log.DebugFormat("[AddContactInvolved] - ContactJid:[{0}]", peerJid);
-                    contactsListInvolved.Add(peerJid);
-                }
-            }
-        }
-
-        private void ResetModelWithRbMessages(List<Rainbow.Model.Message> rbMessagesList)
+        private int AddToModelRbMessages(List<Rainbow.Model.Message> rbMessagesList)
         {
             List<InstantMessaging.Model.Message> messagesList = new List<InstantMessaging.Model.Message>();
             foreach (Rainbow.Model.Message rbMessage in rbMessagesList)
@@ -136,9 +197,36 @@ namespace InstantMessaging
                     AddContactInvolved(msg.PeerJid);
                 }
             }
-            lock (lockObservableMessagesList)
-                MessagesList.ReplaceRange(messagesList);
 
+            lock (lockObservableMessagesList)
+            {
+                if (MessagesList.Count == 0)
+                {
+                    MessagesList.ReplaceRange(messagesList);
+                    return 0;
+                }
+                else
+                {
+                    int nb = messagesList.Count - 1;
+                    for (int i = nb; i > 0; i--)
+                    {
+                        MessagesList.Insert(0, messagesList[i]);
+                    }
+                    return nb;
+                }
+            }
+        }
+
+        private void AddContactInvolved(String peerJid)
+        {
+            lock (lockContactsListInvolved)
+            {
+                if (!contactsListInvolved.Contains(peerJid))
+                {
+                    //log.DebugFormat("[AddContactInvolved] - ContactJid:[{0}]", peerJid);
+                    contactsListInvolved.Add(peerJid);
+                }
+            }
         }
 
         private List<InstantMessaging.Model.Message> GetMessagesByPeerJid(String peerJid)
