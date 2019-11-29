@@ -245,11 +245,36 @@ namespace InstantMessaging.Helpers
                 message.MessageDateTime = rbMessage.Date;
                 message.MessageDateDisplay = HumanizeDateTime(rbMessage.Date);
 
+                // Set default content
                 String content;
-                if (rbMessage.Content != null)
+                if (!String.IsNullOrEmpty(rbMessage.BubbleEvent))
+                {
+                    content = "EVENT: " + rbMessage.BubbleEvent;
+                }
+                else if (rbMessage.Content != null)
+                {
                     content = rbMessage.Content;
+                }
                 else
+                {
                     content = "";
+                }
+
+                // Replace
+                if (rbMessage.ReplyMessage != null)
+                {
+                    if (!String.IsNullOrEmpty(content))
+                        content += "\r\n";
+                    content += String.Format("ReplyId: [{0}]", rbMessage.ReplyMessage.Id);
+                }
+
+                // Reply
+                if (!String.IsNullOrEmpty(rbMessage.ReplaceId))
+                {
+                    if (!String.IsNullOrEmpty(content))
+                        content += "\r\n";
+                    content += String.Format("ReplaceId: [{0}]", rbMessage.ReplaceId);
+                }
 
                 // FileAttachment
                 if (rbMessage.FileAttachment != null)
@@ -264,6 +289,8 @@ namespace InstantMessaging.Helpers
             return message;
         }
 
+
+#region AVATAR - IMAGE SOURCE
         public static ImageSource GetBubbleAvatarImageSource(String bubbleId)
         {
             ImageSource result = null;
@@ -374,5 +401,7 @@ namespace InstantMessaging.Helpers
             }
             return result;
         }
+#endregion AVATAR - IMAGE SOURCE    
+
     }
 }
