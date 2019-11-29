@@ -77,7 +77,8 @@
                     ItemsSource="{Binding MessagesList}"
 			        HasUnevenRows="True"
 			        SeparatorVisibility="None" 
-                    VerticalOptions="End">
+                    VerticalOptions="End"
+                    IsEnabled="{Binding ConversationStream.ListViewIsEnabled}">
                 </ListView>
                 <!-- MESSAGE LIST - END -->
                 

@@ -76,9 +76,6 @@ namespace InstantMessaging
 
                 ScrollToMessageIndex(indexToSee, ScrollToPosition.Start, () =>
                 {
-                    // Enable again the MessageListView
-                    MessagesListView.IsEnabled = true;
-
                     vm.ScrollingDueToLoadingOlderMessagesDone();
                 });
             }
@@ -87,9 +84,6 @@ namespace InstantMessaging
             {
                 if (vm.CanLoadMoreMessages())
                 {
-                    // We lock the MessageListView while we are loading older messages
-                    MessagesListView.IsEnabled = false;
-
                     // Load more messages
                     vm.LoadMoreMessages();
                 }

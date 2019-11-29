@@ -83,6 +83,7 @@ namespace InstantMessaging
             // Create default ConversationStream object
             ConversationStream = new ConversationStream();
             ConversationStream.LoadingIndicatorIsVisible = "False";
+            ConversationStream.ListViewIsEnabled = "True";
 
             // Create default MessagesList  object
             MessagesList = new ObservableRangeCollection<InstantMessaging.Model.Message>();
@@ -121,6 +122,7 @@ namespace InstantMessaging
         {
             waitingScrollingDueToLoadingOlderMessages = false;
             ConversationStream.LoadingIndicatorIsVisible = "False";
+            ConversationStream.ListViewIsEnabled = "True";
         }
 
         public bool WaitingScrollingDueToLoadingOlderMessages()
@@ -147,6 +149,7 @@ namespace InstantMessaging
 
             // Display "loading indicator"
             ConversationStream.LoadingIndicatorIsVisible = "True";
+            ConversationStream.ListViewIsEnabled = "False";
 
             Task task = new Task(() =>
                 XamarinApplication.RbInstantMessaging.GetMessagesFromConversationId(conversationId, NB_MESSAGE_LOADED_BY_ROW, callback =>
@@ -160,6 +163,10 @@ namespace InstantMessaging
                         {
                             // We store the fact that we have no more older message to found
                             noMoreOlderMessagesAvailable = true;
+
+                            // We hide loading indicator
+                            ConversationStream.LoadingIndicatorIsVisible = "False";
+                            ConversationStream.ListViewIsEnabled = "True";
                         }
                         else
                         {
