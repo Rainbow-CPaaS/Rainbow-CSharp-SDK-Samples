@@ -36,9 +36,6 @@ namespace InstantMessaging
             // We want to scroll to the bottom of the Messages List when it's displayed
             this.Appearing += ConversationStreamPage_Appearing;
 
-            MessagesListView.BindingContextChanged += MessagesListView_BindingContextChanged; ;
-            
-
             MessagesListView.ItemAppearing += MessagesListView_ItemAppearing;
 
             MessagesListView.ItemSelected += MessagesListView_ItemSelected;
@@ -46,18 +43,7 @@ namespace InstantMessaging
 
             BtnIMSend.Clicked += BtnIMSend_Clicked;
         }
-
-        private void MessagesListView_BindingContextChanged(object sender, EventArgs e)
-        {
-            
-        }
-
-        private void MessagesListView_ChildAdded(object sender, ElementEventArgs e)
-        {
-            
-        }
-
-        #region EVENTS FIRED ON THIS CONTENT PAGE
+#region EVENTS FIRED ON THIS CONTENT PAGE
 
         private void BtnIMSend_Clicked(object sender, EventArgs e)
         {
