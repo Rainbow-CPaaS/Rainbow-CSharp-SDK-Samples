@@ -22,6 +22,7 @@ namespace InstantMessaging
 
         private String peerId;
         private int indexToSee = 0;
+        private bool scrollToTheEnd = false;
 
         public ConversationStreamPage(String peerId)
         {
@@ -57,57 +58,66 @@ namespace InstantMessaging
         {
             base.OnAppearing();
 
-            if (vm.WaitingScrollingDueToLoadingOlderMessages())
+            // Do we need to scroll to the end of the list ?
+            if (scrollToTheEnd)
             {
-                // We scroll only if there is enough elements ...
-                if (vm.MessagesList.Count > 0)
+                ScrollToMessageIndex(vm.MessagesList.Count - 1, ScrollToPosition.MakeVisible, () =>
                 {
-                    Device.BeginInvokeOnMainThread(() =>
-                    {
-                        try
-                        {
-                            indexToSee = vm.NbOlderMessagesFound();
-
-                            if (indexToSee >= vm.MessagesList.Count)
-                                indexToSee = vm.MessagesList.Count - 1;
-
-                            MessagesListView.ScrollTo(vm.MessagesList[indexToSee], ScrollToPosition.Start, false);
-
-                            // Enable again the MessageListView
-                            MessagesListView.IsEnabled = true;
-
-                            vm.ScrollingDueToLoadingOlderMessagesDone();
-                        }
-                        catch
-                        {
-                        }
-                    });
-                }
+                    scrollToTheEnd = false;
+                });
             }
-            else
+            // Do we need to scroll due to the loading of older messages ?
+            else if (vm.WaitingScrollingDueToLoadingOlderMessages())
             {
-                // We want to load more message when we are on top of the list
-                if (e.ItemIndex == 0)
-                {
-                    if (vm.CanLoadMoreMessages())
-                    {
-                        // We lock the MessageListView while we are loading older messages
-                        MessagesListView.IsEnabled = false;
+                indexToSee = vm.NbOlderMessagesFound();
 
-                        // Load more messages
-                        vm.LoadMoreMessages();
-                    }
+                if (indexToSee >= vm.MessagesList.Count)
+                    indexToSee = vm.MessagesList.Count - 1;
+
+                ScrollToMessageIndex(indexToSee, ScrollToPosition.Start, () =>
+                {
+                    // Enable again the MessageListView
+                    MessagesListView.IsEnabled = true;
+
+                    vm.ScrollingDueToLoadingOlderMessagesDone();
+                });
+            }
+            // We want to load more message when we are on top of the list
+            else if (e.ItemIndex == 0)
+            {
+                if (vm.CanLoadMoreMessages())
+                {
+                    // We lock the MessageListView while we are loading older messages
+                    MessagesListView.IsEnabled = false;
+
+                    // Load more messages
+                    vm.LoadMoreMessages();
                 }
             }
         }
 
         private void ConversationStreamPage_Appearing(object sender, EventArgs e)
         {
-            // Nothing to do (for the moment)
+            // When the message list appears we want to scroll to the last message
+            scrollToTheEnd = (vm.MessagesList.Count > 0);
         }
 
 #endregion EVENTS FIRED ON THIS CONTENT PAGE
 
+        private void ScrollToMessageIndex(int index, ScrollToPosition position, Action callback = null)
+        {
+            Device.BeginInvokeOnMainThread(() =>
+            {
+                try
+                {
+                    MessagesListView.ScrollTo(vm.MessagesList[index], position, false);
+                    callback?.Invoke();
+                }
+                catch
+                {
+                }
+            });
+        }
 
     }
 }
