@@ -57,8 +57,7 @@ namespace InstantMessaging
             Rainbow.Helpers.AvatarPool.Instance.AllowToAskInfoForUnknownContact(true);
         }
 
-
-        void ShowConversationStreamPage(String peerId)
+        void ShowConversationStreamPage(String conversationId)
         {
             Device.BeginInvokeOnMainThread(async () =>
             {
@@ -66,12 +65,12 @@ namespace InstantMessaging
                     XamarinApplication.ConversationStreamPageList = new Dictionary<String, ConversationStreamPage>();
                 
                 ConversationStreamPage conversationStreamPage;
-                if (XamarinApplication.ConversationStreamPageList.ContainsKey(peerId))
-                    conversationStreamPage = XamarinApplication.ConversationStreamPageList[peerId];
+                if (XamarinApplication.ConversationStreamPageList.ContainsKey(conversationId))
+                    conversationStreamPage = XamarinApplication.ConversationStreamPageList[conversationId];
                 else
                 {
-                    conversationStreamPage = new ConversationStreamPage(peerId);
-                    XamarinApplication.ConversationStreamPageList.Add(peerId, conversationStreamPage);
+                    conversationStreamPage = new ConversationStreamPage(conversationId);
+                    XamarinApplication.ConversationStreamPageList.Add(conversationId, conversationStreamPage);
 
                     //TODO - avoid to have too many Page in this list
                 }
@@ -97,7 +96,7 @@ namespace InstantMessaging
                     ConversationLight conversation = e.Item as ConversationLight;
 
                     if (conversation != null)
-                        ShowConversationStreamPage(conversation.PeerId);
+                        ShowConversationStreamPage(conversation.Id);
                 }
             }
 

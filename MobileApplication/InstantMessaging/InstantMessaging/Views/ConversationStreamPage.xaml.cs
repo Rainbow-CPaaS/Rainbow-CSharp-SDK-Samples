@@ -20,29 +20,53 @@ namespace InstantMessaging
 
         private ConversationStreamViewModel vm;
 
-        private String peerId;
+        private String conversationId;
         private int indexToSee = 0;
         private bool scrollToTheEnd = false;
 
-        public ConversationStreamPage(String peerId)
+        public ConversationStreamPage(String conversationId)
         {
-            this.peerId = peerId;
+            this.conversationId = conversationId;
             
             InitializeComponent();
 
-            vm = new ConversationStreamViewModel(peerId);
+            vm = new ConversationStreamViewModel(conversationId);
             BindingContext = vm;
 
             // We want to scroll to the bottom of the Messages List when it's displayed
             this.Appearing += ConversationStreamPage_Appearing;
-         
+
+            MessagesListView.BindingContextChanged += MessagesListView_BindingContextChanged; ;
+            
+
             MessagesListView.ItemAppearing += MessagesListView_ItemAppearing;
 
             MessagesListView.ItemSelected += MessagesListView_ItemSelected;
             MessagesListView.ItemTapped += MessagesListView_ItemTapped;
+
+            BtnIMSend.Clicked += BtnIMSend_Clicked;
         }
 
-#region EVENTS FIRED ON THIS CONTENT PAGE
+        private void MessagesListView_BindingContextChanged(object sender, EventArgs e)
+        {
+            
+        }
+
+        private void MessagesListView_ChildAdded(object sender, ElementEventArgs e)
+        {
+            
+        }
+
+        #region EVENTS FIRED ON THIS CONTENT PAGE
+
+        private void BtnIMSend_Clicked(object sender, EventArgs e)
+        {
+            if (String.IsNullOrEmpty(EntryIM.Text))
+                return;
+
+            vm.SendMessage(EntryIM.Text);
+            EntryIM.Text = "";
+        }
 
         private void MessagesListView_ItemTapped(object sender, ItemTappedEventArgs e)
         {
@@ -57,9 +81,20 @@ namespace InstantMessaging
         private void MessagesListView_ItemAppearing(object sender, ItemVisibilityEventArgs e)
         {
             base.OnAppearing();
-
+            if (vm.NewMessageAdded())
+            {
+                if (vm.MessagesList.Count > 0)
+                {
+                    ScrollToMessageIndex(vm.MessagesList.Count - 1, ScrollToPosition.MakeVisible, () =>
+                    {
+                        vm.ScrollToNewMessageAddedDone();
+                    });
+                }
+                else
+                    vm.ScrollToNewMessageAddedDone();
+            }
             // Do we need to scroll to the end of the list ?
-            if (scrollToTheEnd)
+            else if (scrollToTheEnd)
             {
                 ScrollToMessageIndex(vm.MessagesList.Count - 1, ScrollToPosition.MakeVisible, () =>
                 {

@@ -25,7 +25,6 @@ namespace InstantMessaging
 
         private static int NB_MESSAGE_LOADED_BY_ROW = 40;
 
-        private String peerId; // PeerId of this Conversation
         private String conversationId; // ConversationId of this Conversation
         private Conversation rbConversation = null; // Rainbow Conversation object
 
@@ -37,13 +36,13 @@ namespace InstantMessaging
 
         private List<String> contactsListInvolved = new List<String>(); // To store list of contacts involved in this Conversation (by Jid)
 
-
+        // Define attributes to manage loading/scrolling of messages list view
         private Boolean noMoreOlderMessagesAvailable = false;
         private Boolean loadingOlderMessages = false;
         private Boolean waitingScrollingDueToLoadingOlderMessages = false;
         private int nbOlderMessagesFound = 0;
+        private Boolean newMessageAdded = false;
 
-        
 #region XAML BINDING ELEMENTS
 
         public ConversationLight Conversation { get; } // Need to be public - Used as Binding from XAML
@@ -59,7 +58,7 @@ namespace InstantMessaging
         /// <summary>
         /// Constructor
         /// </summary>
-        public ConversationStreamViewModel(String peerId)
+        public ConversationStreamViewModel(String conversationId)
         {
             // Get Xamarin Application
             XamarinApplication = (InstantMessaging.App)Xamarin.Forms.Application.Current;
@@ -76,9 +75,8 @@ namespace InstantMessaging
             XamarinApplication.RbContacts.ContactAdded += RbContacts_ContactAdded;
             XamarinApplication.RbContacts.ContactInfoChanged += RbContacts_ContactInfoChanged;
 
-            // Store PeerID and Get conversation Id
-            this.peerId = peerId;
-            conversationId = XamarinApplication.RbConversations.GetConversationIdByPeerIdFromCache(peerId);
+            // Store conversation Id
+            this.conversationId = conversationId;
 
             // Create default ConversationStream object
             ConversationStream = new ConversationStream();
@@ -88,7 +86,7 @@ namespace InstantMessaging
             // Create default MessagesList  object
             MessagesList = new ObservableRangeCollection<InstantMessaging.Model.Message>();
 
-            if (String.IsNullOrEmpty(conversationId))
+            if (string.IsNullOrEmpty(this.conversationId))
             {
                 //TODO
                 Conversation = new ConversationLight();
@@ -96,7 +94,7 @@ namespace InstantMessaging
             else
             {
                 // Get Rainbow Conversation object
-                rbConversation = XamarinApplication.RbConversations.GetConversationByIdFromCache(conversationId);
+                rbConversation = XamarinApplication.RbConversations.GetConversationByIdFromCache(this.conversationId);
 
                 // Get Conversation Model Object using Rainbow Conversation
                 Conversation = Helper.GetConversationFromRBConversation(rbConversation);
@@ -104,7 +102,7 @@ namespace InstantMessaging
                     Conversation.AvatarSource = Helper.GetConversationAvatarImageSource(Conversation);
 
                 // Get Messages
-                List<Rainbow.Model.Message> rbMessagesList = XamarinApplication.RbInstantMessaging.GetAllMessagesFromConversationIdFromCache(conversationId);
+                List<Rainbow.Model.Message> rbMessagesList = XamarinApplication.RbInstantMessaging.GetAllMessagesFromConversationIdFromCache(this.conversationId);
                 if (rbMessagesList != null)
                 {
                     if (rbMessagesList.Count > 0)
@@ -116,6 +114,11 @@ namespace InstantMessaging
                 else
                     LoadMoreMessages();
             }
+        }
+
+        public void SendMessage(String content)
+        {
+            XamarinApplication.RbInstantMessaging.SendMessageToConversationId(this.conversationId, content);
         }
 
         public void ScrollingDueToLoadingOlderMessagesDone()
@@ -186,6 +189,17 @@ namespace InstantMessaging
                 }) );
             task.Start();
         }
+
+        public Boolean NewMessageAdded()
+        {
+            return newMessageAdded;
+        }
+
+        public void ScrollToNewMessageAddedDone()
+        {
+            newMessageAdded = false;
+        }
+
 
 #endregion PUBLIC METHODS
 
@@ -292,7 +306,7 @@ namespace InstantMessaging
                     log.WarnFormat("[UpdateMessagesForJid] peerJid:[{0}] found but related contact not found", peerJid);
             }
             else
-                log.WarnFormat("[UpdateMessagesForJid] peerJid:[{0}] not found in this conversationId:[{1}]", peerJid, peerId);
+                log.WarnFormat("[UpdateMessagesForJid] peerJid:[{0}] not found in this conversationId:[{1}]", peerJid, this.conversationId);
         }
 
 #endregion PRIVATE METHOD
@@ -300,7 +314,47 @@ namespace InstantMessaging
 #region EVENTS FROM RAINBOW SDK
         private void RbInstantMessaging_MessageReceived(object sender, Rainbow.Events.MessageEventArgs e)
         {
-            //TODO
+            if (e.ConversationId == this.conversationId)
+            {
+                InstantMessaging.Model.Message newMsg = Helper.GetMessageFromRBMessage(e.Message, rbConversation.Type);
+                if (newMsg == null)
+                    return;
+
+                newMessageAdded = true;
+
+                lock (lockObservableMessagesList)
+                {
+                    // Do we have already some message ?
+                    if (MessagesList.Count == 0)
+                    {
+                        MessagesList.Add(newMsg);
+                    }
+                    else
+                    {
+                        // Add to the list but need to check date
+                        InstantMessaging.Model.Message storedMsg;
+                        bool newMsgAdded = false;
+                        int nb = MessagesList.Count - 1;
+
+                        for (int i = nb; i>0; i--)
+                        {
+                            storedMsg = MessagesList[i];
+                            if(newMsg.MessageDateTime > storedMsg.MessageDateTime)
+                            {
+                                if(i == nb)
+                                    MessagesList.Add(newMsg);
+                                else
+                                    MessagesList.Insert(i, newMsg);
+                                newMsgAdded = true;
+                                break;
+                            }
+                        }
+                        // If we don't have already added the new message, we insert it to the first place
+                        if (!newMsgAdded)
+                            MessagesList.Insert(0, newMsg);
+                    }
+                }
+            }
         }
 
         private void RbContacts_ContactInfoChanged(object sender, Rainbow.Events.JidEventArgs e)

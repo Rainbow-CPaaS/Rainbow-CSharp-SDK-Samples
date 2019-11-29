@@ -99,13 +99,13 @@
 
                 <!-- INPUT TEXT + SEND BTN  - START -->
                 <StackLayout Grid.Row="1" Orientation="Horizontal" Padding="10" BackgroundColor="#EFEFEF">
-                    <Entry 
+                    <Entry x:Name="EntryIM"
 			            HorizontalOptions="FillAndExpand" 
 				        HeightRequest="25" 
-				        Placeholder="Message" 
-                        TextColor="Gray"
-				        Text="Enter your text here  ..."/>
-                    <Button Text="Send" />
+				        Placeholder="Enter your text here ..." 
+                        TextColor="Gray"/>
+                    <Button x:Name="BtnIMSend"
+                            Text="Send" />
                 </StackLayout>
                 <!-- INPUT TEXT + SEND BTN  - END -->
                 
