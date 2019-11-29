@@ -32,7 +32,8 @@ namespace Rainbow.Helpers
 
         private IImageManagement imageManagement = null;
 
-        private static readonly List<String> colorsList = new List<String> { "#FF4500", "#D38700", "#348833", "#007356", "#00B2A9", "#00B0E5", "#0085CA", "#6639B7", "#91278A", "#CF0072", "#A50034", "#D20000" };
+        private static readonly List<String> colorsList = new List<String>      { "#FF4500", "#D38700", "#348833", "#007356", "#00B2A9", "#00B0E5", "#0085CA", "#6639B7", "#91278A", "#CF0072", "#A50034", "#D20000" };
+        private static readonly List<String> darkerColorsList = new List<String> { "#EB2700", "#B56900", "#166A15", "#005538", "#00948B", "#0092C7", "#0067AC", "#481B99", "#73096C", "#B10054", "#870016", "#B40000" };
 
         private Rainbow.Application application = null;
         private Rainbow.Contacts contacts = null;
@@ -512,23 +513,12 @@ namespace Rainbow.Helpers
 
         public static String GetColorFromDisplayName(String displayName)
         {
-            String result = colorsList[0];
+            return colorsList[ColorIndexFromDisplayName(displayName)];
+        }
 
-            if (String.IsNullOrEmpty(displayName))
-                return result;
-
-            String name = displayName.ToUpper();
-            long sum = 0;
-            int i, nb;
-            if (name != null)
-            {
-                nb = name.Length;
-                for (i = 0; i < nb; i++)
-                    sum += name[i];
-
-                result = colorsList[(int)(sum % colorsList.Count)];
-            }
-            return result;
+        public static String GetDarkerColorFromDisplayName(String displayName)
+        {
+            return darkerColorsList[ColorIndexFromDisplayName(displayName)];
         }
 
         public List<String> GetBubblesListForContactID(String contactId)
@@ -756,6 +746,27 @@ namespace Rainbow.Helpers
 #endregion INTERFACE IImageManagement
 
 #region PRIVATE METHODS    
+
+         private static int ColorIndexFromDisplayName(String displayName)
+        {
+            int result = 0;
+
+            if (String.IsNullOrEmpty(displayName))
+                return result;
+
+            String name = displayName.ToUpper();
+            long sum = 0;
+            int i, nb;
+            if (name != null)
+            {
+                nb = name.Length;
+                for (i = 0; i < nb; i++)
+                    sum += name[i];
+
+                result = (int)(sum % colorsList.Count);
+            }
+            return result;
+        }
 
         private Stream GetContactAvatarPartUsingFile(String filePath, int partNumber, int nbParts)
         {
