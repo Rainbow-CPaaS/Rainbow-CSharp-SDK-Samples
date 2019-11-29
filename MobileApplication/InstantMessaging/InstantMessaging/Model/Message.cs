@@ -19,6 +19,14 @@ namespace InstantMessaging.Model
         DateTime messageDateTime;
         String  messageDateDisplay;
 
+        String replyId;
+        String replyPeerDisplayName;
+        String replyPeerId;
+        String replyPeerJid;
+        String replyPartIsVisible;
+        String replyBackgroundColor;
+        String replyBody;
+
         public string Id
         {
             get { return id; }
@@ -31,7 +39,7 @@ namespace InstantMessaging.Model
             set { SetProperty(ref peerDisplayName, value); }
         }
 
-        public string PeerDisplayNameIsVisible
+        public string PeerDisplayNameIsVisible // Used to avoid to display name in one-to-one conversation
         {
             get { return peerDisplayNameIsVisible; }
             set { SetProperty(ref peerDisplayNameIsVisible, value); }
@@ -78,5 +86,52 @@ namespace InstantMessaging.Model
             get { return messageDateDisplay; }
             set { SetProperty(ref messageDateDisplay, value); }
         }
+
+#region PROPERTIES FOR REPLY DISPLAY
+
+        public string ReplyId
+        {
+            get { return replyId; }
+            set { SetProperty(ref replyId, value); }
+        }
+
+        public string ReplyPeerDisplayName
+        {
+            get { return replyPeerDisplayName; }
+            set { SetProperty(ref replyPeerDisplayName, value); }
+        }
+
+        public string ReplyPeerId
+        {
+            get { return replyPeerId; }
+            set { SetProperty(ref replyPeerId, value); }
+        }
+        public string ReplyPeerJid
+        {
+            get { return replyPeerJid; }
+            set { SetProperty(ref replyPeerJid, value); }
+        }
+        public string ReplyPartIsVisible
+        {
+            get { return replyPartIsVisible; }
+            set { SetProperty(ref replyPartIsVisible, value); }
+        }
+
+        public string ReplyBackgroundColor
+        {
+            get { return replyBackgroundColor; }
+            set { SetProperty(ref replyBackgroundColor, value); }
+        }
+
+
+
+        public string ReplyBody
+        {
+            get { return replyBody; }
+            set { SetProperty(ref replyBody, value); }
+        }
+
+#endregion PROPERTIES FOR REPLY DISPLAY
+
     }
 }

@@ -32,9 +32,15 @@ namespace InstantMessaging
         private InstantMessaging.App XamarinApplication;
 
         private Object lockObservableMessagesList = new Object(); // To lock access to the observable collection: 'MessagesList'
-        private Object lockContactsListInvolved = new Object(); // To lock access to: 'contactsListInvolved'
 
+        private Object lockContactsListInvolved = new Object(); // To lock access to: 'contactsListInvolved'
         private List<String> contactsListInvolved = new List<String>(); // To store list of contacts involved in this Conversation (by Jid)
+
+        private Object lockRepliedContactsListInvolved = new Object(); // To lock access to: 'repliedContactsListInvolved'
+        private List<String> repliedContactsListInvolved = new List<String>(); // To store list of contacts involved in reply context in this Conversation (by Jid)
+
+        private Object lockRepliedMessagesListInvolved = new Object(); // To lock access to: 'repliedMessagesListInvolved'
+        private List<String> repliedMessagesListInvolved = new List<String>(); // To store list of messages involved in reply context in this Conversation (by message Id)
 
         // Define attributes to manage loading/scrolling of messages list view
         private Boolean noMoreOlderMessagesAvailable = false;
@@ -200,7 +206,6 @@ namespace InstantMessaging
             newMessageAdded = false;
         }
 
-
 #endregion PUBLIC METHODS
 
 #region PRIVATE METHOD
@@ -210,12 +215,18 @@ namespace InstantMessaging
             List<InstantMessaging.Model.Message> messagesList = new List<InstantMessaging.Model.Message>();
             foreach (Rainbow.Model.Message rbMessage in rbMessagesList)
             {
-                InstantMessaging.Model.Message msg = Helper.GetMessageFromRBMessage(rbMessage, rbConversation.Type);
+                InstantMessaging.Model.Message msg = GetMessageFromRBMessage(rbMessage, rbConversation.Type);
                 if (msg != null)
                 {
                     messagesList.Insert(0, msg);
                     msg.AvatarSource = Helper.GetContactAvatarImageSource(msg.PeerId);
                     AddContactInvolved(msg.PeerJid);
+                    
+                    // For reply management
+                    if(msg.ReplyPeerJid != null)
+                        AddRepliedContactInvolved(msg.ReplyPeerJid);
+                    else
+                        AddRepliedMessageInvolved(msg.ReplyId);
                 }
             }
 
@@ -242,7 +253,7 @@ namespace InstantMessaging
         {
             lock (lockContactsListInvolved)
             {
-                if (!contactsListInvolved.Contains(peerJid))
+                if((!String.IsNullOrEmpty(peerJid)) && (!contactsListInvolved.Contains(peerJid)))
                 {
                     //log.DebugFormat("[AddContactInvolved] - ContactJid:[{0}]", peerJid);
                     contactsListInvolved.Add(peerJid);
@@ -250,6 +261,28 @@ namespace InstantMessaging
             }
         }
 
+        private void AddRepliedContactInvolved(String peerJid)
+        {
+            lock (lockRepliedContactsListInvolved)
+            {
+                if ((!String.IsNullOrEmpty(peerJid)) && (!repliedContactsListInvolved.Contains(peerJid)))
+                {
+                    repliedContactsListInvolved.Add(peerJid);
+                }
+            }
+        }
+
+        private void AddRepliedMessageInvolved(String msgId)
+        {
+            lock (lockRepliedMessagesListInvolved)
+            {
+                if ((!String.IsNullOrEmpty(msgId)) && (!repliedMessagesListInvolved.Contains(msgId)))
+                {
+                    repliedMessagesListInvolved.Add(msgId);
+                }
+            }
+        }
+        
         private List<InstantMessaging.Model.Message> GetMessagesByPeerJid(String peerJid)
         {
             List<InstantMessaging.Model.Message> result = new List<InstantMessaging.Model.Message>();
@@ -297,8 +330,8 @@ namespace InstantMessaging
                             {
                                 message.PeerDisplayName = displayName;
                                 message.BackgroundColor = Rainbow.Helpers.AvatarPool.GetColorFromDisplayName(message.PeerDisplayName);
+                                message.ReplyBackgroundColor = Rainbow.Helpers.AvatarPool.GetDarkerColorFromDisplayName(message.PeerDisplayName);
                             }
-
                         }
                     }
                 }
@@ -309,6 +342,118 @@ namespace InstantMessaging
                 log.WarnFormat("[UpdateMessagesForJid] peerJid:[{0}] not found in this conversationId:[{1}]", peerJid, this.conversationId);
         }
 
+        public InstantMessaging.Model.Message GetMessageFromRBMessage(Rainbow.Model.Message rbMessage, String conversationType)
+        {
+            InstantMessaging.Model.Message message = null;
+            if (rbMessage != null)
+            {
+                InstantMessaging.App XamarinApplication = (InstantMessaging.App)Xamarin.Forms.Application.Current;
+                AvatarPool avatarPool = AvatarPool.Instance;
+
+                message = new InstantMessaging.Model.Message();
+
+                Rainbow.Model.Contact contact = XamarinApplication.RbContacts.GetContactFromContactJid(rbMessage.FromJid);
+                if (contact != null)
+                {
+                    message.PeerId = contact.Id;
+
+                    message.PeerDisplayName = Util.GetContactDisplayName(contact, avatarPool.GetFirstNameFirst());
+                    message.BackgroundColor = Rainbow.Helpers.AvatarPool.GetColorFromDisplayName(message.PeerDisplayName);
+                }
+                else
+                {
+                    message.BackgroundColor = Rainbow.Helpers.AvatarPool.GetColorFromDisplayName("");
+
+                    // We ask to have more info about this contact usin AvatarPool
+                    avatarPool.AddUnknownContactToPoolByJid(rbMessage.FromJid);
+                }
+
+                // We have the display name only in Room / Bubble context
+                message.PeerDisplayNameIsVisible = (conversationType == Rainbow.Model.Conversation.ConversationType.Room) ? "True" : "False";
+
+                message.Id = rbMessage.Id;
+                message.PeerJid = rbMessage.FromJid;
+
+                message.MessageDateTime = rbMessage.Date;
+                message.MessageDateDisplay = Helper.HumanizeDateTime(rbMessage.Date);
+
+                // Set default content
+                String content;
+                if (!String.IsNullOrEmpty(rbMessage.BubbleEvent))
+                {
+                    content = "EVENT: " + rbMessage.BubbleEvent;
+                }
+                else if (rbMessage.Content != null)
+                {
+                    content = rbMessage.Content;
+                }
+                else
+                {
+                    content = "";
+                }
+
+                // Reply part
+                // By default is not displayed
+                message.ReplyPartIsVisible = "False";
+                if (rbMessage.ReplyMessage != null)
+                {
+                    // Store Id of this reply message
+                    message.ReplyId = rbMessage.ReplyMessage.Id;
+
+                    // Set background color
+                    message.ReplyBackgroundColor = Rainbow.Helpers.AvatarPool.GetDarkerColorFromDisplayName(message.PeerDisplayName);
+
+                    // We need to get Name and text of the replied message ...
+                    Rainbow.Model.Message rbRepliedMessage = XamarinApplication.RbInstantMessaging.GetOneMessageFromConversationIdFromCache(this.conversationId, rbMessage.ReplyMessage.Id);
+                    if(rbRepliedMessage != null)
+                    {
+                        // Store Jid of the message sender
+                        message.ReplyPeerJid = rbRepliedMessage.FromJid;
+
+                        Rainbow.Model.Contact contactReply = XamarinApplication.RbContacts.GetContactFromContactJid(rbRepliedMessage.FromJid);
+                        if (contactReply != null)
+                        {
+                            // Reply part is visible
+                            message.ReplyPartIsVisible = "True";
+
+                            message.ReplyPeerId = contactReply.Id;
+                            message.ReplyPeerDisplayName = Util.GetContactDisplayName(contactReply, avatarPool.GetFirstNameFirst());
+                            message.ReplyBody = rbRepliedMessage.Content;
+                        }
+                        else
+                        {
+                            // We ask to have more info about this contact using AvatarPool
+                            avatarPool.AddUnknownContactToPoolByJid(rbRepliedMessage.FromJid);
+                        }
+                    }
+                    else
+                    {
+                        //TODO - need to have info about this reply message ...
+                    }
+                }
+                
+
+                // Replace
+                if (!String.IsNullOrEmpty(rbMessage.ReplaceId))
+                {
+                    if (!String.IsNullOrEmpty(content))
+                        content += "\r\n";
+                    content += String.Format("ReplaceId: [{0}]", rbMessage.ReplaceId);
+                }
+
+                // FileAttachment
+                if (rbMessage.FileAttachment != null)
+                {
+                    if (!String.IsNullOrEmpty(content))
+                        content += "\r\n";
+                    content += String.Format("File: \"{0}\"\r\nSize: {1}", rbMessage.FileAttachment.Name, Helper.HumanizeFileSize(rbMessage.FileAttachment.Size));
+                }
+                message.Body = content;
+
+            }
+            return message;
+        }
+
 #endregion PRIVATE METHOD
 
 #region EVENTS FROM RAINBOW SDK
@@ -316,7 +461,7 @@ namespace InstantMessaging
         {
             if (e.ConversationId == this.conversationId)
             {
-                InstantMessaging.Model.Message newMsg = Helper.GetMessageFromRBMessage(e.Message, rbConversation.Type);
+                InstantMessaging.Model.Message newMsg = GetMessageFromRBMessage(e.Message, rbConversation.Type);
                 if (newMsg == null)
                     return;
 

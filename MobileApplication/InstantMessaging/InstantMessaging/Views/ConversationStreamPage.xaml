@@ -51,7 +51,7 @@
                 <!-- NAME AND TOPIC -->
                 <StackLayout Grid.Row="0" Grid.Column="2" Orientation="Vertical" VerticalOptions="Center" HorizontalOptions="StartAndExpand" Spacing="0">
                     <Label HorizontalOptions="StartAndExpand" TextColor="Black" FontSize="Medium" MaxLines="1" LineBreakMode="TailTruncation" VerticalOptions="Center" Text="{Binding Conversation.Name}"/>
-                    <Label HorizontalOptions="StartAndExpand" TextColor="DarkGray" FontSize="Small" MaxLines="1" LineBreakMode="TailTruncation" VerticalOptions="Center" Text="{Binding Conversation.Topic}" IsVisible="{Binding Conversation.TopicIsVisible}"/>
+                    <Label HorizontalOptions="StartAndExpand" TextColor="Black" FontSize="Small" MaxLines="1" LineBreakMode="TailTruncation" VerticalOptions="Center" Text="{Binding Conversation.Topic}" IsVisible="{Binding Conversation.TopicIsVisible}"/>
                 </StackLayout>
 
                 <!-- MORE BTN -->
