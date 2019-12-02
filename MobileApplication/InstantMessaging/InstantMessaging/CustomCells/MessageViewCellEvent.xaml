@@ -1,0 +1,46 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<ViewCell xmlns="http://xamarin.com/schemas/2014/forms" 
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="InstantMessaging.CustomCells.MessageViewCellEvent">
+
+    <Grid RowSpacing="0" ColumnSpacing="4" Padding="0" HorizontalOptions="FillAndExpand">
+        <Grid.ColumnDefinitions>
+            <!-- SPACE -->
+            <ColumnDefinition Width="4" />
+            
+            <!-- BODY -->
+            <ColumnDefinition Width="*" />
+            
+            <!-- SPACE -->
+            <ColumnDefinition Width="4" />
+            
+        </Grid.ColumnDefinitions>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="50" />
+            <RowDefinition Height="4" />
+        </Grid.RowDefinitions>
+
+        <Frame Grid.Row="0" Grid.Column="1"
+            BorderColor="DarkGray"
+            CornerRadius="8" 
+            Padding="8"
+            VerticalOptions="Center"
+            HorizontalOptions="FillAndExpand"
+            HasShadow="False"
+            IsClippedToBounds="False">
+
+            <StackLayout Orientation="Horizontal" VerticalOptions="Center" HorizontalOptions="FillAndExpand">
+                <Image Source="{Binding AvatarSource}"
+                       Aspect="AspectFit" 
+                       WidthRequest="40" HeightRequest="40"
+                       VerticalOptions="Center" />
+
+                <StackLayout Orientation="Vertical" VerticalOptions="Center" HorizontalOptions="FillAndExpand">
+                    <Label HorizontalOptions="Start" TextColor="Black" FontSize="Small" VerticalOptions="Center" Text="{Binding EventMessageBody}"/>
+                    <Label HorizontalOptions="End" TextColor="Black" FontSize="Micro" VerticalOptions="Center" Text="{Binding MessageDateDisplay}"/>
+                </StackLayout>
+            </StackLayout>
+        </Frame>
+    </Grid>
+</ViewCell>

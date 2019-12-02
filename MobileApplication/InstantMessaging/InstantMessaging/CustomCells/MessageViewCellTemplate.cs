@@ -11,6 +11,7 @@ namespace InstantMessaging.CustomCells
     {
         private readonly DataTemplate messageViewCurrentUser;
         private readonly DataTemplate messageViewOtherUser;
+        private readonly DataTemplate messageViewEvent;
 
         private String currentContactId = null;
 
@@ -19,6 +20,8 @@ namespace InstantMessaging.CustomCells
             messageViewOtherUser = new DataTemplate(typeof(InstantMessaging.CustomCells.MessageViewCellOtherUser));
 
             messageViewCurrentUser = new DataTemplate(typeof(InstantMessaging.CustomCells.MessageViewCellCurrentUser));
+
+            messageViewEvent = new DataTemplate(typeof(InstantMessaging.CustomCells.MessageViewCellEvent));
         }
 
         protected override DataTemplate OnSelectTemplate(object item, BindableObject container)
@@ -26,10 +29,13 @@ namespace InstantMessaging.CustomCells
             if(item is InstantMessaging.Model.Message)
             {
                 InstantMessaging.Model.Message message = item as InstantMessaging.Model.Message;
-                if (message.PeerId == GetCurrentContactId())
+                if (message.IsEventMessage == "True")
+                    return messageViewEvent;
+                else if (message.PeerId == GetCurrentContactId())
                     return messageViewCurrentUser;
+                return messageViewOtherUser;
             }
-            return messageViewOtherUser;
+            return null;
         }
 
         private String GetCurrentContactId()

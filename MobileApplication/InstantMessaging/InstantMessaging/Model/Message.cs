@@ -19,6 +19,9 @@ namespace InstantMessaging.Model
         DateTime messageDateTime;
         String  messageDateDisplay;
 
+        String isEventMessage;
+        String eventMessageBody;
+
         String replyId;
         String replyPeerDisplayName;
         String replyPeerId;
@@ -87,6 +90,18 @@ namespace InstantMessaging.Model
             set { SetProperty(ref messageDateDisplay, value); }
         }
 
+        public String IsEventMessage
+        {
+            get { return isEventMessage; }
+            set { SetProperty(ref isEventMessage, value); }
+        }
+
+        public String EventMessageBody
+        {
+            get { return eventMessageBody; }
+            set { SetProperty(ref eventMessageBody, value); }
+        }
+
 #region PROPERTIES FOR REPLY DISPLAY
 
         public string ReplyId
@@ -122,8 +137,6 @@ namespace InstantMessaging.Model
             get { return replyBackgroundColor; }
             set { SetProperty(ref replyBackgroundColor, value); }
         }
-
-
 
         public string ReplyBody
         {

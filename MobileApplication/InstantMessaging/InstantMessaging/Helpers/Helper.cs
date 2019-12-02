@@ -210,6 +210,36 @@ namespace InstantMessaging.Helpers
             return conversation;
         }
 
+        public static String GetEventMessageBody(Contact contact, String bubbleEvent)
+        {
+            String result = null;
+
+            if(contact != null)
+            {
+                String displayName = Util.GetContactDisplayName(contact, AvatarPool.Instance.GetFirstNameFirst());
+                switch (bubbleEvent)
+                {
+                    case "conferenceEnded":
+                        result = displayName + " has ended the conference";
+                        break;
+                    case "conferenceStarted":
+                        result = displayName + " has started the conference";
+                        break;
+                    case "userJoin":
+                        result = displayName + " has joined the conference";
+                        break;
+                    case "userLeave":
+                        result = displayName + " has left the conference";
+                        break;
+                    default:
+                        result = displayName + " - " + bubbleEvent;
+                        break;
+                }
+            }
+
+            return result;
+        }
+
 #region AVATAR - IMAGE SOURCE
         public static ImageSource GetBubbleAvatarImageSource(String bubbleId)
         {

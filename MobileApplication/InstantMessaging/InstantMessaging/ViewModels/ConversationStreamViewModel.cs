@@ -1,7 +1,9 @@
 ﻿using System;
 using System.IO;
 using System.Collections.Generic;
-
+using System.ComponentModel;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Xamarin.Forms;
@@ -39,8 +41,9 @@ namespace InstantMessaging
         private Object lockRepliedContactsListInvolved = new Object(); // To lock access to: 'repliedContactsListInvolved'
         private List<String> repliedContactsListInvolved = new List<String>(); // To store list of contacts involved in reply context in this Conversation (by Jid)
 
-        private Object lockRepliedMessagesListInvolved = new Object(); // To lock access to: 'repliedMessagesListInvolved'
-        private List<String> repliedMessagesListInvolved = new List<String>(); // To store list of messages involved in reply context in this Conversation (by message Id)
+        private Object lockUnknownRepliedMessagesListInvolved = new Object(); // To lock access to: 'repliedMessagesListInvolved'
+        private Dictionary<String, String> unknownRepliedMessagesListInvolved = new Dictionary<String, String>(); // To store list of messages involved in reply context in this Conversation (by message Id / message Stamp) but unknown for the moment
+        private BackgroundWorker backgroundWorkerUnknownrepliedMessage = null;
 
         // Define attributes to manage loading/scrolling of messages list view
         private Boolean noMoreOlderMessagesAvailable = false;
@@ -220,13 +223,6 @@ namespace InstantMessaging
                 {
                     messagesList.Insert(0, msg);
                     msg.AvatarSource = Helper.GetContactAvatarImageSource(msg.PeerId);
-                    AddContactInvolved(msg.PeerJid);
-                    
-                    // For reply management
-                    if(msg.ReplyPeerJid != null)
-                        AddRepliedContactInvolved(msg.ReplyPeerJid);
-                    else
-                        AddRepliedMessageInvolved(msg.ReplyId);
                 }
             }
 
@@ -272,17 +268,84 @@ namespace InstantMessaging
             }
         }
 
-        private void AddRepliedMessageInvolved(String msgId)
+        private void AddUnknownRepliedMessageInvolved(String msgId, String msgStamp)
         {
-            lock (lockRepliedMessagesListInvolved)
+            if ((!String.IsNullOrEmpty(msgId)) && (!unknownRepliedMessagesListInvolved.ContainsKey(msgId)))
             {
-                if ((!String.IsNullOrEmpty(msgId)) && (!repliedMessagesListInvolved.Contains(msgId)))
-                {
-                    repliedMessagesListInvolved.Add(msgId);
-                }
+                unknownRepliedMessagesListInvolved.Add(msgId, msgStamp);
             }
+
+            if (backgroundWorkerUnknownrepliedMessage == null)
+            {
+                backgroundWorkerUnknownrepliedMessage = new BackgroundWorker();
+                backgroundWorkerUnknownrepliedMessage.DoWork += BackgroundWorkerUnknownrepliedMessage_DoWork;
+                backgroundWorkerUnknownrepliedMessage.WorkerSupportsCancellation = true;
+                backgroundWorkerUnknownrepliedMessage.RunWorkerCompleted += BackgroundWorkerUnknownrepliedMessage_RunWorkerCompleted; ;
+            }
+
+            if (!backgroundWorkerUnknownrepliedMessage.IsBusy)
+                backgroundWorkerUnknownrepliedMessage.RunWorkerAsync();
+
         }
-        
+
+        private void BackgroundWorkerUnknownrepliedMessage_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            if (unknownRepliedMessagesListInvolved.Count > 0)
+                AddUnknownRepliedMessageInvolved(null, null);
+        }
+
+        private void BackgroundWorkerUnknownrepliedMessage_DoWork(object sender, DoWorkEventArgs e)
+        {
+            bool canContinue = false;
+            int index = 0;
+            do
+            {
+                if(unknownRepliedMessagesListInvolved.Count > 0)
+                {
+                    if (index > unknownRepliedMessagesListInvolved.Count)
+                        index = 0;
+
+                    String msgId = unknownRepliedMessagesListInvolved.Keys.ToList()[index];
+                    String msgStamp = unknownRepliedMessagesListInvolved[msgId];
+                    if (AskMessageInfo(msgId, msgStamp))
+                        unknownRepliedMessagesListInvolved.Remove(msgId);
+                    else
+                        index++;
+                }
+                canContinue = (unknownRepliedMessagesListInvolved.Count > 0);
+            }
+            while (canContinue);
+        }
+
+        private bool AskMessageInfo(String msgId, String msgStamp)
+        {
+            Boolean result = false;
+            ManualResetEvent manualEvent = new ManualResetEvent(false);
+
+            XamarinApplication.RbInstantMessaging.GetOneMessageFromConversationId(this.conversationId, msgId, msgStamp, callback =>
+            {
+                if(callback.Result.Success)
+                {
+                    result = true;
+                    Rainbow.Model.Message rbMessage = callback.Data;
+                    if (rbMessage != null)
+                    {
+                        List<Model.Message> messagesList = GetMessagesByReplyId(msgId);
+                        foreach (Model.Message message in messagesList)
+                        {
+                            SetReplyPartOfMessage(message, rbMessage);
+                        }
+                    }
+                }
+                manualEvent.Set();
+            });
+
+            manualEvent.WaitOne();
+            manualEvent.Dispose();
+
+            return result;
+        }
+
         private List<InstantMessaging.Model.Message> GetMessagesByPeerJid(String peerJid)
         {
             List<InstantMessaging.Model.Message> result = new List<InstantMessaging.Model.Message>();
@@ -291,6 +354,34 @@ namespace InstantMessaging
                 foreach(InstantMessaging.Model.Message msg  in MessagesList)
                 {
                     if (msg.PeerJid == peerJid)
+                        result.Add(msg);
+                }
+            }
+            return result;
+        }
+
+        private List<InstantMessaging.Model.Message> GetMessagesByReplyPeerJid(String peerJid)
+        {
+            List<InstantMessaging.Model.Message> result = new List<InstantMessaging.Model.Message>();
+            lock (lockObservableMessagesList)
+            {
+                foreach (InstantMessaging.Model.Message msg in MessagesList)
+                {
+                    if (msg.ReplyPeerJid == peerJid)
+                        result.Add(msg);
+                }
+            }
+            return result;
+        }
+
+        private List<InstantMessaging.Model.Message> GetMessagesByReplyId(String replyId)
+        {
+            List<InstantMessaging.Model.Message> result = new List<InstantMessaging.Model.Message>();
+            lock (lockObservableMessagesList)
+            {
+                foreach (InstantMessaging.Model.Message msg in MessagesList)
+                {
+                    if (msg.ReplyId == replyId)
                         result.Add(msg);
                 }
             }
@@ -338,11 +429,37 @@ namespace InstantMessaging
                 else
                     log.WarnFormat("[UpdateMessagesForJid] peerJid:[{0}] found but related contact not found", peerJid);
             }
-            else
-                log.WarnFormat("[UpdateMessagesForJid] peerJid:[{0}] not found in this conversationId:[{1}]", peerJid, this.conversationId);
         }
 
-        public InstantMessaging.Model.Message GetMessageFromRBMessage(Rainbow.Model.Message rbMessage, String conversationType)
+        private void UpdateRepliedMessagesForJid(String peerJid)
+        {
+            if(repliedContactsListInvolved.Contains(peerJid))
+            {
+                Contact contactReply = XamarinApplication.RbContacts.GetContactFromContactJid(peerJid);
+                if (contactReply != null)
+                {
+                    String displayName = Util.GetContactDisplayName(contactReply, AvatarPool.Instance.GetFirstNameFirst());
+
+                    List<InstantMessaging.Model.Message> messages = GetMessagesByReplyPeerJid(peerJid);
+                    lock (lockObservableMessagesList)
+                    {
+                        foreach (InstantMessaging.Model.Message message in messages)
+                        {
+                            log.DebugFormat("[UpdateRepliedMessagesForJid] peerJid:[{0}] - message.Id:[{1}] - displayName:[{2}]", peerJid, message.Id, displayName);
+
+                            message.ReplyPartIsVisible = "True";
+
+                            message.ReplyPeerId = contactReply.Id;
+                            message.ReplyPeerDisplayName = displayName;
+                        }
+                    }
+                }
+                else
+                    log.WarnFormat("[UpdateRepliedMessagesForJid] peerJid:[{0}] found but related contact not found", peerJid);
+            }
+        }
+
+        private InstantMessaging.Model.Message GetMessageFromRBMessage(Rainbow.Model.Message rbMessage, String conversationType)
         {
             InstantMessaging.Model.Message message = null;
             if (rbMessage != null)
@@ -377,81 +494,107 @@ namespace InstantMessaging
                 message.MessageDateTime = rbMessage.Date;
                 message.MessageDateDisplay = Helper.HumanizeDateTime(rbMessage.Date);
 
-                // Set default content
+
+                // Is-it an "Event message" ?
                 String content;
                 if (!String.IsNullOrEmpty(rbMessage.BubbleEvent))
                 {
-                    content = "EVENT: " + rbMessage.BubbleEvent;
-                }
-                else if (rbMessage.Content != null)
-                {
-                    content = rbMessage.Content;
+
+                    message.IsEventMessage = "True";
+                    message.EventMessageBody = Helper.GetEventMessageBody(contact, rbMessage.BubbleEvent);
                 }
                 else
                 {
-                    content = "";
-                }
+                    message.IsEventMessage = "False";
 
-                // Reply part
-                // By default is not displayed
-                message.ReplyPartIsVisible = "False";
-                if (rbMessage.ReplyMessage != null)
-                {
-                    // Store Id of this reply message
-                    message.ReplyId = rbMessage.ReplyMessage.Id;
-
-                    // Set background color
-                    message.ReplyBackgroundColor = Rainbow.Helpers.AvatarPool.GetDarkerColorFromDisplayName(message.PeerDisplayName);
-
-                    // We need to get Name and text of the replied message ...
-                    Rainbow.Model.Message rbRepliedMessage = XamarinApplication.RbInstantMessaging.GetOneMessageFromConversationIdFromCache(this.conversationId, rbMessage.ReplyMessage.Id);
-                    if(rbRepliedMessage != null)
+                    if (rbMessage.Content != null)
                     {
-                        // Store Jid of the message sender
-                        message.ReplyPeerJid = rbRepliedMessage.FromJid;
-
-                        Rainbow.Model.Contact contactReply = XamarinApplication.RbContacts.GetContactFromContactJid(rbRepliedMessage.FromJid);
-                        if (contactReply != null)
-                        {
-                            // Reply part is visible
-                            message.ReplyPartIsVisible = "True";
-
-                            message.ReplyPeerId = contactReply.Id;
-                            message.ReplyPeerDisplayName = Util.GetContactDisplayName(contactReply, avatarPool.GetFirstNameFirst());
-                            message.ReplyBody = rbRepliedMessage.Content;
-                        }
-                        else
-                        {
-                            // We ask to have more info about this contact using AvatarPool
-                            avatarPool.AddUnknownContactToPoolByJid(rbRepliedMessage.FromJid);
-                        }
+                        content = rbMessage.Content;
                     }
                     else
                     {
-                        //TODO - need to have info about this reply message ...
+                        content = "";
                     }
-                }
-                
 
-                // Replace
-                if (!String.IsNullOrEmpty(rbMessage.ReplaceId))
-                {
-                    if (!String.IsNullOrEmpty(content))
-                        content += "\r\n";
-                    content += String.Format("ReplaceId: [{0}]", rbMessage.ReplaceId);
+
+                    // Reply part
+                    // By default is not displayed
+                    message.ReplyPartIsVisible = "False";
+                    if (rbMessage.ReplyMessage != null)
+                    {
+                        // Store Id of this reply message
+                        message.ReplyId = rbMessage.ReplyMessage.Id;
+
+                        // Set background color
+                        message.ReplyBackgroundColor = Rainbow.Helpers.AvatarPool.GetDarkerColorFromDisplayName(message.PeerDisplayName);
+
+                        // We need to get Name and text of the replied message ...
+                        Rainbow.Model.Message rbRepliedMessage = XamarinApplication.RbInstantMessaging.GetOneMessageFromConversationIdFromCache(this.conversationId, rbMessage.ReplyMessage.Id);
+                        if (rbRepliedMessage != null)
+                            SetReplyPartOfMessage(message, rbRepliedMessage);
+                        else
+                            AddUnknownRepliedMessageInvolved(rbMessage.ReplyMessage.Id, rbMessage.ReplyMessage.Stamp);
+                    }
+
+                    // Replace
+                    if (!String.IsNullOrEmpty(rbMessage.ReplaceId))
+                    {
+                        if (!String.IsNullOrEmpty(content))
+                            content += "\r\n";
+                        content += String.Format("ReplaceId: [{0}]", rbMessage.ReplaceId);
+                    }
+
+                    // FileAttachment
+                    if (rbMessage.FileAttachment != null)
+                    {
+                        if (!String.IsNullOrEmpty(content))
+                            content += "\r\n";
+                        content += String.Format("File: \"{0}\"\r\nSize: {1}", rbMessage.FileAttachment.Name, Helper.HumanizeFileSize(rbMessage.FileAttachment.Size));
+                    }
+                    message.Body = content;
                 }
 
-                // FileAttachment
-                if (rbMessage.FileAttachment != null)
-                {
-                    if (!String.IsNullOrEmpty(content))
-                        content += "\r\n";
-                    content += String.Format("File: \"{0}\"\r\nSize: {1}", rbMessage.FileAttachment.Name, Helper.HumanizeFileSize(rbMessage.FileAttachment.Size));
-                }
-                message.Body = content;
-
+                // We store info about this contact in message context
+                AddContactInvolved(message.PeerJid);
             }
             return message;
+        }
+
+        private void SetReplyPartOfMessage(Model.Message message, Rainbow.Model.Message rbRepliedMessage)
+        {
+            // Store Jid of the message sender
+            message.ReplyPeerJid = rbRepliedMessage.FromJid;
+            if (String.IsNullOrEmpty(rbRepliedMessage.Content))
+            {
+                if (rbRepliedMessage.FileAttachment != null)
+                    message.ReplyBody = rbRepliedMessage.FileAttachment.Name;
+                else
+                    message.ReplyBody = rbRepliedMessage.Id; // Bad display but should permit to debug this situation
+            }
+            else
+                message.ReplyBody = rbRepliedMessage.Content;
+
+
+            log.DebugFormat("[SetReplyPartOfMessage] - message.Id:[{0}] - replyMsgId:[{1}] - replyBody:[{2}] - ContactJid:[{3}]", message.Id, rbRepliedMessage.Id, message.ReplyBody, rbRepliedMessage.FromJid);
+
+            Rainbow.Model.Contact contactReply = XamarinApplication.RbContacts.GetContactFromContactJid(rbRepliedMessage.FromJid);
+            if (contactReply != null)
+            {
+                // Reply part is visible
+                message.ReplyPartIsVisible = "True";
+
+                message.ReplyPeerId = contactReply.Id;
+                message.ReplyPeerDisplayName = Util.GetContactDisplayName(contactReply, avatarPool.GetFirstNameFirst());
+            }
+            else
+            {
+                log.DebugFormat("[SetReplyPartOfMessage] - message.Id:[{0}] - replyMsgId:[{1}] - UnknownContactJid[{2}]", message.Id, rbRepliedMessage.Id, rbRepliedMessage.FromJid);
+                // We ask to have more info about this contact using AvatarPool
+                avatarPool.AddUnknownContactToPoolByJid(rbRepliedMessage.FromJid);
+            }
+
+            // We store info about this contact in reply context
+            AddRepliedContactInvolved(rbRepliedMessage.FromJid);
         }
 
 #endregion PRIVATE METHOD
@@ -506,12 +649,18 @@ namespace InstantMessaging
         {
             // Need to update this contact in each messages (not avatar part)
             UpdateMessagesForJid(e.Jid, false, true);
+
+            // Need to update this contact in each replied part
+            UpdateRepliedMessagesForJid(e.Jid);
         }
 
         private void RbContacts_ContactAdded(object sender, Rainbow.Events.JidEventArgs e)
         {
             // Need to update this contact in each messages (avatar + display name)
             UpdateMessagesForJid(e.Jid, true, true);
+
+            // Need to update this contact in each replied part
+            UpdateRepliedMessagesForJid(e.Jid);
         }
 
 #endregion EVENTS FROM RAINBOW SDK
