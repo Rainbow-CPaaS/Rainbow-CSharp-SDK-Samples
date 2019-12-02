@@ -20,7 +20,14 @@ namespace InstantMessaging.Model
         String  messageDateDisplay;
 
         String isEventMessage;
-        String eventMessageBody;
+        String eventMessageBodyPart1;
+        String eventMessageBodyPart2;
+
+        String callOtherJid;
+        String callOriginator;
+        int callDuration;
+        String callType;
+        String callState;
 
         String replyId;
         String replyPeerDisplayName;
@@ -96,11 +103,51 @@ namespace InstantMessaging.Model
             set { SetProperty(ref isEventMessage, value); }
         }
 
-        public String EventMessageBody
+        public String EventMessageBodyPart1
         {
-            get { return eventMessageBody; }
-            set { SetProperty(ref eventMessageBody, value); }
+            get { return eventMessageBodyPart1; }
+            set { SetProperty(ref eventMessageBodyPart1, value); }
         }
+
+        public String EventMessageBodyPart2
+        {
+            get { return eventMessageBodyPart2; }
+            set { SetProperty(ref eventMessageBodyPart2, value); }
+        }
+
+        public String EventMessageBodyPart2IsVisible => String.IsNullOrEmpty(EventMessageBodyPart2) ? "False": "True";
+
+#region PROPERTIES FOR CALL LOG
+
+        public String CallOtherJid
+        {
+            get { return callOtherJid; }
+            set { SetProperty(ref callOtherJid, value); }
+        }
+        public String CallOriginator
+        {
+            get { return callOriginator; }
+            set { SetProperty(ref callOriginator, value); }
+        }
+        public int CallDuration
+        {
+            get { return callDuration; }
+            set { SetProperty(ref callDuration, value); }
+        }
+
+        public String CallType
+        {
+            get { return callType; }
+            set { SetProperty(ref callType, value); }
+        }
+
+        public String CallState
+        {
+            get { return callState; }
+            set { SetProperty(ref callState, value); }
+        }
+
+#endregion PROPERTIES FOR CALL LOG
 
 #region PROPERTIES FOR REPLY DISPLAY
 

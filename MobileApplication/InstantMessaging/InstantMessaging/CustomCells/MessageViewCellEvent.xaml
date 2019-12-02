@@ -17,7 +17,7 @@
         </Grid.ColumnDefinitions>
 
         <Grid.RowDefinitions>
-            <RowDefinition Height="50" />
+            <RowDefinition Height="60" />
             <RowDefinition Height="4" />
         </Grid.RowDefinitions>
 
@@ -36,9 +36,24 @@
                        WidthRequest="40" HeightRequest="40"
                        VerticalOptions="Center" />
 
-                <StackLayout Orientation="Vertical" VerticalOptions="Center" HorizontalOptions="FillAndExpand">
-                    <Label HorizontalOptions="Start" TextColor="Black" FontSize="Small" VerticalOptions="Center" Text="{Binding EventMessageBody}"/>
-                    <Label HorizontalOptions="End" TextColor="Black" FontSize="Micro" VerticalOptions="Center" Text="{Binding MessageDateDisplay}"/>
+                <StackLayout Orientation="Vertical" VerticalOptions="Center" HorizontalOptions="FillAndExpand" HeightRequest="60">
+                    <Label HorizontalOptions="Start" TextColor="Black" FontSize="Small" VerticalOptions="Center" Text="{Binding EventMessageBodyPart1}"/>
+
+
+                    <Grid RowSpacing="0" ColumnSpacing="4" Padding="0" HorizontalOptions="FillAndExpand">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+
+                        </Grid.ColumnDefinitions>
+
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+
+                        <Label Grid.Column="0" Grid.Row="0" VerticalOptions="Center" HorizontalOptions="StartAndExpand" TextColor="Black" FontSize="Micro" FontAttributes="Bold" Text="{Binding EventMessageBodyPart2}" IsVisible="{Binding EventMessageBodyPart2IsVisible}"/>
+                        <Label Grid.Column="1" Grid.Row="0" VerticalOptions="Center" HorizontalOptions="End" TextColor="Black" FontSize="Micro" Text="{Binding MessageDateDisplay}"/>
+                    </Grid>
                 </StackLayout>
             </StackLayout>
         </Frame>

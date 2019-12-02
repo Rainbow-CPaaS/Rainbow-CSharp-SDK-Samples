@@ -27,6 +27,7 @@ namespace InstantMessaging
 
         private static int NB_MESSAGE_LOADED_BY_ROW = 40;
 
+        private String currentContactJid;
         private String conversationId; // ConversationId of this Conversation
         private Conversation rbConversation = null; // Rainbow Conversation object
 
@@ -83,6 +84,8 @@ namespace InstantMessaging
             // Manage event(s) from Contacts
             XamarinApplication.RbContacts.ContactAdded += RbContacts_ContactAdded;
             XamarinApplication.RbContacts.ContactInfoChanged += RbContacts_ContactInfoChanged;
+
+            currentContactJid = XamarinApplication.RbContacts.GetCurrentContactJid();
 
             // Store conversation Id
             this.conversationId = conversationId;
@@ -494,14 +497,17 @@ namespace InstantMessaging
                 message.MessageDateTime = rbMessage.Date;
                 message.MessageDateDisplay = Helper.HumanizeDateTime(rbMessage.Date);
 
-
                 // Is-it an "Event message" ?
                 String content;
                 if (!String.IsNullOrEmpty(rbMessage.BubbleEvent))
                 {
-
                     message.IsEventMessage = "True";
-                    message.EventMessageBody = Helper.GetEventMessageBody(contact, rbMessage.BubbleEvent);
+                    message.EventMessageBodyPart1 = Helper.GetBubbleEventMessageBody(contact, rbMessage.BubbleEvent);
+                }
+                // Is-it an "CallLog message" ?
+                else if (rbMessage.CallLogAttachment != null)
+                {
+                    SetCallLogPartOfMessage(message, rbMessage.CallLogAttachment);
                 }
                 else
                 {
@@ -595,6 +601,58 @@ namespace InstantMessaging
 
             // We store info about this contact in reply context
             AddRepliedContactInvolved(rbRepliedMessage.FromJid);
+        }
+
+        private void SetCallLogPartOfMessage(Model.Message message, CallLogAttachment callLogAttachment)
+        {
+            if(callLogAttachment != null)
+            {
+                message.IsEventMessage = "True";
+
+                message.CallDuration = callLogAttachment.Duration;
+                message.CallState = callLogAttachment.State.ToString();
+                message.CallType = callLogAttachment.Type.ToString();
+
+                if (callLogAttachment.Caller == currentContactJid)
+                {
+                    message.CallOriginator = "True";
+                    message.CallOtherJid = callLogAttachment.Callee;
+                }
+                else
+                {
+                    message.CallOriginator = "False";
+                    message.CallOtherJid = callLogAttachment.Caller;
+                }
+
+                SetEventPartFromCallLog(message);
+            }
+        }
+
+        private void SetEventPartFromCallLog(Model.Message message)
+        {
+            Rainbow.Model.Contact contact = XamarinApplication.RbContacts.GetContactFromContactJid(message.CallOtherJid);
+            if (contact != null)
+            {
+                String displayName = Util.GetContactDisplayName(contact, AvatarPool.Instance.GetFirstNameFirst());
+                if (message.CallState == CallLog.LogState.ANSWERED.ToString())
+                {
+                    if (message.CallOriginator == "True")
+                        message.EventMessageBodyPart1 = "You called " + displayName + ".";
+                    else
+                        message.EventMessageBodyPart1 = displayName  + " has called you.";
+
+                    int nbSecs = (int)(message.CallDuration / 60);
+                    int mns = (int) (nbSecs / 60);
+                    int sec = nbSecs % 60;
+                    message.EventMessageBodyPart2 = "Duration: " + ( (mns>1) ? mns+"mn " : "") + ((sec > 1) ? sec + "s" : "");
+                }
+            }
+            else
+            {
+                log.DebugFormat("[SetEventPartFromCallLog] - message.Id:[{0}] - UnknowContactJid:[{1}]", message.Id, message.CallOtherJid);
+                // We ask to have more info about this contact using AvatarPool
+                avatarPool.AddUnknownContactToPoolByJid(message.CallOtherJid);
+            }
         }
 
 #endregion PRIVATE METHOD

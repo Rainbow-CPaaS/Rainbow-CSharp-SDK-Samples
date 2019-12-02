@@ -210,7 +210,7 @@ namespace InstantMessaging.Helpers
             return conversation;
         }
 
-        public static String GetEventMessageBody(Contact contact, String bubbleEvent)
+        public static String GetBubbleEventMessageBody(Contact contact, String bubbleEvent)
         {
             String result = null;
 
