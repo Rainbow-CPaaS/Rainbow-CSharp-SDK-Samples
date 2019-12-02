@@ -4,7 +4,6 @@
             x:Class="InstantMessaging.CustomCells.MessageViewCellOtherUser">
 
     <!-- BINDING  - Message object -->
-
     <Grid RowSpacing="0" ColumnSpacing="4" Padding="0" HorizontalOptions="FillAndExpand">
         <Grid.ColumnDefinitions>
             <!-- SPACE -->
@@ -52,7 +51,7 @@
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
-                <Label Grid.Row="0" Grid.Column="0" HorizontalOptions="Start" TextColor="White" FontSize="Small" MaxLines="1" LineBreakMode="TailTruncation" VerticalOptions="Center" Text="{Binding PeerDisplayName}" IsVisible="{Binding PeerDisplayNameIsVisible}"/>
+                <Label Grid.Row="0" Grid.Column="0" HorizontalOptions="Start" TextColor="White" FontAttributes="Bold" FontSize="Micro" MaxLines="1" LineBreakMode="TailTruncation" VerticalOptions="Center" Text="{Binding PeerDisplayName}" IsVisible="{Binding PeerDisplayNameIsVisible}"/>
                 <StackLayout Grid.Row="1" Grid.Column="0" Padding="3">
                     <Frame IsVisible="{Binding ReplyPartIsVisible}"
                            BackgroundColor="{Binding ReplyBackgroundColor}"
@@ -72,11 +71,11 @@
                                 <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
 
-                            <Label Grid.Row="0" Grid.Column="0" HorizontalOptions="Start" TextColor="White" FontAttributes="Bold" FontSize="Small" MaxLines="1" LineBreakMode="TailTruncation" VerticalOptions="Center" Text="{Binding ReplyPeerDisplayName}"/>
-                            <Label Grid.Row="1" Grid.Column="0" HorizontalOptions="Start" TextColor="White" FontSize="Small" MaxLines="1" LineBreakMode="TailTruncation" VerticalOptions="Center" Text="{Binding ReplyBody}"/>
+                            <Label Grid.Row="0" Grid.Column="0" HorizontalOptions="Start" TextColor="White" FontAttributes="Bold" FontSize="Micro" MaxLines="1" LineBreakMode="TailTruncation" VerticalOptions="Center" Text="{Binding ReplyPeerDisplayName}"/>
+                            <Label Grid.Row="1" Grid.Column="0" HorizontalOptions="Start" TextColor="White" FontSize="Small" MaxLines="2" LineBreakMode="TailTruncation" VerticalOptions="Center" Text="{Binding ReplyBody}"/>
                         </Grid>
                     </Frame>
-                    <Label HorizontalOptions="Start" TextColor="White" FontSize="Medium"  VerticalOptions="Center" Text="{Binding Body}"/>
+                    <Label HorizontalOptions="Start" TextColor="White" FontSize="Small"  VerticalOptions="Center" Text="{Binding Body}"/>
                 </StackLayout>
                 <Label Grid.Row="2" Grid.Column="0" HorizontalOptions="End" TextColor="White" FontSize="Micro"  VerticalOptions="Center" Text="{Binding MessageDateDisplay}"/>
             </Grid>

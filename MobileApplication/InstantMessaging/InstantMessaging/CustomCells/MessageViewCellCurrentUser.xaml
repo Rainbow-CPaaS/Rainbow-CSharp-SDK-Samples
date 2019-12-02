@@ -74,11 +74,11 @@
                                 <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
 
-                            <Label Grid.Row="0" Grid.Column="0" HorizontalOptions="Start" TextColor="White" FontAttributes="Bold" FontSize="Small" MaxLines="1" LineBreakMode="TailTruncation" VerticalOptions="Center" Text="{Binding ReplyPeerDisplayName}"/>
+                            <Label Grid.Row="0" Grid.Column="0" HorizontalOptions="Start" TextColor="White" FontAttributes="Bold" FontSize="Micro" MaxLines="1" LineBreakMode="TailTruncation" VerticalOptions="Center" Text="{Binding ReplyPeerDisplayName}"/>
                             <Label Grid.Row="1" Grid.Column="0" HorizontalOptions="Start" TextColor="White" FontSize="Small" MaxLines="1" LineBreakMode="TailTruncation" VerticalOptions="Center" Text="{Binding ReplyBody}"/>
                         </Grid>
                     </Frame>
-                    <Label HorizontalOptions="End" TextColor="Black" FontSize="Medium"  VerticalOptions="Center" Text="{Binding Body}"/>
+                    <Label HorizontalOptions="End" TextColor="Black" FontSize="Small"  VerticalOptions="Center" Text="{Binding Body}"/>
                 </StackLayout>
 
                 <Label Grid.Row="1" Grid.Column="0" HorizontalOptions="End" TextColor="Gray" FontSize="Micro"  VerticalOptions="Center" Text="{Binding MessageDateDisplay}"/>
