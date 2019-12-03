@@ -1,8 +1,6 @@
 ﻿using System;
 
-using MvvmHelpers;
-
-using Xamarin.Forms;
+using Rainbow.Helpers;
 
 namespace InstantMessaging.Model
 {

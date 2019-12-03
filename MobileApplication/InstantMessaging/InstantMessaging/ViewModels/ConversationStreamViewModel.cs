@@ -8,8 +8,6 @@ using System.Threading.Tasks;
 
 using Xamarin.Forms;
 
-using MvvmHelpers;
-
 using InstantMessaging.Helpers;
 using InstantMessaging.Model;
 
@@ -21,7 +19,7 @@ using log4net;
 
 namespace InstantMessaging
 {
-    public class ConversationStreamViewModel : BaseViewModel
+    public class ConversationStreamViewModel : ObservableObject
     {
         private static readonly ILog log = LogConfigurator.GetLogger(typeof(ConversationStreamViewModel));
 
@@ -216,7 +214,7 @@ namespace InstantMessaging
 
 #region PRIVATE METHOD
 
-        private int AddToModelRbMessages(List<Rainbow.Model.Message> rbMessagesList)
+        private void AddToModelRbMessages(List<Rainbow.Model.Message> rbMessagesList)
         {
             List<InstantMessaging.Model.Message> messagesList = new List<InstantMessaging.Model.Message>();
             foreach (Rainbow.Model.Message rbMessage in rbMessagesList)
@@ -232,19 +230,9 @@ namespace InstantMessaging
             lock (lockObservableMessagesList)
             {
                 if (MessagesList.Count == 0)
-                {
                     MessagesList.ReplaceRange(messagesList);
-                    return 0;
-                }
                 else
-                {
-                    int nb = messagesList.Count - 1;
-                    for (int i = nb; i > 0; i--)
-                    {
-                        MessagesList.Insert(0, messagesList[i]);
-                    }
-                    return nb;
-                }
+                    MessagesList.AddRange(messagesList, System.Collections.Specialized.NotifyCollectionChangedAction.Reset, 0);
             }
         }
 

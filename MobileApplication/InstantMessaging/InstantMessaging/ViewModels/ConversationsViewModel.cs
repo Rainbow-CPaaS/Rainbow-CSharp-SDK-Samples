@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading;
+using System.ComponentModel;
+using System.IO;
 
 using Xamarin.Forms;
-
-using MvvmHelpers;
 
 using Rainbow;
 using Rainbow.Helpers;
@@ -13,11 +12,11 @@ using Rainbow.Model;
 using InstantMessaging.Helpers;
 
 using log4net;
-using System.IO;
+
 
 namespace InstantMessaging
 {
-    public class ConversationsViewModel : BaseViewModel
+    public class ConversationsViewModel : ObservableObject
     {
         private static readonly ILog log = LogConfigurator.GetLogger(typeof(ConversationsViewModel));
 
