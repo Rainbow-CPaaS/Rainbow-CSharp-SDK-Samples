@@ -23,11 +23,11 @@ namespace InstantMessaging
         public ObservableRangeCollection<ConversationLight> Conversations { get; } // Need to be public - Used as Binding from XAML
 
         // To manage avatar
-        private AvatarPool avatarPool;
+        private readonly AvatarPool avatarPool;
 
-        private InstantMessaging.App XamarinApplication;
+        private readonly InstantMessaging.App XamarinApplication;
 
-        private Object lockObservableConversations = new Object(); // To lock access to the observable collection: 'Conversations'
+        private readonly Object lockObservableConversations = new Object(); // To lock access to the observable collection: 'Conversations'
 
         // To know the dateTime of the most receent message received - needed to update the layout
         private DateTime mostRecentDateTimeMessage = DateTime.MinValue;
@@ -320,63 +320,6 @@ namespace InstantMessaging
                 }
             }
             return conversationFound;
-        }
-
-        private ConversationLight GetConversationFromRBConversation(Rainbow.Model.Conversation rbConversation)
-        {
-            ConversationLight conversation = null;
-
-            if (rbConversation != null)
-            {
-                conversation = new ConversationLight();
-
-
-                if (rbConversation.Type == Rainbow.Model.Conversation.ConversationType.Room)
-                {
-                    conversation.Name = rbConversation.Name;
-                    conversation.Jid = rbConversation.Jid_im;
-                    conversation.PresenceSource = "";
-
-                }
-                else if (rbConversation.Type == Rainbow.Model.Conversation.ConversationType.User)
-                {
-                    // Get Display name of this user
-                    Rainbow.Model.Contact contact = XamarinApplication.RbContacts.GetContactFromContactId(rbConversation.PeerId);
-                    if (contact != null)
-                    {
-                        conversation.Name = Util.GetContactDisplayName(contact, avatarPool.GetFirstNameFirst());
-                        conversation.Jid = contact.Jid_im;
-
-                        Presence presence = XamarinApplication.RbContacts.GetPresenceFromContactId(rbConversation.PeerId);
-                        conversation.PresenceSource = InstantMessaging.Helpers.Helper.GetPresenceSourceFromPresence(presence);
-
-                    }
-                    else
-                    {
-                        log.DebugFormat("[GetConversationFromRBConversation] - unknown contact - contactId:[{0}]", rbConversation.PeerId);
-                        XamarinApplication.RbContacts.GetContactFromContactIdFromServer(rbConversation.PeerId, null);
-                    }
-                }
-                else
-                {
-                    //TODO ( bot case)
-                    log.DebugFormat("[GetConversationFromRBConversation] Conversation from model not created - Id:[{0}]", rbConversation.Id);
-                    return null;
-                }
-
-                conversation.Id = rbConversation.Id;
-                conversation.PeerId = rbConversation.PeerId;
-
-                conversation.Type = rbConversation.Type;
-                conversation.NbMsgUnread = rbConversation.UnreadMessageNumber;
-
-                conversation.LastMessage = rbConversation.LastMessageText;
-                conversation.LastMessageDateTime = rbConversation.LastMessageDate;
-
-                // Humanized the DateTime
-                conversation.MessageTimeDisplay = Helpers.Helper.HumanizeDateTime(conversation.LastMessageDateTime);
-            }
-            return conversation;
         }
 
         private void CheckIfUpdateModelForDateTimePurpose(DateTime dt)

@@ -253,7 +253,7 @@ namespace InstantMessaging.Helpers
                 }
                 catch (Exception exc)
                 {
-                    //log.WarnFormat("[SetConversationAvatar] PeerId:[{0}] - exception occurs to create avatar:[{1}]", conversation.PeerId, Util.SerializeException(exc));
+                    log.WarnFormat("[GetBubbleAvatarImageSource] bubbleId:[{0}] - exception occurs to create avatar:[{1}]", bubbleId, Util.SerializeException(exc));
                 }
 
                 if (!String.IsNullOrEmpty(filePath))
@@ -267,7 +267,7 @@ namespace InstantMessaging.Helpers
                         }
                         catch (Exception exc)
                         {
-                            //log.WarnFormat("[SetConversationAvatar] PeerId:[{0}] - exception occurs to display avatar[{1}]", conversation.PeerId, Util.SerializeException(exc));
+                            log.WarnFormat("[GetBubbleAvatarImageSource] bubbleId:[{0}] - exception occurs to display avatar[{1}]", bubbleId, Util.SerializeException(exc));
                         }
                     }
                     //else
@@ -289,7 +289,7 @@ namespace InstantMessaging.Helpers
                 }
                 catch (Exception exc)
                 {
-                    //log.WarnFormat("[SetConversationAvatar] PeerId:[{0}] - exception occurs to create avatar:[{1}]", conversation.PeerId, Util.SerializeException(exc));
+                    log.WarnFormat("[GetContactAvatarImageSource] contactId:[{0}] - exception occurs to create avatar:[{1}]", contactId, Util.SerializeException(exc));
                 }
 
                 if (!String.IsNullOrEmpty(filePath))
@@ -303,7 +303,7 @@ namespace InstantMessaging.Helpers
                         }
                         catch (Exception exc)
                         {
-                            //log.WarnFormat("[SetConversationAvatar] PeerId:[{0}] - exception occurs to display avatar[{1}]", conversation.PeerId, Util.SerializeException(exc));
+                            log.WarnFormat("[GetContactAvatarImageSource] contactId:[{0}] - exception occurs to display avatar[{1}]", contactId, Util.SerializeException(exc));
                         }
                     }
                     //else
@@ -328,7 +328,7 @@ namespace InstantMessaging.Helpers
                 }
                 catch (Exception exc)
                 {
-                    //log.WarnFormat("[SetConversationAvatar] PeerId:[{0}] - exception occurs to create avatar:[{1}]", conversation.PeerId, Util.SerializeException(exc));
+                    log.WarnFormat("[GetConversationAvatarImageSource] PeerId:[{0}] - exception occurs to create avatar:[{1}]", conversation.PeerId, Util.SerializeException(exc));
                 }
 
                 if (!String.IsNullOrEmpty(filePath))
@@ -342,7 +342,7 @@ namespace InstantMessaging.Helpers
                         }
                         catch (Exception exc)
                         {
-                            //log.WarnFormat("[SetConversationAvatar] PeerId:[{0}] - exception occurs to display avatar[{1}]", conversation.PeerId, Util.SerializeException(exc));
+                            log.WarnFormat("[GetConversationAvatarImageSource] PeerId:[{0}] - exception occurs to display avatar[{1}]", conversation.PeerId, Util.SerializeException(exc));
                         }
                     }
                     //else

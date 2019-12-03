@@ -18,9 +18,9 @@ namespace InstantMessaging
     {
         private static readonly ILog log = LogConfigurator.GetLogger(typeof(ConversationStreamPage));
 
-        private ConversationStreamViewModel vm;
+        private readonly ConversationStreamViewModel vm;
 
-        private String conversationId;
+        private readonly String conversationId;
         private int indexToSee = 0;
         private bool scrollToTheEnd = false;
 
@@ -43,6 +43,7 @@ namespace InstantMessaging
 
             BtnIMSend.Clicked += BtnIMSend_Clicked;
         }
+
 #region EVENTS FIRED ON THIS CONTENT PAGE
 
         private void BtnIMSend_Clicked(object sender, EventArgs e)

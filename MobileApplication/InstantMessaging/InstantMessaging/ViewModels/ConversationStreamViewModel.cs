@@ -23,25 +23,25 @@ namespace InstantMessaging
     {
         private static readonly ILog log = LogConfigurator.GetLogger(typeof(ConversationStreamViewModel));
 
-        private static int NB_MESSAGE_LOADED_BY_ROW = 40;
+        private static readonly int NB_MESSAGE_LOADED_BY_ROW = 40;
 
-        private String currentContactJid;
-        private String conversationId; // ConversationId of this Conversation
-        private Conversation rbConversation = null; // Rainbow Conversation object
+        private readonly String currentContactJid;
+        private readonly String conversationId; // ConversationId of this Conversation
+        private readonly Conversation rbConversation = null; // Rainbow Conversation object
 
-        private AvatarPool avatarPool;
-        private InstantMessaging.App XamarinApplication;
+        private readonly AvatarPool avatarPool;
+        private readonly InstantMessaging.App XamarinApplication;
 
-        private Object lockObservableMessagesList = new Object(); // To lock access to the observable collection: 'MessagesList'
+        private readonly Object lockObservableMessagesList = new Object(); // To lock access to the observable collection: 'MessagesList'
 
-        private Object lockContactsListInvolved = new Object(); // To lock access to: 'contactsListInvolved'
-        private List<String> contactsListInvolved = new List<String>(); // To store list of contacts involved in this Conversation (by Jid)
+        private readonly Object lockContactsListInvolved = new Object(); // To lock access to: 'contactsListInvolved'
+        private readonly List<String> contactsListInvolved = new List<String>(); // To store list of contacts involved in this Conversation (by Jid)
 
-        private Object lockRepliedContactsListInvolved = new Object(); // To lock access to: 'repliedContactsListInvolved'
-        private List<String> repliedContactsListInvolved = new List<String>(); // To store list of contacts involved in reply context in this Conversation (by Jid)
+        private readonly Object lockRepliedContactsListInvolved = new Object(); // To lock access to: 'repliedContactsListInvolved'
+        private readonly List<String> repliedContactsListInvolved = new List<String>(); // To store list of contacts involved in reply context in this Conversation (by Jid)
 
-        private Object lockUnknownRepliedMessagesListInvolved = new Object(); // To lock access to: 'repliedMessagesListInvolved'
-        private Dictionary<String, String> unknownRepliedMessagesListInvolved = new Dictionary<String, String>(); // To store list of messages involved in reply context in this Conversation (by message Id / message Stamp) but unknown for the moment
+        private readonly Object lockUnknownRepliedMessagesListInvolved = new Object(); // To lock access to: 'repliedMessagesListInvolved'
+        private readonly Dictionary<String, String> unknownRepliedMessagesListInvolved = new Dictionary<String, String>(); // To store list of messages involved in reply context in this Conversation (by message Id / message Stamp) but unknown for the moment
         private BackgroundWorker backgroundWorkerUnknownrepliedMessage = null;
 
         // Define attributes to manage loading/scrolling of messages list view
@@ -261,9 +261,12 @@ namespace InstantMessaging
 
         private void AddUnknownRepliedMessageInvolved(String msgId, String msgStamp)
         {
-            if ((!String.IsNullOrEmpty(msgId)) && (!unknownRepliedMessagesListInvolved.ContainsKey(msgId)))
+            lock (lockUnknownRepliedMessagesListInvolved)
             {
-                unknownRepliedMessagesListInvolved.Add(msgId, msgStamp);
+                if ((!String.IsNullOrEmpty(msgId)) && (!unknownRepliedMessagesListInvolved.ContainsKey(msgId)))
+                {
+                    unknownRepliedMessagesListInvolved.Add(msgId, msgStamp);
+                }
             }
 
             if (backgroundWorkerUnknownrepliedMessage == null)
@@ -287,7 +290,7 @@ namespace InstantMessaging
 
         private void BackgroundWorkerUnknownrepliedMessage_DoWork(object sender, DoWorkEventArgs e)
         {
-            bool canContinue = false;
+            bool canContinue;
             int index = 0;
             do
             {
