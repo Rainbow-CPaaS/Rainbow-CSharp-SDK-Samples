@@ -13,7 +13,9 @@ namespace InstantMessaging.Model
         String peerJid;
         String peerId;
         String body;
-        String backgroundColor;
+        FontAttributes bodyFontAttributes;
+        Color bodyColor;
+        Color backgroundColor;
         String peerDisplayNameIsVisible;
         ImageSource avatarSource;
         DateTime messageDateTime;
@@ -34,7 +36,7 @@ namespace InstantMessaging.Model
         String replyPeerId;
         String replyPeerJid;
         String replyPartIsVisible;
-        String replyBackgroundColor;
+        Color replyBackgroundColor;
         String replyBody;
 
         public string Id
@@ -55,7 +57,7 @@ namespace InstantMessaging.Model
             set { SetProperty(ref peerDisplayNameIsVisible, value); }
         }
 
-        public string BackgroundColor
+        public Color BackgroundColor
         {
             get { return backgroundColor; }
             set { SetProperty(ref backgroundColor, value); }
@@ -77,6 +79,18 @@ namespace InstantMessaging.Model
         {
             get { return body; }
             set { SetProperty(ref body, value); }
+        }
+
+        public FontAttributes BodyFontAttributes
+        {
+            get { return bodyFontAttributes; }
+            set { SetProperty(ref bodyFontAttributes, value); }
+        }
+
+        public Color BodyColor
+        {
+            get { return bodyColor; }
+            set { SetProperty(ref bodyColor, value); }
         }
 
         public ImageSource AvatarSource
@@ -179,7 +193,7 @@ namespace InstantMessaging.Model
             set { SetProperty(ref replyPartIsVisible, value); }
         }
 
-        public string ReplyBackgroundColor
+        public Color ReplyBackgroundColor
         {
             get { return replyBackgroundColor; }
             set { SetProperty(ref replyBackgroundColor, value); }

@@ -78,7 +78,7 @@
                             <Label Grid.Row="1" Grid.Column="0" HorizontalOptions="Start" TextColor="White" FontSize="Small" MaxLines="1" LineBreakMode="TailTruncation" VerticalOptions="Center" Text="{Binding ReplyBody}"/>
                         </Grid>
                     </Frame>
-                    <Label HorizontalOptions="End" TextColor="Black" FontSize="Small"  VerticalOptions="Center" Text="{Binding Body}"/>
+                    <Label HorizontalOptions="End" FontSize="Small"  VerticalOptions="Center" TextColor="{Binding BodyColor}" FontAttributes="{Binding BodyFontAttributes}" Text="{Binding Body}"/>
                 </StackLayout>
 
                 <Label Grid.Row="1" Grid.Column="0" HorizontalOptions="End" TextColor="Gray" FontSize="Micro"  VerticalOptions="Center" Text="{Binding MessageDateDisplay}"/>

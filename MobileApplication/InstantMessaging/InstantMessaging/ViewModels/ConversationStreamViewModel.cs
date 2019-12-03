@@ -89,9 +89,11 @@ namespace InstantMessaging
             this.conversationId = conversationId;
 
             // Create default ConversationStream object
-            ConversationStream = new ConversationStream();
-            ConversationStream.LoadingIndicatorIsVisible = "False";
-            ConversationStream.ListViewIsEnabled = "True";
+            ConversationStream = new ConversationStream
+            {
+                LoadingIndicatorIsVisible = "False",
+                ListViewIsEnabled = "True"
+            };
 
             // Create default MessagesList  object
             MessagesList = new ObservableRangeCollection<InstantMessaging.Model.Message>();
@@ -414,8 +416,8 @@ namespace InstantMessaging
                             if (updateDisplayName)
                             {
                                 message.PeerDisplayName = displayName;
-                                message.BackgroundColor = Rainbow.Helpers.AvatarPool.GetColorFromDisplayName(message.PeerDisplayName);
-                                message.ReplyBackgroundColor = Rainbow.Helpers.AvatarPool.GetDarkerColorFromDisplayName(message.PeerDisplayName);
+                                message.BackgroundColor = Color.FromHex(Rainbow.Helpers.AvatarPool.GetColorFromDisplayName(message.PeerDisplayName));
+                                message.ReplyBackgroundColor = Color.FromHex(Rainbow.Helpers.AvatarPool.GetDarkerColorFromDisplayName(message.PeerDisplayName));
                             }
                         }
                     }
@@ -461,6 +463,8 @@ namespace InstantMessaging
                 InstantMessaging.App XamarinApplication = (InstantMessaging.App)Xamarin.Forms.Application.Current;
                 AvatarPool avatarPool = AvatarPool.Instance;
 
+                //log.DebugFormat("[GetMessageFromRBMessage] Message.Id:[{0}] - Message.ReplaceId:[{1}] - DateTime:[{2}] - Content:[{3}]", rbMessage.Id, rbMessage.ReplaceId, rbMessage.Date.ToString("o"), rbMessage.Content);
+
                 message = new InstantMessaging.Model.Message();
 
                 Rainbow.Model.Contact contact = XamarinApplication.RbContacts.GetContactFromContactJid(rbMessage.FromJid);
@@ -469,11 +473,11 @@ namespace InstantMessaging
                     message.PeerId = contact.Id;
 
                     message.PeerDisplayName = Util.GetContactDisplayName(contact, avatarPool.GetFirstNameFirst());
-                    message.BackgroundColor = Rainbow.Helpers.AvatarPool.GetColorFromDisplayName(message.PeerDisplayName);
+                    message.BackgroundColor = Color.FromHex(Rainbow.Helpers.AvatarPool.GetColorFromDisplayName(message.PeerDisplayName));
                 }
                 else
                 {
-                    message.BackgroundColor = Rainbow.Helpers.AvatarPool.GetColorFromDisplayName("");
+                    message.BackgroundColor = Color.FromHex(Rainbow.Helpers.AvatarPool.GetColorFromDisplayName(""));
 
                     // We ask to have more info about this contact usin AvatarPool
                     avatarPool.AddUnknownContactToPoolByJid(rbMessage.FromJid);
@@ -503,16 +507,24 @@ namespace InstantMessaging
                 else
                 {
                     message.IsEventMessage = "False";
+                    message.BodyFontAttributes = FontAttributes.None;
+                    message.BodyColor = (message.PeerJid == currentContactJid) ? Color.Black : Color.White;
 
-                    if (rbMessage.Content != null)
+                    if (!String.IsNullOrEmpty(rbMessage.Content))
                     {
                         content = rbMessage.Content;
                     }
                     else
                     {
-                        content = "";
+                        if (String.IsNullOrEmpty(rbMessage.ReplaceId))
+                            content = "";
+                        else
+                        {
+                            content = "This message was deleted.";
+                            message.BodyFontAttributes = FontAttributes.Italic;
+                            message.BodyColor = (message.PeerJid == currentContactJid) ? Color.Gray : Color.FromHex(Rainbow.Helpers.AvatarPool.GetDarkerColorFromDisplayName(message.PeerDisplayName));
+                        }
                     }
-
 
                     // Reply part
                     // By default is not displayed
@@ -523,7 +535,7 @@ namespace InstantMessaging
                         message.ReplyId = rbMessage.ReplyMessage.Id;
 
                         // Set background color
-                        message.ReplyBackgroundColor = Rainbow.Helpers.AvatarPool.GetDarkerColorFromDisplayName(message.PeerDisplayName);
+                        message.ReplyBackgroundColor = Color.FromHex(Rainbow.Helpers.AvatarPool.GetDarkerColorFromDisplayName(message.PeerDisplayName));
 
                         // We need to get Name and text of the replied message ...
                         Rainbow.Model.Message rbRepliedMessage = XamarinApplication.RbInstantMessaging.GetOneMessageFromConversationIdFromCache(this.conversationId, rbMessage.ReplyMessage.Id);
@@ -532,13 +544,10 @@ namespace InstantMessaging
                         else
                             AddUnknownRepliedMessageInvolved(rbMessage.ReplyMessage.Id, rbMessage.ReplyMessage.Stamp);
                     }
-
-                    // Replace
-                    if (!String.IsNullOrEmpty(rbMessage.ReplaceId))
+                    else
                     {
-                        if (!String.IsNullOrEmpty(content))
-                            content += "\r\n";
-                        content += String.Format("ReplaceId: [{0}]", rbMessage.ReplaceId);
+                        // Set default color to avoir warning
+                        message.ReplyBackgroundColor = Color.White;
                     }
 
                     // FileAttachment
