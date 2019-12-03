@@ -14,14 +14,16 @@ namespace InstantMessaging
 {
     public partial class App : Application
     {
-        internal readonly string APP_ID = "";
-        internal readonly string APP_SECRET_KEY = "";
-        internal readonly string HOST_NAME = "";
+        internal readonly string APP_ID = "7d20cfd0fedd11e8906d03093170a237";
+        internal readonly string APP_SECRET_KEY = "Ql8rPqTAeddxerX0mpNnnulZx2bxtCB29SFimb8NfjxzczQqFMIoEMjMQu8m2IPJ";
+        internal readonly string HOST_NAME = "openrainbow.com";
 
         // Login, Password JId Node to connect on server
-        internal readonly string LOGIN_USER1 = "";
-        internal readonly string PASSWORD_USER1 = "";
-        internal readonly string JID_NODE_USER1 = "";
+        internal readonly string LOGIN_USER1 = "christophe.irles@al-enterprise.com";
+        internal readonly string PASSWORD_USER1 = "Back9fun!!!!"; /// "Back0fun!!!";
+
+        internal readonly string JID_NODE_USER1 = "bf036de2873749038589897a63eb4c42";
+        internal readonly string ID_USER1 = "570e12832d768e9b52a8b7bf";
 
         // Define all Rainbow objects we use
         internal Rainbow.Application RbApplication = null;
