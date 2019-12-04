@@ -6,9 +6,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Rainbow.CSharp.SDK" Version="1.4.1.4" />
-    <PackageReference Include="Refractored.MvvmHelpers" Version="1.3.0" />
-    <PackageReference Include="Sharp.Ws.Xmpp" Version="1.4.0" />
+    <PackageReference Include="Rainbow.CSharp.SDK" Version="1.4.2" />
+    <PackageReference Include="Sharp.Ws.Xmpp" Version="1.4.2" />
     <PackageReference Include="Xamarin.Forms" Version="4.3.0.991211" />
     <PackageReference Include="Xamarin.Essentials" Version="1.3.1" />
   </ItemGroup>
@@ -21,6 +20,9 @@
 
   <ItemGroup>
     <EmbeddedResource Update="CustomCells\MessageViewCellCurrentUser.xaml">
+      <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
+    </EmbeddedResource>
+    <EmbeddedResource Update="CustomCells\MessageViewCellEvent.xaml">
       <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
     </EmbeddedResource>
     <EmbeddedResource Update="CustomCells\MessageViewCellOtherUser.xaml">
