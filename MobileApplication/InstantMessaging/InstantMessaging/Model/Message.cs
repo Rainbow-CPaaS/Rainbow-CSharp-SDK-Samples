@@ -24,6 +24,7 @@ namespace InstantMessaging.Model
         String isEventMessage;
         String eventMessageBodyPart1;
         String eventMessageBodyPart2;
+        Color eventMessageBodyPart2Color;
 
         String callOtherJid;
         String callOriginator;
@@ -111,6 +112,8 @@ namespace InstantMessaging.Model
             set { SetProperty(ref messageDateDisplay, value); }
         }
 
+#region PROPERTIES FOR EVENT
+
         public String IsEventMessage
         {
             get { return isEventMessage; }
@@ -129,7 +132,15 @@ namespace InstantMessaging.Model
             set { SetProperty(ref eventMessageBodyPart2, value); }
         }
 
+        public Color EventMessageBodyPart2Color
+        {
+            get { return eventMessageBodyPart2Color; }
+            set { SetProperty(ref eventMessageBodyPart2Color, value); }
+        }
+
         public String EventMessageBodyPart2IsVisible => String.IsNullOrEmpty(EventMessageBodyPart2) ? "False": "True";
+
+#endregion PROPERTIES FOR EVENT
 
 #region PROPERTIES FOR CALL LOG
 

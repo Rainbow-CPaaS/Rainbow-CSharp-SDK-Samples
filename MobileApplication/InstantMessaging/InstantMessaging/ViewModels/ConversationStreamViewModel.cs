@@ -167,6 +167,7 @@ namespace InstantMessaging
             ConversationStream.ListViewIsEnabled = "False";
 
             Task task = new Task(() =>
+            {
                 XamarinApplication.RbInstantMessaging.GetMessagesFromConversationId(conversationId, NB_MESSAGE_LOADED_BY_ROW, callback =>
                 {
                     if (callback.Result.Success)
@@ -198,7 +199,8 @@ namespace InstantMessaging
                     {
                         //TODO
                     }
-                }) );
+                });
+            });
             task.Start();
         }
 
@@ -466,6 +468,7 @@ namespace InstantMessaging
                 //log.DebugFormat("[GetMessageFromRBMessage] Message.Id:[{0}] - Message.ReplaceId:[{1}] - DateTime:[{2}] - Content:[{3}]", rbMessage.Id, rbMessage.ReplaceId, rbMessage.Date.ToString("o"), rbMessage.Content);
 
                 message = new InstantMessaging.Model.Message();
+                message.EventMessageBodyPart2Color = Color.Black; // Set default value
 
                 Rainbow.Model.Contact contact = XamarinApplication.RbContacts.GetContactFromContactJid(rbMessage.FromJid);
                 if (contact != null)
@@ -641,10 +644,20 @@ namespace InstantMessaging
                     else
                         message.EventMessageBodyPart1 = displayName  + " has called you.";
 
-                    int nbSecs = (int)(message.CallDuration / 60);
+                    double nbSecs = Math.Round((double)message.CallDuration / 1000);
                     int mns = (int) (nbSecs / 60);
-                    int sec = nbSecs % 60;
-                    message.EventMessageBodyPart2 = "Duration: " + ( (mns>1) ? mns+"mn " : "") + ((sec > 1) ? sec + "s" : "");
+                    int sec = (int)Math.Round(nbSecs - (mns * 60));
+                    message.EventMessageBodyPart2 = "Duration: " + ( (mns>0) ? mns + ((mns>1) ? "mns " : "mn ") : "") + ((sec > 0) ? sec + "s" : "");
+                }
+                else
+                {
+                    if (message.CallOriginator == "True")
+                        message.EventMessageBodyPart1 = "You called " + displayName + ".";
+                    else
+                        message.EventMessageBodyPart1 = displayName + " has called you.";
+
+                    message.EventMessageBodyPart2 = (message.CallState == CallLog.LogState.MISSED.ToString()) ? "Missed call" : "Failed call";
+                    message.EventMessageBodyPart2Color = Color.Red;
                 }
             }
             else
@@ -662,9 +675,13 @@ namespace InstantMessaging
         {
             if (e.ConversationId == this.conversationId)
             {
+                //log.DebugFormat("[RbInstantMessaging_MessageReceived] - FromJId:[{0}] - ToJid:[{1}] - CarbonCopy:[{2}] - Message.Id:[{3}]", e.Message.FromJid, e.Message.ToJid, e.CarbonCopy, e.Message.Id);
                 InstantMessaging.Model.Message newMsg = GetMessageFromRBMessage(e.Message, rbConversation.Type);
                 if (newMsg == null)
+                {
+                    log.WarnFormat("[RbInstantMessaging_MessageReceived] - Impossible to have Model.Message from XMPP Message - Message.Id:[{3}]", e.Message.Id);
                     return;
+                }
 
                 newMessageAdded = true;
 
@@ -679,7 +696,7 @@ namespace InstantMessaging
                     {
                         // Add to the list but need to check date
                         InstantMessaging.Model.Message storedMsg;
-                        bool newMsgAdded = false;
+                        bool newMsgInserted = false;
                         int nb = MessagesList.Count - 1;
 
                         for (int i = nb; i>0; i--)
@@ -691,12 +708,12 @@ namespace InstantMessaging
                                     MessagesList.Add(newMsg);
                                 else
                                     MessagesList.Insert(i, newMsg);
-                                newMsgAdded = true;
+                                newMsgInserted = true;
                                 break;
                             }
                         }
                         // If we don't have already added the new message, we insert it to the first place
-                        if (!newMsgAdded)
+                        if (!newMsgInserted)
                             MessagesList.Insert(0, newMsg);
                     }
                 }

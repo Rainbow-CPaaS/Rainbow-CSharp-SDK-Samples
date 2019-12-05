@@ -51,7 +51,7 @@
                             <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
 
-                        <Label Grid.Column="0" Grid.Row="0" VerticalOptions="Center" HorizontalOptions="StartAndExpand" TextColor="Black" FontSize="Micro" FontAttributes="Bold" Text="{Binding EventMessageBodyPart2}" IsVisible="{Binding EventMessageBodyPart2IsVisible}"/>
+                        <Label Grid.Column="0" Grid.Row="0" VerticalOptions="Center" HorizontalOptions="StartAndExpand" FontSize="Micro" FontAttributes="Bold" TextColor="{Binding EventMessageBodyPart2Color}" Text="{Binding EventMessageBodyPart2}" IsVisible="{Binding EventMessageBodyPart2IsVisible}"/>
                         <Label Grid.Column="1" Grid.Row="0" VerticalOptions="Center" HorizontalOptions="End" TextColor="Black" FontSize="Micro" Text="{Binding MessageDateDisplay}"/>
                     </Grid>
                 </StackLayout>
