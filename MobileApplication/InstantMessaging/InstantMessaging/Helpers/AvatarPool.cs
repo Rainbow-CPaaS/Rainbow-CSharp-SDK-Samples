@@ -151,14 +151,36 @@ namespace Rainbow.Helpers
             if (!InitDone())
                 return;
 
-            String contactId = contacts.GetContactIdFromContactJid(e.Jid);
-            if (contactId != null)
+            Contact contact = contacts.GetContactFromContactJid(e.Jid);
+            if (contact != null)
             {
-                log.DebugFormat("[Contacts_ContactAdded] ContactId:[{0}]", contactId);
+                log.DebugFormat("[Contacts_ContactAdded] Contact - Id:[{0}] - Jid:[{1}] - DisplayName:[{2}]", contact.Id, contact.Jid_im, Util.GetContactDisplayName(contact, AvatarPool.Instance.GetFirstNameFirst()));
 
                 // Raise event ContactAvatarChanged
-                ContactAvatarChanged?.Invoke(this, new IdEventArgs(contactId));
+                ContactAvatarChanged?.Invoke(this, new IdEventArgs(contact.Id));
             }
+        }
+
+        private void Contacts_RosterContactRemoved(object sender, JidEventArgs e)
+        {
+            if (!InitDone())
+                return;
+
+            Contact contact = contacts.GetContactFromContactJid(e.Jid);
+            if (contact != null)
+                log.DebugFormat("[Contacts_RosterContactRemoved] Contact - Id:[{0}] - Jid:[{1}] - DisplayName:[{2}]", contact.Id, contact.Jid_im, Util.GetContactDisplayName(contact, AvatarPool.Instance.GetFirstNameFirst()));
+
+        }
+
+        private void Contacts_RosterContactAdded(object sender, JidEventArgs e)
+        {
+            if (!InitDone())
+                return;
+
+            Contact contact = contacts.GetContactFromContactJid(e.Jid);
+            if (contact != null)
+                log.DebugFormat("[Contacts_RosterContactAdded] Contact - Id:[{0}] - Jid:[{1}] - DisplayName:[{2}]", contact.Id, contact.Jid_im, Util.GetContactDisplayName(contact, AvatarPool.Instance.GetFirstNameFirst()));
+
         }
 
         private void Contacts_ContactAvatarChanged(object sender, JidEventArgs e)
@@ -411,6 +433,9 @@ namespace Rainbow.Helpers
             contacts.ContactInfoChanged += Contacts_ContactInfoChanged;
             contacts.ContactAvatarChanged += Contacts_ContactAvatarChanged;
             contacts.ContactAvatarDeleted += Contacts_ContactAvatarDeleted;
+
+            contacts.RosterContactAdded += Contacts_RosterContactAdded;
+            contacts.RosterContactRemoved += Contacts_RosterContactRemoved;
 
             // Manage necessary events from Bubbles
             bubbles.BubbleAvatarUpdated += Bubbles_BubbleAvatarUpdated;
@@ -986,8 +1011,7 @@ namespace Rainbow.Helpers
 
         private void BackgroundWorkerUnkownContact_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            if( (contactsUnknownById.Count > 0)
-                ||(contactsUnknownByJid.Count > 0) )
+            if( (contactsUnknownById.Count > 0) ||(contactsUnknownByJid.Count > 0) )
                 UseUnknowContactsPool();
         }
 
@@ -1121,11 +1145,18 @@ namespace Rainbow.Helpers
             {
                 backgroundWorkerDownload = new BackgroundWorker();
                 backgroundWorkerDownload.DoWork += BackgroundWorkerDonwload_DoWork;
+                backgroundWorkerDownload.RunWorkerCompleted += BackgroundWorkerDownload_RunWorkerCompleted;
                 backgroundWorkerDownload.WorkerSupportsCancellation = true;
             }
 
             if(!backgroundWorkerDownload.IsBusy)
                 backgroundWorkerDownload.RunWorkerAsync();
+        }
+
+        private void BackgroundWorkerDownload_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            if ((bubblesWithAvatarToDwl.Count > 0) || (contactsWithAvatarToDwl.Count > 0))
+                UseDownloaderPool();
         }
 
         private void BackgroundWorkerDonwload_DoWork(object sender, DoWorkEventArgs e)
