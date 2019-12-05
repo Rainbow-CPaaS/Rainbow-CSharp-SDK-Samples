@@ -683,6 +683,9 @@ namespace InstantMessaging
                     return;
                 }
 
+                // Since message is not null, set the Avatar Source
+                newMsg.AvatarSource = Helper.GetContactAvatarImageSource(newMsg.PeerId);
+
                 newMessageAdded = true;
 
                 lock (lockObservableMessagesList)
