@@ -100,10 +100,11 @@
                 <!-- INPUT TEXT + SEND BTN  - START -->
                 <StackLayout Grid.Row="1" Orientation="Horizontal" Padding="10" BackgroundColor="#EFEFEF">
                     <Entry x:Name="EntryIM"
-			            HorizontalOptions="FillAndExpand" 
-				        HeightRequest="25" 
-				        Placeholder="Enter your text here ..." 
-                        TextColor="Gray"/>
+                           TextColor="Black"
+                           HorizontalOptions="FillAndExpand"
+                           HeightRequest="25" 
+                           Placeholder="Enter your text here ..." 
+                           PlaceholderColor="Gray" />
                     <Button x:Name="BtnIMSend"
                             Text="Send" />
                 </StackLayout>
