@@ -22,6 +22,9 @@ namespace InstantMessaging
 		{
 			InitializeComponent ();
 
+            ViewModel.Connect = "Connect";
+            ViewModel.IsBusy = false;
+
             XamarinApplication = (InstantMessaging.App) Xamarin.Forms.Application.Current;
 
             // Set default values for login / pwd
@@ -30,27 +33,6 @@ namespace InstantMessaging
 
             XamarinApplication.RbApplication.ConnectionStateChanged += RbApplication_ConnectionStateChanged;
             XamarinApplication.RbApplication.InitializationPerformed += RbApplication_InitializationPerformed;
-
-            XamarinApplication.RbContacts.ContactPresenceChanged += RbContacts_ContactPresenceChanged;
-        }
-
-        private void RbContacts_ContactPresenceChanged(object sender, PresenceEventArgs e)
-        {
-            string presence = e.Presence.PresenceLevel + (String.IsNullOrEmpty(e.Presence.PresenceDetails) ? "" : $" ({e.Presence.PresenceDetails})");
-
-            if (Util.GetJidNode(e.Jid) == XamarinApplication.JID_NODE_USER1)
-            {
-                ViewModel.Info = ($"Current User - Presence level changed [{presence}]");
-            }
-            else
-            {
-                Contact contact = XamarinApplication.RbContacts.GetContactFromContactJid(e.Jid);
-                if (contact != null)
-                {
-                    string name = contact.LastName + " " + contact.FirstName;
-                    ViewModel.Info = ($"[{name}] - Presence level changed [{presence}]");
-                }
-            }
         }
 
         private void ButtonConnect_Clicked(object sender, EventArgs e)
@@ -65,9 +47,11 @@ namespace InstantMessaging
 
                 XamarinApplication.RbApplication.SetIpEndPoint(ipEndPoint);*/
 
+                ViewModel.IsBusy = true;
+
                 XamarinApplication.RbApplication.Login(XamarinApplication.LOGIN_USER1, XamarinApplication.PASSWORD_USER1, callback =>
                 {
-                    ViewModel.Info = Util.SerialiseSdkError(callback.Result);
+                    //TODO - manage error
                 });
             }
             else
@@ -92,19 +76,15 @@ namespace InstantMessaging
             switch (e.State)
             {
                 case ConnectionState.Connected:
-                    ViewModel.Status = "Connected";
-                    ViewModel.Connect = "Disconnect";
+                    ViewModel.Connect = "Connecting";
                     break;
 
                 case ConnectionState.Connecting:
-                    ViewModel.Status = "Connecting";
                     ViewModel.Connect = "Connecting";
                     break;
 
                 case ConnectionState.Disconnected:
-                    ViewModel.Status = "Disconnected";
                     ViewModel.Connect = "Connect";
-                    ViewModel.Info = " ";
                     break;
             }
         }
@@ -113,5 +93,6 @@ namespace InstantMessaging
         {
             ShowConversationsPage();
         }
+
     }
 }

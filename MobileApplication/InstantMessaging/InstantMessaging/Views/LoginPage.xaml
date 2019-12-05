@@ -9,62 +9,52 @@
     <ContentPage.Content>
 
         <StackLayout x:Name="MainStackLayout" Orientation="Vertical"
-                VerticalOptions="CenterAndExpand" 
-                HorizontalOptions="CenterAndExpand">
+                VerticalOptions="StartAndExpand" 
+                HorizontalOptions="Center">
 
             <StackLayout.BindingContext >
                 <local:LoginViewModel x:Name="ViewModel"/>
             </StackLayout.BindingContext>
 
-            <StackLayout Orientation="Vertical" HorizontalOptions="Center" Margin="40,0">
-                <Label Text="Login:"
-                        VerticalOptions="CenterAndExpand" 
-                        HorizontalOptions="StartAndExpand" />
-                <Entry x:Name="EntryLogin"
-                        WidthRequest="300"
-                        VerticalOptions="CenterAndExpand" 
-                        HorizontalOptions="StartAndExpand" />
+            <StackLayout Orientation="Horizontal" HorizontalOptions="Center" VerticalOptions="Start" Padding="0, 30, 0, 30">
+                <Image  Source="splash_logo" WidthRequest="120" HeightRequest="120" HorizontalOptions="Center" VerticalOptions="Start" Aspect="AspectFill" />
             </StackLayout>
 
-            <StackLayout Orientation="Vertical" HorizontalOptions="Center" Margin="40,40">
-                <Label Text="Password:"
-                        VerticalOptions="CenterAndExpand" 
-                        HorizontalOptions="StartAndExpand" />
-                <Entry x:Name="EntryPassword"
-                        IsPassword="True"
-                        WidthRequest="300"
-                        VerticalOptions="CenterAndExpand" 
-                        HorizontalOptions="StartAndExpand" />
-            </StackLayout>
+            <Entry x:Name="EntryLogin"
+                    Margin="40,0"
+                    FontSize="Medium"
+                    WidthRequest="300"
+                    HorizontalOptions="Center" 
+                    Placeholder="Your email address"
+                    PlaceholderColor="LightGray"
+                    IsEnabled="{Binding IsNotBusy}" />
 
-            <StackLayout Orientation="Vertical">
-                <Button Text="{Binding Connect}"
-                        VerticalOptions="CenterAndExpand" 
-                        HorizontalOptions="CenterAndExpand"
-                        Clicked="ButtonConnect_Clicked"/>
-            </StackLayout>
+            <Entry x:Name="EntryPassword" 
+                    Margin="40,40"
+                    TextColor="Black"
+                    FontSize="Medium"
+                    IsPassword="True"
+                    WidthRequest="300"
+                    HorizontalOptions="CenterAndExpand"
+                    Placeholder="Your password"
+                    PlaceholderColor="Gray"
+                    IsEnabled="{Binding IsNotBusy}" />
 
-            <StackLayout Orientation="Vertical"
-                            VerticalOptions="EndAndExpand">
-                <Label WidthRequest="400"
-                        Text="{Binding Status}"
-                        VerticalOptions="EndAndExpand" 
-                        HorizontalOptions="CenterAndExpand" />
+            <Button Text="{Binding Connect}"
+                    WidthRequest="260"
+                    FontSize="Small"
+                    FontAttributes="Bold"
+                    TextColor="White"
+                    BackgroundColor="Blue"
+                    HorizontalOptions="CenterAndExpand"
+                    Clicked="ButtonConnect_Clicked"
+                    IsEnabled="{Binding IsNotBusy}" />
 
-                <Label WidthRequest="400"
-                        Text="{Binding Info}"
-                        VerticalOptions="EndAndExpand" 
-                        HorizontalOptions="CenterAndExpand" />
-            </StackLayout>
-
-            <Image
-                Source="{Binding AvatarSource}"
-                WidthRequest="60"
-                HeightRequest="60"
-                Aspect="AspectFit"
-                VerticalOptions="Center" 
-                HorizontalOptions="Center"
-                />
+            <ActivityIndicator Color="Gray"
+                               WidthRequest="80"
+                               HeightRequest="80"
+                               IsRunning="{Binding IsBusy}"
+                               IsVisible="{Binding IsBusy}" />
 
         </StackLayout>
     </ContentPage.Content>

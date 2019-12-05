@@ -1,91 +1,39 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Text;
 using Xamarin.Forms;
+
+using Rainbow.Helpers;
 
 namespace InstantMessaging
 {
-    public class LoginViewModel : INotifyPropertyChanged
+    public class LoginViewModel : ObservableObject
     {
-        public event PropertyChangedEventHandler PropertyChanged;
-
         string connect;
-        string status;
-        string info;
-
-        ImageSource avatarSource;
-
-        public ImageSource AvatarSource
-        {
-            set {
-                if (avatarSource != value)
-                {
-                    avatarSource = value;
-                    OnPropertyChanged("AvatarSource");
-                }
-            }
-            get { return avatarSource; }
-        }
-
-        public LoginViewModel()
-        {
-            Connect = "Connect";
-            Status = " ";
-            Info = " ";
-        }
+        Boolean isNotBusy;
+        Boolean isBusy;
 
         public String Connect
         {
-            set
-            {
-                if (connect != value)
-                {
-                    connect = value;
-                    OnPropertyChanged("Connect");
-                }
-            }
-            get
-            {
-                return connect;
+            get { return connect; }
+            set { SetProperty(ref connect, value); }
+        }
+
+        public Boolean IsNotBusy
+        {
+            get { return isNotBusy; }
+            set { SetProperty(ref isNotBusy, value);
+                if (IsBusy == isNotBusy)
+                    IsBusy = !isNotBusy;
             }
         }
 
-        public String Status
+        public Boolean IsBusy
         {
-            set
-            {
-                if (status != value)
-                {
-                    status = value;
-                    OnPropertyChanged("Status");
-                }
+            get { return isBusy; }
+            set { SetProperty(ref isBusy, value);
+                if (IsNotBusy == isBusy)
+                    IsNotBusy = !isBusy;
             }
-            get
-            {
-                return status;
-            }
-        }
-
-        public String Info
-        {
-            set
-            {
-                if (info != value)
-                {
-                    info = value;
-                    OnPropertyChanged("Info");
-                }
-            }
-            get
-            {
-                return info;
-            }
-        }
-
-        protected virtual void OnPropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }
