@@ -46,6 +46,17 @@ namespace InstantMessaging
 
 #region EVENTS FIRED ON THIS CONTENT PAGE
 
+        private void EntryIm_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (e.NewTextValue != e.OldTextValue)
+            {
+                if (String.IsNullOrEmpty(e.NewTextValue))
+                    vm.SetIsTyping(false);
+                else
+                    vm.SetIsTyping(e.NewTextValue.Length > 0);
+            }
+        }
+
         private void BtnIMSend_Clicked(object sender, EventArgs e)
         {
             if (String.IsNullOrEmpty(EntryIM.Text))
@@ -116,6 +127,7 @@ namespace InstantMessaging
         {
             // When the message list appears we want to scroll to the last message
             scrollToTheEnd = (vm.MessagesList.Count > 0);
+            vm.MarkAllAsRead();
         }
 
 #endregion EVENTS FIRED ON THIS CONTENT PAGE

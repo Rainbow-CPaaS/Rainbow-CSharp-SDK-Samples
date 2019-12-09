@@ -128,9 +128,26 @@ namespace InstantMessaging
             }
         }
 
+        public void MarkAllAsRead()
+        {
+            try
+            {
+                XamarinApplication.RbInstantMessaging.MarkAllMessagesAsRead(this.conversationId, null);
+            }
+            catch
+            {
+            }
+        }
+
+        public void SetIsTyping(bool isTyping)
+        {
+            XamarinApplication.RbInstantMessaging.SendIsTypingInConversationById(this.conversationId, isTyping, null);
+        }
+
         public void SendMessage(String content)
         {
             XamarinApplication.RbInstantMessaging.SendMessageToConversationId(this.conversationId, content);
+            SetIsTyping(false);
         }
 
         public void ScrollingDueToLoadingOlderMessagesDone()
@@ -720,6 +737,9 @@ namespace InstantMessaging
                             MessagesList.Insert(0, newMsg);
                     }
                 }
+
+                // Mark the message as read
+                XamarinApplication.RbInstantMessaging.MarkMessageAsRead(this.conversationId, newMsg.Id, null);
             }
         }
 

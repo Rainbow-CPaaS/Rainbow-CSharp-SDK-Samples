@@ -104,7 +104,8 @@
                            HorizontalOptions="FillAndExpand"
                            HeightRequest="25" 
                            Placeholder="Enter your text here ..." 
-                           PlaceholderColor="Gray" />
+                           PlaceholderColor="Gray"
+                           TextChanged="EntryIm_TextChanged" />
                     <Button x:Name="BtnIMSend"
                             Text="Send" />
                 </StackLayout>
