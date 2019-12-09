@@ -78,6 +78,7 @@ namespace InstantMessaging
 
             // Manage event(s) from InstantMessaging
             XamarinApplication.RbInstantMessaging.MessageReceived += RbInstantMessaging_MessageReceived;
+            XamarinApplication.RbInstantMessaging.ReceiptReceived += RbInstantMessaging_ReceiptReceived;
 
             // Manage event(s) from Contacts
             XamarinApplication.RbContacts.ContactAdded += RbContacts_ContactAdded;
@@ -403,6 +404,23 @@ namespace InstantMessaging
             return result;
         }
 
+        private InstantMessaging.Model.Message GetMessageByMessageId(String messageId)
+        {
+            InstantMessaging.Model.Message result = null;
+            lock (lockObservableMessagesList)
+            {
+                foreach (InstantMessaging.Model.Message msg in MessagesList)
+                {
+                    if (msg.Id == messageId)
+                    {
+                        result = msg;
+                        break;
+                    }
+                }
+            }
+            return result;
+        }
+
         private void UpdateMessagesForJid(String peerJid, bool updateAvatar, bool updateDisplayName )
         {
             if (contactsListInvolved.Contains(peerJid))
@@ -512,6 +530,9 @@ namespace InstantMessaging
                 message.MessageDateTime = rbMessage.Date;
                 message.MessageDateDisplay = Helper.HumanizeDateTime(rbMessage.Date);
 
+                // Receipt
+                SetReceiptPartOfMessage(message, rbMessage.Receipt);
+
                 // Is-it an "Event message" ?
                 String content;
                 if (!String.IsNullOrEmpty(rbMessage.BubbleEvent))
@@ -584,6 +605,26 @@ namespace InstantMessaging
                 AddContactInvolved(message.PeerJid);
             }
             return message;
+        }
+
+        public void SetReceiptPartOfMessage(Model.Message message, ReceiptType receiptType)
+        {
+            message.ReceiptType = receiptType.ToString();
+            switch (receiptType)
+            {
+                case ReceiptType.ServerReceived:
+                    message.ReceiptSource = "msg_check";
+                    break;
+                case ReceiptType.ClientReceived:
+                    message.ReceiptSource = "msg_not_read";
+                    break;
+                case ReceiptType.ClientRead:
+                    message.ReceiptSource = "msg_read";
+                    break;
+                case ReceiptType.None:
+                    message.ReceiptSource = "msg_sending";
+                    break;
+            }
         }
 
         private void SetReplyPartOfMessage(Model.Message message, Rainbow.Model.Message rbRepliedMessage)
@@ -740,6 +781,16 @@ namespace InstantMessaging
 
                 // Mark the message as read
                 XamarinApplication.RbInstantMessaging.MarkMessageAsRead(this.conversationId, newMsg.Id, null);
+            }
+        }
+
+        private void RbInstantMessaging_ReceiptReceived(object sender, Rainbow.Events.ReceiptReceivedEventArgs e)
+        {
+            if (e.ConversationId == this.conversationId)
+            {
+                Model.Message message = GetMessageByMessageId(e.MessageId);
+                if (message != null)
+                    SetReceiptPartOfMessage(message, e.ReceiptType);
             }
         }
 

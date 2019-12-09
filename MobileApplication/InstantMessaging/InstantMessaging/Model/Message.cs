@@ -40,6 +40,10 @@ namespace InstantMessaging.Model
         Color replyBackgroundColor;
         String replyBody;
 
+        String receiptIsVisible;
+        String receiptType;
+        ImageSource receiptSource;
+
         public string Id
         {
             get { return id; }
@@ -218,5 +222,26 @@ namespace InstantMessaging.Model
 
 #endregion PROPERTIES FOR REPLY DISPLAY
 
+#region PROPERTIES FOR RECEIPT DISPLAY
+
+        public String ReceiptType
+        {
+            get { return receiptType; }
+            set { SetProperty(ref receiptType, value); }
+        }
+
+        public String ReceiptIsVisible
+        {
+            get { return receiptIsVisible; }
+            set { SetProperty(ref receiptIsVisible, value); }
+        }
+
+        public ImageSource ReceiptSource
+        {
+            get { return receiptSource; }
+            set { SetProperty(ref receiptSource, value); }
+        }
+
+#endregion PROPERTIES FOR RECEIPT DISPLAY
     }
 }

@@ -81,8 +81,10 @@
                     <Label HorizontalOptions="End" FontSize="Small"  VerticalOptions="Center" TextColor="{Binding BodyColor}" FontAttributes="{Binding BodyFontAttributes}" Text="{Binding Body}"/>
                 </StackLayout>
 
-                <Label Grid.Row="1" Grid.Column="0" HorizontalOptions="End" TextColor="Gray" FontSize="Micro"  VerticalOptions="Center" Text="{Binding MessageDateDisplay}"/>
-
+                <StackLayout Orientation="Horizontal" Grid.Row="1" Grid.Column="0" HorizontalOptions="End" VerticalOptions="Center" Spacing="4">
+                    <Label HorizontalOptions="End" TextColor="Gray" FontSize="Micro" VerticalOptions="Center" Text="{Binding MessageDateDisplay}"/>
+                    <Image HorizontalOptions="End" VerticalOptions="Center" WidthRequest="12" HeightRequest="12" Source="{Binding ReceiptSource}" IsVisible="{Binding ReceiptIsVisible}" />
+                </StackLayout>
             </Grid>
         </Frame>
     </Grid>
