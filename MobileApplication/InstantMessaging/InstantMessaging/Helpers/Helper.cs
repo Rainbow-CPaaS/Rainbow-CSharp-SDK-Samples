@@ -200,6 +200,7 @@ namespace InstantMessaging.Helpers
 
                 conversation.Type = rbConversation.Type;
                 conversation.NbMsgUnread = rbConversation.UnreadMessageNumber;
+                conversation.NbMsgUnreadIsVisible = (conversation.NbMsgUnread > 0) ? "True" : "False";
 
                 conversation.LastMessage = rbConversation.LastMessageText;
                 conversation.LastMessageDateTime = rbConversation.LastMessageDate;

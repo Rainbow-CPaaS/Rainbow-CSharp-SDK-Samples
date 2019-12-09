@@ -144,6 +144,8 @@ namespace InstantMessaging
                         oldConversation.PresenceSource = newConversation.PresenceSource;
 
                         oldConversation.NbMsgUnread = newConversation.NbMsgUnread;
+                        oldConversation.NbMsgUnreadIsVisible = (oldConversation.NbMsgUnread > 0) ? "True" : "False";
+
                         oldConversation.LastMessage = newConversation.LastMessage;
                         oldConversation.LastMessageDateTime = newConversation.LastMessageDateTime;
                         oldConversation.MessageTimeDisplay = newConversation.MessageTimeDisplay;

@@ -17,6 +17,7 @@ namespace InstantMessaging
         String lastMessage;
         String presenceSource;
         Int64 nbMsgUnread;
+        String nbMsgUnreadIsVisible;
         DateTime lastMessageDateTime;
         String messageTimeDisplay;
         ImageSource avatarSource;
@@ -73,7 +74,12 @@ namespace InstantMessaging
             get { return nbMsgUnread; }
             set { SetProperty(ref nbMsgUnread, value); }
         }
-        public String NbMsgUnreadIsVisible => (NbMsgUnread>0) ? "True" : "False";
+
+        public String NbMsgUnreadIsVisible
+        {
+            get { return nbMsgUnreadIsVisible; }
+            set { SetProperty(ref nbMsgUnreadIsVisible, value); }
+        }
 
         public String LastMessage
         {
