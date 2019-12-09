@@ -567,6 +567,9 @@ namespace InstantMessaging
                         }
                     }
 
+                    // Edited text visible ?
+                    message.EditedIsVisible = String.IsNullOrEmpty(rbMessage.ReplaceId) ? "False" : "True";
+
                     // Reply part
                     // By default is not displayed
                     message.ReplyPartIsVisible = "False";
@@ -733,7 +736,8 @@ namespace InstantMessaging
         {
             if (e.ConversationId == this.conversationId)
             {
-                //log.DebugFormat("[RbInstantMessaging_MessageReceived] - FromJId:[{0}] - ToJid:[{1}] - CarbonCopy:[{2}] - Message.Id:[{3}]", e.Message.FromJid, e.Message.ToJid, e.CarbonCopy, e.Message.Id);
+                log.DebugFormat("[RbInstantMessaging_MessageReceived] - FromJId:[{0}] - ToJid:[{1}] - CarbonCopy:[{2}] - Message.Id:[{3}] - Message.ReplaceId:[{4}]", e.Message.FromJid, e.Message.ToJid, e.CarbonCopy, e.Message.Id, e.Message.ReplaceId);
+
                 InstantMessaging.Model.Message newMsg = GetMessageFromRBMessage(e.Message, rbConversation.Type);
                 if (newMsg == null)
                 {
@@ -744,38 +748,56 @@ namespace InstantMessaging
                 // Since message is not null, set the Avatar Source
                 newMsg.AvatarSource = Helper.GetContactAvatarImageSource(newMsg.PeerId);
 
-                newMessageAdded = true;
-
-                lock (lockObservableMessagesList)
+                // Manage incoming REPLACE message
+                if (!String.IsNullOrEmpty(e.Message.ReplaceId))
                 {
-                    // Do we have already some message ?
-                    if (MessagesList.Count == 0)
+                    InstantMessaging.Model.Message previousMessage = GetMessageByMessageId(e.Message.Id);
+                    if (previousMessage == null)
                     {
-                        MessagesList.Add(newMsg);
+                        // We do nothing in this case ... Message not in the cache, so not visible ...
+                        return;
                     }
-                    else
-                    {
-                        // Add to the list but need to check date
-                        InstantMessaging.Model.Message storedMsg;
-                        bool newMsgInserted = false;
-                        int nb = MessagesList.Count - 1;
 
-                        for (int i = nb; i>0; i--)
+                    previousMessage.Body = newMsg.Body;
+                    previousMessage.EditedIsVisible = "True";
+                }
+                // Manage incoming NEW message
+                else
+                {
+                    // It's a new message to add in the list
+                    newMessageAdded = true;
+
+                    lock (lockObservableMessagesList)
+                    {
+                        // Do we have already some message ?
+                        if (MessagesList.Count == 0)
                         {
-                            storedMsg = MessagesList[i];
-                            if(newMsg.MessageDateTime > storedMsg.MessageDateTime)
-                            {
-                                if(i == nb)
-                                    MessagesList.Add(newMsg);
-                                else
-                                    MessagesList.Insert(i, newMsg);
-                                newMsgInserted = true;
-                                break;
-                            }
+                            MessagesList.Add(newMsg);
                         }
-                        // If we don't have already added the new message, we insert it to the first place
-                        if (!newMsgInserted)
-                            MessagesList.Insert(0, newMsg);
+                        else
+                        {
+                            // Add to the list but need to check date
+                            InstantMessaging.Model.Message storedMsg;
+                            bool newMsgInserted = false;
+                            int nb = MessagesList.Count - 1;
+
+                            for (int i = nb; i > 0; i--)
+                            {
+                                storedMsg = MessagesList[i];
+                                if (newMsg.MessageDateTime > storedMsg.MessageDateTime)
+                                {
+                                    if (i == nb)
+                                        MessagesList.Add(newMsg);
+                                    else
+                                        MessagesList.Insert(i, newMsg);
+                                    newMsgInserted = true;
+                                    break;
+                                }
+                            }
+                            // If we don't have already added the new message, we insert it to the first place
+                            if (!newMsgInserted)
+                                MessagesList.Insert(0, newMsg);
+                        }
                     }
                 }
 
