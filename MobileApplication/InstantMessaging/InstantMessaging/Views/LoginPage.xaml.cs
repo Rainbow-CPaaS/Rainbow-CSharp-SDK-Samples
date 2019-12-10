@@ -1,5 +1,7 @@
 ﻿using System;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
@@ -9,7 +11,6 @@ using Rainbow.Events;
 using Rainbow.Model;
 
 using InstantMessaging.Helpers;
-
 
 namespace InstantMessaging
 {
@@ -91,7 +92,27 @@ namespace InstantMessaging
 
         private void RbApplication_InitializationPerformed(object sender, EventArgs e)
         {
-            ShowConversationsPage();
+            Task task = new Task(() =>
+            {
+                ManualResetEvent manualEventBubbles = new ManualResetEvent(false);
+                ManualResetEvent manualEventConversations = new ManualResetEvent(false);
+
+                XamarinApplication.RbApplication.GetConversations().GetAllConversations(callback =>
+                {
+                    manualEventConversations.Set();
+                });
+
+                XamarinApplication.RbApplication.GetBubbles().GetAllBubbles(callback =>
+                {
+                    manualEventBubbles.Set();
+                });
+
+                // Wait all manual events before to continue
+                WaitHandle.WaitAll(new WaitHandle[] { manualEventBubbles, manualEventConversations }, 5000);
+                
+                ShowConversationsPage();
+            });
+            task.Start();
         }
 
     }
