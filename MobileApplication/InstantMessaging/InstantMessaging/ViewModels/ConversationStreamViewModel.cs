@@ -847,7 +847,6 @@ namespace InstantMessaging
             }
         }
 
-
         private void RbContacts_ContactInfoChanged(object sender, Rainbow.Events.JidEventArgs e)
         {
             // Need to update this contact in each messages (not avatar part)
