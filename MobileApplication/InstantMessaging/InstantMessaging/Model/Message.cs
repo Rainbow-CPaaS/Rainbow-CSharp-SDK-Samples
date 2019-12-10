@@ -42,7 +42,6 @@ namespace InstantMessaging.Model
 
         String editedIsVisible;
 
-        String receiptIsVisible;
         String receiptType;
         ImageSource receiptSource;
 
