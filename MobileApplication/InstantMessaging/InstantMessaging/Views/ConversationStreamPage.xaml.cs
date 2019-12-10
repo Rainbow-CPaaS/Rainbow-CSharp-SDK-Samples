@@ -127,6 +127,8 @@ namespace InstantMessaging
         {
             // When the message list appears we want to scroll to the last message
             scrollToTheEnd = (vm.MessagesList.Count > 0);
+
+            // When entering in conversation all messages are set as ClientRead 
             vm.MarkAllAsRead();
         }
 

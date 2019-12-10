@@ -26,6 +26,8 @@ namespace InstantMessaging
         {
             InitializeComponent();
 
+            this.Appearing += ConversationsPage_Appearing;
+
             // Get Xamarin Application
             XamarinApplication = (InstantMessaging.App)Xamarin.Forms.Application.Current;
 
@@ -59,6 +61,8 @@ namespace InstantMessaging
 
         void ShowConversationStreamPage(String conversationId)
         {
+            XamarinApplication.CurrentConversationId = conversationId;
+
             Device.BeginInvokeOnMainThread(async () =>
             {
                 if (XamarinApplication.ConversationStreamPageList == null)
@@ -81,6 +85,11 @@ namespace InstantMessaging
         }
 
 #region EVENTS FIRED BY XAML
+
+        private void ConversationsPage_Appearing(object sender, EventArgs e)
+        {
+            XamarinApplication.CurrentConversationId = null;
+        }
 
         void ConversationsListView_OnItemSelected(object sender, SelectedItemChangedEventArgs e)
         {
