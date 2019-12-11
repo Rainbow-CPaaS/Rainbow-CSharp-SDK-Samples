@@ -47,6 +47,22 @@ namespace Rainbow.Helpers
         Stream GetArcPartFromSquareImage(Stream ms, int partNumber, int nbParts);
 
         /// <summary>
+        /// Resize the image source using width and height
+        /// </summary>
+        /// <param name="ms"><see cref="Stream"/>Image Source in Stream format</param>
+        /// <param name="width"><see cref="int"/>Width</param>
+        /// <param name="height"><see cref="int"/>height</param>
+        /// <returns><see cref="Stream"/>Image created in Stream format</returns>
+        Stream GetScaled(Stream stream, int width, int height);
+
+        /// <summary>
+        /// Get image size
+        /// </summary>
+        /// <param name="ms"><see cref="Stream"/>Image Source in Stream format</param>
+        /// <returns><see cref="Stream"/>Image created in Stream format</returns>
+        System.Drawing.Size GetSize(Stream ms);
+
+        /// <summary>
         /// From image source, get a square and scaled image of the size specified
         /// </summary>
         /// <param name="ms"><see cref="Stream"/>Image Source in Stream format</param>

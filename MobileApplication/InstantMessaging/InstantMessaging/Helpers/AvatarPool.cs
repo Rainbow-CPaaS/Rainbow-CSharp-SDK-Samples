@@ -59,7 +59,7 @@ namespace Rainbow.Helpers
         private readonly List<String> contactsUnknownById = new List<String>(); // Store Id of unknow contacts
         private readonly List<String> contactsUnknownByJid = new List<String>(); // Store Jid of unknow contacts
 
-        #region Define folder path variables
+#region Define folder path variables
         // Store folders path where Contact Avatars are stored
         private String folderContactAvatarInitials = null;
         private String folderContactAvatarOriginals = null;
@@ -767,6 +767,21 @@ namespace Rainbow.Helpers
                 return imageManagement.GetRoundedFromSquareImage(stream);
             return null;
         }
+
+        public Stream GetScaled(Stream stream, int width, int height)
+        {
+            if (imageManagement != null)
+                return imageManagement.GetScaled(stream, width, height);
+            return null;
+        }
+
+        public System.Drawing.Size GetSize(Stream stream)
+        {
+            if (imageManagement != null)
+                return imageManagement.GetSize(stream);
+            return new System.Drawing.Size();
+        }
+        
 
 #endregion INTERFACE IImageManagement
 
