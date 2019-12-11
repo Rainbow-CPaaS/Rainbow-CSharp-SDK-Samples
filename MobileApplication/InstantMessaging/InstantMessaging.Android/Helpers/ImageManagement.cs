@@ -143,13 +143,29 @@ namespace Rainbow.Droid.Helpers
 
         public Stream GetSquareAndScaled(Stream ms, int imgSize)
         {
+            return GetScaled(ms, imgSize, imgSize);
+        }
+
+        public Stream GetScaled(Stream ms, int width, int height)
+        {
             Stream result = null;
             using (Bitmap bitmap = BitmapFactory.DecodeStream(ms))
             {
-                using (Bitmap bitmapResult = Bitmap.CreateScaledBitmap(bitmap, imgSize, imgSize, true))
+                using (Bitmap bitmapResult = Bitmap.CreateScaledBitmap(bitmap, width, height, true))
                 {
                     result = GetStreamFromBitmap(bitmapResult);
                 }
+            }
+            return result;
+        }
+
+        public System.Drawing.Size GetSize(Stream ms)
+        {
+            System.Drawing.Size result = new System.Drawing.Size();
+            using (Bitmap bitmap = BitmapFactory.DecodeStream(ms))
+            {
+                result.Width = bitmap.Width;
+                result.Height = bitmap.Height;
             }
             return result;
         }
