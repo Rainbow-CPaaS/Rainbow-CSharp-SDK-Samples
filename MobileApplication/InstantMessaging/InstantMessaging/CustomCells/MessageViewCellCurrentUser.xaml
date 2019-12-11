@@ -39,6 +39,7 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
                 <StackLayout Grid.Row="0" Grid.Column="0" Padding="3" HorizontalOptions="EndAndExpand">
@@ -64,10 +65,20 @@
                             <Label Grid.Row="1" Grid.Column="0" HorizontalOptions="Start" TextColor="White" FontSize="Small" MaxLines="1" LineBreakMode="TailTruncation" VerticalOptions="Center" Text="{Binding ReplyBody}"/>
                         </Grid>
                     </Frame>
-                    <Label HorizontalOptions="End" FontSize="Small"  VerticalOptions="Center" TextColor="{Binding BodyColor}" FontAttributes="{Binding BodyFontAttributes}" Text="{Binding Body}"/>
+                    <Label HorizontalOptions="End" FontSize="Small"  VerticalOptions="Center" TextColor="{Binding BodyColor}" FontAttributes="{Binding BodyFontAttributes}" Text="{Binding Body}" IsVisible="{Binding BodyIsVisible}"/>
                 </StackLayout>
 
-                <StackLayout Orientation="Horizontal" Grid.Row="1" Grid.Column="0" HorizontalOptions="End" VerticalOptions="Center" Spacing="0">
+                <!-- File Attachment-->
+                <StackLayout Orientation="Horizontal" Grid.Row="1" Grid.Column="0" HorizontalOptions="Center" VerticalOptions="Center" Spacing="0" IsVisible="{Binding FileAttachmentIsVisible}">
+                    <Image Source="{Binding FileAttachmentSource}" HorizontalOptions="Center" VerticalOptions="Center" IsVisible="{Binding FileAttachmentSourceIsVisible}"/>
+                    <Image Source="{Binding FileDefaultAttachmentSource}" HorizontalOptions="Start" VerticalOptions="Center" WidthRequest="60" HeightRequest="60" IsVisible="{Binding FileDefaultInfoIsVisible}"/>
+                    <StackLayout Orientation="Vertical" HorizontalOptions="End" VerticalOptions="Center"  Spacing="0" IsVisible="{Binding FileDefaultInfoIsVisible}">
+                        <Label HorizontalOptions="Start" FontSize="Small" VerticalOptions="Center" TextColor="{Binding BodyColor}" Text="{Binding FileName}"/>
+                        <Label HorizontalOptions="Start" FontSize="Small" VerticalOptions="Center" TextColor="{Binding BodyColor}" Text="{Binding FileSize}"/>
+                    </StackLayout>
+                </StackLayout>
+                
+                <StackLayout Orientation="Horizontal" Grid.Row="2" Grid.Column="0" HorizontalOptions="End" VerticalOptions="Center" Spacing="0">
                     <Label HorizontalOptions="End" TextColor="Gray" FontSize="Micro" VerticalOptions="Center" Text="{Binding MessageDateDisplay}"/>
                     <Label HorizontalOptions="End" TextColor="Gray" FontSize="Micro" VerticalOptions="Center" Text=" - Edited" IsVisible="{Binding EditedIsVisible}"/>
                     <Image HorizontalOptions="End" VerticalOptions="Center" WidthRequest="12" HeightRequest="12" Source="{Binding ReceiptSource}" Margin="4, 0, 0, 0" />

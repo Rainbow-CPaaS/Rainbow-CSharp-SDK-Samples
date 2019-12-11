@@ -12,9 +12,12 @@ namespace InstantMessaging.Model
         String peerDisplayName;
         String peerJid;
         String peerId;
+
+        String bodyIsVisible;
         String body;
         FontAttributes bodyFontAttributes;
         Color bodyColor;
+
         Color backgroundColor;
         String peerDisplayNameIsVisible;
         ImageSource avatarSource;
@@ -44,6 +47,14 @@ namespace InstantMessaging.Model
 
         String receiptType;
         ImageSource receiptSource;
+
+        String fileAttachmentIsVisible;
+        String fileAttachmentSourceIsVisible;
+        ImageSource fileAttachmentSource;
+        String fileDefaultInfoIsVisible;
+        String fileName;
+        String fileSize;
+        ImageSource fileDefaultAttachmentSource;
 
         public string Id
         {
@@ -85,6 +96,12 @@ namespace InstantMessaging.Model
         {
             get { return body; }
             set { SetProperty(ref body, value); }
+        }
+
+        public string BodyIsVisible
+        {
+            get { return bodyIsVisible; }
+            set { SetProperty(ref bodyIsVisible, value); }
         }
 
         public FontAttributes BodyFontAttributes
@@ -245,6 +262,52 @@ namespace InstantMessaging.Model
             get { return editedIsVisible; }
             set { SetProperty(ref editedIsVisible, value); }
         }
+
+#region PROPERTIES FOR FILE ATTACHMENT
+
+        public String FileAttachmentIsVisible
+        {
+            get { return fileAttachmentIsVisible; }
+            set { SetProperty(ref fileAttachmentIsVisible, value); }
+        }
+
+        public String FileAttachmentSourceIsVisible
+        {
+            get { return fileAttachmentSourceIsVisible; }
+            set { SetProperty(ref fileAttachmentSourceIsVisible, value); }
+        }
+
+        public String FileDefaultInfoIsVisible
+        {
+            get { return fileDefaultInfoIsVisible; }
+            set { SetProperty(ref fileDefaultInfoIsVisible, value); }
+        }
+
+        public String FileName
+        {
+            get { return fileName; }
+            set { SetProperty(ref fileName, value); }
+        }
+
+        public String FileSize
+        {
+            get { return fileSize; }
+            set { SetProperty(ref fileSize, value); }
+        }
+
+        public ImageSource FileAttachmentSource
+        {
+            get { return fileAttachmentSource; }
+            set { SetProperty(ref fileAttachmentSource, value); }
+        }
+
+        public ImageSource FileDefaultAttachmentSource
+        {
+            get { return fileDefaultAttachmentSource; }
+            set { SetProperty(ref fileDefaultAttachmentSource, value); }
+        }
+
+#endregion PROPERTIES FOR FILE ATTACHMENT
 
     }
 }

@@ -30,6 +30,7 @@ namespace InstantMessaging
         private readonly Conversation rbConversation = null; // Rainbow Conversation object
 
         private readonly AvatarPool avatarPool;
+        private readonly FilePool filePool;
         private readonly InstantMessaging.App XamarinApplication;
 
         private readonly Object lockObservableMessagesList = new Object(); // To lock access to the observable collection: 'MessagesList'
@@ -70,6 +71,9 @@ namespace InstantMessaging
         {
             // Get Xamarin Application
             XamarinApplication = (InstantMessaging.App)Xamarin.Forms.Application.Current;
+
+            // Manage event(s) from FilePool
+            filePool = FilePool.Instance;
 
             // Manage event(s) from AvatarPool
             avatarPool = AvatarPool.Instance;
@@ -599,11 +603,27 @@ namespace InstantMessaging
                     // FileAttachment
                     if (rbMessage.FileAttachment != null)
                     {
-                        if (!String.IsNullOrEmpty(content))
-                            content += "\r\n";
-                        content += String.Format("File: \"{0}\"\r\nSize: {1}", rbMessage.FileAttachment.Name, Helper.HumanizeFileSize(rbMessage.FileAttachment.Size));
+                        // Ask more info about this file
+                        filePool.AskFileDescriptorDownload(this.conversationId, rbMessage.FileAttachment.Id);
+
+                        // Set Info
+                        message.FileAttachmentIsVisible = "True";
+                        message.FileAttachmentSourceIsVisible = "False";
+                        message.FileDefaultInfoIsVisible = "True";
+
+                        message.FileDefaultAttachmentSource = "icon_unknown_blue";
+                        message.FileName = rbMessage.FileAttachment.Name;
+                        message.FileSize = Helper.HumanizeFileSize(rbMessage.FileAttachment.Size);
                     }
+                    else
+                    {
+                        message.FileAttachmentIsVisible = "False";
+                        message.FileAttachmentSourceIsVisible = "False";
+                        message.FileDefaultInfoIsVisible = "False";
+                    }
+
                     message.Body = content;
+                    message.BodyIsVisible = String.IsNullOrEmpty(message.Body) ? "False" : "True";
                 }
 
                 // We store info about this contact in message context
@@ -788,6 +808,8 @@ namespace InstantMessaging
                     }
 
                     previousMessage.Body = newMsg.Body;
+                    previousMessage.BodyIsVisible = String.IsNullOrEmpty(previousMessage.Body) ? "False" : "True";
+
                     previousMessage.EditedIsVisible = "True";
                 }
                 // Manage incoming NEW message

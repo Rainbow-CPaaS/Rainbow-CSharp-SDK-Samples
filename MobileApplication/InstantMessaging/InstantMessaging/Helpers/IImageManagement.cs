@@ -12,7 +12,7 @@ namespace Rainbow.Helpers
         double GetDensity();
 
         /// <summary>
-        /// Draw an source image on destiantion image in (x, y)
+        /// Draw an source image on destination image in (x, y)
         /// </summary>
         /// <param name="msSrc"><see cref="Stream"/>Image Source in Stream format</param>
         /// <param name="msDst"><see cref="Stream"/>Image Destination in Stream format</param>

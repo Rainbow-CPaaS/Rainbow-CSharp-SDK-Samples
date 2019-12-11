@@ -27,14 +27,11 @@ namespace InstantMessaging
         internal Rainbow.Contacts RbContacts = null;
         internal Rainbow.Conversations RbConversations = null;
         internal Rainbow.InstantMessaging RbInstantMessaging = null;
-        
-        //internal Rainbow.Favorites RbFavorites = null;
-        //internal Rainbow.FileStorage RbFileStorage = null;
+        internal Rainbow.FileStorage RbFileStorage = null;
 
         // Define Pages used in the Xamarin Application
         internal ConversationsPage ConversationsPage = null; // Page used to display the list of Conversations
         internal Dictionary<String,  ConversationStreamPage> ConversationStreamPageList = null; // Pages used to display the conversation stream - we will store 5 of them - use PeerID as Key
-
 
         // To store the current conversation followed
         internal String CurrentConversationId = null;
@@ -53,15 +50,12 @@ namespace InstantMessaging
             RbContacts = RbApplication.GetContacts();
             RbConversations = RbApplication.GetConversations();
             RbInstantMessaging = RbApplication.GetInstantMessaging();
-
-            //RbFavorites = RbApplication.GetFavorites();
-            //RbFileStorage = RbApplication.GetFileStorage();
+            RbFileStorage = RbApplication.GetFileStorage();
 
             InitAvatarPool();
+            InitFilePool();
 
             MainPage = new NavigationPage(new LoginPage());
-            //MainPage = new NavigationPage(new ConversationStreamPage("0"));
-
         }
 
         private void InitAvatarPool()
@@ -79,6 +73,12 @@ namespace InstantMessaging
 
             avatarPool.SetFolderPath(avatarsFolderPath);
             avatarPool.SetApplication(ref RbApplication);
+        }
+
+        private void InitFilePool()
+        {
+            FilePool filePool = FilePool.Instance;
+            filePool.SetApplication(ref RbApplication);
         }
 
         protected override void OnStart()

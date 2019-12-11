@@ -97,12 +97,12 @@ namespace InstantMessaging
                 ManualResetEvent manualEventBubbles = new ManualResetEvent(false);
                 ManualResetEvent manualEventConversations = new ManualResetEvent(false);
 
-                XamarinApplication.RbApplication.GetConversations().GetAllConversations(callback =>
+                XamarinApplication.RbConversations.GetAllConversations(callback =>
                 {
                     manualEventConversations.Set();
                 });
 
-                XamarinApplication.RbApplication.GetBubbles().GetAllBubbles(callback =>
+                XamarinApplication.RbBubbles.GetAllBubbles(callback =>
                 {
                     manualEventBubbles.Set();
                 });
