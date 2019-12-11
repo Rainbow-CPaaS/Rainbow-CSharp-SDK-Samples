@@ -1,16 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Text;
+using System.IO;
+using System.Threading;
 
 using Rainbow;
 using Rainbow.Model;
 using Rainbow.Events;
 
 using log4net;
-using System.Threading;
+using System.Threading.Tasks;
 
-namespace InstantMessaging.Helpers
+namespace Rainbow.Helpers
 {
     public sealed class FilePool
     {
@@ -20,6 +21,8 @@ namespace InstantMessaging.Helpers
 
         private static readonly ILog log = LogConfigurator.GetLogger(typeof(FilePool));
 
+        private AvatarPool avatarPool;
+
         private Rainbow.Application application = null;
         private Rainbow.FileStorage fileStorage = null;
 
@@ -28,7 +31,32 @@ namespace InstantMessaging.Helpers
         private Dictionary<String, FileDescriptor> filesDescriptorById = new Dictionary<string, FileDescriptor>(); // FileDescriptorId / FileDescriptor
 
         private List<String> filesDescriptorToDownload = new List<string>();
-        private BackgroundWorker backgroundWorkerFileDescriptotDownload = null;
+        private BackgroundWorker backgroundWorkerFileDescriptorDownload = null;
+
+        private List<String> thumbnailDownloaded = new List<string>();
+        
+        private List<String> thumbnailToDownload = new List<string>();
+        private List<String> thumbnailDirectToDownload = new List<string>();
+        private List<String> thumbnailDownloading = new List<string>();
+
+        private BackgroundWorker backgroundWorkerThumbnailDownload = null;
+
+        private Boolean initDone = false;
+        private String folderPath = null;
+
+#region PUBLIC EVENTS
+        /// <summary>
+        /// The event that is raised when a thumbnail has been downloaded successfully and is available
+        /// </summary>
+        public event EventHandler<IdEventArgs> ThumbnailAvailable;
+
+        /// <summary>
+        /// The event that is raised when a FileDescriptor is available
+        /// </summary>
+        public event EventHandler<IdEventArgs> FileDescriptorAvailable;
+
+#endregion
+
 
 #region PUBLIC METHODS   
 
@@ -40,10 +68,61 @@ namespace InstantMessaging.Helpers
             }
         }
 
+        public Boolean AllowAutomaticThumbnailDownload { get; set; }
+
+        public int AutomaticDownloadLimitSizeForImages { get; set; }
+
+        public int MaxThumbnailWidth { get; set; }
+
+        public int MaxThumbnailHeight { get; set; }
+
+        public String GetThumbnailFileName(String fileDescriptorId)
+        {
+            FileDescriptor fileDescriptor = null;
+            if (filesDescriptorById.ContainsKey(fileDescriptorId))
+                fileDescriptor = filesDescriptorById[fileDescriptorId];
+
+            if (fileDescriptor != null)
+            {
+                return fileDescriptor.Id + Path.GetExtension(fileDescriptor.Name); ;
+            }
+            return null;
+        }
+
+        public String GetThumbnailFullFilePath(String fileDescriptorId)
+        {
+            String fileName = GetThumbnailFileName(fileDescriptorId);
+            if (fileName != null)
+                return Path.Combine(this.folderPath, fileName);
+            return null;
+        }
+
+        public void SetFolderPath(String folderPath)
+        {
+            this.folderPath = folderPath;
+
+            try
+            {
+                if (!Directory.Exists(folderPath))
+                    Directory.CreateDirectory(folderPath);
+
+                log.WarnFormat("[SetFolderPath] FileStorage - folderPath:[{0}]", folderPath);
+            }
+            catch (Exception exc)
+            {
+                log.WarnFormat("[SetFolderPath] Impossible to create path to store file thumbnail :\r\n{0}", Util.SerializeException(exc));
+            }
+        }
+
         public void SetApplication(ref Application application)
         {
             this.application = application;
-            this.fileStorage = application.GetFileStorage();
+            fileStorage = application.GetFileStorage();
+            
+
+            application.ConnectionStateChanged += Application_ConnectionStateChanged;
+
+            fileStorage.FileDownloadUpdated += FileStorage_FileDownloadUpdated;
         }
 
         public void AskFileDescriptorDownload(String conversationId, String fileDescriptorId)
@@ -63,29 +142,184 @@ namespace InstantMessaging.Helpers
             }
         }
 
+        public String GetConversationIdForFileDescriptorId(String fileDescriptorId)
+        {
+            if (filesDescriptorIdByConversation.ContainsKey(fileDescriptorId))
+                return filesDescriptorIdByConversation[fileDescriptorId];
+            return null;
+        }
+
+        public void AskThumbnailDownload(String fileDescriptorId)
+        {
+            // Does this File Descriptor not already get ?
+            if ((!thumbnailDownloaded.Contains(fileDescriptorId)) 
+                && (!thumbnailToDownload.Contains(fileDescriptorId)))
+            {
+                FileDescriptor fileDescriptor = filesDescriptorById[fileDescriptorId];
+
+                if (fileDescriptor != null)
+                {
+                    if(IsImage(fileDescriptor.Name) && (fileDescriptor.Size <= AutomaticDownloadLimitSizeForImages))
+                    {
+                        thumbnailToDownload.Add(fileDescriptorId);
+                        thumbnailDirectToDownload.Add(fileDescriptorId);
+                    }
+                    else if(fileDescriptor.ThumbnailAvailable)
+                        thumbnailToDownload.Add(fileDescriptorId);
+                }
+            }
+        }
+
+        public Boolean IsImage(String fileName)
+        {
+            String ext = Path.GetExtension(fileName).ToLower();
+            return (ext == ".png") || (ext == ".jpg") || (ext == ".jpeg") || (ext == ".bmp") || (ext == ".gif");
+        }
+
 #endregion PUBLIC METHODS   
 
 
+#region EVENT FIRED BY SDK
+
+        private void Application_ConnectionStateChanged(object sender, ConnectionStateEventArgs e)
+        {
+            if (!application.IsInitialized())
+                initDone = false;
+        }
+
+        
+        private void FileStorage_FileDownloadUpdated(object sender, FileDownloadEventArgs e)
+        {
+            if(thumbnailDownloading.Contains(e.FileId))
+            {
+                if(!e.InProgress)
+                {
+                    if (e.Completed)
+                    {
+                        thumbnailDirectToDownload.Remove(e.FileId);
+
+                        if (!thumbnailDownloaded.Contains(e.FileId))
+                            thumbnailDownloaded.Add(e.FileId);
+
+                        log.DebugFormat("[FileStorage_FileDownloadUpdated] Download done - fileDescriptorId:[{0}]", e.FileId);
+
+                        // Need to scale thumbnail according density and max size expected
+                        double density = avatarPool.GetDensity();
+                        double maxWidth = MaxThumbnailWidth * density;
+                        double maxHeight = MaxThumbnailHeight * density;
+
+                        String filePath = GetThumbnailFullFilePath(e.FileId);
+                        try
+                        {
+                            using (Stream stream = new MemoryStream(File.ReadAllBytes(filePath)))
+                            {
+                                System.Drawing.Size size = avatarPool.GetSize(stream);
+                                
+                                double width = size.Width * density;
+                                double height = size.Height * density;
+
+                                double scaleWidth = density;
+                                double scaleHeight = density;
+                                double scaleUsed;
+
+                                if (width > maxWidth)
+                                    scaleWidth = maxWidth / size.Width;
+
+                                if (height > maxHeight)
+                                    scaleHeight = maxHeight / size.Height;
+
+                                if (scaleWidth > scaleHeight)
+                                    scaleUsed = scaleHeight;
+                                else
+                                    scaleUsed = scaleWidth;
+
+                                // Scale thumbnail
+                                int widthUsed = (int)Math.Floor(size.Width * scaleUsed);
+                                int heightUsed = (int)Math.Floor(size.Height * scaleUsed);
+
+                                stream.Seek(0, SeekOrigin.Begin);
+
+                                Stream resultStream = avatarPool.GetScaled(stream, widthUsed, heightUsed);
+
+                                // Delete previous file (if any)
+                                if (File.Exists(filePath))
+                                    File.Delete(filePath);
+
+                                // Save new image
+                                using (Stream file = File.Create(filePath))
+                                    resultStream.CopyTo(file);
+
+                                resultStream.Close();
+
+                                log.DebugFormat("[FileStorage_FileDownloadUpdated] scale thumbnail according density - fileDescriptorId:[{0}] - density:[{1}]", e.FileId, density);
+                            }
+                        }
+                        catch { 
+
+                        }
+
+                        
+                        Task task = new Task(() =>
+                        {
+                            ThumbnailAvailable.Invoke(this, new IdEventArgs(e.FileId));
+                        });
+                        task.Start();
+                    }
+                }
+            }
+        }
+
+#endregion EVENT FIRED BY SDK
+
 #region PRIVATE METHODS   
+
+        private Boolean InitDone()
+        {
+            if (!initDone)
+            {
+                if(String.IsNullOrEmpty(folderPath))
+                    return false;
+
+                if (!application.IsConnected())
+                    return false;
+
+                initDone = true;
+            }
+            
+            return initDone;
+        }
+
+    #region FileDescriptor pool
 
         private void UseFileDescriptorPool()
         {
-            if(backgroundWorkerFileDescriptotDownload == null)
+            if (!InitDone())
+                return;
+
+            if (!AllowAutomaticThumbnailDownload)
+                return;
+
+            if (backgroundWorkerFileDescriptorDownload == null)
             {
-                backgroundWorkerFileDescriptotDownload = new BackgroundWorker();
-                backgroundWorkerFileDescriptotDownload.DoWork += BackgroundWorkerFileDescriptotDownload_DoWork;
-                backgroundWorkerFileDescriptotDownload.RunWorkerCompleted += BackgroundWorkerFileDescriptotDownload_RunWorkerCompleted; ;
-                backgroundWorkerFileDescriptotDownload.WorkerSupportsCancellation = true;
+                backgroundWorkerFileDescriptorDownload = new BackgroundWorker();
+                backgroundWorkerFileDescriptorDownload.DoWork += BackgroundWorkerFileDescriptotDownload_DoWork;
+                backgroundWorkerFileDescriptorDownload.RunWorkerCompleted += BackgroundWorkerFileDescriptotDownload_RunWorkerCompleted; ;
+                backgroundWorkerFileDescriptorDownload.WorkerSupportsCancellation = true;
             }
 
-            if(!backgroundWorkerFileDescriptotDownload.IsBusy)
-                backgroundWorkerFileDescriptotDownload.RunWorkerAsync();
+            if (!backgroundWorkerFileDescriptorDownload.IsBusy)
+                backgroundWorkerFileDescriptorDownload.RunWorkerAsync();
         }
 
         private void BackgroundWorkerFileDescriptotDownload_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            if (filesDescriptorToDownload.Count > 0)
-                UseFileDescriptorPool();
+            if (InitDone())
+            {
+                if (filesDescriptorToDownload.Count > 0)
+                    UseFileDescriptorPool();
+                else
+                    UseThumbnailPool();
+            }
         }
 
         private void BackgroundWorkerFileDescriptotDownload_DoWork(object sender, DoWorkEventArgs e)
@@ -93,6 +327,10 @@ namespace InstantMessaging.Helpers
             Boolean continueDownload;
             int index = 0;
             String fileDescriptorId;
+
+            if (!InitDone())
+                return;
+
             do
             {
                 if (filesDescriptorToDownload.Count > 0)
@@ -106,23 +344,31 @@ namespace InstantMessaging.Helpers
                     {
                         filesDescriptorToDownload.Remove(fileDescriptorId);
                         log.DebugFormat("[BackgroundWorkerFileDescriptotDownload_DoWork] END - SUCCESS - fileDescriptorId:[{0}]", fileDescriptorId);
+
+                        Task task = new Task(() =>
+                        {
+                            FileDescriptorAvailable.Invoke(this, new IdEventArgs(fileDescriptorId));
+                        });
+                        task.Start();
                     }
                     else
                     {
                         // Download failed - we try for another FileDescriptor
                         index++;
                         log.DebugFormat("[BackgroundWorkerFileDescriptotDownload_DoWork] END - FAILED - fileDescriptorId:[{0}]", fileDescriptorId);
+
+                        // FOR TEST PURPOSE
+                        filesDescriptorToDownload.Remove(fileDescriptorId);
                     }
 
                 }
-                continueDownload = (filesDescriptorToDownload.Count > 0);
+                continueDownload = (filesDescriptorToDownload.Count > 0) && InitDone();
             }
             while (continueDownload);
         }
 
         private Boolean DownloadFileDescriptor(String fileDescriptorId)
         {
-            return true;
             Boolean downloadResult = false;
             ManualResetEvent manualEvent = new ManualResetEvent(false);
 
@@ -132,9 +378,15 @@ namespace InstantMessaging.Helpers
                 if (callback.Result.Success)
                 {
                     downloadResult = true;
+                    FileDescriptor fileDescriptor = callback.Data;
+
+                    log.DebugFormat("[DownloadFileDescriptor] fileDescriptor:[{0}]", fileDescriptor.ToString());
+
                     if (filesDescriptorById.ContainsKey(fileDescriptorId))
                         filesDescriptorById.Remove(fileDescriptorId);
-                    filesDescriptorById.Add(fileDescriptorId, callback.Data);
+                    filesDescriptorById.Add(fileDescriptorId, fileDescriptor);
+
+                    AskThumbnailDownload(fileDescriptorId);
                 }
                 else
                 {
@@ -150,6 +402,134 @@ namespace InstantMessaging.Helpers
             return downloadResult;
         }
 
+    #endregion FileDescriptor pool
+
+    #region Thumbnail pool
+
+        private void UseThumbnailPool()
+        {
+            if (!InitDone())
+                return;
+
+            if (filesDescriptorToDownload.Count != 0)
+                return;
+
+            if(backgroundWorkerThumbnailDownload == null)
+            {
+                backgroundWorkerThumbnailDownload = new BackgroundWorker();
+                backgroundWorkerThumbnailDownload.DoWork += BackgroundWorkerThumbnailDownload_DoWork; ;
+                backgroundWorkerThumbnailDownload.RunWorkerCompleted += BackgroundWorkerThumbnailDownload_RunWorkerCompleted;
+                backgroundWorkerThumbnailDownload.WorkerSupportsCancellation = true;
+            }
+
+            if(!backgroundWorkerThumbnailDownload.IsBusy)
+                backgroundWorkerThumbnailDownload.RunWorkerAsync();
+        }
+        
+        private void BackgroundWorkerThumbnailDownload_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            if (InitDone())
+            {
+                if ((thumbnailToDownload.Count > 0) && AllowAutomaticThumbnailDownload && (filesDescriptorToDownload.Count == 0))
+                        UseThumbnailPool();
+            }
+        }
+
+        private void BackgroundWorkerThumbnailDownload_DoWork(object sender, DoWorkEventArgs e)
+        {
+            Boolean continueDownload;
+            int index = 0;
+            String fileDescriptorId;
+
+            if (!InitDone())
+                return;
+
+            if (!AllowAutomaticThumbnailDownload)
+                return;
+
+            if (filesDescriptorToDownload.Count != 0)
+                return;
+
+            do
+            {
+                if (thumbnailToDownload.Count > 0)
+                {
+                    // Check index
+                    if (index >= thumbnailToDownload.Count)
+                        index = 0;
+
+                    fileDescriptorId = thumbnailToDownload[index];
+                    if (DownloadThumbnail(fileDescriptorId))
+                    {
+                        thumbnailToDownload.Remove(fileDescriptorId);
+                        log.DebugFormat("[BackgroundWorkerThumbnailDownload_DoWork] SUCCESS - fileDescriptorId:[{0}]", fileDescriptorId);
+                    }
+                    else
+                    {
+                        // Download failed - we try for another FileDescriptor
+                        index++;
+                        log.DebugFormat("[BackgroundWorkerThumbnailDownload_DoWork] FAILED - fileDescriptorId:[{0}]", fileDescriptorId);
+
+                        // FOR TEST PURPOSE
+                        thumbnailToDownload.Remove(fileDescriptorId);
+                    }
+
+                }
+                continueDownload = InitDone() && (thumbnailToDownload.Count > 0) && AllowAutomaticThumbnailDownload && (filesDescriptorToDownload.Count == 0);
+            }
+            while (continueDownload);
+        }
+
+        private Boolean DownloadThumbnail(String fileDescriptorId)
+        {
+            Boolean downloadResult = false;
+            ManualResetEvent manualEvent = new ManualResetEvent(false);
+
+            String filename = GetThumbnailFileName(fileDescriptorId);
+
+            if (filename == null)
+            {
+                log.WarnFormat("[DownloadThumbnail] Not possible to get filename associated to this thumbnail - fileDescriptorId:[{0}]", fileDescriptorId);
+                return false;
+            }
+
+            if (thumbnailDownloading.Contains(fileDescriptorId))
+                return false;
+
+            thumbnailDownloading.Add(fileDescriptorId);
+
+            if (thumbnailDirectToDownload.Contains(fileDescriptorId))
+            {
+                fileStorage.DownloadFile(fileDescriptorId, this.folderPath, filename, callback =>
+                {
+                    downloadResult = callback.Result.Success;
+                    if(!callback.Result.Success)
+                        log.WarnFormat("[DownloadThumbnail] Not possible to get direct file download:[{0}]", Util.SerialiseSdkError(callback.Result));
+                    manualEvent.Set();
+                });
+            }
+            else
+            {
+                fileStorage.DownloadThumbnailFile(fileDescriptorId, this.folderPath, filename, callback =>
+                {
+                    downloadResult = callback.Result.Success;
+                    if (!callback.Result.Success)
+                        log.WarnFormat("[DownloadThumbnail] Not possible to get thumbnail:[{0}]", Util.SerialiseSdkError(callback.Result));
+                    manualEvent.Set();
+                });
+            }
+
+            manualEvent.WaitOne();
+            manualEvent.Dispose();
+
+            if (!downloadResult)
+                thumbnailDownloading.Remove(fileDescriptorId);
+
+            return downloadResult;
+        }
+        
+    #endregion Thumbnail pool
+
         // Explicit static constructor to tell C# compiler
         // not to mark type as beforefieldinit
         static FilePool()
@@ -158,7 +538,10 @@ namespace InstantMessaging.Helpers
 
         private FilePool()
         {
+            avatarPool = AvatarPool.Instance;
 
+            MaxThumbnailWidth = 400;
+            MaxThumbnailHeight = 400;
         }
 
 #endregion PRIVATE METHODS   

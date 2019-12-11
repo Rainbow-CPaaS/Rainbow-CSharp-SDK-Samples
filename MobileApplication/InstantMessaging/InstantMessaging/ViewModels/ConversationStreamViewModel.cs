@@ -74,6 +74,8 @@ namespace InstantMessaging
 
             // Manage event(s) from FilePool
             filePool = FilePool.Instance;
+            filePool.FileDescriptorAvailable += FilePool_FileDescriptorAvailable;
+            filePool.ThumbnailAvailable += FilePool_ThumbnailAvailable;
 
             // Manage event(s) from AvatarPool
             avatarPool = AvatarPool.Instance;
@@ -427,6 +429,23 @@ namespace InstantMessaging
             return result;
         }
 
+        private InstantMessaging.Model.Message GetMessageByFileDescriptorId(String fileId)
+        {
+            InstantMessaging.Model.Message result = null;
+            lock (lockObservableMessagesList)
+            {
+                foreach (InstantMessaging.Model.Message msg in MessagesList)
+                {
+                    if (msg.FileId == fileId)
+                    {
+                        result = msg;
+                        break;
+                    }
+                }
+            }
+            return result;
+        }
+
         private void UpdateMessagesForJid(String peerJid, bool updateAvatar, bool updateDisplayName )
         {
             if (contactsListInvolved.Contains(peerJid))
@@ -611,7 +630,11 @@ namespace InstantMessaging
                         message.FileAttachmentSourceIsVisible = "False";
                         message.FileDefaultInfoIsVisible = "True";
 
+                        message.FileAttachmentSourceWidth = 0;
+                        message.FileAttachmentSourceHeight = 0;
+
                         message.FileDefaultAttachmentSource = "icon_unknown_blue";
+                        message.FileId = rbMessage.FileAttachment.Id;
                         message.FileName = rbMessage.FileAttachment.Name;
                         message.FileSize = Helper.HumanizeFileSize(rbMessage.FileAttachment.Size);
                     }
@@ -620,6 +643,9 @@ namespace InstantMessaging
                         message.FileAttachmentIsVisible = "False";
                         message.FileAttachmentSourceIsVisible = "False";
                         message.FileDefaultInfoIsVisible = "False";
+
+                        message.FileAttachmentSourceWidth = 0;
+                        message.FileAttachmentSourceHeight = 0;
                     }
 
                     message.Body = content;
@@ -920,5 +946,55 @@ namespace InstantMessaging
         }
 
 #endregion EVENTS FROM AVATAR POOL
+
+
+#region EVENTS FROM FILE POOL
+
+        private void FilePool_ThumbnailAvailable(object sender, Rainbow.Events.IdEventArgs e)
+        {
+            String conversationId = filePool.GetConversationIdForFileDescriptorId(e.Id);
+            if(conversationId == this.conversationId)
+            {
+                Model.Message message = GetMessageByFileDescriptorId(e.Id);
+                if(message != null)
+                {
+                    string filePath = filePool.GetThumbnailFullFilePath(e.Id);
+                    if (filePath != null)
+                    {
+                        try
+                        {
+                            using (Stream stream = new MemoryStream(File.ReadAllBytes(filePath)))
+                            {
+                                System.Drawing.Size size = avatarPool.GetSize(stream);
+                                double density = avatarPool.GetDensity();
+
+                                message.FileAttachmentSource = ImageSource.FromFile(filePath);
+                                message.FileAttachmentSourceWidth = (int)Math.Round(size.Width/density);
+                                message.FileAttachmentSourceHeight = (int)Math.Round(size.Height/density);
+
+                                message.FileAttachmentSourceIsVisible = "True";
+                                message.FileDefaultInfoIsVisible = "False";
+                            }
+                        }
+                        catch { }
+                    }
+                }
+            }
+        }
+
+        private void FilePool_FileDescriptorAvailable(object sender, Rainbow.Events.IdEventArgs e)
+        {
+            String conversationId = filePool.GetConversationIdForFileDescriptorId(e.Id);
+            if (conversationId == this.conversationId)
+            {
+                Model.Message message = GetMessageByFileDescriptorId(e.Id);
+                if (message != null)
+                {
+                    
+                }
+            }
+        }
+
+#endregion EVENTS FROM FILE POOL
     }
 }

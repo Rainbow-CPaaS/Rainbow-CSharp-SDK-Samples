@@ -70,7 +70,7 @@
 
                 <!-- File Attachment-->
                 <StackLayout Orientation="Horizontal" Grid.Row="1" Grid.Column="0" HorizontalOptions="Center" VerticalOptions="Center" Spacing="0" IsVisible="{Binding FileAttachmentIsVisible}">
-                    <Image Source="{Binding FileAttachmentSource}" HorizontalOptions="Center" VerticalOptions="Center" IsVisible="{Binding FileAttachmentSourceIsVisible}"/>
+                    <Image Source="{Binding FileAttachmentSource}" HorizontalOptions="Center" VerticalOptions="Center" WidthRequest="{Binding FileAttachmentSourceWidth}" HeightRequest="{Binding FileAttachmentSourceHeight}" IsVisible="{Binding FileAttachmentSourceIsVisible}"/>
                     <Image Source="{Binding FileDefaultAttachmentSource}" HorizontalOptions="Start" VerticalOptions="Center" WidthRequest="60" HeightRequest="60" IsVisible="{Binding FileDefaultInfoIsVisible}"/>
                     <StackLayout Orientation="Vertical" HorizontalOptions="End" VerticalOptions="Center"  Spacing="0" IsVisible="{Binding FileDefaultInfoIsVisible}">
                         <Label HorizontalOptions="Start" FontSize="Small" VerticalOptions="Center" TextColor="{Binding BodyColor}" Text="{Binding FileName}"/>

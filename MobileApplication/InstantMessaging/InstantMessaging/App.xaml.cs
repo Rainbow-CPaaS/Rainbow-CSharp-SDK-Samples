@@ -19,7 +19,7 @@ namespace InstantMessaging
         internal readonly string HOST_NAME = "";
 
         internal readonly string LOGIN_USER1 = "";
-        internal readonly string PASSWORD_USER1 = "";
+        internal readonly string PASSWORD_USER1 = ";"
 
         // Define all Rainbow objects we use
         internal Rainbow.Application RbApplication = null;
@@ -77,8 +77,16 @@ namespace InstantMessaging
 
         private void InitFilePool()
         {
+            // Get FilePool and initialize it
+            string filePoolFolderPath = Path.Combine(Helper.GetTempFolder(), "Rainbow.CSharp.SDK", "FileStorage");
+
             FilePool filePool = FilePool.Instance;
+
+            filePool.SetFolderPath(filePoolFolderPath);
             filePool.SetApplication(ref RbApplication);
+
+            filePool.AllowAutomaticThumbnailDownload = true;
+            filePool.AutomaticDownloadLimitSizeForImages = 250 * 1024; // 250 Ko
         }
 
         protected override void OnStart()
