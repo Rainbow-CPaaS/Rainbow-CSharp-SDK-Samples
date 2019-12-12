@@ -622,20 +622,27 @@ namespace InstantMessaging
                     // FileAttachment
                     if (rbMessage.FileAttachment != null)
                     {
-                        // Ask more info about this file
-                        filePool.AskFileDescriptorDownload(this.conversationId, rbMessage.FileAttachment.Id);
-
-                        // Set Info
+                        // Set Global info
                         message.FileAttachmentIsVisible = "True";
                         message.FileDefaultInfoIsVisible = "True";
-
-                        message.FileAttachmentSource = "icon_unknown_blue";
-                        message.FileAttachmentSourceWidth = 50;
-                        message.FileAttachmentSourceHeight = 50;
-
                         message.FileId = rbMessage.FileAttachment.Id;
                         message.FileName = rbMessage.FileAttachment.Name;
                         message.FileSize = Helper.HumanizeFileSize(rbMessage.FileAttachment.Size);
+
+                        if (filePool.IsThumbnailFileAvailable(conversationId, rbMessage.FileAttachment.Id, rbMessage.FileAttachment.Name))
+                        {
+                            SetFileAttachmentSourceOfMessage(message, rbMessage.FileAttachment.Id);
+                        }
+                        else
+                        {
+                            // Ask more info about this file
+                            filePool.AskFileDescriptorDownload(this.conversationId, rbMessage.FileAttachment.Id);
+
+                            // Set default icon
+                            message.FileAttachmentSource = "icon_unknown_blue";
+                            message.FileAttachmentSourceWidth = 50;
+                            message.FileAttachmentSourceHeight = 50;
+                        }
                     }
                     else
                     {
@@ -654,6 +661,29 @@ namespace InstantMessaging
                 AddContactInvolved(message.PeerJid);
             }
             return message;
+        }
+
+        public void SetFileAttachmentSourceOfMessage(Model.Message message, String fileId)
+        {
+            string filePath = filePool.GetThumbnailFullFilePath(fileId);
+            if (filePath != null)
+            {
+                try
+                {
+                    using (Stream stream = new MemoryStream(File.ReadAllBytes(filePath)))
+                    {
+                        System.Drawing.Size size = avatarPool.GetSize(stream);
+                        double density = avatarPool.GetDensity();
+
+                        message.FileAttachmentSource = ImageSource.FromFile(filePath);
+                        message.FileAttachmentSourceWidth = (int)Math.Round(size.Width / density);
+                        message.FileAttachmentSourceHeight = (int)Math.Round(size.Height / density);
+
+                        message.FileDefaultInfoIsVisible = "False";
+                    }
+                }
+                catch { }
+            }
         }
 
         public void SetReceiptPartOfMessage(Model.Message message, ReceiptType receiptType)
@@ -955,27 +985,7 @@ namespace InstantMessaging
             {
                 Model.Message message = GetMessageByFileDescriptorId(e.Id);
                 if(message != null)
-                {
-                    string filePath = filePool.GetThumbnailFullFilePath(e.Id);
-                    if (filePath != null)
-                    {
-                        try
-                        {
-                            using (Stream stream = new MemoryStream(File.ReadAllBytes(filePath)))
-                            {
-                                System.Drawing.Size size = avatarPool.GetSize(stream);
-                                double density = avatarPool.GetDensity();
-
-                                message.FileAttachmentSource = ImageSource.FromFile(filePath);
-                                message.FileAttachmentSourceWidth = (int)Math.Round(size.Width/density);
-                                message.FileAttachmentSourceHeight = (int)Math.Round(size.Height/density);
-
-                                message.FileDefaultInfoIsVisible = "False";
-                            }
-                        }
-                        catch { }
-                    }
-                }
+                    SetFileAttachmentSourceOfMessage(message, e.Id);
             }
         }
 

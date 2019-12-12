@@ -28,21 +28,25 @@ namespace Rainbow.Helpers
 
 
         private Dictionary<String, String> filesDescriptorIdByConversation = new Dictionary<string, string>(); // FileDescriptorId / ConversationId
+        private Dictionary<String, String> filesDescriptorNameById = new Dictionary<string, String>(); // FileDescriptorId / file name
         private Dictionary<String, FileDescriptor> filesDescriptorById = new Dictionary<string, FileDescriptor>(); // FileDescriptorId / FileDescriptor
 
         private List<String> filesDescriptorToDownload = new List<string>();
         private BackgroundWorker backgroundWorkerFileDescriptorDownload = null;
 
         private List<String> thumbnailDownloaded = new List<string>();
-        
-        private List<String> thumbnailToDownload = new List<string>();
         private List<String> thumbnailDirectToDownload = new List<string>();
+
+        private List<String> thumbnailToDownload = new List<string>();
         private List<String> thumbnailDownloading = new List<string>();
 
         private BackgroundWorker backgroundWorkerThumbnailDownload = null;
 
         private Boolean initDone = false;
         private String folderPath = null;
+
+        private String folderPathThumbnails = null;
+        private String folderPathFiles = null;
 
 #region PUBLIC EVENTS
         /// <summary>
@@ -76,24 +80,69 @@ namespace Rainbow.Helpers
 
         public int MaxThumbnailHeight { get; set; }
 
+        public Boolean IsThumbnailFileAvailable(String conversationId, String fileDescriptorId, String fileName)
+        {
+            bool result = false;
+            if(thumbnailDownloaded.Contains(fileDescriptorId))
+                result = true;
+            else
+            {
+                string path;
+                String fileNameOnDisk = fileDescriptorId + Path.GetExtension(fileName);
+
+                // We check on file system if already in cache - Thumbnails folder first
+                path = Path.Combine(folderPathThumbnails, fileNameOnDisk);
+                if (File.Exists(path))
+                {
+                    result = true;
+                    log.DebugFormat("[IsThumbnailFileAvailable] File already downloaded in Thumbnails part - FileId:[{0}]", fileDescriptorId);
+                }
+                else 
+                {
+                    // We check on file system if already in cache - Files folder now
+                    path = Path.Combine(folderPathFiles, fileNameOnDisk);
+                    if (File.Exists(path))
+                    {
+                        result = true;
+                        thumbnailDirectToDownload.Add(fileDescriptorId);
+                        log.DebugFormat("[IsThumbnailFileAvailable] File already downloaded in Files part - FileId:[{0}]", fileDescriptorId);
+                    }
+                }
+
+                // If we have found it, we need to ask FileDescriptor but set is has already downloaded
+                if (result)
+                {
+                    if (filesDescriptorNameById.ContainsKey(fileDescriptorId))
+                        filesDescriptorNameById.Remove(fileDescriptorId);
+                    filesDescriptorNameById.Add(fileDescriptorId, fileNameOnDisk);
+
+                    thumbnailDownloaded.Add(fileDescriptorId);
+                    AskFileDescriptorDownload(conversationId, fileDescriptorId);
+                }
+            }
+            return result;
+        }
+
         public String GetThumbnailFileName(String fileDescriptorId)
         {
-            FileDescriptor fileDescriptor = null;
-            if (filesDescriptorById.ContainsKey(fileDescriptorId))
-                fileDescriptor = filesDescriptorById[fileDescriptorId];
-
-            if (fileDescriptor != null)
-            {
-                return fileDescriptor.Id + Path.GetExtension(fileDescriptor.Name); ;
-            }
+            if (filesDescriptorNameById.ContainsKey(fileDescriptorId))
+                return filesDescriptorNameById[fileDescriptorId];
             return null;
         }
 
         public String GetThumbnailFullFilePath(String fileDescriptorId)
         {
-            String fileName = GetThumbnailFileName(fileDescriptorId);
-            if (fileName != null)
-                return Path.Combine(this.folderPath, fileName);
+            if (thumbnailDownloaded.Contains(fileDescriptorId))
+            {
+                String fileName = GetThumbnailFileName(fileDescriptorId);
+                if (fileName != null)
+                {
+                    if (thumbnailDirectToDownload.Contains(fileDescriptorId))
+                        return Path.Combine(this.folderPathFiles, fileName);
+                    else
+                        return Path.Combine(this.folderPathThumbnails, fileName);
+                }
+            }
             return null;
         }
 
@@ -106,7 +155,15 @@ namespace Rainbow.Helpers
                 if (!Directory.Exists(folderPath))
                     Directory.CreateDirectory(folderPath);
 
-                log.WarnFormat("[SetFolderPath] FileStorage - folderPath:[{0}]", folderPath);
+                folderPathFiles = Path.Combine(folderPath, "Files");
+                if (!Directory.Exists(folderPathFiles))
+                    Directory.CreateDirectory(folderPathFiles);
+
+                folderPathThumbnails = Path.Combine(folderPath, "Thumbnails");
+                if (!Directory.Exists(folderPathThumbnails))
+                    Directory.CreateDirectory(folderPathThumbnails);
+
+                log.WarnFormat("[SetFolderPath] FileStorage - folderPath:[{0}] - Files:[{1}] - Thumbnails:[{2}]", folderPath, folderPathFiles, folderPathThumbnails);
             }
             catch (Exception exc)
             {
@@ -196,7 +253,7 @@ namespace Rainbow.Helpers
                 {
                     if (e.Completed)
                     {
-                        thumbnailDirectToDownload.Remove(e.FileId);
+                        //thumbnailDirectToDownload.Remove(e.FileId);
 
                         if (!thumbnailDownloaded.Contains(e.FileId))
                             thumbnailDownloaded.Add(e.FileId);
@@ -386,6 +443,10 @@ namespace Rainbow.Helpers
                         filesDescriptorById.Remove(fileDescriptorId);
                     filesDescriptorById.Add(fileDescriptorId, fileDescriptor);
 
+                    if (filesDescriptorNameById.ContainsKey(fileDescriptorId))
+                        filesDescriptorNameById.Remove(fileDescriptorId);
+                    filesDescriptorNameById.Add(fileDescriptorId, fileDescriptorId + Path.GetExtension(fileDescriptor.Name));
+
                     AskThumbnailDownload(fileDescriptorId);
                 }
                 else
@@ -500,7 +561,7 @@ namespace Rainbow.Helpers
 
             if (thumbnailDirectToDownload.Contains(fileDescriptorId))
             {
-                fileStorage.DownloadFile(fileDescriptorId, this.folderPath, filename, callback =>
+                fileStorage.DownloadFile(fileDescriptorId, this.folderPathFiles, filename, callback =>
                 {
                     downloadResult = callback.Result.Success;
                     if(!callback.Result.Success)
@@ -510,7 +571,7 @@ namespace Rainbow.Helpers
             }
             else
             {
-                fileStorage.DownloadThumbnailFile(fileDescriptorId, this.folderPath, filename, callback =>
+                fileStorage.DownloadThumbnailFile(fileDescriptorId, this.folderPathThumbnails, filename, callback =>
                 {
                     downloadResult = callback.Result.Success;
                     if (!callback.Result.Success)
