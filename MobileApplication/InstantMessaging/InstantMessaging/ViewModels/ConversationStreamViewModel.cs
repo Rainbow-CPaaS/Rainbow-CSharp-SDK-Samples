@@ -627,13 +627,12 @@ namespace InstantMessaging
 
                         // Set Info
                         message.FileAttachmentIsVisible = "True";
-                        message.FileAttachmentSourceIsVisible = "False";
                         message.FileDefaultInfoIsVisible = "True";
 
-                        message.FileAttachmentSourceWidth = 0;
-                        message.FileAttachmentSourceHeight = 0;
+                        message.FileAttachmentSource = "icon_unknown_blue";
+                        message.FileAttachmentSourceWidth = 50;
+                        message.FileAttachmentSourceHeight = 50;
 
-                        message.FileDefaultAttachmentSource = "icon_unknown_blue";
                         message.FileId = rbMessage.FileAttachment.Id;
                         message.FileName = rbMessage.FileAttachment.Name;
                         message.FileSize = Helper.HumanizeFileSize(rbMessage.FileAttachment.Size);
@@ -641,7 +640,6 @@ namespace InstantMessaging
                     else
                     {
                         message.FileAttachmentIsVisible = "False";
-                        message.FileAttachmentSourceIsVisible = "False";
                         message.FileDefaultInfoIsVisible = "False";
 
                         message.FileAttachmentSourceWidth = 0;
@@ -972,7 +970,6 @@ namespace InstantMessaging
                                 message.FileAttachmentSourceWidth = (int)Math.Round(size.Width/density);
                                 message.FileAttachmentSourceHeight = (int)Math.Round(size.Height/density);
 
-                                message.FileAttachmentSourceIsVisible = "True";
                                 message.FileDefaultInfoIsVisible = "False";
                             }
                         }

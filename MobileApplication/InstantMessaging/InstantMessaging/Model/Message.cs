@@ -49,7 +49,6 @@ namespace InstantMessaging.Model
         ImageSource receiptSource;
 
         String fileAttachmentIsVisible;
-        String fileAttachmentSourceIsVisible;
         ImageSource fileAttachmentSource;
         int fileAttachmentSourceWidth;
         int fileAttachmentSourceHeight;
@@ -272,12 +271,6 @@ namespace InstantMessaging.Model
         {
             get { return fileAttachmentIsVisible; }
             set { SetProperty(ref fileAttachmentIsVisible, value); }
-        }
-
-        public String FileAttachmentSourceIsVisible
-        {
-            get { return fileAttachmentSourceIsVisible; }
-            set { SetProperty(ref fileAttachmentSourceIsVisible, value); }
         }
 
         public int FileAttachmentSourceWidth
