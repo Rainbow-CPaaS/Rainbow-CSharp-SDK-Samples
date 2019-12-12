@@ -48,7 +48,7 @@
                            CornerRadius="4" 
                            Padding="4"
                            VerticalOptions="Center"
-                           HorizontalOptions="Fill"
+                           HorizontalOptions="Start"
                            HasShadow="False"
                            IsClippedToBounds="False">
                         <Grid RowSpacing="0" ColumnSpacing="0" Padding="0" HorizontalOptions="Fill">
@@ -65,15 +65,15 @@
                             <Label Grid.Row="1" Grid.Column="0" HorizontalOptions="Start" TextColor="White" FontSize="Small" MaxLines="1" LineBreakMode="TailTruncation" VerticalOptions="Center" Text="{Binding ReplyBody}"/>
                         </Grid>
                     </Frame>
-                    <Label HorizontalOptions="End" FontSize="Small"  VerticalOptions="Center" TextColor="{Binding BodyColor}" FontAttributes="{Binding BodyFontAttributes}" Text="{Binding Body}" IsVisible="{Binding BodyIsVisible}"/>
+                    <Label HorizontalOptions="Start" FontSize="Small"  VerticalOptions="Center" TextColor="{Binding BodyColor}" FontAttributes="{Binding BodyFontAttributes}" Text="{Binding Body}" IsVisible="{Binding BodyIsVisible}"/>
                 </StackLayout>
 
                 <!-- File Attachment-->
                 <StackLayout Orientation="Horizontal" Grid.Row="1" Grid.Column="0" HorizontalOptions="Center" VerticalOptions="Center" Spacing="0" IsVisible="{Binding FileAttachmentIsVisible}">
                     <Image Source="{Binding FileAttachmentSource}" HorizontalOptions="Center" VerticalOptions="Center" WidthRequest="{Binding FileAttachmentSourceWidth}" HeightRequest="{Binding FileAttachmentSourceHeight}" IsVisible="{Binding FileAttachmentSourceIsVisible}"/>
-                    <Image Source="{Binding FileDefaultAttachmentSource}" HorizontalOptions="Start" VerticalOptions="Center" WidthRequest="60" HeightRequest="60" IsVisible="{Binding FileDefaultInfoIsVisible}"/>
+                    <Image Source="{Binding FileDefaultAttachmentSource}" HorizontalOptions="Start" VerticalOptions="Center" WidthRequest="50" HeightRequest="50" IsVisible="{Binding FileDefaultInfoIsVisible}"/>
                     <StackLayout Orientation="Vertical" HorizontalOptions="End" VerticalOptions="Center"  Spacing="0" IsVisible="{Binding FileDefaultInfoIsVisible}">
-                        <Label HorizontalOptions="Start" FontSize="Small" VerticalOptions="Center" TextColor="{Binding BodyColor}" Text="{Binding FileName}"/>
+                        <Label HorizontalOptions="Start" FontSize="Small" VerticalOptions="Center" TextColor="{Binding BodyColor}" Text="{Binding FileName}" MaxLines="1" LineBreakMode="TailTruncation" />
                         <Label HorizontalOptions="Start" FontSize="Small" VerticalOptions="Center" TextColor="{Binding BodyColor}" Text="{Binding FileSize}"/>
                     </StackLayout>
                 </StackLayout>
