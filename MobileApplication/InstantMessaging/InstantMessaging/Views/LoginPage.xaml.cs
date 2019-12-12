@@ -29,8 +29,8 @@ namespace InstantMessaging
             XamarinApplication = (InstantMessaging.App) Xamarin.Forms.Application.Current;
 
             // Set default values for login / pwd
-            EntryLogin.Text = XamarinApplication.LOGIN_USER1;
-            EntryPassword.Text = XamarinApplication.PASSWORD_USER1;
+            EntryLogin.Text = XamarinApplication.RbApplication.GetUserLoginFromCache();
+            EntryPassword.Text = XamarinApplication.RbApplication.GetUserPasswordFromCache();
 
             XamarinApplication.RbApplication.ConnectionStateChanged += RbApplication_ConnectionStateChanged;
             XamarinApplication.RbApplication.InitializationPerformed += RbApplication_InitializationPerformed;
@@ -50,7 +50,7 @@ namespace InstantMessaging
 
                 ViewModel.IsBusy = true;
 
-                XamarinApplication.RbApplication.Login(XamarinApplication.LOGIN_USER1, XamarinApplication.PASSWORD_USER1, callback =>
+                XamarinApplication.RbApplication.Login(EntryLogin.Text, EntryPassword.Text, callback =>
                 {
                     //TODO - manage error
                 });
@@ -86,6 +86,8 @@ namespace InstantMessaging
 
                 case ConnectionState.Disconnected:
                     ViewModel.Connect = "Connect";
+
+                    ViewModel.IsBusy = false;
                     break;
             }
         }
