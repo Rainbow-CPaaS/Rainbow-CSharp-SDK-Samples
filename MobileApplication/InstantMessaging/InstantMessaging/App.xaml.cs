@@ -18,9 +18,6 @@ namespace InstantMessaging
         internal readonly string APP_SECRET_KEY = "";
         internal readonly string HOST_NAME = "";
 
-        internal readonly string LOGIN_USER1 = "";
-        internal readonly string PASSWORD_USER1 = "";
-
         // Define all Rainbow objects we use
         internal Rainbow.Application RbApplication = null;
         internal Rainbow.Bubbles RbBubbles = null;
@@ -40,7 +37,10 @@ namespace InstantMessaging
         {
             InitializeComponent();
 
-            RbApplication = new Rainbow.Application();
+            string tempFolder = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal);
+            string appFolderPath = Path.Combine(tempFolder, "Rainbow.CSharp.SDK");
+
+            RbApplication = new Rainbow.Application(appFolderPath);
             RbApplication.SetTimeout(10000);
 
             RbApplication.SetApplicationInfo(APP_ID, APP_SECRET_KEY);
