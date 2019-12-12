@@ -69,7 +69,7 @@
                 </StackLayout>
 
                 <!-- File Attachment-->
-                <Grid  Grid.Row="1" Grid.Column="0" RowSpacing="0" ColumnSpacing="0" Padding="0" HorizontalOptions="End" IsVisible="{Binding FileAttachmentIsVisible}">
+                <Grid  Grid.Row="1" Grid.Column="0" RowSpacing="0" ColumnSpacing="0" Padding="0" HorizontalOptions="Start" IsVisible="{Binding FileAttachmentIsVisible}">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
