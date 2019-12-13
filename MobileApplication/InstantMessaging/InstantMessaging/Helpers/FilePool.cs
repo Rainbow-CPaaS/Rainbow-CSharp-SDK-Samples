@@ -72,12 +72,25 @@ namespace Rainbow.Helpers
             }
         }
 
+
+        /// <summary>
+        /// To allow to download thumbnail automatically
+        /// </summary>
         public Boolean AllowAutomaticThumbnailDownload { get; set; }
 
+        /// <summary>
+        /// Donwload original image and not thumbnail if its size is smaller than this property
+        /// </summary>
         public int AutomaticDownloadLimitSizeForImages { get; set; }
 
+        /// <summary>
+        /// Thumbnail width will resized automatically to this MaxThumbnailWidth
+        /// </summary>
         public int MaxThumbnailWidth { get; set; }
 
+        /// <summary>
+        /// Thumbnail height will resized automatically to this MaxThumbnailHeight
+        /// </summary>
         public int MaxThumbnailHeight { get; set; }
 
         public Boolean IsThumbnailFileAvailable(String conversationId, String fileDescriptorId, String fileName)
@@ -96,17 +109,6 @@ namespace Rainbow.Helpers
                 {
                     result = true;
                     log.DebugFormat("[IsThumbnailFileAvailable] File already downloaded in Thumbnails part - FileId:[{0}]", fileDescriptorId);
-                }
-                else 
-                {
-                    // We check on file system if already in cache - Files folder now
-                    path = Path.Combine(folderPathFiles, fileNameOnDisk);
-                    if (File.Exists(path))
-                    {
-                        result = true;
-                        thumbnailDirectToDownload.Add(fileDescriptorId);
-                        log.DebugFormat("[IsThumbnailFileAvailable] File already downloaded in Files part - FileId:[{0}]", fileDescriptorId);
-                    }
                 }
 
                 // If we have found it, we need to ask FileDescriptor but set is has already downloaded
@@ -137,10 +139,21 @@ namespace Rainbow.Helpers
                 String fileName = GetThumbnailFileName(fileDescriptorId);
                 if (fileName != null)
                 {
+                    return Path.Combine(this.folderPathThumbnails, fileName);
+                }
+            }
+            return null;
+        }
+
+        public String GetFullFilePath(String fileDescriptorId)
+        {
+            if (thumbnailDownloaded.Contains(fileDescriptorId))
+            {
+                String fileName = GetThumbnailFileName(fileDescriptorId);
+                if (fileName != null)
+                {
                     if (thumbnailDirectToDownload.Contains(fileDescriptorId))
                         return Path.Combine(this.folderPathFiles, fileName);
-                    else
-                        return Path.Combine(this.folderPathThumbnails, fileName);
                 }
             }
             return null;
@@ -148,10 +161,9 @@ namespace Rainbow.Helpers
 
         public void SetFolderPath(String folderPath)
         {
-            this.folderPath = folderPath;
-
             try
             {
+                this.folderPath = folderPath;
                 if (!Directory.Exists(folderPath))
                     Directory.CreateDirectory(folderPath);
 
@@ -243,87 +255,10 @@ namespace Rainbow.Helpers
             if (!application.IsInitialized())
                 initDone = false;
         }
-
         
         private void FileStorage_FileDownloadUpdated(object sender, FileDownloadEventArgs e)
         {
-            if(thumbnailDownloading.Contains(e.FileId))
-            {
-                if(!e.InProgress)
-                {
-                    if (e.Completed)
-                    {
-                        //thumbnailDirectToDownload.Remove(e.FileId);
-
-                        if (!thumbnailDownloaded.Contains(e.FileId))
-                            thumbnailDownloaded.Add(e.FileId);
-
-                        log.DebugFormat("[FileStorage_FileDownloadUpdated] Download done - fileDescriptorId:[{0}]", e.FileId);
-
-                        // Need to scale thumbnail according density and max size expected
-                        double density = avatarPool.GetDensity();
-                        double maxWidth = MaxThumbnailWidth * density;
-                        double maxHeight = MaxThumbnailHeight * density;
-
-                        String filePath = GetThumbnailFullFilePath(e.FileId);
-                        try
-                        {
-                            using (Stream stream = new MemoryStream(File.ReadAllBytes(filePath)))
-                            {
-                                System.Drawing.Size size = avatarPool.GetSize(stream);
-                                
-                                double width = size.Width * density;
-                                double height = size.Height * density;
-
-                                double scaleWidth = density;
-                                double scaleHeight = density;
-                                double scaleUsed;
-
-                                if (width > maxWidth)
-                                    scaleWidth = maxWidth / size.Width;
-
-                                if (height > maxHeight)
-                                    scaleHeight = maxHeight / size.Height;
-
-                                if (scaleWidth > scaleHeight)
-                                    scaleUsed = scaleHeight;
-                                else
-                                    scaleUsed = scaleWidth;
-
-                                // Scale thumbnail
-                                int widthUsed = (int)Math.Floor(size.Width * scaleUsed);
-                                int heightUsed = (int)Math.Floor(size.Height * scaleUsed);
-
-                                stream.Seek(0, SeekOrigin.Begin);
-
-                                Stream resultStream = avatarPool.GetScaled(stream, widthUsed, heightUsed);
-
-                                // Delete previous file (if any)
-                                if (File.Exists(filePath))
-                                    File.Delete(filePath);
-
-                                // Save new image
-                                using (Stream file = File.Create(filePath))
-                                    resultStream.CopyTo(file);
-
-                                resultStream.Close();
-
-                                log.DebugFormat("[FileStorage_FileDownloadUpdated] scale thumbnail according density - fileDescriptorId:[{0}] - density:[{1}]", e.FileId, density);
-                            }
-                        }
-                        catch { 
-
-                        }
-
-                        
-                        Task task = new Task(() =>
-                        {
-                            ThumbnailAvailable.Invoke(this, new IdEventArgs(e.FileId));
-                        });
-                        task.Start();
-                    }
-                }
-            }
+            return;
         }
 
 #endregion EVENT FIRED BY SDK
@@ -524,6 +459,8 @@ namespace Rainbow.Helpers
                     {
                         thumbnailToDownload.Remove(fileDescriptorId);
                         log.DebugFormat("[BackgroundWorkerThumbnailDownload_DoWork] SUCCESS - fileDescriptorId:[{0}]", fileDescriptorId);
+                        
+                        DownloadThumbnailDone(fileDescriptorId);
                     }
                     else
                     {
@@ -539,6 +476,85 @@ namespace Rainbow.Helpers
                 continueDownload = InitDone() && (thumbnailToDownload.Count > 0) && AllowAutomaticThumbnailDownload && (filesDescriptorToDownload.Count == 0);
             }
             while (continueDownload);
+        }
+
+        private void DownloadThumbnailDone(String fileId)
+        {
+            log.DebugFormat("[DownloadThumbnailDone] Download done - fileDescriptorId:[{0}]", fileId);
+
+            if (!thumbnailDownloaded.Contains(fileId))
+                thumbnailDownloaded.Add(fileId);
+
+            //If it's a direct download we need to create thumbnail
+            if (thumbnailDirectToDownload.Contains(fileId))
+            {
+                log.DebugFormat("[DownloadThumbnailDone] Direct Download done - fileDescriptorId:[{0}]", fileId);
+
+                // Need to scale thumbnail according density and max size expected
+                double density = 1;
+                double maxWidth = MaxThumbnailWidth * density;
+                double maxHeight = MaxThumbnailHeight * density;
+
+                String filePath = GetFullFilePath(fileId);
+                String filePathThumbnail = GetThumbnailFullFilePath(fileId);
+                try
+                {
+                    using (Stream stream = new MemoryStream(File.ReadAllBytes(filePath)))
+                    {
+                        System.Drawing.Size size = avatarPool.GetSize(stream);
+
+                        double width = size.Width * density;
+                        double height = size.Height * density;
+
+                        double scaleWidth = density;
+                        double scaleHeight = density;
+                        double scaleUsed;
+
+                        if (width > maxWidth)
+                            scaleWidth = maxWidth / size.Width;
+
+                        if (height > maxHeight)
+                            scaleHeight = maxHeight / size.Height;
+
+                        if (scaleWidth > scaleHeight)
+                            scaleUsed = scaleHeight;
+                        else
+                            scaleUsed = scaleWidth;
+
+                        // Scale thumbnail
+                        int widthUsed = (int)Math.Floor(size.Width * scaleUsed);
+                        int heightUsed = (int)Math.Floor(size.Height * scaleUsed);
+
+                        stream.Seek(0, SeekOrigin.Begin);
+
+                        Stream resultStream = avatarPool.GetScaled(stream, widthUsed, heightUsed);
+
+                        // Delete previous thumbnail file (if any ... Whould not occurs)
+                        if (File.Exists(filePathThumbnail))
+                            File.Delete(filePathThumbnail);
+
+                        // Save new image
+                        using (Stream streamFile = File.Create(filePathThumbnail))
+                            resultStream.CopyTo(streamFile);
+
+                        resultStream.Close();
+
+                        log.DebugFormat("[FileStorage_FileDownloadUpdated] scale thumbnail according density - fileDescriptorId:[{0}] - density:[{1}]", fileId, density);
+                    }
+                }
+                catch
+                {
+
+                }
+            }
+            else
+                log.DebugFormat("[FileStorage_FileDownloadUpdated] Thumbnail Download done - fileDescriptorId:[{0}]", fileId);
+
+            Task task = new Task(() =>
+            {
+                ThumbnailAvailable.Invoke(this, new IdEventArgs(fileId));
+            });
+            task.Start();
         }
 
         private Boolean DownloadThumbnail(String fileDescriptorId)
@@ -601,8 +617,8 @@ namespace Rainbow.Helpers
         {
             avatarPool = AvatarPool.Instance;
 
-            MaxThumbnailWidth = 400;
-            MaxThumbnailHeight = 400;
+            MaxThumbnailWidth = 200;
+            MaxThumbnailHeight = 200;
         }
 
 #endregion PRIVATE METHODS   

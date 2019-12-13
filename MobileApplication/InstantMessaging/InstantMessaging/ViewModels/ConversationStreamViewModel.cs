@@ -670,10 +670,11 @@ namespace InstantMessaging
             {
                 try
                 {
+                    log.DebugFormat("[SetFileAttachmentSourceOfMessage] FileId:[{0}] - Use filePath:[{1}]", fileId, filePath);
                     using (Stream stream = new MemoryStream(File.ReadAllBytes(filePath)))
                     {
                         System.Drawing.Size size = avatarPool.GetSize(stream);
-                        double density = avatarPool.GetDensity();
+                        double density = 1;
 
                         message.FileAttachmentSource = ImageSource.FromFile(filePath);
                         message.FileAttachmentSourceWidth = (int)Math.Round(size.Width / density);
