@@ -93,6 +93,13 @@ namespace Rainbow.Helpers
         /// </summary>
         public int MaxThumbnailHeight { get; set; }
 
+        public FileDescriptor GetFileDescriptor(String fileDescriptorId)
+        {
+            if (filesDescriptorById.ContainsKey(fileDescriptorId))
+                return filesDescriptorById[fileDescriptorId];
+            return null;
+        }
+
         public Boolean IsThumbnailFileAvailable(String conversationId, String fileDescriptorId, String fileName)
         {
             bool result = false;
