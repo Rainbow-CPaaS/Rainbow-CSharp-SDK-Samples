@@ -66,6 +66,7 @@
     <None Include="Entitlements.plist" />
     <None Include="Info.plist" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Helpers\ImageManagement.cs" />
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="Resources\LaunchScreen.storyboard" />
@@ -127,8 +128,14 @@
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\iOS\Xamarin.iOS.CSharp.targets" />
   <ItemGroup>
     <ProjectReference Include="..\InstantMessaging\InstantMessaging.csproj">
-      <Project>{5396EA78-CFEA-4BF1-A752-AEC1EE5D5077}</Project>
+      <Project>{D78B9775-B2FF-4DA5-A026-B871F1E2C931}</Project>
       <Name>InstantMessaging</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Helpers\" />
+  </ItemGroup>
+  <ItemGroup>
+    <BundleResource Include="Resources\log4netConfiguration.xml" />
   </ItemGroup>
 </Project>
