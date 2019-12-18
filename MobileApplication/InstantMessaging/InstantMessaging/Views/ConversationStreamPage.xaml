@@ -11,6 +11,12 @@
         </ResourceDictionary>
     </ContentPage.Resources>
     
+    <ContentPage.Padding>
+        <OnPlatform x:TypeArguments="Thickness">
+            <On Platform="iOS" Value="0,20,0,0"/>
+        </OnPlatform>
+    </ContentPage.Padding>
+    
     <ContentPage.Content>
         <StackLayout Orientation="Vertical">
             <!-- TITLE BAR - START -->
