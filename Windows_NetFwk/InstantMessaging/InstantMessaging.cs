@@ -82,8 +82,8 @@ namespace Sample_Contacts
             // EVENTS WE WANT TO MANAGE
             rainbowApplication.ConnectionStateChanged += RainbowApplication_ConnectionStateChanged;
 
-            rainbowContacts.ContactAdded += RainbowContacts_ContactAdded;
-            rainbowContacts.ContactRemoved += RainbowContacts_ContactRemoved;
+            rainbowContacts.RosterContactAdded += RainbowContacts_RosterContactAdded;
+            rainbowContacts.RosterContactRemoved += RainbowContacts_RosterContactRemoved;
             rainbowContacts.ContactPresenceChanged += RainbowContacts_ContactPresenceChanged;
 
             rainbowConversations.ConversationCreated += RainbowConversations_ConversationCreated;
@@ -460,13 +460,13 @@ namespace Sample_Contacts
             }
         }
 
-        private void RainbowContacts_ContactRemoved(object sender, Rainbow.Events.JidEventArgs e)
+        private void RainbowContacts_RosterContactRemoved(object sender, Rainbow.Events.JidEventArgs e)
         {
             AddStateLine($"A Contact has been removed:[{e.Jid}]");
             UpdateContactsListComboBox();
         }
 
-        private void RainbowContacts_ContactAdded(object sender, Rainbow.Events.JidEventArgs e)
+        private void RainbowContacts_RosterContactAdded(object sender, Rainbow.Events.JidEventArgs e)
         {
             AddStateLine($"A Contact has been added:[{e.Jid}]");
             UpdateContactsListComboBox();

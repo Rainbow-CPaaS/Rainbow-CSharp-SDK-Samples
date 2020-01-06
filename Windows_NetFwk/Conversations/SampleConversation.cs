@@ -74,8 +74,8 @@ namespace Sample_Contacts
             // EVENTS WE WANT TO MANAGE
             rainbowApplication.ConnectionStateChanged += RainbowApplication_ConnectionStateChanged;
 
-            rainbowContacts.ContactAdded += RainbowContacts_ContactAdded;
-            rainbowContacts.ContactRemoved += RainbowContacts_ContactRemoved;
+            rainbowContacts.RosterContactAdded += RainbowContacts_RosterContactAdded;
+            rainbowContacts.RosterContactRemoved += RainbowContacts_RosterContactRemoved;
 
             rainbowConversations.ConversationCreated += RainbowConversations_ConversationCreated;
             rainbowConversations.ConversationRemoved += RainbowConversations_ConversationRemoved;
@@ -208,26 +208,26 @@ namespace Sample_Contacts
                     {
 
                         Contact contact = rainbowContacts.GetContactFromContactId(peerId);
-                        //if (contact != null)
-                        //{
-                        //    string displayName = contact.DisplayName;
-                        //    if (String.IsNullOrEmpty(displayName))
-                        //        displayName = $"{contact.LastName} {contact.FirstName}";
-                        //    //ListItem item = new ListItem(displayName, favorite.Id);
-                        //    //cbFavoritesList.Items.Add(item);
-                        //}
+                        if (contact != null)
+                        {
+                            string displayName = contact.DisplayName;
+                            if (String.IsNullOrEmpty(displayName))
+                                displayName = $"{contact.LastName} {contact.FirstName}";
+                            ListItem item = new ListItem(displayName, favorite.Id);
+                            cbFavoritesList.Items.Add(item);
+                        }
                     }
                     // Is-it a favorite with a Bubble/Room ?
                     else if (favorite.Type == Rainbow.Model.FavoriteType.Room)
                     {
-                        //String conversationId = rainbowConversations.GetConversationIdByPeerIdFromCache(peerId);
-                        //Conversation conversation = rainbowConversations.GetConversationByIdFromCache(conversationId);
-                        //if (conversation != null)
-                        //{
-                        //    string displayName = conversation.Name;
-                        //    //ListItem item = new ListItem(displayName, favorite.Id);
-                        //    //cbFavoritesList.Items.Add(item);
-                        //}
+                        String conversationId = rainbowConversations.GetConversationIdByPeerIdFromCache(peerId);
+                        Conversation conversation = rainbowConversations.GetConversationByIdFromCache(conversationId);
+                        if (conversation != null)
+                        {
+                            string displayName = conversation.Name;
+                            ListItem item = new ListItem(displayName, favorite.Id);
+                            cbFavoritesList.Items.Add(item);
+                        }
                     }
                 }
 
@@ -444,7 +444,7 @@ namespace Sample_Contacts
             CheckContactSelectedAsConversation();
         }
 
-        private void RainbowContacts_ContactRemoved(object sender, Rainbow.Events.JidEventArgs e)
+        private void RainbowContacts_RosterContactRemoved(object sender, Rainbow.Events.JidEventArgs e)
         {
             AddStateLine($"A Contact has been removed:[{e.Jid}]");
             UpdateContactsListComboBox();
@@ -452,7 +452,7 @@ namespace Sample_Contacts
             CheckContactSelectedAsConversation();
         }
 
-        private void RainbowContacts_ContactAdded(object sender, Rainbow.Events.JidEventArgs e)
+        private void RainbowContacts_RosterContactAdded(object sender, Rainbow.Events.JidEventArgs e)
         {
             AddStateLine($"A Contact has been added:[{e.Jid}]");
             UpdateContactsListComboBox();
@@ -724,7 +724,11 @@ namespace Sample_Contacts
                 return;
 
             rainbowFavoritesList = rainbowFavorites.GetFavorites();
-            AddStateLine($"Nb favorites:{rainbowFavoritesList.Count()}");
+            int nb = 0;
+            if (rainbowFavoritesList != null)
+                nb = rainbowFavoritesList.Count();
+
+            AddStateLine($"Nb favorites:{nb}");
             UpdateFavoritesListComboBox();
         }
 

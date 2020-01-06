@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -100,6 +100,21 @@ namespace Sample_Conferences.csproj
             // Update layout since we are not connected to the server
             if (e.State == Rainbow.Model.ConnectionState.Connected)
             {
+                rainbowBubbles.GetAllBubbles(callbackBubbles =>
+                {
+                    string logLine;
+                    if (callbackBubbles.Result.Success)
+                    {
+                        logLine = String.Format("Nb Bubbles:{0}", callbackBubbles.Data.Count);
+                    }
+                    else
+                    {
+                        logLine = String.Format("Impossible to get Bubbles list:\r\n{0}", Util.SerialiseSdkError(callbackBubbles.Result));
+                    }
+                    AddStateLine(logLine);
+                    log.WarnFormat(logLine);
+                });
+
                 // Check permissions
                 UpdateConferenceAvailable(rainbowBubbles.ConferenceAllowed());
                 UpdatePersonalConferenceAvailable(rainbowBubbles.PersonalConferenceAllowed());

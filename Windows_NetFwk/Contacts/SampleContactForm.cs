@@ -70,8 +70,8 @@ namespace Sample_Contacts
             rainbowApplication.ConnectionStateChanged += RainbowApplication_ConnectionStateChanged;
 
             rainbowContacts.ContactInfoChanged += RainbowContacts_ContactInfoChanged;
-            rainbowContacts.ContactAdded += RainbowContacts_ContactAdded;
-            rainbowContacts.ContactRemoved += RainbowContacts_ContactRemoved;
+            rainbowContacts.RosterContactAdded += RainbowContacts_RosterContactAdded;
+            rainbowContacts.RosterContactRemoved += RainbowContacts_RosterContactRemoved;
 
             rainbowContacts.ContactAvatarChanged += RainbowContacts_ContactAvatarChanged;
             rainbowContacts.ContactAvatarDeleted += RainbowContacts_ContactAvatarDeleted;
@@ -328,13 +328,13 @@ namespace Sample_Contacts
                 AddStateLine($"A contact has changed its avatar - JID:[{e.Jid}]");
         }
 
-        private void RainbowContacts_ContactRemoved(object sender, Rainbow.Events.JidEventArgs e)
+        private void RainbowContacts_RosterContactRemoved(object sender, Rainbow.Events.JidEventArgs e)
         {
             AddStateLine($"A contact has been removed from your roster - JID:[{e.Jid}]");
             GetAllContacts();
         }
 
-        private void RainbowContacts_ContactAdded(object sender, Rainbow.Events.JidEventArgs e)
+        private void RainbowContacts_RosterContactAdded(object sender, Rainbow.Events.JidEventArgs e)
         {
             AddStateLine($"A new contact has been added in your roster - JID:[{e.Jid}]");
             GetAllContacts();
