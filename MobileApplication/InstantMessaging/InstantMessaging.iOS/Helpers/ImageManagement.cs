@@ -37,9 +37,10 @@ namespace InstantMessaging.iOS.Helpers
                         NSData data = resultImage.AsPNG();
                         msDst = data.AsStream();
                     }
-            }
+                }
 
-            return msDst;
+                return msDst;
+            }
         }
 
         private float DegreeToRadian(float angle)
@@ -227,7 +228,7 @@ namespace InstantMessaging.iOS.Helpers
 
                 NSData data = resultImage.AsPNG();
                 result = data.AsStream();
-            } 
+            }
             return result;
         }
 
@@ -255,5 +256,6 @@ namespace InstantMessaging.iOS.Helpers
                 return new Size((int)image.Size.Width, (int)image.Size.Height);
             }
         }
+
     }
 }
