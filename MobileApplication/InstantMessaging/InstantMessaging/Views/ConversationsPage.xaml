@@ -1,0 +1,47 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:customCells="clr-namespace:InstantMessaging.CustomCells;assembly=InstantMessaging" 
+             x:Class="InstantMessaging.ConversationsPage"
+             NavigationPage.HasNavigationBar="False">
+    
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <customCells:ConversationLightViewCellTemplate x:Key="ConversationLightTemplateSelector"/>
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <ContentPage.Padding>
+        <OnPlatform x:TypeArguments="Thickness">
+            <On Platform="iOS" Value="0,20,0,0"/>
+        </OnPlatform>
+    </ContentPage.Padding>
+    
+    <Grid RowSpacing="0" ColumnSpacing="0">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <!--<RowDefinition Height="Auto" />-->
+        </Grid.RowDefinitions>
+
+        <ListView 
+			x:Name="ConversationsListView" 
+            ItemTemplate="{StaticResource ConversationLightTemplateSelector}" 
+			ItemsSource="{Binding Conversations}" 
+			HasUnevenRows="True"
+			ItemSelected="ConversationsListView_OnItemSelected" 
+			ItemTapped="ConversationsListView_OnItemTapped" 
+			SeparatorVisibility="None" />
+        
+        <!-- Entry and Send button in Row 1 -->
+        <!--<StackLayout Orientation="Horizontal" Grid.Row="1" Padding="10" BackgroundColor="#EFEFEF">
+            <Entry 
+			    HorizontalOptions="FillAndExpand" 
+				HeightRequest="25" 
+				Placeholder="Message" 
+				Text="TEST TEST TEST  "/>
+            <Button 
+				Text="Send" 
+				/>
+        </StackLayout>-->
+    </Grid>
+</ContentPage>

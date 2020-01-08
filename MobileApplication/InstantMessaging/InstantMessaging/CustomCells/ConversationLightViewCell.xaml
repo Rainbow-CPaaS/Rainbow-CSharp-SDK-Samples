@@ -1,0 +1,123 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ViewCell xmlns="http://xamarin.com/schemas/2014/forms" 
+            xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+            x:Class="InstantMessaging.CustomCells.ConversationLightViewCell">
+
+    <!-- BINDING  - ConversationLight object -->
+
+    <Grid ColumnSpacing="0" RowSpacing="15" Padding="5">
+        <Grid.Resources>
+            <ResourceDictionary>
+                <DataTemplate x:Key="avatarTemplate">
+                </DataTemplate>
+            </ResourceDictionary>
+        </Grid.Resources>
+        
+        <!-- GRID COLUMN / ROW DEFINITION -->
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="60"></ColumnDefinition>    <!-- Col 0: Conversation Avatar -->
+            <ColumnDefinition Width="10"></ColumnDefinition>    <!-- Col 1: Let space with the avatar -->
+            <ColumnDefinition Width="*"></ColumnDefinition>     <!-- Col 2: Conversation cell -->
+        </Grid.ColumnDefinitions>
+        
+        <Grid.RowDefinitions>
+            <RowDefinition Height="60"></RowDefinition>
+        </Grid.RowDefinitions>
+
+        <!-- START: FIRST ROW DEFINITON -->        
+        
+        <!-- AVATAR IMG -->
+        
+        <StackLayout 
+            Grid.Row="0" 
+            Grid.Column="0"
+            HorizontalOptions="Center"
+            VerticalOptions="Center"
+            Padding="0"
+            Spacing="0"
+            IsVisible="True"
+            >
+            <Image
+                Source="{Binding AvatarSource}"
+                Aspect="AspectFit"
+                WidthRequest="60"
+                HeightRequest="60"
+                VerticalOptions="Center"
+                HorizontalOptions="Center"/>
+        </StackLayout>
+        
+        
+        <!-- PRESENCE BULLET -->
+        <Frame
+            Grid.Row="0" 
+            Grid.Column="0"
+            BackgroundColor="White"
+            HeightRequest="14"
+            WidthRequest="14"
+            CornerRadius="14"
+            VerticalOptions="End"
+            HorizontalOptions="End"
+            HasShadow="False"
+            IsClippedToBounds="False"
+            Margin="0,0,2,2"
+            Padding="0"
+            IsVisible="{Binding PresenceIsVisible}">
+            <Image 
+                Source="{Binding PresenceSource}"
+                HeightRequest="10"
+                WidthRequest="10"/>
+        </Frame>
+
+        <!-- MSG UNREAD-->
+        <Frame Grid.Row="0" Grid.Column="0"
+            BackgroundColor="Red"
+            HeightRequest="20"
+            WidthRequest="20"
+            CornerRadius="20" 
+            VerticalOptions="Start"
+            HorizontalOptions="End"
+            HasShadow="False"
+            IsClippedToBounds="False"
+            Padding="0"
+            IsVisible="{Binding NbMsgUnreadIsVisible}">
+            <Label
+                VerticalOptions="Center"
+                HorizontalOptions="Center"
+                FontSize="Micro"
+                TextColor="White"
+                Text="{Binding NbMsgUnread}"
+                />
+        </Frame>
+
+        <!-- LAST BUBBLE MSG:  (Buble Name or Contact Name) / Date / Last Message -->
+        <Frame Grid.Row="0" Grid.Column="2"
+            CornerRadius="5" 
+            VerticalOptions="Center"
+            HorizontalOptions="FillAndExpand"
+            HasShadow="False"
+            IsClippedToBounds="False"
+            Padding="0"
+            HeightRequest="50">
+
+            <StackLayout Spacing="0" Padding="10,5,10,5" Orientation="Vertical" VerticalOptions="Center">
+                
+                <!-- USE A GRID TO AVOID TRUNCATED DATE -->
+                <Grid RowSpacing="0" ColumnSpacing="0" Padding="0" VerticalOptions="Center">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <Label Grid.Row="0" Grid.Column="0" HorizontalOptions="StartAndExpand" TextColor="Black" FontSize="Medium" MaxLines="1" LineBreakMode="TailTruncation" VerticalOptions="Center" Text="{Binding Name}"/>
+                    <Label Grid.Row="0" Grid.Column="1" HorizontalOptions="EndAndExpand" TextColor="Gray" FontSize="Micro" MaxLines="1" VerticalOptions="Center" Text="{Binding MessageTimeDisplay}"/>
+                </Grid>
+
+                <Label TextColor="Gray" FontSize="Small" MaxLines="1" LineBreakMode="TailTruncation" IsVisible="{Binding LastMessageIsVisible}" Text="{Binding LastMessage}"/>
+            </StackLayout>
+        </Frame>
+
+    </Grid>
+</ViewCell>

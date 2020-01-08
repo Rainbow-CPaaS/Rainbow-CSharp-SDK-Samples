@@ -1,0 +1,125 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:customCells="clr-namespace:InstantMessaging.CustomCells;assembly=InstantMessaging" 
+             x:Class="InstantMessaging.ConversationStreamPage"
+             NavigationPage.HasNavigationBar="False">
+    
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <customCells:MessageViewCellTemplate x:Key="MessageViewCellTemplateSelector"/>
+        </ResourceDictionary>
+    </ContentPage.Resources>
+    
+    <ContentPage.Padding>
+        <OnPlatform x:TypeArguments="Thickness">
+            <On Platform="iOS" Value="0,20,0,0"/>
+        </OnPlatform>
+    </ContentPage.Padding>
+    
+    <ContentPage.Content>
+        <StackLayout Orientation="Vertical">
+            <!-- TITLE BAR - START -->
+            <Grid RowSpacing="0" ColumnSpacing="4" Padding="0" BackgroundColor="LightGray" HorizontalOptions="FillAndExpand" VerticalOptions="Start">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="40" /> <!-- BACK BTN -->
+                    <ColumnDefinition Width="40" /> <!-- AVATAR -->
+                    <ColumnDefinition Width="*" />  <!-- NAME / TOPIC -->
+                    <ColumnDefinition Width="40"/> <!-- MORE BTN -->
+                </Grid.ColumnDefinitions>
+                
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="50" />
+                </Grid.RowDefinitions>
+
+                <!-- BACK BTN -->
+                <!-- TODO  -->
+                
+                <!-- AVATAR IMG -->
+                <StackLayout 
+                    Grid.Row="0" 
+                    Grid.Column="1"
+                    HorizontalOptions="Center"
+                    VerticalOptions="Center"
+                    Padding="0"
+                    Spacing="0"
+                    IsVisible="True"
+                    >
+                    <Image
+                        Source="{Binding Conversation.AvatarSource}"
+                        Aspect="AspectFit"
+                        WidthRequest="40"
+                        HeightRequest="40"
+                        VerticalOptions="Center"
+                        HorizontalOptions="Center"/>
+                </StackLayout>
+
+                <!-- NAME AND TOPIC -->
+                <StackLayout Grid.Row="0" Grid.Column="2" Orientation="Vertical" VerticalOptions="Center" HorizontalOptions="StartAndExpand" Spacing="0">
+                    <Label HorizontalOptions="StartAndExpand" TextColor="Black" FontSize="Medium" MaxLines="1" LineBreakMode="TailTruncation" VerticalOptions="Center" Text="{Binding Conversation.Name}"/>
+                    <Label HorizontalOptions="StartAndExpand" TextColor="Black" FontSize="Small" MaxLines="1" LineBreakMode="TailTruncation" VerticalOptions="Center" Text="{Binding Conversation.Topic}" IsVisible="{Binding Conversation.TopicIsVisible}"/>
+                </StackLayout>
+
+                <!-- MORE BTN -->
+                <!-- TODO  -->
+
+            </Grid>
+            <!-- TITLE BAR - ENd -->
+
+            <!-- MESSAGE LIST + INPUT TEXT - START -->
+            <Grid RowSpacing="0" ColumnSpacing="0" Padding="0" VerticalOptions="EndAndExpand">
+                <Grid.RowDefinitions>
+                    <!-- MESSAGE LIST -->
+                    <RowDefinition Height="*" />
+
+                    <!-- INPUT TEXT + SEND BTN -->
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <!-- MESSAGE LIST - START -->
+                <ListView Grid.Row="0" 
+			        x:Name="MessagesListView" 
+                    ItemTemplate="{StaticResource MessageViewCellTemplateSelector}" 
+                    ItemsSource="{Binding MessagesList}"
+			        HasUnevenRows="True"
+			        SeparatorVisibility="None" 
+                    VerticalOptions="End"
+                    IsEnabled="{Binding ConversationStream.ListViewIsEnabled}">
+                </ListView>
+                <!-- MESSAGE LIST - END -->
+                
+                <!-- LOADING  INDICATOR OVER MESSAGE LIST - START -->
+                <StackLayout Grid.Row="0" 
+                             x:Name="MessagesListViewLoadingIndicator"
+                             Opacity="0.5" 
+                             BackgroundColor="White"
+                             HorizontalOptions="FillAndExpand" 
+                             VerticalOptions="FillAndExpand"
+                             IsVisible="{Binding ConversationStream.LoadingIndicatorIsVisible}">
+                    <StackLayout HorizontalOptions="Center" 
+                                 VerticalOptions="Center">
+                        <Label Text="Loading" FontSize="Large" VerticalOptions="Center" HorizontalOptions="Center" TextColor="Black"/>
+                    </StackLayout>
+                </StackLayout>
+                <!-- LOADING  INDICATOR OVER MESSAGE LIST - END -->
+
+                <!-- INPUT TEXT + SEND BTN  - START -->
+                <StackLayout Grid.Row="1" Orientation="Horizontal" Padding="10" BackgroundColor="#EFEFEF">
+                    <Entry x:Name="EntryIM"
+                           TextColor="Black"
+                           HorizontalOptions="FillAndExpand"
+                           HeightRequest="25" 
+                           Placeholder="Enter your text here ..." 
+                           PlaceholderColor="Gray"
+                           TextChanged="EntryIm_TextChanged" />
+                    <Button x:Name="BtnIMSend"
+                            Text="Send" />
+                </StackLayout>
+                <!-- INPUT TEXT + SEND BTN  - END -->
+                
+            </Grid>
+            <!-- MESSAGE LIST + INPUT TEXT - END -->
+
+        </StackLayout>
+    </ContentPage.Content>
+</ContentPage>

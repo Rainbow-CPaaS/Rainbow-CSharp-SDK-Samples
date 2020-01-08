@@ -1,0 +1,102 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ViewCell xmlns="http://xamarin.com/schemas/2014/forms" 
+            xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+            x:Class="InstantMessaging.CustomCells.MessageViewCellCurrentUser">
+
+    <!-- BINDING  - Message object -->
+
+    <Grid RowSpacing="0" ColumnSpacing="4" Padding="0" HorizontalOptions="FillAndExpand">
+        <Grid.ColumnDefinitions>
+            <!-- SPACE -->
+            <ColumnDefinition Width="4" />
+            <!-- AVATAR (not displayed here but add space to be coherent with other ViewCell -->
+            <ColumnDefinition Width="40" />
+            <!-- BODY -->
+            <ColumnDefinition Width="*" />
+            <!-- SPACE -->
+            <ColumnDefinition Width="4" />
+        </Grid.ColumnDefinitions>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="4" />
+        </Grid.RowDefinitions>
+
+        <!-- BODY -->
+        <Frame Grid.Row="0" Grid.Column="2"
+            BackgroundColor="LightGray"
+            CornerRadius="8" 
+            Padding="8"
+            VerticalOptions="Center"
+            HorizontalOptions="End"
+            HasShadow="False"
+            IsClippedToBounds="False">
+            <Grid RowSpacing="0" ColumnSpacing="0" Padding="0" HorizontalOptions="End">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <StackLayout Grid.Row="0" Grid.Column="0" Padding="3" HorizontalOptions="Start">
+                    <Frame IsVisible="{Binding ReplyPartIsVisible}"
+                           BackgroundColor="Gray"
+                           CornerRadius="4" 
+                           Padding="4"
+                           VerticalOptions="Center"
+                           HorizontalOptions="Start"
+                           HasShadow="False"
+                           IsClippedToBounds="False">
+                        <Grid RowSpacing="0" ColumnSpacing="0" Padding="0" HorizontalOptions="Fill">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <Label Grid.Row="0" Grid.Column="0" HorizontalOptions="Start" TextColor="White" FontAttributes="Bold" FontSize="Micro" MaxLines="1" LineBreakMode="TailTruncation" VerticalOptions="Center" Text="{Binding ReplyPeerDisplayName}"/>
+                            <Label Grid.Row="1" Grid.Column="0" HorizontalOptions="Start" TextColor="White" FontSize="Small" MaxLines="1" LineBreakMode="TailTruncation" VerticalOptions="Center" Text="{Binding ReplyBody}"/>
+                        </Grid>
+                    </Frame>
+                    <Label HorizontalOptions="Start" FontSize="Small"  VerticalOptions="Center" TextColor="{Binding BodyColor}" FontAttributes="{Binding BodyFontAttributes}" Text="{Binding Body}" IsVisible="{Binding BodyIsVisible}"/>
+                </StackLayout>
+
+                <!-- File Attachment-->
+                <Grid  Grid.Row="1" Grid.Column="0" RowSpacing="0" ColumnSpacing="0" Padding="0" HorizontalOptions="Start" IsVisible="{Binding FileAttachmentIsVisible}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <Image Grid.Row="0" Grid.Column="0" Source="{Binding FileAttachmentSource}" HorizontalOptions="Start" VerticalOptions="Center" WidthRequest="{Binding FileAttachmentSourceWidth}" HeightRequest="{Binding FileAttachmentSourceHeight}">
+                        <Image.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="FileAttachment_Tapped" CommandParameter="{Binding .}"/>
+                        </Image.GestureRecognizers>
+                    </Image>
+
+                    <StackLayout Grid.Row="0" Grid.Column="1" Orientation="Vertical" HorizontalOptions="End" VerticalOptions="Center"  Spacing="0" IsVisible="{Binding FileDefaultInfoIsVisible}">
+                        <Label HorizontalOptions="Start" FontSize="Small" VerticalOptions="Center" TextColor="{Binding BodyColor}" Text="{Binding FileName}" MaxLines="1" LineBreakMode="TailTruncation" />
+                        <Label HorizontalOptions="Start" FontSize="Small" VerticalOptions="Center" TextColor="{Binding BodyColor}" Text="{Binding FileSize}"/>
+                    </StackLayout>
+                </Grid>
+                
+                <StackLayout Orientation="Horizontal" Grid.Row="2" Grid.Column="0" HorizontalOptions="End" VerticalOptions="Center" Spacing="0">
+                    <Label HorizontalOptions="End" TextColor="Gray" FontSize="Micro" VerticalOptions="Center" Text="{Binding MessageDateDisplay}"/>
+                    <Label HorizontalOptions="End" TextColor="Gray" FontSize="Micro" VerticalOptions="Center" Text=" - Edited" IsVisible="{Binding EditedIsVisible}"/>
+                    <Image HorizontalOptions="End" VerticalOptions="Center" WidthRequest="12" HeightRequest="12" Source="{Binding ReceiptSource}" Margin="4, 0, 0, 0" />
+                </StackLayout>
+            </Grid>
+        </Frame>
+    </Grid>
+</ViewCell>
