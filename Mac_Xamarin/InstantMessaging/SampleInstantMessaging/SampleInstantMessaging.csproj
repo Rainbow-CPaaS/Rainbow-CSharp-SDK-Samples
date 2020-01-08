@@ -3,11 +3,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{61376713-E4B9-4D13-AA58-80FFCAF8FFD5}</ProjectGuid>
+    <ProjectGuid>{6590B625-B42E-43AB-B2A6-0C812C43C59E}</ProjectGuid>
     <ProjectTypeGuids>{A3F8F2AB-B479-4A4A-A458-A89E7DC349F1};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <OutputType>Exe</OutputType>
-    <RootNamespace>SampleContact</RootNamespace>
-    <AssemblyName>SampleContact</AssemblyName>
+    <RootNamespace>SampleInstantMessaging</RootNamespace>
+    <AssemblyName>SampleInstantMessaging</AssemblyName>
     <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
     <TargetFrameworkIdentifier>Xamarin.Mac</TargetFrameworkIdentifier>
     <MonoMacResourcePrefix>Resources</MonoMacResourcePrefix>
@@ -27,7 +27,6 @@
     <IncludeMonoRuntime>false</IncludeMonoRuntime>
     <UseSGen>true</UseSGen>
     <UseRefCounting>true</UseRefCounting>
-    <AOTMode>None</AOTMode>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -42,7 +41,6 @@
     <UseSGen>true</UseSGen>
     <UseRefCounting>true</UseRefCounting>
     <LinkMode>SdkOnly</LinkMode>
-    <AOTMode>None</AOTMode>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -50,37 +48,37 @@
     <Reference Include="Xamarin.Mac" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="RestSharp">
-      <HintPath>packages\RestSharp.106.6.10\lib\netstandard2.0\RestSharp.dll</HintPath>
+      <HintPath>..\packages\RestSharp.106.6.10\lib\netstandard2.0\RestSharp.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.IdentityModel.Logging">
-      <HintPath>packages\Microsoft.IdentityModel.Logging.5.4.0\lib\netstandard2.0\Microsoft.IdentityModel.Logging.dll</HintPath>
+      <HintPath>..\packages\Microsoft.IdentityModel.Logging.5.4.0\lib\netstandard2.0\Microsoft.IdentityModel.Logging.dll</HintPath>
     </Reference>
     <Reference Include="SuperSocket.ClientEngine">
-      <HintPath>packages\SuperSocket.ClientEngine.Core.0.10.0\lib\netstandard1.3\SuperSocket.ClientEngine.dll</HintPath>
+      <HintPath>..\packages\SuperSocket.ClientEngine.Core.0.10.0\lib\netstandard1.3\SuperSocket.ClientEngine.dll</HintPath>
     </Reference>
     <Reference Include="log4net">
-      <HintPath>packages\log4net.2.0.8\lib\netstandard1.3\log4net.dll</HintPath>
+      <HintPath>..\packages\log4net.2.0.8\lib\netstandard1.3\log4net.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json">
-      <HintPath>packages\Newtonsoft.Json.10.0.1\lib\netstandard1.3\Newtonsoft.Json.dll</HintPath>
+      <HintPath>..\packages\Newtonsoft.Json.10.0.1\lib\netstandard1.3\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.IdentityModel.Tokens">
-      <HintPath>packages\Microsoft.IdentityModel.Tokens.5.4.0\lib\netstandard2.0\Microsoft.IdentityModel.Tokens.dll</HintPath>
+      <HintPath>..\packages\Microsoft.IdentityModel.Tokens.5.4.0\lib\netstandard2.0\Microsoft.IdentityModel.Tokens.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.IdentityModel.JsonWebTokens">
-      <HintPath>packages\Microsoft.IdentityModel.JsonWebTokens.5.4.0\lib\netstandard2.0\Microsoft.IdentityModel.JsonWebTokens.dll</HintPath>
+      <HintPath>..\packages\Microsoft.IdentityModel.JsonWebTokens.5.4.0\lib\netstandard2.0\Microsoft.IdentityModel.JsonWebTokens.dll</HintPath>
     </Reference>
     <Reference Include="System.IdentityModel.Tokens.Jwt">
-      <HintPath>packages\System.IdentityModel.Tokens.Jwt.5.4.0\lib\netstandard2.0\System.IdentityModel.Tokens.Jwt.dll</HintPath>
+      <HintPath>..\packages\System.IdentityModel.Tokens.Jwt.5.4.0\lib\netstandard2.0\System.IdentityModel.Tokens.Jwt.dll</HintPath>
     </Reference>
     <Reference Include="WebSocket4Net">
-      <HintPath>packages\WebSocket4Net.0.15.2\lib\netstandard1.3\WebSocket4Net.dll</HintPath>
+      <HintPath>..\packages\WebSocket4Net.0.15.2\lib\netstandard1.3\WebSocket4Net.dll</HintPath>
     </Reference>
     <Reference Include="Sharp.Ws.Xmpp">
-      <HintPath>packages\Sharp.Ws.Xmpp.1.3.0\lib\netstandard2.0\Sharp.Ws.Xmpp.dll</HintPath>
+      <HintPath>..\packages\Sharp.Ws.Xmpp.1.5.0\lib\netstandard2.0\Sharp.Ws.Xmpp.dll</HintPath>
     </Reference>
     <Reference Include="Rainbow.CSharp.SDK">
-      <HintPath>packages\Rainbow.CSharp.SDK.1.3.0\lib\netstandard2.0\Rainbow.CSharp.SDK.dll</HintPath>
+      <HintPath>..\packages\Rainbow.CSharp.SDK.1.5.0\lib\netstandard2.0\Rainbow.CSharp.SDK.dll</HintPath>
     </Reference>
     <Reference Include="System.Xml" />
   </ItemGroup>

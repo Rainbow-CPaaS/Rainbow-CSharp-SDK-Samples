@@ -16,12 +16,13 @@ namespace SampleConversation
     {
         private static readonly log4net.ILog log = Rainbow.LogConfigurator.GetLogger(typeof(ViewController));
 
-        const string APP_ID = "YOUR_APP_ID";
-        const string APP_SECRET_KEY = "YOUR_SECRET_KEY";
-        const string HOSTNAME = "sandbox.openrainbow.com";
+        internal readonly string APP_ID = "";
+        internal readonly string APP_SECRET_KEY = "";
+        internal readonly string HOST_NAME = "";
 
-        const string LOGIN = "YOUR_LOGIN";
-        const string PASSWORD = "YOUR_PASSWORD";
+        // Login, Password JId Node to connect on server
+        internal readonly string LOGIN = "";
+        internal readonly string PASSWORD = "";
 
         // Define Rainbow objects
         Application rainbowApplication;         // To store Rainbow Application object
@@ -76,7 +77,7 @@ namespace SampleConversation
 
             // Set Application Id, Secret Key and Host Name
             rainbowApplication.SetApplicationInfo(APP_ID, APP_SECRET_KEY);
-            rainbowApplication.SetHostInfo(HOSTNAME);
+            rainbowApplication.SetHostInfo(HOST_NAME);
 
             // Get Rainbow main objects
             rainbowContacts = rainbowApplication.GetContacts();
@@ -86,8 +87,8 @@ namespace SampleConversation
             // Events we want to manage
             rainbowApplication.ConnectionStateChanged += RainbowApplication_ConnectionStateChanged;
 
-            rainbowContacts.ContactAdded += RainbowContacts_ContactAdded;
-            rainbowContacts.ContactRemoved += RainbowContacts_ContactRemoved;
+            rainbowContacts.RosterContactAdded += RainbowContacts_RosterContactAdded;
+            rainbowContacts.RosterContactRemoved += RainbowContacts_RosterContactRemoved;
 
             rainbowConversations.ConversationCreated += RainbowConversations_ConversationCreated;
             rainbowConversations.ConversationRemoved += RainbowConversations_ConversationRemoved;
@@ -710,13 +711,13 @@ namespace SampleConversation
             }
         }
 
-        private void RainbowContacts_ContactRemoved(object sender, Rainbow.Events.JidEventArgs e)
+        private void RainbowContacts_RosterContactRemoved(object sender, Rainbow.Events.JidEventArgs e)
         {
             AddStateLine($"A contact has been removed from your roster - JID:[{e.Jid}]");
             GetAllContacts();
         }
 
-        private void RainbowContacts_ContactAdded(object sender, Rainbow.Events.JidEventArgs e)
+        private void RainbowContacts_RosterContactAdded(object sender, Rainbow.Events.JidEventArgs e)
         {
             AddStateLine($"A new contact has been added to your roster - JID:[{e.Jid}]");
             GetAllContacts();

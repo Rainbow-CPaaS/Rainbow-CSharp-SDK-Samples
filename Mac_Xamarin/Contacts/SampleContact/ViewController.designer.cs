@@ -73,7 +73,7 @@ namespace SampleContact
 		AppKit.NSTextField txt_nickname { get; set; }
 
 		[Outlet]
-		AppKit.NSTextField txt_password { get; set; }
+		AppKit.NSSecureTextField txt_password { get; set; }
 
 		[Outlet]
 		AppKit.NSTextField txt_search { get; set; }
@@ -129,6 +129,11 @@ namespace SampleContact
 				boxContact = null;
 			}
 
+			if (txt_password != null) {
+				txt_password.Dispose ();
+				txt_password = null;
+			}
+
 			if (btnLogin != null) {
 				btnLogin.Dispose ();
 				btnLogin = null;
@@ -144,14 +149,14 @@ namespace SampleContact
 				cbContactsList = null;
 			}
 
-			if (contact_displayname != null) {
-				contact_displayname.Dispose ();
-				contact_displayname = null;
-			}
-
 			if (cbContactsListFound != null) {
 				cbContactsListFound.Dispose ();
 				cbContactsListFound = null;
+			}
+
+			if (contact_displayname != null) {
+				contact_displayname.Dispose ();
+				contact_displayname = null;
 			}
 
 			if (contact_firstname != null) {
@@ -217,11 +222,6 @@ namespace SampleContact
 			if (txt_nickname != null) {
 				txt_nickname.Dispose ();
 				txt_nickname = null;
-			}
-
-			if (txt_password != null) {
-				txt_password.Dispose ();
-				txt_password = null;
 			}
 
 			if (txt_search != null) {

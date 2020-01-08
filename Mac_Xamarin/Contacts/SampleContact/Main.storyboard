@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="15400" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" initialViewController="B8D-0N-5wS">
+<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="15702" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" initialViewController="B8D-0N-5wS">
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="15400"/>
+        <deployment identifier="macosx"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="15702"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
@@ -727,15 +728,6 @@
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
                             </textField>
-                            <textField verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="c69-4G-OOI">
-                                <rect key="frame" x="564" y="560" width="152" height="21"/>
-                                <autoresizingMask key="autoresizingMask"/>
-                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" borderStyle="bezel" drawsBackground="YES" id="z6M-9O-Tru">
-                                    <font key="font" metaFont="system"/>
-                                    <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
-                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
-                                </textFieldCell>
-                            </textField>
                             <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="RFu-YR-Ref">
                                 <rect key="frame" x="562" y="586" width="63" height="16"/>
                                 <autoresizingMask key="autoresizingMask"/>
@@ -1231,6 +1223,21 @@ DQ
                                     <autoresizingMask key="autoresizingMask"/>
                                 </scroller>
                             </scrollView>
+                            <secureTextField verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="D2o-V4-dQf">
+                                <rect key="frame" x="564" y="560" width="152" height="21"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <secureTextFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" borderStyle="bezel" drawsBackground="YES" usesSingleLineMode="YES" id="J5C-bT-vKV">
+                                    <font key="font" metaFont="system"/>
+                                    <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                    <allowedInputSourceLocales>
+                                        <string>NSAllRomanInputSourcesLocaleIdentifier</string>
+                                    </allowedInputSourceLocales>
+                                </secureTextFieldCell>
+                                <connections>
+                                    <action selector="txt_password:" target="XfG-lQ-9wD" id="swA-U4-71A"/>
+                                </connections>
+                            </secureTextField>
                         </subviews>
                     </view>
                     <connections>
@@ -1258,7 +1265,7 @@ DQ
                         <outlet property="txt_lastname" destination="NvM-EV-AlY" id="6WR-gB-MCU"/>
                         <outlet property="txt_login" destination="d2v-AA-d8Z" id="eLe-jR-Ok6"/>
                         <outlet property="txt_nickname" destination="7WW-PN-aCO" id="04x-gC-jJO"/>
-                        <outlet property="txt_password" destination="c69-4G-OOI" id="ei7-kb-amk"/>
+                        <outlet property="txt_password" destination="D2o-V4-dQf" id="u4l-Gn-fav"/>
                         <outlet property="txt_search" destination="qeS-ro-ftB" id="Jde-zv-y17"/>
                         <outlet property="txt_state" destination="qdD-Gb-Jip" id="QgZ-Rx-att"/>
                         <outlet property="txt_title" destination="zvi-tf-oE7" id="bKf-8F-jko"/>

@@ -46,7 +46,7 @@ namespace SampleConversation
 		AppKit.NSTextField txt_login { get; set; }
 
 		[Outlet]
-		AppKit.NSTextField txt_password { get; set; }
+		AppKit.NSSecureTextField txt_password { get; set; }
 
 		[Outlet]
 		AppKit.NSTextView txt_state { get; set; }
@@ -91,14 +91,9 @@ namespace SampleConversation
 				box = null;
 			}
 
-			if (btnConversations_Remove != null) {
-				btnConversations_Remove.Dispose ();
-				btnConversations_Remove = null;
-			}
-
-			if (btnContacts_AddToFav != null) {
-				btnContacts_AddToFav.Dispose ();
-				btnContacts_AddToFav = null;
+			if (txt_password != null) {
+				txt_password.Dispose ();
+				txt_password = null;
 			}
 
 			if (btnContact_AddConv != null) {
@@ -106,9 +101,19 @@ namespace SampleConversation
 				btnContact_AddConv = null;
 			}
 
+			if (btnContacts_AddToFav != null) {
+				btnContacts_AddToFav.Dispose ();
+				btnContacts_AddToFav = null;
+			}
+
 			if (btnConversations_AddToFav != null) {
 				btnConversations_AddToFav.Dispose ();
 				btnConversations_AddToFav = null;
+			}
+
+			if (btnConversations_Remove != null) {
+				btnConversations_Remove.Dispose ();
+				btnConversations_Remove = null;
 			}
 
 			if (btnLogin != null) {

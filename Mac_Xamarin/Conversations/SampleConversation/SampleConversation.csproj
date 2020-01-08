@@ -51,7 +51,7 @@
       <HintPath>..\packages\RestSharp.106.6.10\lib\netstandard2.0\RestSharp.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.IdentityModel.Logging">
-      <HintPath>..\packages\Microsoft.IdentityModel.Logging.5.6.0\lib\netstandard2.0\Microsoft.IdentityModel.Logging.dll</HintPath>
+      <HintPath>..\packages\Microsoft.IdentityModel.Logging.5.4.0\lib\netstandard2.0\Microsoft.IdentityModel.Logging.dll</HintPath>
     </Reference>
     <Reference Include="SuperSocket.ClientEngine">
       <HintPath>..\packages\SuperSocket.ClientEngine.Core.0.10.0\lib\netstandard1.3\SuperSocket.ClientEngine.dll</HintPath>
@@ -60,26 +60,26 @@
       <HintPath>..\packages\log4net.2.0.8\lib\netstandard1.3\log4net.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json">
-      <HintPath>..\packages\Newtonsoft.Json.12.0.2\lib\netstandard2.0\Newtonsoft.Json.dll</HintPath>
+      <HintPath>..\packages\Newtonsoft.Json.10.0.1\lib\netstandard1.3\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.IdentityModel.Tokens">
-      <HintPath>..\packages\Microsoft.IdentityModel.Tokens.5.6.0\lib\netstandard2.0\Microsoft.IdentityModel.Tokens.dll</HintPath>
+      <HintPath>..\packages\Microsoft.IdentityModel.Tokens.5.4.0\lib\netstandard2.0\Microsoft.IdentityModel.Tokens.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.IdentityModel.JsonWebTokens">
-      <HintPath>..\packages\Microsoft.IdentityModel.JsonWebTokens.5.6.0\lib\netstandard2.0\Microsoft.IdentityModel.JsonWebTokens.dll</HintPath>
+      <HintPath>..\packages\Microsoft.IdentityModel.JsonWebTokens.5.4.0\lib\netstandard2.0\Microsoft.IdentityModel.JsonWebTokens.dll</HintPath>
     </Reference>
     <Reference Include="System.IdentityModel.Tokens.Jwt">
-      <HintPath>..\packages\System.IdentityModel.Tokens.Jwt.5.6.0\lib\netstandard2.0\System.IdentityModel.Tokens.Jwt.dll</HintPath>
+      <HintPath>..\packages\System.IdentityModel.Tokens.Jwt.5.4.0\lib\netstandard2.0\System.IdentityModel.Tokens.Jwt.dll</HintPath>
     </Reference>
     <Reference Include="WebSocket4Net">
       <HintPath>..\packages\WebSocket4Net.0.15.2\lib\netstandard1.3\WebSocket4Net.dll</HintPath>
     </Reference>
     <Reference Include="Sharp.Ws.Xmpp">
-      <HintPath>..\packages\Sharp.Ws.Xmpp.1.3.0\lib\netstandard2.0\Sharp.Ws.Xmpp.dll</HintPath>
+      <HintPath>..\packages\Sharp.Ws.Xmpp.1.5.0\lib\netstandard2.0\Sharp.Ws.Xmpp.dll</HintPath>
     </Reference>
     <Reference Include="System.Xml" />
     <Reference Include="Rainbow.CSharp.SDK">
-      <HintPath>..\packages\Rainbow.CSharp.SDK.1.3.0\lib\netstandard2.0\Rainbow.CSharp.SDK.dll</HintPath>
+      <HintPath>..\packages\Rainbow.CSharp.SDK.1.5.0\lib\netstandard2.0\Rainbow.CSharp.SDK.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
