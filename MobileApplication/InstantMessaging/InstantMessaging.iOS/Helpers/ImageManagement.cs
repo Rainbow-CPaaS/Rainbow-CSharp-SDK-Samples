@@ -25,16 +25,18 @@ namespace InstantMessaging.iOS.Helpers
 
                     using (CGContext context = UIGraphics.GetCurrentContext())
                     {
+                        context.TranslateCTM(0, dst.Height);
+                        context.ScaleCTM(1, -1);
+
                         context.DrawImage(new CGRect(0, 0, dst.Width, dst.Height), dst);
                         context.DrawImage(new CGRect(xDest, yDest, src.Width, src.Height), src);
-                        var resultImage = UIGraphics.GetImageFromCurrentImageContext();
 
-                        NSData data = resultImage.AsJPEG();
+                        var resultImage = UIGraphics.GetImageFromCurrentImageContext();
+                        UIGraphics.EndImageContext();
+
+                        NSData data = resultImage.AsPNG();
                         msDst = data.AsStream();
-                        msDst.Seek(0, SeekOrigin.Begin);
                     }
-                    UIGraphics.EndImageContext();
-                }
             }
 
             return msDst;
