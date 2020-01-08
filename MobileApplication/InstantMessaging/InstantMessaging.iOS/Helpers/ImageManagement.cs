@@ -48,35 +48,31 @@ namespace InstantMessaging.iOS.Helpers
         public Stream GetArcPartFromSquareImage(Stream ms, int partNumber, int nbParts)
         {
             Stream result = null;
-
-            int diameter;
-            float arcAngle;
-            float arcStart;
-            float startX;
-            float startY;
-            Stream temp;
+            int diameter = 0;
 
             using (UIImage image = UIImage.LoadFromData(NSData.FromStream(ms)))
             {
                 diameter = (int)image.Size.Width;
-
-                arcAngle = 360 / nbParts;
-                arcStart = 90 + (partNumber - 1) * arcAngle;
-                if (nbParts > 2)
-                    arcStart += (180 / nbParts);
-
-                float deltaX = (float)(diameter / 2 - ((diameter * Math.Cos(DegreeToRadian(arcStart + arcAngle / 2)) + diameter) / 2)) / 2;
-                float deltaY = (float)(diameter / 2 + ((diameter * Math.Sin(DegreeToRadian(arcStart + arcAngle / 2)) + diameter) / 2)) / 2;
-
-                startX = (float)((diameter * Math.Cos(DegreeToRadian(arcStart)) + diameter) / 2);
-                startY = (float)((diameter * Math.Sin(DegreeToRadian(arcStart)) + diameter) / 2);
-
-                temp = GetTranslated(image.AsJPEG().AsStream(), -deltaX, deltaY / 2);
             }
 
-            using (UIImage image = UIImage.LoadFromData(NSData.FromStream(temp)))
+            float arcAngle = 360 / nbParts;
+            float arcStart = 90 + (partNumber - 1) * arcAngle;
+            if (nbParts > 2)
+                arcStart += (180 / nbParts);
+
+            float x = (float)(diameter / 2 - ((diameter * Math.Cos(DegreeToRadian(arcStart + arcAngle / 2)) + diameter) / 2)) / 2;
+            float y = (float)(diameter / 2 - ((diameter * Math.Sin(DegreeToRadian(arcStart + arcAngle / 2)) + diameter) / 2)) / 2;
+
+            float startX = (float)((diameter * Math.Cos(DegreeToRadian(arcStart)) + diameter) / 2);
+            float startY = (float)((diameter * Math.Sin(DegreeToRadian(arcStart)) + diameter) / 2);
+
+            ms.Seek(0, SeekOrigin.Begin);
+
+            Stream moved = GetTranslated(ms, -x, y);
+
+            using (UIImage temp = UIImage.LoadFromData(NSData.FromStream(moved)))
             {
-                UIGraphics.BeginImageContext(new SizeF(image.CGImage.Width, image.CGImage.Height));
+                UIGraphics.BeginImageContext(new SizeF(temp.CGImage.Width, temp.CGImage.Height));
 
                 using (UIBezierPath path = new UIBezierPath())
                 {
@@ -86,14 +82,14 @@ namespace InstantMessaging.iOS.Helpers
                     path.AddLineTo(new CGPoint(diameter / 2, diameter / 2));
 
                     path.AddClip();
-                    image.Draw(new Rectangle(0, 0, (int)image.CGImage.Width, (int)image.CGImage.Height));
+                    temp.Draw(new Rectangle(0, 0, (int)temp.CGImage.Width, (int)temp.CGImage.Height));
 
+                    var resultImage = UIGraphics.GetImageFromCurrentImageContext();
+                    UIGraphics.EndImageContext();
+
+                    NSData data = resultImage.AsPNG();
+                    result = data.AsStream();
                 }
-                var resultImage = UIGraphics.GetImageFromCurrentImageContext();
-                UIGraphics.EndImageContext();
-
-                NSData data = resultImage.AsPNG();
-                result = data.AsStream();
             }
 
             return result;
