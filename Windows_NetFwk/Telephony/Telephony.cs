@@ -817,7 +817,7 @@ namespace Sample_Telephony
             else if (rbCallFwdToPhoneNumber.Checked)
             {
                 String phoneNumber = tbCallFwdPhoneNumber.Text;
-                rainbowTelephony.ActivateCallForwardOnPhoneNumner(phoneNumber, callback =>
+                rainbowTelephony.ActivateCallForwardOnPhoneNumber(phoneNumber, callback =>
                 {
                     if (callback.Result.Success)
                     {
