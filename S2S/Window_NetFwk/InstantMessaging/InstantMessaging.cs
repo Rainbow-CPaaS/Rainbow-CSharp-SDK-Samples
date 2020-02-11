@@ -21,18 +21,12 @@ namespace Sample_InstantMessaging
         private static readonly ILog log = LogConfigurator.GetLogger(typeof(SampleInstantMessagingForm));
 
         //Define Rainbow Application Id, Secret Key and Host Name
-        //const string APP_ID = "YOUR APP ID";
-        //const string APP_SECRET_KEY = "YOUR SECRET KEY";
-        //const string HOST_NAME = "sandbox.openrainbow.com";
+        const string APP_ID = "YOUR APP ID";
+        const string APP_SECRET_KEY = "YOUR SECRET KEY";
+        const string HOST_NAME = "sandbox.openrainbow.com";
 
-        //const string LOGIN_USER1 = "YOUR LOGIN";
-        //const string PASSWORD_USER1 = "YOUR PASSWORD";
-        const string APP_ID = "6f8c5910725b11e9b55c81be00bebc2c";
-        const string APP_SECRET_KEY = "qSmr71s7idLiKRmhXGNNIOpPJynliqrS2sHKy3Wzk6ytauRSP13qebuJQmRHGwTN";
-        const string HOST_NAME = "openrainbow.net";
-
-        const string LOGIN_USER1 = "irlesuser1@sophia.com";
-        const string PASSWORD_USER1 = "Rainbow1!";
+        const string LOGIN_USER1 = "YOUR LOGIN";
+        const string PASSWORD_USER1 = "YOUR PASSWORD";
 
 
         // Define Rainbow objects
