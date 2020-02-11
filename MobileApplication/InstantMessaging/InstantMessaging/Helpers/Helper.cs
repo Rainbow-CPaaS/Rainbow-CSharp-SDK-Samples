@@ -133,7 +133,12 @@ namespace InstantMessaging.Helpers
             if (presence != null)
             {
                 if (presence.PresenceLevel == Rainbow.Model.PresenceLevel.Online)
-                    presenceSource = "presence_online.png";
+                {
+                    if(presence.Resource.StartsWith("mobile"))
+                        presenceSource = "presence_online_mobile.png";
+                    else
+                        presenceSource = "presence_online.png";
+                }
                 else if (presence.PresenceLevel == Rainbow.Model.PresenceLevel.Offline)
                     presenceSource = "presence_offline.png";
                 else if (presence.PresenceLevel == Rainbow.Model.PresenceLevel.Away)
@@ -178,7 +183,7 @@ namespace InstantMessaging.Helpers
                         conversation.Topic = "";
                         conversation.Jid = contact.Jid_im;
 
-                        Presence presence = XamarinApplication.RbContacts.GetPresenceFromContactId(rbConversation.PeerId);
+                        Presence presence = XamarinApplication.RbContacts.GetAggregatedPresenceFromContactId(rbConversation.PeerId);
                         conversation.PresenceSource = InstantMessaging.Helpers.Helper.GetPresenceSourceFromPresence(presence);
 
                     }
