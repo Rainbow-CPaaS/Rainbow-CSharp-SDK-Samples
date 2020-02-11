@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -409,7 +409,7 @@ namespace Sample_Contacts
                 if(contactId != null)
                 {
                     // Get and display contact presence
-                    Presence presence = rainbowContacts.GetPresenceFromContactId(contactId);
+                    Presence presence = rainbowContacts.GetAggregatedPresenceFromContactId(contactId);
                     if (presence == null) // It means this user is offline
                         presence = new Presence(PresenceLevel.Offline, "");
                     tbContactPresence.Text = Util.SerializePresence(presence);
@@ -436,11 +436,17 @@ namespace Sample_Contacts
             }
             else if (e.State == Rainbow.Model.ConnectionState.Disconnected)
             {
-                rainbowContactsList.Clear();
-                UpdateContactsListComboBox();
+                if (rainbowContactsList != null)
+                {
+                    rainbowContactsList.Clear();
+                    UpdateContactsListComboBox();
+                }
 
-                rainbowConversationsList.Clear();
-                UpdateConversationsListComboBox();
+                if (rainbowConversationsList != null)
+                {
+                    rainbowConversationsList.Clear();
+                    UpdateConversationsListComboBox();
+                }
             }
         }
 
@@ -604,7 +610,11 @@ namespace Sample_Contacts
                     }
                 }
 
-                string msg = $"[{SerializeDateTime(e.Message.Date)}] [{contactDisplayName}]: [{e.Message.Content}]";
+                string msg;
+                if (e.CarbonCopy)
+                    msg = $"[{SerializeDateTime(e.Message.Date)}] [YOU]: [{e.Message.Content}]";
+                else
+                    msg = $"[{SerializeDateTime(e.Message.Date)}] [{contactDisplayName}]: [{e.Message.Content}]";
                 if (concernCurrentSelection)
                 {
                     AddMessageInStream(msg);
@@ -745,9 +755,6 @@ namespace Sample_Contacts
                         if (callback.Result.Success)
                         {
                             AddStateLine($"Message sent successfully to contact [{idSelected}]");
-
-                            string msg = $"[{SerializeDateTime(DateTime.Now)}] [YOU]: [{textToSend}]";
-                            AddMessageInStream(msg);
                         }
                         else
                         {
@@ -759,14 +766,11 @@ namespace Sample_Contacts
                 }
                 else
                 {
-                    rainbowInstantMessaging.SendMessageToConversationId(idSelected, textToSend, callback =>
+                    rainbowInstantMessaging.SendMessageToConversationId(idSelected, textToSend, null, callback =>
                     {
                         if (callback.Result.Success)
                         {
                             AddStateLine($"Message sent successfully to conversation [{idSelected}]");
-
-                            string msg = $"[{SerializeDateTime(DateTime.Now)}] [YOU]: [{textToSend}]";
-                            AddMessageInStream(msg);
                         }
                         else
                         {
