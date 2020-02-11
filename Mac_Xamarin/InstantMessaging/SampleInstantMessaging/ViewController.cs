@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using AppKit;
@@ -220,9 +220,6 @@ namespace SampleInstantMessaging
                         if (callback.Result.Success)
                         {
                             AddStateLine($"Message sent successfully to contact [{idSelected}]");
-
-                            string msg = $"[{SerializeDateTime(DateTime.Now)}] [YOU]: [{textToSend}]";
-                            AddMessageInStream(msg);
                         }
                         else
                         {
@@ -239,9 +236,6 @@ namespace SampleInstantMessaging
                         if (callback.Result.Success)
                         {
                             AddStateLine($"Message sent successfully to conversation [{idSelected}]");
-
-                            string msg = $"[{SerializeDateTime(DateTime.Now)}] [YOU]: [{textToSend}]";
-                            AddMessageInStream(msg);
                         }
                         else
                         {
@@ -694,7 +688,7 @@ namespace SampleInstantMessaging
                 if (contactId != null)
                 {
                     // Get and display contact presence
-                    Presence presence = rainbowContacts.GetPresenceFromContactId(contactId);
+                    Presence presence = rainbowContacts.GetAggregatedPresenceFromContactId(contactId);
                     if (presence == null) // It means the contact is offline
                         presence = new Presence(PresenceLevel.Offline, "");
                     txtContactPresence.StringValue = Util.SerializePresence(presence);
@@ -804,11 +798,17 @@ namespace SampleInstantMessaging
                     boxMessages.Hidden = true;
                 });
 
-                rainbowContactsList.Clear();
-                UpdateContactsCombobox();
+                if (rainbowContactsList != null)
+                {
+                    rainbowContactsList.Clear();
+                    UpdateContactsListComboBox();
+                }
 
-                rainbowConvList.Clear();
-                UpdateConversationsCombobox();
+                if (rainbowConversationsList != null)
+                {
+                    rainbowConversationsList.Clear();
+                    UpdateConversationsListComboBox();
+                }
             }
         }
 
@@ -965,7 +965,11 @@ namespace SampleInstantMessaging
                     }
                 }
 
-                string msg = $"[{SerializeDateTime(e.Message.Date)}] [{contactDisplayName}]: [{e.Message.Content}]";
+                string msg;
+                if (e.CarbonCopy)
+                    msg = $"[{SerializeDateTime(e.Message.Date)}] [YOU]: [{e.Message.Content}]";
+                else
+                    msg = $"[{SerializeDateTime(e.Message.Date)}] [{contactDisplayName}]: [{e.Message.Content}]";
 
                 if(concernCurrentSelection)
                 {
