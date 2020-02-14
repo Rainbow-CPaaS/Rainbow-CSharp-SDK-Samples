@@ -155,7 +155,7 @@ namespace InstantMessaging
 
         public void SendMessage(String content)
         {
-            XamarinApplication.RbInstantMessaging.SendMessageToConversationId(this.conversationId, content);
+            XamarinApplication.RbInstantMessaging.SendMessageToConversationId(this.conversationId, content, null);
             SetIsTyping(false);
         }
 

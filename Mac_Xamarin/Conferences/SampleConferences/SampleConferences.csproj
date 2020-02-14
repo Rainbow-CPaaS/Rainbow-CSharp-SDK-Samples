@@ -56,7 +56,7 @@
       <HintPath>..\packages\WebSocket4Net.0.15.2\lib\netstandard1.3\WebSocket4Net.dll</HintPath>
     </Reference>
     <Reference Include="Sharp.Ws.Xmpp">
-      <HintPath>..\packages\Sharp.Ws.Xmpp.1.6.1\lib\netstandard2.0\Sharp.Ws.Xmpp.dll</HintPath>
+      <HintPath>..\packages\Sharp.Ws.Xmpp.1.7.0\lib\netstandard2.0\Sharp.Ws.Xmpp.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="RestSharp">
@@ -78,7 +78,7 @@
       <HintPath>..\packages\System.IdentityModel.Tokens.Jwt.5.4.0\lib\netstandard2.0\System.IdentityModel.Tokens.Jwt.dll</HintPath>
     </Reference>
     <Reference Include="Rainbow.CSharp.SDK">
-      <HintPath>..\packages\Rainbow.CSharp.SDK.1.6.1\lib\netstandard2.0\Rainbow.CSharp.SDK.dll</HintPath>
+      <HintPath>..\packages\Rainbow.CSharp.SDK.1.7.0\lib\netstandard2.0\Rainbow.CSharp.SDK.dll</HintPath>
     </Reference>
     <Reference Include="System.Xml" />
   </ItemGroup>

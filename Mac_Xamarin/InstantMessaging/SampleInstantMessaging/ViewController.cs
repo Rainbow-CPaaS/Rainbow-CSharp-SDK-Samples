@@ -231,7 +231,7 @@ namespace SampleInstantMessaging
                 }
                 else
                 {
-                    rainbowInstantMessaging.SendMessageToConversationId(idSelected, textToSend, callback =>
+                    rainbowInstantMessaging.SendMessageToConversationId(idSelected, textToSend, null, callback =>
                     {
                         if (callback.Result.Success)
                         {
