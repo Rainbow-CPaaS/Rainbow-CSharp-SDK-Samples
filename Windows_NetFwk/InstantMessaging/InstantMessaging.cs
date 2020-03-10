@@ -36,6 +36,8 @@ namespace Sample_Contacts
         List<Contact> rainbowContactsList;          // To store contacts list of my roster
         List<Conversation> rainbowConversationsList;// To store conversations list
 
+        IniFileParser rainbowIniFileParser;         // To get access to Rainbow IniFile Parser
+
         // Facilitator objects for this sample
         bool contactSelected = false;
         String idSelected = null;
@@ -94,6 +96,30 @@ namespace Sample_Contacts
             rainbowInstantMessaging.UserTypingChanged += RainbowInstantMessaging_UserTypingChanged;
 
             rainbowContactsList = new List<Contact>();
+
+
+            // Get Login/password used successfully in last connexion
+            String login = rainbowApplication.GetUserLoginFromCache();
+            if (!String.IsNullOrEmpty(login))
+                tbLogin.Text = login;
+
+            String pwd = rainbowApplication.GetUserPasswordFromCache();
+            if (!String.IsNullOrEmpty(pwd))
+                tbPassword.Text = pwd;
+
+            // Get INI File Parser
+            rainbowIniFileParser = rainbowApplication.GetIniFileParser();
+
+            // Get AutoLogon settings and launch login process automatically if set
+            String autoLogon = rainbowIniFileParser.GetValue("AutoLogon", "Settings", "false");
+            if(autoLogon != "true")
+                cbAutoLogon.Checked = false;
+            else
+            {
+                cbAutoLogon.Checked = true;
+
+                btnLoginLogout_Click(null, null);
+            }
         }
 
  
@@ -623,11 +649,26 @@ namespace Sample_Contacts
                 else
                     AddStateLine($"Message received in another conversation - {msg}");
             }
+            else
+            {
+                String msg = $"[{SerializeDateTime(e.Message.Date)}] [{e.Message.FromJid}]: [{e.Message.Content}]";
+                AddStateLine($"Message received in another conversation - {msg}");
+            }
         }
 
     #endregion EVENTS FIRED BY RAINBOW SDK
 
     #region EVENTS FIRED BY SampleContactForm ELEMENTS
+
+        private void cbAutoLogon_CheckedChanged(object sender, EventArgs e)
+        {
+            if(cbAutoLogon.Checked)
+                rainbowIniFileParser.WriteValue("AutoLogon", "Settings", "true");
+            else
+                rainbowIniFileParser.WriteValue("AutoLogon", "Settings", "false");
+
+            rainbowIniFileParser.Save();
+        }
 
         private void btnLoginLogout_Click(object sender, EventArgs e)
         {
@@ -1019,8 +1060,9 @@ namespace Sample_Contacts
                         .ToString("yyyy-MM-ddTHH:mm:ssZ");
         }
 
-    #endregion UTIL METHODS
 
-    
+        #endregion UTIL METHODS
+
+
     }
 }

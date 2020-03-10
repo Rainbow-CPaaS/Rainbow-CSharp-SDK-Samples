@@ -51,6 +51,7 @@
             this.tbContactPresence = new System.Windows.Forms.TextBox();
             this.label7 = new System.Windows.Forms.Label();
             this.cbPresenceList = new System.Windows.Forms.ComboBox();
+            this.cbAutoLogon = new System.Windows.Forms.CheckBox();
             this.SuspendLayout();
             // 
             // label21
@@ -88,7 +89,7 @@
             // 
             // btnLoginLogout
             // 
-            this.btnLoginLogout.Location = new System.Drawing.Point(666, 87);
+            this.btnLoginLogout.Location = new System.Drawing.Point(713, 87);
             this.btnLoginLogout.Name = "btnLoginLogout";
             this.btnLoginLogout.Size = new System.Drawing.Size(75, 23);
             this.btnLoginLogout.TabIndex = 51;
@@ -265,11 +266,23 @@
             this.cbPresenceList.TabIndex = 72;
             this.cbPresenceList.SelectedIndexChanged += new System.EventHandler(this.cbPresenceList_SelectedIndexChanged);
             // 
+            // cbAutoLogon
+            // 
+            this.cbAutoLogon.AutoSize = true;
+            this.cbAutoLogon.Location = new System.Drawing.Point(631, 91);
+            this.cbAutoLogon.Name = "cbAutoLogon";
+            this.cbAutoLogon.Size = new System.Drawing.Size(76, 17);
+            this.cbAutoLogon.TabIndex = 73;
+            this.cbAutoLogon.Text = "auto-logon";
+            this.cbAutoLogon.UseVisualStyleBackColor = true;
+            this.cbAutoLogon.CheckedChanged += new System.EventHandler(this.cbAutoLogon_CheckedChanged);
+            // 
             // SampleInstantMessagingForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 584);
+            this.Controls.Add(this.cbAutoLogon);
             this.Controls.Add(this.cbPresenceList);
             this.Controls.Add(this.label7);
             this.Controls.Add(this.tbContactPresence);
@@ -327,6 +340,7 @@
         private System.Windows.Forms.TextBox tbContactPresence;
         private System.Windows.Forms.Label label7;
         private System.Windows.Forms.ComboBox cbPresenceList;
+        private System.Windows.Forms.CheckBox cbAutoLogon;
     }
 }
 
