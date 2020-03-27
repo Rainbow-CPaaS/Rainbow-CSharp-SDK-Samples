@@ -1,0 +1,61 @@
+<Window x:Class="InstantMessaging.View.LoginView"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:local="clr-namespace:InstantMessaging.View"
+      xmlns:vm="clr-namespace:InstantMessaging.ViewModel"
+      xmlns:helpersUI="clr-namespace:InstantMessaging.HelpersUI"
+      mc:Ignorable="d" 
+      d:DesignHeight="524" d:DesignWidth="416"
+      Title="Rainbow"
+      Height="524"
+      Width="416">
+    
+    <Window.DataContext>
+        <vm:LoginViewModel/>
+    </Window.DataContext>
+    
+    <StackPanel Orientation="Vertical" 
+                HorizontalAlignment="Center" 
+                VerticalAlignment="Stretch">
+
+        <Image x:Name="ImageLogo"
+               Margin="30, 30, 30, 30"
+               Width="120" 
+               Height="120" 
+               HorizontalAlignment="Center" 
+               VerticalAlignment="Top" 
+               Stretch="UniformToFill"
+               Source="{Binding Logo}"/>
+
+        <TextBox x:Name="EntryLogin"
+                 Margin="30, 30, 30, 30"
+                 FontSize="15"
+                 Width="300"
+                 HorizontalAlignment="Center"
+                 Text="{Binding Login}"
+                 IsEnabled="{Binding IsNotBusy}" />
+
+        <PasswordBox x:Name="EntryPassword"
+                     PasswordChar="*"
+                     Margin="30, 30, 30, 30"
+                     FontSize="15"
+                     Width="300"
+                     HorizontalAlignment="Center" 
+                     IsEnabled="{Binding IsNotBusy}" 
+                     helpersUI:PasswordBoxAssistant.BindPassword="true"  helpersUI:PasswordBoxAssistant.BoundPassword="{Binding Path=Password, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                     />
+
+        <Button x:Name="ButtonLogin"
+                Content="{Binding Connect}"
+                Margin="30, 30, 30, 30"
+                Width="260"
+                FontSize="15"
+                FontWeight="Bold"
+                HorizontalAlignment="Center"
+                Command="{Binding ButtonLoginCommand}"
+                IsEnabled="{Binding IsNotBusy}" />
+
+    </StackPanel>
+</Window>
