@@ -5,13 +5,14 @@ namespace InstantMessaging.HelpersUI
 {
     public static class PasswordBoxAssistant
     {
-        public static readonly DependencyProperty BoundPassword = DependencyProperty.RegisterAttached("BoundPassword", typeof(string), typeof(PasswordBoxAssistant), new PropertyMetadata(string.Empty, OnBoundPasswordChanged));
+        public static readonly DependencyProperty BoundPassword = DependencyProperty.RegisterAttached(
+            "BoundPassword", typeof(string), typeof(PasswordBoxAssistant), new PropertyMetadata(string.Empty, OnBoundPasswordChanged));
 
         public static readonly DependencyProperty BindPassword = DependencyProperty.RegisterAttached(
             "BindPassword", typeof(bool), typeof(PasswordBoxAssistant), new PropertyMetadata(false, OnBindPasswordChanged));
 
-        private static readonly DependencyProperty UpdatingPassword =
-            DependencyProperty.RegisterAttached("UpdatingPassword", typeof(bool), typeof(PasswordBoxAssistant), new PropertyMetadata(false));
+        private static readonly DependencyProperty UpdatingPassword = DependencyProperty.RegisterAttached(
+            "UpdatingPassword", typeof(bool), typeof(PasswordBoxAssistant), new PropertyMetadata(false));
 
         private static void OnBoundPasswordChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
@@ -69,8 +70,11 @@ namespace InstantMessaging.HelpersUI
 
             // set a flag to indicate that we're updating the password
             SetUpdatingPassword(box, true);
+            
             // push the new password into the BoundPassword property
             SetBoundPassword(box, box.Password);
+
+            // set a flag to indicate that we're NO MORE updating the password
             SetUpdatingPassword(box, false);
         }
 

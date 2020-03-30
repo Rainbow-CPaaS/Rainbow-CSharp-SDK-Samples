@@ -44,7 +44,8 @@
                      Width="300"
                      HorizontalAlignment="Center" 
                      IsEnabled="{Binding IsNotBusy}" 
-                     helpersUI:PasswordBoxAssistant.BindPassword="true"  helpersUI:PasswordBoxAssistant.BoundPassword="{Binding Path=Password, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                     helpersUI:PasswordBoxAssistant.BindPassword="true"
+                     helpersUI:PasswordBoxAssistant.BoundPassword="{Binding Path=Password, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                      />
 
         <Button x:Name="ButtonLogin"
