@@ -104,6 +104,8 @@ namespace InstantMessaging.ViewModel
 
         public void LoginCommand(object obj)
         {
+            if (IsBusy)
+                return;
             if (model != null)
                 model.RBLogin(m_login, m_password);
             else

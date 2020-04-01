@@ -71,24 +71,29 @@ namespace InstantMessaging.Model
 
         public void RBLogin(String login, String password)
         {
-            if (currentApplication.RbApplication.ConnectionState() == ConnectionState.Disconnected)
+            Task task = new Task(() =>
             {
-                /*
-                IPEndPoint ipEndPoint;
-                var addresses = Dns.GetHostAddresses(currentApplication.HOST_NAME);
-                ipEndPoint = new IPEndPoint(addresses[0], 0);
-                currentApplication.RbApplication.SetIpEndPoint(ipEndPoint);
-                */
-
+                // We set to Busy
                 IsNotBusy = false;
 
-                currentApplication.RbApplication.Login(login, password, callback =>
+                if (currentApplication.RbApplication.ConnectionState() == ConnectionState.Disconnected)
                 {
-                    //TODO - manage error
-                });
-            }
-            else
-                currentApplication.RbApplication.Logout();
+                    /*
+                    IPEndPoint ipEndPoint;
+                    var addresses = Dns.GetHostAddresses(currentApplication.HOST_NAME);
+                    ipEndPoint = new IPEndPoint(addresses[0], 0);
+                    currentApplication.RbApplication.SetIpEndPoint(ipEndPoint);
+                    */
+
+                    currentApplication.RbApplication.Login(login, password, callback =>
+                    {
+                        //TODO - manage error
+                    });
+                }
+                else
+                    currentApplication.RbApplication.Logout();
+            });
+            task.Start();
         }
 #endregion PUBLIC METHODS
 

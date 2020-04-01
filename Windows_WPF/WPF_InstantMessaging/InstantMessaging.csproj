@@ -10,15 +10,24 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\avatar1.jpg" />
+    <None Remove="Resources\avatar2.jpg" />
+    <None Remove="Resources\avatar3.jpg" />
+    <None Remove="Resources\avatar4.jpg" />
     <None Remove="Resources\log4netConfiguration.xml" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="MaterialDesignThemes" Version="3.0.1" />
     <PackageReference Include="Rainbow.CSharp.SDK" Version="1.9.0" />
     <PackageReference Include="System.Drawing.Common" Version="4.7.0" />
   </ItemGroup>
   
   <ItemGroup>
+    <Resource Include="Resources\avatar1.jpg" />
+    <Resource Include="Resources\avatar2.jpg" />
+    <Resource Include="Resources\avatar3.jpg" />
+    <Resource Include="Resources\avatar4.jpg" />
     <Resource Include="Resources\icon.png" />
     <Resource Include="Resources\icon_32x32.png" />
     <Resource Include="Resources\icon_doc_blue.png" />

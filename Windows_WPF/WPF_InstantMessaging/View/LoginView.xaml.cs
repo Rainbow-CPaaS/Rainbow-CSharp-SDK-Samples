@@ -15,7 +15,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 
 using InstantMessaging.Helpers;
-using InstantMessaging.Model;
+using InstantMessaging.ViewModel;
 
 using Rainbow;
 using Rainbow.Model;
@@ -37,6 +37,8 @@ namespace InstantMessaging.View
 
             // Define the Icon of the Window
             this.Icon = Helper.GetBitmapFrameFromResource("icon_32x32.png");
+
+            DataContext = new LoginViewModel();
         }
     }
 }

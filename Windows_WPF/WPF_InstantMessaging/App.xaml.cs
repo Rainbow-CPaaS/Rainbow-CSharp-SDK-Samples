@@ -39,8 +39,9 @@ namespace InstantMessaging
 
         // Define global windows
         internal LoginView LoginWindow = null;
-        internal Window ApplicationMainWindow = null;
+        internal MainView ApplicationMainWindow = null;
 
+        #region EVENTS/OVERRIDE OF APPLICATION OBJECT
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
@@ -68,7 +69,9 @@ namespace InstantMessaging
             LoginWindow = new LoginView();
             LoginWindow.Show();
         }
+        #endregion EVENTS/OVERRIDE OF APPLICATION OBJECT
 
+        #region INIT METHODS - Logs / Avatar / FilePool
         private void InitLogs()
         {
             String logFileName = LogfileName; // File name of the log file
@@ -143,7 +146,9 @@ namespace InstantMessaging
             filePool.AllowAutomaticThumbnailDownload = true;
             filePool.AutomaticDownloadLimitSizeForImages = 250 * 1024; // 250 Ko
         }
-    
+        #endregion INIT METHODS - Logs / Avatar / FilePool
+
+        #region UI APPLICATION METHODS
         internal void HideLoginWindow()
         {
             if (LoginWindow != null)
@@ -160,22 +165,46 @@ namespace InstantMessaging
 
         internal void ShowApplicationMainWindow()
         {
-            if (ApplicationMainWindow == null)
-            {
-                // TODO
-                // Need to create it ...
-            }
+            App currentApplication = (App)System.Windows.Application.Current;
 
-            if (ApplicationMainWindow != null)
+            // Does the ApplicationMainWindow has been already created ?
+            if (currentApplication.ApplicationMainWindow == null) 
             {
                 // Need to be on UI Thread
-                ApplicationMainWindow.Dispatcher.Invoke(new Action(() =>
+                currentApplication.LoginWindow.Dispatcher.Invoke(new Action(() =>
                 {
-                    ApplicationMainWindow.Show();
+                    currentApplication.ApplicationMainWindow = new MainView();
+                    currentApplication.ApplicationMainWindow.Show();
                 }));
             }
+            // Does the ApplicationMainWindow has been already created BUT has beend previoulsy closed ?
+            //else if (!currentApplication.ApplicationMainWindow.IsLoaded)
+            //{
+            //    // Need to be on UI Thread
+            //    currentApplication.LoginWindow.Dispatcher.Invoke(new Action(() =>
+            //    {
+            //        currentApplication.ApplicationMainWindow = null;
+            //        currentApplication.ApplicationMainWindow = new MainView();
+            //        currentApplication.ApplicationMainWindow.Show();
+            //    }));
+            //}
+            // The ApplicationMainWindow exists and just need to be displayd in foreground
             else
-                log.ErrorFormat("[ShowMainWindow] MainWindow is null !");
+            {
+                // Need to be on UI Thread
+                currentApplication.ApplicationMainWindow.Dispatcher.Invoke(new Action(() =>
+                {
+                    if (currentApplication.ApplicationMainWindow.IsVisible)
+                    {
+                        if (currentApplication.ApplicationMainWindow.WindowState == WindowState.Minimized)
+                            currentApplication.ApplicationMainWindow.WindowState = WindowState.Normal;
+                        currentApplication.ApplicationMainWindow.Activate();
+                    }
+                    else
+                        currentApplication.ApplicationMainWindow.Show();
+                }));
+            }
         }
+        #endregion UI APPLICATION METHODS
     }
 }

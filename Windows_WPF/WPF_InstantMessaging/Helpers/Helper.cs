@@ -219,7 +219,6 @@ namespace InstantMessaging.Helpers
             return presenceSource;
         }
 
-        /*
         public static ConversationLight GetConversationFromRBConversation(Rainbow.Model.Conversation rbConversation)
         {
             ConversationLight conversation = null;
@@ -271,7 +270,6 @@ namespace InstantMessaging.Helpers
 
                 conversation.Type = rbConversation.Type;
                 conversation.NbMsgUnread = rbConversation.UnreadMessageNumber;
-                conversation.NbMsgUnreadIsVisible = (conversation.NbMsgUnread > 0) ? "True" : "False";
 
                 conversation.LastMessage = rbConversation.LastMessageText;
                 conversation.LastMessageDateTime = rbConversation.LastMessageDate;
@@ -280,7 +278,7 @@ namespace InstantMessaging.Helpers
                 conversation.MessageTimeDisplay = Helpers.Helper.HumanizeDateTime(conversation.LastMessageDateTime);
             }
             return conversation;
-        }*/
+        }
 
         public static String GetBubbleEventMessageBody(Contact contact, String bubbleEvent)
         {
@@ -312,20 +310,18 @@ namespace InstantMessaging.Helpers
             return result;
         }
 
-#region AVATAR - IMAGE SOURCE
+#region AVATAR - IMAGES MANAGEMENT
 
-        public static Image ImageFromFile(String filePath)
+        public static BitmapImage BitmapImageFromFile(String filePath)
         {
-            Image result = null;
+            BitmapImage result = null;
             try
             {
-                result = new Image();
-                BitmapImage bi = new BitmapImage();
-                bi.BeginInit();
-                bi.UriSource = new Uri(filePath, UriKind.RelativeOrAbsolute);
-                bi.EndInit();
-                result.Stretch = Stretch.Fill;
-                result.Source = bi;
+                result = new BitmapImage();
+                result.BeginInit();
+                result.UriSource = new Uri(filePath, UriKind.RelativeOrAbsolute);
+                result.EndInit();
+                return result;
             }
             catch (Exception exc)
             {
@@ -334,9 +330,9 @@ namespace InstantMessaging.Helpers
             return result;
         }
 
-        public static Image GetBubbleAvatarImageSource(String bubbleId)
+        public static BitmapImage GetBubbleAvatarImageSource(String bubbleId)
         {
-            Image result = null;
+            BitmapImage result = null;
             if (!String.IsNullOrEmpty(bubbleId))
             {
                 String filePath = null;
@@ -353,7 +349,7 @@ namespace InstantMessaging.Helpers
                 {
                     if (File.Exists(filePath))
                     {
-                        result = ImageFromFile(filePath);
+                        result = BitmapImageFromFile(filePath);
                     }
                     //else
                     //    log.WarnFormat("[SetConversationAvatar] - file not found - filePath:[{0}] - PeerId:[{1}]", filePath, conversation.PeerId);
@@ -362,9 +358,9 @@ namespace InstantMessaging.Helpers
             return result;
         }
 
-        public static Image GetContactAvatarImageSource(String contactId)
+        public static BitmapImage GetContactAvatarImageSource(String contactId)
         {
-            Image result = null;
+            BitmapImage result = null;
             if (!String.IsNullOrEmpty(contactId))
             {
                 String filePath = null;
@@ -382,7 +378,7 @@ namespace InstantMessaging.Helpers
                     if (File.Exists(filePath))
                     {
                         //log.DebugFormat("[SetConversationAvatar] - file used - filePath:[{0}] - PeerId:[{1}]", filePath, conversation.PeerId);
-                        result = ImageFromFile(filePath);
+                        result = BitmapImageFromFile(filePath);
                     }
                     //else
                     //    log.WarnFormat("[SetConversationAvatar] - file not found - filePath:[{0}] - PeerId:[{1}]", filePath, conversation.PeerId);
@@ -391,10 +387,9 @@ namespace InstantMessaging.Helpers
             return result;
         }
 
-        /*
-        public static Image GetConversationAvatarImageSource(ConversationLight conversation)
+        public static BitmapImage GetConversationAvatarImageSource(ConversationLight conversation)
         {
-            Image result = null;
+            BitmapImage result = null;
             if (conversation != null)
             {
                 String filePath = null;
@@ -415,7 +410,7 @@ namespace InstantMessaging.Helpers
                     if (File.Exists(filePath))
                     {
                         //log.DebugFormat("[SetConversationAvatar] - file used - filePath:[{0}] - PeerId:[{1}]", filePath, conversation.PeerId);
-                        result = ImageFromFile(filePath);
+                        result = BitmapImageFromFile(filePath);
                     }
                     //else
                     //    log.WarnFormat("[SetConversationAvatar] - file not found - filePath:[{0}] - PeerId:[{1}]", filePath, conversation.PeerId);
@@ -423,8 +418,7 @@ namespace InstantMessaging.Helpers
             }
             return result;
         }
-        */
-#endregion AVATAR - IMAGE SOURCE    
+#endregion AVATAR - IMAGES MANAGEMENT
 
     }
 }
