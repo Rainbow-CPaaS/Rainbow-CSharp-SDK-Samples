@@ -16,7 +16,6 @@
     <!-- Main Horizontal Stack Panel - 
             - On Left: Favorites (Name: UIFavoritesList), Conversations (Name: UIConversationsList)
             - On Right: Conversation Stream -->
-
     <Grid
         x:Name="MainGrid"
         Width="Auto" 
@@ -29,6 +28,7 @@
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
+        <!--#region LEFT MAIN GRID-->
         <Grid ClipToBounds="True"
             x:Name="LeftMainGrid"
             Grid.Row="0" 
@@ -36,15 +36,16 @@
             Width="Auto" 
             Height="Auto">
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/> <!-- Favorites Title -->
+                <RowDefinition Height="Auto"/> <!-- Favorites TITLE -->
                 <RowDefinition Height="Auto"/> <!-- Favorites CONTENT -->
-                <RowDefinition Height="Auto"/> <!-- Recent Conversations Title -->
+                <RowDefinition Height="Auto"/> <!-- Recent Conversations TITLE -->
                 <RowDefinition Height="Auto"/> <!-- Recent Conversations CONTENT -->
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
+            <!--#region FAVORITES-->
             <!-- Favorites Title -->
             <TextBlock
                 Grid.Row="0"
@@ -60,7 +61,9 @@
 
             <!-- Favorites CONTENT - Name: UIFavoritesList-->
             <!-- TODO -->
+            <!--#endregion FAVORITES-->
             
+            <!--#region CONVERSATIONS-->
             <!-- Recent Conversations Title -->
             <TextBlock
                 Grid.Row="2"
@@ -84,7 +87,7 @@
                 Height="Auto"
                 ScrollViewer.HorizontalScrollBarVisibility="Auto"
                 ScrollViewer.VerticalScrollBarVisibility="Auto"
-			    ItemsSource="{Binding Conversations}">
+			    ItemsSource="{Binding ConversationsLightList}">
                 <ListView.ItemTemplate>
                     <DataTemplate>
                         <Grid Margin="0,-6,-4,-6" ClipToBounds="True">
@@ -217,10 +220,11 @@
                     </DataTemplate>
                 </ListView.ItemTemplate>
             </ListView>
-
+            <!--#endregion CONVERSATIONS-->
         </Grid>
-        
+        <!--#endregion LEFT MAIN GRID-->
 
+        <!--#region RIGHT MAIN GRID-->
         <!-- Detailed Part Stream-->
         <Grid
             x:Name="RightMainGrid"
@@ -242,6 +246,7 @@
                 HorizontalAlignment="Stretch" 
                 VerticalAlignment="Stretch"/>
         </Grid>
-    
+        <!--#endregion RIGHT MAIN GRID-->
+        
     </Grid>
 </Window>

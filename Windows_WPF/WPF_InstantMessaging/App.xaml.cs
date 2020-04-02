@@ -66,8 +66,11 @@ namespace InstantMessaging
             InitAvatarPool();
             InitFilePool();
 
-            LoginWindow = new LoginView();
-            LoginWindow.Show();
+            //LoginWindow = new LoginView();
+            //LoginWindow.Show();
+
+            ApplicationMainWindow = new MainView();
+            ApplicationMainWindow.Show();
         }
         #endregion EVENTS/OVERRIDE OF APPLICATION OBJECT
 

@@ -6,6 +6,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Resources;
 
 using InstantMessaging.Pool;
+using InstantMessaging.ViewModel;
 
 using Rainbow;
 using Rainbow.Model;
@@ -219,16 +220,16 @@ namespace InstantMessaging.Helpers
             return presenceSource;
         }
 
-        public static ConversationLight GetConversationFromRBConversation(Rainbow.Model.Conversation rbConversation)
+        public static ConversationLightViewModel GetConversationFromRBConversation(Rainbow.Model.Conversation rbConversation)
         {
-            ConversationLight conversation = null;
+            ConversationLightViewModel conversation = null;
 
             if (rbConversation != null)
             {
                 InstantMessaging.App CurrentApplication = (InstantMessaging.App)System.Windows.Application.Current;
                 AvatarPool avatarPool = AvatarPool.Instance;
 
-                conversation = new ConversationLight();
+                conversation = new ConversationLightViewModel();
 
                 if (rbConversation.Type == Rainbow.Model.Conversation.ConversationType.Room)
                 {
@@ -387,7 +388,7 @@ namespace InstantMessaging.Helpers
             return result;
         }
 
-        public static BitmapImage GetConversationAvatarImageSource(ConversationLight conversation)
+        public static BitmapImage GetConversationAvatarImageSource(ConversationLightViewModel conversation)
         {
             BitmapImage result = null;
             if (conversation != null)

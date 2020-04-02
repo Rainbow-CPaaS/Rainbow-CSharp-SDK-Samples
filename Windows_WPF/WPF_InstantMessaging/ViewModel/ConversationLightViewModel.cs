@@ -5,9 +5,9 @@ using System.Windows.Media.Imaging;
 using InstantMessaging.Helpers;
 using InstantMessaging.Pool;
 
-namespace InstantMessaging
+namespace InstantMessaging.ViewModel
 {
-    public class ConversationLight : ObservableObject
+    public class ConversationLightViewModel : ObservableObject
     {
         String m_id;
         String m_jid;
