@@ -15,13 +15,15 @@ namespace InstantMessaging.Helpers
     /// <typeparam name="T"></typeparam> 
     public class ObservableRangeCollection<T> : ObservableCollection<T>
     {
+        public int Capacity { get; set; } = 0; // To specify the max number of element in this Collection
 
         /// <summary> 
         /// Initializes a new instance of the System.Collections.ObjectModel.ObservableCollection(Of T) class. 
         /// </summary> 
-        public ObservableRangeCollection()
+        public ObservableRangeCollection(int capacity = 0)
             : base()
         {
+            Capacity = capacity;
         }
 
         /// <summary> 
@@ -29,9 +31,10 @@ namespace InstantMessaging.Helpers
         /// </summary> 
         /// <param name="collection">collection: The collection from which the elements are copied.</param> 
         /// <exception cref="System.ArgumentNullException">The collection parameter cannot be null.</exception> 
-        public ObservableRangeCollection(IEnumerable<T> collection)
+        public ObservableRangeCollection(IEnumerable<T> collection, int capacity = 0)
             : base(collection)
         {
+            Capacity = capacity;
         }
 
         /// <summary> 
@@ -146,13 +149,24 @@ namespace InstantMessaging.Helpers
 
         private bool AddArrangeCore(IEnumerable<T> collection, int index = -1)
         {
+            int nbItemsBefore = Items.Count;
+            int nbItemsCurrent = Items.Count;
+
             var itemAdded = false;
+            // Add element at the end
             if (index == -1)
             {
-                foreach (var item in collection)
+                if (((nbItemsBefore < Capacity) && (Capacity > 0))
+                    || (Capacity == 0))
                 {
-                    Items.Add(item);
-                    itemAdded = true;
+                    foreach (var item in collection)
+                    {
+                        Items.Add(item);
+                        itemAdded = true;
+                        nbItemsCurrent++;
+                        //if ( (Capacity >0) && (nbItemsCurrent >= Capacity)
+                            
+                    }
                 }
             }
             else

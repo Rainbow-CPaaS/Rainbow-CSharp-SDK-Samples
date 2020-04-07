@@ -23,6 +23,8 @@ namespace InstantMessaging.View
         App currentApplication = (App)System.Windows.Application.Current;
 
         ConversationsLightViewModel conversationsViewModel = null;
+        FavoritesViewModel favoritesViewModel = null;
+        TestViewModel testViewModel = null;
 
         public MainView()
         {
@@ -32,11 +34,16 @@ namespace InstantMessaging.View
             this.Icon = Helper.GetBitmapFrameFromResource("icon_32x32.png");
 
             conversationsViewModel = new ConversationsLightViewModel();
+            favoritesViewModel = new FavoritesViewModel();
 
             //conversationsViewModel.ResetModelWithRbConversations(currentApplication.RbConversations.GetAllConversationsFromCache());
 
             UIConversationsList.DataContext = conversationsViewModel;
+            UIFavoritesList.DataContext = favoritesViewModel;
 
+
+            testViewModel = new TestViewModel();
+            RightMainGrid.DataContext = testViewModel;
         }
 
 

@@ -111,6 +111,6 @@
             Width="200"
             HorizontalAlignment="Center"
             Content="{Binding Connect}"
-            Command="{Binding ButtonLoginCommand}"/>
+            Command="{Binding ButtonLoginCommand}" IsCancel="False"/>
     </Grid>
 </Window>

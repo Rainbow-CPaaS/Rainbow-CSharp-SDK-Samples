@@ -469,10 +469,10 @@ namespace InstantMessaging.Model
             conversationLight.Topic = "";
             conversationLight.PresenceSource = "presence_busy.png";
             conversationLight.NbMsgUnread = 15;
-            conversationLight.LastMessage = "Last message very veryveryveryveryvery long";
+            conversationLight.LastMessage = "Last message very veryveryveryveryvery veryvery veryvery veryvery veryvery veryvery veryvery veryvery veryverylong";
             conversationLight.LastMessageDateTime = DateTime.UtcNow;
             conversationLight.MessageTimeDisplay = "17:39";
-            conversationLight.AvatarImageSource = Helper.GetBitmapImageFromResource("avatar1.jpg");
+            conversationLight.AvatarImageSource = Helper.GetBitmapImageFromResource("avatar2.jpg");
 
             conversationList.Add(conversationLight);
 
@@ -485,11 +485,11 @@ namespace InstantMessaging.Model
             conversationLight.Name = "Group Name3";
             conversationLight.Topic = "";
             conversationLight.PresenceSource = "";
-            conversationLight.NbMsgUnread = 115;
+            conversationLight.NbMsgUnread = 0;
             conversationLight.LastMessage = "Last message";
             conversationLight.LastMessageDateTime = DateTime.UtcNow;
             conversationLight.MessageTimeDisplay = "15:09";
-            conversationLight.AvatarImageSource = Helper.GetBitmapImageFromResource("avatar1.jpg");
+            conversationLight.AvatarImageSource = Helper.GetBitmapImageFromResource("avatar3.jpg");
 
             conversationList.Add(conversationLight);
 
@@ -502,11 +502,11 @@ namespace InstantMessaging.Model
             conversationLight.Name = "Group Name4 tres tres tres long";
             conversationLight.Topic = "";
             conversationLight.PresenceSource = "";
-            conversationLight.NbMsgUnread = 115;
+            conversationLight.NbMsgUnread = 99;
             conversationLight.LastMessage = "Last message";
             conversationLight.LastMessageDateTime = DateTime.UtcNow;
             conversationLight.MessageTimeDisplay = "30 Mars";
-            conversationLight.AvatarImageSource = Helper.GetBitmapImageFromResource("avatar1.jpg");
+            conversationLight.AvatarImageSource = Helper.GetBitmapImageFromResource("avatar4.jpg");
 
             conversationList.Add(conversationLight);
 
@@ -519,7 +519,7 @@ namespace InstantMessaging.Model
             conversationLight.Name = "Group Name6";
             conversationLight.Topic = "";
             conversationLight.PresenceSource = "";
-            conversationLight.NbMsgUnread = 115;
+            conversationLight.NbMsgUnread = 99;
             conversationLight.LastMessage = "";
             conversationLight.LastMessageDateTime = DateTime.UtcNow;
             conversationLight.MessageTimeDisplay = "29 Mars";
@@ -536,11 +536,11 @@ namespace InstantMessaging.Model
             conversationLight.Name = "Group Name6";
             conversationLight.Topic = "";
             conversationLight.PresenceSource = "";
-            conversationLight.NbMsgUnread = 115;
+            conversationLight.NbMsgUnread = 25;
             conversationLight.LastMessage = "Last message";
             conversationLight.LastMessageDateTime = DateTime.UtcNow;
             conversationLight.MessageTimeDisplay = "31/03";
-            conversationLight.AvatarImageSource = Helper.GetBitmapImageFromResource("avatar1.jpg");
+            conversationLight.AvatarImageSource = Helper.GetBitmapImageFromResource("avatar2.jpg");
 
             conversationList.Add(conversationLight);
 
@@ -554,11 +554,11 @@ namespace InstantMessaging.Model
             conversationLight.Name = "Group Name7 tres tres tres long";
             conversationLight.Topic = "";
             conversationLight.PresenceSource = "";
-            conversationLight.NbMsgUnread = 115;
+            conversationLight.NbMsgUnread = 0;
             conversationLight.LastMessage = "Last message";
             conversationLight.LastMessageDateTime = DateTime.UtcNow;
             conversationLight.MessageTimeDisplay = "31/03/19";
-            conversationLight.AvatarImageSource = Helper.GetBitmapImageFromResource("avatar1.jpg");
+            conversationLight.AvatarImageSource = Helper.GetBitmapImageFromResource("avatar3.jpg");
 
             conversationList.Add(conversationLight);
 
