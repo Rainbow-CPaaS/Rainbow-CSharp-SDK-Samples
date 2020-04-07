@@ -68,6 +68,8 @@
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                         <WrapPanel/>
+                        <!-- IF WE WANT TO HAVE A CENTERED WRAP PANEL -->
+                        <!--MaxWidth ="{Binding (FrameworkElement.ActualWidth), RelativeSource={RelativeSource AncestorType=ItemsControl}}" HorizontalAlignment="Center"/>-->
                     </ItemsPanelTemplate>
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
@@ -136,22 +138,31 @@
                 Width="Auto"/>
 
             <!-- Recent Conversations CONTENT - Name: UIConversationsList-->
-            <ListView 
-                x:Name="UIConversationsList" 
+            <ScrollViewer 
+                Height="Auto"
                 Grid.Row="3"
                 Grid.Column="0"
-                ScrollViewer.HorizontalScrollBarVisibility="Hidden"
-                ScrollViewer.VerticalScrollBarVisibility="Auto"
-			    ItemsSource="{Binding ConversationsLightList}">
+                VerticalScrollBarVisibility="Auto">
                 
-                <ListView.ItemTemplate>
-                    <ItemContainerTemplate>
+                <ListView 
+                    x:Name="UIConversationsList" 
+                    Height="Auto"
+			        ItemsSource="{Binding ConversationsLightList}">
+                    <!-- TO ALLOW MOUSE SCROLLING FROM ISNED THE LISTVIEW -->
+                    <ListView.Template>
+                        <ControlTemplate>
+                            <ItemsPresenter></ItemsPresenter> 
+                        </ControlTemplate>
+                    </ListView.Template>
+
+                    <ListView.ItemTemplate>
+                        <ItemContainerTemplate>
                         <Grid 
                             Margin="0, -6, 0, -6"                            >
                             <!-- GRID COLUMN / ROW DEFINITION -->
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="60"></ColumnDefinition> <!-- Col 0: Conversation Avatar -->
-                                <ColumnDefinition Width="*"></ColumnDefinition>  <!-- Col 1: Conversation cell -->
+                                <ColumnDefinition Width="Auto"></ColumnDefinition>  <!-- Col 1: Conversation cell -->
                             </Grid.ColumnDefinitions>
 
                             <Grid.RowDefinitions>
@@ -273,9 +284,10 @@
                             </Grid>
                             <!--#endregion SECOND COLUMN DEFINITON-->
                         </Grid>
-                    </ItemContainerTemplate>
-                </ListView.ItemTemplate>
-            </ListView>
+                        </ItemContainerTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </ScrollViewer>
             <!--#endregion CONVERSATIONS (Title + Content)-->
 
                 
