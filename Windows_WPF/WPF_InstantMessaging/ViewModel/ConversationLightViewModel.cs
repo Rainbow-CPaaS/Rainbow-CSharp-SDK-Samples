@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Media.Imaging;
 
@@ -92,7 +93,7 @@ namespace InstantMessaging.ViewModel
             set { SetProperty(ref m_lastMessageDateTime, value); }
         }
 
-        public String MessageTimeDisplay
+        public String LastMessageTimeDisplay
         {
             get { return m_messageTimeDisplay; }
             set { SetProperty(ref m_messageTimeDisplay, value); }
@@ -102,6 +103,22 @@ namespace InstantMessaging.ViewModel
         {
             get { return m_avatarSource; }
             set { SetProperty(ref m_avatarSource, value); }
+        }
+
+        public class ConversationLightViewModelComparer : IComparer<ConversationLightViewModel>
+        {
+            // Compares by Height, Length, and Width.
+            public int Compare(ConversationLightViewModel o1, ConversationLightViewModel o2)
+            {
+                if (o1.LastMessageDateTime > o2.LastMessageDateTime)
+                    return 1;
+
+                if (o1.LastMessageDateTime < o2.LastMessageDateTime)
+                    return -1;
+
+                else
+                    return 0;
+            }
         }
     }
 }

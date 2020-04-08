@@ -18,7 +18,7 @@ namespace InstantMessaging.Model
         private static readonly ILog log = LogConfigurator.GetLogger(typeof(ConversationsLightModel));
         private readonly App currentApplication = (App)System.Windows.Application.Current;
 
-        public ObservableRangeCollection<ConversationLightViewModel> ConversationsLightList { get; set; } // Need to be public - Used as Binding from XAML
+        public SortableObservableCollection<ConversationLightViewModel> ConversationsLightList { get; set; } // Need to be public - Used as Binding from XAML
 
         // To manage avatar
         private readonly AvatarPool avatarPool;
@@ -34,7 +34,7 @@ namespace InstantMessaging.Model
         /// </summary>
         public ConversationsLightModel()
         {
-            ConversationsLightList = new ObservableRangeCollection<ConversationLightViewModel>();
+            ConversationsLightList = new SortableObservableCollection<ConversationLightViewModel>(new ConversationLightViewModel.ConversationLightViewModelComparer(), true);
 
             LoadFakeConversations();
 
@@ -141,7 +141,7 @@ namespace InstantMessaging.Model
 
                         oldConversation.LastMessage = newConversation.LastMessage;
                         oldConversation.LastMessageDateTime = newConversation.LastMessageDateTime;
-                        oldConversation.MessageTimeDisplay = newConversation.MessageTimeDisplay;
+                        oldConversation.LastMessageTimeDisplay = newConversation.LastMessageTimeDisplay;
 
                         int oldIndex = 0;
                         int newIndex = -1;
@@ -364,7 +364,7 @@ namespace InstantMessaging.Model
             lock (lockObservableConversations)
             {
                 foreach (ConversationLightViewModel conversation in ConversationsLightList)
-                    conversation.MessageTimeDisplay = Helpers.Helper.HumanizeDateTime(conversation.LastMessageDateTime);
+                    conversation.LastMessageTimeDisplay = Helpers.Helper.HumanizeDateTime(conversation.LastMessageDateTime);
             }
 
             // We ask the next update 
@@ -438,7 +438,8 @@ namespace InstantMessaging.Model
 
         private void LoadFakeConversations()
         {
-            List<ConversationLightViewModel> conversationList = new List<ConversationLightViewModel>();
+            DateTime utcNow = DateTime.UtcNow;
+
 
             ConversationLightViewModel conversationLight = null;
 
@@ -453,11 +454,11 @@ namespace InstantMessaging.Model
             conversationLight.PresenceSource = "presence_online.png";
             conversationLight.NbMsgUnread = 1;
             conversationLight.LastMessage = "Last message";
-            conversationLight.LastMessageDateTime = DateTime.UtcNow;
-            conversationLight.MessageTimeDisplay = "18:39";
+            conversationLight.LastMessageDateTime = utcNow;
+            conversationLight.LastMessageTimeDisplay = Helpers.Helper.HumanizeDateTime(conversationLight.LastMessageDateTime);
             conversationLight.AvatarImageSource = Helper.GetBitmapImageFromResource("avatar1.jpg");
 
-            conversationList.Add(conversationLight);
+            ConversationsLightList.Add(conversationLight);
 
             // SET NEW FAKE Conversation Light
             conversationLight = new ConversationLightViewModel();
@@ -469,12 +470,12 @@ namespace InstantMessaging.Model
             conversationLight.Topic = "";
             conversationLight.PresenceSource = "presence_busy.png";
             conversationLight.NbMsgUnread = 15;
-            conversationLight.LastMessage = "Last message very veryveryveryveryvery veryvery veryvery veryvery veryvery veryvery veryvery veryvery veryverylong";
-            conversationLight.LastMessageDateTime = DateTime.UtcNow;
-            conversationLight.MessageTimeDisplay = "17:39";
+            conversationLight.LastMessage = "-01:00 Last message very veryveryveryveryvery veryvery veryvery veryvery veryvery veryvery veryvery veryvery veryverylong";
+            conversationLight.LastMessageDateTime = utcNow.AddHours(-1);
+            conversationLight.LastMessageTimeDisplay = Helpers.Helper.HumanizeDateTime(conversationLight.LastMessageDateTime);
             conversationLight.AvatarImageSource = Helper.GetBitmapImageFromResource("avatar2.jpg");
 
-            conversationList.Add(conversationLight);
+            ConversationsLightList.Add(conversationLight);
 
             // SET NEW FAKE Conversation Light
             conversationLight = new ConversationLightViewModel();
@@ -486,12 +487,12 @@ namespace InstantMessaging.Model
             conversationLight.Topic = "";
             conversationLight.PresenceSource = "";
             conversationLight.NbMsgUnread = 0;
-            conversationLight.LastMessage = "Last message";
-            conversationLight.LastMessageDateTime = DateTime.UtcNow;
-            conversationLight.MessageTimeDisplay = "15:09";
+            conversationLight.LastMessage = "+01:00 Last message";
+            conversationLight.LastMessageDateTime = utcNow.AddHours(1);
+            conversationLight.LastMessageTimeDisplay = Helpers.Helper.HumanizeDateTime(conversationLight.LastMessageDateTime);
             conversationLight.AvatarImageSource = Helper.GetBitmapImageFromResource("avatar3.jpg");
 
-            conversationList.Add(conversationLight);
+            ConversationsLightList.Add(conversationLight);
 
             // SET NEW FAKE Conversation Light
             conversationLight = new ConversationLightViewModel();
@@ -503,12 +504,12 @@ namespace InstantMessaging.Model
             conversationLight.Topic = "";
             conversationLight.PresenceSource = "";
             conversationLight.NbMsgUnread = 99;
-            conversationLight.LastMessage = "Last message";
-            conversationLight.LastMessageDateTime = DateTime.UtcNow;
-            conversationLight.MessageTimeDisplay = "30 Mars";
+            conversationLight.LastMessage = "-02:00 Last message";
+            conversationLight.LastMessageDateTime = utcNow.AddHours(-2);
+            conversationLight.LastMessageTimeDisplay = Helpers.Helper.HumanizeDateTime(conversationLight.LastMessageDateTime);
             conversationLight.AvatarImageSource = Helper.GetBitmapImageFromResource("avatar4.jpg");
 
-            conversationList.Add(conversationLight);
+            ConversationsLightList.Add(conversationLight);
 
             // SET NEW FAKE Conversation Light
             conversationLight = new ConversationLightViewModel();
@@ -520,12 +521,12 @@ namespace InstantMessaging.Model
             conversationLight.Topic = "";
             conversationLight.PresenceSource = "";
             conversationLight.NbMsgUnread = 99;
-            conversationLight.LastMessage = "";
-            conversationLight.LastMessageDateTime = DateTime.UtcNow;
-            conversationLight.MessageTimeDisplay = "29 Mars";
+            conversationLight.LastMessage = "-1 day";
+            conversationLight.LastMessageDateTime = utcNow.AddDays(-1);
+            conversationLight.LastMessageTimeDisplay = Helpers.Helper.HumanizeDateTime(conversationLight.LastMessageDateTime);
             conversationLight.AvatarImageSource = Helper.GetBitmapImageFromResource("avatar1.jpg");
 
-            conversationList.Add(conversationLight);
+            ConversationsLightList.Add(conversationLight);
 
             // SET NEW FAKE Conversation Light
             conversationLight = new ConversationLightViewModel();
@@ -533,16 +534,16 @@ namespace InstantMessaging.Model
             conversationLight.Jid = "test6@test.fr";
             conversationLight.PeerId = "peerId6";
             conversationLight.Type = "group";
-            conversationLight.Name = "Group Name6";
+            conversationLight.Name = "Group Name6 tres tres tres tres long";
             conversationLight.Topic = "";
             conversationLight.PresenceSource = "";
             conversationLight.NbMsgUnread = 25;
-            conversationLight.LastMessage = "Last message";
-            conversationLight.LastMessageDateTime = DateTime.UtcNow;
-            conversationLight.MessageTimeDisplay = "31/03";
+            conversationLight.LastMessage = "-1 Year Last message";
+            conversationLight.LastMessageDateTime = utcNow.AddYears(-1);
+            conversationLight.LastMessageTimeDisplay = Helpers.Helper.HumanizeDateTime(conversationLight.LastMessageDateTime);
             conversationLight.AvatarImageSource = Helper.GetBitmapImageFromResource("avatar2.jpg");
 
-            conversationList.Add(conversationLight);
+            ConversationsLightList.Add(conversationLight);
 
 
             // SET NEW FAKE Conversation Light
@@ -555,14 +556,12 @@ namespace InstantMessaging.Model
             conversationLight.Topic = "";
             conversationLight.PresenceSource = "";
             conversationLight.NbMsgUnread = 0;
-            conversationLight.LastMessage = "Last message";
-            conversationLight.LastMessageDateTime = DateTime.UtcNow;
-            conversationLight.MessageTimeDisplay = "31/03/19";
+            conversationLight.LastMessage = "-1 Month Last message";
+            conversationLight.LastMessageDateTime = utcNow.AddMonths(-1);
+            conversationLight.LastMessageTimeDisplay = Helpers.Helper.HumanizeDateTime(conversationLight.LastMessageDateTime);
             conversationLight.AvatarImageSource = Helper.GetBitmapImageFromResource("avatar3.jpg");
 
-            conversationList.Add(conversationLight);
-
-            ConversationsLightList.AddRange(conversationList);
+            ConversationsLightList.Add(conversationLight);
         }
 
     }

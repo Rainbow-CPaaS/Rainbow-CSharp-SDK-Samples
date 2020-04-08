@@ -142,8 +142,7 @@
                 Height="Auto"
                 Grid.Row="3"
                 Grid.Column="0"
-                VerticalScrollBarVisibility="Auto">
-                
+                VerticalScrollBarVisibility="Auto"> 
                 <ListView 
                     x:Name="UIConversationsList" 
                     Height="Auto"
@@ -158,7 +157,7 @@
                     <ListView.ItemTemplate>
                         <ItemContainerTemplate>
                         <Grid 
-                            Margin="0, -6, 0, -6"                            >
+                            Margin="0, -6, 0, -6">
                             <!-- GRID COLUMN / ROW DEFINITION -->
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="60"></ColumnDefinition> <!-- Col 0: Conversation Avatar -->
@@ -234,7 +233,6 @@
                                 Margin="5,0,0,0"
                                 VerticalAlignment="Center" 
                                 HorizontalAlignment="Left">
-
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"></ColumnDefinition>
                                     <ColumnDefinition Width="*"></ColumnDefinition>
@@ -254,21 +252,22 @@
                                     TextAlignment="Left" 
                                     HorizontalAlignment="Left"   
                                     Foreground="{DynamicResource PrimaryHueDarkBrush}"
-                                    FontSize="15"
+                                    FontSize="14"
                                     Text="{Binding Name}"
                                     TextWrapping="Wrap"
                                     TextTrimming="CharacterEllipsis"
-                                    Width="160"/>
+                                    Width="170"/>
                                 <!-- DATE display-->
                                 <TextBlock
                                     Grid.Row="0" 
                                     Grid.Column="1"
                                     VerticalAlignment="Center" 
                                     TextAlignment="Right" 
+                                    HorizontalAlignment="Right"
                                     Foreground="{DynamicResource PrimaryHueMidBrush}"
                                     FontSize="11"  
-                                    Text="{Binding MessageTimeDisplay}"
-                                    Width="60"/>
+                                    Text="{Binding LastMessageTimeDisplay}"
+                                    Width="Auto"/>
                                 <!-- Last Message display-->
                                 <TextBlock 
                                     Grid.Row="1"
