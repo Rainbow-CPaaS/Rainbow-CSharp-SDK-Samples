@@ -72,7 +72,6 @@ namespace InstantMessaging.Helpers
             return bitmapImage;
         }
 
-
         public static Stream GetMemoryStreamFromResource(String resourceName)
         {
             Stream ms = null;
@@ -114,15 +113,14 @@ namespace InstantMessaging.Helpers
 
             DateTime nowInUTC = DateTime.UtcNow;
             DateTime dtInUTC = dt.ToUniversalTime();
-
             DateTime dtLocalTime = dt.ToLocalTime();
 
-            if (nowInUTC.Day == dtInUTC.Day)
+            if (nowInUTC.Date  == dt.Date)
                 result = dtLocalTime.ToString("H:mm");
             else if (nowInUTC.Year == dtInUTC.Year)
-                result = dtLocalTime.ToString("dd MMM H:mm");
+                result = dtLocalTime.ToString("dd MMM");
             else
-                result = dtLocalTime.ToString("dd MMM yy H:mm");
+                result = dtLocalTime.ToString("dd MMM yy");
 
             return result;
         }
@@ -276,7 +274,7 @@ namespace InstantMessaging.Helpers
                 conversation.LastMessageDateTime = rbConversation.LastMessageDate;
 
                 // Humanized the DateTime
-                conversation.MessageTimeDisplay = Helpers.Helper.HumanizeDateTime(conversation.LastMessageDateTime);
+                conversation.LastMessageTimeDisplay = Helpers.Helper.HumanizeDateTime(conversation.LastMessageDateTime);
             }
             return conversation;
         }
