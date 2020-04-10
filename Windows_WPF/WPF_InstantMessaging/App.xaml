@@ -11,7 +11,7 @@
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Defaults.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
-            <!-- Use MaterialDesignScrollBarMinimal Style for all ScrollBars in the application-->
+            <!-- Use MaterialDesignScrollBarMinimal Style for all ScrollBars in the application -->
             <Style BasedOn="{StaticResource MaterialDesignScrollBarMinimal}" TargetType="{x:Type ScrollBar}" />
             
         </ResourceDictionary>

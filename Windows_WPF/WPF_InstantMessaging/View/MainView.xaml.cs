@@ -24,8 +24,7 @@ namespace InstantMessaging.View
 
         ConversationsLightViewModel conversationsViewModel = null;
         FavoritesViewModel favoritesViewModel = null;
-        TestViewModel testViewModel = null;
-
+        
         public MainView()
         {
             InitializeComponent();
@@ -36,14 +35,12 @@ namespace InstantMessaging.View
             conversationsViewModel = new ConversationsLightViewModel();
             favoritesViewModel = new FavoritesViewModel();
 
-            //conversationsViewModel.ResetModelWithRbConversations(currentApplication.RbConversations.GetAllConversationsFromCache());
-
             UIConversationsList.DataContext = conversationsViewModel;
             UIFavoritesList.DataContext = favoritesViewModel;
+            
 
-
-            testViewModel = new TestViewModel();
-            RightMainGrid.DataContext = testViewModel;
+            //testViewModel = new TestViewModel();
+            //RightMainGrid.DataContext = testViewModel;
         }
 
 

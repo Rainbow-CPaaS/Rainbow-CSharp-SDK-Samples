@@ -22,7 +22,9 @@ namespace InstantMessaging.Model
         {
             // Set capacity to 5 (max numbers of element displayed)
             FavoritesList = new SortableObservableCollection<FavoriteViewModel>(new FavoriteViewModel.FavoriteViewModelComparer());
-            LoadFakeConversations();
+
+            if (currentApplication.USE_DUMMY_DATA)
+                LoadFakeConversations();
         }
 
         private void LoadFakeConversations()

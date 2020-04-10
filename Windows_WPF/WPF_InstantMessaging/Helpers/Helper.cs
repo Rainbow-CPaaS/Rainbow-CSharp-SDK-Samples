@@ -13,7 +13,6 @@ using Rainbow.Model;
 
 using log4net;
 
-
 namespace InstantMessaging.Helpers
 {
     public static class Helper
@@ -70,6 +69,27 @@ namespace InstantMessaging.Helpers
             }
 
             return bitmapImage;
+        }
+
+        public static Stream GetStreamFromFile(String path)
+        {
+            Stream result = null;
+            if (File.Exists(path))
+            {
+                using (FileStream fs = File.Open(path, FileMode.Open, FileAccess.Read))
+                {
+                    result = new MemoryStream();
+                    fs.CopyTo(result);
+                    result.Position = 0;
+                    fs.Close();
+                }
+            }
+            return result;
+        }
+
+        public static BitmapImage BitmapImageFromFile(String filePath)
+        {
+            return GetBitmapImageFromStream(GetStreamFromFile(filePath));
         }
 
         public static Stream GetMemoryStreamFromResource(String resourceName)
@@ -249,18 +269,17 @@ namespace InstantMessaging.Helpers
 
                         Presence presence = CurrentApplication.RbContacts.GetAggregatedPresenceFromContactId(rbConversation.PeerId);
                         conversation.PresenceSource = InstantMessaging.Helpers.Helper.GetPresenceSourceFromPresence(presence);
-
                     }
                     else
                     {
-                        //log.DebugFormat("[GetConversationFromRBConversation] - unknown contact - contactId:[{0}]", rbConversation.PeerId);
+                        log.DebugFormat("[GetConversationFromRBConversation] - unknown contact - contactId:[{0}]", rbConversation.PeerId);
                         CurrentApplication.RbContacts.GetContactFromContactIdFromServer(rbConversation.PeerId, null);
                     }
                 }
                 else
                 {
                     //TODO ( bot case)
-                    //log.DebugFormat("[GetConversationFromRBConversation] Conversation from model not created - Id:[{0}]", rbConversation.Id);
+                    log.DebugFormat("[GetConversationFromRBConversation] Conversation from model not created - Id:[{0}]", rbConversation.Id);
                     return null;
                 }
 
@@ -274,7 +293,7 @@ namespace InstantMessaging.Helpers
                 conversation.LastMessageDateTime = rbConversation.LastMessageDate;
 
                 // Humanized the DateTime
-                conversation.LastMessageTimeDisplay = Helpers.Helper.HumanizeDateTime(conversation.LastMessageDateTime);
+                //conversation.LastMessageTimeDisplay = Helpers.Helper.HumanizeDateTime(conversation.LastMessageDateTime);
             }
             return conversation;
         }
@@ -310,24 +329,6 @@ namespace InstantMessaging.Helpers
         }
 
 #region AVATAR - IMAGES MANAGEMENT
-
-        public static BitmapImage BitmapImageFromFile(String filePath)
-        {
-            BitmapImage result = null;
-            try
-            {
-                result = new BitmapImage();
-                result.BeginInit();
-                result.UriSource = new Uri(filePath, UriKind.RelativeOrAbsolute);
-                result.EndInit();
-                return result;
-            }
-            catch (Exception exc)
-            {
-                log.WarnFormat("[FromFile] Exception to create Image from file - filePath:[{0}] - Exception:[{1}]", filePath, Util.SerializeException(exc));
-            }
-            return result;
-        }
 
         public static BitmapImage GetBubbleAvatarImageSource(String bubbleId)
         {

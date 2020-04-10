@@ -1,10 +1,5 @@
 using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Data;
 using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Xml;
 
@@ -37,6 +32,12 @@ namespace InstantMessaging
         internal Rainbow.InstantMessaging RbInstantMessaging = null;
         internal Rainbow.FileStorage RbFileStorage = null;
 
+        // Define a way to use dummy data
+        internal Boolean USE_DUMMY_DATA = false;
+        internal Boolean USE_LOGIN_FORM_WITH_DUMMY_DATA = false;
+        internal Boolean USE_AVATAR_CACHE = true;
+        internal Boolean USE_FILE_CACHE = false;
+
         // Define global windows
         internal LoginView LoginWindow = null;
         internal MainView ApplicationMainWindow = null;
@@ -66,11 +67,18 @@ namespace InstantMessaging
             InitAvatarPool();
             InitFilePool();
 
-            //LoginWindow = new LoginView();
-            //LoginWindow.Show();
 
-            ApplicationMainWindow = new MainView();
-            ApplicationMainWindow.Show();
+            if ((USE_DUMMY_DATA && USE_LOGIN_FORM_WITH_DUMMY_DATA)
+                || (!USE_DUMMY_DATA))
+            {
+                LoginWindow = new LoginView();
+                LoginWindow.Show();
+            }
+            else if (USE_DUMMY_DATA)
+            {
+                ApplicationMainWindow = new MainView();
+                ApplicationMainWindow.Show();
+            }
         }
         #endregion EVENTS/OVERRIDE OF APPLICATION OBJECT
 
@@ -122,9 +130,11 @@ namespace InstantMessaging
             // Get AvatarPool and initialize it
             string avatarsFolderPath = Path.Combine(Helper.GetTempFolder(), LogFolderName, "Avatars");
 
-            // FOR TEST PURPOSE ONLY
-            //if (Directory.Exists(avatarsFolderPath))
-            //    Directory.Delete(avatarsFolderPath, true);
+            if (!USE_AVATAR_CACHE)
+            {
+                if (Directory.Exists(avatarsFolderPath))
+                    Directory.Delete(avatarsFolderPath, true);
+            }
 
             AvatarPool avatarPool = AvatarPool.Instance;
             avatarPool.SetAvatarSize(60);
@@ -142,6 +152,12 @@ namespace InstantMessaging
             string filePoolFolderPath = Path.Combine(Helper.GetTempFolder(), LogFolderName, "FileStorage");
 
             FilePool filePool = FilePool.Instance;
+
+            if(!USE_FILE_CACHE)
+            {
+                if (Directory.Exists(filePoolFolderPath))
+                    Directory.Delete(filePoolFolderPath, true);
+            }
 
             filePool.SetFolderPath(filePoolFolderPath);
             filePool.SetApplication(ref RbApplication);

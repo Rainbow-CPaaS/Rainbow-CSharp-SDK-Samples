@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        xmlns:cmdBehavior="clr-namespace:AttachedCommandBehavior"
         TextElement.Foreground="{DynamicResource MaterialDesignBody}"
         Background="{DynamicResource MaterialDesignPaper}"
         TextElement.FontWeight="Medium"
@@ -146,143 +147,149 @@
                 <ListView 
                     x:Name="UIConversationsList" 
                     Height="Auto"
-			        ItemsSource="{Binding ConversationsLightList}">
-                    <!-- TO ALLOW MOUSE SCROLLING FROM ISNED THE LISTVIEW -->
+			        ItemsSource="{Binding ConversationsLightList}"
+                    cmdBehavior:CommandBehavior.Event="PreviewMouseLeftButtonUp" 
+                    cmdBehavior:CommandBehavior.Command="{Binding ItemLeftClick}"
+                    cmdBehavior:CommandBehavior.CommandParameter="{x:Reference UIConversationsList}"
+                    >
+                    <!-- TO ALLOW MOUSE SCROLLING FROM INSIDE THE LISTVIEW -->
                     <ListView.Template>
                         <ControlTemplate>
-                            <ItemsPresenter></ItemsPresenter> 
+                            <ItemsPresenter />
                         </ControlTemplate>
                     </ListView.Template>
-
+                    
                     <ListView.ItemTemplate>
                         <ItemContainerTemplate>
-                        <Grid 
-                            Margin="0, -6, 0, -6">
-                            <!-- GRID COLUMN / ROW DEFINITION -->
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="60"></ColumnDefinition> <!-- Col 0: Conversation Avatar -->
-                                <ColumnDefinition Width="Auto"></ColumnDefinition>  <!-- Col 1: Conversation cell -->
-                            </Grid.ColumnDefinitions>
-
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="60"></RowDefinition>
-                            </Grid.RowDefinitions>
-
-                            <!--#region FIRST COLUMN DEFINITON-->
-                            <!-- AVATAR IMG -->
-                            <StackPanel 
-                                Grid.Row="0" 
-                                Grid.Column="0"
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                Visibility="Visible">
-                                <Image
-                                        Source="{Binding AvatarImageSource}"
-                                        Stretch="UniformToFill"
-                                        Width="60"
-                                        Height="60"
-                                        HorizontalAlignment="Center"
-                                        VerticalAlignment="Center"/>
-                            </StackPanel>
-
-                            <!-- PRESENCE BULLET -->
-                            <Border
-                                Grid.Row="0" 
-                                Grid.Column="0"
-                                Background="White"
-                                Height="12"
-                                Width="12"
-                                CornerRadius="12"
-                                VerticalAlignment="Bottom"
-                                HorizontalAlignment="Right"
-                                Margin="0,0,3,3"
-                                Padding="0"
-                                Visibility="{Binding PresenceIsVisible}">
-                                <Image 
-                                    Source="{Binding PresenceImageSource}"
-                                    Height="10"
-                                    Width="10"/>
-                            </Border>
-
-                            <!-- MSG UNREAD-->
-                            <Border Grid.Row="0" Grid.Column="0"
-                                    Background="Red"
-                                    Height="18"
-                                    Width="18"
-                                    CornerRadius="18" 
-                                    VerticalAlignment="Top"
-                                    HorizontalAlignment="Right"
-                                    Padding="0"
-                                    Margin="0,0"
-                                    Visibility="{Binding NbMsgUnreadIsVisible}">
-                                <Label
-                                    Margin="0,0"
-                                    VerticalAlignment="Center"
-                                    HorizontalAlignment="Center"
-                                    FontSize="9"
-                                    Foreground="White"
-                                    Content="{Binding NbMsgUnread}"/>
-                            </Border>
-                            <!--#endregion FIRST COLUMN DEFINITON-->
-
-                            <!--#region SECOND COLUMN DEFINITON-->
-                            <!-- LAST BUBBLE MSG:  (Buble Name or Contact Name) / Date / Last Message -->
-                            <Grid
-                                Grid.Row="0" 
-                                Grid.Column="1"
-                                Margin="5,0,0,0"
-                                VerticalAlignment="Center" 
-                                HorizontalAlignment="Left">
+                            <Grid 
+                                Margin="0, -6, 0, -6">
+                                <!-- GRID COLUMN / ROW DEFINITION -->
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"></ColumnDefinition>
-                                    <ColumnDefinition Width="*"></ColumnDefinition>
+                                    <ColumnDefinition Width="60"></ColumnDefinition>
+                                    <!-- Col 0: Conversation Avatar -->
+                                    <ColumnDefinition Width="Auto"></ColumnDefinition>
+                                    <!-- Col 1: Conversation cell -->
                                 </Grid.ColumnDefinitions>
 
                                 <Grid.RowDefinitions>
-                                    <RowDefinition Height="*"></RowDefinition>
-                                    <RowDefinition Height="*"></RowDefinition>
+                                    <RowDefinition Height="60"></RowDefinition>
                                 </Grid.RowDefinitions>
+                                
+                                <!--#region FIRST COLUMN DEFINITON-->
+                                <!-- AVATAR IMG -->
+                                <StackPanel 
+                                    Grid.Row="0" 
+                                    Grid.Column="0"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Visibility="Visible">
+                                    <Image
+                                            Source="{Binding AvatarImageSource}"
+                                            Stretch="UniformToFill"
+                                            Width="58"
+                                            Height="58"
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"/>
+                                </StackPanel>
 
-                                <!-- USE A GRID TO AVOID TRUNCATED DATE -->
-                                <!-- NAME display-->
-                                <TextBlock 
-                                    x:Name="ConversationName"
-                                    Grid.Row="0" Grid.Column="0"
-                                    VerticalAlignment="Center" 
-                                    TextAlignment="Left" 
-                                    HorizontalAlignment="Left"   
-                                    Foreground="{DynamicResource PrimaryHueDarkBrush}"
-                                    FontSize="14"
-                                    Text="{Binding Name}"
-                                    TextWrapping="Wrap"
-                                    TextTrimming="CharacterEllipsis"
-                                    Width="170"/>
-                                <!-- DATE display-->
-                                <TextBlock
+                                <!-- PRESENCE BULLET -->
+                                <Border
+                                    Grid.Row="0" 
+                                    Grid.Column="0"
+                                    Background="White"
+                                    Height="12"
+                                    Width="12"
+                                    CornerRadius="12"
+                                    VerticalAlignment="Bottom"
+                                    HorizontalAlignment="Right"
+                                    Margin="0,0,3,3"
+                                    Padding="0"
+                                    Visibility="{Binding PresenceIsVisible}">
+                                    <Image 
+                                        Source="{Binding PresenceImageSource}"
+                                        Height="10"
+                                        Width="10"/>
+                                </Border>
+
+                                <!-- MSG UNREAD-->
+                                <Border Grid.Row="0" Grid.Column="0"
+                                        Background="Red"
+                                        Height="18"
+                                        Width="18"
+                                        CornerRadius="18" 
+                                        VerticalAlignment="Top"
+                                        HorizontalAlignment="Right"
+                                        Padding="0"
+                                        Margin="0,0"
+                                        Visibility="{Binding NbMsgUnreadIsVisible}">
+                                    <Label
+                                        Margin="0,0"
+                                        VerticalAlignment="Center"
+                                        HorizontalAlignment="Center"
+                                        FontSize="9"
+                                        Foreground="White"
+                                        Content="{Binding NbMsgUnread}"/>
+                                </Border>
+                                <!--#endregion FIRST COLUMN DEFINITON-->
+
+                                <!--#region SECOND COLUMN DEFINITON-->
+                                <!-- LAST BUBBLE MSG:  (Buble Name or Contact Name) / Date / Last Message -->
+                                <Grid
                                     Grid.Row="0" 
                                     Grid.Column="1"
+                                    Margin="5,0,0,0"
                                     VerticalAlignment="Center" 
-                                    TextAlignment="Right" 
-                                    HorizontalAlignment="Right"
-                                    Foreground="{DynamicResource PrimaryHueMidBrush}"
-                                    FontSize="11"  
-                                    Text="{Binding LastMessageTimeDisplay}"
-                                    Width="Auto"/>
-                                <!-- Last Message display-->
-                                <TextBlock 
-                                    Grid.Row="1"
-                                    Grid.Column="0"
-                                    Grid.ColumnSpan="2"
-                                    FontSize="12" 
-                                    Foreground="{DynamicResource PrimaryHueMidBrush}"
-                                    Visibility="{Binding LastMessageIsVisible}" 
-                                    Text="{Binding LastMessage}"
-                                    TextWrapping="Wrap"
-                                    TextTrimming="CharacterEllipsis"
-                                    Width="220"/>
+                                    HorizontalAlignment="Left">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"></ColumnDefinition>
+                                        <ColumnDefinition Width="*"></ColumnDefinition>
+                                    </Grid.ColumnDefinitions>
+
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="*"></RowDefinition>
+                                        <RowDefinition Height="*"></RowDefinition>
+                                    </Grid.RowDefinitions>
+
+                                    <!-- USE A GRID TO AVOID TRUNCATED DATE -->
+                                    <!-- NAME display-->
+                                    <TextBlock 
+                                        x:Name="ConversationName"
+                                        Grid.Row="0" Grid.Column="0"
+                                        VerticalAlignment="Center" 
+                                        TextAlignment="Left" 
+                                        HorizontalAlignment="Left"   
+                                        Foreground="{DynamicResource PrimaryHueDarkBrush}"
+                                        FontSize="14"
+                                        Text="{Binding Name}"
+                                        TextWrapping="Wrap"
+                                        TextTrimming="CharacterEllipsis"
+                                        Width="170"/>
+                                    <!-- DATE display-->
+                                    <TextBlock
+                                        Grid.Row="0" 
+                                        Grid.Column="1"
+                                        VerticalAlignment="Center" 
+                                        TextAlignment="Right" 
+                                        HorizontalAlignment="Right"
+                                        Foreground="{DynamicResource PrimaryHueMidBrush}"
+                                        FontSize="11"  
+                                        Text="{Binding LastMessageTimeDisplay}"
+                                        Width="50"/>
+                                    <!-- Last Message display-->
+                                    <TextBlock 
+                                        Grid.Row="1"
+                                        Grid.Column="0"
+                                        Grid.ColumnSpan="2"
+                                        FontSize="12" 
+                                        Foreground="{DynamicResource PrimaryHueMidBrush}"
+                                        Visibility="{Binding LastMessageIsVisible}" 
+                                        Text="{Binding LastMessage}"
+                                        TextWrapping="Wrap"
+                                        TextTrimming="CharacterEllipsis"
+                                        Width="220"/>
+                                </Grid>
+                                <!--#endregion SECOND COLUMN DEFINITON-->
                             </Grid>
-                            <!--#endregion SECOND COLUMN DEFINITON-->
-                        </Grid>
                         </ItemContainerTemplate>
                     </ListView.ItemTemplate>
                 </ListView>
@@ -308,7 +315,7 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <Border 
+            <!--<Border 
                 Grid.Row="0" 
                 Grid.Column="1"
                 Background="Red" 
@@ -402,7 +409,7 @@
                         Command="{Binding ButtonTestDel2AtEndCommand}"/>
                 </Grid>
 
-            </Border>
+            </Border>-->
         </Grid>
         <!--#endregion RIGHT MAIN GRID-->
         
