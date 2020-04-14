@@ -24,7 +24,7 @@ namespace InstantMessaging.Model
         private Contacts RbContacts = null;
         private Conversations RbConversations = null;
 
-        public SortableObservableCollection<ConversationLightViewModel> ConversationsLightList { get; set; } // Need to be public - Used as Binding from XAML
+        public RangeObservableCollection<ConversationLightViewModel> ConversationsLightList { get; set; } // Need to be public - Used as Binding from XAML
 
         /// Define all commands used in ListView
         /// Left Click on Item
@@ -52,7 +52,8 @@ namespace InstantMessaging.Model
             // Init commands
             m_ItemLeftClick = new RelayCommand<object>(new Action<object>(ItemLeftClickCommand));
 
-            ConversationsLightList = new SortableObservableCollection<ConversationLightViewModel>(new ConversationLightViewModel.ConversationLightViewModelComparer(), true);
+            //ConversationsLightList = new SortableObservableCollection<ConversationLightViewModel>(new ConversationLightViewModel.ConversationLightViewModelComparer(), true);
+            ConversationsLightList = new RangeObservableCollection<ConversationLightViewModel>();
 
 
             if (CurrentApplication.USE_DUMMY_DATA)
@@ -128,18 +129,10 @@ namespace InstantMessaging.Model
         /// <param name="rbConversations">List of Rainbow Conversations</param>
         public void ResetModelWithRbConversations(List<Rainbow.Model.Conversation> rbConversations)
         {
-            ConversationLightViewModel newConversation;
             lock (lockObservableConversations)
             {
                 foreach (Rainbow.Model.Conversation rbConversation in rbConversations)
-                {
-                    newConversation = Helper.GetConversationFromRBConversation(rbConversation);
-                    if (newConversation != null)
-                    {
-                        newConversation.AvatarImageSource = Helper.GetConversationAvatarImageSource(newConversation);
-                        ConversationsLightList.Add(newConversation);
-                    }
-                }
+                    AddRBConversationToModel(rbConversation);
             }
 
             //TODO - need to check dates to update display
@@ -374,7 +367,6 @@ namespace InstantMessaging.Model
                     log.WarnFormat("[SetConversationAvatar] - file not found - filePath:[{0}] - PeerId:[{1}]", filePath, conversation.PeerId);
             }
         }
-
 
         #endregion  MODEL UPDATED IN THESE METHODS
 

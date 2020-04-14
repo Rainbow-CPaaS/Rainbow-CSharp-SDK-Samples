@@ -17,7 +17,7 @@ namespace InstantMessaging.ViewModel
     {
         private static readonly ILog log = LogConfigurator.GetLogger(typeof(ConversationsLightViewModel));
 
-        public SortableObservableCollection<ConversationLightViewModel> ConversationsLightList { get; set; } // Need to be public - Used as Binding from XAML
+        public RangeObservableCollection<ConversationLightViewModel> ConversationsLightList { get; set; } // Need to be public - Used as Binding from XAML
 
         /// Define all commands used in ListView
         /// Left Click on Item

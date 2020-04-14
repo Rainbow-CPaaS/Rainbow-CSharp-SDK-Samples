@@ -179,22 +179,6 @@ namespace InstantMessaging.ViewModel
             get { return m_avatarSource; }
             set { SetProperty(ref m_avatarSource, value); }
         }
-
-        public class ConversationLightViewModelComparer : IComparer<ConversationLightViewModel>
-        {
-            // Compares by Height, Length, and Width.
-            public int Compare(ConversationLightViewModel o1, ConversationLightViewModel o2)
-            {
-                if (o1.LastMessageDateTime > o2.LastMessageDateTime)
-                    return 1;
-
-                if (o1.LastMessageDateTime < o2.LastMessageDateTime)
-                    return -1;
-
-                else
-                    return 0;
-            }
-        }
     }
 }
 
