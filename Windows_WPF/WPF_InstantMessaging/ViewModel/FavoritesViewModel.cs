@@ -10,7 +10,7 @@ namespace InstantMessaging.ViewModel
     {
         private static readonly ILog log = LogConfigurator.GetLogger(typeof(FavoritesViewModel));
 
-        public SortableObservableCollection<FavoriteViewModel> FavoritesList { get; set; } // Need to be public - Used as Binding from XAML
+        public RangeObservableCollection<FavoriteViewModel> FavoritesList { get; set; } // Need to be public - Used as Binding from XAML
 
         FavoritesModel model;
 

@@ -239,6 +239,87 @@ namespace InstantMessaging.Helpers
             return presenceSource;
         }
 
+        public static FavoriteViewModel GetFavoriteFromRbFavorite(Rainbow.Model.Favorite rbFavorite)
+        {
+            FavoriteViewModel result = null;
+            if(rbFavorite != null)
+            {
+                InstantMessaging.App CurrentApplication = (InstantMessaging.App)System.Windows.Application.Current;
+                AvatarPool avatarPool = AvatarPool.Instance;
+
+                result = new FavoriteViewModel();
+
+                Conversation rbConversation = CurrentApplication.RbConversations.GetConversationByPeerIdFromCache(rbFavorite.PeerId);
+
+                if (rbConversation != null)
+                {
+                    result.IsVisible = true;
+                    result.Jid = rbConversation.Jid_im;
+                    result.NbMsgUnread = rbConversation.UnreadMessageNumber;
+
+                    if (rbConversation.Type == Rainbow.Model.Conversation.ConversationType.Room)
+                    {
+                        result.Name = rbConversation.Name;
+                        result.PresenceSource = "";
+                    }
+                    else if (rbConversation.Type == Rainbow.Model.Conversation.ConversationType.User)
+                    {
+                        // Get Display name of this user
+                        Rainbow.Model.Contact contact = CurrentApplication.RbContacts.GetContactFromContactId(rbConversation.PeerId);
+                        if (contact != null)
+                        {
+                            Presence presence = CurrentApplication.RbContacts.GetAggregatedPresenceFromContactId(rbConversation.PeerId);
+
+                            result.Name = Util.GetContactDisplayName(contact, avatarPool.GetFirstNameFirst());
+                            result.PresenceSource = InstantMessaging.Helpers.Helper.GetPresenceSourceFromPresence(presence, rbConversation.PeerId == CurrentApplication.CurrentUserId);
+                        }
+                        else
+                        {
+                            log.DebugFormat("[GetFavoriteFromRbFavorite] - unknown contact - contactId:[{0}]", rbConversation.PeerId);
+                            CurrentApplication.RbContacts.GetContactFromContactIdFromServer(rbConversation.PeerId, null);
+                        }
+                    }
+                    else
+                    {
+                        //TODO (bot case)
+                        log.DebugFormat("[GetFavoriteFromRbFavorite] Conversation from model not created - Id:[{0}]", rbConversation.Id);
+                        return null;
+                    }
+                }
+                else
+                {
+                    Bubble bubble = CurrentApplication.RbBubbles.GetBubbleByIdFromCache(rbFavorite.PeerId);
+                    if(bubble != null)
+                    {
+                        result.IsVisible = true;
+                        result.Name = bubble.Name;
+                        result.Jid = bubble.Jid;
+                        result.NbMsgUnread = 0;
+                        result.PresenceSource = "";
+                    }
+                    else
+                    {
+                        result.IsVisible = false;
+                        result.Name = "";
+                        result.Jid = "";
+                        result.NbMsgUnread = 0;
+                        result.PresenceSource = "";
+
+                        log.WarnFormat("[GetFavoriteFromRbFavorite] Cannot get Conversation or Bubble object from Favorite - FavoriteId:[{0}] - FavoritePeerId:[{1}]", rbFavorite.Id, rbFavorite.PeerId);
+                    }
+
+                    //TODO - need to get conversation ?
+                }
+
+                result.Id = rbFavorite.Id;
+                result.PeerId = rbFavorite.PeerId;
+                result.Position = rbFavorite.Position;
+
+                // Name, PresenceSource,  NbMsgUnread and IsVisible are set before
+            }
+            return result;
+        }
+
         public static ConversationLightViewModel GetConversationFromRBConversation(Rainbow.Model.Conversation rbConversation)
         {
             ConversationLightViewModel conversation = null;
@@ -292,9 +373,6 @@ namespace InstantMessaging.Helpers
 
                 conversation.LastMessage = rbConversation.LastMessageText;
                 conversation.LastMessageDateTime = rbConversation.LastMessageDate;
-
-                // Humanized the DateTime
-                //conversation.LastMessageTimeDisplay = Helpers.Helper.HumanizeDateTime(conversation.LastMessageDateTime);
             }
             return conversation;
         }
@@ -388,35 +466,36 @@ namespace InstantMessaging.Helpers
             return result;
         }
 
+        public static BitmapImage GetConversationAvatarImageSourceByPeerId(String peerId)
+        {
+            InstantMessaging.App CurrentApplication = (InstantMessaging.App)System.Windows.Application.Current;
+            Conversation conversation = CurrentApplication.RbConversations.GetConversationByPeerIdFromCache(peerId);
+            if (conversation != null)
+                return GetAvatarImageSourceByPeerIdAndType(conversation.PeerId, conversation.Type);
+            else
+            {
+                // This peerId could be a Bubble wihtout an existing conversation
+                Bubble bubble = CurrentApplication.RbBubbles.GetBubbleByIdFromCache(peerId);
+                if (bubble != null)
+                    return GetBubbleAvatarImageSource(peerId);
+            }
+            return null;
+        }
+
+        public static BitmapImage GetAvatarImageSourceByPeerIdAndType(String peerId, String type)
+        {
+            if (type == Rainbow.Model.Conversation.ConversationType.User)
+                return GetContactAvatarImageSource(peerId);
+            else if (type == Rainbow.Model.Conversation.ConversationType.Room)
+                return GetBubbleAvatarImageSource(peerId);
+            return null;
+        }
+
         public static BitmapImage GetConversationAvatarImageSource(ConversationLightViewModel conversation)
         {
             BitmapImage result = null;
             if (conversation != null)
-            {
-                String filePath = null;
-                try
-                {
-                    if (conversation.Type == Rainbow.Model.Conversation.ConversationType.User)
-                        filePath = AvatarPool.Instance.GetContactAvatarPath(conversation.PeerId);
-                    else if (conversation.Type == Rainbow.Model.Conversation.ConversationType.Room)
-                        filePath = AvatarPool.Instance.GetBubbleAvatarPath(conversation.PeerId);
-                }
-                catch (Exception exc)
-                {
-                    log.WarnFormat("[GetConversationAvatarImageSource] PeerId:[{0}] - exception occurs to create avatar:[{1}]", conversation.PeerId, Util.SerializeException(exc));
-                }
-
-                if (!String.IsNullOrEmpty(filePath))
-                {
-                    if (File.Exists(filePath))
-                    {
-                        //log.DebugFormat("[SetConversationAvatar] - file used - filePath:[{0}] - PeerId:[{1}]", filePath, conversation.PeerId);
-                        result = BitmapImageFromFile(filePath);
-                    }
-                    //else
-                    //    log.WarnFormat("[SetConversationAvatar] - file not found - filePath:[{0}] - PeerId:[{1}]", filePath, conversation.PeerId);
-                }
-            }
+                result = GetAvatarImageSourceByPeerIdAndType(conversation.PeerId, conversation.Type);
             return result;
         }
 #endregion AVATAR - IMAGES MANAGEMENT

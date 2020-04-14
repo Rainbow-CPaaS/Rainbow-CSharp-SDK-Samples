@@ -29,6 +29,7 @@ namespace InstantMessaging
         internal Rainbow.Bubbles RbBubbles = null;
         internal Rainbow.Contacts RbContacts = null;
         internal Rainbow.Conversations RbConversations = null;
+        internal Rainbow.Favorites RbFavorites = null;
         internal Rainbow.InstantMessaging RbInstantMessaging = null;
         internal Rainbow.FileStorage RbFileStorage = null;
 
@@ -64,6 +65,7 @@ namespace InstantMessaging
             RbBubbles = RbApplication.GetBubbles();
             RbContacts = RbApplication.GetContacts();
             RbConversations = RbApplication.GetConversations();
+            RbFavorites = RbApplication.GetFavorites();
             RbInstantMessaging = RbApplication.GetInstantMessaging();
             RbFileStorage = RbApplication.GetFileStorage();
 
