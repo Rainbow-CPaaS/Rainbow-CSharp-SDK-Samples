@@ -131,7 +131,7 @@ namespace InstantMessaging.Model
                 {
                     if (!callback.Result.Success)
                     {
-                        // TO DO
+                        log.WarnFormat("[RbApplication_InitializationPerformed] Cannot get all conversations");
                     }
                     manualEventConversations.Set();
                 });
@@ -140,7 +140,7 @@ namespace InstantMessaging.Model
                 {
                     if (!callback.Result.Success)
                     {
-                        // TO DO
+                        log.WarnFormat("[RbApplication_InitializationPerformed] Cannot get all bubbles");
                     }
                     manualEventBubbles.Set();
                 });
