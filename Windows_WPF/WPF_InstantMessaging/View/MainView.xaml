@@ -15,8 +15,7 @@
         Title="MainView" 
         Height="900" 
         Width="1350"
-        HorizontalAlignment="Center"
-        VerticalAlignment="Center">
+        WindowStartupLocation="CenterScreen">
     
     <!-- Main Horizontal Stack Panel - 
             - On Left: Favorites (Name: UIFavoritesList), Conversations (Name: UIConversationsList)
@@ -67,6 +66,7 @@
                 x:Name="UIFavoritesList" 
                 Grid.Row="1"
                 Grid.Column="0"
+                Margin="0,0,0,20"
 			    ItemsSource="{Binding FavoritesList}"
                 ScrollViewer.HorizontalScrollBarVisibility="Auto"
                 ScrollViewer.VerticalScrollBarVisibility="Auto">
@@ -79,7 +79,10 @@
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <Canvas Width="50" Height="50" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="5">
+                        <Canvas Width="50" Height="50" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="5" 
+                                Visibility="{Binding UIIsVisible}"
+                                ToolTip="{Binding Name}">
+                            
                             <!-- AVATAR IMG -->
                             <Image
                                 Source="{Binding AvatarImageSource}"

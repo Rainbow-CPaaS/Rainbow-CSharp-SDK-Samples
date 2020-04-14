@@ -17,8 +17,7 @@
         Height="454"
         Width="416"
         ResizeMode="NoResize"
-        HorizontalAlignment="Center"
-        VerticalAlignment="Center">
+        WindowStartupLocation="CenterScreen">
 
 
     <Grid Margin="20, 40, 20, 0" VerticalAlignment="Top" HorizontalAlignment="Center">
