@@ -25,10 +25,10 @@ namespace InstantMessaging.ViewModel
 
         String m_backgroundColor;           // Calculated from m_name
         Visibility m_topicIsVisible;        // Calculated from m_topic
-        Visibility m_mastMessageIsVisible;  // Calculated from m_lastMessage
+        Visibility m_lastMessageIsVisible;  // Calculated from m_lastMessage
         Visibility m_presenceIsVisible;     // Calculated from m_presenceSource
         BitmapImage m_presenceImageSource;  // Calculated from m_presenceSource
-        Visibility m_nbMsgUnreadIsVisible;  // Calculated from m_presenceSource
+        Visibility m_nbMsgUnreadIsVisible;  // Calculated from m_nbMsgUnread
         String m_messageTimeDisplay;        // Calculated from m_lastMessageDateTime
 
         public string Id
@@ -154,8 +154,8 @@ namespace InstantMessaging.ViewModel
 
         public Visibility LastMessageIsVisible
         {
-            get { return m_mastMessageIsVisible; }
-            set { SetProperty(ref m_mastMessageIsVisible, value); }
+            get { return m_lastMessageIsVisible; }
+            set { SetProperty(ref m_lastMessageIsVisible, value); }
         }
 
         public DateTime LastMessageDateTime
