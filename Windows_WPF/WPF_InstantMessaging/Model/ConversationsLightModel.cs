@@ -18,7 +18,7 @@ namespace InstantMessaging.Model
     public class ConversationsLightModel : ObservableObject
     {
         private static readonly ILog log = LogConfigurator.GetLogger(typeof(ConversationsLightModel));
-        private readonly App currentApplication = (App)System.Windows.Application.Current;
+        private readonly App CurrentApplication = (App)System.Windows.Application.Current;
         
         private Bubbles RbBubbles = null;
         private Contacts RbContacts = null;
@@ -55,16 +55,16 @@ namespace InstantMessaging.Model
             ConversationsLightList = new SortableObservableCollection<ConversationLightViewModel>(new ConversationLightViewModel.ConversationLightViewModelComparer(), true);
 
 
-            if (currentApplication.USE_DUMMY_DATA)
+            if (CurrentApplication.USE_DUMMY_DATA)
             {
                 LoadFakeConversations();
                 return;
             }
 
             // Get Rainbow SDK Objects
-            RbBubbles = currentApplication.RbBubbles;
-            RbContacts = currentApplication.RbContacts;
-            RbConversations = currentApplication.RbConversations;
+            RbBubbles = CurrentApplication.RbBubbles;
+            RbContacts = CurrentApplication.RbContacts;
+            RbConversations = CurrentApplication.RbConversations;
 
             // Manage event(s) from AvatarPool
             avatarPool = AvatarPool.Instance;
@@ -206,7 +206,7 @@ namespace InstantMessaging.Model
         {
             ConversationLightViewModel conversation = GetConversationByJid(jid);
             if (conversation != null)
-                conversation.PresenceSource = InstantMessaging.Helpers.Helper.GetPresenceSourceFromPresence(presence);
+                conversation.PresenceSource = InstantMessaging.Helpers.Helper.GetPresenceSourceFromPresence(presence, jid == CurrentApplication.CurrentUserJid);
         }
 
         private void AddConversationToModel(ConversationLightViewModel newConversation)

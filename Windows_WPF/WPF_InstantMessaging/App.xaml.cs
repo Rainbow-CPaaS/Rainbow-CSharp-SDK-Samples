@@ -32,6 +32,9 @@ namespace InstantMessaging
         internal Rainbow.InstantMessaging RbInstantMessaging = null;
         internal Rainbow.FileStorage RbFileStorage = null;
 
+        internal String CurrentUserId;
+        internal String CurrentUserJid;
+
         // Define a way to use dummy data
         internal Boolean USE_DUMMY_DATA = false;
         internal Boolean USE_LOGIN_FORM_WITH_DUMMY_DATA = false;

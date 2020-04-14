@@ -212,7 +212,7 @@ namespace InstantMessaging.Helpers
             return result;
         }
 
-        public static String GetPresenceSourceFromPresence(Rainbow.Model.Presence presence)
+        public static String GetPresenceSourceFromPresence(Rainbow.Model.Presence presence, Boolean isCurrentUser)
         {
             String presenceSource = "";
             if (presence != null)
@@ -228,12 +228,13 @@ namespace InstantMessaging.Helpers
                     presenceSource = "presence_offline.png";
                 else if (presence.PresenceLevel == Rainbow.Model.PresenceLevel.Away)
                     presenceSource = "presence_away.png";
-                else if (presence.PresenceLevel == Rainbow.Model.PresenceLevel.Xa)
-                    presenceSource = "presence_xa.png";
                 else if (presence.PresenceLevel == Rainbow.Model.PresenceLevel.Dnd)
                     presenceSource = "presence_dnd.png";
                 else if (presence.PresenceLevel == Rainbow.Model.PresenceLevel.Busy)
                     presenceSource = "presence_busy.png";
+                else if ( (presence.PresenceLevel == Rainbow.Model.PresenceLevel.Xa) // Use XA display only for current user
+                    && isCurrentUser)
+                    presenceSource = "presence_xa.png";
             }
             return presenceSource;
         }
@@ -268,7 +269,7 @@ namespace InstantMessaging.Helpers
                         conversation.Jid = contact.Jid_im;
 
                         Presence presence = CurrentApplication.RbContacts.GetAggregatedPresenceFromContactId(rbConversation.PeerId);
-                        conversation.PresenceSource = InstantMessaging.Helpers.Helper.GetPresenceSourceFromPresence(presence);
+                        conversation.PresenceSource = InstantMessaging.Helpers.Helper.GetPresenceSourceFromPresence(presence, rbConversation.PeerId == CurrentApplication.CurrentUserId);
                     }
                     else
                     {

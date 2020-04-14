@@ -115,6 +115,10 @@ namespace InstantMessaging.Model
             if (!currentApplication.RbApplication.IsInitialized())
                 return;
 
+            // Store current user ID / Jid
+            currentApplication.CurrentUserId = currentApplication.RbContacts.GetCurrentContactId();
+            currentApplication.CurrentUserJid = currentApplication.RbContacts.GetCurrentContactJid();
+
             // Once the initialization is performed, we wants 
             //      - to know all conversations
             //      - to know Bubbles
