@@ -26,6 +26,14 @@ namespace InstantMessaging.Model
 
         public RangeObservableCollection<ConversationLightViewModel> ConversationsLightList { get; set; } // Need to be public - Used as Binding from XAML
 
+        private readonly AvatarPool AvatarPool; // To manage avatars
+
+        private readonly Object lockObservableConversations = new Object(); // To lock access to the observable collection: 'Conversations'
+
+        // To know the dateTime of the most recent message received - needed to update the layout
+        private DateTime mostRecentDateTimeMessage = DateTime.MinValue;
+        private CancelableDelay delayUpdateForDateTimePurpose = null;
+
         /// Define all commands used in ListView
         /// Left Click on Item
         ICommand m_ItemLeftClick;
@@ -34,15 +42,6 @@ namespace InstantMessaging.Model
             get { return m_ItemLeftClick; }
             set { m_ItemLeftClick = value; }
         }
-
-        // To manage avatar
-        private readonly AvatarPool avatarPool;
-
-        private readonly Object lockObservableConversations = new Object(); // To lock access to the observable collection: 'Conversations'
-
-        // To know the dateTime of the most recent message received - needed to update the layout
-        private DateTime mostRecentDateTimeMessage = DateTime.MinValue;
-        private CancelableDelay delayUpdateForDateTimePurpose = null;
 
         /// <summary>
         /// Constructor
@@ -68,9 +67,9 @@ namespace InstantMessaging.Model
             RbConversations = CurrentApplication.RbConversations;
 
             // Manage event(s) from AvatarPool
-            avatarPool = AvatarPool.Instance;
-            avatarPool.ContactAvatarChanged += AvatarPool_ContactAvatarChanged;
-            avatarPool.BubbleAvatarChanged += AvatarPool_BubbleAvatarChanged;
+            AvatarPool = AvatarPool.Instance;
+            AvatarPool.ContactAvatarChanged += AvatarPool_ContactAvatarChanged;
+            AvatarPool.BubbleAvatarChanged += AvatarPool_BubbleAvatarChanged;
 
             // Manage event(s) from Rainbow SDK about CONVERSATIONS
             RbConversations.ConversationCreated += RbConversations_ConversationCreated;
@@ -89,10 +88,10 @@ namespace InstantMessaging.Model
             ResetModelWithRbConversations(RbConversations.GetAllConversationsFromCache());
 
             // Now allow Avatar download
-            avatarPool.AllowAvatarDownload(true);
+            AvatarPool.AllowAvatarDownload(true);
 
             // Now allow to ask server info about unknown contacts
-            avatarPool.AllowToAskInfoForUnknownContact(true);
+            AvatarPool.AllowToAskInfoForUnknownContact(true);
         }
 
         #region COMMANDS RAISED BY THE VIEW
@@ -131,6 +130,9 @@ namespace InstantMessaging.Model
         {
             lock (lockObservableConversations)
             {
+                // Clear the list
+                ConversationsLightList.Clear();
+
                 foreach (Rainbow.Model.Conversation rbConversation in rbConversations)
                     AddRBConversationToModel(rbConversation);
             }
@@ -177,10 +179,12 @@ namespace InstantMessaging.Model
         /// <param name="id">Rainbow Conversation's ID</param>
         public void RemoveRBConversationFromModel(String id)
         {
-            ConversationLightViewModel conversation = GetConversationById(id);
-
-            lock (lockObservableConversations)
-                ConversationsLightList.Remove(conversation);
+            ConversationLightViewModel result = GetConversationById(id);
+            if (result != null)
+            {
+                lock (lockObservableConversations)
+                    ConversationsLightList.Remove(result);
+            }
         }
 
         public void UpdateConversationNameByPeerId(string peerId, String name)
@@ -340,9 +344,9 @@ namespace InstantMessaging.Model
             try
             {
                 if (conversation.Type == Rainbow.Model.Conversation.ConversationType.User)
-                    filePath = avatarPool.GetContactAvatarPath(conversation.PeerId);
+                    filePath = AvatarPool.GetContactAvatarPath(conversation.PeerId);
                 else if (conversation.Type == Rainbow.Model.Conversation.ConversationType.Room)
-                    filePath = avatarPool.GetBubbleAvatarPath(conversation.PeerId);
+                    filePath = AvatarPool.GetBubbleAvatarPath(conversation.PeerId);
             }
             catch (Exception exc)
             {
@@ -534,7 +538,7 @@ namespace InstantMessaging.Model
                 {
                     Rainbow.Model.Contact contact = RbContacts.GetContactFromContactJid(e.Jid);
                     if (contact != null)
-                        UpdateConversationNameByPeerId(contact.Id, Util.GetContactDisplayName(contact, avatarPool.GetFirstNameFirst()));
+                        UpdateConversationNameByPeerId(contact.Id, Util.GetContactDisplayName(contact, AvatarPool.GetFirstNameFirst()));
                 }));
             }
         }
@@ -547,7 +551,7 @@ namespace InstantMessaging.Model
                 {
                     Rainbow.Model.Contact contact = RbContacts.GetContactFromContactJid(e.Jid);
                     if (contact != null)
-                        UpdateConversationNameByPeerId(contact.Id, Util.GetContactDisplayName(contact, avatarPool.GetFirstNameFirst()));
+                        UpdateConversationNameByPeerId(contact.Id, Util.GetContactDisplayName(contact, AvatarPool.GetFirstNameFirst()));
                 }));
             }
         }
