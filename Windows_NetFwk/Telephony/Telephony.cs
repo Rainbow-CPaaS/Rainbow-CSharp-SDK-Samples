@@ -624,13 +624,29 @@ namespace Sample_Telephony
                     }
                 }
 
-                // Can we make a call ?
-                if( ( (pbxCall1 != null) && (pbxCall1.CallStatus == Call.Status.ACTIVE) )
-                    || ( (pbxCall2 != null) && (pbxCall2.CallStatus == Call.Status.ACTIVE) ) )
-                    btMakeCall.Enabled = false;
-                else
-                    btMakeCall.Enabled = true;
+                // Can we perform another call ?
+                //      - No call in progress
+                //      - Only one call in progress and ACTIVE
+                Boolean activeCall = false;
+                int nbCall = 0;
+                if (pbxCall1 != null)
+                {
+                    if (pbxCall1.CallStatus == Call.Status.ACTIVE)
+                        activeCall = true;
 
+                    if (pbxCall1.CallStatus != Call.Status.UNKNOWN)
+                        nbCall++;
+                }
+                if (pbxCall2 != null)
+                {
+                    if (pbxCall2.CallStatus == Call.Status.ACTIVE)
+                        activeCall = true;
+
+                    if (pbxCall2.CallStatus != Call.Status.UNKNOWN)
+                        nbCall++;
+                }
+                btMakeCall.Enabled = (activeCall && (nbCall == 1)) || (nbCall == 0);
+                
                 Boolean enableAdvanceAction = false;
                 if ( (pbxCall1 != null)
                     && (pbxCall2 != null) )
@@ -639,6 +655,10 @@ namespace Sample_Telephony
                                             || ((pbxCall1.CallStatus == Call.Status.PUT_ON_HOLD) && (pbxCall2.CallStatus == Call.Status.ACTIVE));
                 }
                 btCallTransfer.Enabled = btCallConference.Enabled = enableAdvanceAction;
+
+                // We cannot make another call if advanced actions are available
+                if (enableAdvanceAction)
+                    btMakeCall.Enabled = false;
 
             }
         }
@@ -1194,16 +1214,48 @@ namespace Sample_Telephony
         {
             if(!String.IsNullOrEmpty(tbMakeCall.Text))
             {
-                // Make call
-                rainbowTelephony.MakeCall(tbMakeCall.Text, callback =>
+                // We need to know if a call in already in progress or not and get its CallId
+                Boolean callInProgress = false;
+                String callIdInProgress = "";
+                
+                if ((pbxCall1 != null) && (pbxCall1.CallStatus == Call.Status.ACTIVE))
                 {
-                    if (!callback.Result.Success)
+                    callInProgress = true;
+                    callIdInProgress = pbxCall1.Id;
+                }
+                else if ((pbxCall2 != null) && (pbxCall2.CallStatus == Call.Status.ACTIVE))
+                {
+                    callInProgress = true;
+                    callIdInProgress = pbxCall2.Id;
+                }
+
+                // If there is not a call in progress we make a simple call
+                if (!callInProgress)
+                {
+                    // Make call
+                    rainbowTelephony.MakeCall(tbMakeCall.Text, callback =>
                     {
-                        String output = String.Format("Impossible to make a call - Error:[{0}]", Util.SerialiseSdkError(callback.Result));
-                        AddStateLine(output);
-                        log.ErrorFormat(output);
-                    }
-                });
+                        if (!callback.Result.Success)
+                        {
+                            String output = String.Format("Impossible to make a call - Error:[{0}]", Util.SerialiseSdkError(callback.Result));
+                            AddStateLine(output);
+                            log.ErrorFormat(output);
+                        }
+                    });
+                }
+                else
+                {
+                    // Need to make a consulation call
+                    rainbowTelephony.ConsultationCall(callIdInProgress, tbMakeCall.Text, callback =>
+                    {
+                        if (!callback.Result.Success)
+                        {
+                            String output = String.Format("Impossible to make a call - Error:[{0}]", Util.SerialiseSdkError(callback.Result));
+                            AddStateLine(output);
+                            log.ErrorFormat(output);
+                        }
+                    });
+                }
             }
         }
     }
