@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -778,7 +778,7 @@ namespace Sample_InstantMessaging
 
                 if (contactSelected)
                 {
-                    rainbowInstantMessaging.SendMessageToContactId(idSelected, textToSend, callback =>
+                    rainbowInstantMessaging.SendMessageToContactId(idSelected, textToSend, null, callback =>
                     {
                         if (callback.Result.Success)
                         {
@@ -794,7 +794,7 @@ namespace Sample_InstantMessaging
                 }
                 else
                 {
-                    rainbowInstantMessaging.SendMessageToConversationId(idSelected, textToSend, null, callback =>
+                    rainbowInstantMessaging.SendMessageToConversationId(idSelected, textToSend, null, null, callback =>
                     {
                         if (callback.Result.Success)
                         {
