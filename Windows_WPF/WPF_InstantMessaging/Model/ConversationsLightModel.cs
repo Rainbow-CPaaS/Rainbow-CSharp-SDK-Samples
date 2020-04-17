@@ -15,7 +15,7 @@ using log4net;
 
 namespace InstantMessaging.Model
 {
-    public class ConversationsLightModel : ObservableObject
+    public class ConversationsLightModel
     {
         private static readonly ILog log = LogConfigurator.GetLogger(typeof(ConversationsLightModel));
         private readonly App CurrentApplication = (App)System.Windows.Application.Current;
