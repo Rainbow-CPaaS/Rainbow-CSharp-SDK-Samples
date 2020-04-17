@@ -38,6 +38,11 @@ namespace InstantMessaging.View
             // Define the Icon of the Window
             this.Icon = Helper.GetBitmapFrameFromResource("icon_32x32.png");
 
+            this.Loaded += LoginView_Loaded;
+        }
+
+        private void LoginView_Loaded(object sender, RoutedEventArgs e)
+        {
             DataContext = new LoginViewModel();
         }
     }

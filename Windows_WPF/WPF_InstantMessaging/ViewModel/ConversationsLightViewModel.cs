@@ -20,7 +20,7 @@ namespace InstantMessaging.ViewModel
         public RangeObservableCollection<ConversationLightViewModel> ConversationsLightList { get; set; } // Need to be public - Used as Binding from XAML
 
         /// Define all commands used in ListView
-        /// Left Click on Item
+        /// Left Click on Conversation Item
         public ICommand ItemLeftClick { get; set;  }
 
         // Define the model

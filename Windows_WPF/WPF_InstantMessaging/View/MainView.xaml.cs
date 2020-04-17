@@ -32,18 +32,17 @@ namespace InstantMessaging.View
             // Define the Icon of the Window
             this.Icon = Helper.GetBitmapFrameFromResource("icon_32x32.png");
 
-            conversationsViewModel = new ConversationsLightViewModel();
-            favoritesViewModel = new FavoritesViewModel();
+            this.Loaded += MainView_Loaded;
 
-            UIConversationsList.DataContext = conversationsViewModel;
-            UIFavoritesList.DataContext = favoritesViewModel;
-            
-
-            //testViewModel = new TestViewModel();
-            //RightMainGrid.DataContext = testViewModel;
         }
 
+        private void MainView_Loaded(object sender, RoutedEventArgs e)
+        {
+            conversationsViewModel = new ConversationsLightViewModel();
+            UIConversationsList.DataContext = conversationsViewModel;
 
-
+            favoritesViewModel = new FavoritesViewModel();
+            UIFavoritesList.DataContext = favoritesViewModel;
+        }
     }
 }

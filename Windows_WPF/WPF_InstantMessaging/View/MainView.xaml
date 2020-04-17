@@ -4,13 +4,14 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-        xmlns:cmdBehavior="clr-namespace:AttachedCommandBehavior"
+        xmlns:cmdBehavior="clr-namespace:AttachedCommandBehavior;assembly=AttachedCommandBehavior"
         TextElement.Foreground="{DynamicResource MaterialDesignBody}"
         Background="{DynamicResource MaterialDesignPaper}"
         TextElement.FontWeight="Medium"
         TextElement.FontSize="14"
         FontFamily="{materialDesign:MaterialDesignFont}"
-        xmlns:local="clr-namespace:InstantMessaging.View"
+        xmlns:view="clr-namespace:InstantMessaging.View"
+        xmlns:viewModel="clr-namespace:InstantMessaging.ViewModel"
         mc:Ignorable="d"
         Title="MainView" 
         Height="900" 
@@ -315,6 +316,13 @@
             Grid.Column="1"
             Width="Auto" 
             Height="Auto">
+
+            <!--<Grid.Resources>
+                <DataTemplate DataType="{x:Type viewModel:ConversationStreamUserControlViewModel}">
+                    <view:ConversationStreamUserControl />
+                </DataTemplate>
+            </Grid.Resources>-->
+            
             <Grid.RowDefinitions>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
@@ -322,101 +330,10 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <!--<Border 
-                Grid.Row="0" 
-                Grid.Column="1"
-                Background="Red" 
-                HorizontalAlignment="Stretch" 
-                VerticalAlignment="Stretch">
-                <Grid 
-                    Grid.Row="0" 
-                    Grid.Column="1"
-                    Width="Auto" 
-                    Height="Auto">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <Button 
-                        Margin="5"
-                        x:Name="ButtonTestAdd2AtStart"
-                        Grid.Row="0" 
-                        Grid.Column="0"
-                        Style="{StaticResource MaterialDesignRaisedButton}"
-                        materialDesign:ButtonAssist.CornerRadius="5"
-                        Width="180"
-                        HorizontalAlignment="Center"
-                        Content="Add 2 at start"
-                        Command="{Binding ButtonTestAdd2AtStartCommand}"/>
-
-                    <Button 
-                        Margin="5"
-                        x:Name="ButtonTestAdd2InMiddle"
-                        Grid.Row="1" 
-                        Grid.Column="0"
-                        Style="{StaticResource MaterialDesignRaisedButton}"
-                        materialDesign:ButtonAssist.CornerRadius="5"
-                        Width="180"
-                        HorizontalAlignment="Center"
-                        Content="Add 2 in middle"
-                        Command="{Binding ButtonTestAdd2InMiddleCommand}"/>
-                    <Button 
-                        Margin="5"
-                        x:Name="ButtonTestAdd2AtTheEnd"
-                        Grid.Row="2" 
-                        Grid.Column="0"
-                        Style="{StaticResource MaterialDesignRaisedButton}"
-                        materialDesign:ButtonAssist.CornerRadius="5"
-                        Width="180"
-                        HorizontalAlignment="Center"
-                        Content="Add 2 at the end"
-                        Command="{Binding ButtonTestAdd2AtTheEndCommand}"/>
-
-                    <Button 
-                        Margin="5"
-                        x:Name="ButtonTestDel2AtStart"
-                        Grid.Row="3" 
-                        Grid.Column="0"
-                        Style="{StaticResource MaterialDesignRaisedButton}"
-                        materialDesign:ButtonAssist.CornerRadius="5"
-                        Width="180"
-                        HorizontalAlignment="Center"
-                        Content="Del 2 at start"
-                        Command="{Binding ButtonTestDel2AtStartCommand}"/>
-                    
-                    <Button 
-                        Margin="5"
-                        x:Name="ButtonTestDel2InMiddle"
-                        Grid.Row="4" 
-                        Grid.Column="0"
-                        Style="{StaticResource MaterialDesignRaisedButton}"
-                        materialDesign:ButtonAssist.CornerRadius="5"
-                        Width="180"
-                        HorizontalAlignment="Center"
-                        Content="Del 2 in middle"
-                        Command="{Binding ButtonTestDel2InMiddleCommand}"/>
-
-                    <Button 
-                        Margin="5"
-                        x:Name="ButtonTestDel2AtEnd"
-                        Grid.Row="5" 
-                        Grid.Column="0"
-                        Style="{StaticResource MaterialDesignRaisedButton}"
-                        materialDesign:ButtonAssist.CornerRadius="5"
-                        Width="180"
-                        HorizontalAlignment="Center"
-                        Content="Del 2 at end"
-                        Command="{Binding ButtonTestDel2AtEndCommand}"/>
-                </Grid>
-
-            </Border>-->
+            <!--<ContentControl
+                x:Name="UIMainContentControl"
+                Content="{x:Type view:ConversationStreamUserControl}"
+                />-->
         </Grid>
         <!--#endregion RIGHT MAIN GRID-->
         
