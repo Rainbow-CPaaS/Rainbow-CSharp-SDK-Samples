@@ -21,6 +21,7 @@
     <PackageReference Include="MaterialDesignThemes" Version="3.0.1" />
     <PackageReference Include="Rainbow.CSharp.SDK" Version="1.10.0" />
     <PackageReference Include="System.Drawing.Common" Version="4.7.0" />
+    <PackageReference Include="WinCopies.AttachedCommandBehavior" Version="3.1.0.2" />
   </ItemGroup>
   
   <ItemGroup>
