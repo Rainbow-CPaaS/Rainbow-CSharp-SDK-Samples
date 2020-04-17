@@ -59,10 +59,10 @@
             materialDesign:HintAssist.Hint="Login"
             Width="260"
             HorizontalAlignment="Left"
-            IsEnabled="{Binding IsNotBusy}">
+            IsEnabled="{Binding Model.IsNotBusy}">
             <TextBox.Text>
                 <Binding
-                    Path="Login"
+                    Path="Model.Login"
                     UpdateSourceTrigger="PropertyChanged">
                     <Binding.ValidationRules>
                         <helpersUI:NotEmptyValidationRule ValidatesOnTargetUpdated="True"/>
@@ -88,10 +88,10 @@
             PasswordChar="*"
             Width="260"
             HorizontalAlignment="Center" 
-            IsEnabled="{Binding IsNotBusy}" 
+            IsEnabled="{Binding Model.IsNotBusy}" 
             helpersUI:PasswordBoxAssistant.BindPassword="true">
             <helpersUI:PasswordBoxAssistant.BoundPassword>
-                <Binding Path="Password" Mode="TwoWay">
+                <Binding Path="Model.Password" Mode="TwoWay">
                     <Binding.ValidationRules>
                         <helpersUI:NotEmptyValidationRule ValidatesOnTargetUpdated="True"/>
                     </Binding.ValidationRules>
@@ -107,12 +107,12 @@
             Grid.ColumnSpan="2"
             Style="{StaticResource MaterialDesignRaisedButton}"
             materialDesign:ButtonProgressAssist.Value="-1"
-            materialDesign:ButtonProgressAssist.IsIndicatorVisible="{Binding IsBusy}"
+            materialDesign:ButtonProgressAssist.IsIndicatorVisible="{Binding Model.IsBusy}"
             materialDesign:ButtonProgressAssist.IsIndeterminate="True"
             materialDesign:ButtonAssist.CornerRadius="5"
             Width="200"
             HorizontalAlignment="Center"
-            Content="{Binding Connect}"
+            Content="{Binding Model.Connect}"
             Command="{Binding ButtonLoginCommand}" IsCancel="False"/>
     </Grid>
 </Window>

@@ -46,17 +46,33 @@ namespace InstantMessaging.Model
             set
             {
                 SetProperty(ref m_isNotBusy, value);
+                if (IsBusy == IsNotBusy)
+                    IsBusy = (!IsNotBusy);
             }
         }
 
-#endregion PROPERTIES
+        Boolean m_isBusy;
+        public Boolean IsBusy
+        {
+            get { return m_isBusy; }
+            set
+            {
+                SetProperty(ref m_isBusy, value);
+                if (IsBusy == IsNotBusy)
+                    IsNotBusy = (!IsBusy);
+            }
+        }
 
-#region PUBLIC METHODS
+        #endregion PROPERTIES
+
+        #region PUBLIC METHODS
         public LoginModel()
         {
             // Define Rainbow events used in this View
             currentApplication.RbApplication.ConnectionStateChanged += RbApplication_ConnectionStateChanged;
             currentApplication.RbApplication.InitializationPerformed += RbApplication_InitializationPerformed;
+
+            Init();
         }
 
         public void Init()
@@ -71,6 +87,9 @@ namespace InstantMessaging.Model
 
         public void RBLogin(String login, String password)
         {
+            if (IsBusy)
+                return;
+
             Task task = new Task(() =>
             {
                 // We set to Busy
