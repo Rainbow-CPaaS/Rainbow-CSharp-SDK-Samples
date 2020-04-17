@@ -1,0 +1,55 @@
+<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <AssemblyName>InstantMessaging</AssemblyName>
+    <RootNamespace>InstantMessaging</RootNamespace>
+    <StartupObject></StartupObject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Resources\avatar1.jpg" />
+    <None Remove="Resources\avatar2.jpg" />
+    <None Remove="Resources\avatar3.jpg" />
+    <None Remove="Resources\avatar4.jpg" />
+    <None Remove="Resources\log4netConfiguration.xml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MaterialDesignThemes" Version="3.0.1" />
+    <PackageReference Include="Rainbow.CSharp.SDK" Version="1.10.0" />
+    <PackageReference Include="System.Drawing.Common" Version="4.7.0" />
+    <PackageReference Include="WinCopies.AttachedCommandBehavior" Version="3.1.0.2" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Resource Include="Resources\avatar1.jpg" />
+    <Resource Include="Resources\avatar2.jpg" />
+    <Resource Include="Resources\avatar3.jpg" />
+    <Resource Include="Resources\avatar4.jpg" />
+    <Resource Include="Resources\icon.png" />
+    <Resource Include="Resources\icon_32x32.png" />
+    <Resource Include="Resources\icon_doc_blue.png" />
+    <Resource Include="Resources\icon_image_blue.png" />
+    <Resource Include="Resources\icon_pdf_blue.png" />
+    <Resource Include="Resources\icon_ppt_blue.png" />
+    <Resource Include="Resources\icon_unknown_blue.png" />
+    <Resource Include="Resources\icon_xls_blue.png" />
+    <Resource Include="Resources\log4netConfiguration.xml" />
+    <Resource Include="Resources\msg_check.png" />
+    <Resource Include="Resources\msg_not_read.png" />
+    <Resource Include="Resources\msg_read.png" />
+    <Resource Include="Resources\msg_sending.png" />
+    <Resource Include="Resources\presence_away.png" />
+    <Resource Include="Resources\presence_busy.png" />
+    <Resource Include="Resources\presence_dnd.png" />
+    <Resource Include="Resources\presence_offline.png" />
+    <Resource Include="Resources\presence_online.png" />
+    <Resource Include="Resources\presence_online_mobile.png" />
+    <Resource Include="Resources\presence_xa.png" />
+    <Resource Include="Resources\splash_logo.png" />
+  </ItemGroup>
+
+</Project>
