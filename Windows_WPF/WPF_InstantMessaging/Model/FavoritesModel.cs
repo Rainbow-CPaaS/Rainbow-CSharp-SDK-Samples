@@ -14,7 +14,7 @@ using log4net;
 
 namespace InstantMessaging.Model
 {
-    public class FavoritesModel : ObservableObject
+    public class FavoritesModel
     {
         private static readonly ILog log = LogConfigurator.GetLogger(typeof(LoginModel));
         App CurrentApplication = (App)System.Windows.Application.Current;

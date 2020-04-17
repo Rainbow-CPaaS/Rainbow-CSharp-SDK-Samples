@@ -13,7 +13,7 @@ using log4net;
 
 namespace InstantMessaging.ViewModel
 {
-    public class MainViewModel : ObservableObject
+    public class MainViewModel
     {
 
         public MainViewModel()
