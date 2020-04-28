@@ -15,6 +15,8 @@
         xmlns:templateSelector="clr-namespace:InstantMessaging.TemplateSelector"
         mc:Ignorable="d"
         Title="MainView" 
+        MinHeight="600"
+        MinWidth="800"
         Height="900" 
         Width="1350"
         WindowStartupLocation="CenterScreen">
