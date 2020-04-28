@@ -8,4 +8,5 @@
             <TextBlock Text="{Binding Id}"/>
         </StackPanel>
     </DataTemplate>
+
 </ResourceDictionary>

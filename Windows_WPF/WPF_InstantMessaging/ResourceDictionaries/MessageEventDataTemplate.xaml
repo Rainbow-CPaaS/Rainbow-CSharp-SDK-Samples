@@ -2,9 +2,9 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:local="clr-namespace:InstantMessaging.ResourceDictionaries">
 
-    <DataTemplate x:Key="MessageOtherUserDataTemplate">
+    <DataTemplate x:Key="MessageEventDataTemplate">
         <StackPanel>
-            <TextBlock Text="Message Other User Data Template"/>
+            <TextBlock Text="Message Event Data Template"/>
             <TextBlock Text="{Binding Id}"/>
         </StackPanel>
     </DataTemplate>

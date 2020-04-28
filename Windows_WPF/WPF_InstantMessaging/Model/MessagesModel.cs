@@ -52,6 +52,12 @@ namespace InstantMessaging.Model
             message.Id = "2";
             MessagesList.Add(message);
 
+            message = new MessageViewModel();
+            message.Id = "3";
+            MessagesList.Add(message);
+
         }
     }
 }
+
+
