@@ -105,10 +105,12 @@ namespace InstantMessaging.Model
                 {
                     ConversationLightViewModel conversation = listView.SelectedItem as ConversationLightViewModel;
 
-                    ConversationLightViewModel newConversation = GetConversationLightCopy(conversation);
-                    newConversation.LastMessageDateTime = conversation.LastMessageDateTime.AddMinutes(35);
-
-                    UpdateConversationToModel(newConversation);
+                    if (CurrentApplication.USE_DUMMY_DATA)
+                    {
+                        ConversationLightViewModel newConversation = GetConversationLightCopy(conversation);
+                        newConversation.LastMessageDateTime = conversation.LastMessageDateTime.AddMinutes(35);
+                        UpdateConversationToModel(newConversation);
+                    }
                 }
                 else
                     log.WarnFormat("[ItemLeftClickCommand] Selected Item is null or it's an unknown type.");
@@ -252,7 +254,6 @@ namespace InstantMessaging.Model
                     return;
                 }
 
-                Boolean needToCheckSort = false;
                 lock (lockObservableConversations)
                 {
                     oldConversation.Id = newConversation.Id;

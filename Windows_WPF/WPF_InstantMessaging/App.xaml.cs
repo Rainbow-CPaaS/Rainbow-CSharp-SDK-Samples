@@ -72,17 +72,23 @@ namespace InstantMessaging
             InitAvatarPool();
             InitFilePool();
 
-
-            if ((USE_DUMMY_DATA && USE_LOGIN_FORM_WITH_DUMMY_DATA)
-                || (!USE_DUMMY_DATA))
+            if (!USE_DUMMY_DATA)
             {
                 LoginWindow = new LoginView();
                 LoginWindow.Show();
             }
-            else if (USE_DUMMY_DATA)
+            else
             {
-                ApplicationMainWindow = new MainView();
-                ApplicationMainWindow.Show();
+                if (USE_DUMMY_DATA && USE_LOGIN_FORM_WITH_DUMMY_DATA)
+                {
+                    LoginWindow = new LoginView();
+                    LoginWindow.Show();
+                }
+                else
+                {
+                    ApplicationMainWindow = new MainView();
+                    ApplicationMainWindow.Show();
+                }
             }
         }
         #endregion EVENTS/OVERRIDE OF APPLICATION OBJECT
@@ -100,13 +106,6 @@ namespace InstantMessaging
             {
                 // Set full path to log file name
                 logFullPathFileName = Path.Combine(Helper.GetTempFolder(), LogFolderName, logFileName);
-
-                // FOR TEST PURPOSE ONLY
-                //if (File.Exists(logFullPathFileName))
-                //{
-                //    String content = File.ReadAllText(logFullPathFileName);
-                //    File.Delete(logFullPathFileName);
-                //}
 
                 // Get content of the log file configuration
                 Stream stream = Helper.GetMemoryStreamFromResource(logConfigFileName);
