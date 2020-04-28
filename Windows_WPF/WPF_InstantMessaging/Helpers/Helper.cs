@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
-using System.Windows.Controls;
-using System.Windows.Media;
+using System.Globalization;
 using System.Windows.Media.Imaging;
 using System.Windows.Resources;
 
@@ -12,6 +11,7 @@ using Rainbow;
 using Rainbow.Model;
 
 using log4net;
+
 
 namespace InstantMessaging.Helpers
 {
@@ -61,11 +61,6 @@ namespace InstantMessaging.Helpers
             {
                 bitmapImage = GetBitmapImageFromStream(stream);
                 stream.Dispose();
-                //bitmapImage = new BitmapImage();
-                //bitmapImage.BeginInit();
-                //stream.CopyTo(bitmapImage.StreamSource);
-                //bitmapImage.StreamSource.Position = 0;
-                //bitmapImage.EndInit();
             }
 
             return bitmapImage;
@@ -162,17 +157,17 @@ namespace InstantMessaging.Helpers
             if (value >= 100)
             {
                 // No digits after the decimal.
-                return value.ToString("0,0");
+                return value.ToString("0,0", CultureInfo.InvariantCulture) ;
             }
             else if (value >= 10)
             {
                 // One digit after the decimal.
-                return value.ToString("0.0");
+                return value.ToString("0.0", CultureInfo.InvariantCulture);
             }
             else
             {
                 // Two digits after the decimal.
-                return value.ToString("0.00");
+                return value.ToString("0.00", CultureInfo.InvariantCulture);
             }
         }
 
