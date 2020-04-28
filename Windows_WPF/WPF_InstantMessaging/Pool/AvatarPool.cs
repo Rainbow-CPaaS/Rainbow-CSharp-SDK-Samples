@@ -36,8 +36,8 @@ namespace InstantMessaging.Pool
 
         private IImageManagement imageManagement = null;
 
-        private static readonly List<String> colorsList = new List<String>      { "#FF4500", "#D38700", "#348833", "#007356", "#00B2A9", "#00B0E5", "#0085CA", "#6639B7", "#91278A", "#CF0072", "#A50034", "#D20000" };
-        private static readonly List<String> darkerColorsList = new List<String> { "#EB2700", "#B56900", "#166A15", "#005538", "#00948B", "#0092C7", "#0067AC", "#481B99", "#73096C", "#B10054", "#870016", "#B40000" };
+        private static readonly List<String> colorsList = new List<String>      { "#FF4500", "#D38700", "#348833", "#007356", "#00B2A9", "#00B0E5", "#1B85E0", "#6639B7", "#91278A", "#CF0072", "#A50034", "#D20000" };
+        private static readonly List<String> darkerColorsList = new List<String> { "#EB2700", "#B56900", "#166A15", "#005538", "#00948B", "#0092C7", "#1464A8", "#481B99", "#73096C", "#B10054", "#870016", "#B40000" };
 
         private Rainbow.Application application = null;
         private Rainbow.Contacts contacts = null;
