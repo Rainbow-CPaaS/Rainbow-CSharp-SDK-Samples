@@ -24,6 +24,7 @@ namespace InstantMessaging.View
 
         ConversationsLightViewModel conversationsViewModel = null;
         FavoritesViewModel favoritesViewModel = null;
+        ConversationStreamViewModel conversationStreamViewModel = null;
         
         public MainView()
         {
@@ -43,6 +44,9 @@ namespace InstantMessaging.View
 
             favoritesViewModel = new FavoritesViewModel();
             UIFavoritesList.DataContext = favoritesViewModel;
+
+            conversationStreamViewModel = new ConversationStreamViewModel();
+            UIConversationStream.DataContext = conversationStreamViewModel;
         }
     }
 }

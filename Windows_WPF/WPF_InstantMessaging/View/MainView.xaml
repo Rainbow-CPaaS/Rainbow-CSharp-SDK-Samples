@@ -12,6 +12,7 @@
         FontFamily="{materialDesign:MaterialDesignFont}"
         xmlns:view="clr-namespace:InstantMessaging.View"
         xmlns:viewModel="clr-namespace:InstantMessaging.ViewModel"
+        xmlns:templateSelector="clr-namespace:InstantMessaging.TemplateSelector"
         mc:Ignorable="d"
         Title="MainView" 
         Height="900" 
@@ -21,8 +22,7 @@
     <!-- Main Horizontal Stack Panel - 
             - On Left: Favorites (Name: UIFavoritesList), Conversations (Name: UIConversationsList)
             - On Right: Conversation Stream -->
-    <Grid
-        x:Name="MainGrid">
+    <Grid x:Name="MainGrid">
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
@@ -308,33 +308,102 @@
         </Grid>
         <!--#endregion LEFT MAIN GRID-->
 
-        <!--#region RIGHT MAIN GRID-->
+        <!--#region RIGHT MAIN GRID CONTENT-->
         <!-- Detailed Part Stream-->
-        <Grid
+        <!--<Grid
             x:Name="RightMainGrid"
             Grid.Row="0" 
             Grid.Column="1"
             Width="Auto" 
-            Height="Auto">
+            VerticalAlignment="Stretch">
 
-            <!--<Grid.Resources>
-                <DataTemplate DataType="{x:Type viewModel:ConversationStreamUserControlViewModel}">
-                    <view:ConversationStreamUserControl />
-                </DataTemplate>
-            </Grid.Resources>-->
-            
             <Grid.RowDefinitions>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
+            </Grid.ColumnDefinitions>-->
 
-            <!--<ContentControl
-                x:Name="UIMainContentControl"
-                Content="{x:Type view:ConversationStreamUserControl}"
-                />-->
-        </Grid>
+            
+            <!-- USE DOCK PANEL TO ENSURE TO HAVE ON TOP / CENTER (take max space) / BOTTOM -->
+            <DockPanel 
+                Grid.Row="0"
+                Grid.Column="1"
+                VerticalAlignment="Stretch"
+                LastChildFill="True">
+                
+                <!--#region Conversation resume: Avatar, Title / DisplayName -->
+                <Grid DockPanel.Dock="Top">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="60"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Border 
+                        Grid.Row="0"
+                        Grid.Column="0"
+                        Background="Gray"/>
+                </Grid>
+                <!--#endregion Conversation resume: Avatar, Title / DisplayName -->
+
+                <!--#region After Messages List -->
+                <Grid DockPanel.Dock="Bottom">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="60"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Border 
+                        Grid.Row="0"
+                        Grid.Column="0"
+                        Background="Gray"/>
+                </Grid>
+                <!--#endregion Conversation resume: Avatar, Title / DisplayName -->
+
+                <!--#region Conversation Stream: Messages List -->
+                <ScrollViewer
+                    Height="Auto"
+                    Grid.Row="1"
+                    Grid.Column="0"
+                    VerticalAlignment="Stretch"
+                    VerticalScrollBarVisibility="Auto">
+                    
+                    <ScrollViewer.Resources>
+                        <templateSelector:ConversationStreamTemplateSelector x:Key="UIConversationStreamTemplateSelector"/>
+                    </ScrollViewer.Resources>
+
+                <ListView
+                        x:Name="UIConversationStream" 
+			            ItemsSource="{Binding MessagesList}"
+                        ItemTemplateSelector="{StaticResource UIConversationStreamTemplateSelector}">
+
+                        <!-- TO ALLOW MOUSE SCROLLING FROM INSIDE THE LISTVIEW  -->
+                        <ListView.Template>
+                            <ControlTemplate>
+                                <ItemsPresenter />
+                            </ControlTemplate>
+                        </ListView.Template>
+
+                         <!-- AVOID MOUSE OVER / ITEM SELECTION COLOR UPDATE -->
+                        <ListView.ItemContainerStyle>
+                            <Style TargetType="ListViewItem">
+                                <Style.Resources>
+                                    <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="transparent" />
+                                    <SolidColorBrush x:Key="{x:Static SystemColors.HighlightTextBrushKey}" Color="Black" /> <!-- NEED TO SPECIFY THE CORRECT COLOR ... -->
+                                    <SolidColorBrush x:Key="{x:Static SystemColors.ControlBrushKey}"  Color="transparent" />
+                                </Style.Resources>
+                            </Style>
+                        </ListView.ItemContainerStyle>
+
+                    </ListView>
+                </ScrollViewer>
+                <!--#endregion Conversation Stream: Messages List-->
+
+            </DockPanel>
+
+        <!--</Grid>-->
         <!--#endregion RIGHT MAIN GRID-->
         
     </Grid>
