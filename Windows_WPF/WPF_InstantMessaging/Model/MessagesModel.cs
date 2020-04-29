@@ -34,7 +34,7 @@ namespace InstantMessaging.Model
 
             MessagesList = new RangeObservableCollection<MessageViewModel>();
 
-            //if (CurrentApplication.USE_DUMMY_DATA)
+            if (CurrentApplication.USE_DUMMY_DATA)
             {
                 LoadFakeMessages();
                 return;
