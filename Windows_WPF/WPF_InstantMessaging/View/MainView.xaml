@@ -155,26 +155,19 @@
                 Height="Auto"
                 Grid.Row="3"
                 Grid.Column="0"
-                VerticalScrollBarVisibility="Auto"> 
-                <ListView 
+                VerticalScrollBarVisibility="Auto">
+                <ItemsControl 
                     x:Name="UIConversationsList" 
                     Height="Auto"
 			        ItemsSource="{Binding ConversationsLightList}"
                     cmdBehavior:CommandBehavior.Event="PreviewMouseLeftButtonUp" 
                     cmdBehavior:CommandBehavior.Command="{Binding ItemLeftClick}"
-                    cmdBehavior:CommandBehavior.CommandParameter="{x:Reference UIConversationsList}"
-                    >
-                    <!-- TO ALLOW MOUSE SCROLLING FROM INSIDE THE LISTVIEW -->
-                    <ListView.Template>
-                        <ControlTemplate>
-                            <ItemsPresenter />
-                        </ControlTemplate>
-                    </ListView.Template>
-                    
-                    <ListView.ItemTemplate>
+                    cmdBehavior:CommandBehavior.CommandParameter="{x:Reference UIConversationsList}">
+
+                    <ItemsControl.ItemTemplate>
                         <ItemContainerTemplate>
                             <Grid 
-                                Margin="0, -6, 0, -6">
+                                Margin="0, 0, 0, 0">
                                 <!-- GRID COLUMN / ROW DEFINITION -->
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="60"></ColumnDefinition>
@@ -305,8 +298,8 @@
                                 <!--#endregion SECOND COLUMN DEFINITON-->
                             </Grid>
                         </ItemContainerTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
             </ScrollViewer>
             <!--#endregion CONVERSATIONS (Title + Content)-->
 
@@ -362,31 +355,12 @@
                     <templateSelector:ConversationStreamTemplateSelector x:Key="UIConversationStreamTemplateSelector"/>
                 </ScrollViewer.Resources>
 
-                <ListView
+                <ItemsControl
                     x:Name="UIConversationStream" 
 			        ItemsSource="{Binding MessagesList}"
                     ItemTemplateSelector="{StaticResource UIConversationStreamTemplateSelector}" 
                     HorizontalContentAlignment="Stretch">
-
-                    <!-- TO ALLOW MOUSE SCROLLING FROM INSIDE THE LISTVIEW  -->
-                    <ListView.Template>
-                        <ControlTemplate>
-                            <ItemsPresenter />
-                        </ControlTemplate>
-                    </ListView.Template>
-
-                    <!-- AVOID MOUSE OVER / ITEM SELECTION COLOR UPDATE -->
-                    <ListView.ItemContainerStyle>
-                        <Style TargetType="ListViewItem">
-                            <Style.Resources>
-                                <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="transparent" />
-                                <SolidColorBrush x:Key="{x:Static SystemColors.HighlightTextBrushKey}" Color="Black" /> <!-- NEED TO SPECIFY THE CORRECT COLOR ... -->
-                                <SolidColorBrush x:Key="{x:Static SystemColors.ControlBrushKey}"  Color="transparent" />
-                            </Style.Resources>
-                        </Style>
-                    </ListView.ItemContainerStyle>
-
-                </ListView>
+                </ItemsControl>
             </ScrollViewer>
             <!--#endregion Conversation Stream: Messages List-->
 
