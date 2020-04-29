@@ -43,6 +43,10 @@ namespace InstantMessaging.Model
 
         public void LoadFakeMessages()
         {
+            double nbSecs;
+            int mns;
+            int sec;
+
             DateTime utcNow = DateTime.UtcNow;
             MessageViewModel message;
 
@@ -270,8 +274,7 @@ namespace InstantMessaging.Model
 
             #endregion FAKE CONVERSATIONS - TEST 'OTHER USER' DISPLAY
 
-
-            #region FAKE CONVERSATIONS - TEST 'OTHER USER' DISPLAY
+            #region FAKE CONVERSATIONS - TEST 'CURRENT USER' DISPLAY
 
             // --------------------------------------------------------------------
             // TEST BASIC MSG: short display name , short body
@@ -505,7 +508,147 @@ namespace InstantMessaging.Model
 
             MessagesList.Add(message);
 
-            #endregion FAKE CONVERSATIONS - TEST 'OTHER USER' DISPLAY
+            #endregion FAKE CONVERSATIONS - TEST 'CURRENT USER' DISPLAY
+
+            #region FAKE CONVERSATIONS - TEST 'EVENT' DISPLAY
+
+            // --------------------------------------------------------------------
+            // TEST BASIC MSG: event - start conference
+            message = new MessageViewModel();
+            message.Id = "1";
+
+            message.PeerId = "peerId";
+            message.PeerJid = "peerJid";
+            message.PeerDisplayName = "Philippe Torrelli";
+            message.PeerDisplayNameIsVisible = Visibility.Visible;
+
+            message.BackgroundColor = new BrushConverter().ConvertFromString(AvatarPool.GetColorFromDisplayName(message.PeerDisplayName)) as SolidColorBrush;
+
+            message.AvatarImageSource = Helper.GetBitmapImageFromResource("avatar1.jpg");
+
+            message.BodyIsVisible = Visibility.Collapsed;
+
+            message.MessageDateTime = utcNow;
+            message.MessageDateDisplay = Helpers.Helper.HumanizeDateTime(message.MessageDateTime);
+
+            message.EditedIsVisible = Visibility.Collapsed;
+
+            message.ReplyPartIsVisible = Visibility.Collapsed;
+
+            message.FileAttachmentIsVisible = Visibility.Collapsed;
+            message.FileInfoIsVisible = Visibility.Collapsed;
+
+            message.IsEventMessage = true;
+            message.EventMessageBodyPart1 = message.PeerDisplayName + " has started the conference";
+            message.EventMessageBodyPart2IsVisible = String.IsNullOrEmpty(message.EventMessageBodyPart2) ? Visibility.Collapsed : Visibility.Visible;
+
+            MessagesList.Add(message);
+
+            // --------------------------------------------------------------------
+            // TEST BASIC MSG: event - end conference
+            message = new MessageViewModel();
+            message.Id = "1";
+
+            message.PeerId = "peerId";
+            message.PeerJid = "peerJid";
+            message.PeerDisplayName = "Philippe Torrelli";
+            message.PeerDisplayNameIsVisible = Visibility.Visible;
+
+            message.BackgroundColor = new BrushConverter().ConvertFromString(AvatarPool.GetColorFromDisplayName(message.PeerDisplayName)) as SolidColorBrush;
+
+            message.AvatarImageSource = Helper.GetBitmapImageFromResource("avatar1.jpg");
+
+            message.BodyIsVisible = Visibility.Collapsed;
+
+            message.MessageDateTime = utcNow;
+            message.MessageDateDisplay = Helpers.Helper.HumanizeDateTime(message.MessageDateTime);
+
+            message.EditedIsVisible = Visibility.Collapsed;
+
+            message.ReplyPartIsVisible = Visibility.Collapsed;
+
+            message.FileAttachmentIsVisible = Visibility.Collapsed;
+            message.FileInfoIsVisible = Visibility.Collapsed;
+
+            message.IsEventMessage = true;
+            message.EventMessageBodyPart1 = message.PeerDisplayName + " has ended the conference";
+            message.EventMessageBodyPart2IsVisible = String.IsNullOrEmpty(message.EventMessageBodyPart2) ? Visibility.Collapsed : Visibility.Visible;
+
+            MessagesList.Add(message);
+
+
+            // --------------------------------------------------------------------
+            // TEST BASIC MSG: event -'call log' - answered
+            message = new MessageViewModel();
+            message.Id = "1";
+
+            message.PeerId = "peerId";
+            message.PeerJid = "peerJid";
+            message.PeerDisplayName = "Philippe Torrelli";
+            message.PeerDisplayNameIsVisible = Visibility.Visible;
+
+            message.BackgroundColor = new BrushConverter().ConvertFromString(AvatarPool.GetColorFromDisplayName(message.PeerDisplayName)) as SolidColorBrush;
+
+            message.AvatarImageSource = Helper.GetBitmapImageFromResource("avatar1.jpg");
+
+            message.BodyIsVisible = Visibility.Collapsed;
+
+            message.MessageDateTime = utcNow;
+            message.MessageDateDisplay = Helpers.Helper.HumanizeDateTime(message.MessageDateTime);
+
+            message.EditedIsVisible = Visibility.Collapsed;
+
+            message.ReplyPartIsVisible = Visibility.Collapsed;
+
+            message.FileAttachmentIsVisible = Visibility.Collapsed;
+            message.FileInfoIsVisible = Visibility.Collapsed;
+
+            message.IsEventMessage = true;
+            message.EventMessageBodyPart1 = message.PeerDisplayName + " has called you.";
+            nbSecs = 658;
+            mns = (int)(nbSecs / 60);
+            sec = (int)Math.Round(nbSecs - (mns * 60));
+            message.EventMessageBodyPart2 = "Duration: " + ((mns > 0) ? mns + ((mns > 1) ? "mns " : "mn ") : "") + ((sec > 0) ? sec + "s" : "");
+            message.EventMessageBodyPart2Color = Brushes.Black;
+            message.EventMessageBodyPart2IsVisible = String.IsNullOrEmpty(message.EventMessageBodyPart2) ? Visibility.Collapsed : Visibility.Visible;
+
+            MessagesList.Add(message);
+
+            // --------------------------------------------------------------------
+            // TEST BASIC MSG: event -'call log' - not answered / failed
+            message = new MessageViewModel();
+            message.Id = "1";
+
+            message.PeerId = "peerId";
+            message.PeerJid = "peerJid";
+            message.PeerDisplayName = "Philippe Torrelli";
+            message.PeerDisplayNameIsVisible = Visibility.Visible;
+
+            message.BackgroundColor = new BrushConverter().ConvertFromString(AvatarPool.GetColorFromDisplayName(message.PeerDisplayName)) as SolidColorBrush;
+
+            message.AvatarImageSource = Helper.GetBitmapImageFromResource("avatar1.jpg");
+
+            message.BodyIsVisible = Visibility.Collapsed;
+
+            message.MessageDateTime = utcNow;
+            message.MessageDateDisplay = Helpers.Helper.HumanizeDateTime(message.MessageDateTime);
+
+            message.EditedIsVisible = Visibility.Collapsed;
+
+            message.ReplyPartIsVisible = Visibility.Collapsed;
+
+            message.FileAttachmentIsVisible = Visibility.Collapsed;
+            message.FileInfoIsVisible = Visibility.Collapsed;
+
+            message.IsEventMessage = true;
+            message.EventMessageBodyPart1 = message.PeerDisplayName + " has called you.";
+            message.EventMessageBodyPart2 = "Missed call";
+            message.EventMessageBodyPart2Color = Brushes.Red;
+            message.EventMessageBodyPart2IsVisible = String.IsNullOrEmpty(message.EventMessageBodyPart2) ? Visibility.Collapsed : Visibility.Visible;
+
+            MessagesList.Add(message);
+
+            #endregion FAKE CONVERSATIONS - TEST 'EVENT' DISPLAY
         }
     }
 }

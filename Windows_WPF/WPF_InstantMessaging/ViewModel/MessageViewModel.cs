@@ -28,6 +28,7 @@ namespace InstantMessaging.ViewModel
         String eventMessageBodyPart1;
         String eventMessageBodyPart2;
         Brush eventMessageBodyPart2Color;
+        Visibility eventMessageBodyPart2IsVisible;
 
         String callOtherJid;
         String callOriginator;
@@ -161,11 +162,15 @@ namespace InstantMessaging.ViewModel
             set { SetProperty(ref eventMessageBodyPart2Color, value); }
         }
 
-        public String EventMessageBodyPart2IsVisible => String.IsNullOrEmpty(EventMessageBodyPart2) ? "False" : "True";
+        public Visibility EventMessageBodyPart2IsVisible
+        {
+            get { return eventMessageBodyPart2IsVisible; }
+            set { SetProperty(ref eventMessageBodyPart2IsVisible, value); }
+        }
 
-#endregion PROPERTIES FOR EVENT
+        #endregion PROPERTIES FOR EVENT
 
-#region PROPERTIES FOR CALL LOG
+        #region PROPERTIES FOR CALL LOG
 
         public String CallOtherJid
         {
