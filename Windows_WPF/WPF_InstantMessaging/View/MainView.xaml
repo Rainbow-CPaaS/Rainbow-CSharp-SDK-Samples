@@ -88,6 +88,7 @@
                             
                             <!-- AVATAR IMG -->
                             <Image
+                                RenderOptions.BitmapScalingMode="HighQuality"
                                 Source="{Binding AvatarImageSource}"
                                 Stretch="UniformToFill"
                                 Width="50"
@@ -103,7 +104,8 @@
                                 CornerRadius="12"
                                 Padding="0"
                                 Visibility="{Binding PresenceIsVisible}">
-                                <Image 
+                                <Image
+                                    RenderOptions.BitmapScalingMode="HighQuality"
                                     Source="{Binding PresenceImageSource}"
                                     Height="10"
                                     Width="10"/>
@@ -194,12 +196,13 @@
                                     VerticalAlignment="Center"
                                     Visibility="Visible">
                                     <Image
-                                            Source="{Binding AvatarImageSource}"
-                                            Stretch="UniformToFill"
-                                            Width="58"
-                                            Height="58"
-                                            HorizontalAlignment="Center"
-                                            VerticalAlignment="Center"/>
+                                        RenderOptions.BitmapScalingMode="HighQuality"
+                                        Source="{Binding AvatarImageSource}"
+                                        Stretch="UniformToFill"
+                                        Width="58"
+                                        Height="58"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"/>
                                 </StackPanel>
 
                                 <!-- PRESENCE BULLET -->
@@ -216,6 +219,7 @@
                                     Padding="0"
                                     Visibility="{Binding PresenceIsVisible}">
                                     <Image 
+                                        RenderOptions.BitmapScalingMode="HighQuality"
                                         Source="{Binding PresenceImageSource}"
                                         Height="10"
                                         Width="10"/>
@@ -328,7 +332,7 @@
                 <Border 
                     Grid.Row="0"
                     Grid.Column="0"
-                    Background="Gray"/>
+                    Background="Transparent"/>
             </Grid>
             <!--#endregion Conversation resume: Avatar, Title / DisplayName -->
 
@@ -343,7 +347,7 @@
                 <Border 
                     Grid.Row="0"
                     Grid.Column="0"
-                    Background="Gray"/>
+                    Background="Transparent"/>
             </Grid>
             <!--#endregion Conversation resume: Avatar, Title / DisplayName -->
 
@@ -361,7 +365,8 @@
                 <ListView
                     x:Name="UIConversationStream" 
 			        ItemsSource="{Binding MessagesList}"
-                    ItemTemplateSelector="{StaticResource UIConversationStreamTemplateSelector}">
+                    ItemTemplateSelector="{StaticResource UIConversationStreamTemplateSelector}" 
+                    HorizontalContentAlignment="Stretch">
 
                     <!-- TO ALLOW MOUSE SCROLLING FROM INSIDE THE LISTVIEW  -->
                     <ListView.Template>

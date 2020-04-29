@@ -10,14 +10,16 @@ namespace InstantMessaging.TemplateSelector
 {
     class ConversationStreamTemplateSelector : DataTemplateSelector
     {
-        ResourceDictionary messageCurrentUserDictionary = null;
-        DataTemplate messageCurrentUserDataTemplate = null;
+        private readonly App CurrentApplication = (App)System.Windows.Application.Current;
 
-        ResourceDictionary messageOtherUserDictionary = null;
-        DataTemplate messageOtherUserDataTemplate = null;
+        private readonly ResourceDictionary messageCurrentUserDictionary = null;
+        private readonly DataTemplate messageCurrentUserDataTemplate = null;
 
-        ResourceDictionary messageEventDictionary = null;
-        DataTemplate messageEventDataTemplate = null;
+        private readonly ResourceDictionary messageOtherUserDictionary = null;
+        private readonly DataTemplate messageOtherUserDataTemplate = null;
+
+        private readonly ResourceDictionary messageEventDictionary = null;
+        private readonly DataTemplate messageEventDataTemplate = null;
 
         public ConversationStreamTemplateSelector()
         {
@@ -59,13 +61,16 @@ namespace InstantMessaging.TemplateSelector
             {
                 MessageViewModel message = item as MessageViewModel;
 
-                // TEST PURPOSE: Display each template
-                if (message.Id == "1")
-                    result = messageCurrentUserDataTemplate;
-                else if (message.Id == "2")
-                    result = messageOtherUserDataTemplate;
-                else
+                if (message.IsEventMessage)
                     result = messageEventDataTemplate;
+                else
+                {
+                    if (message.PeerId == CurrentApplication.CurrentUserId)
+                        result = messageCurrentUserDataTemplate;
+                    else
+                        result = messageOtherUserDataTemplate;
+                }
+                    
             }
             return result;
         }

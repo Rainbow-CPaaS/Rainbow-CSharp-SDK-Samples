@@ -13,18 +13,18 @@ namespace InstantMessaging.ViewModel
         String peerJid;
         String peerId;
 
-        String bodyIsVisible;
+        Visibility bodyIsVisible;
         String body;
-        System.Windows.FontStyle bodyFontStyle;
+        FontStyle bodyFontStyle;
         Brush bodyColor;
 
         Brush backgroundColor;
-        String peerDisplayNameIsVisible;
-        BitmapImage avatarSource;
+        Visibility peerDisplayNameIsVisible;
+        BitmapImage avatarImageSource;
         DateTime messageDateTime;
         String messageDateDisplay;
 
-        String isEventMessage;
+        Boolean isEventMessage;
         String eventMessageBodyPart1;
         String eventMessageBodyPart2;
         Brush eventMessageBodyPart2Color;
@@ -39,24 +39,23 @@ namespace InstantMessaging.ViewModel
         String replyPeerId;
         String replyPeerJid;
         String replyPeerDisplayName;
-        String replyPartIsVisible;
+        Visibility replyPartIsVisible;
         Brush replyBackgroundColor;
         String replyBody;
 
-        String editedIsVisible;
+        Visibility editedIsVisible;
 
         String receiptType;
-        BitmapImage receiptSource;
+        BitmapImage receiptImageSource;
 
-        String fileAttachmentIsVisible;
-        BitmapImage fileAttachmentSource;
-        int fileAttachmentSourceWidth;
-        int fileAttachmentSourceHeight;
-        String fileDefaultInfoIsVisible;
+        Visibility fileAttachmentIsVisible;
+        BitmapImage fileAttachmentImageSource;
+        int fileAttachmentImageWidth;
+        int fileAttachmentImageHeight;
+        Visibility fileInfoIsVisible;
         String fileId;
         String fileName;
         String fileSize;
-        BitmapImage fileDefaultAttachmentSource;
 
         public string Id
         {
@@ -70,7 +69,7 @@ namespace InstantMessaging.ViewModel
             set { SetProperty(ref peerDisplayName, value); }
         }
 
-        public string PeerDisplayNameIsVisible // Used to avoid to display name in one-to-one conversation
+        public Visibility PeerDisplayNameIsVisible // Used to avoid to display name in one-to-one conversation
         {
             get { return peerDisplayNameIsVisible; }
             set { SetProperty(ref peerDisplayNameIsVisible, value); }
@@ -100,7 +99,7 @@ namespace InstantMessaging.ViewModel
             set { SetProperty(ref body, value); }
         }
 
-        public string BodyIsVisible
+        public Visibility BodyIsVisible
         {
             get { return bodyIsVisible; }
             set { SetProperty(ref bodyIsVisible, value); }
@@ -118,10 +117,10 @@ namespace InstantMessaging.ViewModel
             set { SetProperty(ref bodyColor, value); }
         }
 
-        public BitmapImage AvatarSource
+        public BitmapImage AvatarImageSource
         {
-            get { return avatarSource; }
-            set { SetProperty(ref avatarSource, value); }
+            get { return avatarImageSource; }
+            set { SetProperty(ref avatarImageSource, value); }
         }
 
         public DateTime MessageDateTime
@@ -138,7 +137,7 @@ namespace InstantMessaging.ViewModel
 
 #region PROPERTIES FOR EVENT
 
-        public String IsEventMessage
+        public Boolean IsEventMessage
         {
             get { return isEventMessage; }
             set { SetProperty(ref isEventMessage, value); }
@@ -222,7 +221,7 @@ namespace InstantMessaging.ViewModel
             get { return replyPeerJid; }
             set { SetProperty(ref replyPeerJid, value); }
         }
-        public string ReplyPartIsVisible
+        public Visibility ReplyPartIsVisible
         {
             get { return replyPartIsVisible; }
             set { SetProperty(ref replyPartIsVisible, value); }
@@ -250,16 +249,15 @@ namespace InstantMessaging.ViewModel
             set { SetProperty(ref receiptType, value); }
         }
 
-        public BitmapImage ReceiptSource
+        public BitmapImage ReceiptImageSource
         {
-            get { return receiptSource; }
-            set { SetProperty(ref receiptSource, value); }
+            get { return receiptImageSource; }
+            set { SetProperty(ref receiptImageSource, value); }
         }
 
 #endregion PROPERTIES FOR RECEIPT DISPLAY
 
-
-        public String EditedIsVisible
+        public Visibility EditedIsVisible
         {
             get { return editedIsVisible; }
             set { SetProperty(ref editedIsVisible, value); }
@@ -267,28 +265,28 @@ namespace InstantMessaging.ViewModel
 
 #region PROPERTIES FOR FILE ATTACHMENT
 
-        public String FileAttachmentIsVisible
+        public Visibility FileAttachmentIsVisible
         {
             get { return fileAttachmentIsVisible; }
             set { SetProperty(ref fileAttachmentIsVisible, value); }
         }
 
-        public int FileAttachmentSourceWidth
+        public int FileAttachmentImageWidth
         {
-            get { return fileAttachmentSourceWidth; }
-            set { SetProperty(ref fileAttachmentSourceWidth, value); }
+            get { return fileAttachmentImageWidth; }
+            set { SetProperty(ref fileAttachmentImageWidth, value); }
         }
 
-        public int FileAttachmentSourceHeight
+        public int FileAttachmentImageHeight
         {
-            get { return fileAttachmentSourceHeight; }
-            set { SetProperty(ref fileAttachmentSourceHeight, value); }
+            get { return fileAttachmentImageHeight; }
+            set { SetProperty(ref fileAttachmentImageHeight, value); }
         }
 
-        public String FileDefaultInfoIsVisible
+        public Visibility FileInfoIsVisible
         {
-            get { return fileDefaultInfoIsVisible; }
-            set { SetProperty(ref fileDefaultInfoIsVisible, value); }
+            get { return fileInfoIsVisible; }
+            set { SetProperty(ref fileInfoIsVisible, value); }
         }
 
         public String FileId
@@ -309,16 +307,10 @@ namespace InstantMessaging.ViewModel
             set { SetProperty(ref fileSize, value); }
         }
 
-        public BitmapImage FileAttachmentSource
+        public BitmapImage FileAttachmentImageSource
         {
-            get { return fileAttachmentSource; }
-            set { SetProperty(ref fileAttachmentSource, value); }
-        }
-
-        public BitmapImage FileDefaultAttachmentSource
-        {
-            get { return fileDefaultAttachmentSource; }
-            set { SetProperty(ref fileDefaultAttachmentSource, value); }
+            get { return fileAttachmentImageSource; }
+            set { SetProperty(ref fileAttachmentImageSource, value); }
         }
 
 #endregion PROPERTIES FOR FILE ATTACHMENT

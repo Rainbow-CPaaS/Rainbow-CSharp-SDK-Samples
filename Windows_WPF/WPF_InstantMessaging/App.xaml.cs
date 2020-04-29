@@ -37,7 +37,7 @@ namespace InstantMessaging
         internal String CurrentUserJid;
 
         // Define a way to use dummy data
-        internal Boolean USE_DUMMY_DATA = false;
+        internal Boolean USE_DUMMY_DATA = true;
         internal Boolean USE_LOGIN_FORM_WITH_DUMMY_DATA = false;
         internal Boolean USE_AVATAR_CACHE = true;
         internal Boolean USE_FILE_CACHE = false;
@@ -74,6 +74,9 @@ namespace InstantMessaging
 
             if (!USE_DUMMY_DATA)
             {
+                CurrentUserId = "1";
+                CurrentUserJid = "1";
+
                 LoginWindow = new LoginView();
                 LoginWindow.Show();
             }
