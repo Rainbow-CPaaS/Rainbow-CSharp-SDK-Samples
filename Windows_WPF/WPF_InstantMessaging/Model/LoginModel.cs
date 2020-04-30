@@ -14,7 +14,7 @@ namespace InstantMessaging.Model
     public class LoginModel: ObservableObject
     {
         private static readonly ILog log = LogConfigurator.GetLogger(typeof(LoginModel));
-        App currentApplication = (App)System.Windows.Application.Current;
+        App CurrentApplication = (App)System.Windows.Application.Current;
 
 #region PROPERTIES
 
@@ -69,8 +69,8 @@ namespace InstantMessaging.Model
         public LoginModel()
         {
             // Define Rainbow events used in this View
-            currentApplication.RbApplication.ConnectionStateChanged += RbApplication_ConnectionStateChanged;
-            currentApplication.RbApplication.InitializationPerformed += RbApplication_InitializationPerformed;
+            CurrentApplication.RbApplication.ConnectionStateChanged += RbApplication_ConnectionStateChanged;
+            CurrentApplication.RbApplication.InitializationPerformed += RbApplication_InitializationPerformed;
 
             Init();
         }
@@ -81,8 +81,8 @@ namespace InstantMessaging.Model
             IsNotBusy = true;
             Connect = "Connect";
 
-            Login = currentApplication.RbApplication.GetUserLoginFromCache();
-            Password = currentApplication.RbApplication.GetUserPasswordFromCache();
+            Login = CurrentApplication.RbApplication.GetUserLoginFromCache();
+            Password = CurrentApplication.RbApplication.GetUserPasswordFromCache();
         }
 
         public void RBLogin(String login, String password)
@@ -95,7 +95,7 @@ namespace InstantMessaging.Model
                 // We set to Busy
                 IsNotBusy = false;
 
-                if (currentApplication.RbApplication.ConnectionState() == ConnectionState.Disconnected)
+                if (CurrentApplication.RbApplication.ConnectionState() == ConnectionState.Disconnected)
                 {
                     /*
                     IPEndPoint ipEndPoint;
@@ -104,13 +104,13 @@ namespace InstantMessaging.Model
                     currentApplication.RbApplication.SetIpEndPoint(ipEndPoint);
                     */
 
-                    currentApplication.RbApplication.Login(login, password, callback =>
+                    CurrentApplication.RbApplication.Login(login, password, callback =>
                     {
                         //TODO - manage error
                     });
                 }
                 else
-                    currentApplication.RbApplication.Logout();
+                    CurrentApplication.RbApplication.Logout();
             });
             task.Start();
         }
@@ -120,10 +120,10 @@ namespace InstantMessaging.Model
         private void ShowMainWindow()
         {
             // First hide login window
-            currentApplication.HideLoginWindow();
+            CurrentApplication.HideLoginWindow();
 
             // Now show Main Window
-            currentApplication.ShowApplicationMainWindow();
+            CurrentApplication.ShowApplicationMainWindow();
         }
 
 #endregion PRIVATE METHODS
@@ -131,12 +131,12 @@ namespace InstantMessaging.Model
 #region Events fired by Rainbow SDK
         private void RbApplication_InitializationPerformed(object sender, EventArgs e)
         {
-            if (!currentApplication.RbApplication.IsInitialized())
+            if (!CurrentApplication.RbApplication.IsInitialized())
                 return;
 
             // Store current user ID / Jid
-            currentApplication.CurrentUserId = currentApplication.RbContacts.GetCurrentContactId();
-            currentApplication.CurrentUserJid = currentApplication.RbContacts.GetCurrentContactJid();
+            CurrentApplication.CurrentUserId = CurrentApplication.RbContacts.GetCurrentContactId();
+            CurrentApplication.CurrentUserJid = CurrentApplication.RbContacts.GetCurrentContactJid();
 
             // Once the initialization is performed, we wants 
             //      - to know all conversations
@@ -146,7 +146,7 @@ namespace InstantMessaging.Model
                 ManualResetEvent manualEventBubbles = new ManualResetEvent(false);
                 ManualResetEvent manualEventConversations = new ManualResetEvent(false);
 
-                currentApplication.RbConversations.GetAllConversations(callback =>
+                CurrentApplication.RbConversations.GetAllConversations(callback =>
                 {
                     if (!callback.Result.Success)
                     {
@@ -155,7 +155,7 @@ namespace InstantMessaging.Model
                     manualEventConversations.Set();
                 });
 
-                currentApplication.RbBubbles.GetAllBubbles(callback =>
+                CurrentApplication.RbBubbles.GetAllBubbles(callback =>
                 {
                     if (!callback.Result.Success)
                     {

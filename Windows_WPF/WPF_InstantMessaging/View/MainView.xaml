@@ -159,14 +159,15 @@
                 <ItemsControl 
                     x:Name="UIConversationsList" 
                     Height="Auto"
-			        ItemsSource="{Binding ConversationsLightList}"
-                    cmdBehavior:CommandBehavior.Event="PreviewMouseLeftButtonUp" 
-                    cmdBehavior:CommandBehavior.Command="{Binding ItemLeftClick}"
-                    cmdBehavior:CommandBehavior.CommandParameter="{x:Reference UIConversationsList}">
+			        ItemsSource="{Binding ConversationsLightList}">
 
                     <ItemsControl.ItemTemplate>
                         <ItemContainerTemplate>
                             <Grid 
+                                cmdBehavior:CommandBehavior.Event="PreviewMouseLeftButtonUp" 
+                                cmdBehavior:CommandBehavior.Command="{Binding Path=DataContext.ItemLeftClick, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"
+                                cmdBehavior:CommandBehavior.CommandParameter="{Binding}"
+                                
                                 Margin="0, 0, 0, 0">
                                 <!-- GRID COLUMN / ROW DEFINITION -->
                                 <Grid.ColumnDefinitions>
@@ -349,6 +350,7 @@
                 Height="Auto"
                 Grid.Row="1"
                 Grid.Column="0"
+                HorizontalAlignment="Stretch"
                 VerticalScrollBarVisibility="Auto">
 
                 <ScrollViewer.Resources>

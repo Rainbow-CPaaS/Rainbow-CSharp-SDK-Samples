@@ -3,27 +3,29 @@
 
     <DataTemplate x:Key="MessageOtherUserDataTemplate">
         <!-- BINDING  - MessageViewModel object -->
-        <Grid HorizontalAlignment="Left">
-            <Grid.ColumnDefinitions>
-                <!-- SPACE -->
-                <ColumnDefinition Width="4" />
-                <!-- AVATAR -->
-                <ColumnDefinition Width="*" />
-                <!-- SPACE -->
-                <ColumnDefinition Width="4" />
-                <!-- BODY -->
-                <ColumnDefinition Width="*" />
-                <!-- SPACE -->
-                <ColumnDefinition Width="4" />
-            </Grid.ColumnDefinitions>
+        <DockPanel 
+            LastChildFill="True">
 
-            <Grid.RowDefinitions>
-                <RowDefinition Height="*" />
-                <RowDefinition Height="4" />
-            </Grid.RowDefinitions>
+            <Grid 
+                DockPanel.Dock="Left"
+                VerticalAlignment="Bottom"
+                HorizontalAlignment="Left">
+                <Grid.ColumnDefinitions>
+                    <!-- SPACE -->
+                    <ColumnDefinition Width="4" />
+                    <!-- AVATAR -->
+                    <ColumnDefinition Width="*" />
+                    <!-- SPACE -->
+                    <ColumnDefinition Width="4" />
+                </Grid.ColumnDefinitions>
 
-            <!--#region AVATAR-->
-            <Image 
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="4" />
+                </Grid.RowDefinitions>
+
+                <!--#region AVATAR-->
+                <Image 
                 Grid.Row="0" 
                 Grid.Column="1"
                 Source="{Binding AvatarImageSource}"
@@ -33,207 +35,225 @@
                 Height="40"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Bottom"/>
-            <!--#endregion AVATAR-->
+                <!--#endregion AVATAR-->
+            </Grid>
 
-            <!--#region DISPLAY NAME + REPLY + BODY  + FILE ATTACHEMENT + MSG DATE + EDITED INFO-->
-            <Border 
-                Grid.Row="0" 
-                Grid.Column="3"
-                Background="{Binding BackgroundColor}"
-                CornerRadius="8" 
-                Padding="8"
-                VerticalAlignment="Center"
+            <Grid
                 HorizontalAlignment="Left">
-                <Grid >
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
+                <Grid.ColumnDefinitions>
+                    <!-- BODY -->
+                    <ColumnDefinition Width="*" />
+                    <!-- SPACE -->
+                    <ColumnDefinition Width="4" />
+                </Grid.ColumnDefinitions>
 
-                    <Grid.RowDefinitions>
-                        <!-- DISPLAY NAME -->
-                        <RowDefinition Height="*" />
-                        
-                        <!-- ADD SPACE-->
-                        <RowDefinition Height="4" />
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="4" />
+                </Grid.RowDefinitions>
 
-                        <!-- REPLY PART -->
-                        <RowDefinition Height="*" />
 
-                        <!-- BODY PART -->
-                        <RowDefinition Height="*" />
+                <!--#region DISPLAY NAME + REPLY + BODY  + FILE ATTACHEMENT + MSG DATE + EDITED INFO-->
+                <Border 
+                    Grid.Row="0" 
+                    Grid.Column="0"
+                    Background="{Binding BackgroundColor}"
+                    CornerRadius="8" 
+                    Padding="8"
+                    VerticalAlignment="Center"
+                    HorizontalAlignment="Left">
+                    <Grid >
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
 
-                        <!-- FILE ATTACHMENT -->
-                        <RowDefinition Height="*" />
-                        
-                        <!-- ADD SPACE-->
-                        <RowDefinition Height="4" />
-                        
-                        <!--- DATE + EDITED + RECEIPT -->
-                        <RowDefinition Height="*" />
-                    </Grid.RowDefinitions>
+                        <Grid.RowDefinitions>
+                            <!-- DISPLAY NAME -->
+                            <RowDefinition Height="*" />
 
-                    <!--#region DISPLAY NAME-->
-                    <TextBlock 
-                        Grid.Row="0" 
-                        Grid.Column="0" 
-                        HorizontalAlignment="Left"
-                        VerticalAlignment="Center"
-                        Foreground="White" 
-                        FontWeight="Bold"
-                        FontSize="10"
-                        TextWrapping="Wrap"
-                        TextTrimming="CharacterEllipsis"
-                        Text="{Binding PeerDisplayName}"
-                        Visibility="{Binding PeerDisplayNameIsVisible}"/>
-                    <!--#endregion DISPLAY NAME-->
+                            <!-- ADD SPACE-->
+                            <RowDefinition Height="4" />
 
-                    <!--#region REPLY PART-->
-                    <Border 
-                        Grid.Row="2" 
-                        Grid.Column="0"
-                        Visibility="{Binding ReplyPartIsVisible}"
-                        Background="{Binding ReplyBackgroundColor}"
-                        CornerRadius="4" 
-                        Padding="4"
-                        VerticalAlignment="Center"
-                        HorizontalAlignment="Left"
-                        Margin="4">
-                        <Grid>
+                            <!-- REPLY PART -->
+                            <RowDefinition Height="*" />
+
+                            <!-- BODY PART -->
+                            <RowDefinition Height="*" />
+
+                            <!-- FILE ATTACHMENT -->
+                            <RowDefinition Height="*" />
+
+                            <!-- ADD SPACE-->
+                            <RowDefinition Height="4" />
+
+                            <!--- DATE + EDITED + RECEIPT -->
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+
+                        <!--#region DISPLAY NAME-->
+                        <TextBlock 
+                            Grid.Row="0" 
+                            Grid.Column="0" 
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Center"
+                            Foreground="White" 
+                            FontWeight="Bold"
+                            FontSize="10"
+                            TextWrapping="Wrap"
+                            TextTrimming="CharacterEllipsis"
+                            Text="{Binding PeerDisplayName}"
+                            Visibility="{Binding PeerDisplayNameIsVisible}"/>
+                        <!--#endregion DISPLAY NAME-->
+
+                        <!--#region REPLY PART-->
+                        <Border 
+                            Grid.Row="2" 
+                            Grid.Column="0"
+                            Visibility="{Binding ReplyPartIsVisible}"
+                            Background="{Binding ReplyBackgroundColor}"
+                            CornerRadius="4" 
+                            Padding="4"
+                            VerticalAlignment="Center"
+                            HorizontalAlignment="Left"
+                            Margin="4">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+
+                                <TextBlock
+                                    Grid.Row="0" 
+                                    Grid.Column="0" 
+                                    HorizontalAlignment="Left" 
+                                    VerticalAlignment="Center" 
+                                    Foreground="White"
+                                    FontWeight="Bold"
+                                    FontSize="10"
+                                    TextWrapping="Wrap"
+                                    TextTrimming="CharacterEllipsis"
+                                    MaxHeight="20"
+                                    Text="{Binding ReplyPeerDisplayName}"/>
+                                <TextBlock 
+                                    Grid.Row="1" 
+                                    Grid.Column="0" 
+                                    HorizontalAlignment="Left" 
+                                    VerticalAlignment="Center" 
+                                    Foreground="White" 
+                                    FontSize="12"
+                                    FontWeight="Normal"
+                                    TextWrapping="Wrap"
+                                    TextTrimming="CharacterEllipsis"
+                                    MaxHeight="36"
+                                    Text="{Binding ReplyBody}"/>
+                            </Grid>
+                        </Border>
+                        <!--#endregion REPLY PART-->
+
+                        <!--#region BODY PART-->
+                        <TextBlock 
+                            Grid.Row="3" 
+                            Grid.Column="0"
+                            HorizontalAlignment="Left" 
+                            VerticalAlignment="Center" 
+                            FontSize="12" 
+                            FontWeight="Normal"
+                            Foreground="{Binding BodyColor}"
+                            FontStyle="{Binding BodyFontStyle}" 
+                            Text="{Binding Body}" 
+                            Visibility="{Binding BodyIsVisible}"
+                            TextWrapping="Wrap"/>
+                        <!--#endregion BODY PART-->
+
+                        <!--#region FILE ATTACHMENT -->
+                        <Grid  
+                            Grid.Row="4" 
+                            Grid.Column="0" 
+                            Margin="0,4,0,0"
+                            HorizontalAlignment="Left"
+                            Visibility="{Binding FileAttachmentIsVisible}">
+
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
 
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
 
-                            <TextBlock
+                            <Image 
                                 Grid.Row="0" 
-                                Grid.Column="0" 
-                                HorizontalAlignment="Left" 
+                                Grid.Column="0"
+                                Source="{Binding FileAttachmentImageSource}" 
+                                HorizontalAlignment="Center" 
                                 VerticalAlignment="Center" 
-                                Foreground="White"
-                                FontWeight="Bold"
-                                FontSize="10"
-                                TextWrapping="Wrap"
-                                TextTrimming="CharacterEllipsis"
-                                MaxHeight="20"
-                                Text="{Binding ReplyPeerDisplayName}"/>
-                            <TextBlock 
-                                Grid.Row="1" 
-                                Grid.Column="0" 
-                                HorizontalAlignment="Left" 
-                                VerticalAlignment="Center" 
-                                Foreground="White" 
-                                FontSize="12"
-                                FontWeight="Normal"
-                                TextWrapping="Wrap"
-                                TextTrimming="CharacterEllipsis"
-                                MaxHeight="36"
-                                Text="{Binding ReplyBody}"/>
+                                RenderOptions.BitmapScalingMode="HighQuality"
+                                Width="{Binding FileAttachmentImageWidth}" 
+                                Height="{Binding FileAttachmentImageHeight}">
+                                <!--<Image.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="FileAttachment_Tapped" CommandParameter="{Binding .}"/>
+                                </Image.GestureRecognizers>-->
+                            </Image>
+
+                            <StackPanel
+                                Margin="5,0,0,0"
+                                Grid.Row="0" 
+                                Grid.Column="1" 
+                                Orientation="Vertical" 
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Center"  
+                                Visibility="{Binding FileInfoIsVisible}">
+                                <TextBlock 
+                                    HorizontalAlignment="Left" 
+                                    VerticalAlignment="Center" 
+                                    FontSize="11" 
+                                    Foreground="{Binding BodyColor}" 
+                                    Text="{Binding FileName}"
+                                    TextWrapping="Wrap"
+                                    TextTrimming="CharacterEllipsis"
+                                    MaxHeight="20"/>
+                                <TextBlock
+                                    HorizontalAlignment="Left" 
+                                    VerticalAlignment="Center" 
+                                    FontSize="11"
+                                    Foreground="{Binding BodyColor}"
+                                    Text="{Binding FileSize}"/>
+                            </StackPanel>
                         </Grid>
-                    </Border>
-                    <!--#endregion REPLY PART-->
+                        <!--#endregion FILE ATTACHMENT -->
 
-                    <!--#region BODY PART-->
-                    <TextBlock 
-                        Grid.Row="3" 
-                        Grid.Column="0"
-                        HorizontalAlignment="Left" 
-                        VerticalAlignment="Center" 
-                        FontSize="12" 
-                        FontWeight="Normal"
-                        Foreground="{Binding BodyColor}"
-                        FontStyle="{Binding BodyFontStyle}" 
-                        Text="{Binding Body}" 
-                        Visibility="{Binding BodyIsVisible}"/>
-                    <!--#endregion BODY PART-->
-                    
-                    <!--#region FILE ATTACHMENT -->
-                    <Grid  
-                        Grid.Row="4" 
-                        Grid.Column="0" 
-                        Margin="0,4,0,0"
-                        HorizontalAlignment="Left"
-                        Visibility="{Binding FileAttachmentIsVisible}">
-                        
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                        </Grid.RowDefinitions>
-
-                        <Image 
-                            Grid.Row="0" 
-                            Grid.Column="0"
-                            Source="{Binding FileAttachmentImageSource}" 
-                            HorizontalAlignment="Left" 
-                            VerticalAlignment="Center" 
-                            RenderOptions.BitmapScalingMode="HighQuality"
-                            Width="{Binding FileAttachmentImageWidth}" 
-                            Height="{Binding FileAttachmentImageHeight}">
-                            <!--<Image.GestureRecognizers>
-                                <TapGestureRecognizer Tapped="FileAttachment_Tapped" CommandParameter="{Binding .}"/>
-                            </Image.GestureRecognizers>-->
-                        </Image>
-
+                        <!--#region MSG DATE + EDITED info -->
                         <StackPanel
-                            Margin="5,0,0,0"
-                            Grid.Row="0" 
-                            Grid.Column="1" 
-                            Orientation="Vertical" 
+                            Grid.Row="6" 
+                            Grid.Column="0"
+                            Orientation="Horizontal"  
                             HorizontalAlignment="Right"
-                            VerticalAlignment="Center"  
-                            Visibility="{Binding FileInfoIsVisible}">
+                            VerticalAlignment="Center">
+                            <TextBlock  
+                                HorizontalAlignment="Right" 
+                                VerticalAlignment="Center"
+                                Foreground="White" 
+                                FontSize="9"
+                                Text="{Binding MessageDateDisplay}"/>
                             <TextBlock 
-                                HorizontalAlignment="Left" 
-                                VerticalAlignment="Center" 
-                                FontSize="11" 
-                                Foreground="{Binding BodyColor}" 
-                                Text="{Binding FileName}"
-                                TextWrapping="Wrap"
-                                TextTrimming="CharacterEllipsis"
-                                MaxHeight="20"/>
-                            <TextBlock
-                                HorizontalAlignment="Left" 
-                                VerticalAlignment="Center" 
-                                FontSize="11"
-                                Foreground="{Binding BodyColor}"
-                                Text="{Binding FileSize}"/>
+                                HorizontalAlignment="Right" 
+                                VerticalAlignment="Center"
+                                Foreground="White" 
+                                FontSize="9" 
+                                Text=" - Edited" 
+                                Visibility="{Binding EditedIsVisible}"/>
                         </StackPanel>
+                        <!--#endregion MSG DATE + EDITED info -->
                     </Grid>
-                    <!--#endregion FILE ATTACHMENT -->
-
-                    <!--#region MSG DATE + EDITED info -->
-                    <StackPanel
-                        Grid.Row="6" 
-                        Grid.Column="0"
-                        Orientation="Horizontal"  
-                        HorizontalAlignment="Right"
-                        VerticalAlignment="Center">
-                        <TextBlock  
-                            HorizontalAlignment="Right" 
-                            VerticalAlignment="Center"
-                            Foreground="White" 
-                            FontSize="9"
-                            Text="{Binding MessageDateDisplay}"/>
-                        <TextBlock 
-                            HorizontalAlignment="Right" 
-                            VerticalAlignment="Center"
-                            Foreground="White" 
-                            FontSize="9" 
-                            Text=" - Edited" 
-                            Visibility="{Binding EditedIsVisible}"/>
-                    </StackPanel>
-                    <!--#endregion MSG DATE + EDITED info -->
-                </Grid>
-            </Border>
-            <!--#endregion DISPLAY NAME + REPLY + BODY  + FILE ATTACHEMENT + MSG DATE + EDITED INFO-->
-        </Grid>
+                </Border>
+                <!--#endregion DISPLAY NAME + REPLY + BODY  + FILE ATTACHEMENT + MSG DATE + EDITED INFO-->
+            </Grid>
+        </DockPanel>
     </DataTemplate>
 
 </ResourceDictionary>

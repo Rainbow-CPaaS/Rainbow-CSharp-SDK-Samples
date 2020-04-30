@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Windows.Controls;
 using System.Windows.Input;
 
 using Rainbow;
@@ -98,22 +97,13 @@ namespace InstantMessaging.Model
 
         public void ItemLeftClickCommand(object obj)
         {
-            if ((obj != null) && (obj is ListView))
+            if ((obj != null) && (obj is ConversationLightViewModel))
             {
-                ListView listView = obj as ListView;
-                if( (listView.SelectedItem != null) && (listView.SelectedItem is ConversationLightViewModel))
-                {
-                    ConversationLightViewModel conversation = listView.SelectedItem as ConversationLightViewModel;
-
-                    if (CurrentApplication.USE_DUMMY_DATA)
-                    {
-                        ConversationLightViewModel newConversation = GetConversationLightCopy(conversation);
-                        newConversation.LastMessageDateTime = conversation.LastMessageDateTime.AddMinutes(35);
-                        UpdateConversationToModel(newConversation);
-                    }
-                }
+                ConversationLightViewModel conversation = obj as ConversationLightViewModel;
+                if(conversation != null)
+                    CurrentApplication.ApplicationMainWindow.SetConversationIdSelectionFromConversationsList(conversation.Id);
                 else
-                    log.WarnFormat("[ItemLeftClickCommand] Selected Item is null or it's an unknown type.");
+                    log.WarnFormat("[ItemLeftClickCommand] Referenced object is null...");
             }
             else
                 log.WarnFormat("[ItemLeftClickCommand] Referenced object is null or it's an unknown type.");

@@ -13,6 +13,8 @@ using System.Windows.Shapes;
 using InstantMessaging.Helpers;
 using InstantMessaging.ViewModel;
 
+using Rainbow.Events;
+
 namespace InstantMessaging.View
 {
     /// <summary>
@@ -25,7 +27,17 @@ namespace InstantMessaging.View
         ConversationsLightViewModel conversationsViewModel = null;
         FavoritesViewModel favoritesViewModel = null;
         ConversationStreamViewModel conversationStreamViewModel = null;
-        
+
+        /// <summary>
+        /// Event raised when a Conversation is selected form Conversations List
+        /// </summary>
+        public event EventHandler<IdEventArgs> ConversationSelectedFromConversationsList;
+
+        /// <summary>
+        /// Event raised when a Favorite is selected form Favorites List
+        /// </summary>
+        public event EventHandler<IdEventArgs> FavoriteSelectedFromFavoritesList;
+
         public MainView()
         {
             InitializeComponent();
@@ -47,6 +59,16 @@ namespace InstantMessaging.View
 
             conversationStreamViewModel = new ConversationStreamViewModel();
             UIConversationStream.DataContext = conversationStreamViewModel;
+        }
+
+        public void SetConversationIdSelectionFromConversationsList(String id)
+        {
+            ConversationSelectedFromConversationsList?.Invoke(this, new IdEventArgs(id));
+        }
+
+        public void SetFavoriteIdSelectionFromFavoritesList(String id)
+        {
+            FavoriteSelectedFromFavoritesList?.Invoke(this, new IdEventArgs(id));
         }
     }
 }

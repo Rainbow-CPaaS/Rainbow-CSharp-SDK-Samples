@@ -119,7 +119,9 @@
                         Foreground="{Binding BodyColor}"
                         FontStyle="{Binding BodyFontStyle}" 
                         Text="{Binding Body}" 
-                        Visibility="{Binding BodyIsVisible}"/>
+                        Visibility="{Binding BodyIsVisible}"
+                        TextWrapping="Wrap"
+                        />
                     <!--#endregion BODY PART-->
 
                     <!--#region FILE ATTACHMENT -->
@@ -143,7 +145,7 @@
                             Grid.Row="0" 
                             Grid.Column="0"
                             Source="{Binding FileAttachmentImageSource}" 
-                            HorizontalAlignment="Left" 
+                            HorizontalAlignment="Center" 
                             VerticalAlignment="Center" 
                             RenderOptions.BitmapScalingMode="HighQuality"
                             Width="{Binding FileAttachmentImageWidth}" 
