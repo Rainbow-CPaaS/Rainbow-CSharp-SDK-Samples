@@ -8,6 +8,7 @@ using Rainbow;
 using Rainbow.Model;
 
 using log4net;
+using System.Windows;
 
 namespace InstantMessaging.Model
 {
@@ -15,6 +16,7 @@ namespace InstantMessaging.Model
     {
         private static readonly ILog log = LogConfigurator.GetLogger(typeof(LoginModel));
         App CurrentApplication = (App)System.Windows.Application.Current;
+        IniFileParser iniFileParser;
 
 #region PROPERTIES
 
@@ -63,9 +65,30 @@ namespace InstantMessaging.Model
             }
         }
 
-        #endregion PROPERTIES
+        Boolean m_autoLogin;
+        public Boolean AutoLogin
+        {
+            get { return m_autoLogin; }
+            set { SetProperty(ref m_autoLogin, value); }
+        }
 
-        #region PUBLIC METHODS
+        String m_errorString;
+        public String ErrorString
+        {
+            get { return m_errorString; }
+            set { SetProperty(ref m_errorString, value); }
+        }
+
+        Visibility m_errorIsVisible;
+        public Visibility ErrorIsVisible
+        {
+            get { return m_errorIsVisible; }
+            set { SetProperty(ref m_errorIsVisible, value); }
+        }
+
+#endregion PROPERTIES
+
+#region PUBLIC METHODS
         public LoginModel()
         {
             // Define Rainbow events used in this View
@@ -80,9 +103,24 @@ namespace InstantMessaging.Model
             // Set default values
             IsNotBusy = true;
             Connect = "Connect";
+            ErrorIsVisible = Visibility.Collapsed;
+            ErrorString = "";
 
+            // Get Login / Password from cache (i.e. INI FILE)
             Login = CurrentApplication.RbApplication.GetUserLoginFromCache();
             Password = CurrentApplication.RbApplication.GetUserPasswordFromCache();
+
+            // Get AutoLogin value (specific value from INI FILE)
+            iniFileParser = CurrentApplication.RbApplication.GetIniFileParser();
+            String autoLoginString = iniFileParser.GetValue("AutoLogin", "Application", "False");
+            AutoLogin = autoLoginString.ToLower() == "true";
+
+            if (AutoLogin)
+                RBLogin(Login, Password);
+
+            // FOR TEST:
+            //ErrorIsVisible = Visibility.Visible;
+            //ErrorString = "Lorem ipsum dolor sit amet, libero amet, aliquam sed quis nam a, interdum massa est, pede aenean. Luctus felis. Nam accumsan consectetuer dui enim nostra et, amet odio consequatur, quis lacinia ipsum vel diam. Pellentesque rem fermentum felis, orci risus vel augue amet odio quam, sit eu quis donec scelerisque urna, urna dictum. Felis cursus lorem eget sagittis sed ante, ultrices varius non pulvinar elit in justo, lectus consectetuer tempus ornare tempor libero, per suspendisse mauris vel nec. Per lorem ante etiam aliquet cursus nec, ac lobortis. Eget metus. Mus urna in habitant ut tincidunt libero, et sit, urna interdum eget purus nec odio a, id sodales in. Tincidunt sit amet mattis aliquam sed risus, orci mollis lacus ullamcorper vel.";
         }
 
         public void RBLogin(String login, String password)
@@ -90,10 +128,19 @@ namespace InstantMessaging.Model
             if (IsBusy)
                 return;
 
+            // We set to Busy
+            IsNotBusy = false;
+
+            // Hide error (if any)
+            ErrorIsVisible = Visibility.Collapsed;
+            ErrorString = "";
+
+
             Task task = new Task(() =>
             {
-                // We set to Busy
-                IsNotBusy = false;
+                // Save AutoLogin option
+                iniFileParser.WriteValue("AutoLogin", "Application", AutoLogin ? "True" : "False");
+                iniFileParser.Save();
 
                 if (CurrentApplication.RbApplication.ConnectionState() == ConnectionState.Disconnected)
                 {
@@ -106,7 +153,28 @@ namespace InstantMessaging.Model
 
                     CurrentApplication.RbApplication.Login(login, password, callback =>
                     {
-                        //TODO - manage error
+                        if(!callback.Result.Success)
+                        {
+                            if (System.Windows.Application.Current != null)
+                            {
+                                System.Windows.Application.Current.Dispatcher.Invoke(new Action(() =>
+                                {
+                                    String strError = "";
+                                    if (callback.Result.ExceptionError != null)
+                                        strError = "Exception: " + callback.Result.ExceptionError.ToString();
+                                    else if (callback.Result.IncorrectUseError != null)
+                                    {
+                                        strError = callback.Result.IncorrectUseError.ErrorMsg; 
+                                        if(!String.IsNullOrEmpty(callback.Result.IncorrectUseError.ErrorDetails))
+                                            strError += ": " + callback.Result.IncorrectUseError.ErrorDetails;
+                                    }
+                                    IsNotBusy = true;
+                                    ErrorIsVisible = Visibility.Visible;
+                                    ErrorString = strError;
+                                }));
+                            }
+                        }
+                        
                     });
                 }
                 else

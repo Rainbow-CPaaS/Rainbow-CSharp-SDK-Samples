@@ -30,6 +30,8 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <Image 
@@ -72,7 +74,7 @@
         </TextBox>
 
         <materialDesign:PackIcon 
-            Margin="0, 25, 0, 20"
+            Margin="0, 15, 0, 20"
             Grid.Row="2" 
             Grid.Column="0" 
             Kind="Key" 
@@ -80,7 +82,7 @@
             Foreground="{Binding ElementName=EntryPassword, Path=BorderBrush}" />
 
         <PasswordBox 
-            Margin="0, 20, 0, 20"
+            Margin="0, 10, 0, 20"
             x:Name="EntryPassword"
             Grid.Row="2" 
             Grid.Column="1" 
@@ -100,7 +102,7 @@
         </PasswordBox>
 
         <Button 
-            Margin="0, 20, 0, 0"
+            Margin="0, 10, 0, 0"
             x:Name="ButtonLogin"
             Grid.Row="3" 
             Grid.Column="0"
@@ -114,5 +116,31 @@
             HorizontalAlignment="Center"
             Content="{Binding Model.Connect}"
             Command="{Binding ButtonLoginCommand}" IsCancel="False"/>
+
+        <CheckBox
+            Margin="0, 10, 0, 0"
+            x:Name="AutoLogin"
+            Grid.Row="4" 
+            Grid.Column="0"
+            Grid.ColumnSpan="2"
+            HorizontalAlignment="Center" 
+            IsEnabled="{Binding Model.IsNotBusy}" 
+            Content="Auto login"
+            IsChecked="{Binding Model.AutoLogin}"/>
+        
+        <TextBlock
+             Margin="0, 5, 0, 0"
+            x:Name="Error"
+            Grid.Row="5" 
+            Grid.Column="0"
+            Grid.ColumnSpan="2"
+            Foreground="Red"
+            FontSize="12"
+            TextWrapping="Wrap"
+            TextTrimming="WordEllipsis"
+            TextAlignment="Center"
+            Text="{Binding Model.ErrorString}"
+            Visibility="{Binding Model.ErrorIsVisble}"
+            />
     </Grid>
 </Window>
