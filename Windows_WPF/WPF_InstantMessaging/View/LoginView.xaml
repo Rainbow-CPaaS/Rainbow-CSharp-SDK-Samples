@@ -19,8 +19,11 @@
         ResizeMode="NoResize"
         WindowStartupLocation="CenterScreen">
 
-
-    <Grid Margin="20, 40, 20, 0" VerticalAlignment="Top" HorizontalAlignment="Center">
+    <Grid 
+        Margin="20, 40, 20, 0" 
+        VerticalAlignment="Top" 
+        HorizontalAlignment="Center" 
+        FocusManager.FocusedElement="{Binding ElementName=EntryLogin}">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="30" />
             <ColumnDefinition Width="300" />
@@ -62,6 +65,10 @@
             Width="260"
             HorizontalAlignment="Left"
             IsEnabled="{Binding Model.IsNotBusy}">
+            <TextBox.InputBindings>
+                <KeyBinding Command="{Binding ButtonLoginCommand}" Key="Return" />
+                <KeyBinding Command="{Binding ButtonLoginCommand}" Key="Enter" />
+            </TextBox.InputBindings>
             <TextBox.Text>
                 <Binding
                     Path="Model.Login"
@@ -92,6 +99,10 @@
             HorizontalAlignment="Center" 
             IsEnabled="{Binding Model.IsNotBusy}" 
             helpersUI:PasswordBoxAssistant.BindPassword="true">
+            <PasswordBox.InputBindings>
+                <KeyBinding Command="{Binding ButtonLoginCommand}" Key="Return" />
+                <KeyBinding Command="{Binding ButtonLoginCommand}" Key="Enter" />
+            </PasswordBox.InputBindings>
             <helpersUI:PasswordBoxAssistant.BoundPassword>
                 <Binding Path="Model.Password" Mode="TwoWay">
                     <Binding.ValidationRules>
@@ -126,8 +137,13 @@
             HorizontalAlignment="Center" 
             IsEnabled="{Binding Model.IsNotBusy}" 
             Content="Auto login"
-            IsChecked="{Binding Model.AutoLogin}"/>
-        
+            IsChecked="{Binding Model.AutoLogin}">
+            <CheckBox.InputBindings>
+                <KeyBinding Command="{Binding ButtonLoginCommand}" Key="Return" />
+                <KeyBinding Command="{Binding ButtonLoginCommand}" Key="Enter" />
+            </CheckBox.InputBindings>
+        </CheckBox>
+
         <TextBlock
              Margin="0, 5, 0, 0"
             x:Name="Error"
