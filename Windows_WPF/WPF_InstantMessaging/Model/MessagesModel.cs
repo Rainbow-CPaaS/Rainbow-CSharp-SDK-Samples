@@ -4,8 +4,10 @@ using System.ComponentModel;
 using System.IO;
 using System.Threading;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 
 using InstantMessaging.Helpers;
 using InstantMessaging.Pool;
@@ -17,7 +19,6 @@ using Rainbow.Events;
 using Rainbow.Model;
 
 using log4net;
-using System.Threading.Tasks;
 
 namespace InstantMessaging.Model
 {
@@ -112,54 +113,233 @@ namespace InstantMessaging.Model
             RbContacts.ContactInfoChanged += RbContacts_ContactInfoChanged;
         }
 
-        #region EVENTS FIRED BY RAINBOW SDK
+#region EVENTS FIRED BY RAINBOW SDK
         private void RbContacts_ContactInfoChanged(object sender, JidEventArgs e)
         {
+            if (System.Windows.Application.Current != null)
+            {
+                System.Windows.Application.Current.Dispatcher.Invoke(new Action(() =>
+                {
+                    // Need to update this contact in each messages (not avatar part)
+                    UpdateMessagesForJid(e.Jid, false, true);
+
+                    // Need to update this contact in each replied part
+                    UpdateRepliedMessagesForJid(e.Jid);
+                }));
+            }
         }
 
         private void RbContacts_ContactAdded(object sender, JidEventArgs e)
         {
+            if (System.Windows.Application.Current != null)
+            {
+                System.Windows.Application.Current.Dispatcher.Invoke(new Action(() =>
+                {
+                    // Need to update this contact in each messages (avatar + display name)
+                    UpdateMessagesForJid(e.Jid, true, true);
+
+                    // Need to update this contact in each replied part
+                    UpdateRepliedMessagesForJid(e.Jid);
+                }));
+            }
         }
 
         private void RbInstantMessaging_UserTypingChanged(object sender, UserTypingEventArgs e)
         {
+            //TO DO
         }
 
         private void RbInstantMessaging_MessagesAllRead(object sender, IdEventArgs e)
         {
+            // Set to ClientRead all messages in the list
+            if (e.Id == CurrentConversationId)
+            {
+                log.DebugFormat("[RbInstantMessaging_MessagesAllRead] conversationId:[{0}]", CurrentConversationId);
+                if (System.Windows.Application.Current != null)
+                {
+                    System.Windows.Application.Current.Dispatcher.Invoke(new Action(() =>
+                    {
+                        lock (lockObservableMessagesList)
+                        {
+                            foreach (MessageViewModel message in MessagesList)
+                            {
+                                if (message.PeerJid == CurrentApplication.CurrentUserJid)
+                                    SetReceiptPartOfMessage(message, ReceiptType.ClientRead);
+                            }
+                        }
+                    }));
+                }
+            }
         }
 
         private void RbInstantMessaging_ReceiptReceived(object sender, ReceiptReceivedEventArgs e)
         {
+            if (e.ConversationId == CurrentConversationId)
+            {
+                log.DebugFormat("[RbInstantMessaging_ReceiptReceived] MessageId:[{0}] - ReceiptType:[{1}]", e.MessageId, e.ReceiptType);
+                MessageViewModel message = GetMessageByMessageId(e.MessageId);
+                if (message != null)
+                {
+                    if (System.Windows.Application.Current != null)
+                    {
+                        System.Windows.Application.Current.Dispatcher.Invoke(new Action(() =>
+                        {
+                            SetReceiptPartOfMessage(message, e.ReceiptType);
+                        }));
+                    }
+                }
+            }
         }
 
         private void RbInstantMessaging_MessageReceived(object sender, MessageEventArgs e)
         {
-        }
-        #endregion EVENTS FIRED BY RAINBOW SDK
+            if (e.ConversationId == CurrentConversationId)
+            {
+                if (System.Windows.Application.Current != null)
+                {
+                    System.Windows.Application.Current.Dispatcher.Invoke(new Action(() =>
+                    {
+                        
+                    log.DebugFormat("[RbInstantMessaging_MessageReceived] - FromJId:[{0}] - ToJid:[{1}] - CarbonCopy:[{2}] - Message.Id:[{3}] - Message.ReplaceId:[{4}]", e.Message.FromJid, e.Message.ToJid, e.CarbonCopy, e.Message.Id, e.Message.ReplaceId);
 
-        #region EVENTS FIRED BY AVATAR POOL
+                    MessageViewModel newMsg = GetMessageViewModelFromRBMessage(e.Message, CurrentConversation.Type);
+                    if (newMsg == null)
+                    {
+                        log.WarnFormat("[RbInstantMessaging_MessageReceived] - Impossible to have Model.Message from XMPP Message - Message.Id:[{3}]", e.Message.Id);
+                        return;
+                    }
+
+                    // Since message is not null, set the Avatar Source
+                    newMsg.AvatarImageSource = Helper.GetContactAvatarImageSource(newMsg.PeerId);
+
+                    // Manage incoming REPLACE message
+                    if (!String.IsNullOrEmpty(e.Message.ReplaceId))
+                    {
+                        MessageViewModel previousMessage = GetMessageByMessageId(e.Message.Id);
+                        if (previousMessage == null)
+                        {
+                            // We do nothing in this case ... Message not in the cache, so not visible ...
+                            return;
+                        }
+
+                        previousMessage.Body = newMsg.Body;
+                        previousMessage.BodyIsVisible = String.IsNullOrEmpty(previousMessage.Body) ? Visibility.Collapsed : Visibility.Visible;
+
+                        previousMessage.EditedIsVisible = Visibility.Visible;
+                    }
+                    // Manage incoming NEW message
+                    else
+                    {
+                        // It's a new message to add in the list
+                        newMessageAdded = true;
+
+                        lock (lockObservableMessagesList)
+                        {
+                            // Do we have already some message ?
+                            if (MessagesList.Count == 0)
+                            {
+                                MessagesList.Add(newMsg);
+                            }
+                            else
+                            {
+                                // Add to the list but need to check date
+                                MessageViewModel storedMsg;
+                                bool newMsgInserted = false;
+                                int nb = MessagesList.Count - 1;
+
+                                for (int i = nb; i > 0; i--)
+                                {
+                                    storedMsg = MessagesList[i];
+                                    if (newMsg.MessageDateTime > storedMsg.MessageDateTime)
+                                    {
+                                        if (i == nb)
+                                            MessagesList.Add(newMsg);
+                                        else
+                                            MessagesList.Insert(i, newMsg);
+                                        newMsgInserted = true;
+                                        break;
+                                    }
+                                }
+                                // If we don't have already added the new message, we insert it to the first place
+                                if (!newMsgInserted)
+                                    MessagesList.Insert(0, newMsg);
+                            }
+                        }
+                    }
+
+                    // Mark the message as read
+                    // TODO: LATER MUST CHECK THAT THIS CONVERSATION IS CURRENTLY DISPLAYED / FOCUSED
+                        RbInstantMessaging.MarkMessageAsRead(CurrentConversationId, newMsg.Id, null);
+                    }));
+                }
+            }
+        }
+
+#endregion EVENTS FIRED BY RAINBOW SDK
+
+#region EVENTS FIRED BY AVATAR POOL
         private void AvatarPool_BubbleAvatarChanged(object sender, IdEventArgs e)
         {
+            // TODO: need to update Bubble Avatar (if necessary)
         }
 
         private void AvatarPool_ContactAvatarChanged(object sender, IdEventArgs e)
         {
-        }
-        #endregion EVENTS FIRED BY AVATAR POOL
+            // TODO: need to update Bubble Avatar (if necessary)
 
-        #region EVENTS FIRED BY FILE POOL
+            // Need to update this contact in each messages (just avatar part)
+            Contact contact = RbContacts.GetContactFromContactId(e.Id);
+            if (contact != null)
+            {
+                if (System.Windows.Application.Current != null)
+                {
+                    System.Windows.Application.Current.Dispatcher.Invoke(new Action(() =>
+                    {
+                        UpdateMessagesForJid(contact.Jid_im, true, false);
+                    }));
+                }
+                
+            }
+        }
+
+#endregion EVENTS FIRED BY AVATAR POOL
+
+#region EVENTS FIRED BY FILE POOL
         private void FilePool_ThumbnailAvailable(object sender, IdEventArgs e)
         {
+            String conversationId = FilePool.GetConversationIdForFileDescriptorId(e.Id);
+            if (conversationId == CurrentConversationId)
+            {
+                MessageViewModel message = GetMessageByFileDescriptorId(e.Id);
+                if (message != null)
+                {
+                    if (System.Windows.Application.Current != null)
+                    {
+                        System.Windows.Application.Current.Dispatcher.Invoke(new Action(() =>
+                        {
+                            SetFileAttachmentSourceOfMessage(message, e.Id);
+                        }));
+                    }
+                }
+            }
         }
 
         private void FilePool_FileDescriptorAvailable(object sender, IdEventArgs e)
         {
+            String conversationId = FilePool.GetConversationIdForFileDescriptorId(e.Id);
+            if (conversationId == CurrentConversationId)
+            {
+                MessageViewModel message = GetMessageByFileDescriptorId(e.Id);
+                if (message != null)
+                {
+                    // TODO
+                }
+            }
         }
 
-        #endregion EVENTS FIRED BY FILE POOL
+#endregion EVENTS FIRED BY FILE POOL
 
-        #region EVENTS RAISED BY ApplicationMainWindow
+#region EVENTS RAISED BY ApplicationMainWindow
 
         private void ApplicationMainWindow_FavoriteSelectedFromFavoritesList(object sender, IdEventArgs e)
         {
@@ -184,7 +364,7 @@ namespace InstantMessaging.Model
             }
         }
 
-        #endregion EVENTS RAISED BY ApplicationMainWindow
+#endregion EVENTS RAISED BY ApplicationMainWindow
 
         private void AddContactInvolved(String peerJid)
         {
@@ -275,11 +455,18 @@ namespace InstantMessaging.Model
                     if (rbMessage != null)
                     {
                         List<MessageViewModel> messagesList = GetMessagesByReplyId(msgId);
-                        foreach (MessageViewModel message in messagesList)
-                        {
-                            // NEED TO BE ON UI THREAD
-                            // TODO
-                            //SetReplyPartOfMessage(message, rbMessage);
+                        if ((messagesList != null) && (messagesList.Count > 0))
+                            {
+                            if (System.Windows.Application.Current != null)
+                            {
+                                System.Windows.Application.Current.Dispatcher.Invoke(new Action(() =>
+                                {
+                                    foreach (MessageViewModel message in messagesList)
+                                    {
+                                        SetReplyPartOfMessage(message, rbMessage);
+                                    }
+                                }));
+                            }
                         }
                     }
                 }
@@ -292,6 +479,76 @@ namespace InstantMessaging.Model
             return result;
         }
 
+        private void UpdateMessagesForJid(String peerJid, bool updateAvatar, bool updateDisplayName)
+        {
+            if (contactsListInvolved.Contains(peerJid))
+            {
+                Contact contact = RbContacts.GetContactFromContactJid(peerJid);
+                if (contact != null)
+                {
+                    log.DebugFormat("[UpdateMessagesForJid] peerJid:[{0}] - peerId:[{1}] - updateAvatar[{2}] - updateDisplayName:[{3}]", peerJid, contact.Id, updateAvatar, updateDisplayName);
+                    BitmapImage imageSource;
+                    String displayName;
+
+                    if (updateAvatar)
+                        imageSource = Helper.GetContactAvatarImageSource(contact.Id);
+                    else
+                        imageSource = null;
+
+                    if (updateDisplayName)
+                        displayName = Util.GetContactDisplayName(contact, AvatarPool.Instance.GetFirstNameFirst());
+                    else
+                        displayName = null;
+
+                    List<MessageViewModel> messages = GetMessagesByPeerJid(peerJid);
+                    lock (lockObservableMessagesList)
+                    {
+                        foreach (MessageViewModel message in messages)
+                        {
+                            if (updateAvatar)
+                                message.AvatarImageSource = imageSource;
+
+                            if (updateDisplayName)
+                            {
+                                message.PeerDisplayName = displayName;
+                                message.BackgroundColor = new BrushConverter().ConvertFromString(AvatarPool.GetColorFromDisplayName(message.PeerDisplayName)) as SolidColorBrush;
+                                message.ReplyBackgroundColor = new BrushConverter().ConvertFromString(AvatarPool.GetDarkerColorFromDisplayName(message.PeerDisplayName)) as SolidColorBrush;
+                            }
+                        }
+                    }
+                }
+                else
+                    log.WarnFormat("[UpdateMessagesForJid] peerJid:[{0}] found but related contact not found", peerJid);
+            }
+        }
+
+        private void UpdateRepliedMessagesForJid(String peerJid)
+        {
+            if (repliedContactsListInvolved.Contains(peerJid))
+            {
+                Contact contactReply = RbContacts.GetContactFromContactJid(peerJid);
+                if (contactReply != null)
+                {
+                    String displayName = Util.GetContactDisplayName(contactReply, AvatarPool.Instance.GetFirstNameFirst());
+
+                    List<MessageViewModel> messages = GetMessagesByReplyPeerJid(peerJid);
+                    lock (lockObservableMessagesList)
+                    {
+                        foreach (MessageViewModel message in messages)
+                        {
+                            log.DebugFormat("[UpdateRepliedMessagesForJid] peerJid:[{0}] - message.Id:[{1}] - displayName:[{2}]", peerJid, message.Id, displayName);
+
+                            message.ReplyPartIsVisible = Visibility.Visible;
+
+                            message.ReplyPeerId = contactReply.Id;
+                            message.ReplyPeerDisplayName = displayName;
+                        }
+                    }
+                }
+                else
+                    log.WarnFormat("[UpdateRepliedMessagesForJid] peerJid:[{0}] found but related contact not found", peerJid);
+            }
+        }
         private List<MessageViewModel> GetMessagesByReplyId(String replyId)
         {
             List<MessageViewModel> result = new List<MessageViewModel>();
@@ -301,6 +558,68 @@ namespace InstantMessaging.Model
                 {
                     if (msg.ReplyId == replyId)
                         result.Add(msg);
+                }
+            }
+            return result;
+        }
+
+        private List<MessageViewModel> GetMessagesByPeerJid(String peerJid)
+        {
+            List<MessageViewModel> result = new List<MessageViewModel>();
+            lock (lockObservableMessagesList)
+            {
+                foreach (MessageViewModel msg in MessagesList)
+                {
+                    if (msg.PeerJid == peerJid)
+                        result.Add(msg);
+                }
+            }
+            return result;
+        }
+
+        private List<MessageViewModel> GetMessagesByReplyPeerJid(String peerJid)
+        {
+            List<MessageViewModel> result = new List<MessageViewModel>();
+            lock (lockObservableMessagesList)
+            {
+                foreach (MessageViewModel msg in MessagesList)
+                {
+                    if (msg.ReplyPeerJid == peerJid)
+                        result.Add(msg);
+                }
+            }
+            return result;
+        }
+
+        private MessageViewModel GetMessageByMessageId(String messageId)
+        {
+            MessageViewModel result = null;
+            lock (lockObservableMessagesList)
+            {
+                foreach (MessageViewModel msg in MessagesList)
+                {
+                    if (msg.Id == messageId)
+                    {
+                        result = msg;
+                        break;
+                    }
+                }
+            }
+            return result;
+        }
+
+        private MessageViewModel GetMessageByFileDescriptorId(String fileId)
+        {
+            MessageViewModel result = null;
+            lock (lockObservableMessagesList)
+            {
+                foreach (MessageViewModel msg in MessagesList)
+                {
+                    if (msg.FileId == fileId)
+                    {
+                        result = msg;
+                        break;
+                    }
                 }
             }
             return result;
