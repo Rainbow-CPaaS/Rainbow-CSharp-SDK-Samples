@@ -14,7 +14,6 @@ using Rainbow.Model;
 
 using log4net;
 
-
 namespace InstantMessaging.Pool
 {
     internal class AvatarsData
@@ -34,6 +33,8 @@ namespace InstantMessaging.Pool
 
         private static readonly ILog log = LogConfigurator.GetLogger(typeof(AvatarPool));
 
+        private static readonly String UNKNOW_CONTACT_NAME = "?";
+
         private IImageManagement imageManagement = null;
 
         private static readonly List<String> colorsList = new List<String>      { "#FF4500", "#D38700", "#348833", "#007356", "#00B2A9", "#00B0E5", "#1B85E0", "#6639B7", "#91278A", "#CF0072", "#A50034", "#D20000" };
@@ -47,6 +48,8 @@ namespace InstantMessaging.Pool
         private int avatarSize = 60;
         private int avatarFontSize = 24;
         private String avatarFontFamilyName = "GenericSansSerif";
+
+        
 
         private Boolean allowAvatarDownload = false;
         private BackgroundWorker backgroundWorkerDownload = null;
@@ -577,6 +580,28 @@ namespace InstantMessaging.Pool
             return result;
         }
 
+        public String GetUnknownAvatarPath()
+        {
+            // Get unknown avatar
+            String unknownPath = Path.Combine(folderContactAvatarInitials, "unknown.png");
+            if (!File.Exists(unknownPath))
+            {
+                // Create unknown avatar
+                Stream stream = GetRoundedAvatarUsingInitials(UNKNOW_CONTACT_NAME, GetColorFromDisplayName(UNKNOW_CONTACT_NAME), "#FFFFFF");
+                if ((stream != null) && (stream.Length != 0))
+                {
+                    using (Stream file = File.Create(unknownPath))
+                    {
+                        stream.CopyTo(file);
+                        // Return to first position
+                        stream.Position = 0;
+                    }
+                }
+            }
+
+            return unknownPath;
+        }
+
         public String GetContactAvatarPath(String contactId)
         {
             if (!InitDone())
@@ -673,21 +698,9 @@ namespace InstantMessaging.Pool
                 AddUnknownContactToPoolById(contactId);
 
                 // Get unknown avatar
-                String unknownPath = Path.Combine(folderContactAvatarInitials, "unknown.png");
-                if (!File.Exists(unknownPath))
-                {
-                    // Create unknown avatar
-                    Stream stream = GetRoundedAvatarUsingInitials("?", GetColorFromDisplayName("?"), "#FFFFFF");
-                    if ((stream != null) && (stream.Length != 0))
-                    {
-                        using (Stream file = File.Create(unknownPath))
-                        {
-                            stream.CopyTo(file);
-                            // Return to first position
-                            stream.Position = 0;
-                        }
-                    }
-                }
+                String unknownPath = GetUnknownAvatarPath();
+
+                log.DebugFormat("[GetContactAvatarPath] Get Unknown Avatar for ContactId:[{0}]", contactId);
                 return unknownPath;
             }
         }
@@ -804,11 +817,12 @@ namespace InstantMessaging.Pool
          private static int ColorIndexFromDisplayName(String displayName)
         {
             int result = 0;
+            String name;
 
             if (String.IsNullOrEmpty(displayName))
-                return result;
-
-            String name = displayName.ToUpper();
+                name = UNKNOW_CONTACT_NAME; // To use common "unknown" contact color / display
+            else
+                name = displayName.ToUpper();
             long sum = 0;
             int i, nb;
             if (name != null)

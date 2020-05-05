@@ -58,7 +58,9 @@ namespace InstantMessaging.View
             UIFavoritesList.DataContext = favoritesViewModel;
 
             conversationStreamViewModel = new ConversationStreamViewModel();
+            conversationStreamViewModel.SetScrollViewer(UIConversationStreamScrollViewer);
             UIConversationStream.DataContext = conversationStreamViewModel;
+            
         }
 
         public void SetConversationIdSelectionFromConversationsList(String id)

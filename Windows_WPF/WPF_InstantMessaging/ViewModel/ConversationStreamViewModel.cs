@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Windows.Controls;
 
 using InstantMessaging.Helpers;
+using InstantMessaging.Model;
 
 using Rainbow;
 
 using log4net;
-using InstantMessaging.Model;
 
 namespace InstantMessaging.ViewModel
 {
@@ -31,6 +32,11 @@ namespace InstantMessaging.ViewModel
             MessagesList = messagesModel.MessagesList;
 
             Conversation = null;
+        }
+
+        public void SetScrollViewer(ScrollViewer sv)
+        {
+            messagesModel.SetScrollViewer(sv);
         }
 
     }

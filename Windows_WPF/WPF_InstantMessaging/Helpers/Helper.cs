@@ -451,12 +451,27 @@ namespace InstantMessaging.Helpers
                 {
                     if (File.Exists(filePath))
                     {
-                        //log.DebugFormat("[SetConversationAvatar] - file used - filePath:[{0}] - PeerId:[{1}]", filePath, conversation.PeerId);
+                        //log.DebugFormat("[GetContactAvatarImageSource] - file used - filePath:[{0}] - ContactId:[{1}]", filePath, contactId);
                         result = BitmapImageFromFile(filePath);
                     }
-                    //else
-                    //    log.WarnFormat("[SetConversationAvatar] - file not found - filePath:[{0}] - PeerId:[{1}]", filePath, conversation.PeerId);
+                    else
+                        log.WarnFormat("[GetContactAvatarImageSource] - file not found - filePath:[{0}] - ContactId:[{1}]", filePath, contactId);
                 }
+                else
+                    log.WarnFormat("[GetContactAvatarImageSource] - no file path for this ContactId:[{0}]", contactId);
+            }
+            else
+            {
+                String filePath = AvatarPool.Instance.GetUnknownAvatarPath();
+                if (!String.IsNullOrEmpty(filePath))
+                {
+                    if (File.Exists(filePath))
+                        result = BitmapImageFromFile(filePath);
+                    else
+                        log.WarnFormat("[GetContactAvatarImageSource] - file not found - filePath:[{0}]", filePath);
+                }
+                else
+                    log.WarnFormat("[GetContactAvatarImageSource] - Cannot get unknown avatar ...");
             }
             return result;
         }

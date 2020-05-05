@@ -311,12 +311,15 @@
         <!--#region RIGHT MAIN GRID CONTENT-->
         <!-- USE DOCK PANEL TO ENSURE TO HAVE TOP / CENTER (take max space) / BOTTOM -->
         <DockPanel 
+            x:Name="UIConversationPanel" 
             Grid.Row="0"
             Grid.Column="1"
             LastChildFill="True">
 
             <!--#region Conversation resume: Avatar, Title / DisplayName -->
-            <Grid DockPanel.Dock="Top">
+            <Grid 
+                x:Name="UIConversationTop" 
+                DockPanel.Dock="Top">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="60"/>
                 </Grid.RowDefinitions>
@@ -331,7 +334,9 @@
             <!--#endregion Conversation resume: Avatar, Title / DisplayName -->
 
             <!--#region After Messages List -->
-            <Grid DockPanel.Dock="Bottom">
+            <Grid 
+                x:Name="UIConversationBottom" 
+                DockPanel.Dock="Bottom">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="60"/>
                 </Grid.RowDefinitions>
@@ -347,6 +352,7 @@
 
             <!--#region Conversation Stream: Messages List -->
             <ScrollViewer
+                x:Name="UIConversationStreamScrollViewer" 
                 Height="Auto"
                 Grid.Row="1"
                 Grid.Column="0"

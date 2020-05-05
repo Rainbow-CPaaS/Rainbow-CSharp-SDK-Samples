@@ -6,6 +6,7 @@ using System.Threading;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
@@ -32,6 +33,8 @@ namespace InstantMessaging.Model
         MainView ApplicationMainWindow = null;
         String CurrentConversationId = null;
         Rainbow.Model.Conversation CurrentConversation = null;
+
+        private ScrollViewer ScrollViewer;
 
         private Bubbles RbBubbles = null;
         private Contacts RbContacts = null;
@@ -113,9 +116,17 @@ namespace InstantMessaging.Model
             RbContacts.ContactInfoChanged += RbContacts_ContactInfoChanged;
         }
 
-#region EVENTS FIRED BY RAINBOW SDK
+        public void SetScrollViewer(ScrollViewer sv)
+        {
+            ScrollViewer = sv;
+        }
+
+        #region EVENTS FIRED BY RAINBOW SDK
         private void RbContacts_ContactInfoChanged(object sender, JidEventArgs e)
         {
+            if (CurrentConversation == null)
+                return;
+
             if (System.Windows.Application.Current != null)
             {
                 System.Windows.Application.Current.Dispatcher.Invoke(new Action(() =>
@@ -131,6 +142,9 @@ namespace InstantMessaging.Model
 
         private void RbContacts_ContactAdded(object sender, JidEventArgs e)
         {
+            if (CurrentConversation == null)
+                return;
+
             if (System.Windows.Application.Current != null)
             {
                 System.Windows.Application.Current.Dispatcher.Invoke(new Action(() =>
@@ -146,6 +160,8 @@ namespace InstantMessaging.Model
 
         private void RbInstantMessaging_UserTypingChanged(object sender, UserTypingEventArgs e)
         {
+            if (CurrentConversation == null)
+                return;
             //TO DO
         }
 
@@ -280,11 +296,17 @@ namespace InstantMessaging.Model
 #region EVENTS FIRED BY AVATAR POOL
         private void AvatarPool_BubbleAvatarChanged(object sender, IdEventArgs e)
         {
+            if (CurrentConversation == null)
+                return;
+
             // TODO: need to update Bubble Avatar (if necessary)
         }
 
         private void AvatarPool_ContactAvatarChanged(object sender, IdEventArgs e)
         {
+            if (CurrentConversation == null)
+                return;
+
             // TODO: need to update Bubble Avatar (if necessary)
 
             // Need to update this contact in each messages (just avatar part)
@@ -360,6 +382,8 @@ namespace InstantMessaging.Model
                 System.Windows.Application.Current.Dispatcher.Invoke(new Action(() =>
                 {
                     ResetMessageListUsingConversationId(e.Id);
+
+                    ScrollViewer.ScrollToBottom();
                 }));
             }
         }
@@ -777,7 +801,7 @@ namespace InstantMessaging.Model
             MessageViewModel message = null;
             if (rbMessage != null)
             {
-                log.DebugFormat("[GetMessageViewModelFromRBMessage] Message.Id:[{0}] - Message.ReplaceId:[{1}] - DateTime:[{2}] - Content:[{3}]", rbMessage.Id, rbMessage.ReplaceId, rbMessage.Date.ToString("o"), rbMessage.Content);
+                //log.DebugFormat("[GetMessageViewModelFromRBMessage] Message.Id:[{0}] - Message.ReplaceId:[{1}] - DateTime:[{2}] - Content:[{3}]", rbMessage.Id, rbMessage.ReplaceId, rbMessage.Date.ToString("o"), rbMessage.Content);
 
                 message = new MessageViewModel();
                 message.EventMessageBodyPart2Color = Brushes.Black; // Set default value
@@ -800,7 +824,7 @@ namespace InstantMessaging.Model
                 }
                 else
                 {
-                    message.BackgroundColor = new BrushConverter().ConvertFromString(AvatarPool.GetColorFromDisplayName("")) as SolidColorBrush;
+                    message.BackgroundColor = new BrushConverter().ConvertFromString(AvatarPool.GetColorFromDisplayName("?")) as SolidColorBrush;
 
                     // We ask to have more info about this contact usin AvatarPool
                     AvatarPool.AddUnknownContactToPoolByJid(rbMessage.FromJid);
