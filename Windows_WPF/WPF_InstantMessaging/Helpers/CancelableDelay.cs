@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -8,44 +6,62 @@ namespace InstantMessaging.Helpers
 {
     public class CancelableDelay
     {
-        Thread delayTh;
+        CancellationTokenSource tokenSource;
+        CancellationToken token;
         Action action;
+        Task task;
         int ms;
 
         public static CancelableDelay StartAfter(int milliseconds, Action action)
         {
-            CancelableDelay result = new CancelableDelay() { ms = milliseconds };
-            result.action = action;
-            result.delayTh = new Thread(result.Delay);
-            result.delayTh.Start();
+            CancelableDelay result = new CancelableDelay();
+
+            result.StartTask(milliseconds, action);
+
             return result;
+        }
+
+        private void StartTask(int milliseconds, Action action)
+        {
+            ms = milliseconds;
+            tokenSource = new CancellationTokenSource();
+            token = tokenSource.Token;
+            this.action = action;
+
+            task = Task.Factory.StartNew(() =>
+            {
+                token.WaitHandle.WaitOne(ms);
+                token.ThrowIfCancellationRequested();
+                this.action.Invoke();
+            });
+        }
+
+        public void PostPone(int milliseconds = 0)
+        {
+            if (milliseconds == 0)
+                milliseconds = ms;
+            Cancel();
+            StartTask(milliseconds, action);
         }
 
         public Boolean IsRunning()
         {
-            return delayTh.IsAlive;
+            return task.Status == TaskStatus.Running;
         }
 
-        public void Cancel() => delayTh.Abort();
-
-        private CancelableDelay() { }
-
-        private void Delay()
+        public void Cancel()
         {
             try
             {
-                Thread.Sleep(ms);
-
-                Task task = new Task(() =>
-                {
-                    action.Invoke();
-                });
-                task.Start();
+                tokenSource.Cancel();
             }
-            catch (ThreadAbortException)
-            { }
+            catch
+            {
+                // Nothing to do more
+            }
         }
 
+        private CancelableDelay() { }
 
     }
 }
