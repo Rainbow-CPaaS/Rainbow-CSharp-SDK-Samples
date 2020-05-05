@@ -807,6 +807,7 @@ namespace InstantMessaging.Model
                 message.EventMessageBodyPart2Color = Brushes.Black; // Set default value
 
                 Rainbow.Model.Contact contact = RbContacts.GetContactFromContactJid(rbMessage.FromJid);
+
                 if (contact != null)
                 {
                     message.PeerId = contact.Id;
@@ -824,10 +825,22 @@ namespace InstantMessaging.Model
                 }
                 else
                 {
-                    message.BackgroundColor = new BrushConverter().ConvertFromString(AvatarPool.GetColorFromDisplayName("?")) as SolidColorBrush;
-
                     // We ask to have more info about this contact usin AvatarPool
                     AvatarPool.AddUnknownContactToPoolByJid(rbMessage.FromJid);
+
+                    // Try to get info from pool
+                    AvatarsData.LightContact lightContact = AvatarPool.GetLightContact(null, rbMessage.FromJid);
+
+                    if (lightContact != null)
+                    {
+                        message.PeerId = lightContact.Id;
+                        message.PeerDisplayName = lightContact.DisplayName;
+                        message.BackgroundColor = new BrushConverter().ConvertFromString(AvatarPool.GetColorFromDisplayName(message.PeerDisplayName)) as SolidColorBrush;
+                    }
+                    else
+                    {
+                        message.BackgroundColor = new BrushConverter().ConvertFromString(AvatarPool.GetColorFromDisplayName("?")) as SolidColorBrush;
+                    }
                 }
 
                 // We have the display name only in Room / Bubble context

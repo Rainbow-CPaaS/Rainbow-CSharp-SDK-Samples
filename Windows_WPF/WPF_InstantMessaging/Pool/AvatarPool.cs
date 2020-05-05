@@ -6,6 +6,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+
 using InstantMessaging.Helpers;
 
 using Rainbow;
@@ -16,13 +19,107 @@ using log4net;
 
 namespace InstantMessaging.Pool
 {
-    internal class AvatarsData
+    public class AvatarsData
     {
+        public readonly int STORAGE_DELAY = 5000; // 5 sec
+
+        public readonly String STORAGE_FILE_NAME = "ContactsInfo";
+
+        public CancelableDelay CancelableDelayToStoreContactsInfo = null;
+
+        public class LightContact
+        {
+            // Contact Id
+            public String Id { get; set; }
+
+            // Contact Jid
+            public String Jid { get; set; }
+
+            // Contact Initials
+            public String Initials { get; set; }
+
+            // Contact Display Name
+            public String DisplayName { get; set; }
+        }
+
         // Store initials and displayName of contact using contact Id as key
-        public Dictionary<String, Tuple<String, String>> contactsInfo = new Dictionary<String, Tuple<String, String>>();
+        public Dictionary<String, LightContact> contactsInfo = new Dictionary<String, LightContact>();
+
+        // To get Contact Id from Contact Jid
+        public Dictionary<String, String> contactsJid = new Dictionary<String, String>(); // < Jid, Id >
 
         // Store up to 4 members (using contact id) in a bubble.
         public Dictionary<String, List<String>> bubblesMember = new Dictionary<String, List<String>>();
+
+        public void StoreContactsInfo(string folderPath)
+        {
+            String filepath = Path.Combine(folderPath, STORAGE_FILE_NAME);
+            try
+            {
+                if (File.Exists(filepath))
+                    File.Delete(filepath);
+
+
+                String contactsInfoStr = JsonConvert.SerializeObject(contactsInfo);
+                String contactsJidStr = JsonConvert.SerializeObject(contactsJid);
+
+                String data = "{ \"contactsInfo\": " + contactsInfoStr + ", \"contactsJid\": " + contactsJidStr + " }";
+
+                File.WriteAllText(filepath, data);
+            }
+            catch { }
+        }
+
+        public void ReStoreContactsInfo(string folderPath)
+        {
+            String filepath = Path.Combine(folderPath, STORAGE_FILE_NAME);
+            try
+            {
+                if (File.Exists(filepath))
+                {
+                    try
+                    {
+                        String data = File.ReadAllText(filepath);
+
+                        var json = JsonConvert.DeserializeObject<dynamic>(data);
+                        JObject jData;
+                        if (json["contactsInfo"] != null)
+                        {
+                            jData = json["contactsInfo"];
+                            contactsInfo = (Dictionary<String, LightContact>)jData.ToObject(contactsInfo.GetType());
+                        }
+
+                        if (json["contactsInfo"] != null)
+                        {
+                            jData = json["contactsJid"];
+                            contactsJid = (Dictionary<String, String>)jData.ToObject(contactsJid.GetType());
+                        }
+                    }
+                    catch { }
+                }
+            }
+            catch { }
+        }
+
+        public LightContact GetLightContact(String id, String jid)
+        {
+            LightContact result = null;
+
+            String userId = id;
+            if (String.IsNullOrEmpty(userId))
+            {
+                if (contactsJid.ContainsKey(jid))
+                    userId = contactsJid[jid];
+            }
+
+            if (!String.IsNullOrEmpty(userId))
+            {
+                if (contactsInfo.ContainsKey(userId))
+                    result = contactsInfo[userId];
+            }
+
+            return result;
+        }
     }
 
     public sealed class AvatarPool : IImageManagement
@@ -49,8 +146,6 @@ namespace InstantMessaging.Pool
         private int avatarFontSize = 24;
         private String avatarFontFamilyName = "GenericSansSerif";
 
-        
-
         private Boolean allowAvatarDownload = false;
         private BackgroundWorker backgroundWorkerDownload = null;
         private readonly List<String> contactsWithAvatarToDwl = new List<String>(); // Store Id of contacts with Avatar not already downloaded
@@ -66,7 +161,11 @@ namespace InstantMessaging.Pool
         private readonly List<String> contactsUnknownById = new List<String>(); // Store Id of unknow contacts
         private readonly List<String> contactsUnknownByJid = new List<String>(); // Store Jid of unknow contacts
 
-#region Define folder path variables
+        #region Define folder path variables
+
+        // Store folder root
+        private String folderRoot = null;
+
         // Store folders path where Contact Avatars are stored
         private String folderContactAvatarInitials = null;
         private String folderContactAvatarOriginals = null;
@@ -114,23 +213,11 @@ namespace InstantMessaging.Pool
             Contact contact = contacts.GetContactFromContactJid(e.Jid);
             if (contact != null)
             {
-                String displayName = Util.GetContactDisplayName(contact, firstNameFirst);
-                String initials = Util.GetContactInitials(contact, firstNameFirst);
-
-                Boolean needInitialUpdate = true;
-
-                if (avatarsData.contactsInfo.ContainsKey(contact.Id))
-                {
-                    Tuple<String, String> tuple = avatarsData.contactsInfo[contact.Id];
-                    if ((tuple.Item1 == initials) && (tuple.Item2 == displayName))
-                        needInitialUpdate = false;
-                }
+                AvatarsData.LightContact lightContact = new AvatarsData.LightContact(); ;
+                Boolean needInitialUpdate = UpdateContactInfo(contact, ref lightContact);
 
                 if (needInitialUpdate)
                 {
-                    avatarsData.contactsInfo.Remove(contact.Id);
-                    avatarsData.contactsInfo.Add(contact.Id, new Tuple<string, string>(initials, displayName));
-
                     String pathInitials = Path.Combine(folderContactAvatarInitials, contact.Id + ".png");
                     try
                     {
@@ -149,7 +236,6 @@ namespace InstantMessaging.Pool
 
                     CheckBubbleAvatarImpactRelatedToContactId(contact.Id);
                 }
-
             }
         }
 
@@ -161,7 +247,10 @@ namespace InstantMessaging.Pool
             Contact contact = contacts.GetContactFromContactJid(e.Jid);
             if (contact != null)
             {
-                log.DebugFormat("[Contacts_ContactAdded] Contact - Id:[{0}] - Jid:[{1}] - DisplayName:[{2}]", contact.Id, contact.Jid_im, Util.GetContactDisplayName(contact, AvatarPool.Instance.GetFirstNameFirst()));
+                AvatarsData.LightContact lightContact = new AvatarsData.LightContact(); ;
+                Boolean needInitialUpdate = UpdateContactInfo(contact, ref lightContact);
+
+                log.DebugFormat("[Contacts_ContactAdded] Contact - Id:[{0}] - Jid:[{1}] - DisplayName:[{2}]", contact.Id, contact.Jid_im, lightContact.DisplayName);
 
                 // Raise event ContactAvatarChanged
                 ContactAvatarChanged?.Invoke(this, new IdEventArgs(contact.Id));
@@ -186,7 +275,15 @@ namespace InstantMessaging.Pool
 
             Contact contact = contacts.GetContactFromContactJid(e.Jid);
             if (contact != null)
-                log.DebugFormat("[Contacts_RosterContactAdded] Contact - Id:[{0}] - Jid:[{1}] - DisplayName:[{2}]", contact.Id, contact.Jid_im, Util.GetContactDisplayName(contact, AvatarPool.Instance.GetFirstNameFirst()));
+            {
+                AvatarsData.LightContact lightContact = new AvatarsData.LightContact(); ;
+                Boolean needInitialUpdate = UpdateContactInfo(contact, ref lightContact);
+
+                log.DebugFormat("[Contacts_RosterContactAdded] Contact - Id:[{0}] - Jid:[{1}] - DisplayName:[{2}]", contact.Id, contact.Jid_im, lightContact.DisplayName);
+
+                // Raise event ContactAvatarChanged
+                ContactAvatarChanged?.Invoke(this, new IdEventArgs(contact.Id));
+            }
 
         }
 
@@ -409,6 +506,12 @@ namespace InstantMessaging.Pool
 
 #region PUBLIC METHODS    
 
+
+        public AvatarsData.LightContact GetLightContact(String contactId, String contactJid)
+        {
+            return avatarsData.GetLightContact(contactId, contactJid);
+        }
+
         public void SetImageManagement(IImageManagement imageManagement)
         {
             this.imageManagement = imageManagement;
@@ -465,6 +568,9 @@ namespace InstantMessaging.Pool
             {
                 if (!Directory.Exists(path))
                     Directory.CreateDirectory(path);
+
+                folderRoot = path;
+                avatarsData.ReStoreContactsInfo(path);
 
                 // ----- DEFINE CONTACTS FOLDER
 
@@ -653,15 +759,20 @@ namespace InstantMessaging.Pool
 
             // We need to create avatar using initials
             Contact contact = contacts.GetContactFromContactId(contactId);
+            AvatarsData.LightContact lightContact = null;
             if (contact != null)
             {
-                String displayName = Util.GetContactDisplayName(contact, firstNameFirst);
-                String initials = Util.GetContactInitials(contact, firstNameFirst);
+                lightContact = new AvatarsData.LightContact();
+                UpdateContactInfo(contact, ref lightContact);
+            }
+            else 
+            {
+                lightContact = avatarsData.GetLightContact(contactId, null);
+            }
 
-                avatarsData.contactsInfo.Remove(contactId);
-                avatarsData.contactsInfo.Add(contactId, new Tuple<string, string>(initials, displayName));
-
-                Stream stream = GetAvatarUsingInitials(initials, GetColorFromDisplayName(displayName), "#FFFFFF");
+            if(lightContact != null)
+            { 
+                Stream stream = GetAvatarUsingInitials(lightContact.Initials, GetColorFromDisplayName(lightContact.DisplayName), "#FFFFFF");
                 // Save as "original" image if necessary
                 if (!File.Exists(pathOriginal))
                 {
@@ -703,6 +814,40 @@ namespace InstantMessaging.Pool
                 log.DebugFormat("[GetContactAvatarPath] Get Unknown Avatar for ContactId:[{0}]", contactId);
                 return unknownPath;
             }
+        }
+
+        private Boolean UpdateContactInfo(Contact contact, ref AvatarsData.LightContact lightContact)
+        {
+            Boolean updated = true;
+
+            String displayName = Util.GetContactDisplayName(contact, firstNameFirst);
+            String initials = Util.GetContactInitials(contact, firstNameFirst);
+
+            if (avatarsData.contactsInfo.ContainsKey(contact.Id))
+            {
+                lightContact = avatarsData.contactsInfo[contact.Id];
+                if ((lightContact.Initials == initials) && (lightContact.DisplayName == displayName))
+                    updated = false;
+            }
+            else
+            {
+                lightContact.Id = contact.Id;
+                lightContact.Jid = contact.Jid_im;
+                lightContact.Initials = initials;
+                lightContact.DisplayName = displayName;
+
+                avatarsData.contactsInfo.Remove(contact.Id);
+                avatarsData.contactsInfo.Add(contact.Id, lightContact);
+                if (!avatarsData.contactsJid.ContainsKey(contact.Jid_im))
+                    avatarsData.contactsJid.Add(contact.Jid_im, contact.Id);
+
+                if (avatarsData.CancelableDelayToStoreContactsInfo != null)
+                    avatarsData.CancelableDelayToStoreContactsInfo.PostPone();
+                else
+                    avatarsData.CancelableDelayToStoreContactsInfo = CancelableDelay.StartAfter(avatarsData.STORAGE_DELAY, () => avatarsData.StoreContactsInfo(folderRoot));
+            }
+
+            return updated;
         }
 
         public String GetBubbleAvatarPath(String bubbleId)
