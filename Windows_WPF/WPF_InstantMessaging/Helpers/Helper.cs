@@ -270,8 +270,18 @@ namespace InstantMessaging.Helpers
                         }
                         else
                         {
+                            // We ask to have more info about this contact using AvatarPool
                             log.DebugFormat("[GetFavoriteFromRbFavorite] - unknown contact - contactId:[{0}]", rbConversation.PeerId);
-                            CurrentApplication.RbContacts.GetContactFromContactIdFromServer(rbConversation.PeerId, null);
+                            avatarPool.AddUnknownContactToPoolById(rbConversation.PeerId);
+
+                            // Try to get info from pool
+                            AvatarsData.LightContact lightContact = avatarPool.GetLightContact(rbConversation.PeerId, rbConversation.Jid_im);
+
+                            if (lightContact != null)
+                            {
+                                result.Name = lightContact.DisplayName;
+                                result.PresenceSource = "presence_offline.png";
+                            }
                         }
                     }
                     else
@@ -349,8 +359,21 @@ namespace InstantMessaging.Helpers
                     }
                     else
                     {
+                        // We ask to have more info about this contact using AvatarPool
                         log.DebugFormat("[GetConversationFromRBConversation] - unknown contact - contactId:[{0}]", rbConversation.PeerId);
-                        CurrentApplication.RbContacts.GetContactFromContactIdFromServer(rbConversation.PeerId, null);
+                        avatarPool.AddUnknownContactToPoolById(rbConversation.PeerId);
+
+                        // Try to get info from pool
+                        AvatarsData.LightContact lightContact = avatarPool.GetLightContact(rbConversation.PeerId, rbConversation.Jid_im);
+
+                        if (lightContact != null)
+                        {
+                            conversation.Name = lightContact.DisplayName;
+                            conversation.Topic = "";
+                            conversation.PeerId = lightContact.Id;
+                            conversation.Jid = lightContact.Jid;
+                            conversation.PresenceSource = "presence_offline.png";
+                        }
                     }
                 }
                 else
