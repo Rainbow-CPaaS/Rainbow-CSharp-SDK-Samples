@@ -366,11 +366,6 @@ namespace InstantMessaging.Model
         #endregion  MODEL UPDATED IN THESE METHODS
 
         #region PRIVATE METHODS
-        /// <summary>
-        /// Add one Conversation Model in the ViewModel
-        /// </summary>
-        /// <param name="rbConversation">a Rainbow Conversation object</param>
-
         private ConversationLightViewModel GetConversationById(String id)
         {
             ConversationLightViewModel conversationFound = null;
