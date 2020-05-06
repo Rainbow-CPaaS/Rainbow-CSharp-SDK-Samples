@@ -40,7 +40,7 @@ namespace InstantMessaging
         internal Boolean USE_DUMMY_DATA = false;
         internal Boolean USE_LOGIN_FORM_WITH_DUMMY_DATA = false;
         internal Boolean USE_AVATAR_CACHE = true;
-        internal Boolean USE_FILE_CACHE = false;
+        internal Boolean USE_FILE_CACHE = true;
 
         // Define global windows
         internal LoginView LoginWindow = null;
