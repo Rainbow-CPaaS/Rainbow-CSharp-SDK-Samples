@@ -61,7 +61,6 @@ namespace InstantMessaging.Pool
 
 #endregion
 
-
 #region PUBLIC METHODS   
 
         public static FilePool Instance
@@ -253,7 +252,6 @@ namespace InstantMessaging.Pool
         }
 
 #endregion PUBLIC METHODS   
-
 
 #region EVENT FIRED BY SDK
 
@@ -498,7 +496,7 @@ namespace InstantMessaging.Pool
                 log.DebugFormat("[DownloadThumbnailDone] Direct Download done - fileDescriptorId:[{0}]", fileId);
 
                 // Need to scale thumbnail according density and max size expected
-                double density = 1;
+                double density = avatarPool.GetDensity();
                 double maxWidth = MaxThumbnailWidth * density;
                 double maxHeight = MaxThumbnailHeight * density;
 
@@ -624,8 +622,8 @@ namespace InstantMessaging.Pool
         {
             avatarPool = AvatarPool.Instance;
 
-            MaxThumbnailWidth = 200;
-            MaxThumbnailHeight = 200;
+            MaxThumbnailWidth = 400;
+            MaxThumbnailHeight = 400;
         }
 
 #endregion PRIVATE METHODS   

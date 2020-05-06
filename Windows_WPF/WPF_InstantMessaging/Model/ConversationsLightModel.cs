@@ -86,6 +86,10 @@ namespace InstantMessaging.Model
             // Set conversations list using cache
             ResetModelWithRbConversations(RbConversations.GetAllConversationsFromCache());
 
+            // Get first conversation and load its stream
+            if(ConversationsLightList.Count > 0)
+                CurrentApplication.ApplicationMainWindow.SetConversationIdSelectionFromConversationsList(ConversationsLightList[0].Id);
+
             // Now allow Avatar download
             AvatarPool.AllowAvatarDownload(true);
 

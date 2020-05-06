@@ -51,16 +51,16 @@ namespace InstantMessaging.View
 
         private void MainView_Loaded(object sender, RoutedEventArgs e)
         {
+            // Must be created first since other ViewModel could use this ViewModel
+            conversationStreamViewModel = new ConversationStreamViewModel();
+            conversationStreamViewModel.SetScrollViewer(UIConversationStreamScrollViewer);
+            UIConversationStream.DataContext = conversationStreamViewModel;
+
             conversationsViewModel = new ConversationsLightViewModel();
             UIConversationsList.DataContext = conversationsViewModel;
 
             favoritesViewModel = new FavoritesViewModel();
             UIFavoritesList.DataContext = favoritesViewModel;
-
-            conversationStreamViewModel = new ConversationStreamViewModel();
-            conversationStreamViewModel.SetScrollViewer(UIConversationStreamScrollViewer);
-            UIConversationStream.DataContext = conversationStreamViewModel;
-            
         }
 
         public void SetConversationIdSelectionFromConversationsList(String id)
