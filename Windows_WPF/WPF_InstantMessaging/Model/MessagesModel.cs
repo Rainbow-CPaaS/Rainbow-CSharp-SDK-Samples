@@ -660,12 +660,12 @@ namespace InstantMessaging.Model
                     using (Stream stream = new MemoryStream(File.ReadAllBytes(filePath)))
                     {
                         System.Drawing.Size size = AvatarPool.GetSize(stream);
-                        double density = 1;
+                        double density = AvatarPool.GetDensity();
 
-                        message.FileAttachmentImageSource = Helper.GetBitmapImageFromResource(filePath);
-                        message.FileAttachmentImageWidth = (int)Math.Round(size.Width / density);
-                        message.FileAttachmentImageHeight = (int)Math.Round(size.Height / density);
-
+                        message.FileAttachmentImageSource = Helper.BitmapImageFromFile(filePath);
+                        message.FileAttachmentImageWidth = (int)Math.Round((double)size.Width / density);
+                        message.FileAttachmentImageHeight = (int)Math.Round((double)size.Height / density);
+                        message.FileAttachmentIsVisible = Visibility.Visible;
                         message.FileInfoIsVisible = Visibility.Collapsed;
                     }
                 }
