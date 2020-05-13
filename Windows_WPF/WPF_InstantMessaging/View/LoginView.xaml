@@ -4,6 +4,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        xmlns:rainbowUI="clr-namespace:Rainbow.UI"
         TextElement.Foreground="{DynamicResource MaterialDesignBody}"
         Background="{DynamicResource MaterialDesignPaper}"
         TextElement.FontWeight="Medium"
@@ -48,13 +49,16 @@
             Stretch="UniformToFill"
             Source="{Binding Logo}"/>
 
-        <materialDesign:PackIcon 
-            Margin="0, 25, 0, 20"
+        <rainbowUI:VectorIcon 
+            Margin="0, 15, 0, 20"
             Grid.Row="1" 
             Grid.Column="0" 
-            Kind="Account" 
             HorizontalAlignment="Right"
-            Foreground="{Binding ElementName=EntryLogin, Path=BorderBrush}" />
+            Width="15"
+            Height="15"
+            Kind="Account"
+            Color="{Binding ElementName=EntryLogin, Path=BorderBrush}"
+            />
 
         <TextBox
             x:Name="EntryLogin"
@@ -80,13 +84,15 @@
             </TextBox.Text>
         </TextBox>
 
-        <materialDesign:PackIcon 
+        <rainbowUI:VectorIcon 
             Margin="0, 15, 0, 20"
             Grid.Row="2" 
             Grid.Column="0" 
-            Kind="Key" 
             HorizontalAlignment="Right"
-            Foreground="{Binding ElementName=EntryPassword, Path=BorderBrush}" />
+            Width="15"
+            Height="15"
+            Kind="Key" 
+            Color="{Binding ElementName=EntryPassword, Path=BorderBrush}" />
 
         <PasswordBox 
             Margin="0, 10, 0, 20"
@@ -127,7 +133,7 @@
             HorizontalAlignment="Center"
             Content="{Binding Model.Connect}"
             Command="{Binding ButtonLoginCommand}" IsCancel="False"/>
-
+        
         <CheckBox
             Margin="0, 10, 0, 0"
             x:Name="AutoLogin"
