@@ -25,6 +25,7 @@ namespace InstantMessaging.ViewModel
         String messageDateDisplay;
 
         Boolean isEventMessage;
+        String eventName;
         String eventMessageBodyPart1;
         String eventMessageBodyPart2;
         Brush eventMessageBodyPart2Color;
@@ -143,6 +144,13 @@ namespace InstantMessaging.ViewModel
             get { return isEventMessage; }
             set { SetProperty(ref isEventMessage, value); }
         }
+
+        public String EventName
+        {
+            get { return eventName; }
+            set { SetProperty(ref eventName, value); }
+        }
+        
 
         public String EventMessageBodyPart1
         {

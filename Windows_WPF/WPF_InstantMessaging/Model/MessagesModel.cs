@@ -25,7 +25,7 @@ namespace InstantMessaging.Model
 {
     class MessagesModel
     {
-        private static readonly ILog log = LogConfigurator.GetLogger(typeof(LoginModel));
+        private static readonly ILog log = LogConfigurator.GetLogger(typeof(MessagesModel));
 
         private static readonly int NB_MESSAGE_LOADED_BY_ROW = 40;
 
@@ -534,9 +534,14 @@ namespace InstantMessaging.Model
 
                             if (updateDisplayName)
                             {
-                                message.PeerDisplayName = displayName;
-                                message.BackgroundColor = new BrushConverter().ConvertFromString(AvatarPool.GetColorFromDisplayName(message.PeerDisplayName)) as SolidColorBrush;
-                                message.ReplyBackgroundColor = new BrushConverter().ConvertFromString(AvatarPool.GetDarkerColorFromDisplayName(message.PeerDisplayName)) as SolidColorBrush;
+                                if (message.IsEventMessage)
+                                    message.EventMessageBodyPart1 = Helper.GetBubbleEventMessageBody(contact, message.EventName);
+                                else
+                                {
+                                    message.PeerDisplayName = displayName;
+                                    message.BackgroundColor = new BrushConverter().ConvertFromString(AvatarPool.GetColorFromDisplayName(message.PeerDisplayName)) as SolidColorBrush;
+                                    message.ReplyBackgroundColor = new BrushConverter().ConvertFromString(AvatarPool.GetDarkerColorFromDisplayName(message.PeerDisplayName)) as SolidColorBrush;
+                                }
                             }
                         }
                     }
@@ -860,7 +865,8 @@ namespace InstantMessaging.Model
                 if (!String.IsNullOrEmpty(rbMessage.BubbleEvent))
                 {
                     message.IsEventMessage = true;
-                    message.EventMessageBodyPart1 = Helper.GetBubbleEventMessageBody(contact, rbMessage.BubbleEvent);
+                    message.EventName = rbMessage.BubbleEvent;
+                    message.EventMessageBodyPart1 = Helper.GetBubbleEventMessageBody(contact, message.EventName);
                 }
                 // Is-it an "CallLog message" ?
                 else if (rbMessage.CallLogAttachment != null)
