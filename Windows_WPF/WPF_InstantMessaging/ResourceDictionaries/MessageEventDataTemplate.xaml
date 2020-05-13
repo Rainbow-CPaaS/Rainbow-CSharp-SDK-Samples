@@ -53,7 +53,7 @@
                         <TextBlock 
                             HorizontalAlignment="Left"
                             VerticalAlignment="Center"
-                            Foreground="Black" 
+                            Foreground="Gray" 
                             FontSize="12"
                             FontWeight="Normal"
                             TextWrapping="Wrap"
@@ -78,6 +78,7 @@
                                 Grid.Row="0"
                                 HorizontalAlignment="Left"
                                 VerticalAlignment="Center"
+                                FontWeight="Bold"
                                 Foreground="{Binding EventMessageBodyPart2Color}" 
                                 FontSize="12"
                                 TextWrapping="Wrap"
@@ -92,7 +93,7 @@
                                 Grid.Row="0"
                                 HorizontalAlignment="Right"
                                 VerticalAlignment="Center"
-                                Foreground="Black" 
+                                Foreground="DarkGray" 
                                 FontSize="9"
                                 Text="{Binding MessageDateDisplay}"/>
                             <!--#endregion DATE-->

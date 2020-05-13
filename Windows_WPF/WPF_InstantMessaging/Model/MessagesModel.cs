@@ -804,7 +804,7 @@ namespace InstantMessaging.Model
                 //log.DebugFormat("[GetMessageViewModelFromRBMessage] Message.Id:[{0}] - Message.ReplaceId:[{1}] - DateTime:[{2}] - Content:[{3}]", rbMessage.Id, rbMessage.ReplaceId, rbMessage.Date.ToString("o"), rbMessage.Content);
 
                 message = new MessageViewModel();
-                message.EventMessageBodyPart2Color = Brushes.Black; // Set default value
+                message.EventMessageBodyPart2Color = Brushes.Gray; // Set default value
 
                 Rainbow.Model.Contact contact = RbContacts.GetContactFromContactJid(rbMessage.FromJid);
 
@@ -1709,7 +1709,7 @@ namespace InstantMessaging.Model
             mns = (int)(nbSecs / 60);
             sec = (int)Math.Round(nbSecs - (mns * 60));
             message.EventMessageBodyPart2 = "Duration: " + ((mns > 0) ? mns + ((mns > 1) ? "mns " : "mn ") : "") + ((sec > 0) ? sec + "s" : "");
-            message.EventMessageBodyPart2Color = Brushes.Black;
+            message.EventMessageBodyPart2Color = Brushes.Gray;
             message.EventMessageBodyPart2IsVisible = String.IsNullOrEmpty(message.EventMessageBodyPart2) ? Visibility.Collapsed : Visibility.Visible;
 
             MessagesList.Add(message);
