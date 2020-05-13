@@ -61,6 +61,8 @@ namespace InstantMessaging
 
             RbApplication.SetApplicationInfo(AppConfiguration.APP_ID, AppConfiguration.APP_SECRET_KEY);
             RbApplication.SetHostInfo(AppConfiguration.HOST_NAME);
+            RbApplication.SetWebProxy(null);
+            RbApplication.SetIpEndPoint(null);
 
             RbBubbles = RbApplication.GetBubbles();
             RbContacts = RbApplication.GetContacts();
@@ -74,14 +76,14 @@ namespace InstantMessaging
 
             if (!USE_DUMMY_DATA)
             {
-                CurrentUserId = "1";
-                CurrentUserJid = "1";
-
                 LoginWindow = new LoginView();
                 LoginWindow.Show();
             }
             else
             {
+                CurrentUserId = "1";
+                CurrentUserJid = "1";
+
                 if (USE_DUMMY_DATA && USE_LOGIN_FORM_WITH_DUMMY_DATA)
                 {
                     LoginWindow = new LoginView();
