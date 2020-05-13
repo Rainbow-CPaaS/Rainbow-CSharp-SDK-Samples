@@ -1,0 +1,68 @@
+﻿<UserControl x:Class="Rainbow.UI.RotateVectorIcon"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Rainbow.UI"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+
+    <UserControl.Resources>
+        <Storyboard x:Key="StartRotateStoryboard" RepeatBehavior="Forever" BeginTime="00:00:00.000" Duration="00:00:02.000">
+            <DoubleAnimation
+                Storyboard.TargetProperty="(RenderTransform).(RotateTransform.Angle)" 
+                From="0" To="360"
+                Duration="00:00:02.000"/>
+        </Storyboard>
+        <Storyboard x:Key="StopRotateStoryboard">
+            <DoubleAnimation
+                Storyboard.TargetProperty="(RenderTransform).(RotateTransform.Angle)" 
+                To="00"
+                Duration="0:0:0"/>
+        </Storyboard>
+    </UserControl.Resources>
+
+    <Canvas
+        x:Name="Canvas"
+        RenderTransformOrigin=".5,.5"
+        Width="{Binding RelativeSource={RelativeSource FindAncestor, 
+                                               AncestorType=UserControl, 
+                                               AncestorLevel=1},
+                Path=ActualWidth}"
+        Height="{Binding RelativeSource={RelativeSource FindAncestor, 
+                                               AncestorType=UserControl, 
+                                               AncestorLevel=1},
+                Path=ActualHeight}">
+
+        <Canvas.RenderTransform>
+            <RotateTransform x:Name="CanvasRotateTransform"/>
+        </Canvas.RenderTransform>
+
+        <Canvas.Style>
+            <Style>
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding ElementName=Canvas, Path=IsEnabled}" Value="True">
+                        <DataTrigger.EnterActions>
+                            <BeginStoryboard Storyboard="{StaticResource StartRotateStoryboard}" />
+                        </DataTrigger.EnterActions>
+                        <DataTrigger.ExitActions>
+                            <BeginStoryboard Storyboard="{StaticResource StopRotateStoryboard}" />
+                        </DataTrigger.ExitActions>
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+        </Canvas.Style>
+
+        <Viewbox
+            x:Name="ViewBox"
+            RenderTransformOrigin=".5,.5"
+            Width="{Binding ElementName=Canvas, Path=ActualWidth}"
+            Height="{Binding ElementName=Canvas, Path=ActualHeight}">
+            <Path x:Name="Path"
+                Data="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z"
+                Fill="Black" />
+            
+        </Viewbox>
+    </Canvas>
+
+</UserControl>
