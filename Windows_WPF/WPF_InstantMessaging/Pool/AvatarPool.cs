@@ -15,7 +15,7 @@ using Rainbow;
 using Rainbow.Events;
 using Rainbow.Model;
 
-using log4net;
+using NLog;
 
 namespace InstantMessaging.Pool
 {
@@ -128,7 +128,7 @@ namespace InstantMessaging.Pool
 
         private static readonly AvatarPool instance = new AvatarPool();
 
-        private static readonly ILog log = LogConfigurator.GetLogger(typeof(AvatarPool));
+        private static readonly Logger log = LogConfigurator.GetLogger(typeof(AvatarPool));
 
         private static readonly String UNKNOW_CONTACT_NAME = "?";
 
@@ -226,7 +226,7 @@ namespace InstantMessaging.Pool
                     }
                     catch (Exception exc)
                     {
-                        log.WarnFormat("[Contacts_ContactInfoChanged] - Impossible to delete Image file - Exception:[{0}]", Util.SerializeException(exc));
+                        log.Warn("[Contacts_ContactInfoChanged] - Impossible to delete Image file - Exception:[{0}]", Util.SerializeException(exc));
                     }
 
                     // Check if we have a rounded avatar. If not we need to raise ContactAvatarChanged
@@ -250,7 +250,7 @@ namespace InstantMessaging.Pool
                 AvatarsData.LightContact lightContact = new AvatarsData.LightContact(); ;
                 Boolean needInitialUpdate = UpdateContactInfo(contact, ref lightContact);
 
-                log.DebugFormat("[Contacts_ContactAdded] Contact - Id:[{0}] - Jid:[{1}] - DisplayName:[{2}]", contact.Id, contact.Jid_im, lightContact.DisplayName);
+                log.Debug("[Contacts_ContactAdded] Contact - Id:[{0}] - Jid:[{1}] - DisplayName:[{2}]", contact.Id, contact.Jid_im, lightContact.DisplayName);
 
                 // Raise event ContactAvatarChanged
                 ContactAvatarChanged?.Invoke(this, new IdEventArgs(contact.Id));
@@ -264,7 +264,7 @@ namespace InstantMessaging.Pool
 
             Contact contact = contacts.GetContactFromContactJid(e.Jid);
             if (contact != null)
-                log.DebugFormat("[Contacts_RosterContactRemoved] Contact - Id:[{0}] - Jid:[{1}] - DisplayName:[{2}]", contact.Id, contact.Jid_im, Util.GetContactDisplayName(contact, AvatarPool.Instance.GetFirstNameFirst()));
+                log.Debug("[Contacts_RosterContactRemoved] Contact - Id:[{0}] - Jid:[{1}] - DisplayName:[{2}]", contact.Id, contact.Jid_im, Util.GetContactDisplayName(contact, AvatarPool.Instance.GetFirstNameFirst()));
 
         }
 
@@ -279,7 +279,7 @@ namespace InstantMessaging.Pool
                 AvatarsData.LightContact lightContact = new AvatarsData.LightContact(); ;
                 Boolean needInitialUpdate = UpdateContactInfo(contact, ref lightContact);
 
-                log.DebugFormat("[Contacts_RosterContactAdded] Contact - Id:[{0}] - Jid:[{1}] - DisplayName:[{2}]", contact.Id, contact.Jid_im, lightContact.DisplayName);
+                log.Debug("[Contacts_RosterContactAdded] Contact - Id:[{0}] - Jid:[{1}] - DisplayName:[{2}]", contact.Id, contact.Jid_im, lightContact.DisplayName);
 
                 // Raise event ContactAvatarChanged
                 ContactAvatarChanged?.Invoke(this, new IdEventArgs(contact.Id));
@@ -333,7 +333,7 @@ namespace InstantMessaging.Pool
                 }
                 catch (Exception exc)
                 {
-                    log.WarnFormat("[Contacts_ContactAvatarDeleted] - Impossible to delete Image files - Exception:[{0}]", Util.SerializeException(exc));
+                    log.Warn("[Contacts_ContactAvatarDeleted] - Impossible to delete Image files - Exception:[{0}]", Util.SerializeException(exc));
                     // Nothing special to handle here
                 }
 
@@ -379,7 +379,7 @@ namespace InstantMessaging.Pool
                 }
                 catch (Exception exc)
                 {
-                    log.WarnFormat("[Bubbles_BubbleAvatarUpdated] - Impossible to delete Image files - Exception:[{0}]", Util.SerializeException(exc));
+                    log.Warn("[Bubbles_BubbleAvatarUpdated] - Impossible to delete Image files - Exception:[{0}]", Util.SerializeException(exc));
                     // Nothing special to handle here
                 }
 
@@ -470,7 +470,7 @@ namespace InstantMessaging.Pool
                 }
                 catch(Exception exc)
                 {
-                    log.WarnFormat("[Bubbles_BubbleMemberUpdated] - Impossible to delete Image files - Exception:[{0}]", Util.SerializeException(exc));
+                    log.Warn("[Bubbles_BubbleMemberUpdated] - Impossible to delete Image files - Exception:[{0}]", Util.SerializeException(exc));
                 }
 
                 // Raise event BubbleAvatarChanged
@@ -490,7 +490,7 @@ namespace InstantMessaging.Pool
                 initDone = false;
             else
             {
-                log.DebugFormat("[Application_InitialisationPerformed");
+                log.Debug("[Application_InitialisationPerformed");
                 List<Rainbow.Model.Conversation> list = conversations.GetAllConversationsFromCache();
                 foreach (Rainbow.Model.Conversation conversation in list)
                 {
@@ -610,7 +610,7 @@ namespace InstantMessaging.Pool
             }
             catch (Exception exc)
             {
-                log.WarnFormat("Impossible to create directory to store Avatar:\r\n{0}", Util.SerializeException(exc));
+                log.Warn("Impossible to create directory to store Avatar:\r\n{0}", Util.SerializeException(exc));
             }
         }
 
@@ -811,7 +811,7 @@ namespace InstantMessaging.Pool
                 // Get unknown avatar
                 String unknownPath = GetUnknownAvatarPath();
 
-                log.DebugFormat("[GetContactAvatarPath] Get Unknown Avatar for ContactId:[{0}]", contactId);
+                log.Debug("[GetContactAvatarPath] Get Unknown Avatar for ContactId:[{0}]", contactId);
                 return unknownPath;
             }
         }
@@ -1039,7 +1039,7 @@ namespace InstantMessaging.Pool
             }
             catch (Exception exc)
             {
-                log.WarnFormat("[GetRoundedBubbleAvatarPath] - Impossible to delete Image file - Exception:[{0}]", Util.SerializeException(exc));
+                log.Warn("[GetRoundedBubbleAvatarPath] - Impossible to delete Image file - Exception:[{0}]", Util.SerializeException(exc));
             }
 
             return path;
@@ -1093,7 +1093,7 @@ namespace InstantMessaging.Pool
                             }
                             catch (Exception exc)
                             {
-                                log.WarnFormat("[CheckBubbleAvatarImpactRelatedToContactId] - Impossible to delete Image files - Exception:[{0}]", Util.SerializeException(exc));
+                                log.Warn("[CheckBubbleAvatarImpactRelatedToContactId] - Impossible to delete Image files - Exception:[{0}]", Util.SerializeException(exc));
                             }
                             // Raise event BubbleAvatarChanged
                             BubbleAvatarChanged?.Invoke(this, new IdEventArgs(bubbleId));
@@ -1171,7 +1171,7 @@ namespace InstantMessaging.Pool
         {
             if (!contactsUnknownById.Contains(contactId))
             {
-                log.DebugFormat("[AddUnknownContactToPoolById] contactId:[{0}]", contactId);
+                log.Debug("[AddUnknownContactToPoolById] contactId:[{0}]", contactId);
                 contactsUnknownById.Add(contactId);
                 UseUnknowContactsPool();
             }
@@ -1181,7 +1181,7 @@ namespace InstantMessaging.Pool
         {
             if (!contactsUnknownByJid.Contains(contactJid))
             {
-                log.DebugFormat("[AddUnknownContactToPoolByJid] contactJid:[{0}]", contactJid);
+                log.Debug("[AddUnknownContactToPoolByJid] contactJid:[{0}]", contactJid);
                 contactsUnknownByJid.Add(contactJid);
                 UseUnknowContactsPool();
             }
@@ -1217,7 +1217,7 @@ namespace InstantMessaging.Pool
             String contactId;
             String contactJid;
 
-            log.DebugFormat("[BackgroundWorkerUnkownContact_DoWork] - IN - nbUnknownById:[{0}] - nbUnknownByJid:[{1}]", contactsUnknownById.Count, contactsUnknownByJid.Count);
+            log.Debug("[BackgroundWorkerUnkownContact_DoWork] - IN - nbUnknownById:[{0}] - nbUnknownByJid:[{1}]", contactsUnknownById.Count, contactsUnknownByJid.Count);
             do
             {
                 if (contactsUnknownById.Count > 0)
@@ -1227,17 +1227,17 @@ namespace InstantMessaging.Pool
                         index = 0;
 
                     contactId = contactsUnknownById[index];
-                    log.DebugFormat("[BackgroundWorkerUnkownContact_DoWork] Ask contact info - START - ContactId:[{0}]", contactId);
+                    log.Debug("[BackgroundWorkerUnkownContact_DoWork] Ask contact info - START - ContactId:[{0}]", contactId);
                     if (AskContactInfoById(contactId))
                     {
                         contactsUnknownById.Remove(contactId);
-                        log.DebugFormat("[BackgroundWorkerUnkownContact_DoWork] Ask contact info - END - SUCCESS - ContactId:[{0}]", contactId);
+                        log.Debug("[BackgroundWorkerUnkownContact_DoWork] Ask contact info - END - SUCCESS - ContactId:[{0}]", contactId);
                     }
                     else
                     {
                         // Download failed - we try for another contact
                         index++;
-                        log.DebugFormat("[BackgroundWorkerDonwload_DoWork] Ask contact info- END - FAILED - ContactId:[{0}]", contactId);
+                        log.Debug("[BackgroundWorkerDonwload_DoWork] Ask contact info- END - FAILED - ContactId:[{0}]", contactId);
                     }
                 }
                 else if (contactsUnknownByJid.Count > 0)
@@ -1247,17 +1247,17 @@ namespace InstantMessaging.Pool
                         index = 0;
 
                     contactJid = contactsUnknownByJid[index];
-                    log.DebugFormat("[BackgroundWorkerUnkownContact_DoWork] Ask contact info - START - ContactJid:[{0}]", contactJid);
+                    log.Debug("[BackgroundWorkerUnkownContact_DoWork] Ask contact info - START - ContactJid:[{0}]", contactJid);
                     if (AskContactInfoByJid(contactJid))
                     {
                         contactsUnknownByJid.Remove(contactJid);
-                        log.DebugFormat("[BackgroundWorkerUnkownContact_DoWork] Ask contact info - END - SUCCESS - ContactJid:[{0}]", contactJid);
+                        log.Debug("[BackgroundWorkerUnkownContact_DoWork] Ask contact info - END - SUCCESS - ContactJid:[{0}]", contactJid);
                     }
                     else
                     {
                         // Download failed - we try for another contact
                         index++;
-                        log.DebugFormat("[BackgroundWorkerDonwload_DoWork] Ask contact info- END - FAILED - ContactJid:[{0}]", contactJid);
+                        log.Debug("[BackgroundWorkerDonwload_DoWork] Ask contact info- END - FAILED - ContactJid:[{0}]", contactJid);
                     }
                 }
 
@@ -1312,6 +1312,7 @@ namespace InstantMessaging.Pool
 
             if (!contactsWithAvatarToDwl.Contains(contactId))
             {
+                log.Debug("[AddContactAvatarToDownload] Contact.Id:[{0}]", contactId);
                 contactsWithAvatarToDwl.Add(contactId);
 
                 UseDownloaderPool();
@@ -1373,22 +1374,22 @@ namespace InstantMessaging.Pool
                         indexBubble = 0;
 
                     bubbleId = bubblesWithAvatarToDwl[indexBubble];
-                    log.DebugFormat("[BackgroundWorkerDonwload_DoWork] Download Bubble Avatar - START - Bubble:[{0}]", bubbleId);
+                    log.Debug("[BackgroundWorkerDonwload_DoWork] Download Bubble Avatar - START - Bubble:[{0}]", bubbleId);
                     if (DownloadBubbleAvatar(bubbleId))
                     {
                         bubblesWithAvatarToDwl.Remove(bubbleId);
-                        log.DebugFormat("[BackgroundWorkerDonwload_DoWork] Download Bubble Avatar - END - SUCCESS - Bubble:[{0}]", bubbleId);
+                        log.Debug("[BackgroundWorkerDonwload_DoWork] Download Bubble Avatar - END - SUCCESS - Bubble:[{0}]", bubbleId);
                     }
                     else
                     {
                         // Download failed - we try for another contact
                         indexBubble++;
-                        log.DebugFormat("[BackgroundWorkerDonwload_DoWork] Download Bubble Avatar - END - FAILED - Bubble:[{0}]", bubbleId);
+                        log.Debug("[BackgroundWorkerDonwload_DoWork] Download Bubble Avatar - END - FAILED - Bubble:[{0}]", bubbleId);
                     }
                 }
                 else
                 {
-                    log.InfoFormat("[BackgroundWorkerDonwload_DoWork] NO MORE BUBBLE AVATAR TO DWL");
+                    log.Info("[BackgroundWorkerDonwload_DoWork] NO MORE BUBBLE AVATAR TO DWL");
 
                     if (contactsWithAvatarToDwl.Count > 0)
                     {
@@ -1397,22 +1398,22 @@ namespace InstantMessaging.Pool
                             indexContact = 0;
 
                         contactId = contactsWithAvatarToDwl[indexContact];
-                        log.DebugFormat("[BackgroundWorkerDonwload_DoWork] Download Contact Avatar - START - Contact:[{0}]", contactId);
+                        log.Debug("[BackgroundWorkerDonwload_DoWork] Download Contact Avatar - START - Contact:[{0}]", contactId);
                         if (DownloadContactAvatar(contactId))
                         {
                             contactsWithAvatarToDwl.Remove(contactId);
-                            log.DebugFormat("[BackgroundWorkerDonwload_DoWork] Download Contact Avatar - END - SUCCESS - Contact:[{0}]", contactId);
+                            log.Debug("[BackgroundWorkerDonwload_DoWork] Download Contact Avatar - END - SUCCESS - Contact:[{0}]", contactId);
                         }
                         else
                         {
                             // Download failed - we try for another contact
                             indexContact++;
-                            log.DebugFormat("[BackgroundWorkerDonwload_DoWork] Download Contact Avatar - END - FAILED - Contact:[{0}]", contactId);
+                            log.Debug("[BackgroundWorkerDonwload_DoWork] Download Contact Avatar - END - FAILED - Contact:[{0}]", contactId);
                         }
                     }
                     else
                     {
-                        log.InfoFormat("[BackgroundWorkerDonwload_DoWork] NO MORE CONTACT AVATAR TO DWL");
+                        log.Info("[BackgroundWorkerDonwload_DoWork] NO MORE CONTACT AVATAR TO DWL");
                     }
                 }
 
@@ -1479,13 +1480,13 @@ namespace InstantMessaging.Pool
                         }
                         catch (Exception exc)
                         {
-                            log.WarnFormat("[DownloadContactAvatar] Impossible to delete Images files - exception:[{0}]", Util.SerializeException(exc));
+                            log.Warn("[DownloadContactAvatar] Impossible to delete Images files - exception:[{0}]", Util.SerializeException(exc));
                         }
                     }
                 }
                 else
                 {
-                    log.WarnFormat("[DownloadContactAvatar]Not possible to dwl avatar:[{0}]", Util.SerialiseSdkError(callback.Result));
+                    log.Warn("[DownloadContactAvatar]Not possible to dwl avatar:[{0}]", Util.SerializeSdkError(callback.Result));
                 }
 
                 manualEvent.Set();
@@ -1552,13 +1553,13 @@ namespace InstantMessaging.Pool
                         }
                         catch (Exception exc)
                         {
-                            log.WarnFormat("[DownloadBubbleAvatar] Impossible to delete Images files - exception:[{0}]", Util.SerializeException(exc));
+                            log.Warn("[DownloadBubbleAvatar] Impossible to delete Images files - exception:[{0}]", Util.SerializeException(exc));
                         }
                     }
                 }
                 else
                 {
-                    log.WarnFormat("[DownloadBubbleAvatar] Not possible to dwl avatar:[{0}]", Util.SerialiseSdkError(callback.Result));
+                    log.Warn("[DownloadBubbleAvatar] Not possible to dwl avatar:[{0}]", Util.SerializeSdkError(callback.Result));
                 }
                 manualEvent.Set();
             });

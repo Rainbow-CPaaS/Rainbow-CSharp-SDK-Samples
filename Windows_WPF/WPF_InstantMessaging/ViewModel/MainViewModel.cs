@@ -9,7 +9,7 @@ using Rainbow.Model;
 using InstantMessaging.Helpers;
 using InstantMessaging.Model;
 
-using log4net;
+using NLog;
 
 namespace InstantMessaging.ViewModel
 {

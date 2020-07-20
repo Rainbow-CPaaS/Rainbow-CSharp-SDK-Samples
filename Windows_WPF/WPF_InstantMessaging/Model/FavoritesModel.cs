@@ -10,13 +10,13 @@ using InstantMessaging.Helpers;
 using InstantMessaging.Pool;
 using InstantMessaging.ViewModel;
 
-using log4net;
+using NLog;
 
 namespace InstantMessaging.Model
 {
     public class FavoritesModel
     {
-        private static readonly ILog log = LogConfigurator.GetLogger(typeof(LoginModel));
+        private static readonly Logger log = LogConfigurator.GetLogger(typeof(LoginModel));
         App CurrentApplication = (App)System.Windows.Application.Current;
 
         private Bubbles RbBubbles = null;
@@ -155,7 +155,7 @@ namespace InstantMessaging.Model
                         if (newFavorite.Position < FavoritesList[i].Position)
                         {
                             FavoritesList.Insert(i, newFavorite);
-                            log.DebugFormat("[AddFavoriteToModel] INSERT Favorite.id:[{0}] IN index:[{1}]", newFavorite.Id, i);
+                            log.Debug("[AddFavoriteToModel] INSERT Favorite.id:[{0}] IN index:[{1}]", newFavorite.Id, i);
                             itemAdded = true;
                             break;
                         }
@@ -163,7 +163,7 @@ namespace InstantMessaging.Model
                     if (!itemAdded)
                     {
                         FavoritesList.Add(newFavorite);
-                        log.DebugFormat("[AddFavoriteToModel] ADD Favorite.id:[{0}] ", newFavorite.Id);
+                        log.Debug("[AddFavoriteToModel] ADD Favorite.id:[{0}] ", newFavorite.Id);
                     }
                 }
             }
@@ -205,12 +205,12 @@ namespace InstantMessaging.Model
                     FavoriteViewModel result = GetFavoriteByPeerId(e.Id);
                     if (result != null)
                     {
-                        log.DebugFormat("[AvatarPool_BubbleAvatarChanged] - bubbleId:[{0}] - favoriteId:[{1}]", e.Id, result.Id);
+                        log.Debug("[AvatarPool_BubbleAvatarChanged] - bubbleId:[{0}] - favoriteId:[{1}]", e.Id, result.Id);
                         result.AvatarImageSource = Helper.GetBubbleAvatarImageSource(e.Id);
                     }
                     //else
                     //{
-                    //    log.DebugFormat("[AvatarPool_BubbleAvatarChanged] - no favorite found:[{0}]", e.Id);
+                    //    log.Debug("[AvatarPool_BubbleAvatarChanged] - no favorite found:[{0}]", e.Id);
                     //}
                 }));
             }
@@ -225,12 +225,12 @@ namespace InstantMessaging.Model
                     FavoriteViewModel result = GetFavoriteByPeerId(e.Id);
                     if (result != null)
                     {
-                        log.DebugFormat("[AvatarPool_ContactAvatarChanged] - contactId:[{0}] - favoriteId:[{1}]", e.Id, result.Id);
+                        log.Debug("[AvatarPool_ContactAvatarChanged] - contactId:[{0}] - favoriteId:[{1}]", e.Id, result.Id);
                         result.AvatarImageSource = Helper.GetContactAvatarImageSource(e.Id);
                     }
                     //else
                     //{
-                    //    log.DebugFormat("[AvatarPool_ContactAvatarChanged] - Avatar contactId:[{0}] but no conversation found ...", e.Id);
+                    //    log.Debug("[AvatarPool_ContactAvatarChanged] - Avatar contactId:[{0}] but no conversation found ...", e.Id);
                     //}
                 }));
             }

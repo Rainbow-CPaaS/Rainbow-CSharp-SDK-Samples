@@ -9,7 +9,7 @@ using Rainbow;
 using Rainbow.Model;
 using Rainbow.Events;
 
-using log4net;
+using NLog;
 
 namespace InstantMessaging.Pool
 {
@@ -19,7 +19,7 @@ namespace InstantMessaging.Pool
 
         private static readonly FilePool instance = new FilePool();
 
-        private static readonly ILog log = LogConfigurator.GetLogger(typeof(FilePool));
+        private static readonly Logger log = LogConfigurator.GetLogger(typeof(FilePool));
 
         private AvatarPool avatarPool;
 
@@ -114,7 +114,7 @@ namespace InstantMessaging.Pool
                 if (File.Exists(path))
                 {
                     result = true;
-                    log.DebugFormat("[IsThumbnailFileAvailable] File already downloaded in Thumbnails part - FileId:[{0}]", fileDescriptorId);
+                    log.Debug("[IsThumbnailFileAvailable] File already downloaded in Thumbnails part - FileId:[{0}]", fileDescriptorId);
                 }
 
                 // If we have found it, we need to ask FileDescriptor but set is has already downloaded
@@ -181,11 +181,11 @@ namespace InstantMessaging.Pool
                 if (!Directory.Exists(folderPathThumbnails))
                     Directory.CreateDirectory(folderPathThumbnails);
 
-                log.WarnFormat("[SetFolderPath] FileStorage - folderPath:[{0}] - Files:[{1}] - Thumbnails:[{2}]", folderPath, folderPathFiles, folderPathThumbnails);
+                log.Warn("[SetFolderPath] FileStorage - folderPath:[{0}] - Files:[{1}] - Thumbnails:[{2}]", folderPath, folderPathFiles, folderPathThumbnails);
             }
             catch (Exception exc)
             {
-                log.WarnFormat("[SetFolderPath] Impossible to create path to store file thumbnail :\r\n{0}", Util.SerializeException(exc));
+                log.Warn("[SetFolderPath] Impossible to create path to store file thumbnail :\r\n{0}", Util.SerializeException(exc));
             }
         }
 
@@ -340,7 +340,7 @@ namespace InstantMessaging.Pool
                     if (DownloadFileDescriptor(fileDescriptorId))
                     {
                         filesDescriptorToDownload.Remove(fileDescriptorId);
-                        log.DebugFormat("[BackgroundWorkerFileDescriptotDownload_DoWork] END - SUCCESS - fileDescriptorId:[{0}]", fileDescriptorId);
+                        log.Debug("[BackgroundWorkerFileDescriptotDownload_DoWork] END - SUCCESS - fileDescriptorId:[{0}]", fileDescriptorId);
 
                         Task task = new Task(() =>
                         {
@@ -352,7 +352,7 @@ namespace InstantMessaging.Pool
                     {
                         // Download failed - we try for another FileDescriptor
                         index++;
-                        log.DebugFormat("[BackgroundWorkerFileDescriptotDownload_DoWork] END - FAILED - fileDescriptorId:[{0}]", fileDescriptorId);
+                        log.Debug("[BackgroundWorkerFileDescriptotDownload_DoWork] END - FAILED - fileDescriptorId:[{0}]", fileDescriptorId);
 
                         // FOR TEST PURPOSE
                         filesDescriptorToDownload.Remove(fileDescriptorId);
@@ -377,7 +377,7 @@ namespace InstantMessaging.Pool
                     downloadResult = true;
                     FileDescriptor fileDescriptor = callback.Data;
 
-                    log.DebugFormat("[DownloadFileDescriptor] fileDescriptor:[{0}]", fileDescriptor.ToString());
+                    log.Debug("[DownloadFileDescriptor] fileDescriptor:[{0}]", fileDescriptor.ToString());
 
                     if (filesDescriptorById.ContainsKey(fileDescriptorId))
                         filesDescriptorById.Remove(fileDescriptorId);
@@ -391,7 +391,7 @@ namespace InstantMessaging.Pool
                 }
                 else
                 {
-                    log.WarnFormat("[DownloadFileDescriptor] Not possible to get file descriptor:[{0}]", Util.SerialiseSdkError(callback.Result));
+                    log.Warn("[DownloadFileDescriptor] Not possible to get file descriptor:[{0}]", Util.SerializeSdkError(callback.Result));
                 }
 
                 manualEvent.Set();
@@ -463,7 +463,7 @@ namespace InstantMessaging.Pool
                     if (DownloadThumbnail(fileDescriptorId))
                     {
                         thumbnailToDownload.Remove(fileDescriptorId);
-                        log.DebugFormat("[BackgroundWorkerThumbnailDownload_DoWork] SUCCESS - fileDescriptorId:[{0}]", fileDescriptorId);
+                        log.Debug("[BackgroundWorkerThumbnailDownload_DoWork] SUCCESS - fileDescriptorId:[{0}]", fileDescriptorId);
                         
                         DownloadThumbnailDone(fileDescriptorId);
                     }
@@ -471,7 +471,7 @@ namespace InstantMessaging.Pool
                     {
                         // Download failed - we try for another FileDescriptor
                         index++;
-                        log.DebugFormat("[BackgroundWorkerThumbnailDownload_DoWork] FAILED - fileDescriptorId:[{0}]", fileDescriptorId);
+                        log.Debug("[BackgroundWorkerThumbnailDownload_DoWork] FAILED - fileDescriptorId:[{0}]", fileDescriptorId);
 
                         // FOR TEST PURPOSE
                         thumbnailToDownload.Remove(fileDescriptorId);
@@ -485,7 +485,7 @@ namespace InstantMessaging.Pool
 
         private void DownloadThumbnailDone(String fileId)
         {
-            log.DebugFormat("[DownloadThumbnailDone] Download done - fileDescriptorId:[{0}]", fileId);
+            log.Debug("[DownloadThumbnailDone] Download done - fileDescriptorId:[{0}]", fileId);
 
             if (!thumbnailDownloaded.Contains(fileId))
                 thumbnailDownloaded.Add(fileId);
@@ -493,7 +493,7 @@ namespace InstantMessaging.Pool
             //If it's a direct download we need to create thumbnail
             if (thumbnailDirectToDownload.Contains(fileId))
             {
-                log.DebugFormat("[DownloadThumbnailDone] Direct Download done - fileDescriptorId:[{0}]", fileId);
+                log.Debug("[DownloadThumbnailDone] Direct Download done - fileDescriptorId:[{0}]", fileId);
 
                 // Need to scale thumbnail according density and max size expected
                 double density = avatarPool.GetDensity();
@@ -544,7 +544,7 @@ namespace InstantMessaging.Pool
 
                         resultStream.Close();
 
-                        log.DebugFormat("[FileStorage_FileDownloadUpdated] scale thumbnail according density - fileDescriptorId:[{0}] - density:[{1}]", fileId, density);
+                        log.Debug("[FileStorage_FileDownloadUpdated] scale thumbnail according density - fileDescriptorId:[{0}] - density:[{1}]", fileId, density);
                     }
                 }
                 catch
@@ -553,7 +553,7 @@ namespace InstantMessaging.Pool
                 }
             }
             else
-                log.DebugFormat("[FileStorage_FileDownloadUpdated] Thumbnail Download done - fileDescriptorId:[{0}]", fileId);
+                log.Debug("[FileStorage_FileDownloadUpdated] Thumbnail Download done - fileDescriptorId:[{0}]", fileId);
 
             Task task = new Task(() =>
             {
@@ -571,7 +571,7 @@ namespace InstantMessaging.Pool
 
             if (filename == null)
             {
-                log.WarnFormat("[DownloadThumbnail] Not possible to get filename associated to this thumbnail - fileDescriptorId:[{0}]", fileDescriptorId);
+                log.Warn("[DownloadThumbnail] Not possible to get filename associated to this thumbnail - fileDescriptorId:[{0}]", fileDescriptorId);
                 return false;
             }
 
@@ -586,7 +586,7 @@ namespace InstantMessaging.Pool
                 {
                     downloadResult = callback.Result.Success;
                     if(!callback.Result.Success)
-                        log.WarnFormat("[DownloadThumbnail] Not possible to get direct file download:[{0}]", Util.SerialiseSdkError(callback.Result));
+                        log.Warn("[DownloadThumbnail] Not possible to get direct file download:[{0}]", Util.SerializeSdkError(callback.Result));
                     manualEvent.Set();
                 });
             }
@@ -596,7 +596,7 @@ namespace InstantMessaging.Pool
                 {
                     downloadResult = callback.Result.Success;
                     if (!callback.Result.Success)
-                        log.WarnFormat("[DownloadThumbnail] Not possible to get thumbnail:[{0}]", Util.SerialiseSdkError(callback.Result));
+                        log.Warn("[DownloadThumbnail] Not possible to get thumbnail:[{0}]", Util.SerializeSdkError(callback.Result));
                     manualEvent.Set();
                 });
             }

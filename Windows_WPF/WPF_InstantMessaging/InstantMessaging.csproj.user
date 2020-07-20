@@ -4,11 +4,32 @@
     <ProjectView>ProjectFiles</ProjectView>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Update="Rainbow\UI\RotateVectorIcon.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Rainbow\UI\VectorIcon.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="View\MainView.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Page Update="Rainbow\UI\RotateVectorIcon.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Rainbow\UI\VectorIcon.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="ResourceDictionaries\MessageCurrentUserDataTemplate.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="ResourceDictionaries\MessageEventDataTemplate.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="ResourceDictionaries\MessageOtherUserDataTemplate.xaml">
+      <SubType>Designer</SubType>
+    </Page>
     <Page Update="View\MainView.xaml">
       <SubType>Designer</SubType>
     </Page>

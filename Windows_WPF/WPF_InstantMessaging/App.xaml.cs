@@ -9,7 +9,7 @@ using InstantMessaging.View;
 
 using Rainbow;
 
-using log4net;
+using NLog;
 
 namespace InstantMessaging
 {
@@ -19,10 +19,11 @@ namespace InstantMessaging
     public partial class App : System.Windows.Application
     {
         private readonly String LogfileName = "Rainbow_CSharp_WPF_Example.log";
-        private readonly String Log4NetConfigurationfileName = "log4netConfiguration.xml";
+        private readonly String LogArchivefileName = "RaveAlert_{###}.log";
+        private readonly String LogConfigurationfileName = "NLogConfiguration.xml";
         private readonly String LogFolderName = "Rainbow.CSharp.SDK";
 
-        private ILog log;
+        private Logger log;
 
         // Define all Rainbow objects we use
         internal Rainbow.Application RbApplication = null;
@@ -61,8 +62,7 @@ namespace InstantMessaging
 
             RbApplication.SetApplicationInfo(AppConfiguration.APP_ID, AppConfiguration.APP_SECRET_KEY);
             RbApplication.SetHostInfo(AppConfiguration.HOST_NAME);
-            RbApplication.SetWebProxy(null);
-            RbApplication.SetIpEndPoint(null);
+            RbApplication.SetWebProxyInfo(null);
 
             RbBubbles = RbApplication.GetBubbles();
             RbContacts = RbApplication.GetContacts();
@@ -102,15 +102,21 @@ namespace InstantMessaging
         private void InitLogs()
         {
             String logFileName = LogfileName; // File name of the log file
-            String logConfigFileName = Log4NetConfigurationfileName; // File path to log configuration
+            String archiveLogFileName = LogArchivefileName; // File name of the archive log file
+            String logConfigFileName = LogConfigurationfileName; // File path to log configuration
 
             String logConfigContent; // Content of the log file configuration
             String logFullPathFileName; // Full path to log file
+            String archiveLogFullPathFileName; ; // Full path to archive log file 
 
             try
             {
+                String folder = Helper.GetTempFolder();
+                Directory.CreateDirectory(folder);
+
                 // Set full path to log file name
-                logFullPathFileName = Path.Combine(Helper.GetTempFolder(), LogFolderName, logFileName);
+                logFullPathFileName = Path.Combine(folder, logFileName);
+                archiveLogFullPathFileName = Path.Combine(folder, archiveLogFileName);
 
                 // Get content of the log file configuration
                 Stream stream = Helper.GetMemoryStreamFromResource(logConfigFileName);
@@ -125,11 +131,16 @@ namespace InstantMessaging
                 doc.LoadXml(logConfigContent);
 
                 // Set full path to log file in XML element
-                XmlElement fileElement = doc["log4net"]["appender"]["file"];
-                fileElement.SetAttribute("value", logFullPathFileName);
+                XmlElement targetElement = doc["nlog"]["targets"]["target"];
+                targetElement.SetAttribute("name", Rainbow.LogConfigurator.GetRepositoryName());    // Set target name equals to RB repository name
+                targetElement.SetAttribute("fileName", logFullPathFileName);                        // Set full path to log file
+                targetElement.SetAttribute("archiveFileName", archiveLogFullPathFileName);          // Set full path to archive log file
 
-                log4net.Repository.ILoggerRepository repository = Rainbow.LogConfigurator.GetRepository();
-                log4net.Config.XmlConfigurator.Configure(repository, doc.DocumentElement);
+                XmlElement loggerElement = doc["nlog"]["rules"]["logger"];
+                loggerElement.SetAttribute("writeTo", Rainbow.LogConfigurator.GetRepositoryName()); // Write to RB repository name
+
+                // Set the configuration
+                Rainbow.LogConfigurator.Configure(doc.OuterXml);
             }
             catch { }
         }
@@ -188,7 +199,7 @@ namespace InstantMessaging
                 }));
             }
             else
-                log.ErrorFormat("[HideLoginWindow] LoginWindow is null !");
+                log.Error("[HideLoginWindow] LoginWindow is null !");
         }
 
         internal void ShowApplicationMainWindow()

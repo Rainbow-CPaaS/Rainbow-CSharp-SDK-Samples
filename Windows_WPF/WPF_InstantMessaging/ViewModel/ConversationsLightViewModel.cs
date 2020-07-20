@@ -9,13 +9,13 @@ using Rainbow;
 using InstantMessaging.Helpers;
 using InstantMessaging.Model;
 
-using log4net;
+using NLog;
 
 namespace InstantMessaging.ViewModel
 {
     public class ConversationsLightViewModel : ObservableObject
     {
-        private static readonly ILog log = LogConfigurator.GetLogger(typeof(ConversationsLightViewModel));
+        private static readonly Logger log = LogConfigurator.GetLogger(typeof(ConversationsLightViewModel));
 
         public RangeObservableCollection<ConversationLightViewModel> ConversationsLightList { get; set; } // Need to be public - Used as Binding from XAML
 

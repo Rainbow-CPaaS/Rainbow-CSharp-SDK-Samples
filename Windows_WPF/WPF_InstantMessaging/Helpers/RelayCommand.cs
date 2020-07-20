@@ -17,7 +17,7 @@ namespace InstantMessaging.Helpers
         #region Constructors
 
         /// <summary>
-        /// Initializes a new instance of <see cref="DelegateCommand{T}"/>.
+        /// Initializes a new instance of <see cref="RelayCommand{T}"/>.
         /// </summary>
         /// <param name="execute">Delegate to execute when Execute is called on the command.  This can be null to just hook up a CanExecute delegate.</param>
         /// <remarks><seealso cref="CanExecute"/> will always return true.</remarks>

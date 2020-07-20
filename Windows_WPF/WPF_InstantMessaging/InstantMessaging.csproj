@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
@@ -14,12 +14,12 @@
     <None Remove="Resources\avatar2.jpg" />
     <None Remove="Resources\avatar3.jpg" />
     <None Remove="Resources\avatar4.jpg" />
-    <None Remove="Resources\log4netConfiguration.xml" />
+    <None Remove="Resources\NLogConfiguration.xml" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="MaterialDesignThemes" Version="3.0.1" />
-    <PackageReference Include="Rainbow.CSharp.SDK" Version="1.10.0" />
+    <PackageReference Include="Rainbow.CSharp.SDK" Version="1.14.0" />
     <PackageReference Include="System.Drawing.Common" Version="4.7.0" />
     <PackageReference Include="WinCopies.AttachedCommandBehavior" Version="3.1.0.2" />
   </ItemGroup>
@@ -37,11 +37,11 @@
     <Resource Include="Resources\icon_ppt_blue.png" />
     <Resource Include="Resources\icon_unknown_blue.png" />
     <Resource Include="Resources\icon_xls_blue.png" />
-    <Resource Include="Resources\log4netConfiguration.xml" />
     <Resource Include="Resources\msg_check.png" />
     <Resource Include="Resources\msg_not_read.png" />
     <Resource Include="Resources\msg_read.png" />
     <Resource Include="Resources\msg_sending.png" />
+    <Resource Include="Resources\NLogConfiguration.xml" />
     <Resource Include="Resources\presence_away.png" />
     <Resource Include="Resources\presence_busy.png" />
     <Resource Include="Resources\presence_dnd.png" />

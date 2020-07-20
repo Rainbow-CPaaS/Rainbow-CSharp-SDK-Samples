@@ -19,13 +19,13 @@ using Rainbow;
 using Rainbow.Events;
 using Rainbow.Model;
 
-using log4net;
+using NLog;
 
 namespace InstantMessaging.Model
 {
     class MessagesModel
     {
-        private static readonly ILog log = LogConfigurator.GetLogger(typeof(MessagesModel));
+        private static readonly Logger log = LogConfigurator.GetLogger(typeof(MessagesModel));
 
         private static readonly int NB_MESSAGE_LOADED_BY_ROW = 40;
 
@@ -170,7 +170,7 @@ namespace InstantMessaging.Model
             // Set to ClientRead all messages in the list
             if (e.Id == CurrentConversationId)
             {
-                log.DebugFormat("[RbInstantMessaging_MessagesAllRead] conversationId:[{0}]", CurrentConversationId);
+                log.Debug("[RbInstantMessaging_MessagesAllRead] conversationId:[{0}]", CurrentConversationId);
                 if (System.Windows.Application.Current != null)
                 {
                     System.Windows.Application.Current.Dispatcher.Invoke(new Action(() =>
@@ -192,7 +192,7 @@ namespace InstantMessaging.Model
         {
             if (e.ConversationId == CurrentConversationId)
             {
-                log.DebugFormat("[RbInstantMessaging_ReceiptReceived] MessageId:[{0}] - ReceiptType:[{1}]", e.MessageId, e.ReceiptType);
+                log.Debug("[RbInstantMessaging_ReceiptReceived] MessageId:[{0}] - ReceiptType:[{1}]", e.MessageId, e.ReceiptType);
                 MessageViewModel message = GetMessageByMessageId(e.MessageId);
                 if (message != null)
                 {
@@ -216,12 +216,12 @@ namespace InstantMessaging.Model
                     System.Windows.Application.Current.Dispatcher.Invoke(new Action(() =>
                     {
                         
-                    log.DebugFormat("[RbInstantMessaging_MessageReceived] - FromJId:[{0}] - ToJid:[{1}] - CarbonCopy:[{2}] - Message.Id:[{3}] - Message.ReplaceId:[{4}]", e.Message.FromJid, e.Message.ToJid, e.CarbonCopy, e.Message.Id, e.Message.ReplaceId);
+                    log.Debug("[RbInstantMessaging_MessageReceived] - FromJId:[{0}] - ToJid:[{1}] - CarbonCopy:[{2}] - Message.Id:[{3}] - Message.ReplaceId:[{4}]", e.Message.FromJid, e.Message.ToJid, e.CarbonCopy, e.Message.Id, e.Message.ReplaceId);
 
                     MessageViewModel newMsg = GetMessageViewModelFromRBMessage(e.Message, CurrentConversation.Type);
                     if (newMsg == null)
                     {
-                        log.WarnFormat("[RbInstantMessaging_MessageReceived] - Impossible to have Model.Message from XMPP Message - Message.Id:[{3}]", e.Message.Id);
+                        log.Warn("[RbInstantMessaging_MessageReceived] - Impossible to have Model.Message from XMPP Message - Message.Id:[{3}]", e.Message.Id);
                         return;
                     }
 
@@ -396,7 +396,7 @@ namespace InstantMessaging.Model
             {
                 if ((!String.IsNullOrEmpty(peerJid)) && (!contactsListInvolved.Contains(peerJid)))
                 {
-                    //log.DebugFormat("[AddContactInvolved] - ContactJid:[{0}]", peerJid);
+                    //log.Debug("[AddContactInvolved] - ContactJid:[{0}]", peerJid);
                     contactsListInvolved.Add(peerJid);
                 }
             }
@@ -510,7 +510,7 @@ namespace InstantMessaging.Model
                 Contact contact = RbContacts.GetContactFromContactJid(peerJid);
                 if (contact != null)
                 {
-                    log.DebugFormat("[UpdateMessagesForJid] peerJid:[{0}] - peerId:[{1}] - updateAvatar[{2}] - updateDisplayName:[{3}]", peerJid, contact.Id, updateAvatar, updateDisplayName);
+                    log.Debug("[UpdateMessagesForJid] peerJid:[{0}] - peerId:[{1}] - updateAvatar[{2}] - updateDisplayName:[{3}]", peerJid, contact.Id, updateAvatar, updateDisplayName);
                     BitmapImage imageSource;
                     String displayName;
 
@@ -547,7 +547,7 @@ namespace InstantMessaging.Model
                     }
                 }
                 else
-                    log.WarnFormat("[UpdateMessagesForJid] peerJid:[{0}] found but related contact not found", peerJid);
+                    log.Warn("[UpdateMessagesForJid] peerJid:[{0}] found but related contact not found", peerJid);
             }
         }
 
@@ -565,7 +565,7 @@ namespace InstantMessaging.Model
                     {
                         foreach (MessageViewModel message in messages)
                         {
-                            log.DebugFormat("[UpdateRepliedMessagesForJid] peerJid:[{0}] - message.Id:[{1}] - displayName:[{2}]", peerJid, message.Id, displayName);
+                            log.Debug("[UpdateRepliedMessagesForJid] peerJid:[{0}] - message.Id:[{1}] - displayName:[{2}]", peerJid, message.Id, displayName);
 
                             message.ReplyPartIsVisible = Visibility.Visible;
 
@@ -575,7 +575,7 @@ namespace InstantMessaging.Model
                     }
                 }
                 else
-                    log.WarnFormat("[UpdateRepliedMessagesForJid] peerJid:[{0}] found but related contact not found", peerJid);
+                    log.Warn("[UpdateRepliedMessagesForJid] peerJid:[{0}] found but related contact not found", peerJid);
             }
         }
         private List<MessageViewModel> GetMessagesByReplyId(String replyId)
@@ -661,7 +661,7 @@ namespace InstantMessaging.Model
             {
                 try
                 {
-                    log.DebugFormat("[SetFileAttachmentSourceOfMessage] FileId:[{0}] - Use filePath:[{1}]", fileId, filePath);
+                    log.Debug("[SetFileAttachmentSourceOfMessage] FileId:[{0}] - Use filePath:[{1}]", fileId, filePath);
                     using (Stream stream = new MemoryStream(File.ReadAllBytes(filePath)))
                     {
                         System.Drawing.Size size = AvatarPool.GetSize(stream);
@@ -717,7 +717,7 @@ namespace InstantMessaging.Model
                 message.ReplyBody = rbRepliedMessage.Content;
 
 
-            log.DebugFormat("[SetReplyPartOfMessage] - message.Id:[{0}] - replyMsgId:[{1}] - replyBody:[{2}] - ContactJid:[{3}]", message.Id, rbRepliedMessage.Id, message.ReplyBody, rbRepliedMessage.FromJid);
+            log.Debug("[SetReplyPartOfMessage] - message.Id:[{0}] - replyMsgId:[{1}] - replyBody:[{2}] - ContactJid:[{3}]", message.Id, rbRepliedMessage.Id, message.ReplyBody, rbRepliedMessage.FromJid);
 
             Rainbow.Model.Contact contactReply = RbContacts.GetContactFromContactJid(rbRepliedMessage.FromJid);
             if (contactReply != null)
@@ -730,7 +730,7 @@ namespace InstantMessaging.Model
             }
             else
             {
-                log.DebugFormat("[SetReplyPartOfMessage] - message.Id:[{0}] - replyMsgId:[{1}] - UnknownContactJid[{2}]", message.Id, rbRepliedMessage.Id, rbRepliedMessage.FromJid);
+                log.Debug("[SetReplyPartOfMessage] - message.Id:[{0}] - replyMsgId:[{1}] - UnknownContactJid[{2}]", message.Id, rbRepliedMessage.Id, rbRepliedMessage.FromJid);
                 // We ask to have more info about this contact using AvatarPool
                 AvatarPool.AddUnknownContactToPoolByJid(rbRepliedMessage.FromJid);
             }
@@ -795,7 +795,7 @@ namespace InstantMessaging.Model
             }
             else
             {
-                log.DebugFormat("[SetEventPartFromCallLog] - message.Id:[{0}] - UnknowContactJid:[{1}]", message.Id, message.CallOtherJid);
+                log.Debug("[SetEventPartFromCallLog] - message.Id:[{0}] - UnknowContactJid:[{1}]", message.Id, message.CallOtherJid);
                 // We ask to have more info about this contact using AvatarPool
                 AvatarPool.AddUnknownContactToPoolByJid(message.CallOtherJid);
             }
@@ -806,7 +806,7 @@ namespace InstantMessaging.Model
             MessageViewModel message = null;
             if (rbMessage != null)
             {
-                //log.DebugFormat("[GetMessageViewModelFromRBMessage] Message.Id:[{0}] - Message.ReplaceId:[{1}] - DateTime:[{2}] - Content:[{3}]", rbMessage.Id, rbMessage.ReplaceId, rbMessage.Date.ToString("o"), rbMessage.Content);
+                //log.Debug("[GetMessageViewModelFromRBMessage] Message.Id:[{0}] - Message.ReplaceId:[{1}] - DateTime:[{2}] - Content:[{3}]", rbMessage.Id, rbMessage.ReplaceId, rbMessage.Date.ToString("o"), rbMessage.Content);
 
                 message = new MessageViewModel();
                 message.EventMessageBodyPart2Color = Brushes.Gray; // Set default value
