@@ -132,10 +132,8 @@
       <Name>InstantMessaging</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
-    <Folder Include="Helpers\" />
-  </ItemGroup>
-  <ItemGroup>
-    <BundleResource Include="Resources\log4netConfiguration.xml" />
+    <BundleResource Include="Resources\NLogConfiguration.xml" />
   </ItemGroup>
 </Project>
