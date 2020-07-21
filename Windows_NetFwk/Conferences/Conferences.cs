@@ -12,8 +12,7 @@ using Rainbow;
 using Rainbow.Events;
 using Rainbow.Model;
 
-using log4net;
-using log4net.Config;
+using NLog;
 
 using System.IO;
 
@@ -25,7 +24,7 @@ namespace Sample_Conferences.csproj
     {
 
         // Define log object
-        private static readonly ILog log = LogConfigurator.GetLogger(typeof(SampleConferencesForm));
+        private static readonly Logger log = LogConfigurator.GetLogger(typeof(SampleConferencesForm));
 
         //Define Rainbow Application Id, Secret Key and Host Name
         const string APP_ID = "YOUR APP ID";
@@ -109,10 +108,10 @@ namespace Sample_Conferences.csproj
                     }
                     else
                     {
-                        logLine = String.Format("Impossible to get Bubbles list:\r\n{0}", Util.SerialiseSdkError(callbackBubbles.Result));
+                        logLine = String.Format("Impossible to get Bubbles list:\r\n{0}", Util.SerializeSdkError(callbackBubbles.Result));
                     }
                     AddStateLine(logLine);
-                    log.WarnFormat(logLine);
+                    log.Warn(logLine);
                 });
 
                 // Check permissions
@@ -139,7 +138,7 @@ namespace Sample_Conferences.csproj
             conferenceInProgress = e.Conference;
 
             AddStateLine("Conference Updated: " + conferenceInProgress.ToString());
-            log.DebugFormat("Conference Updated: " + conferenceInProgress.ToString());
+            log.Debug("Conference Updated: " + conferenceInProgress.ToString());
 
             UpdateConferenceInProgress();
         }
@@ -188,7 +187,7 @@ namespace Sample_Conferences.csproj
             }
             else
             {
-                log.DebugFormat("[UpdateConferenceInProgress] - IN");
+                log.Debug("[UpdateConferenceInProgress] - IN");
 
                 if(conferenceInProgress != null)
                 {
@@ -288,13 +287,13 @@ namespace Sample_Conferences.csproj
                     UpdateConferencePublishers(null);
                 }
 
-                log.DebugFormat("[UpdateConferenceInProgress] - OUT");
+                log.Debug("[UpdateConferenceInProgress] - OUT");
             }
         }
 
         private void UpdateConferenceParticipants(List<Conference.Participant> list)
         {
-            log.DebugFormat("[UpdateConferenceParticipants] - IN");
+            log.Debug("[UpdateConferenceParticipants] - IN");
             if ( (list != null) && (list.Count > 0) )
             {
                 // Try to always display the participant already selected (if any)
@@ -342,12 +341,12 @@ namespace Sample_Conferences.csproj
             btnConferenceMute.Enabled = cbAsModerator.Checked;
             btnConferenceLock.Enabled = cbAsModerator.Checked;
             btnConferenceStop.Enabled = cbAsModerator.Checked;
-            log.DebugFormat("[UpdateConferenceParticipants] - OUT");
+            log.Debug("[UpdateConferenceParticipants] - OUT");
         }
 
         private void UpdateConferencePublishers(List<Conference.Publisher> list)
         {
-            log.DebugFormat("[UpdateConferencePublishers] - IN");
+            log.Debug("[UpdateConferencePublishers] - IN");
             if ((list != null) && (list.Count > 0))
             {
                 // Try to always display the publisher already selected (if any)
@@ -377,7 +376,7 @@ namespace Sample_Conferences.csproj
                 cbPublishersList.SelectedIndex = -1;
                 cbPublishersList.Items.Clear();
             }
-            log.DebugFormat("[UpdateConferencePublishers] - OUT");
+            log.Debug("[UpdateConferencePublishers] - OUT");
         }
 
         /// <summary>
@@ -449,9 +448,9 @@ namespace Sample_Conferences.csproj
                 {
                     if (!callback.Result.Success)
                     {
-                        string logLine = String.Format("Impossible to logout:\r\n{0}", Util.SerialiseSdkError(callback.Result));
+                        string logLine = String.Format("Impossible to logout:\r\n{0}", Util.SerializeSdkError(callback.Result));
                         AddStateLine(logLine);
-                        log.WarnFormat(logLine);
+                        log.Warn(logLine);
                     }
                 });
             }
@@ -470,9 +469,9 @@ namespace Sample_Conferences.csproj
                     }
                     else
                     {
-                        string logLine = String.Format("Impossible to login:\r\n{0}", Util.SerialiseSdkError(callback.Result));
+                        string logLine = String.Format("Impossible to login:\r\n{0}", Util.SerializeSdkError(callback.Result));
                         AddStateLine(logLine);
-                        log.WarnFormat(logLine);
+                        log.Warn(logLine);
                     }
                 });
             }
@@ -499,10 +498,10 @@ namespace Sample_Conferences.csproj
                     {
                         nbNear = listNear.Count;
                         foreach (ConferencePhoneNumber phone in listNear)
-                            log.DebugFormat("[PersonalConferenceGetPhoneNumbers] - Near phone number:[{0}]", phone.ToString());
+                            log.Debug("[PersonalConferenceGetPhoneNumbers] - Near phone number:[{0}]", phone.ToString());
                     }
                     else
-                        log.DebugFormat("[PersonalConferenceGetPhoneNumbers] - there is no phone near near the end user");
+                        log.Debug("[PersonalConferenceGetPhoneNumbers] - there is no phone near near the end user");
 
                     //get other list of phones
                     listOthers = instantMeetingPhoneNumbers.Others;
@@ -510,17 +509,17 @@ namespace Sample_Conferences.csproj
                     {
                         nbOthers = listOthers.Count;
                         foreach (ConferencePhoneNumber phone in listOthers)
-                            log.DebugFormat("[PersonalConferenceGetPhoneNumbers] - Other phone number:[{0}]", phone.ToString());
+                            log.Debug("[PersonalConferenceGetPhoneNumbers] - Other phone number:[{0}]", phone.ToString());
                     }
                     else
-                        log.DebugFormat("[PersonalConferenceGetPhoneNumbers] - there is no other phone numner ...");
+                        log.Debug("[PersonalConferenceGetPhoneNumbers] - there is no other phone numner ...");
 
                     AddStateLine(String.Format("Audio phone numbers found: NbNear:[{0}] - NbOthers:[{1}]", nbNear, nbOthers));
                 }
                 else
                 {
                     AddStateLine("Pb to get audio phone numbers ...");
-                    log.DebugFormat("Pb to get audio phone numbers - error:[{0}]", Util.SerialiseSdkError(callback.Result));
+                    log.Debug("Pb to get audio phone numbers - error:[{0}]", Util.SerializeSdkError(callback.Result));
                 }
             });
         }
@@ -537,7 +536,7 @@ namespace Sample_Conferences.csproj
                 else
                 {
                     AddStateLine("Pb to get Personal Conference PassCodes ...");
-                    log.DebugFormat("Pb to Personal Conference PassCodes - error:[{0}]", Util.SerialiseSdkError(callback.Result));
+                    log.Debug("Pb to Personal Conference PassCodes - error:[{0}]", Util.SerializeSdkError(callback.Result));
                 }
             });
         }
@@ -554,7 +553,7 @@ namespace Sample_Conferences.csproj
                 else
                 {
                     AddStateLine("Pb to reset Personal Conference PassCodes ...");
-                    log.DebugFormat("Pb to reset Personal Conference PassCodes - error:[{0}]", Util.SerialiseSdkError(callback.Result));
+                    log.Debug("Pb to reset Personal Conference PassCodes - error:[{0}]", Util.SerializeSdkError(callback.Result));
                 }
             });
         }
@@ -571,7 +570,7 @@ namespace Sample_Conferences.csproj
                 else
                 {
                     AddStateLine("Pb to get Personal Conference URL ...");
-                    log.DebugFormat("Pb to Personal Conference URL - error:[{0}]", Util.SerialiseSdkError(callback.Result));
+                    log.Debug("Pb to Personal Conference URL - error:[{0}]", Util.SerializeSdkError(callback.Result));
                 }
             });
         }
@@ -588,7 +587,7 @@ namespace Sample_Conferences.csproj
                 else
                 {
                     AddStateLine("Pb to reset Personal Conference URL ...");
-                    log.DebugFormat("Pb to reset Personal Conference URL - error:[{0}]", Util.SerialiseSdkError(callback.Result));
+                    log.Debug("Pb to reset Personal Conference URL - error:[{0}]", Util.SerializeSdkError(callback.Result));
                 }
             });
         }
@@ -604,7 +603,7 @@ namespace Sample_Conferences.csproj
                 else
                 {
                     AddStateLine("Pb to start Personal Conference ...");
-                    log.DebugFormat("Pb to start Personal Conference - error:[{0}]", Util.SerialiseSdkError(callback.Result));
+                    log.Debug("Pb to start Personal Conference - error:[{0}]", Util.SerializeSdkError(callback.Result));
                 }
             });
         }
@@ -630,7 +629,7 @@ namespace Sample_Conferences.csproj
                 else
                 {
                     AddStateLine("Pb to join Personal Conference ...");
-                    log.DebugFormat("Pb to join Personal Conference - error:[{0}]", Util.SerialiseSdkError(callback.Result));
+                    log.Debug("Pb to join Personal Conference - error:[{0}]", Util.SerializeSdkError(callback.Result));
                 }
             });
         }
@@ -648,7 +647,7 @@ namespace Sample_Conferences.csproj
                     else
                     {
                         AddStateLine("Pb to mute/unmute Personal Conference ...");
-                        log.DebugFormat("Pb to mute/unmute Personal Conference - error:[{0}]", Util.SerialiseSdkError(callback.Result));
+                        log.Debug("Pb to mute/unmute Personal Conference - error:[{0}]", Util.SerializeSdkError(callback.Result));
                     }
                 });
             }
@@ -669,7 +668,7 @@ namespace Sample_Conferences.csproj
                         else
                         {
                             AddStateLine("Pb to Lock/Unlock Personal Conference ...");
-                            log.DebugFormat("Pb to Lock/Unlock Personal Conference - error:[{0}]", Util.SerialiseSdkError(callback.Result));
+                            log.Debug("Pb to Lock/Unlock Personal Conference - error:[{0}]", Util.SerializeSdkError(callback.Result));
                         }
                     });
                 }
@@ -689,7 +688,7 @@ namespace Sample_Conferences.csproj
                     else
                     {
                         AddStateLine("Pb to stop Personal Conference ...");
-                        log.DebugFormat("Pb to stop Personal Conference - error:[{0}]", Util.SerialiseSdkError(callback.Result));
+                        log.Debug("Pb to stop Personal Conference - error:[{0}]", Util.SerializeSdkError(callback.Result));
                     }
                 });
             }
@@ -768,7 +767,7 @@ namespace Sample_Conferences.csproj
                         else
                         {
                             AddStateLine("Pb to Mute/Unmute Participant ...");
-                            log.DebugFormat("Pb to Mute/Unmute Participant - error:[{0}]", Util.SerialiseSdkError(callback.Result));
+                            log.Debug("Pb to Mute/Unmute Participant - error:[{0}]", Util.SerializeSdkError(callback.Result));
                         }
                     });
                 }
@@ -792,7 +791,7 @@ namespace Sample_Conferences.csproj
                         else
                         {
                             AddStateLine("Pb to Drop Participant ...");
-                            log.DebugFormat("Pb to Drop Participant - error:[{0}]", Util.SerialiseSdkError(callback.Result));
+                            log.Debug("Pb to Drop Participant - error:[{0}]", Util.SerializeSdkError(callback.Result));
                         }
                     });
                 }

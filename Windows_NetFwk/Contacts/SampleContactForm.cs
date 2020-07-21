@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -7,8 +7,7 @@ using System.Windows.Forms;
 using Rainbow;
 using Rainbow.Model;
 
-using log4net;
-using log4net.Config;
+using NLog;
 
 using System.Web.UI.WebControls;
 
@@ -17,7 +16,7 @@ namespace Sample_Contacts
     public partial class SampleContactForm : Form
     {
         // Define log object
-        private static readonly ILog log = LogConfigurator.GetLogger(typeof(SampleContactForm));
+        private static readonly Logger log = LogConfigurator.GetLogger(typeof(SampleContactForm));
 
         //Define Rainbow Application Id, Secret Key and Host Name
         const string APP_ID = "YOUR APP ID";
@@ -360,7 +359,7 @@ namespace Sample_Contacts
                 rainbowApplication.Logout(callback =>
                 {
                     if(!callback.Result.Success)
-                        log.WarnFormat("Impossible to logout:\r\n{0}", Util.SerialiseSdkError(callback.Result));
+                        log.Warn("Impossible to logout:\r\n{0}", Util.SerializeSdkError(callback.Result));
                 });
             }
             else
@@ -383,9 +382,9 @@ namespace Sample_Contacts
                     }
                     else
                     {
-                        string logLine = String.Format("Impossible to login:\r\n{0}", Util.SerialiseSdkError(callback.Result));
+                        string logLine = String.Format("Impossible to login:\r\n{0}", Util.SerializeSdkError(callback.Result));
                         AddStateLine(logLine);
-                        log.WarnFormat(logLine);
+                        log.Warn(logLine);
                     }
                 });
             }
@@ -411,9 +410,9 @@ namespace Sample_Contacts
                 }
                 else
                 {
-                    string logLine = String.Format("Impossible to update avatar:\r\n{0}", Util.SerialiseSdkError(callback.Result));
+                    string logLine = String.Format("Impossible to update avatar:\r\n{0}", Util.SerializeSdkError(callback.Result));
                     AddStateLine(logLine);
-                    log.WarnFormat(logLine);
+                    log.Warn(logLine);
                 }
             });
         }
@@ -437,9 +436,9 @@ namespace Sample_Contacts
                 }
                 else
                 {
-                    string logLine = String.Format("Impossible to update avatar:\r\n{0}", Util.SerialiseSdkError(callback.Result));
+                    string logLine = String.Format("Impossible to update avatar:\r\n{0}", Util.SerializeSdkError(callback.Result));
                     AddStateLine(logLine);
-                    log.WarnFormat(logLine);
+                    log.Warn(logLine);
                 }
             });
 
@@ -478,9 +477,9 @@ namespace Sample_Contacts
                                     }
                                     else
                                     {
-                                        string logLine = String.Format("Impossible to update avatar:\r\n{0}", Util.SerialiseSdkError(callback.Result));
+                                        string logLine = String.Format("Impossible to update avatar:\r\n{0}", Util.SerializeSdkError(callback.Result));
                                         AddStateLine(logLine);
-                                        log.WarnFormat(logLine);
+                                        log.Warn(logLine);
                                     }
                                 });
                             }
@@ -537,9 +536,9 @@ namespace Sample_Contacts
                     }
                     else
                     {
-                        string logLine = String.Format("Impossible to get avatar of this contact:\r\n{0}", Util.SerialiseSdkError(callback.Result));
+                        string logLine = String.Format("Impossible to get avatar of this contact:\r\n{0}", Util.SerializeSdkError(callback.Result));
                         AddStateLine(logLine);
-                        log.WarnFormat(logLine);
+                        log.Warn(logLine);
                     }
                 });
             }
@@ -564,9 +563,9 @@ namespace Sample_Contacts
                     }
                     else
                     {
-                        string logLine = String.Format("Impossible to get avatar of this contact:\r\n{0}", Util.SerialiseSdkError(callback.Result));
+                        string logLine = String.Format("Impossible to get avatar of this contact:\r\n{0}", Util.SerializeSdkError(callback.Result));
                         AddStateLine(logLine);
-                        log.WarnFormat(logLine);
+                        log.Warn(logLine);
                     }
                 });
             }
@@ -596,9 +595,9 @@ namespace Sample_Contacts
                     }
                     else
                     {
-                        string logLine = String.Format("Impossible to get info about this contact [{1}]:\r\n{0}", Util.SerialiseSdkError(callback.Result), id);
+                        string logLine = String.Format("Impossible to get info about this contact [{1}]:\r\n{0}", Util.SerializeSdkError(callback.Result), id);
                         AddStateLine(logLine);
-                        log.WarnFormat(logLine);
+                        log.Warn(logLine);
                     }
                 });
             }
@@ -623,9 +622,9 @@ namespace Sample_Contacts
                             AddStateLine($"Invitation sent successfully to this contact [{id}]");
                         else
                         {
-                            string logLine = String.Format("Impossible to send invitation to this contact [{1}]:\r\n{0}", Util.SerialiseSdkError(callback.Result), id);
+                            string logLine = String.Format("Impossible to send invitation to this contact [{1}]:\r\n{0}", Util.SerializeSdkError(callback.Result), id);
                             AddStateLine(logLine);
-                            log.WarnFormat(logLine);
+                            log.Warn(logLine);
                         }
                     });
                 }
@@ -638,9 +637,9 @@ namespace Sample_Contacts
                             AddStateLine($"Contact [{id}] has been removed from your roster");
                         else
                         {
-                            string logLine = String.Format("Impossible to remove this contact [{1}] from your roster:\r\n{0}", Util.SerialiseSdkError(callback.Result), id);
+                            string logLine = String.Format("Impossible to remove this contact [{1}] from your roster:\r\n{0}", Util.SerializeSdkError(callback.Result), id);
                             AddStateLine(logLine);
-                            log.WarnFormat(logLine);
+                            log.Warn(logLine);
                         }
                     });
                 }
@@ -672,9 +671,9 @@ namespace Sample_Contacts
                 }
                 else
                 {
-                    string logLine = String.Format("Impossible to get avatar of my contact:\r\n{0}", Util.SerialiseSdkError(callback.Result));
+                    string logLine = String.Format("Impossible to get avatar of my contact:\r\n{0}", Util.SerializeSdkError(callback.Result));
                     AddStateLine(logLine);
-                    log.WarnFormat(logLine);
+                    log.Warn(logLine);
                 }
             });
         }
@@ -694,9 +693,9 @@ namespace Sample_Contacts
                 }
                 else
                 {
-                    string logLine = String.Format("Impossible to get all contacts:\r\n{0}", Util.SerialiseSdkError(callback.Result));
+                    string logLine = String.Format("Impossible to get all contacts:\r\n{0}", Util.SerializeSdkError(callback.Result));
                     AddStateLine(logLine);
-                    log.WarnFormat(logLine);
+                    log.Warn(logLine);
                 }
             });
         }
@@ -711,7 +710,7 @@ namespace Sample_Contacts
             }
             catch (Exception e)
             {
-                log.WarnFormat("[GetImageFromBytes] Exception\r\n", Rainbow.Util.SerializeException(e));
+                log.Warn("[GetImageFromBytes] Exception\r\n", Rainbow.Util.SerializeException(e));
             }
             return result;
         }

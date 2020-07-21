@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -7,8 +7,8 @@ using System.Windows.Forms;
 using Rainbow;
 using Rainbow.Model;
 
-using log4net;
-using log4net.Config;
+using NLog;
+
 using System.Web.UI.WebControls;
 
 namespace Sample_Contacts
@@ -16,7 +16,7 @@ namespace Sample_Contacts
     public partial class SampleConversationForm : Form
     {
         // Define log object
-        private static readonly ILog log = LogConfigurator.GetLogger(typeof(SampleConversationForm));
+        private static readonly Logger log = LogConfigurator.GetLogger(typeof(SampleConversationForm));
 
         //Define Rainbow Application Id, Secret Key and Host Name
         const string APP_ID = "YOUR APP ID";
@@ -201,7 +201,7 @@ namespace Sample_Contacts
                 {
                     string peerId = favorite.PeerId;
 
-                    log.DebugFormat("UpdateFavoritesListComboBox - peerID:[{0}] - type:[{1}]", peerId, favorite.Type);
+                    log.Debug("UpdateFavoritesListComboBox - peerID:[{0}] - type:[{1}]", peerId, favorite.Type);
 
                     // Is-it a favorite with a User ?
                     if (favorite.Type == Rainbow.Model.FavoriteType.User)
@@ -471,9 +471,9 @@ namespace Sample_Contacts
                 {
                     if (!callback.Result.Success)
                     {
-                        string logLine = String.Format("Impossible to logout:\r\n{0}", Util.SerialiseSdkError(callback.Result));
+                        string logLine = String.Format("Impossible to logout:\r\n{0}", Util.SerializeSdkError(callback.Result));
                         AddStateLine(logLine);
-                        log.WarnFormat(logLine);
+                        log.Warn(logLine);
                     }
                 });
             }
@@ -492,9 +492,9 @@ namespace Sample_Contacts
                     }
                     else
                     {
-                        string logLine = String.Format("Impossible to login:\r\n{0}", Util.SerialiseSdkError(callback.Result));
+                        string logLine = String.Format("Impossible to login:\r\n{0}", Util.SerializeSdkError(callback.Result));
                         AddStateLine(logLine);
-                        log.WarnFormat(logLine);
+                        log.Warn(logLine);
                     }
                 });
             }
@@ -516,9 +516,9 @@ namespace Sample_Contacts
                     }
                     else
                     {
-                        string logLine = String.Format("Impossible to remove conversation[{1}]:\r\n{0}", Util.SerialiseSdkError(callback.Result), id);
+                        string logLine = String.Format("Impossible to remove conversation[{1}]:\r\n{0}", Util.SerializeSdkError(callback.Result), id);
                         AddStateLine(logLine);
-                        log.WarnFormat(logLine);
+                        log.Warn(logLine);
                     }
                 });
             }
@@ -541,9 +541,9 @@ namespace Sample_Contacts
                     }
                     else
                     {
-                        string logLine = String.Format("Impossible to remove favorite[{1}]:\r\n{0}", Util.SerialiseSdkError(callback.Result), id);
+                        string logLine = String.Format("Impossible to remove favorite[{1}]:\r\n{0}", Util.SerializeSdkError(callback.Result), id);
                         AddStateLine(logLine);
-                        log.WarnFormat(logLine);
+                        log.Warn(logLine);
                     }
                 });
             }
@@ -571,9 +571,9 @@ namespace Sample_Contacts
                             }
                             else
                             {
-                                string logLine = String.Format("Impossible to update favorite position [{1}]:\r\n{0}", Util.SerialiseSdkError(callback.Result), id);
+                                string logLine = String.Format("Impossible to update favorite position [{1}]:\r\n{0}", Util.SerializeSdkError(callback.Result), id);
                                 AddStateLine(logLine);
-                                log.WarnFormat(logLine);
+                                log.Warn(logLine);
                             }
                         });
                     }
@@ -601,9 +601,9 @@ namespace Sample_Contacts
                     }
                     else
                     {
-                        string logLine = String.Format("Impossible to create conversation with [{1}]:\r\n{0}", Util.SerialiseSdkError(callback.Result), id);
+                        string logLine = String.Format("Impossible to create conversation with [{1}]:\r\n{0}", Util.SerializeSdkError(callback.Result), id);
                         AddStateLine(logLine);
-                        log.WarnFormat(logLine);
+                        log.Warn(logLine);
                     }
                 });
             }
@@ -625,9 +625,9 @@ namespace Sample_Contacts
                     }
                     else
                     {
-                        string logLine = String.Format("Impossible to create favorite with [{1}]:\r\n{0}", Util.SerialiseSdkError(callback.Result), id);
+                        string logLine = String.Format("Impossible to create favorite with [{1}]:\r\n{0}", Util.SerializeSdkError(callback.Result), id);
                         AddStateLine(logLine);
-                        log.WarnFormat(logLine);
+                        log.Warn(logLine);
                     }
                 });
             }
@@ -679,9 +679,9 @@ namespace Sample_Contacts
                     }
                     else
                     {
-                        string logLine = String.Format("Impossible to create favorite with [{1}]:\r\n{0}", Util.SerialiseSdkError(callback.Result), conversationId);
+                        string logLine = String.Format("Impossible to create favorite with [{1}]:\r\n{0}", Util.SerializeSdkError(callback.Result), conversationId);
                         AddStateLine(logLine);
-                        log.WarnFormat(logLine);
+                        log.Warn(logLine);
                     }
                 });
             }
@@ -711,9 +711,9 @@ namespace Sample_Contacts
                 }
                 else
                 {
-                    string logLine = String.Format("Impossible to get all contacts:\r\n{0}", Util.SerialiseSdkError(callback.Result));
+                    string logLine = String.Format("Impossible to get all contacts:\r\n{0}", Util.SerializeSdkError(callback.Result));
                     AddStateLine(logLine);
-                    log.WarnFormat(logLine);
+                    log.Warn(logLine);
                 }
             });
         }
@@ -747,9 +747,9 @@ namespace Sample_Contacts
                 }
                 else
                 {
-                    string logLine = String.Format("Impossible to get all conversations:\r\n{0}", Util.SerialiseSdkError(callback.Result));
+                    string logLine = String.Format("Impossible to get all conversations:\r\n{0}", Util.SerializeSdkError(callback.Result));
                     AddStateLine(logLine);
-                    log.WarnFormat(logLine);
+                    log.Warn(logLine);
                 }
             });
         }
