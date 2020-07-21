@@ -9,7 +9,7 @@ using System.IO;
 using Rainbow.Model;
 using Rainbow.Events;
 
-using log4net;
+using NLog;
 
 namespace Rainbow.Helpers
 {
@@ -28,7 +28,7 @@ namespace Rainbow.Helpers
 
         private static readonly AvatarPool instance = new AvatarPool();
 
-        private static readonly ILog log = LogConfigurator.GetLogger(typeof(AvatarPool));
+        private static readonly Logger log = LogConfigurator.GetLogger(typeof(AvatarPool));
 
         private IImageManagement imageManagement = null;
 
@@ -132,7 +132,7 @@ namespace Rainbow.Helpers
                     }
                     catch (Exception exc)
                     {
-                        log.WarnFormat("[Contacts_ContactInfoChanged] - Impossible to delete Image file - Exception:[{0}]", Util.SerializeException(exc));
+                        log.Warn("[Contacts_ContactInfoChanged] - Impossible to delete Image file - Exception:[{0}]", Util.SerializeException(exc));
                     }
 
                     // Check if we have a rounded avatar. If not we need to raise ContactAvatarChanged
@@ -154,7 +154,7 @@ namespace Rainbow.Helpers
             Contact contact = contacts.GetContactFromContactJid(e.Jid);
             if (contact != null)
             {
-                log.DebugFormat("[Contacts_ContactAdded] Contact - Id:[{0}] - Jid:[{1}] - DisplayName:[{2}]", contact.Id, contact.Jid_im, Util.GetContactDisplayName(contact, AvatarPool.Instance.GetFirstNameFirst()));
+                log.Debug("[Contacts_ContactAdded] Contact - Id:[{0}] - Jid:[{1}] - DisplayName:[{2}]", contact.Id, contact.Jid_im, Util.GetContactDisplayName(contact, AvatarPool.Instance.GetFirstNameFirst()));
 
                 // Raise event ContactAvatarChanged
                 ContactAvatarChanged?.Invoke(this, new IdEventArgs(contact.Id));
@@ -168,7 +168,7 @@ namespace Rainbow.Helpers
 
             Contact contact = contacts.GetContactFromContactJid(e.Jid);
             if (contact != null)
-                log.DebugFormat("[Contacts_RosterContactRemoved] Contact - Id:[{0}] - Jid:[{1}] - DisplayName:[{2}]", contact.Id, contact.Jid_im, Util.GetContactDisplayName(contact, AvatarPool.Instance.GetFirstNameFirst()));
+                log.Debug("[Contacts_RosterContactRemoved] Contact - Id:[{0}] - Jid:[{1}] - DisplayName:[{2}]", contact.Id, contact.Jid_im, Util.GetContactDisplayName(contact, AvatarPool.Instance.GetFirstNameFirst()));
 
         }
 
@@ -179,7 +179,7 @@ namespace Rainbow.Helpers
 
             Contact contact = contacts.GetContactFromContactJid(e.Jid);
             if (contact != null)
-                log.DebugFormat("[Contacts_RosterContactAdded] Contact - Id:[{0}] - Jid:[{1}] - DisplayName:[{2}]", contact.Id, contact.Jid_im, Util.GetContactDisplayName(contact, AvatarPool.Instance.GetFirstNameFirst()));
+                log.Debug("[Contacts_RosterContactAdded] Contact - Id:[{0}] - Jid:[{1}] - DisplayName:[{2}]", contact.Id, contact.Jid_im, Util.GetContactDisplayName(contact, AvatarPool.Instance.GetFirstNameFirst()));
 
         }
 
@@ -229,7 +229,7 @@ namespace Rainbow.Helpers
                 }
                 catch (Exception exc)
                 {
-                    log.WarnFormat("[Contacts_ContactAvatarDeleted] - Impossible to delete Image files - Exception:[{0}]", Util.SerializeException(exc));
+                    log.Warn("[Contacts_ContactAvatarDeleted] - Impossible to delete Image files - Exception:[{0}]", Util.SerializeException(exc));
                     // Nothing special to handle here
                 }
 
@@ -274,7 +274,7 @@ namespace Rainbow.Helpers
                 }
                 catch (Exception exc)
                 {
-                    log.WarnFormat("[Bubbles_BubbleAvatarUpdated] - Impossible to delete Image files - Exception:[{0}]", Util.SerializeException(exc));
+                    log.Warn("[Bubbles_BubbleAvatarUpdated] - Impossible to delete Image files - Exception:[{0}]", Util.SerializeException(exc));
                     // Nothing special to handle here
                 }
 
@@ -487,7 +487,7 @@ namespace Rainbow.Helpers
             }
             catch (Exception exc)
             {
-                log.WarnFormat("Impossible to create directory to store Avatar:\r\n{0}", Util.SerializeException(exc));
+                log.Warn("Impossible to create directory to store Avatar:\r\n{0}", Util.SerializeException(exc));
             }
         }
 
@@ -866,7 +866,7 @@ namespace Rainbow.Helpers
             }
             catch (Exception exc)
             {
-                log.WarnFormat("[GetRoundedBubbleAvatarPath] - Impossible to delete Image file - Exception:[{0}]", Util.SerializeException(exc));
+                log.Warn("[GetRoundedBubbleAvatarPath] - Impossible to delete Image file - Exception:[{0}]", Util.SerializeException(exc));
             }
 
             return path;
@@ -991,7 +991,7 @@ namespace Rainbow.Helpers
         {
             if (!contactsUnknownById.Contains(contactId))
             {
-                log.DebugFormat("[AddUnknownContactToPoolById] contactId:[{0}]", contactId);
+                log.Debug("[AddUnknownContactToPoolById] contactId:[{0}]", contactId);
                 contactsUnknownById.Add(contactId);
                 UseUnknowContactsPool();
             }
@@ -1001,7 +1001,7 @@ namespace Rainbow.Helpers
         {
             if (!contactsUnknownByJid.Contains(contactJid))
             {
-                log.DebugFormat("[AddUnknownContactToPoolByJid] contactJid:[{0}]", contactJid);
+                log.Debug("[AddUnknownContactToPoolByJid] contactJid:[{0}]", contactJid);
                 contactsUnknownByJid.Add(contactJid);
                 UseUnknowContactsPool();
             }
@@ -1037,7 +1037,7 @@ namespace Rainbow.Helpers
             String contactId;
             String contactJid;
 
-            log.DebugFormat("[BackgroundWorkerUnkownContact_DoWork] - IN - nbUnknownById:[{0}] - nbUnknownByJid:[{1}]", contactsUnknownById.Count, contactsUnknownByJid.Count);
+            log.Debug("[BackgroundWorkerUnkownContact_DoWork] - IN - nbUnknownById:[{0}] - nbUnknownByJid:[{1}]", contactsUnknownById.Count, contactsUnknownByJid.Count);
             do
             {
                 if (contactsUnknownById.Count > 0)
@@ -1047,17 +1047,17 @@ namespace Rainbow.Helpers
                         index = 0;
 
                     contactId = contactsUnknownById[index];
-                    log.DebugFormat("[BackgroundWorkerUnkownContact_DoWork] Ask contact info - START - ContactId:[{0}]", contactId);
+                    log.Debug("[BackgroundWorkerUnkownContact_DoWork] Ask contact info - START - ContactId:[{0}]", contactId);
                     if (AskContactInfoById(contactId))
                     {
                         contactsUnknownById.Remove(contactId);
-                        log.DebugFormat("[BackgroundWorkerUnkownContact_DoWork] Ask contact info - END - SUCCESS - ContactId:[{0}]", contactId);
+                        log.Debug("[BackgroundWorkerUnkownContact_DoWork] Ask contact info - END - SUCCESS - ContactId:[{0}]", contactId);
                     }
                     else
                     {
                         // Download failed - we try for another contact
                         index++;
-                        log.DebugFormat("[BackgroundWorkerDonwload_DoWork] Ask contact info- END - FAILED - ContactId:[{0}]", contactId);
+                        log.Debug("[BackgroundWorkerDonwload_DoWork] Ask contact info- END - FAILED - ContactId:[{0}]", contactId);
                     }
                 }
                 else if (contactsUnknownByJid.Count > 0)
@@ -1067,17 +1067,17 @@ namespace Rainbow.Helpers
                         index = 0;
 
                     contactJid = contactsUnknownByJid[index];
-                    log.DebugFormat("[BackgroundWorkerUnkownContact_DoWork] Ask contact info - START - ContactJid:[{0}]", contactJid);
+                    log.Debug("[BackgroundWorkerUnkownContact_DoWork] Ask contact info - START - ContactJid:[{0}]", contactJid);
                     if (AskContactInfoByJid(contactJid))
                     {
                         contactsUnknownByJid.Remove(contactJid);
-                        log.DebugFormat("[BackgroundWorkerUnkownContact_DoWork] Ask contact info - END - SUCCESS - ContactJid:[{0}]", contactJid);
+                        log.Debug("[BackgroundWorkerUnkownContact_DoWork] Ask contact info - END - SUCCESS - ContactJid:[{0}]", contactJid);
                     }
                     else
                     {
                         // Download failed - we try for another contact
                         index++;
-                        log.DebugFormat("[BackgroundWorkerDonwload_DoWork] Ask contact info- END - FAILED - ContactJid:[{0}]", contactJid);
+                        log.Debug("[BackgroundWorkerDonwload_DoWork] Ask contact info- END - FAILED - ContactJid:[{0}]", contactJid);
                     }
                 }
 
@@ -1193,17 +1193,17 @@ namespace Rainbow.Helpers
                         indexBubble = 0;
 
                     bubbleId = bubblesWithAvatarToDwl[indexBubble];
-                    log.DebugFormat("[BackgroundWorkerDonwload_DoWork] Download Avatar - START - Bubble:[{0}]", bubbleId);
+                    log.Debug("[BackgroundWorkerDonwload_DoWork] Download Avatar - START - Bubble:[{0}]", bubbleId);
                     if (DownloadBubbleAvatar(bubbleId))
                     {
                         bubblesWithAvatarToDwl.Remove(bubbleId);
-                        log.DebugFormat("[BackgroundWorkerDonwload_DoWork] Download Avatar - END - SUCCESS - Bubble:[{0}]", bubbleId);
+                        log.Debug("[BackgroundWorkerDonwload_DoWork] Download Avatar - END - SUCCESS - Bubble:[{0}]", bubbleId);
                     }
                     else
                     {
                         // Download failed - we try for another contact
                         indexBubble++;
-                        log.DebugFormat("[BackgroundWorkerDonwload_DoWork] Download Avatar - END - FAILED - Bubble:[{0}]", bubbleId);
+                        log.Debug("[BackgroundWorkerDonwload_DoWork] Download Avatar - END - FAILED - Bubble:[{0}]", bubbleId);
                     }
 
                 } 
@@ -1214,17 +1214,17 @@ namespace Rainbow.Helpers
                         indexContact = 0;
 
                     contactId = contactsWithAvatarToDwl[indexContact];
-                    log.DebugFormat("[BackgroundWorkerDonwload_DoWork] Download Avatar - START - Contact:[{0}]", contactId);
+                    log.Debug("[BackgroundWorkerDonwload_DoWork] Download Avatar - START - Contact:[{0}]", contactId);
                     if (DownloadContactAvatar(contactId))
                     {
                         contactsWithAvatarToDwl.Remove(contactId);
-                        log.DebugFormat("[BackgroundWorkerDonwload_DoWork] Download Avatar - END - SUCCESS - Contact:[{0}]", contactId);
+                        log.Debug("[BackgroundWorkerDonwload_DoWork] Download Avatar - END - SUCCESS - Contact:[{0}]", contactId);
                     }
                     else
                     {
                         // Download failed - we try for another contact
                         indexContact++;
-                        log.DebugFormat("[BackgroundWorkerDonwload_DoWork] Download Avatar - END - FAILED - Contact:[{0}]", contactId);
+                        log.Debug("[BackgroundWorkerDonwload_DoWork] Download Avatar - END - FAILED - Contact:[{0}]", contactId);
                     }
                 }
 
@@ -1291,13 +1291,13 @@ namespace Rainbow.Helpers
                         }
                         catch (Exception exc)
                         {
-                            log.WarnFormat("[DownloadAvatar] Impossible to delete Images files - exception:[{0}]", Util.SerializeException(exc));
+                            log.Warn("[DownloadAvatar] Impossible to delete Images files - exception:[{0}]", Util.SerializeException(exc));
                         }
                     }
                 }
                 else
                 {
-                    log.WarnFormat("[AddContactToDwl]Not possible to dwl avatar:[{0}]", Util.SerialiseSdkError(callback.Result));
+                    log.Warn("[AddContactToDwl]Not possible to dwl avatar:[{0}]", Util.SerializeSdkError(callback.Result));
                 }
 
                 manualEvent.Set();
@@ -1364,13 +1364,13 @@ namespace Rainbow.Helpers
                         }
                         catch (Exception exc)
                         {
-                            log.WarnFormat("[DownloadAvatar] Impossible to delete Images files - exception:[{0}]", Util.SerializeException(exc));
+                            log.Warn("[DownloadAvatar] Impossible to delete Images files - exception:[{0}]", Util.SerializeException(exc));
                         }
                     }
                 }
                 else
                 {
-                    log.WarnFormat("[AddContactToDwl]Not possible to dwl avatar:[{0}]", Util.SerialiseSdkError(callback.Result));
+                    log.Warn("[AddContactToDwl]Not possible to dwl avatar:[{0}]", Util.SerializeSdkError(callback.Result));
                 }
                 manualEvent.Set();
             });

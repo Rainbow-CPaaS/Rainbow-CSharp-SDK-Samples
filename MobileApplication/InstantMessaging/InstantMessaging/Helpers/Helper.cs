@@ -8,13 +8,13 @@ using Rainbow;
 using Rainbow.Helpers;
 using Rainbow.Model;
 
-using log4net;
+using NLog;
 
 namespace InstantMessaging.Helpers
 {
     public static class Helper
     {
-        private static readonly ILog log = LogConfigurator.GetLogger(typeof(Helper));
+        private static readonly Logger log = LogConfigurator.GetLogger(typeof(Helper));
 
         public static String GetTempFolder()
         {
@@ -189,14 +189,14 @@ namespace InstantMessaging.Helpers
                     }
                     else
                     {
-                        //log.DebugFormat("[GetConversationFromRBConversation] - unknown contact - contactId:[{0}]", rbConversation.PeerId);
+                        //log.Debug("[GetConversationFromRBConversation] - unknown contact - contactId:[{0}]", rbConversation.PeerId);
                         XamarinApplication.RbContacts.GetContactFromContactIdFromServer(rbConversation.PeerId, null);
                     }
                 }
                 else
                 {
                     //TODO ( bot case)
-                    //log.DebugFormat("[GetConversationFromRBConversation] Conversation from model not created - Id:[{0}]", rbConversation.Id);
+                    //log.Debug("[GetConversationFromRBConversation] Conversation from model not created - Id:[{0}]", rbConversation.Id);
                     return null;
                 }
 
@@ -259,25 +259,25 @@ namespace InstantMessaging.Helpers
                 }
                 catch (Exception exc)
                 {
-                    log.WarnFormat("[GetBubbleAvatarImageSource] bubbleId:[{0}] - exception occurs to create avatar:[{1}]", bubbleId, Util.SerializeException(exc));
+                    log.Warn("[GetBubbleAvatarImageSource] bubbleId:[{0}] - exception occurs to create avatar:[{1}]", bubbleId, Util.SerializeException(exc));
                 }
 
                 if (!String.IsNullOrEmpty(filePath))
                 {
                     if (File.Exists(filePath))
                     {
-                        //log.DebugFormat("[SetConversationAvatar] - file used - filePath:[{0}] - PeerId:[{1}]", filePath, conversation.PeerId);
+                        //log.Debug("[SetConversationAvatar] - file used - filePath:[{0}] - PeerId:[{1}]", filePath, conversation.PeerId);
                         try
                         {
                             result = ImageSource.FromFile(filePath);
                         }
                         catch (Exception exc)
                         {
-                            log.WarnFormat("[GetBubbleAvatarImageSource] bubbleId:[{0}] - exception occurs to display avatar[{1}]", bubbleId, Util.SerializeException(exc));
+                            log.Warn("[GetBubbleAvatarImageSource] bubbleId:[{0}] - exception occurs to display avatar[{1}]", bubbleId, Util.SerializeException(exc));
                         }
                     }
                     //else
-                    //    log.WarnFormat("[SetConversationAvatar] - file not found - filePath:[{0}] - PeerId:[{1}]", filePath, conversation.PeerId);
+                    //    log.Warn("[SetConversationAvatar] - file not found - filePath:[{0}] - PeerId:[{1}]", filePath, conversation.PeerId);
                 }
             }
             return result;
@@ -295,25 +295,25 @@ namespace InstantMessaging.Helpers
                 }
                 catch (Exception exc)
                 {
-                    log.WarnFormat("[GetContactAvatarImageSource] contactId:[{0}] - exception occurs to create avatar:[{1}]", contactId, Util.SerializeException(exc));
+                    log.Warn("[GetContactAvatarImageSource] contactId:[{0}] - exception occurs to create avatar:[{1}]", contactId, Util.SerializeException(exc));
                 }
 
                 if (!String.IsNullOrEmpty(filePath))
                 {
                     if (File.Exists(filePath))
                     {
-                        //log.DebugFormat("[SetConversationAvatar] - file used - filePath:[{0}] - PeerId:[{1}]", filePath, conversation.PeerId);
+                        //log.Debug("[SetConversationAvatar] - file used - filePath:[{0}] - PeerId:[{1}]", filePath, conversation.PeerId);
                         try
                         {
                             result = ImageSource.FromFile(filePath);
                         }
                         catch (Exception exc)
                         {
-                            log.WarnFormat("[GetContactAvatarImageSource] contactId:[{0}] - exception occurs to display avatar[{1}]", contactId, Util.SerializeException(exc));
+                            log.Warn("[GetContactAvatarImageSource] contactId:[{0}] - exception occurs to display avatar[{1}]", contactId, Util.SerializeException(exc));
                         }
                     }
                     //else
-                    //    log.WarnFormat("[SetConversationAvatar] - file not found - filePath:[{0}] - PeerId:[{1}]", filePath, conversation.PeerId);
+                    //    log.Warn("[SetConversationAvatar] - file not found - filePath:[{0}] - PeerId:[{1}]", filePath, conversation.PeerId);
                 }
             }
             return result;
@@ -334,25 +334,25 @@ namespace InstantMessaging.Helpers
                 }
                 catch (Exception exc)
                 {
-                    log.WarnFormat("[GetConversationAvatarImageSource] PeerId:[{0}] - exception occurs to create avatar:[{1}]", conversation.PeerId, Util.SerializeException(exc));
+                    log.Warn("[GetConversationAvatarImageSource] PeerId:[{0}] - exception occurs to create avatar:[{1}]", conversation.PeerId, Util.SerializeException(exc));
                 }
 
                 if (!String.IsNullOrEmpty(filePath))
                 {
                     if (File.Exists(filePath))
                     {
-                        //log.DebugFormat("[SetConversationAvatar] - file used - filePath:[{0}] - PeerId:[{1}]", filePath, conversation.PeerId);
+                        //log.Debug("[SetConversationAvatar] - file used - filePath:[{0}] - PeerId:[{1}]", filePath, conversation.PeerId);
                         try
                         {
                             result = ImageSource.FromFile(filePath);
                         }
                         catch (Exception exc)
                         {
-                            log.WarnFormat("[GetConversationAvatarImageSource] PeerId:[{0}] - exception occurs to display avatar[{1}]", conversation.PeerId, Util.SerializeException(exc));
+                            log.Warn("[GetConversationAvatarImageSource] PeerId:[{0}] - exception occurs to display avatar[{1}]", conversation.PeerId, Util.SerializeException(exc));
                         }
                     }
                     //else
-                    //    log.WarnFormat("[SetConversationAvatar] - file not found - filePath:[{0}] - PeerId:[{1}]", filePath, conversation.PeerId);
+                    //    log.Warn("[SetConversationAvatar] - file not found - filePath:[{0}] - PeerId:[{1}]", filePath, conversation.PeerId);
                 }
             }
             return result;

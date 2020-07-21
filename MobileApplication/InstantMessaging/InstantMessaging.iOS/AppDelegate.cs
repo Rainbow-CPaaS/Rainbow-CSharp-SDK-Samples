@@ -41,11 +41,13 @@ namespace InstantMessaging.iOS
         private void InitLogs()
         {
             String logFileName = "rainbowsdk.log"; // File name of the log file
-            String logConfigFilePath = "log4netConfiguration.xml"; // File path to log configuration
+            String archiveLogFileName = "rainbowsdk_{###}.log"; // File name of the archive log file
+            String logConfigFilePath = "NLogConfiguration.xml"; // File path to log configuration
 
             String logConfigContent; // Content of the log file configuration
             String logFolderPath; // Folder path which will contains log files;
             String logFullPathFileName; // Full path to log file
+            String archiveLogFullPathFileName; ; // Full path to archive log file 
 
             try
             {
@@ -54,13 +56,14 @@ namespace InstantMessaging.iOS
 
                 // Set full path to log file name
                 logFullPathFileName = Path.Combine(logFolderPath, logFileName);
+                archiveLogFullPathFileName = Path.Combine(logFolderPath, archiveLogFileName);
 
-                // Delete previous log
-                if (File.Exists(logFullPathFileName))
-                {
-                    String content = File.ReadAllText(logFullPathFileName);
-                    File.Delete(logFullPathFileName);
-                }
+                //// Delete previous log
+                //if (File.Exists(logFullPathFileName))
+                //{
+                //    String content = File.ReadAllText(logFullPathFileName);
+                //    File.Delete(logFullPathFileName);
+                //}
 
                 // Get content of the log file configuration
                 using (StreamReader sr = new StreamReader(logConfigFilePath))
@@ -73,11 +76,16 @@ namespace InstantMessaging.iOS
                 doc.LoadXml(logConfigContent);
 
                 // Set full path to log file in XML element
-                XmlElement fileElement = doc["log4net"]["appender"]["file"];
-                fileElement.SetAttribute("value", logFullPathFileName);
+                XmlElement targetElement = doc["nlog"]["targets"]["target"];
+                targetElement.SetAttribute("name", Rainbow.LogConfigurator.GetRepositoryName());    // Set target name equals to RB repository name
+                targetElement.SetAttribute("fileName", logFullPathFileName);                        // Set full path to log file
+                targetElement.SetAttribute("archiveFileName", archiveLogFullPathFileName);          // Set full path to archive log file
 
-                log4net.Repository.ILoggerRepository repository = Rainbow.LogConfigurator.GetRepository();
-                log4net.Config.XmlConfigurator.Configure(repository, doc.DocumentElement);
+                XmlElement loggerElement = doc["nlog"]["rules"]["logger"];
+                loggerElement.SetAttribute("writeTo", Rainbow.LogConfigurator.GetRepositoryName()); // Write to RB repository name
+
+                // Set the configuration
+                Rainbow.LogConfigurator.Configure(doc.OuterXml);
             }
             catch (Exception e)
             {

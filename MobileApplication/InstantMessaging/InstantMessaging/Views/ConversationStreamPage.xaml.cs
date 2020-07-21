@@ -9,14 +9,14 @@ using Xamarin.Forms.Xaml;
 
 using Rainbow;
 
-using log4net;
+using NLog;
 
 namespace InstantMessaging
 {
     [XamlCompilation(XamlCompilationOptions.Compile)]
     public partial class ConversationStreamPage : ContentPage
     {
-        private static readonly ILog log = LogConfigurator.GetLogger(typeof(ConversationStreamPage));
+        private static readonly Logger log = LogConfigurator.GetLogger(typeof(ConversationStreamPage));
 
         private readonly ConversationStreamViewModel vm;
 
