@@ -4,14 +4,14 @@ using System.Text;
 using System.Threading.Tasks;
 using EmbedIO;
 using Rainbow;
-using log4net;
+using NLog;
 
 namespace Sample_InstantMessaging
 {
     public class CallbackWebModule : WebModuleBase
     {
         // Define log object - use same repository than the SDK
-        private static readonly ILog log = LogConfigurator.GetLogger(typeof(CallbackWebModule));
+        private static readonly Logger log = LogConfigurator.GetLogger(typeof(CallbackWebModule));
 
         private Rainbow.Application application;
         private Rainbow.S2SEventPipe s2sEventPipe;
@@ -26,7 +26,7 @@ namespace Sample_InstantMessaging
         {
             Boolean result = false;
 
-            log.DebugFormat("[OnRequestAsync] RequestedPath:[{0}] - HttpVerb:[{1}]", context.Request.Url.AbsolutePath, context.Request.HttpVerb);
+            log.Debug("[OnRequestAsync] RequestedPath:[{0}] - HttpVerb:[{1}]", context.Request.Url.AbsolutePath, context.Request.HttpVerb);
 
             if (context.Request.Headers["Content-Type"] == "application/json")
             {

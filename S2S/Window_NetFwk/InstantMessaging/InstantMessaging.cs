@@ -7,8 +7,8 @@ using System.Windows.Forms;
 using Rainbow;
 using Rainbow.Model;
 
-using log4net;
-using log4net.Config;
+using NLog;
+
 using System.Web.UI.WebControls;
 
 using EmbedIO;
@@ -18,7 +18,7 @@ namespace Sample_InstantMessaging
     public partial class SampleInstantMessagingForm : Form
     {
         // Define log object
-        private static readonly ILog log = LogConfigurator.GetLogger(typeof(SampleInstantMessagingForm));
+        private static readonly Logger log = LogConfigurator.GetLogger(typeof(SampleInstantMessagingForm));
 
         //Define Rainbow Application Id, Secret Key and Host Name
         const string APP_ID = "YOUR APP ID";
@@ -642,9 +642,9 @@ namespace Sample_InstantMessaging
                 {
                     if (!callback.Result.Success)
                     {
-                        string logLine = String.Format("Impossible to logout:\r\n{0}", Util.SerialiseSdkError(callback.Result));
+                        string logLine = String.Format("Impossible to logout:\r\n{0}", Util.SerializeSdkError(callback.Result));
                         AddStateLine(logLine);
-                        log.WarnFormat(logLine);
+                        log.Warn(logLine);
                     }
                 });
             }
@@ -687,9 +687,9 @@ namespace Sample_InstantMessaging
                     }
                     else
                     {
-                        string logLine = String.Format("Impossible to login:\r\n{0}", Util.SerialiseSdkError(callback.Result));
+                        string logLine = String.Format("Impossible to login:\r\n{0}", Util.SerializeSdkError(callback.Result));
                         AddStateLine(logLine);
-                        log.WarnFormat(logLine);
+                        log.Warn(logLine);
                     }
                 });
             }
@@ -742,7 +742,7 @@ namespace Sample_InstantMessaging
                 {
                     string logLine = String.Format("Impossible to unserialize presence: [{0}]", item.Text);
                     AddStateLine(logLine);
-                    log.WarnFormat(logLine);
+                    log.Warn(logLine);
                     return;
                 }
 
@@ -754,9 +754,9 @@ namespace Sample_InstantMessaging
                     }
                     else
                     {
-                        string logLine = String.Format("Impossible to set presence :\r\n{0}", Util.SerialiseSdkError(callback.Result));
+                        string logLine = String.Format("Impossible to set presence :\r\n{0}", Util.SerializeSdkError(callback.Result));
                         AddStateLine(logLine);
-                        log.WarnFormat(logLine);
+                        log.Warn(logLine);
                     }
                 });
 
@@ -786,9 +786,9 @@ namespace Sample_InstantMessaging
                         }
                         else
                         {
-                            string logLine = String.Format("Impossible to send message to contact [{1}]:\r\n{0}", Util.SerialiseSdkError(callback.Result), idSelected);
+                            string logLine = String.Format("Impossible to send message to contact [{1}]:\r\n{0}", Util.SerializeSdkError(callback.Result), idSelected);
                             AddStateLine(logLine);
-                            log.WarnFormat(logLine);
+                            log.Warn(logLine);
                         }
                     });
                 }
@@ -802,9 +802,9 @@ namespace Sample_InstantMessaging
                         }
                         else
                         {
-                            string logLine = String.Format("Impossible to send message to conversation [{1}]:\r\n{0}", Util.SerialiseSdkError(callback.Result), idSelected);
+                            string logLine = String.Format("Impossible to send message to conversation [{1}]:\r\n{0}", Util.SerializeSdkError(callback.Result), idSelected);
                             AddStateLine(logLine);
-                            log.WarnFormat(logLine);
+                            log.Warn(logLine);
                         }
                     });
                 }
@@ -830,9 +830,9 @@ namespace Sample_InstantMessaging
                     {
                         if (!callback.Result.Success)
                         {
-                            string logLine = String.Format("Impossible to send 'isTyping' to conversation [{1}]:\r\n{0}", Util.SerialiseSdkError(callback.Result), conversationId);
+                            string logLine = String.Format("Impossible to send 'isTyping' to conversation [{1}]:\r\n{0}", Util.SerializeSdkError(callback.Result), conversationId);
                             AddStateLine(logLine);
-                            log.WarnFormat(logLine);
+                            log.Warn(logLine);
                         }
                     });
                 }
@@ -884,9 +884,9 @@ namespace Sample_InstantMessaging
                     {
                         if (!callback.Result.Success)
                         {
-                            string logLine = String.Format("Impossible to mark message [{1}] as read :\r\n{0}", Util.SerialiseSdkError(callback.Result), lastMessageIDReceived);
+                            string logLine = String.Format("Impossible to mark message [{1}] as read :\r\n{0}", Util.SerializeSdkError(callback.Result), lastMessageIDReceived);
                             AddStateLine(logLine);
-                            log.WarnFormat(logLine);
+                            log.Warn(logLine);
                         }
                         else
                         {
@@ -971,9 +971,9 @@ namespace Sample_InstantMessaging
                         }
                         else
                         {
-                            string logLine = String.Format("Impossible to get older messages from conversatiob[{1}] :\r\n{0}", Util.SerialiseSdkError(callback.Result), conversation.Id);
+                            string logLine = String.Format("Impossible to get older messages from conversatiob[{1}] :\r\n{0}", Util.SerializeSdkError(callback.Result), conversation.Id);
                             AddStateLine(logLine);
-                            log.WarnFormat(logLine);
+                            log.Warn(logLine);
                         }
                     });
                 }
@@ -1011,9 +1011,9 @@ namespace Sample_InstantMessaging
                 }
                 else
                 {
-                    string logLine = String.Format("Impossible to get all contacts:\r\n{0}", Util.SerialiseSdkError(callback.Result));
+                    string logLine = String.Format("Impossible to get all contacts:\r\n{0}", Util.SerializeSdkError(callback.Result));
                     AddStateLine(logLine);
-                    log.WarnFormat(logLine);
+                    log.Warn(logLine);
                 }
             });
         }
@@ -1033,9 +1033,9 @@ namespace Sample_InstantMessaging
                 }
                 else
                 {
-                    string logLine = String.Format("Impossible to get all conversations:\r\n{0}", Util.SerialiseSdkError(callback.Result));
+                    string logLine = String.Format("Impossible to get all conversations:\r\n{0}", Util.SerializeSdkError(callback.Result));
                     AddStateLine(logLine);
-                    log.WarnFormat(logLine);
+                    log.Warn(logLine);
                 }
             });
         }
