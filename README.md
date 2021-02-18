@@ -61,10 +61,23 @@ Some screenshoots of this sample:
 ## Advanced Desktop Application Sample 
 ---
 
+### Instant Messaging example 
+---
+
 It's an advanced example of Instant Messaging for **`Windows`** (using `WPF`) [Advanced sample](https://github.com/Rainbow-CPaaS/Rainbow-CSharp-SDK-Samples/tree/master/Windows_WPF/WPF_InstantMessaging)
 
 WORKS IN PROGRESS:
 For the moment you can see Favorites and Conversations list, with presence, avatar and nb of unread messages.
+
+### WebRTC Peer To Peer example 
+---
+
+It's an advanced example of using Rainbow.CSharp.SDK.Wpf.WebRtcContrl for **`Windows`** (using `WPF`) [Advanced sample](https://github.com/Rainbow-CPaaS/Rainbow-CSharp-SDK-Samples/tree/master/Windows_WPF/WPF_WebRtcControl)
+
+It allows to make WebRtc in Peer To Peer:
+- Audio, Video, Sharing
+- Choose Audio Input/Ouput, Video Output devices
+- Mute/unmute Audio, Video or Sharing
 
 
 ## Server to server (S2S) sample 
