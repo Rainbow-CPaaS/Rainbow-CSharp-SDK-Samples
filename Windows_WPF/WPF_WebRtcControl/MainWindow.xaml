@@ -1,0 +1,624 @@
+﻿<Window x:Class="SDK.WpfApp.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
+        xmlns:rainbowWpf="clr-namespace:Rainbow.Wpf;assembly=SDK.Wpf.WebRtcControl"
+        xmlns:local="clr-namespace:SDK.WpfApp"
+        xmlns:localConverters="clr-namespace:SDK.WpfApp.Converters"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="1000" MinHeight="1000" MinWidth="960" Width="960">
+
+    <Window.Resources>
+        <localConverters:TextToPasswordCharConverter x:Key="TextToPasswordCharConverter" />
+        <localConverters:ReverseBooleanToVisibilityConverter x:Key="ReverseBooleanToVisibilityConverter" />
+        <localConverters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+        <localConverters:ReverseBooleanConverter x:Key="ReverseBooleanConverter" />
+        <localConverters:ExpandedConverter x:Key="ExpandedConverter" />
+    </Window.Resources>
+
+    <DockPanel LastChildFill="True">
+        <StackPanel Orientation="Vertical" Margin="5" DockPanel.Dock="Top">
+            <!--#region LOGIN/PWD + DEVICES
+            Grid which contains:
+                - on left part: login + pwd + connect/disconnect button
+                - on right part: devices management (microphone, speaker, camera) -->
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="2*" />
+                    <!--This will make any control in this column of grid take 2/5 of total width-->
+                    <ColumnDefinition Width="5" />
+                    <ColumnDefinition Width="3*" />
+                    <!--This will make any control in this column of grid take 3/5 of total width-->
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <!--#region LOGIN / PWD - Grid which contains login + pwd + connect/disconnect button -->
+                <Border BorderThickness="1" BorderBrush="Black" Grid.Column="0" Grid.Row="0">
+                    <Expander Header="Login Form" HorizontalAlignment="Center" VerticalAlignment="Top" IsExpanded="True">
+                        <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="5" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="5" />
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="5" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+
+                            <!--#region LOGIN - label + input field -->
+                            <Label Grid.Column="0" Grid.Row="0" HorizontalAlignment="Right">Login:</Label>
+                            <TextBox Grid.Column="2" Grid.Row="0" MinWidth="150"
+                                x:Name="LoginTextBox"
+                                HorizontalAlignment="Stretch"
+                                BorderThickness="1"
+                                VerticalAlignment="Center"
+                                IsEnabled="{Binding LoginInfoModel.CanUseLoginAndPwdTextBox}"
+                                Text="{Binding LoginInfoModel.Login, UpdateSourceTrigger=PropertyChanged}"/>
+                            <!--#endregion-->
+
+                            <!--#region PWD - label + input field -->
+                            <Label Grid.Column="0" Grid.Row="2" HorizontalAlignment="Right">Password:</Label>
+                            <!-- ENSURE TO USE 'Consolas' AS FontFamily TO HAVE ANY CARACTERS USING SAME WIDHT / HEIGHT -->
+                            <!-- THE THRID TestBox IS USED ONLY TO SUPPORT IsEnabled STATE CORRECTLY -->
+                            <TextBlock Grid.Column="2" Grid.Row="2" MinWidth="150"
+                                x:Name="PasswordTextBlock"
+                                Height="{Binding ElementName=LoginTextBox, Path=ActualHeight}"
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Center"
+                                Margin="5,10,0,0"
+                                FontFamily="Consolas" 
+                                IsEnabled="{Binding LoginInfoModel.CanUseLoginAndPwdTextBox}"
+                                Text="{Binding LoginInfoModel.Password, Converter={StaticResource TextToPasswordCharConverter}, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}"/>
+                            <TextBox Grid.Column="2" Grid.Row="2" MinWidth="150"
+                                Foreground="Transparent"
+                                Background="Transparent"
+                                Text="{Binding LoginInfoModel.Password, UpdateSourceTrigger=PropertyChanged}"
+                             
+                                Width="{Binding ElementName=PasswordTextBlock, Path=ActualWidth}"
+                                Height="{Binding ElementName=PasswordTextBlock, Path=ActualHeight}"
+                                FontStyle="{Binding ElementName=PasswordTextBlock, Path=FontStyle}"
+                                FontWeight="{Binding ElementName=PasswordTextBlock, Path=FontWeight}"
+                                FontFamily="{Binding ElementName=PasswordTextBlock, Path=FontFamily}"
+                                FontSize="{Binding ElementName=PasswordTextBlock, Path=FontSize}"
+                                HorizontalAlignment="{Binding ElementName=PasswordTextBlock, Path=HorizontalAlignment}" 
+                                VerticalAlignment="{Binding ElementName=PasswordTextBlock, Path=VerticalAlignment}" 
+                        
+                                Visibility="{Binding ElementName=PasswordTextBlock, Path=IsEnabled, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                            <TextBox Grid.Column="2" Grid.Row="2" MinWidth="150"
+                                Text="{Binding ElementName=PasswordTextBlock, Path=Text}"
+                             
+                                Width="{Binding ElementName=PasswordTextBlock, Path=ActualWidth}"
+                                Height="{Binding ElementName=PasswordTextBlock, Path=ActualHeight}"
+                                FontStyle="{Binding ElementName=PasswordTextBlock, Path=FontStyle}"
+                                FontWeight="{Binding ElementName=PasswordTextBlock, Path=FontWeight}"
+                                FontFamily="{Binding ElementName=PasswordTextBlock, Path=FontFamily}"
+                                FontSize="{Binding ElementName=PasswordTextBlock, Path=FontSize}"
+                                HorizontalAlignment="{Binding ElementName=PasswordTextBlock, Path=HorizontalAlignment}" 
+                                VerticalAlignment="{Binding ElementName=PasswordTextBlock, Path=VerticalAlignment}" 
+                             
+                                IsEnabled="False"
+                                Visibility="{Binding ElementName=PasswordTextBlock, Path=IsEnabled, Converter={StaticResource ReverseBooleanToVisibilityConverter}}"/>
+                            <!--#endregion-->
+
+                            <!--#region CONNECT - connect button -->
+                            <Button Grid.Column="0" Grid.Row="4" Grid.ColumnSpan="3" HorizontalAlignment="Center"
+                                IsEnabled="{Binding LoginInfoModel.CanUseLoginLogoutButton}"
+                                Command="{Binding LoginInfoModel.ButtonLoginOrLogoutCommand}">
+                                <TextBlock Text="{Binding LoginInfoModel.ButtonLoginOrLogoutText}"/>
+                            </Button>
+                            <!--#endregion-->
+                        </Grid>
+                    </Expander>
+                </Border>
+                <!--#endregion-->
+
+                <!--#region DEVICES - Grid which contains devices management (microphone, speaker, camera) -->
+                <Border BorderThickness="1" BorderBrush="Black" Grid.Column="2" Grid.Row="0">
+                    <Expander Header="Devices" HorizontalAlignment="Center" VerticalAlignment="Top" IsExpanded="True">
+                        <Grid  HorizontalAlignment="Center" VerticalAlignment="Center" Margin="2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="1*" />
+                                <!--This will make any control in this column of grid take 1/3 of total width-->
+                                <ColumnDefinition Width="5" />
+                                <ColumnDefinition Width="2*" />
+                                <!--This will make any control in this column of grid take 2/3 of total width-->
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="5" />
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="5" />
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="5" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+
+                            <!--#region MICROPHONE - label + select -->
+                            <Label Grid.Column="0" Grid.Row="0" HorizontalAlignment="Right">Microphone:</Label>
+                            <ComboBox 
+                                ItemsSource="{Binding DevicesModel.AudioInputDevices}"
+                                DisplayMemberPath="Name"
+                                SelectedIndex="0"
+                                SelectedItem="{Binding DevicesModel.AudioInputDeviceSelected, Mode=TwoWay}"
+                                IsSynchronizedWithCurrentItem="True"
+                                Grid.Column="2" Grid.Row="0" MinWidth="250"></ComboBox>
+                            <!--#endregion-->
+
+                            <!--#region SPEAKER - label + select -->
+                            <Label Grid.Column="0" Grid.Row="2" HorizontalAlignment="Right">Speaker:</Label>
+                            <ComboBox 
+                                ItemsSource="{Binding DevicesModel.AudioOutputDevices}"
+                                DisplayMemberPath="Name"
+                                SelectedIndex="0"
+                                SelectedItem="{Binding DevicesModel.AudioOutputDeviceSelected, Mode=TwoWay}"
+                                Grid.Column="2" Grid.Row="2" MinWidth="250"></ComboBox>
+                            <!--#endregion-->
+
+                            <!--#region WebCam - label + select -->
+                            <Label Grid.Column="0" Grid.Row="4" HorizontalAlignment="Right">WebCam:</Label>
+                            <ComboBox 
+                                ItemsSource="{Binding DevicesModel.VideoInputDevices}"
+                                DisplayMemberPath="Name"
+                                SelectedIndex="0"
+                                SelectedItem="{Binding DevicesModel.VideoInputDeviceSelected, Mode=TwoWay}"
+                                Grid.Column="2" Grid.Row="4" MinWidth="250"></ComboBox>
+                            <!--#endregion-->
+
+                            <!--#region SELECT - select button -->
+                            <Button Grid.Column="0" Grid.Row="6" Grid.ColumnSpan="3" HorizontalAlignment="Center"
+                                Content="Select"
+                                Command="{Binding ConversationModel.ButtonSelectDevicesCommand}"/>
+                            <!--#endregion-->
+                        </Grid>
+                    </Expander>
+                </Border>
+                <!--#endregion-->
+            </Grid>
+        
+            <!--#endregion-->
+
+            <!--#region CONTACTS + HANGUP / CALL + REJECT / ANSWER + POSITION / SPACE VIDEO -->
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="5" />
+                    <ColumnDefinition Width="4*" />
+                    <ColumnDefinition Width="5" />
+                    <ColumnDefinition Width="2*" />
+                    <ColumnDefinition Width="5" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <!--#region CONTACTS + HANGUP / CALL / REJECT / ANSWER + MEDIAS -->
+                <Border BorderThickness="1" BorderBrush="Black" Grid.Column="1" Grid.Row="0" Margin="0 5 0 5">
+                    <StackPanel Orientation="Vertical" HorizontalAlignment="Center" Margin="5" local:Spacing.Vertical="10">
+                        <!--#region CONTACTS-->
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" local:Spacing.Horizontal="5">
+                            <Label Content="Users:" />
+                            <ComboBox 
+                                MinWidth="250" 
+                                ItemsSource="{Binding UsersModel.Users}"
+                                DisplayMemberPath="DisplayName"
+                                SelectedIndex="0"
+                                SelectedItem="{Binding UsersModel.UserSelected, Mode=TwoWay}"
+                                IsEnabled="{Binding ConversationModel.CallInProgress, Converter={StaticResource ReverseBooleanConverter}}"
+                                />
+                        </StackPanel>
+                        <!--#endregion CONTACTS-->
+
+                        <!--#region HANGUP / CALL / MEDIAS -->
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center"  local:Spacing.Horizontal="5">
+                            <Button Content="HangUp" MinWidth="60" 
+                                    Command="{Binding ConversationModel.ButtonHangUpCommand}"/>
+                            <Button Content="Call" MinWidth="60" 
+                                    Command="{Binding ConversationModel.ButtonCallCommand}"/>
+                            <Label Content="Use media:" />
+                            <CheckBox VerticalAlignment="Center" 
+                                      Content="Audio" 
+                                      IsEnabled="{Binding ConversationModel.LocalInputAudioSelected}"
+                                      IsChecked="{Binding ConversationModel.MakeCallUsingAudio}"/>
+                            <CheckBox VerticalAlignment="Center" 
+                                      Content="Video" 
+                                      IsEnabled="{Binding ConversationModel.LocalInputVideoSelected}" 
+                                      IsChecked="{Binding ConversationModel.MakeCallUsingVideo}"/>
+                            <CheckBox VerticalAlignment="Center" 
+                                      Content="Sharing" 
+                                      IsEnabled="{Binding ConversationModel.WebRtcInitialized}" 
+                                      IsChecked="{Binding ConversationModel.MakeCallUsingSharing}"/>
+                        </StackPanel>
+                        <!--#endregion HANGUP / CALL / MEDIAS -->
+
+                        <!--#region REJECT / ANSWER / MEDIAS -->
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" local:Spacing.Horizontal="5">
+                            <Button Content="Reject" MinWidth="60" 
+                                    Command="{Binding ConversationModel.ButtonRejectCommand}"/>
+                            <Button Content="Answer" MinWidth="60" 
+                                    Command="{Binding ConversationModel.ButtonAnswerCommand}"/>
+                            <Label Content="Use media:" />
+                            <CheckBox VerticalAlignment="Center" 
+                                      Content="Audio" 
+                                      IsEnabled="{Binding ConversationModel.CanAnswerUsingAudio}"
+                                      IsChecked="{Binding ConversationModel.AnswerUsingAudio}"/>
+                            <CheckBox VerticalAlignment="Center" 
+                                      Content="Video" 
+                                      IsEnabled="{Binding ConversationModel.CanAnswerUsingVideo}" 
+                                      IsChecked="{Binding ConversationModel.AnswerUsingVideo}"/>
+                            <CheckBox VerticalAlignment="Center" 
+                                      Content="Sharing" 
+                                      IsEnabled="false" 
+                                      IsChecked="{Binding ConversationModel.AnswerUsingSharing}"/>
+                        </StackPanel>
+                        <!--#endregion REJECT / ANSWER / MEDIAS -->
+
+                        <!--#region LOCAL / REMOTE Medias used -->
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" local:Spacing.Horizontal="5">
+                            <Label Content="Local media used:" />
+                            <CheckBox VerticalAlignment="Center" 
+                                      Content="Audio" 
+                                      IsEnabled="false"
+                                      IsChecked="{Binding ConversationModel.LocalUsingAudio}"/>
+                            <CheckBox VerticalAlignment="Center" 
+                                      Content="Video" 
+                                      IsEnabled="false"
+                                      IsChecked="{Binding ConversationModel.LocalUsingVideo}"/>
+                            <CheckBox VerticalAlignment="Center" 
+                                      Content="Sharing" 
+                                      IsEnabled="false"
+                                      IsChecked="{Binding ConversationModel.LocalUsingSharing}"/>
+                            <Label Content="     Remote media used:" />
+                            <CheckBox VerticalAlignment="Center" 
+                                      Content="Audio" 
+                                      IsEnabled="false"
+                                      IsChecked="{Binding ConversationModel.RemoteUsingAudio}"/>
+                            <CheckBox VerticalAlignment="Center" 
+                                      Content="Video" 
+                                      IsEnabled="false"
+                                      IsChecked="{Binding ConversationModel.RemoteUsingVideo}"/>
+                            <CheckBox VerticalAlignment="Center" 
+                                      Content="Sharing" 
+                                      IsEnabled="false"
+                                      IsChecked="{Binding ConversationModel.RemoteUsingSharing}"/>
+                            
+                        </StackPanel>
+                        <!--#endregion ADD / REMOVE Medias -->
+
+                        <!--#region MUTE - AUDIO / VIDEO / SHARING -->
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" local:Spacing.Horizontal="5">
+                            <Label Content="Audio:" />
+                            <CheckBox VerticalAlignment="Center" 
+                                      Content="Muted" 
+                                      IsEnabled="False"
+                                      IsChecked="{Binding ConversationModel.LocalAudioMuted}"/>
+                            <Button Content="Mute/Unmute" MinWidth="50" 
+                                    Command="{Binding ConversationModel.ButtonMuteUnmuteAudioCommand}"/>
+                            <Label Content="Video:" />
+                            <CheckBox VerticalAlignment="Center" 
+                                      Content="Muted" 
+                                      IsEnabled="False"
+                                      IsChecked="{Binding ConversationModel.LocalVideoMuted}"/>
+                            <Button Content="Mute/Unmute" MinWidth="50" 
+                                    Command="{Binding ConversationModel.ButtonMuteUnmuteVideoCommand}"/>
+                            <Label Content="Sharing:" />
+                            <CheckBox VerticalAlignment="Center" 
+                                      Content="Muted" 
+                                      IsEnabled="False"
+                                      IsChecked="{Binding ConversationModel.LocalSharingMuted}"/>
+                            <Button Content="Mute/Unmute" MinWidth="50" 
+                                    Command="{Binding ConversationModel.ButtonMuteUnmuteSharingCommand}"/>
+                        </StackPanel>
+                        <!--#endregion MUTE - AUDIO / VIDEO -->
+
+                        <!--#region ADD / REMOVE Medias -->
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" local:Spacing.Horizontal="5">
+                            <Button Content="Add Audio" MinWidth="60" 
+                                    Command="{Binding ConversationModel.ButtonAddAudioCommand}"/>
+                            <Button Content="Add / Remove Video" MinWidth="60" 
+                                    Command="{Binding ConversationModel.ButtonAddRemoveVideoCommand}"/>
+                            <Button Content="Add / Remove Sharing" MinWidth="60" 
+                                    Command="{Binding ConversationModel.ButtonAddRemoveSharingCommand}"/>
+                        </StackPanel>
+                        <!--#endregion ADD / REMOVE Medias -->
+
+                        <!--#region CONSTRAINTS-->
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" local:Spacing.Horizontal="5">
+                            <Label Grid.Column="0" Grid.Row="0" HorizontalAlignment="Right">MaxFrameRate: </Label>
+                            <TextBox Grid.Column="2" Grid.Row="0" Width="40"
+                                BorderThickness="1"
+                                VerticalAlignment="Center"
+                                IsEnabled="{Binding ConversationModel.WebRtcInitialized}"
+                                Text="{Binding ConstraintModel.MaxFrameRateValue, UpdateSourceTrigger=PropertyChanged}"/>
+
+                            <Label Grid.Column="0" Grid.Row="0" HorizontalAlignment="Right">Width:</Label>
+                            <TextBox Grid.Column="2" Grid.Row="0" Width="40"
+                                HorizontalAlignment="Stretch"
+                                BorderThickness="1"
+                                VerticalAlignment="Center"
+                                IsEnabled="{Binding ConversationModel.WebRtcInitialized}"
+                                Text="{Binding ConstraintModel.WidthValue, UpdateSourceTrigger=PropertyChanged}"/>
+
+                            <Label Grid.Column="0" Grid.Row="0" HorizontalAlignment="Right">Height:</Label>
+                            <TextBox Grid.Column="2" Grid.Row="0" Width="40"
+                                HorizontalAlignment="Stretch"
+                                BorderThickness="1"
+                                VerticalAlignment="Center"
+                                IsEnabled="{Binding ConversationModel.WebRtcInitialized}"
+                                Text="{Binding ConstraintModel.HeightValue, UpdateSourceTrigger=PropertyChanged}"/>
+
+                            <RadioButton GroupName="Constraints" VerticalAlignment="Center" Padding="5,0" IsChecked="{Binding ConstraintModel.VideoConstraint}">Video</RadioButton>
+                            <RadioButton GroupName="Constraints" VerticalAlignment="Center" Padding="5,0" IsChecked="{Binding ConstraintModel.VideoConstraint, Converter={StaticResource ReverseBooleanConverter}}">Sharing</RadioButton>
+                            <Button Content="Set" MinWidth="50" 
+                                    Command="{Binding ConstraintModel.ButtonSetConstraintCommand}"/>
+                        </StackPanel>
+                        <!--#endregion CONSTRAINTS-->
+                        
+                        <!--#region DETAILS-->
+                        <DockPanel HorizontalAlignment="Center" local:Spacing.Horizontal="5" LastChildFill="True">
+                            <Expander DockPanel.Dock="Bottom" Header="Details" HorizontalAlignment="Center">
+                                <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" >
+                                    <TextBlock Name="TextBlockDetails" TextWrapping="Wrap">
+                                    </TextBlock>
+                                </ScrollViewer>
+                            </Expander>
+                        </DockPanel>
+                        <!--#endregion DETAILS-->
+                    </StackPanel>
+                </Border>
+                <!--#endregion CONTACTS + HANGUP / CALL / REJECT / ANSWER + MEDIAS -->
+
+                <!--#region POSITON / SIZE: LOCAL + REMOTE + SHARING -->
+                <StackPanel Grid.Column="3" Grid.Row="0" Orientation="Vertical" HorizontalAlignment="Center" Margin="0 5 0 5">
+                    <!--#region POSITON / SPACE: LOCAL VIDEO-->
+                    <Border BorderThickness="1" BorderBrush="Black" Margin="5 0 5 5" HorizontalAlignment="Center">
+                        <Expander Header="Local Video - Position / Size" 
+                                  IsExpanded="{Binding LayoutModel.CurrentExpanded, Converter={StaticResource ExpandedConverter}, ConverterParameter=1}"
+                                  IsEnabled="{Binding ConversationModel.WebRtcInitialized}">
+                            <Grid local:Spacing.Vertical="5">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="auto" />
+                                    <RowDefinition Height="auto" />
+                                    <RowDefinition Height="auto" />
+                                    <RowDefinition Height="auto" />
+                                    <RowDefinition Height="auto" />
+                                    <RowDefinition Height="auto" />
+                                    <RowDefinition Height="auto" />
+                                    <RowDefinition Height="auto" />
+                                </Grid.RowDefinitions>
+
+                                <StackPanel Grid.Column="0" Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" local:Spacing.Horizontal="5">
+                                    <Label>Width:</Label>
+                                    <TextBox MinWidth="50"
+                                        BorderThickness="1"
+                                        VerticalAlignment="Center"
+                                        Text="{Binding LayoutModel.LocalVideo.WidthValue}"/>
+                                    <Label>Height:</Label>
+                                    <TextBox MinWidth="50"
+                                        BorderThickness="1"
+                                        VerticalAlignment="Center"
+                                        Text="{Binding LayoutModel.LocalVideo.HeightValue}"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="0" Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" local:Spacing.Horizontal="5">
+                                    <RadioButton GroupName="LocalVideo_LeftOrRight" VerticalAlignment="Center" Padding="5,0" IsChecked="{Binding LayoutModel.LocalVideo.LeftPositionUsed}">Left</RadioButton>
+                                    <RadioButton GroupName="LocalVideo_LeftOrRight" VerticalAlignment="Center" Padding="5,0" IsChecked="{Binding LayoutModel.LocalVideo.LeftPositionUsed, Converter={StaticResource ReverseBooleanConverter}}">Right</RadioButton>
+                                    <Label>Value:</Label>
+                                    <TextBox MinWidth="50"
+                                        BorderThickness="1"
+                                        VerticalAlignment="Center"
+                                        Text="{Binding LayoutModel.LocalVideo.HorizontalValue}"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="0" Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Center" local:Spacing.Horizontal="5">
+                                    <RadioButton GroupName="LocalVideo_BottomOrTop" VerticalAlignment="Center" Padding="5,0" IsChecked="{Binding LayoutModel.LocalVideo.BottomPositionUsed, Converter={StaticResource ReverseBooleanConverter}}">Top</RadioButton>
+                                    <RadioButton GroupName="LocalVideo_BottomOrTop" VerticalAlignment="Center" Padding="5,0" IsChecked="{Binding LayoutModel.LocalVideo.BottomPositionUsed}">Bottom</RadioButton>
+                                    <Label>Value:</Label>
+                                    <TextBox MinWidth="50"
+                                        BorderThickness="1"
+                                        VerticalAlignment="Center"
+                                        Text="{Binding LayoutModel.LocalVideo.VerticalValue}"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="0" Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Center" local:Spacing.Horizontal="5">
+                                    <Label Content="Translate - Hor.:"/>
+                                    <TextBox MinWidth="40"
+                                        BorderThickness="1"
+                                        VerticalAlignment="Center"
+                                        Text="{Binding LayoutModel.LocalVideo.HorizontalTranslateValue}"/>
+                                    <Label Content="Ver.:"/>
+                                    <TextBox MinWidth="40"
+                                        BorderThickness="1"
+                                        VerticalAlignment="Center"
+                                        Text="{Binding LayoutModel.LocalVideo.VerticalTranslateValue}"/>
+                                </StackPanel>
+
+                                <CheckBox Grid.Column="0" Grid.Row="5" Content="Hide" Width="50" IsChecked="{Binding LayoutModel.LocalVideo.Hidden}"/>
+
+                                <Button Grid.Column="0" Grid.Row="6" Content="Set" Width="50" Command="{Binding LayoutModel.LocalVideo.ButtonSetCommand }"/>
+
+                                <StackPanel Grid.Column="0" Grid.Row="7" Orientation="Horizontal" HorizontalAlignment="Center" local:Spacing.Horizontal="5">
+                                    <Label Content="Picture in Picture: "/>
+                                    <Button Content="Enable / Disable" Command="{Binding LayoutModel.LocalVideo.ButtonPictureInPictureSwitchCommand}"/>
+                                </StackPanel>
+                            </Grid>
+                        </Expander>
+                    </Border>
+                    <!--#endregion  POSITON / SPACE: LOCAL VIDEO-->
+
+                    <!--#region POSITON / SPACE: REMOTE VIDEO-->
+                    <Border BorderThickness="1" BorderBrush="Black" Margin="5 0 5 5">
+                        <Expander Header="Remote Video - Position / Size" 
+                                  IsExpanded="{Binding LayoutModel.CurrentExpanded, Converter={StaticResource ExpandedConverter}, ConverterParameter=2}"
+                                  IsEnabled="{Binding ConversationModel.WebRtcInitialized}">
+                            <Grid local:Spacing.Vertical="5">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="auto" />
+                                    <RowDefinition Height="auto" />
+                                    <RowDefinition Height="auto" />
+                                    <RowDefinition Height="auto" />
+                                    <RowDefinition Height="auto" />
+                                    <RowDefinition Height="auto" />
+                                    <RowDefinition Height="auto" />
+                                    <RowDefinition Height="auto" />
+                                </Grid.RowDefinitions>
+
+                                <StackPanel Grid.Column="0" Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" local:Spacing.Horizontal="5">
+                                    <Label>Width:</Label>
+                                    <TextBox MinWidth="50"
+                                        BorderThickness="1"
+                                        VerticalAlignment="Center"
+                                        Text="{Binding LayoutModel.RemoteVideo.WidthValue}"/>
+                                    <Label>Height:</Label>
+                                    <TextBox MinWidth="50"
+                                        BorderThickness="1"
+                                        VerticalAlignment="Center"
+                                        Text="{Binding LayoutModel.RemoteVideo.HeightValue}"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="0" Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" local:Spacing.Horizontal="5">
+                                    <RadioButton GroupName="RemoteVideo_LeftOrRight" VerticalAlignment="Center" Padding="5,0" IsChecked="{Binding LayoutModel.RemoteVideo.LeftPositionUsed}">Left</RadioButton>
+                                    <RadioButton GroupName="RemoteVideo_LeftOrRight" VerticalAlignment="Center" Padding="5,0" IsChecked="{Binding LayoutModel.RemoteVideo.LeftPositionUsed, Converter={StaticResource ReverseBooleanConverter}}">Right</RadioButton>
+                                    <Label>Value:</Label>
+                                    <TextBox MinWidth="50"
+                                        BorderThickness="1"
+                                        VerticalAlignment="Center"
+                                        Text="{Binding LayoutModel.RemoteVideo.HorizontalValue}"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="0" Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Center" local:Spacing.Horizontal="5">
+                                    <RadioButton GroupName="RemoteVideo_BottomOrTop" VerticalAlignment="Center" Padding="5,0" IsChecked="{Binding LayoutModel.RemoteVideo.BottomPositionUsed, Converter={StaticResource ReverseBooleanConverter}}">Top</RadioButton>
+                                    <RadioButton GroupName="RemoteVideo_BottomOrTop" VerticalAlignment="Center" Padding="5,0" IsChecked="{Binding LayoutModel.RemoteVideo.BottomPositionUsed}">Bottom</RadioButton>
+                                    <Label>Value:</Label>
+                                    <TextBox MinWidth="50"
+                                        BorderThickness="1"
+                                        VerticalAlignment="Center"
+                                        Text="{Binding LayoutModel.RemoteVideo.VerticalValue}"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="0" Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Center" local:Spacing.Horizontal="5">
+                                    <Label Content="Translate - Hor.:"/>
+                                    <TextBox MinWidth="40"
+                                        BorderThickness="1"
+                                        VerticalAlignment="Center"
+                                        Text="{Binding LayoutModel.RemoteVideo.HorizontalTranslateValue}"/>
+                                    <Label Content="Ver.:"/>
+                                    <TextBox MinWidth="40"
+                                        BorderThickness="1"
+                                        VerticalAlignment="Center"
+                                        Text="{Binding LayoutModel.RemoteVideo.VerticalTranslateValue}"/>
+                                </StackPanel>
+
+                                <CheckBox Grid.Column="0" Grid.Row="5" Content="Hide" Width="50" IsChecked="{Binding LayoutModel.RemoteVideo.Hidden}"/>
+
+                                <Button Grid.Column="0" Grid.Row="6" Content="Set" Width="50" Command="{Binding LayoutModel.RemoteVideo.ButtonSetCommand}"/>
+
+                                <StackPanel Grid.Column="0" Grid.Row="7" Orientation="Horizontal" HorizontalAlignment="Center" local:Spacing.Horizontal="5">
+                                    <Label Content="Picture in Picture: "/>
+                                    <Button Content="Enable / Disable" Command="{Binding LayoutModel.RemoteVideo.ButtonPictureInPictureSwitchCommand}"/>
+                                </StackPanel>
+                            </Grid>
+                        </Expander>
+                    </Border>
+                    <!--#endregion-->
+
+                    <!--#region POSITON / SPACE: SHARING VIDEO-->
+                    <Border BorderThickness="1" BorderBrush="Black" Margin="5 0 5 5">
+                        <Expander Header="Sharing - Position / Size" 
+                                  IsExpanded="{Binding LayoutModel.CurrentExpanded, Converter={StaticResource ExpandedConverter}, ConverterParameter=3}"
+                                  IsEnabled="{Binding ConversationModel.WebRtcInitialized}">
+                            <Grid local:Spacing.Vertical="5">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="auto" />
+                                    <RowDefinition Height="auto" />
+                                    <RowDefinition Height="auto" />
+                                    <RowDefinition Height="auto" />
+                                    <RowDefinition Height="auto" />
+                                    <RowDefinition Height="auto" />
+                                    <RowDefinition Height="auto" />
+                                    <RowDefinition Height="auto" />
+                                </Grid.RowDefinitions>
+
+                                <StackPanel Grid.Column="0" Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" local:Spacing.Horizontal="5">
+                                    <Label>Width:</Label>
+                                    <TextBox MinWidth="50"
+                                        BorderThickness="1"
+                                        VerticalAlignment="Center"
+                                        Text="{Binding LayoutModel.Sharing.WidthValue}"/>
+                                    <Label>Height:</Label>
+                                    <TextBox MinWidth="50"
+                                        BorderThickness="1"
+                                        VerticalAlignment="Center"
+                                        Text="{Binding LayoutModel.Sharing.HeightValue}"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="0" Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" local:Spacing.Horizontal="5">
+                                    <RadioButton GroupName="Sharing_LeftOrRight" VerticalAlignment="Center" Padding="5,0" IsChecked="{Binding LayoutModel.Sharing.LeftPositionUsed}">Left</RadioButton>
+                                    <RadioButton GroupName="Sharing_LeftOrRight" VerticalAlignment="Center" Padding="5,0" IsChecked="{Binding LayoutModel.Sharing.LeftPositionUsed, Converter={StaticResource ReverseBooleanConverter}}">Right</RadioButton>
+                                    <Label>Value:</Label>
+                                    <TextBox MinWidth="50"
+                                        BorderThickness="1"
+                                        VerticalAlignment="Center"
+                                        Text="{Binding LayoutModel.Sharing.HorizontalValue}"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="0" Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Center" local:Spacing.Horizontal="5">
+                                    <RadioButton GroupName="Sharing_BottomOrTop" VerticalAlignment="Center" Padding="5,0" IsChecked="{Binding LayoutModel.Sharing.BottomPositionUsed, Converter={StaticResource ReverseBooleanConverter}}">Top</RadioButton>
+                                    <RadioButton GroupName="Sharing_BottomOrTop" VerticalAlignment="Center" Padding="5,0" IsChecked="{Binding LayoutModel.Sharing.BottomPositionUsed}">Bottom</RadioButton>
+                                    <Label>Value:</Label>
+                                    <TextBox MinWidth="50"
+                                        BorderThickness="1"
+                                        VerticalAlignment="Center"
+                                        Text="{Binding LayoutModel.Sharing.VerticalValue}"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="0" Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Center" local:Spacing.Horizontal="5">
+                                    <Label Content="Translate - Hor.:"/>
+                                    <TextBox MinWidth="40"
+                                        BorderThickness="1"
+                                        VerticalAlignment="Center"
+                                        Text="{Binding LayoutModel.Sharing.HorizontalTranslateValue}"/>
+                                    <Label Content="Ver.:"/>
+                                    <TextBox MinWidth="40"
+                                        BorderThickness="1"
+                                        VerticalAlignment="Center"
+                                        Text="{Binding LayoutModel.Sharing.VerticalTranslateValue}"/>
+                                </StackPanel>
+
+                                <CheckBox Grid.Column="0" Grid.Row="5" Content="Hide" Width="50" IsChecked="{Binding LayoutModel.Sharing.Hidden}"/>
+
+                                <Button Grid.Column="0" Grid.Row="6" Content="Set" Width="50" Command="{Binding LayoutModel.Sharing.ButtonSetCommand}"/>
+
+                                <StackPanel Grid.Column="0" Grid.Row="7" Orientation="Horizontal" HorizontalAlignment="Center" local:Spacing.Horizontal="5">
+                                    <Label Content="Picture in Picture: "/>
+                                    <Button Content="Enable / Disable" Command="{Binding LayoutModel.Sharing.ButtonPictureInPictureSwitchCommand}"/>
+                                </StackPanel>
+                            </Grid>
+                        </Expander>
+                    </Border>
+                    <!--#endregion-->
+                </StackPanel>
+                <!--#endregion POSITON / SIZE: LOCAL + REMOTE VIDEO-->
+            </Grid>
+            <!--#endregion CONTACTS + HANGUP / CALL + REJECT / ANSWER + POSITION / SPACE VIDEO -->
+
+        </StackPanel>
+
+        <rainbowWpf:WebRtcControl DockPanel.Dock="Bottom" x:Name="webRtcControl" />
+    </DockPanel>
+</Window>
