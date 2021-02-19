@@ -1,19 +1,27 @@
-﻿using System;
+﻿using AppKit;
+using Foundation;
+
+using System;
 using System.Collections.Generic;
 using System.IO;
-using AppKit;
-using Foundation;
-using log4net;
-using log4net.Config;
+using System.Xml;
+
 using Rainbow;
 using Rainbow.Model;
-using System.Reflection;
+
+using NLog;
+
 
 namespace SampleContact
 {
     public partial class ViewController : NSViewController
     {
-        private static readonly log4net.ILog log = Rainbow.LogConfigurator.GetLogger(typeof(ViewController));
+        private static readonly Logger log = Rainbow.LogConfigurator.GetLogger(typeof(ViewController));
+
+        private readonly String LogfileName = "Rainbow_CSharp_Example.log";
+        private readonly String LogArchivefileName = "RRainbow_CSharp_Example_{###}.log";
+        private readonly String LogConfigurationfileName = "NLogConfiguration.xml";
+        private readonly String LogFolderName = "Rainbow.CSharp.SDK";
 
         internal readonly string APP_ID = "";
         internal readonly string APP_SECRET_KEY = "";
@@ -39,29 +47,58 @@ namespace SampleContact
 
         public ViewController(IntPtr handle) : base(handle)
         {
-            InitializeLog();
+            InitLogs();
 
             InitializeRainbowSDK();
         }
 
-        private void InitializeLog()
+        private void InitLogs()
         {
-            string logPath = @"./log4netConfiguration.xml";
+            String logFileName = LogfileName; // File name of the log file
+            String archiveLogFileName = LogArchivefileName; // File name of the archive log file
+            String logConfigFileName = LogConfigurationfileName; // File path to log configuration
 
-            FileInfo fileInfo = new FileInfo(logPath);
+            String logConfigContent; // Content of the log file configuration
+            String logFullPathFileName; // Full path to log file
+            String archiveLogFullPathFileName; ; // Full path to archive log file 
 
-            // Does the file really exist ?
-            if ((fileInfo != null) && File.Exists(fileInfo.FullName))
+            try
             {
-                // Get repository object used by the SDK itself
-                log4net.Repository.ILoggerRepository repository = Rainbow.LogConfigurator.GetRepository();
+                // Set full path to log file name
+                logFullPathFileName = "./" + LogConfigurationfileName;
+                archiveLogFullPathFileName = "./" + archiveLogFileName;
 
-                // Configure XMLConfigurator using our XML file for our repository
-                log4net.Config.XmlConfigurator.Configure(repository, fileInfo);
+                // Get content of the log file configuration
+                Stream stream = GetStreamFromFile(logConfigFileName);
+                using (StreamReader sr = new StreamReader(stream))
+                {
+                    logConfigContent = sr.ReadToEnd();
+                }
+                stream.Dispose();
+
+                // Load XML in XMLDocument
+                XmlDocument doc = new XmlDocument();
+                doc.LoadXml(logConfigContent);
+
+                // Set full path to log file in XML element
+                XmlElement targetElement = doc["nlog"]["targets"]["target"];
+                targetElement.SetAttribute("name", Rainbow.LogConfigurator.GetRepositoryName());    // Set target name equals to RB repository name
+                targetElement.SetAttribute("fileName", logFullPathFileName);                        // Set full path to log file
+                targetElement.SetAttribute("archiveFileName", archiveLogFullPathFileName);          // Set full path to archive log file
+
+                XmlElement loggerElement = doc["nlog"]["rules"]["logger"];
+                loggerElement.SetAttribute("writeTo", Rainbow.LogConfigurator.GetRepositoryName()); // Write to RB repository name
+
+                // Set the configuration
+                Rainbow.LogConfigurator.Configure(doc.OuterXml);
             }
+            catch { }
+        }
 
-            log.Info("==========================================");
-            log.Info("SampleContact.ViewController started");
+
+        private Stream GetStreamFromFile(String pathFileName)
+        {
+            return File.OpenRead(pathFileName);
         }
 
         private void InitializeRainbowSDK()
@@ -181,9 +218,9 @@ namespace SampleContact
                 {
                     if (!callback.Result.Success)
                     {
-                        string logline = String.Format("Impossible to logout:\r\n{0}", Util.SerialiseSdkError(callback.Result));
+                        string logline = String.Format("Impossible to logout:\r\n{0}", Util.SerializeSdkError(callback.Result));
                         AddStateLine(logline);
-                        log.WarnFormat(logline);
+                        log.Warn(logline);
                     }
                     else
                         {
@@ -206,9 +243,9 @@ namespace SampleContact
                     }
                     else
                     {
-                        string logline = String.Format("Impossible to login:\r\n{0}", Util.SerialiseSdkError(callback.Result));
+                        string logline = String.Format("Impossible to login:\r\n{0}", Util.SerializeSdkError(callback.Result));
                         AddStateLine(logline);
-                        log.WarnFormat(logline);
+                        log.Warn(logline);
                     }
                 });
             }
@@ -229,9 +266,9 @@ namespace SampleContact
                     BeginInvokeOnMainThread(() => UpdateContactsListComboBox());
                 } else
                 {
-                    string logline = String.Format("Impossible to get all contacts:\r\n{0}", Util.SerialiseSdkError(callback.Result));
+                    string logline = String.Format("Impossible to get all contacts:\r\n{0}", Util.SerializeSdkError(callback.Result));
                     AddStateLine(logline);
-                    log.WarnFormat(logline);
+                    log.Warn(logline);
                 }
             });
         }
@@ -258,9 +295,9 @@ namespace SampleContact
                     }
                 } else
                 {
-                    string logline = String.Format("Impossible to get my avatar:\r\n{0}", Util.SerialiseSdkError(callback.Result));
+                    string logline = String.Format("Impossible to get my avatar:\r\n{0}", Util.SerializeSdkError(callback.Result));
                     AddStateLine(logline);
-                    log.WarnFormat(logline);
+                    log.Warn(logline);
                 }
             });
         }
@@ -279,9 +316,9 @@ namespace SampleContact
                 }
                 else
                 {
-                    string logline = String.Format("Impossible to delete your avatar:\r\n{0}", Util.SerialiseSdkError(callback.Result));
+                    string logline = String.Format("Impossible to delete your avatar:\r\n{0}", Util.SerializeSdkError(callback.Result));
                     AddStateLine(logline);
-                    log.WarnFormat(logline);
+                    log.Warn(logline);
                 }
             });
         }
@@ -319,9 +356,9 @@ namespace SampleContact
                             }
                             else
                             {
-                                string logline = String.Format("Impossible to update your avatar:\r\n{0}", Util.SerialiseSdkError(callback.Result));
+                                string logline = String.Format("Impossible to update your avatar:\r\n{0}", Util.SerializeSdkError(callback.Result));
                                 AddStateLine(logline);
-                                log.WarnFormat(logline);
+                                log.Warn(logline);
                             }
                         });
                     }
@@ -357,9 +394,9 @@ namespace SampleContact
                 }
                 else
                 {
-                    string logline = String.Format("Impossible to update your contact info:\r\n{0}", Util.SerialiseSdkError(callback.Result));
+                    string logline = String.Format("Impossible to update your contact info:\r\n{0}", Util.SerializeSdkError(callback.Result));
                     AddStateLine(logline);
-                    log.WarnFormat(logline);
+                    log.Warn(logline);
                 }
             });
         }
@@ -389,9 +426,9 @@ namespace SampleContact
                 }
                 else
                 {
-                    string logline = String.Format("Impossible to get the avatar of this contact [{1}]:\r\n{0}", Util.SerialiseSdkError(callback.Result), id);
+                    string logline = String.Format("Impossible to get the avatar of this contact [{1}]:\r\n{0}", Util.SerializeSdkError(callback.Result), id);
                     AddStateLine(logline);
-                    log.WarnFormat(logline);
+                    log.Warn(logline);
                 }
             });
         }
@@ -418,9 +455,9 @@ namespace SampleContact
                         }
                         else
                         {
-                            string logline = String.Format("Impossible to send an invitation to this contact [{1}]:\r\n{0}", Util.SerialiseSdkError(callback.Result), id);
+                            string logline = String.Format("Impossible to send an invitation to this contact [{1}]:\r\n{0}", Util.SerializeSdkError(callback.Result), id);
                             AddStateLine(logline);
-                            log.WarnFormat(logline);
+                            log.Warn(logline);
                         }
                     });
                 } else
@@ -434,9 +471,9 @@ namespace SampleContact
                         }
                         else
                         {
-                            string logline = String.Format("Impossible to remove this contact [{1}] from your roster:\r\n{0}", Util.SerialiseSdkError(callback.Result), id);
+                            string logline = String.Format("Impossible to remove this contact [{1}] from your roster:\r\n{0}", Util.SerializeSdkError(callback.Result), id);
                             AddStateLine(logline);
-                            log.WarnFormat(logline);
+                            log.Warn(logline);
                         }
                     });
                 }
@@ -462,9 +499,9 @@ namespace SampleContact
                         BeginInvokeOnMainThread(() => UpdateContactsListFoundCombobox());
                     } else
                     {
-                        string logline = String.Format("Impossible to search this [{1}]:\r\n{0}", Util.SerialiseSdkError(callback.Result), search);
+                        string logline = String.Format("Impossible to search this [{1}]:\r\n{0}", Util.SerializeSdkError(callback.Result), search);
                         AddStateLine(logline);
-                        log.WarnFormat(logline);
+                        log.Warn(logline);
                     }
                 });
             }
@@ -493,7 +530,7 @@ namespace SampleContact
                 }
                 else
                 {
-                    string logline = String.Format("Impossible to get info about this contact [{1}]:\r\n{0}", Util.SerialiseSdkError(callback.Result), id);
+                    string logline = String.Format("Impossible to get info about this contact [{1}]:\r\n{0}", Util.SerializeSdkError(callback.Result), id);
                 }
             });
         }
