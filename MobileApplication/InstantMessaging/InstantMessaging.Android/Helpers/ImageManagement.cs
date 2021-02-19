@@ -1,19 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-
-using Android.App;
-using Android.Content;
 using Android.Graphics;
-using Android.OS;
-using Android.Runtime;
 using Android.Text;
-using Android.Views;
-using Android.Widget;
-
-using Xamarin.Essentials;
+using Android.Util;
 
 using Rainbow.Helpers;
 
@@ -29,7 +18,13 @@ namespace Rainbow.Droid.Helpers
         public Double GetDensity()
         {
             if(density == 0)
-                density = DeviceDisplay.MainDisplayInfo.Density;
+            {
+                DisplayMetrics displayMetrics = new DisplayMetrics();
+                density = displayMetrics?.Density ?? 0;
+                displayMetrics?.Dispose();
+                if (density == 0)
+                    density = 1;
+            }
 
             return density;
         }
