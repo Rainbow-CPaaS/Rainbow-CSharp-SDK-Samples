@@ -790,7 +790,7 @@ namespace Sample_Contacts
 
                 if (contactSelected)
                 {
-                    rainbowInstantMessaging.SendMessageToContactId(idSelected, textToSend, null, callback =>
+                    rainbowInstantMessaging.SendMessageToContactId(idSelected, textToSend, UrgencyType.Std, null, callback =>
                     {
                         if (callback.Result.Success)
                         {
@@ -806,7 +806,7 @@ namespace Sample_Contacts
                 }
                 else
                 {
-                    rainbowInstantMessaging.SendMessageToConversationId(idSelected, textToSend, null, null, callback =>
+                    rainbowInstantMessaging.SendMessageToConversationId(idSelected, textToSend, null, UrgencyType.Std, null, callback =>
                     {
                         if (callback.Result.Success)
                         {
