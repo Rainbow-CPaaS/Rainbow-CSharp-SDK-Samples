@@ -1,16 +1,27 @@
-﻿using System;
+﻿using AppKit;
+using Foundation;
+
+using System;
 using System.Collections.Generic;
 using System.IO;
-using AppKit;
-using Foundation;
+
 using Rainbow;
 using Rainbow.Model;
+
+using NLog;
+using System.Xml;
 
 namespace SampleConferences
 {
     public partial class ViewController : NSViewController
     {
-        private static readonly log4net.ILog log = Rainbow.LogConfigurator.GetLogger(typeof(ViewController));
+        private static readonly Logger log = Rainbow.LogConfigurator.GetLogger(typeof(ViewController));
+
+        private readonly String LogfileName = "Rainbow_CSharp_Example.log";
+        private readonly String LogArchivefileName = "RRainbow_CSharp_Example_{###}.log";
+        private readonly String LogConfigurationfileName = "NLogConfiguration.xml";
+        private readonly String LogFolderName = "Rainbow.CSharp.SDK";
+
 
         internal readonly string APP_ID = "";
         internal readonly string APP_SECRET_KEY = "";
@@ -32,30 +43,60 @@ namespace SampleConferences
         #region INIT METHODS
         public ViewController(IntPtr handle) : base(handle)
         {
-            InitializeLog();
+            InitLogs();
 
             InitializeRainbowSDK();
         }
 
-        private void InitializeLog()
+        private void InitLogs()
         {
-            string logPath = @"./log4netConfiguration.xml";
+            String logFileName = LogfileName; // File name of the log file
+            String archiveLogFileName = LogArchivefileName; // File name of the archive log file
+            String logConfigFileName = LogConfigurationfileName; // File path to log configuration
 
-            FileInfo fileInfo = new FileInfo(logPath);
+            String logConfigContent; // Content of the log file configuration
+            String logFullPathFileName; // Full path to log file
+            String archiveLogFullPathFileName; ; // Full path to archive log file 
 
-            // Does the file really exist ?
-            if ((fileInfo != null) && File.Exists(fileInfo.FullName))
+            try
             {
-                // Get repository object used by the SDK itself
-                log4net.Repository.ILoggerRepository repository = Rainbow.LogConfigurator.GetRepository();
+                // Set full path to log file name
+                logFullPathFileName =  "./" + LogConfigurationfileName;
+                archiveLogFullPathFileName = "./" + archiveLogFileName;
 
-                // Configure XMLConfigurator using our XML file for our repository
-                log4net.Config.XmlConfigurator.Configure(repository, fileInfo);
+                // Get content of the log file configuration
+                Stream stream = GetStreamFromFile(logConfigFileName);
+                using (StreamReader sr = new StreamReader(stream))
+                {
+                    logConfigContent = sr.ReadToEnd();
+                }
+                stream.Dispose();
+
+                // Load XML in XMLDocument
+                XmlDocument doc = new XmlDocument();
+                doc.LoadXml(logConfigContent);
+
+                // Set full path to log file in XML element
+                XmlElement targetElement = doc["nlog"]["targets"]["target"];
+                targetElement.SetAttribute("name", Rainbow.LogConfigurator.GetRepositoryName());    // Set target name equals to RB repository name
+                targetElement.SetAttribute("fileName", logFullPathFileName);                        // Set full path to log file
+                targetElement.SetAttribute("archiveFileName", archiveLogFullPathFileName);          // Set full path to archive log file
+
+                XmlElement loggerElement = doc["nlog"]["rules"]["logger"];
+                loggerElement.SetAttribute("writeTo", Rainbow.LogConfigurator.GetRepositoryName()); // Write to RB repository name
+
+                // Set the configuration
+                Rainbow.LogConfigurator.Configure(doc.OuterXml);
             }
-
-            log.Info("==========================================");
-            log.Info("SampleContact.ViewController started");
+            catch { }
         }
+
+
+        private Stream GetStreamFromFile(String pathFileName)
+        {
+            return File.OpenRead(pathFileName);
+        }
+
 
         private void InitializeRainbowSDK()
         {
@@ -237,9 +278,9 @@ namespace SampleConferences
                 {
                     if (!callback.Result.Success)
                     {
-                        string logline = String.Format("Impossible to logout:\r\n{0}", Util.SerialiseSdkError(callback.Result));
+                        string logline = String.Format("Impossible to logout:\r\n{0}", Util.SerializeSdkError(callback.Result));
                         AddStateLine(logline);
-                        log.WarnFormat(logline);
+                        log.Warn(logline);
                     }
                 });
             }
@@ -257,9 +298,9 @@ namespace SampleConferences
                     }
                     else
                     {
-                        string logline = String.Format("Impossible to login:\r\n{0}", Util.SerialiseSdkError(callback.Result));
+                        string logline = String.Format("Impossible to login:\r\n{0}", Util.SerializeSdkError(callback.Result));
                         AddStateLine(logline);
-                        log.WarnFormat(logline);
+                        log.Warn(logline);
                     }
                 });
             }
@@ -286,10 +327,10 @@ namespace SampleConferences
                     {
                         nbNear = listNear.Count;
                         foreach (ConferencePhoneNumber phone in listNear)
-                            log.DebugFormat("[PersonalConferenceGetPhoneNumbers] - Near phone number:[{0}]", phone.ToString());
+                            log.Debug("[PersonalConferenceGetPhoneNumbers] - Near phone number:[{0}]", phone.ToString());
                     }
                     else
-                        log.DebugFormat("[PersonalConferenceGetPhoneNumbers] - There is no phone near the end user");
+                        log.Debug("[PersonalConferenceGetPhoneNumbers] - There is no phone near the end user");
 
                     //get other list of phones
                     listOthers = instantMeetingPhoneNumbers.Others;
@@ -297,17 +338,17 @@ namespace SampleConferences
                     {
                         nbOthers = listOthers.Count;
                         foreach (ConferencePhoneNumber phone in listOthers)
-                            log.DebugFormat("[PersonalConferenceGetPhoneNumbers] - Other phone number:[{0}]", phone.ToString());
+                            log.Debug("[PersonalConferenceGetPhoneNumbers] - Other phone number:[{0}]", phone.ToString());
                     }
                     else
-                        log.DebugFormat("[PersonalConferenceGetPhoneNumbers] - there is no other phone number ...");
+                        log.Debug("[PersonalConferenceGetPhoneNumbers] - there is no other phone number ...");
 
                     AddStateLine(String.Format("Audio phone numbers found: NbNear:[{0}] - NbOthers:[{1}]", nbNear, nbOthers));
                 }
                 else
                 {
                     AddStateLine("Impossible to get audio phone numbers ...");
-                    log.DebugFormat("Impossible to get audio phone numbers - error:[{0}]", Util.SerialiseSdkError(callback.Result));
+                    log.Debug("Impossible to get audio phone numbers - error:[{0}]", Util.SerializeSdkError(callback.Result));
                 }
             });
         }
@@ -324,7 +365,7 @@ namespace SampleConferences
                 else
                 {
                     AddStateLine("Impossible to get Personal Conference PassCodes ...");
-                    log.DebugFormat("Impossible to Personal Conference PassCodes - error:[{0}]", Util.SerialiseSdkError(callback.Result));
+                    log.Debug("Impossible to Personal Conference PassCodes - error:[{0}]", Util.SerializeSdkError(callback.Result));
                 }
             });
         }
@@ -341,7 +382,7 @@ namespace SampleConferences
                 else
                 {
                     AddStateLine("Impossible to reset Personal Conference PassCodes ...");
-                    log.DebugFormat("Impossible to reset Personal Conference PassCodes - error:[{0}]", Util.SerialiseSdkError(callback.Result));
+                    log.Debug("Impossible to reset Personal Conference PassCodes - error:[{0}]", Util.SerializeSdkError(callback.Result));
                 }
             });
         }
@@ -358,7 +399,7 @@ namespace SampleConferences
                 else
                 {
                     AddStateLine("Impossible to get Personal Conference URL ...");
-                    log.DebugFormat("Impossible to get Personal Conference URL - error:[{0}]", Util.SerialiseSdkError(callback.Result));
+                    log.Debug("Impossible to get Personal Conference URL - error:[{0}]", Util.SerializeSdkError(callback.Result));
                 }
             });
         }
@@ -375,7 +416,7 @@ namespace SampleConferences
                 else
                 {
                     AddStateLine("Impossible to reset Personal Conference URL ...");
-                    log.DebugFormat("Impossible to reset Personal Conference URL - error:[{0}]", Util.SerialiseSdkError(callback.Result));
+                    log.Debug("Impossible to reset Personal Conference URL - error:[{0}]", Util.SerializeSdkError(callback.Result));
                 }
             });
         }
@@ -391,7 +432,7 @@ namespace SampleConferences
                 else
                 {
                     AddStateLine("Impossible to start Personal Conference ...");
-                    log.DebugFormat("Impossible to start Personal Conference - error:[{0}]", Util.SerialiseSdkError(callback.Result));
+                    log.Debug("Impossible to start Personal Conference - error:[{0}]", Util.SerializeSdkError(callback.Result));
                 }
             });
         }
@@ -417,7 +458,7 @@ namespace SampleConferences
                 else
                 {
                     AddStateLine("Impossible to join Personal Conference ...");
-                    log.DebugFormat("Impossible to join Personal Conference - error:[{0}]", Util.SerialiseSdkError(callback.Result));
+                    log.Debug("Impossible to join Personal Conference - error:[{0}]", Util.SerializeSdkError(callback.Result));
                 }
             });
         }
@@ -435,7 +476,7 @@ namespace SampleConferences
                     else
                     {
                         AddStateLine("Impossible to mute/unmute Personal Conference ...");
-                        log.DebugFormat("Impossible to mute/unmute Personal Conference - error:[{0}]", Util.SerialiseSdkError(callback.Result));
+                        log.Debug("Impossible to mute/unmute Personal Conference - error:[{0}]", Util.SerializeSdkError(callback.Result));
                     }
                 });
             }
@@ -456,7 +497,7 @@ namespace SampleConferences
                         else
                         {
                             AddStateLine("Impossible to Lock/Unlock Personal Conference ...");
-                            log.DebugFormat("Impossible to Lock/Unlock Personal Conference - error:[{0}]", Util.SerialiseSdkError(callback.Result));
+                            log.Debug("Impossible to Lock/Unlock Personal Conference - error:[{0}]", Util.SerializeSdkError(callback.Result));
                         }
                     });
                 }
@@ -476,7 +517,7 @@ namespace SampleConferences
                     else
                     {
                         AddStateLine("Impossible to stop Personal Conference ...");
-                        log.DebugFormat("Impossible to stop Personal Conference - error:[{0}]", Util.SerialiseSdkError(callback.Result));
+                        log.Debug("Impossible to stop Personal Conference - error:[{0}]", Util.SerializeSdkError(callback.Result));
                     }
                 });
             }
@@ -499,7 +540,7 @@ namespace SampleConferences
                         else
                         {
                             AddStateLine("Pb to Mute/Unmute Participant ...");
-                            log.DebugFormat("Pb to Mute/Unmute Participant - error:[{0}]", Util.SerialiseSdkError(callback.Result));
+                            log.Debug("Pb to Mute/Unmute Participant - error:[{0}]", Util.SerializeSdkError(callback.Result));
                         }
                     });
                 }
@@ -523,7 +564,7 @@ namespace SampleConferences
                         else
                         {
                             AddStateLine("Pb to Drop Participant ...");
-                            log.DebugFormat("Pb to Drop Participant - error:[{0}]", Util.SerialiseSdkError(callback.Result));
+                            log.Debug("Pb to Drop Participant - error:[{0}]", Util.SerializeSdkError(callback.Result));
                         }
                     });
                 }
@@ -578,7 +619,7 @@ namespace SampleConferences
             InvokeOnMainThread(() =>
             {
 
-                log.DebugFormat("[UpdateConferenceInProgress] - IN");
+                log.Debug("[UpdateConferenceInProgress] - IN");
 
                 if (conferenceInProgress != null)
                 {
@@ -678,7 +719,7 @@ namespace SampleConferences
                     UpdateConferencePublishers(null);
                 }
 
-                log.DebugFormat("[UpdateConferenceInProgress] - OUT");
+                log.Debug("[UpdateConferenceInProgress] - OUT");
             });
         }
 
@@ -686,7 +727,7 @@ namespace SampleConferences
         {
             InvokeOnMainThread(() =>
             {
-                log.DebugFormat("[UpdateConferenceParticipants] - IN");
+                log.Debug("[UpdateConferenceParticipants] - IN");
                 if ((list != null) && (list.Count > 0))
                 {
                     // Try to always display the participant already selected (if any)
@@ -734,7 +775,7 @@ namespace SampleConferences
                 btnConferenceMute.Enabled = (cbAsModerator.State == NSCellStateValue.On);
                 btnConferenceLock.Enabled = (cbAsModerator.State == NSCellStateValue.On);
                 btnConferenceStop.Enabled = (cbAsModerator.State == NSCellStateValue.On);
-                log.DebugFormat("[UpdateConferenceParticipants] - OUT");
+                log.Debug("[UpdateConferenceParticipants] - OUT");
             });
         }
 
@@ -742,7 +783,7 @@ namespace SampleConferences
         {
             InvokeOnMainThread(() =>
             {
-                log.DebugFormat("[UpdateConferencePublishers] - IN");
+                log.Debug("[UpdateConferencePublishers] - IN");
                 if ((list != null) && (list.Count > 0))
                 {
                     // Try to always display the publisher already selected (if any)
@@ -770,7 +811,7 @@ namespace SampleConferences
 
                     cbPublishersList.RemoveAllItems();
                 }
-                log.DebugFormat("[UpdateConferencePublishers] - OUT");
+                log.Debug("[UpdateConferencePublishers] - OUT");
             });
         }
 
@@ -804,9 +845,9 @@ namespace SampleConferences
                     if (callbackBubbles.Result.Success)
                         logLine = String.Format("Nb Bubbles: {0}", callbackBubbles.Data.Count);
                     else
-                        logLine = String.Format("Impossible to get Bubbles list:\r\n{0}", Util.SerialiseSdkError(callbackBubbles.Result));
+                        logLine = String.Format("Impossible to get Bubbles list:\r\n{0}", Util.SerializeSdkError(callbackBubbles.Result));
                     AddStateLine(logLine);
-                    log.WarnFormat(logLine);
+                    log.Warn(logLine);
                 });
 
                 // Check permissions
@@ -834,7 +875,7 @@ namespace SampleConferences
             conferenceInProgress = e.Conference;
 
             AddStateLine("Conference Updated: " + conferenceInProgress.ToString());
-            log.DebugFormat("Conference Updated: " + conferenceInProgress.ToString());
+            log.Debug("Conference Updated: " + conferenceInProgress.ToString());
 
             UpdateConferenceInProgress();
         }
