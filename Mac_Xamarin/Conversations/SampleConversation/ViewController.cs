@@ -1,20 +1,27 @@
-﻿using System;
+﻿using AppKit;
+using Foundation;
+
+using System;
 using System.Collections.Generic;
 using System.IO;
-using AppKit;
-using Foundation;
-using log4net;
-using log4net.Config;
+using System.Xml;
+
 using Rainbow;
 using Rainbow.Model;
-using System.Reflection;
-using System.Xml;
+
+using NLog;
+
 
 namespace SampleConversation
 {
     public partial class ViewController : NSViewController
     {
-        private static readonly log4net.ILog log = Rainbow.LogConfigurator.GetLogger(typeof(ViewController));
+        private static readonly Logger log = Rainbow.LogConfigurator.GetLogger(typeof(ViewController));
+
+        private readonly String LogfileName = "Rainbow_CSharp_Example.log";
+        private readonly String LogArchivefileName = "RRainbow_CSharp_Example_{###}.log";
+        private readonly String LogConfigurationfileName = "NLogConfiguration.xml";
+        private readonly String LogFolderName = "Rainbow.CSharp.SDK";
 
         internal readonly string APP_ID = "";
         internal readonly string APP_SECRET_KEY = "";
@@ -47,28 +54,58 @@ namespace SampleConversation
 
         public ViewController(IntPtr handle) : base(handle)
         {
-            InitializeLog();
+            InitLogs();
 
             InitializeRainbowSDK();
         }
 
-        private void InitializeLog()
+        private void InitLogs()
         {
-            string logPath = @"./../../../../../log4netConfiguration.xml";
+            String logFileName = LogfileName; // File name of the log file
+            String archiveLogFileName = LogArchivefileName; // File name of the archive log file
+            String logConfigFileName = LogConfigurationfileName; // File path to log configuration
 
-            FileInfo fileInfo = new FileInfo(logPath);
+            String logConfigContent; // Content of the log file configuration
+            String logFullPathFileName; // Full path to log file
+            String archiveLogFullPathFileName; ; // Full path to archive log file 
 
-            // Does the file really exist ?
-            if ((fileInfo != null) && File.Exists(fileInfo.FullName))
+            try
             {
-                // Get repository object used by the SDK itself
-                log4net.Repository.ILoggerRepository repository = Rainbow.LogConfigurator.GetRepository();
+                // Set full path to log file name
+                logFullPathFileName = "./" + LogConfigurationfileName;
+                archiveLogFullPathFileName = "./" + archiveLogFileName;
 
-                // Configure XMLConfigurator using our XML file for our repository
-                log4net.Config.XmlConfigurator.Configure(repository, fileInfo);
+                // Get content of the log file configuration
+                Stream stream = GetStreamFromFile(logConfigFileName);
+                using (StreamReader sr = new StreamReader(stream))
+                {
+                    logConfigContent = sr.ReadToEnd();
+                }
+                stream.Dispose();
+
+                // Load XML in XMLDocument
+                XmlDocument doc = new XmlDocument();
+                doc.LoadXml(logConfigContent);
+
+                // Set full path to log file in XML element
+                XmlElement targetElement = doc["nlog"]["targets"]["target"];
+                targetElement.SetAttribute("name", Rainbow.LogConfigurator.GetRepositoryName());    // Set target name equals to RB repository name
+                targetElement.SetAttribute("fileName", logFullPathFileName);                        // Set full path to log file
+                targetElement.SetAttribute("archiveFileName", archiveLogFullPathFileName);          // Set full path to archive log file
+
+                XmlElement loggerElement = doc["nlog"]["rules"]["logger"];
+                loggerElement.SetAttribute("writeTo", Rainbow.LogConfigurator.GetRepositoryName()); // Write to RB repository name
+
+                // Set the configuration
+                Rainbow.LogConfigurator.Configure(doc.OuterXml);
             }
-            log.Info("==========================================");
-            log.Info("SampleConversation.ViewController started");
+            catch { }
+        }
+
+
+        private Stream GetStreamFromFile(String pathFileName)
+        {
+            return File.OpenRead(pathFileName);
         }
 
         private void InitializeRainbowSDK()
@@ -231,9 +268,9 @@ namespace SampleConversation
                 {
                     if (!callback.Result.Success)
                     {
-                        string logline = String.Format("Impossible to logout:\r\n{0}", Util.SerialiseSdkError(callback.Result));
+                        string logline = String.Format("Impossible to logout:\r\n{0}", Util.SerializeSdkError(callback.Result));
                         AddStateLine(logline);
-                        log.WarnFormat(logline);
+                        log.Warn(logline);
                     }
                 });
             }
@@ -251,9 +288,9 @@ namespace SampleConversation
                     }
                     else
                     {
-                        string logline = String.Format("Impossible to login:\r\n{0}", Util.SerialiseSdkError(callback.Result));
+                        string logline = String.Format("Impossible to login:\r\n{0}", Util.SerializeSdkError(callback.Result));
                         AddStateLine(logline);
-                        log.WarnFormat(logline);
+                        log.Warn(logline);
                     }
                 });
             }
@@ -274,9 +311,9 @@ namespace SampleConversation
                 }
                 else
                 {
-                    string logLine = String.Format("Impossible to get all contacts:\r\n{0}", Util.SerialiseSdkError(callback.Result));
+                    string logLine = String.Format("Impossible to get all contacts:\r\n{0}", Util.SerializeSdkError(callback.Result));
                     AddStateLine(logLine);
-                    log.WarnFormat(logLine);
+                    log.Warn(logLine);
                 }
             });
         }
@@ -296,9 +333,9 @@ namespace SampleConversation
                 }
                 else
                 {
-                    string logLine = String.Format("Impossible to get all conversations:\r\n{0}", Util.SerialiseSdkError(callback.Result));
+                    string logLine = String.Format("Impossible to get all conversations:\r\n{0}", Util.SerializeSdkError(callback.Result));
                     AddStateLine(logLine);
-                    log.WarnFormat(logLine);
+                    log.Warn(logLine);
                 }
             });
         }
@@ -319,7 +356,7 @@ namespace SampleConversation
             {
                 string logLine = String.Format("Impossible to get all favorites");
                 AddStateLine(logLine);
-                log.WarnFormat(logLine);
+                log.Warn(logLine);
             }
         }
 
@@ -385,9 +422,9 @@ namespace SampleConversation
                     }
                     else
                     {
-                        string logLine = String.Format("Impossible to create conversation with [{1}]:\r\n", Util.SerialiseSdkError(callback.Result), id);
+                        string logLine = String.Format("Impossible to create conversation with [{1}]:\r\n", Util.SerializeSdkError(callback.Result), id);
                         AddStateLine(logLine);
-                        log.WarnFormat(logLine);
+                        log.Warn(logLine);
                     }
                 });
             }
@@ -410,9 +447,9 @@ namespace SampleConversation
                     }
                     else
                     {
-                        string logLine = String.Format("Impossible to remove conversation with [{1}]:\r\n", Util.SerialiseSdkError(callback.Result), id);
+                        string logLine = String.Format("Impossible to remove conversation with [{1}]:\r\n", Util.SerializeSdkError(callback.Result), id);
                         AddStateLine(logLine);
-                        log.WarnFormat(logLine);
+                        log.Warn(logLine);
                     }
                 });
             }
@@ -429,9 +466,9 @@ namespace SampleConversation
                 }
                 else
                 {
-                    string logLine = String.Format("Impossible to create favorite with [{1}]:\r\n", Util.SerialiseSdkError(callback.Result), id);
+                    string logLine = String.Format("Impossible to create favorite with [{1}]:\r\n", Util.SerializeSdkError(callback.Result), id);
                     AddStateLine(logLine);
-                    log.WarnFormat(logLine);
+                    log.Warn(logLine);
                 }
             });
 
@@ -453,9 +490,9 @@ namespace SampleConversation
                     }
                     else
                     {
-                        string logLine = String.Format("Impossible to remove favorite with [{1}]:\r\n", Util.SerialiseSdkError(callback.Result), id);
+                        string logLine = String.Format("Impossible to remove favorite with [{1}]:\r\n", Util.SerializeSdkError(callback.Result), id);
                         AddStateLine(logLine);
-                        log.WarnFormat(logLine);
+                        log.Warn(logLine);
                     }
                 });
             }
@@ -483,9 +520,9 @@ namespace SampleConversation
                             }
                             else
                             {
-                                string logLine = String.Format("Impossible to update favorite position of [{1}]:\r\n{0]", Util.SerialiseSdkError(callback.Result), id);
+                                string logLine = String.Format("Impossible to update favorite position of [{1}]:\r\n{0]", Util.SerializeSdkError(callback.Result), id);
                                 AddStateLine(logLine);
-                                log.WarnFormat(logLine);
+                                log.Warn(logLine);
                             }
                         });
                     }
