@@ -1,18 +1,28 @@
+using AppKit;
+using Foundation;
+
 using System;
 using System.Collections.Generic;
 using System.IO;
-using AppKit;
-using Foundation;
+using System.Xml;
+
 using Rainbow;
 using Rainbow.Events;
 using Rainbow.Model;
+
+using NLog;
 
 namespace SampleInstantMessaging
 {
     public partial class ViewController : NSViewController
     {
 
-        private static readonly log4net.ILog log = Rainbow.LogConfigurator.GetLogger(typeof(ViewController));
+        private static readonly Logger log = Rainbow.LogConfigurator.GetLogger(typeof(ViewController));
+
+        private readonly String LogfileName = "Rainbow_CSharp_Example.log";
+        private readonly String LogArchivefileName = "RRainbow_CSharp_Example_{###}.log";
+        private readonly String LogConfigurationfileName = "NLogConfiguration.xml";
+        private readonly String LogFolderName = "Rainbow.CSharp.SDK";
 
         internal readonly string APP_ID = "";
         internal readonly string APP_SECRET_KEY = "";
@@ -46,29 +56,60 @@ namespace SampleInstantMessaging
 
         public ViewController(IntPtr handle) : base(handle)
         {
-            InitializeLog();
+            InitLogs();
 
             InitializeRainbowSDK();
         }
 
-        private void InitializeLog()
+        private void InitLogs()
         {
-            string logPath = @"./../../../../../log4netConfiguration.xml";
+            String logFileName = LogfileName; // File name of the log file
+            String archiveLogFileName = LogArchivefileName; // File name of the archive log file
+            String logConfigFileName = LogConfigurationfileName; // File path to log configuration
 
-            FileInfo fileInfo = new FileInfo(logPath);
+            String logConfigContent; // Content of the log file configuration
+            String logFullPathFileName; // Full path to log file
+            String archiveLogFullPathFileName; ; // Full path to archive log file 
 
-            // Does the file really exist ?
-            if ((fileInfo != null) && File.Exists(fileInfo.FullName))
+            try
             {
-                // Get repository object used by the SDK itself
-                log4net.Repository.ILoggerRepository repository = Rainbow.LogConfigurator.GetRepository();
+                // Set full path to log file name
+                logFullPathFileName = "./" + LogConfigurationfileName;
+                archiveLogFullPathFileName = "./" + archiveLogFileName;
 
-                // Configure XMLConfigurator using our XML file for our repository
-                log4net.Config.XmlConfigurator.Configure(repository, fileInfo);
+                // Get content of the log file configuration
+                Stream stream = GetStreamFromFile(logConfigFileName);
+                using (StreamReader sr = new StreamReader(stream))
+                {
+                    logConfigContent = sr.ReadToEnd();
+                }
+                stream.Dispose();
+
+                // Load XML in XMLDocument
+                XmlDocument doc = new XmlDocument();
+                doc.LoadXml(logConfigContent);
+
+                // Set full path to log file in XML element
+                XmlElement targetElement = doc["nlog"]["targets"]["target"];
+                targetElement.SetAttribute("name", Rainbow.LogConfigurator.GetRepositoryName());    // Set target name equals to RB repository name
+                targetElement.SetAttribute("fileName", logFullPathFileName);                        // Set full path to log file
+                targetElement.SetAttribute("archiveFileName", archiveLogFullPathFileName);          // Set full path to archive log file
+
+                XmlElement loggerElement = doc["nlog"]["rules"]["logger"];
+                loggerElement.SetAttribute("writeTo", Rainbow.LogConfigurator.GetRepositoryName()); // Write to RB repository name
+
+                // Set the configuration
+                Rainbow.LogConfigurator.Configure(doc.OuterXml);
             }
-            log.Info("==========================================");
-            log.Info("SampleConversation.ViewController started");
+            catch { }
         }
+
+
+        private Stream GetStreamFromFile(String pathFileName)
+        {
+            return File.OpenRead(pathFileName);
+        }
+
 
         private void InitializeRainbowSDK()
         {
@@ -143,7 +184,7 @@ namespace SampleInstantMessaging
                 {
                     string logLine = String.Format("Impossible to unserialize presence: [{0}]", cbPresence.SelectedItem.Title);
                     AddStateLine(logLine);
-                    log.WarnFormat(logLine);
+                    log.Warn(logLine);
                     return;
                 }
 
@@ -154,9 +195,9 @@ namespace SampleInstantMessaging
                         AddStateLine($"Presence set to [{cbPresence.SelectedItem.Title}]");
                     } else
                     {
-                        string logLine = String.Format("Impossible to set presence:\r\n[{0}]", Util.SerialiseSdkError(callback.Result));
+                        string logLine = String.Format("Impossible to set presence:\r\n[{0}]", Util.SerializeSdkError(callback.Result));
                         AddStateLine(logLine);
-                        log.WarnFormat(logLine);
+                        log.Warn(logLine);
                     }
                 });
             }
@@ -215,7 +256,7 @@ namespace SampleInstantMessaging
 
                 if (contactSelected)
                 {
-                    rainbowInstantMessaging.SendMessageToContactId(idSelected, textToSend, null, callback =>
+                    rainbowInstantMessaging.SendMessageToContactId(idSelected, textToSend, UrgencyType.Std, null, callback =>
                     {
                         if (callback.Result.Success)
                         {
@@ -223,15 +264,15 @@ namespace SampleInstantMessaging
                         }
                         else
                         {
-                            string logLine = String.Format("Impossible to send message to contact [{1}]:\r\n{0}", Util.SerialiseSdkError(callback.Result), idSelected);
+                            string logLine = String.Format("Impossible to send message to contact [{1}]:\r\n{0}", Util.SerializeSdkError(callback.Result), idSelected);
                             AddStateLine(logLine);
-                            log.WarnFormat(logLine);
+                            log.Warn(logLine);
                         }
                     });
                 }
                 else
                 {
-                    rainbowInstantMessaging.SendMessageToConversationId(idSelected, textToSend, null, null, callback =>
+                    rainbowInstantMessaging.SendMessageToConversationId(idSelected, textToSend, null, UrgencyType.Std, null, callback =>
                     {
                         if (callback.Result.Success)
                         {
@@ -239,9 +280,9 @@ namespace SampleInstantMessaging
                         }
                         else
                         {
-                            string logLine = String.Format("Impossible to send message to conversation [{1}]:\r\n{0}", Util.SerialiseSdkError(callback.Result), idSelected);
+                            string logLine = String.Format("Impossible to send message to conversation [{1}]:\r\n{0}", Util.SerializeSdkError(callback.Result), idSelected);
                             AddStateLine(logLine);
-                            log.WarnFormat(logLine);
+                            log.Warn(logLine);
                         }
                     });
                 }
@@ -275,9 +316,9 @@ namespace SampleInstantMessaging
                 {
                     if (!callback.Result.Success)
                     {
-                        string logline = String.Format("Impossible to logout:\r\n{0}", Util.SerialiseSdkError(callback.Result));
+                        string logline = String.Format("Impossible to logout:\r\n{0}", Util.SerializeSdkError(callback.Result));
                         AddStateLine(logline);
-                        log.WarnFormat(logline);
+                        log.Warn(logline);
                     }
                 });
             }
@@ -295,9 +336,9 @@ namespace SampleInstantMessaging
                     }
                     else
                     {
-                        string logline = String.Format("Impossible to login:\r\n{0}", Util.SerialiseSdkError(callback.Result));
+                        string logline = String.Format("Impossible to login:\r\n{0}", Util.SerializeSdkError(callback.Result));
                         AddStateLine(logline);
-                        log.WarnFormat(logline);
+                        log.Warn(logline);
                     }
                 });
             }
@@ -318,9 +359,9 @@ namespace SampleInstantMessaging
                 }
                 else
                 {
-                    string logLine = String.Format("Impossible to get all contacts:\r\n{0}", Util.SerialiseSdkError(callback.Result));
+                    string logLine = String.Format("Impossible to get all contacts:\r\n{0}", Util.SerializeSdkError(callback.Result));
                     AddStateLine(logLine);
-                    log.WarnFormat(logLine);
+                    log.Warn(logLine);
                 }
             });
         }
@@ -340,9 +381,9 @@ namespace SampleInstantMessaging
                 }
                 else
                 {
-                    string logLine = String.Format("Impossible to get all conversations:\r\n{0}", Util.SerialiseSdkError(callback.Result));
+                    string logLine = String.Format("Impossible to get all conversations:\r\n{0}", Util.SerializeSdkError(callback.Result));
                     AddStateLine(logLine);
-                    log.WarnFormat(logLine);
+                    log.Warn(logLine);
                 }
             });
         }
@@ -447,9 +488,9 @@ namespace SampleInstantMessaging
                         }
                         else
                         {
-                            string logLine = String.Format("Impossible to get older messages from this conversation[{1}]: \r\n{0}", Util.SerialiseSdkError(callback.Result), conversation.Id);
+                            string logLine = String.Format("Impossible to get older messages from this conversation[{1}]: \r\n{0}", Util.SerializeSdkError(callback.Result), conversation.Id);
                             AddStateLine(logLine);
-                            log.WarnFormat(logLine);
+                            log.Warn(logLine);
                         }
                     });
                 }
@@ -478,9 +519,9 @@ namespace SampleInstantMessaging
                     {
                         if (!callback.Result.Success)
                         {
-                            string logLine = String.Format("Impossible to send 'isTyping' to conversation [{1}]:\r\n{0}", Util.SerialiseSdkError(callback.Result), conversationId);
+                            string logLine = String.Format("Impossible to send 'isTyping' to conversation [{1}]:\r\n{0}", Util.SerializeSdkError(callback.Result), conversationId);
                             AddStateLine(logLine);
-                            log.WarnFormat(logLine);
+                            log.Warn(logLine);
                         }
                     });
                 }
@@ -525,9 +566,9 @@ namespace SampleInstantMessaging
                     {
                         if (!callback.Result.Success)
                         {
-                            string logLine = String.Format("Impossible to mark message [{1}] as read: \r\n{0}", Util.SerialiseSdkError(callback.Result), lastMessageIdReceived);
+                            string logLine = String.Format("Impossible to mark message [{1}] as read: \r\n{0}", Util.SerializeSdkError(callback.Result), lastMessageIdReceived);
                             AddStateLine(logLine);
-                            log.WarnFormat(logLine);
+                            log.Warn(logLine);
                         }
                         else
                         {
@@ -801,13 +842,13 @@ namespace SampleInstantMessaging
                 if (rainbowContactsList != null)
                 {
                     rainbowContactsList.Clear();
-                    UpdateContactsListComboBox();
+                    UpdateContactsCombobox();
                 }
 
-                if (rainbowConversationsList != null)
+                if (rainbowConvList != null)
                 {
-                    rainbowConversationsList.Clear();
-                    UpdateConversationsListComboBox();
+                    rainbowConvList.Clear();
+                    UpdateConversationsCombobox();
                 }
             }
         }
