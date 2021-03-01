@@ -79,7 +79,7 @@ namespace SDK.WpfApp
 
             String logConfigContent; // Content of the log file configuration
             String logFullPathFileName; // Full path to log file
-            String archiveLogFullPathFileName; ; // Full path to archive log file 
+            String archiveLogFullPathFileName; // Full path to archive log file 
             try
             {
                 //String tempFolder = System.Environment.GetFolderPath(System.Environment.SpecialFolder.ApplicationData);

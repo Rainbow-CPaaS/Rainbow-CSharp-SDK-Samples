@@ -7,9 +7,17 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\NLogConfiguration.xml" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="NLog" Version="4.7.7" />
     <PackageReference Include="Rainbow.CSharp.SDK" Version="1.22" />
     <PackageReference Include="Rainbow.CSharp.SDK.Wpf.WebRtcControl" Version="0.0.0.1-alpha" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Resources\NLogConfiguration.xml" />
   </ItemGroup>
 
 
