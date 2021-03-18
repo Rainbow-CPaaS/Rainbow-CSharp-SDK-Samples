@@ -1,4 +1,4 @@
-﻿
+
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -11,7 +11,6 @@ using System.Windows;
 using System.Xml;
 
 using Rainbow;
-using Rainbow.Private;
 
 using NLog;
 
@@ -30,7 +29,6 @@ namespace SDK.WpfApp
         public const string LOGIN_USER1 = "TO-DEFINE";
         public const string PASSWORD_USER1 = "TO-DEFINE";
 
-
         private static Logger log;
 
         private readonly String LogfileName = "WpfApp.log";
@@ -39,9 +37,8 @@ namespace SDK.WpfApp
         private readonly String LogFolderName = "SDKWpfApp";
 
         public String appFolderPath;
+
         public Rainbow.Application rbApplication;
-
-
 
         public App()
         {
@@ -108,7 +105,9 @@ namespace SDK.WpfApp
                 // Set the configuration
                 Rainbow.LogConfigurator.Configure(doc.OuterXml);
             }
-            catch { }
+            catch (Exception exc)
+            { 
+            }
         }
 
         private void Application_Exit(object sender, ExitEventArgs e)

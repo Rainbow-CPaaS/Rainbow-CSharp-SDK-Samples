@@ -442,8 +442,10 @@ namespace SDK.WpfApp.ViewModel
             {
                 UsersModel.CurrentContactId = rbContacts.GetCurrentContactId();
                 UsersModel.AddContacts(rbContacts.GetAllContactsFromCache());
-
                 LoginInfoModel.InitialisationCompleted = true;
+
+                // We allow to download avatars to all contacts in the roster
+                Rainbow.Common.Avatars.Instance.AddInDownloadPoolAllAvatarsFromContactsStoredInCache();
 
                 CommandManager.InvalidateRequerySuggested();
             }));

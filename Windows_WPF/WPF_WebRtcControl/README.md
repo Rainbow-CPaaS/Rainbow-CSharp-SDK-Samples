@@ -9,11 +9,16 @@ It's an advanced example using Rainbow.CSharp.SDK.Wpf.WebRtcControl which allows
 - Choose Audio Input/Ouput, Video Output devices
 - Mute/unmute Audio, Video or Sharing
 
-It's mandatory to install webview 2 runtime (Evergreen Standalone Installer):
-https://developer.microsoft.com/en-us/microsoft-edge/webview2/
-
+The package Rainbow.CSharp.SDK.Common is also used to display avatar of the peer.
 
 You need to modify file 'App.xaml.cs', in order to set your configuration:
 - APP_ID
 - APP_SECRET_KEY
 - HOST_NAME
+
+IMPORTANT NOTICE:
+It's mandatory to install webview 2 runtime (Evergreen Standalone Installer):
+https://developer.microsoft.com/en-us/microsoft-edge/webview2/
+
+Wihtout this runtime, this sample cannot work
+

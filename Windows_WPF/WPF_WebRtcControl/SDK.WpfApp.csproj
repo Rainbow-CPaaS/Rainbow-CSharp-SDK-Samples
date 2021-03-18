@@ -12,12 +12,13 @@
 
   <ItemGroup>
     <PackageReference Include="NLog" Version="4.7.7" />
-    <PackageReference Include="Rainbow.CSharp.SDK" Version="1.22" />
-    <PackageReference Include="Rainbow.CSharp.SDK.Wpf.WebRtcControl" Version="0.0.0.1-alpha" />
+    <PackageReference Include="Rainbow.CSharp.SDK" Version="1.22.1" />
+    <PackageReference Include="Rainbow.CSharp.SDK.Common" Version="0.0.0.1-alpha" />
+    <PackageReference Include="Rainbow.CSharp.SDK.Wpf.WebRtcControl" Version="0.0.0.2-alpha" />
   </ItemGroup>
 
   <ItemGroup>
-    <Resource Include="Resources\NLogConfiguration.xml" />
+    <EmbeddedResource Include="Resources\NLogConfiguration.xml" />
   </ItemGroup>
 
 
