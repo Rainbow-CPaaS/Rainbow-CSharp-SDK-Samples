@@ -20,9 +20,11 @@ namespace SDK.WpfApp.ViewModel
         private Rainbow.Application rbApplication;
         private Rainbow.Contacts rbContacts;
         private Rainbow.Wpf.WebRtcControl RbWebRtcControl;
+        private Rainbow.Common.Languages rbLanguages;
 
         private Call currentCall;
 
+        public LanguagesModel LanguagesModel { get; private set; }      // Need to be public and a property - Used as Binding from XAML
         public UsersModel UsersModel { get; private set; }              // Need to be public and a property - Used as Binding from XAML
         public DevicesModel DevicesModel { get; private set; }          // Need to be public and a property - Used as Binding from XAML
         public LoginInfoModel LoginInfoModel { get; private set; }      // Need to be public and a property - Used as Binding from XAML
@@ -88,11 +90,23 @@ namespace SDK.WpfApp.ViewModel
             LayoutModel.Sharing.ButtonSetCommand = new RelayCommand<object>(new Action<object>(SetSharingCommand));
             LayoutModel.Sharing.ButtonPictureInPictureSwitchCommand = new RelayCommand<object>(new Action<object>(SwitchPictureInPictureModeOnSharingCommand));
 
+            LayoutModel.PropertyChanged += LayoutModel_PropertyChanged;
+
             // Create DevicesModel
             DevicesModel = new DevicesModel();
 
             // Create UsersModel
             UsersModel = new UsersModel();
+
+            // Create LanguagesModel
+            LanguagesModel = new LanguagesModel()
+            {
+                ButtonSetCommand = new RelayCommand<object>(new Action<object>(SetLanguageCommand))
+            };
+
+            // Get Rainbow Languages service
+            rbLanguages = Rainbow.Common.Languages.Instance;
+            SetLanguagesList(rbLanguages.GetLanguagesList());
 
             // Create ConstraintModel
             ConstraintModel = new ConstraintModel()
@@ -103,6 +117,14 @@ namespace SDK.WpfApp.ViewModel
                 VideoConstraint = true,
                 ButtonSetConstraintCommand = new RelayCommand<object>(new Action<object>(SetConstraintCommand), new Predicate<object>(SetConstraintCommandCanExecute))
             };
+        }
+
+        private void SetLanguagesList(List<String> languages)
+        {
+            LanguagesModel.Languages.Clear();
+
+            foreach (String language in languages)
+                LanguagesModel.Languages.Add(language);
         }
 
         private StreamDevice GetDefaultAudioInputDevice(List<StreamDevice> devices)
@@ -478,7 +500,24 @@ namespace SDK.WpfApp.ViewModel
         }
 #endregion EVENTS - FROM Rainbow Contacts
 
+        private void LayoutModel_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if(e.PropertyName == "AutomaticDisplayMode")
+            {
+                RbWebRtcControl.SetAutomaticDisplayModeForVideoElements(LayoutModel.AutomaticDisplayMode);
+
+                // If automatic mode is not used, we set video element manually as it's defined in the interface
+                if(!LayoutModel.AutomaticDisplayMode)
+                {
+                    SetRemoteVideoCommand(null);
+                    SetLocalVideoCommand(null);
+                    SetSharingCommand(null);
+                }
+            }
+        }
+
 #region BUTTONS - Command
+
         public void RejectCommand(object obj)
         {
             if (currentCall != null)
@@ -521,8 +560,8 @@ namespace SDK.WpfApp.ViewModel
 
             if (ConversationModel.MakeCallUsingSharing)
                 medias += (int)Call.Media.SHARING;
-            
-            RbWebRtcControl.MakeCall(UsersModel.UserSelected.Id, medias);
+
+            RbWebRtcControl.MakeCall(UsersModel.UserSelected.Id, medias, ConversationModel.MakeCallUsingMessage);
         }
 
         public void SelectDevicesCommand(object obj)
@@ -726,6 +765,18 @@ namespace SDK.WpfApp.ViewModel
                 if (!callback.Result.Success)
                     log.Warn($"[SetConstraintCommand] Cannot set this constraints: maxFrameRate:[{ConstraintModel.MaxFrameRateValue}] - width:[{ConstraintModel.WidthValue}] - height:[{ConstraintModel.HeightValue}]");
             });
+        }
+
+        public void SetLanguageCommand(object obj)
+        {
+            String currentLanguage  = rbLanguages.GetLanguage();
+
+            string newLanguage = LanguagesModel.LanguageSelected;
+
+            if (rbLanguages.SetLanguage(newLanguage))
+                RbWebRtcControl.SetLabels(rbLanguages.GetLabels());
+            else
+                LanguagesModel.LanguageSelected = currentLanguage;
         }
 
 #endregion BUTTONS - Command

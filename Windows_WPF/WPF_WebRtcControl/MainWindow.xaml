@@ -212,6 +212,18 @@
                                 SelectedItem="{Binding UsersModel.UserSelected, Mode=TwoWay}"
                                 IsEnabled="{Binding ConversationModel.CallInProgress, Converter={StaticResource ReverseBooleanConverter}}"
                                 />
+                            <Label Content="     Language:"/>
+                            <ComboBox 
+                                MinWidth="20" 
+                                ItemsSource="{Binding LanguagesModel.Languages}"
+                                SelectedIndex="0"
+                                SelectedItem="{Binding LanguagesModel.LanguageSelected, Mode=TwoWay}"
+                                IsEnabled="{Binding ConversationModel.CallInProgress, Converter={StaticResource ReverseBooleanConverter}}"
+                                />
+                            <Button 
+                                local:Spacing.Horizontal="5"
+                                Content="Set" MinWidth="40" 
+                                    Command="{Binding LanguagesModel.ButtonSetCommand}"/>
                         </StackPanel>
                         <!--#endregion CONTACTS-->
 
@@ -234,6 +246,13 @@
                                       Content="Sharing" 
                                       IsEnabled="{Binding ConversationModel.WebRtcInitialized}" 
                                       IsChecked="{Binding ConversationModel.MakeCallUsingSharing}"/>
+                            <Label Content="   Message: "/>
+                            <TextBox Width="60"
+                                BorderThickness="1"
+                                VerticalAlignment="Center"
+                                IsEnabled="{Binding ConversationModel.WebRtcInitialized}"
+                                Text="{Binding ConversationModel.MakeCallUsingMessage, UpdateSourceTrigger=PropertyChanged}"/>
+                            
                         </StackPanel>
                         <!--#endregion HANGUP / CALL / MEDIAS -->
 
@@ -376,8 +395,16 @@
 
                 <!--#region POSITON / SIZE: LOCAL + REMOTE + SHARING -->
                 <StackPanel Grid.Column="3" Grid.Row="0" Orientation="Vertical" HorizontalAlignment="Center" Margin="0 5 0 5">
+
+                    <!--#region Automatic Display Mode-->
+                        <CheckBox 
+                            Content="Automatic display mode for video elements" 
+                            IsChecked="{Binding LayoutModel.AutomaticDisplayMode}"
+                            IsEnabled="{Binding ConversationModel.WebRtcInitialized}"/>
+                    <!--#endregion Automatic Display Mode-->
+
                     <!--#region POSITON / SPACE: LOCAL VIDEO-->
-                    <Border BorderThickness="1" BorderBrush="Black" Margin="5 0 5 5" HorizontalAlignment="Center">
+                    <Border BorderThickness="1" BorderBrush="Black" Margin="5 0 5 5" HorizontalAlignment="Center" Visibility="{Binding LayoutModel.AutomaticDisplayMode, Converter={StaticResource ReverseBooleanToVisibilityConverter}}">
                         <Expander Header="Local Video - Position / Size" 
                                   IsExpanded="{Binding LayoutModel.CurrentExpanded, Converter={StaticResource ExpandedConverter}, ConverterParameter=1}"
                                   IsEnabled="{Binding ConversationModel.WebRtcInitialized}">
@@ -456,7 +483,7 @@
                     <!--#endregion  POSITON / SPACE: LOCAL VIDEO-->
 
                     <!--#region POSITON / SPACE: REMOTE VIDEO-->
-                    <Border BorderThickness="1" BorderBrush="Black" Margin="5 0 5 5">
+                    <Border BorderThickness="1" BorderBrush="Black" Margin="5 0 5 5" Visibility="{Binding LayoutModel.AutomaticDisplayMode, Converter={StaticResource ReverseBooleanToVisibilityConverter}}">
                         <Expander Header="Remote Video - Position / Size" 
                                   IsExpanded="{Binding LayoutModel.CurrentExpanded, Converter={StaticResource ExpandedConverter}, ConverterParameter=2}"
                                   IsEnabled="{Binding ConversationModel.WebRtcInitialized}">
@@ -535,7 +562,7 @@
                     <!--#endregion-->
 
                     <!--#region POSITON / SPACE: SHARING VIDEO-->
-                    <Border BorderThickness="1" BorderBrush="Black" Margin="5 0 5 5">
+                    <Border BorderThickness="1" BorderBrush="Black" Margin="5 0 5 5" Visibility="{Binding LayoutModel.AutomaticDisplayMode, Converter={StaticResource ReverseBooleanToVisibilityConverter}}">
                         <Expander Header="Sharing - Position / Size" 
                                   IsExpanded="{Binding LayoutModel.CurrentExpanded, Converter={StaticResource ExpandedConverter}, ConverterParameter=3}"
                                   IsEnabled="{Binding ConversationModel.WebRtcInitialized}">

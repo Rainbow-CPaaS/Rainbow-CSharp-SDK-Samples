@@ -9,11 +9,27 @@ namespace SDK.WpfApp.Model
     {
         String m_CurrentExpanded;
 
+        Boolean m_automaticDisplayMode;
+
         public VideoElementModel LocalVideo { get; set; }
 
         public VideoElementModel RemoteVideo { get; set; }
 
         public VideoElementModel Sharing { get; set; }
+
+        /// <summary>
+        /// To know if automatic display mode is used 
+        /// </summary>
+        public Boolean AutomaticDisplayMode
+        { 
+            get { return m_automaticDisplayMode; }
+            set {
+                if (SetProperty(ref m_automaticDisplayMode, value))
+                {
+                }
+
+            }
+        }
 
         /// <summary>
         /// To know which one is expanded
@@ -29,6 +45,8 @@ namespace SDK.WpfApp.Model
             LocalVideo = new VideoElementModel();
             RemoteVideo = new VideoElementModel();
             Sharing = new VideoElementModel();
+
+            AutomaticDisplayMode = true;
         }
     }
 }

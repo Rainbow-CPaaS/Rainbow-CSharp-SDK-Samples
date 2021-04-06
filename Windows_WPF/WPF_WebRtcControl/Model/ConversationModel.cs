@@ -26,6 +26,7 @@ namespace SDK.WpfApp.Model
         Boolean m_makeCallUsingAudio;
         Boolean m_makeCallUsingVideo;
         Boolean m_makeCallUsingSharing;
+        String m_makeCallUsingMessage;
 
         Boolean m_answerUsingAudio;
         Boolean m_answerUsingVideo;
@@ -230,6 +231,18 @@ namespace SDK.WpfApp.Model
                     MakeCallUsingAudio = false;
                     MakeCallUsingVideo = false;
                 }
+            }
+        }
+
+        /// <summary>
+        /// Do we want to send a message when making the call ?
+        /// </summary>
+        public String MakeCallUsingMessage
+        {
+            get { return m_makeCallUsingMessage; }
+            set
+            {
+                SetProperty(ref m_makeCallUsingMessage, value);
             }
         }
 

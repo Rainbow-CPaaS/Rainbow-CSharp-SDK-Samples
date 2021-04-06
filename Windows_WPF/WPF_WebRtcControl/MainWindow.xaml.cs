@@ -22,10 +22,10 @@ namespace SDK.WpfApp
 
         private Rainbow.Application rbApplication;
         private Rainbow.Common.Avatars rbAvatars;
+        
 
 
     #region CONSTRUCTOR
-
         public MainWindow()
         {
             // Get currentWpf Application
@@ -42,25 +42,10 @@ namespace SDK.WpfApp
             // Specify the Rainbow.Application object in the WebRtc Control
             webRtcControl.SetApplication(rbApplication);
 
-            // We create Avatars service
-            rbAvatars = Rainbow.Common.Avatars.Instance;
-            rbAvatars.SetApplication(rbApplication);
-            rbAvatars.SetFolderPathUsedToStoreAvatars(Path.Combine(webRtcControl.GetResourcesFolderPath(), "Avatars"));
-            rbAvatars.AllowAvatarDownload(true);
-            rbAvatars.AllowToAskInfoForUnknownContact(true);
-            rbAvatars.AllowToAskInfoAboutUnknowBubble(true);
-            rbAvatars.SetTextHeightSize(24);
+            // Initialize avatar service
+            InitAvatarService();
 
-            rbAvatars.ContactAvatarUpdated += Avatars_ContactAvatarUpdated;
-
-            if (!rbAvatars.Initialize())
-                log.Error("CANNOT initialize Avatars service ...");
-
-            // We can now specify the avatars path
-            webRtcControl.SetContactAvatarFolderPath(rbAvatars.GetAvatarsFolderPath(Rainbow.Common.Avatars.AvatarType.ROUNDED, true));
-            webRtcControl.SetUnknownAvatarFilePath(rbAvatars.GetUnknwonAvatarFilePath()); ;
-
-            // Specify Host Name - displayed when using sharing - if host name is invalid a default one is used instead
+            // Specify Host Name - it's displayed when using sharing - if host name is invalid a default one is used instead
             webRtcControl.SetHostName("csharp-sample");
 
             AppViewModel.SetRbApplication(rbApplication);
@@ -73,13 +58,36 @@ namespace SDK.WpfApp
             this.Loaded += MainWindow_Loaded;
         }
 
+    #endregion CONSTRUCTOR
+
+        private void InitAvatarService()
+        {
+            // We create Avatars service
+            rbAvatars = Rainbow.Common.Avatars.Instance;
+            rbAvatars.SetApplication(rbApplication);
+            rbAvatars.SetFolderPathUsedToStoreAvatars(Path.Combine(webRtcControl.GetResourcesFolderPath(), "Avatars"));
+            rbAvatars.AllowAvatarDownload(true);
+            rbAvatars.AllowToAskInfoForUnknownContact(true);
+            rbAvatars.AllowToAskInfoAboutUnknowBubble(true);
+
+            rbAvatars.ContactAvatarUpdated += Avatars_ContactAvatarUpdated;
+
+            if (!rbAvatars.Initialize())
+                log.Error("CANNOT initialize Avatars service ...");
+
+            // We can now specify the avatars path
+            webRtcControl.SetContactAvatarFolderPath(rbAvatars.GetAvatarsFolderPath(Rainbow.Common.Avatars.AvatarType.ROUNDED, true));
+            webRtcControl.SetUnknownAvatarFilePath(rbAvatars.GetUnknwonAvatarFilePath()); ;
+        }
+
+    #region EVENT FROM AVATARS SERVICE
         private void Avatars_ContactAvatarUpdated(object sender, Rainbow.Events.IdEventArgs e)
         {
             if (e.Id == AppViewModel.UsersModel.CurrentContactId)
                 webRtcControl.UpdateContactAvatarDisplay(e.Id);
         }
 
-    #endregion CONSTRUCTOR
+    #endregion EVENT FROM AVATARS SERVICE
 
     #region CURRENT WINDOW EVENTS
 
@@ -88,7 +96,7 @@ namespace SDK.WpfApp
             DataContext = AppViewModel;
         }
     
-    #endregion CURRENT WINDOW EVENTS
+#endregion CURRENT WINDOW EVENTS
 
     }
 }
