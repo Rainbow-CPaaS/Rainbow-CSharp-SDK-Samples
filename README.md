@@ -26,8 +26,8 @@ This environment is based on the [Rainbow service](https://www.openrainbow.com/)
 ---
 
 To have more info about the SDK:
-- check [Getting started guide](https://hub.openrainbow.com/#/documentation/doc/sdk/csharp/guides/001_getting_started)
-- check [API documentation](https://hub.openrainbow.com/#/documentation/doc/sdk/csharp/api/Rainbow.Application)
+- check [Getting started guide](https://hub.openrainbow.com/#/documentation/doc/sdk/csharp/core/lts/guides/001_getting_started)
+- check [API documentation](https://hub.openrainbow.com/#/documentation/doc/sdk/csharp/core/lts/api/Rainbow.Application)
 
 
 ## Small samples
@@ -42,6 +42,7 @@ They are listed in order of priority if you just started to use the SDK - they a
 | Instant Messaging | Send, receive simple IM messages, manage presence | [Windows using .NetFwk](https://github.com/Rainbow-CPaaS/Rainbow-CSharp-SDK-Samples/tree/master/Windows_NetFwk/InstantMessaging)<br><br>[MacOs using Xamarin](https://github.com/Rainbow-CPaaS/Rainbow-CSharp-SDK-Samples/tree/master/Mac_Xamarin/InstantMessaging) |
 | Conferences | Manage Conferences (PSTN or WebRTC): Start/Join/Stop, Mute/Unmute, Lock/Unlock, Drop particpant) | [Windows using .NetFwk](https://github.com/Rainbow-CPaaS/Rainbow-CSharp-SDK-Samples/tree/master/Windows_NetFwk/Conferences)<br><br>[MacOs using Xamarin](https://github.com/Rainbow-CPaaS/Rainbow-CSharp-SDK-Samples/tree/master/Mac_Xamarin/Conferences) |
 | Telephony | Manage Conferences (PSTN or WebRTC): Start/Join/Stop, Mute/Unmute, Lock/Unlock, Drop particpant) | [Windows using .NetFwk](https://github.com/Rainbow-CPaaS/Rainbow-CSharp-SDK-Samples/tree/master/Windows_NetFwk/Telephony) |
+| Mass Provisioning| Mass provisioning scenario: create company admin, company, teachers, students, classrooms(bubbles) and add members to classrooms. Show how to call asynchronous API in a synchronous way | [Windows using .NetFwk](https://github.com/Rainbow-CPaaS/Rainbow-CSharp-SDK-Samples/tree/master/MassProvisioning) |
 
 
 ## Advanced Mobile Application Sample 
@@ -83,7 +84,7 @@ It allows to make WebRtc in Peer To Peer:
 ## Server to server (S2S) sample 
 ---
 
-It's important to read this [guide](https://hub.openrainbow.net/#/documentation/doc/sdk/csharp/guides/035_events_mode) first to understand what is a S2S application and the architecture associated.
+It's important to read this [guide](https://hub.openrainbow.com/#/documentation/doc/sdk/csharp/core/lts/guides/035_events_mode) first to understand what is a S2S application and the architecture associated.
 
 This [sample](https://github.com/Rainbow-CPaaS/Rainbow-CSharp-SDK-Samples/tree/master/S2S) permits to understand how to use this SDK in Server to server context. It's better first to understand how the use SDK using small examples.
 
