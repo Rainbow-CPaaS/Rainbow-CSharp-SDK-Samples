@@ -25,3 +25,26 @@ Features available for the moment:
     
 Elements implemented but not demonstrable 
 - Themes: display is based on a selected theme
+
+# Mandatory information
+---
+
+To use this sample you must provide correct information in file **MultiPlatformApplication/ApplicationInfo.cs**
+- APP_ID = "TO SPECIFY";
+- APP_SECRET_KEY = "TO SPECIFY";
+- HOST_NAME = "TO SPECIFY";
+
+# Data storage and environment test 
+---
+
+In file **MultiPlatformApplication/ApplicationInfo.cs**, 2 variables can be helpfull if you want to debug/develop this sample:
+- **DataStorageUsed**:
+
+Data received from server are stored locally. It's not at all a good way in production. But necessary when using **UseTestEnvironment**
+
+- **UseTestEnvironment**
+
+It uses data previously stored locally to use the application without the needs to have a real connection to the server.
+
+Very useful to add new functionnalities, test/update code with real data without any connection.   
+ 
