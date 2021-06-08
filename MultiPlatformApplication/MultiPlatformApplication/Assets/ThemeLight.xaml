@@ -1,0 +1,36 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ResourceDictionary  xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+            x:Class="MultiPlatformApplication.Assets.ThemeLight">
+
+    <!-- Conversation Stream -->
+    <Color x:Key="ColorConversationStreamMainBackground">#E8EAED</Color>
+
+    <Color x:Key="ColorConversationStreamDateSent">#707271</Color>
+
+    <Color x:Key="ColorConversationStreamEventBackground">#DCDEE1</Color>
+    <Color x:Key="ColorConversationStreamEventFont">#A1AAB8</Color>
+
+    <Color x:Key="ColorConversationStreamSeparatorDateFont">#A1AAB8</Color>
+
+    <Color x:Key="ColorConversationStreamMessageCurrentUserBackGround">#1C8CFD</Color>
+    <Color x:Key="ColorConversationStreamMessageCurrentUserFont">#FFFFFF</Color>
+
+    <Color x:Key="ColorConversationStreamMessageOtherUserBackGround">#FFFFFF</Color>
+    <Color x:Key="ColorConversationStreamMessageOtherUserFont">#5E5E5E</Color>
+
+    <Color x:Key="ColorConversationStreamReplyOtherUserBackGround">#E8EAED</Color>
+    <Color x:Key="ColorConversationStreamReplyOtherUserDisplayName">#F2950C</Color>
+    <Color x:Key="ColorConversationStreamReplyOtherUserFont">#5E5E5E</Color>
+
+    <Color x:Key="ColorConversationStreamReplyCurrentUserBackGround">#FFF2DF</Color>
+    <Color x:Key="ColorConversationStreamReplyCurrentUserDisplayName">#F2950C</Color>
+    <Color x:Key="ColorConversationStreamReplyCurrentUserFont">#5E5E5E</Color>
+
+
+    <!-- It' possible to re-use resource defined here but as "StaticResource" only ! -->
+
+    <SolidColorBrush x:Key="BrushConversationStreamMainBackGround"
+                         Color="{StaticResource ColorConversationStreamMainBackground}"/>
+
+</ResourceDictionary>

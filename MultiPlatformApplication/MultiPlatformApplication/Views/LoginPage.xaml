@@ -1,0 +1,70 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:local="clr-namespace:MultiPlatformApplication"
+             xmlns:converters="clr-namespace:MultiPlatformApplication.Converters;assembly=MultiPlatformApplication" 
+             x:Class="MultiPlatformApplication.LoginPage"
+             NavigationPage.HasNavigationBar="False">
+
+    <ContentPage.Padding>
+        <OnPlatform x:TypeArguments="Thickness">
+            <On Platform="iOS" Value="0,20,0,0"/>
+        </OnPlatform>
+    </ContentPage.Padding>
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <converters:ReverseBooleanConverter x:Key="ReverseBooleanConverter" />
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+        <StackLayout x:Name="MainStackLayout" Orientation="Vertical"
+                VerticalOptions="StartAndExpand" 
+                HorizontalOptions="Center" BindingContext="{Binding LoginModel}">
+            
+            <StackLayout Orientation="Horizontal" HorizontalOptions="Center" VerticalOptions="Start" Padding="0, 30, 0, 30">
+                
+                <!--<Image  Source="splash_logo" WidthRequest="120" HeightRequest="120" HorizontalOptions="Center" VerticalOptions="Start" Aspect="AspectFill" />-->
+                
+            </StackLayout>
+
+            <Entry
+                    Margin="40,0"
+                    FontSize="{StaticResource FontSizeMedium}"
+                    WidthRequest="300"
+                    HorizontalOptions="Center" 
+                    Placeholder="Your email address"
+                    PlaceholderColor="LightGray"
+                    Text="{Binding Login}"
+                    IsEnabled="{Binding IsBusy, Converter={StaticResource ReverseBooleanConverter}}" />
+
+            <Entry
+                    Margin="40,40"
+                    TextColor="Black"
+                    FontSize="{StaticResource FontSizeMedium}"
+                    IsPassword="True"
+                    WidthRequest="300"
+                    HorizontalOptions="CenterAndExpand"
+                    Placeholder="Your password"
+                    PlaceholderColor="Gray"
+                    Text="{Binding Password}"
+                    IsEnabled="{Binding IsBusy, Converter={StaticResource ReverseBooleanConverter}}" />
+
+            <Button Text="{Binding Connect}"
+                    WidthRequest="260"
+                    FontSize="{StaticResource FontSizeSmall}"
+                    FontAttributes="Bold"
+                    TextColor="White"
+                    BackgroundColor="Blue"
+                    HorizontalOptions="CenterAndExpand"
+                    Command="{Binding ButtonConnectCommand}"/>
+
+            <ActivityIndicator Color="Gray"
+                               WidthRequest="80"
+                               HeightRequest="80"
+                               IsRunning="{Binding IsBusy}"
+                               IsVisible="{Binding IsBusy}" />
+
+        </StackLayout>
+    
+</ContentPage>

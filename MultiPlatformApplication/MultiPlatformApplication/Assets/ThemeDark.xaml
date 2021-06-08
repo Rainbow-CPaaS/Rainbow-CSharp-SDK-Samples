@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ResourceDictionary  xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+            x:Class="MultiPlatformApplication.Assets.ThemeDark">
+
+
+    <!-- Conversations List -->
+
+    <Color x:Key="MainBackgroundColor">#FF0000</Color>
+
+
+    <SolidColorBrush x:Key="TestThemeColor"
+                         Color="{StaticResource MainBackgroundColor}"/>
+
+
+    <DataTemplate x:Key="Test">
+        <BoxView>
+            
+        </BoxView>
+    </DataTemplate>
+
+</ResourceDictionary>

@@ -1,0 +1,40 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ResourceDictionary  xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <!-- Define Font Size -->
+    <!-- Default values are defined here: https://docs.microsoft.com/en-us/xamarin/xamarin-forms/user-interface/text/fonts -->
+
+    <OnPlatform x:Key="FontSizeMicro" x:TypeArguments="x:Double">
+        <On Platform="macOS">10</On>
+        <On Platform="iOS">10</On>
+        <On Platform="Android">10</On>
+        <On Platform="UWP">9</On>
+        <On Platform="WPF">9</On>
+    </OnPlatform>
+
+    <OnPlatform x:Key="FontSizeSmall" x:TypeArguments="x:Double">
+        <On Platform="macOS">14</On>
+        <On Platform="iOS">14</On>
+        <On Platform="Android">14</On>
+        <On Platform="UWP">12</On>
+        <On Platform="WPF">12</On>
+    </OnPlatform>
+    
+    <OnPlatform x:Key="FontSizeMedium" x:TypeArguments="x:Double">
+        <On Platform="macOS">17</On>
+        <On Platform="iOS">17</On>
+        <On Platform="Android">17</On>
+        <On Platform="UWP">15</On>
+        <On Platform="WPF">15</On>
+    </OnPlatform>
+
+    <OnPlatform x:Key="FontSizeLarge" x:TypeArguments="x:Double">
+        <On Platform="macOS">22</On>
+        <On Platform="iOS">22</On>
+        <On Platform="Android">22</On>
+        <On Platform="UWP">20</On>
+        <On Platform="WPF">20</On>
+    </OnPlatform>
+
+</ResourceDictionary>

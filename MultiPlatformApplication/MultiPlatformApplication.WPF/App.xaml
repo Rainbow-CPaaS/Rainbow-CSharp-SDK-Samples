@@ -1,0 +1,26 @@
+﻿<Application x:Class="MultiPlatformApplication.WPF.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:MultiPlatformApplication.WPF"
+             StartupUri="MainWindow.xaml">
+    <Application.Resources>
+        <ResourceDictionary>
+            <!-- Default Global Color -->
+            <SolidColorBrush x:Key="WindowBackgroundColor" Color="White" />
+            <SolidColorBrush x:Key="AccentColor" Color="#F5C210" />
+
+            <!-- Default Command Bar Color -->
+            <SolidColorBrush x:Key="CommandBarBackgroundColor" Color="White" />
+            <SolidColorBrush x:Key="CommandBarTextColor" Color="#151C25" />
+
+            <!-- Default Title Bar Color -->
+            <SolidColorBrush x:Key="DefaultTitleBarBackgroundColor" Color="White" />
+            <SolidColorBrush x:Key="DefaultTitleBarTextColor" Color="#151C25" />
+
+            <!-- Default Tabbed Bar Color -->
+            <SolidColorBrush x:Key="DefaultTabbedBarBackgroundColor" Color="White" />
+            <SolidColorBrush x:Key="DefaultTabbedBarTextColor" Color="#151C25" />
+
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

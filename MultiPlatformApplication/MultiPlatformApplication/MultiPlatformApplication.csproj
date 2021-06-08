@@ -1,0 +1,82 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DebugType>portable</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Resources\images\document\icon_doc_blue.png" />
+    <None Remove="Resources\images\document\icon_image_blue.png" />
+    <None Remove="Resources\images\document\icon_pdf_blue.png" />
+    <None Remove="Resources\images\document\icon_ppt_blue.png" />
+    <None Remove="Resources\images\document\icon_unknown_blue.png" />
+    <None Remove="Resources\images\document\icon_xls_blue.png" />
+    <None Remove="Resources\images\message\msg_check.png" />
+    <None Remove="Resources\images\message\msg_not_read.png" />
+    <None Remove="Resources\images\message\msg_read.png" />
+    <None Remove="Resources\images\message\msg_sending.png" />
+    <None Remove="Resources\images\presence\presence_away.png" />
+    <None Remove="Resources\images\presence\presence_busy.png" />
+    <None Remove="Resources\images\presence\presence_dnd.png" />
+    <None Remove="Resources\images\presence\presence_offline.png" />
+    <None Remove="Resources\images\presence\presence_online.png" />
+    <None Remove="Resources\images\presence\presence_online_mobile.png" />
+    <None Remove="Resources\images\presence\presence_xa.png" />
+    <None Remove="Resources\log\NLogConfiguration.xml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\images\document\icon_doc_blue.png" />
+    <EmbeddedResource Include="Resources\images\document\icon_image_blue.png" />
+    <EmbeddedResource Include="Resources\images\document\icon_pdf_blue.png" />
+    <EmbeddedResource Include="Resources\images\document\icon_ppt_blue.png" />
+    <EmbeddedResource Include="Resources\images\document\icon_unknown_blue.png" />
+    <EmbeddedResource Include="Resources\images\document\icon_xls_blue.png" />
+    <EmbeddedResource Include="Resources\images\message\msg_check.png" />
+    <EmbeddedResource Include="Resources\images\message\msg_not_read.png" />
+    <EmbeddedResource Include="Resources\images\message\msg_read.png" />
+    <EmbeddedResource Include="Resources\images\message\msg_sending.png" />
+    <EmbeddedResource Include="Resources\images\presence\presence_away.png" />
+    <EmbeddedResource Include="Resources\images\presence\presence_busy.png" />
+    <EmbeddedResource Include="Resources\images\presence\presence_dnd.png" />
+    <EmbeddedResource Include="Resources\images\presence\presence_offline.png" />
+    <EmbeddedResource Include="Resources\images\presence\presence_online.png" />
+    <EmbeddedResource Include="Resources\images\presence\presence_online_mobile.png" />
+    <EmbeddedResource Include="Resources\images\presence\presence_xa.png" />
+    <EmbeddedResource Include="Resources\log\NLogConfiguration.xml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
+    <PackageReference Include="Rainbow.CSharp.SDK.Common" Version="2.1.0" />
+    <PackageReference Include="Xamarin.Forms" Version="5.0.0.2012" />
+    <PackageReference Include="Xamarin.Essentials" Version="1.6.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Page Include="Assets\ResourceDictionaryFont.xaml">
+      <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
+    </Page>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Assets\ThemeDark.xaml">
+      <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Assets\ThemeLight.xaml">
+      <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Views\DataTemplates\Conversation.xaml">
+      <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Views\DataTemplates\Message.xaml">
+      <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
+    </EmbeddedResource>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Application xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MultiPlatformApplication.App"
+             xmlns:theme="clr-namespace:MultiPlatformApplication.Assets"
+             >
+    <Application.Resources>
+
+        <ResourceDictionary x:Name="ThemeDictionary">
+            <ResourceDictionary.MergedDictionaries>
+                <theme:ThemeLight/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+
+
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Assets/ResourceDictionaryFont.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+        
+    </Application.Resources>
+</Application>
