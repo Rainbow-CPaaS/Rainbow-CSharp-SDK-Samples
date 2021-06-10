@@ -3,6 +3,10 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
             x:Class="MultiPlatformApplication.Assets.ThemeLight">
 
+    <!-- Main-->
+    <Color x:Key="ColorMain">#2470E0</Color>
+    
+    
     <!-- Conversation Stream -->
     <Color x:Key="ColorConversationStreamMainBackground">#E8EAED</Color>
 
