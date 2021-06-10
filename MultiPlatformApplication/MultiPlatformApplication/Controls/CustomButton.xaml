@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<StackLayout xmlns="http://xamarin.com/schemas/2014/forms" 
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MultiPlatformApplication.Controls.CustomButton"
+             x:Name="StackLayout"
+             HorizontalOptions="Center"
+             VerticalOptions="Center"
+             Margin="0"
+             Padding="0"
+             Spacing="0">
+
+            <Image x:Name="Image"
+                   Aspect="AspectFit"
+                   VerticalOptions="CenterAndExpand"
+                   HorizontalOptions="Center"
+                   Margin="0"/>
+
+            <Label x:Name="Label"
+                   MaxLines="1" 
+                   LineBreakMode="TailTruncation"
+                   Margin="0"
+                   Padding="0"
+                   IsVisible="False"/>
+
+</StackLayout>
