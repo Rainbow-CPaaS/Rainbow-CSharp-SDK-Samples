@@ -67,8 +67,6 @@ namespace MultiPlatformApplication
 
             InitAvatarPool();
             InitFilePool();
-
-            InitSvgFiles();
         }
 
 #region EVENTS FROM SDK
@@ -474,19 +472,6 @@ namespace MultiPlatformApplication
             RbFiles.FileDescriptorAvailable += FilePool_FileDescriptorAvailable;
             RbFiles.ThumbnailAvailable += FilePool_ThumbnailAvailable;
 
-        }
-
-        private void InitSvgFiles()
-        {
-            String imagePoolFolderPath = Helper.GetImagesStorageFolderPath();
-
-            Directory.CreateDirectory(imagePoolFolderPath);
-
-            String imageFilePath;
-
-            // Creat "loading.png" file
-            imageFilePath = Path.Combine(imagePoolFolderPath, "loading.png");
-            Rainbow.Common.ImageTools.SaveBitmapToFile(Rainbow.Common.ImageTools.GetBitmapFromSvgResourceName("loading", 20), imageFilePath); ;
         }
 
 #endregion PRIVATE API
