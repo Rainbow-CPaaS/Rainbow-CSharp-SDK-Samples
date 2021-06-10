@@ -16,6 +16,7 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="/Assets/ResourceDictionaryFont.xaml"/>
+                <theme:ResourceDictionnaryMainImages/>
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
         

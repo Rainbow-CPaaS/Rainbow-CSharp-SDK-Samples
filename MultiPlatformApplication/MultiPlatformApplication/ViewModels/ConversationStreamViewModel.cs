@@ -26,9 +26,15 @@ namespace MultiPlatformApplication.ViewModels
     {
         private static readonly Logger log = LogConfigurator.GetLogger(typeof(ConversationStreamViewModel));
 
+
+        private ConversationModel conversationModel;
+
 #region BINDINGS used in XAML
 
-        public ConversationModel Conversation { get; private set; } = new ConversationModel();
+        public ConversationModel Conversation {
+                get { return conversationModel; }
+                set { SetProperty(ref conversationModel, value); }
+            }
 
         public DynamicListModel<MessageModel> DynamicList { get; private set; } = new DynamicListModel<MessageModel>();
 #endregion BINDINGS used in XAML
