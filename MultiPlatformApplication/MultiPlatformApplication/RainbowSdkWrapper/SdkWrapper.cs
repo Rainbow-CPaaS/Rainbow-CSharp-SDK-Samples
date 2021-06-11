@@ -178,6 +178,21 @@ namespace MultiPlatformApplication
 
 #region PUBLIC API
 
+    #region STATIC METHODS
+        public static String GetColorFromDisplayName(String displayName)
+        {
+            return Rainbow.Common.Avatars.GetColorFromDisplayName(displayName);
+        }
+
+        // NOT NECESSARY TO HAVE THIS VIRTUAL
+        public static String GetDarkerColorFromDisplayName(String displayName)
+        {
+            return Rainbow.Common.Avatars.GetDarkerColorFromDisplayName(displayName);
+        }
+
+    #endregion STATIC METHODS
+
+
     #region WRAPPER - FILES
 
         virtual public int MaxThumbnailWidth { get; set; }
@@ -233,17 +248,6 @@ namespace MultiPlatformApplication
             return null;
         }
 
-        // NOT NECESSARY TO HAVE THIS VIRTUAL
-        public static String GetColorFromDisplayName(String displayName)
-        {
-            return Rainbow.Common.Avatars.GetColorFromDisplayName(displayName);
-        }
-
-        // NOT NECESSARY TO HAVE THIS VIRTUAL
-        public static String GetDarkerColorFromDisplayName(String displayName)
-        {
-            return Rainbow.Common.Avatars.GetDarkerColorFromDisplayName(displayName);
-        }
 
     #endregion WRAPPER - AVATARS
 
