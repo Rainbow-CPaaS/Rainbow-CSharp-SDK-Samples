@@ -471,11 +471,13 @@ namespace MultiPlatformApplication.Controls
 
 #endregion CommandParameterProperty
 
+
         // Define commands used for  Mouse Over / Mouse Out purpose
         public MouseOverAndOutModel mouseCommands { get; set; }
 
         // Need to store original background color
         private Color originalBackgroundColor;
+        private Boolean isMouseOver = false;
 
         private static void SetImageDisplay(CustomButton control)
         {
@@ -506,24 +508,45 @@ namespace MultiPlatformApplication.Controls
             control.Label.TextColor = control.TextColor;
         }
 
+        private void SetBackGroundColor()
+        {
+            if(IsEnabled)
+            {
+                if (isMouseOver)
+                {
+                    // Store original Background Color
+                    originalBackgroundColor = Color.FromHex(BackgroundColor.ToHex());
+
+                    // Set new color
+                    BackgroundColor = BackgroundColorOnMouseOver;
+                }
+                else
+                {
+                    // Restore original Background Color
+                    BackgroundColor = Color.FromHex(originalBackgroundColor.ToHex());
+                }
+            }
+            else
+                BackgroundColor = BackgroundColorOnMouseOver;
+        }
+
         private void MouseOverCommand(object obj)
         {
-            // Store original Background Color
-            originalBackgroundColor = Color.FromHex(BackgroundColor.ToHex());
-
-            // Set new color
-            BackgroundColor = BackgroundColorOnMouseOver;
+            isMouseOver = true;
+            SetBackGroundColor();
         }
 
         private void MouseOutCommand(object obj)
         {
-            // Restore original Background Color
-            BackgroundColor = Color.FromHex(originalBackgroundColor.ToHex());
+            isMouseOver = false;
+            SetBackGroundColor();
         }
 
         public CustomButton()
         {
             InitializeComponent();
+
+            this.PropertyChanged += CustomButton_PropertyChanged;
 
             mouseCommands = new MouseOverAndOutModel();
             mouseCommands.MouseOverCommand = new RelayCommand<object>(new Action<object>(MouseOverCommand));
@@ -543,6 +566,14 @@ namespace MultiPlatformApplication.Controls
             //StackLayout.GestureRecognizers.Add(tapGestureRecognizer);
             ContentView.GestureRecognizers.Add(tapGestureRecognizer);
             
+        }
+
+        private void CustomButton_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if(e.PropertyName == "IsEnabled")
+            {
+                SetBackGroundColor();
+            }
         }
 
 #region PRIVATE METHODS

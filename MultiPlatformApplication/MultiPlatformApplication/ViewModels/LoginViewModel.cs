@@ -26,7 +26,7 @@ namespace MultiPlatformApplication.ViewModels
         {
             LoginModel = new LoginModel()
             {
-                ButtonConnectCommand = new RelayCommand<object>(new Action<object>(ButtonConnectCommand), new Predicate<object>(ButtonConnectCommandCanExecute))
+                ButtonConnectCommand = new RelayCommand<object>(new Action<object>(ButtonConnectCommand))
             };
 
             XamarinApplication = (App)Xamarin.Forms.Application.Current;
@@ -42,9 +42,6 @@ namespace MultiPlatformApplication.ViewModels
 
             LoginModel.Login = XamarinApplication.SdkWrapper.GetUserLoginFromCache();
             LoginModel.Password = XamarinApplication.SdkWrapper.GetUserPasswordFromCache();
-
-            // Update button display
-            LoginModel.ButtonConnectCommand.RaiseCanExecuteChanged();
         }
 
         private void RbApplication_ConnectionStateChanged(object sender, Rainbow.Events.ConnectionStateEventArgs e)
@@ -93,16 +90,6 @@ namespace MultiPlatformApplication.ViewModels
                 // Wait all manual events before to continue
                 WaitHandle.WaitAll(new WaitHandle[] { manualEventBubbles, manualEventConversations }, 5000);
 
-                // Updte display 
-                Device.BeginInvokeOnMainThread(() =>
-                {
-                    LoginModel.Connect = "Disconnect";
-                    LoginModel.IsBusy = false;
-
-                    // Update button display
-                    LoginModel.ButtonConnectCommand.RaiseCanExecuteChanged();
-                });
-
                 // Display conversations pages
                 ShowConversationsPage();
 
@@ -124,7 +111,6 @@ namespace MultiPlatformApplication.ViewModels
 
         public void ButtonConnectCommand(object obj)
         {
-
             if (XamarinApplication.SdkWrapper.ConnectionState() == ConnectionState.Disconnected)
             {
                 XamarinApplication.SdkWrapper.Login(LoginModel.Login, LoginModel.Password, callback =>
@@ -134,11 +120,6 @@ namespace MultiPlatformApplication.ViewModels
             }
             else
                 XamarinApplication.SdkWrapper.Logout();
-        }
-
-        public Boolean ButtonConnectCommandCanExecute(object obj)
-        {
-            return !LoginModel.IsBusy;
         }
     }
 }

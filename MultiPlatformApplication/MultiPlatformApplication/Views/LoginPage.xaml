@@ -60,8 +60,14 @@
                                    TextColor="White"
                                    BackgroundColor="{StaticResource ColorMain}"
                                    BackgroundColorOnMouseOver="{StaticResource ColorMainOnOver}"
-                                   Command="{Binding ButtonConnectCommand}"/>
+                                   Command="{Binding ButtonConnectCommand}"
+                                   IsEnabled="{Binding IsBusy, Converter={StaticResource ReverseBooleanConverter}}" />
 
+        <ActivityIndicator Color="Gray"
+                           WidthRequest="80"
+                           HeightRequest="80"
+                           IsRunning="{Binding IsBusy}"
+                           IsVisible="{Binding IsBusy}" />
     </StackLayout>
     
 </ContentPage>
