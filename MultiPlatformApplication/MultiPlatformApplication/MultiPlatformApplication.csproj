@@ -28,6 +28,8 @@
     <None Remove="Resources\images\presence\presence_online.png" />
     <None Remove="Resources\images\presence\presence_online_mobile.png" />
     <None Remove="Resources\images\presence\presence_xa.png" />
+    <None Remove="Resources\images\rainbow_logo.png" />
+    <None Remove="Resources\images\rainbow_splash_logo.png" />
     <None Remove="Resources\log\NLogConfiguration.xml" />
   </ItemGroup>
 
@@ -49,6 +51,8 @@
     <EmbeddedResource Include="Resources\images\presence\presence_online.png" />
     <EmbeddedResource Include="Resources\images\presence\presence_online_mobile.png" />
     <EmbeddedResource Include="Resources\images\presence\presence_xa.png" />
+    <EmbeddedResource Include="Resources\images\rainbow_logo.png" />
+    <EmbeddedResource Include="Resources\images\rainbow_splash_logo.png" />
     <EmbeddedResource Include="Resources\log\NLogConfiguration.xml" />
   </ItemGroup>
 
