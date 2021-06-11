@@ -1,18 +1,31 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
-<StackLayout xmlns="http://xamarin.com/schemas/2014/forms" 
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="MultiPlatformApplication.Controls.CustomButton"
-             x:Name="StackLayout"
-             HorizontalOptions="Center"
-             VerticalOptions="Center"
-             Margin="0"
-             Padding="0"
-             Spacing="0">
+<Frame xmlns="http://xamarin.com/schemas/2014/forms" 
+       xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+       xmlns:effects="clr-namespace:MultiPlatformApplication.Effects"
+       x:Class="MultiPlatformApplication.Controls.CustomButton"
+       CornerRadius="0" 
+       Margin="0"
+       Padding="0"
+       HorizontalOptions="Center"
+       VerticalOptions="Center"
+       >
+
+    <ContentView x:Name="ContentView"
+                 effects:MouseOverEffect.Command="{Binding MouseOverCommand}"
+                 effects:MouseOutEffect.Command="{Binding MouseOutCommand}">
+        
+        <StackLayout x:Name="StackLayout"
+                     HorizontalOptions="CenterAndExpand"
+                     VerticalOptions="CenterAndExpand"
+                     Margin="0"
+                     Padding="0"
+                     Spacing="0">
 
             <Image x:Name="Image"
                    Aspect="AspectFit"
                    VerticalOptions="CenterAndExpand"
                    HorizontalOptions="Center"
+                   IsVisible="False"
                    Margin="0"/>
 
             <Label x:Name="Label"
@@ -21,5 +34,7 @@
                    Margin="0"
                    Padding="0"
                    IsVisible="False"/>
+        </StackLayout>
+    </ContentView>
 
-</StackLayout>
+</Frame>

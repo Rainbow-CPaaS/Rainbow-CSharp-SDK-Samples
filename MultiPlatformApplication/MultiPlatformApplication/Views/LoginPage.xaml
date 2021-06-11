@@ -3,6 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:local="clr-namespace:MultiPlatformApplication"
              xmlns:converters="clr-namespace:MultiPlatformApplication.Converters;assembly=MultiPlatformApplication" 
+             xmlns:controls="clr-namespace:MultiPlatformApplication.Controls"
+             xmlns:effects="clr-namespace:MultiPlatformApplication.Effects"
              x:Class="MultiPlatformApplication.LoginPage"
              NavigationPage.HasNavigationBar="False">
 
@@ -50,21 +52,17 @@
                     Text="{Binding Password}"
                     IsEnabled="{Binding IsBusy, Converter={StaticResource ReverseBooleanConverter}}" />
 
-            <Button Text="{Binding Connect}"
-                    WidthRequest="260"
-                    FontSize="{StaticResource FontSizeSmall}"
-                    FontAttributes="Bold"
-                    TextColor="White"
-                    BackgroundColor="Blue"
-                    HorizontalOptions="CenterAndExpand"
-                    Command="{Binding ButtonConnectCommand}"/>
+        <controls:CustomButton Text="{Binding Connect}"
+                               CornerRadius="4"
+                               HeightRequest="30"
+                               WidthRequest="260"
+                               FontSize="{StaticResource FontSizeSmall}"
+                               FontAttributes="Bold"
+                               TextColor="White"
+                               BackgroundColor="{StaticResource ColorMain}"
+                               BackgroundColorOnMouseOver="{StaticResource ColorMainOnOver}"
+                               Command="{Binding ButtonConnectCommand}"/>
 
-            <ActivityIndicator Color="Gray"
-                               WidthRequest="80"
-                               HeightRequest="80"
-                               IsRunning="{Binding IsBusy}"
-                               IsVisible="{Binding IsBusy}" />
-
-        </StackLayout>
+    </StackLayout>
     
 </ContentPage>

@@ -1,4 +1,6 @@
-﻿using System;
+﻿using MultiPlatformApplication.Helpers;
+using MultiPlatformApplication.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,9 +12,8 @@ using Xamarin.Forms.Xaml;
 namespace MultiPlatformApplication.Controls
 {
     [XamlCompilation(XamlCompilationOptions.Compile)]
-    public partial class CustomButton : StackLayout
+    public partial class CustomButton : Frame
     {
-
 
 #region ImageSourceProperty
 
@@ -253,6 +254,40 @@ namespace MultiPlatformApplication.Controls
 #endregion FontSizeProperty
 
 
+#region FontAttributesProperty
+
+        public static readonly BindableProperty FontAttributesProperty =
+            BindableProperty.Create(nameof(FontAttributes),
+            typeof(FontAttributes),
+            typeof(CustomButton),
+            defaultValue: FontAttributes.None,
+            defaultBindingMode: BindingMode.OneWay,
+            propertyChanged: FontAttributesPropertyChanged);
+
+        private static void FontAttributesPropertyChanged(BindableObject bindable, object oldValue, object newValue)
+        {
+            var control = (CustomButton)bindable;
+            if (newValue is FontAttributes)
+                control.Label.FontAttributes = (FontAttributes)newValue;
+        }
+
+        public FontAttributes FontAttributes
+        {
+            get
+            {
+                var obj = base.GetValue(FontAttributesProperty);
+                if(obj != null)
+                    return (FontAttributes)obj;
+                return FontAttributes.None;
+            }
+            set
+            {
+                base.SetValue(FontAttributesProperty, value);
+            }
+        }
+#endregion FontAttributesProperty
+
+
 #region TextColorOnSelectedProperty
 
         public static readonly BindableProperty TextColorOnSelectedProperty =
@@ -354,6 +389,38 @@ namespace MultiPlatformApplication.Controls
 #endregion TextMarginProperty
 
 
+#region BackgroundColorOnMouseOverProperty
+
+        public static readonly BindableProperty BackgroundColorOnMouseOverProperty =
+            BindableProperty.Create(nameof(BackgroundColorOnMouseOver),
+            typeof(Color),
+            typeof(CustomButton),
+            defaultValue: Color.Transparent,
+            defaultBindingMode: BindingMode.OneWay,
+            propertyChanged: BackgroundColorOnMouseOverPropertyChanged);
+
+        private static void BackgroundColorOnMouseOverPropertyChanged(BindableObject bindable, object oldValue, object newValue)
+        {
+            // Nothing to do here
+        }
+
+        public Color BackgroundColorOnMouseOver
+        {
+            get
+            {
+                var obj = base.GetValue(BackgroundColorOnMouseOverProperty);
+                if(obj != null)
+                    return (Color)obj;
+                return Color.Transparent;
+            }
+            set
+            {
+                base.SetValue(BackgroundColorOnMouseOverProperty, value);
+            }
+        }
+#endregion BackgroundColorOnMouseOverProperty
+
+
 #region CommandProperty
 
         TapGestureRecognizer tapGestureRecognizer = new TapGestureRecognizer();
@@ -404,19 +471,31 @@ namespace MultiPlatformApplication.Controls
 
 #endregion CommandParameterProperty
 
+        // Define commands used for  Mouse Over / Mouse Out purpose
+        public MouseOverAndOutModel mouseCommands { get; set; }
 
-        public static void SetImageDisplay(CustomButton control)
+        // Need to store original background color
+        private Color originalBackgroundColor;
+
+        private static void SetImageDisplay(CustomButton control)
         {
             if ( control.IsSelected && (control.ImageSourceOnSelected != null) )
             {
+                control.Image.IsVisible = true;
                 control.Image.Source = control.ImageSourceOnSelected;
                 return;
             }
 
-            control.Image.Source = control.ImageSource;
+            if (control.ImageSource != null)
+            {
+                control.Image.IsVisible = true;
+                control.Image.Source = control.ImageSource;
+            }
+            else
+                control.Image.IsVisible = false;
         }
 
-        public static void SetTextColorDisplay(CustomButton control)
+        private static void SetTextColorDisplay(CustomButton control)
         {
             if (control.IsSelected && (control.TextColorOnSelected != null))
             {
@@ -427,10 +506,29 @@ namespace MultiPlatformApplication.Controls
             control.Label.TextColor = control.TextColor;
         }
 
+        private void MouseOverCommand(object obj)
+        {
+            // Store original Background Color
+            originalBackgroundColor = Color.FromHex(BackgroundColor.ToHex());
+
+            // Set new color
+            BackgroundColor = BackgroundColorOnMouseOver;
+        }
+
+        private void MouseOutCommand(object obj)
+        {
+            // Restore original Background Color
+            BackgroundColor = Color.FromHex(originalBackgroundColor.ToHex());
+        }
 
         public CustomButton()
         {
             InitializeComponent();
+
+            mouseCommands = new MouseOverAndOutModel();
+            mouseCommands.MouseOverCommand = new RelayCommand<object>(new Action<object>(MouseOverCommand));
+            mouseCommands.MouseOutCommand = new RelayCommand<object>(new Action<object>(MouseOutCommand));
+            ContentView.BindingContext = mouseCommands;
 
             tapGestureRecognizer.Tapped += (s, e) => {
                 if (Command != null && Command.CanExecute(CommandParameter))
@@ -439,11 +537,16 @@ namespace MultiPlatformApplication.Controls
                 }
             };
 
-
-            Label.GestureRecognizers.Add(tapGestureRecognizer);
-            Label.GestureRecognizers.Add(tapGestureRecognizer);
-            StackLayout.GestureRecognizers.Add(tapGestureRecognizer);
-
+            // Seems not necessary to specify Tap Gesture Recognizer on all components - only on ContentView seems enough
+            //Label.GestureRecognizers.Add(tapGestureRecognizer);
+            //Label.GestureRecognizers.Add(tapGestureRecognizer);
+            //StackLayout.GestureRecognizers.Add(tapGestureRecognizer);
+            ContentView.GestureRecognizers.Add(tapGestureRecognizer);
+            
         }
+
+#region PRIVATE METHODS
+#endregion PRIVATE METHODS
+
     }
 }
