@@ -5,6 +5,7 @@
              xmlns:converters="clr-namespace:MultiPlatformApplication.Converters;assembly=MultiPlatformApplication" 
              xmlns:controls="clr-namespace:MultiPlatformApplication.Controls"
              xmlns:effects="clr-namespace:MultiPlatformApplication.Effects"
+             xmlns:extensions="clr-namespace:MultiPlatformApplication.Extensions"
              x:Class="MultiPlatformApplication.LoginPage"
              NavigationPage.HasNavigationBar="False">
 
@@ -25,9 +26,7 @@
                 HorizontalOptions="Center" BindingContext="{Binding LoginModel}">
             
             <StackLayout Orientation="Horizontal" HorizontalOptions="Center" VerticalOptions="Start" Padding="0, 30, 0, 30">
-                
-                <!--<Image  Source="splash_logo" WidthRequest="120" HeightRequest="120" HorizontalOptions="Center" VerticalOptions="Start" Aspect="AspectFill" />-->
-                
+                <Image Source="{extensions:ImageResource Id=rainbow_splash_logo.png}" />
             </StackLayout>
 
             <Entry
@@ -52,16 +51,16 @@
                     Text="{Binding Password}"
                     IsEnabled="{Binding IsBusy, Converter={StaticResource ReverseBooleanConverter}}" />
 
-        <controls:CustomButton Text="{Binding Connect}"
-                               CornerRadius="4"
-                               HeightRequest="30"
-                               WidthRequest="260"
-                               FontSize="{StaticResource FontSizeSmall}"
-                               FontAttributes="Bold"
-                               TextColor="White"
-                               BackgroundColor="{StaticResource ColorMain}"
-                               BackgroundColorOnMouseOver="{StaticResource ColorMainOnOver}"
-                               Command="{Binding ButtonConnectCommand}"/>
+            <controls:CustomButton Text="{Binding Connect}"
+                                   CornerRadius="4"
+                                   HeightRequest="30"
+                                   WidthRequest="200"
+                                   FontSize="{StaticResource FontSizeSmall}"
+                                   FontAttributes="Bold"
+                                   TextColor="White"
+                                   BackgroundColor="{StaticResource ColorMain}"
+                                   BackgroundColorOnMouseOver="{StaticResource ColorMainOnOver}"
+                                   Command="{Binding ButtonConnectCommand}"/>
 
     </StackLayout>
     
