@@ -271,7 +271,7 @@ namespace MultiPlatformApplication.Helpers
             return density;
         }
 
-        public static ImageSource GetBubbleAvatarFilePath(String bubbleId)
+        public static String GetBubbleAvatarFilePath(String bubbleId)
         {
             String filePath = null;
             if (!String.IsNullOrEmpty(bubbleId))
@@ -279,7 +279,7 @@ namespace MultiPlatformApplication.Helpers
                 try
                 {
                     filePath = XamarinApplication.SdkWrapper.GetBubbleAvatarPath(bubbleId);
-                    log.Debug("[GetConversationAvatarImageSource] Bubble Avatar - Id:[{0}] - FilePath:[{1}]", bubbleId, filePath);
+                    log.Debug("[GetBubbleAvatarFilePath] Bubble Avatar - Id:[{0}] - FilePath:[{1}]", bubbleId, filePath);
                 }
                 catch (Exception exc)
                 {
@@ -299,7 +299,6 @@ namespace MultiPlatformApplication.Helpers
                 try
                 {
                     filePath = XamarinApplication.SdkWrapper.GetContactAvatarPath(contactId);
-
                     log.Debug("[GetContactAvatarImageSource] contactId:[{0}] - filePath:[{1}]", contactId, filePath);
                 }
                 catch (Exception exc)
@@ -316,146 +315,12 @@ namespace MultiPlatformApplication.Helpers
             String filePath = null;
             if (conversation != null)
             {
-                try
-                {
-                    if (conversation.Type == Rainbow.Model.Conversation.ConversationType.User)
-                    {
-                        filePath = XamarinApplication.SdkWrapper.GetContactAvatarPath(conversation.PeerId);
-                        log.Debug("[GetConversationAvatarFilePath] Contact Avatar - Id:[{0}] - FilePath:[{1}]", conversation.PeerId, filePath);
-                    }
-                    else if (conversation.Type == Rainbow.Model.Conversation.ConversationType.Room)
-                    {
-                        filePath = XamarinApplication.SdkWrapper.GetBubbleAvatarPath(conversation.PeerId);
-                        log.Debug("[GetConversationAvatarFilePath] Bubble Avatar - Id:[{0}] - FilePath:[{1}]", conversation.PeerId, filePath);
-                    }
-                }
-                catch (Exception exc)
-                {
-                    log.Warn("[GetConversationAvatarFilePath] PeerId:[{0}] - exception occurs to create avatar:[{1}]", conversation.PeerId, Rainbow.Util.SerializeException(exc));
-                    if (conversation.Type == Rainbow.Model.Conversation.ConversationType.User)
-                        filePath = XamarinApplication.SdkWrapper.GetUnknwonContactAvatarFilePath();
-                    else if (conversation.Type == Rainbow.Model.Conversation.ConversationType.Room)
-                        filePath = XamarinApplication.SdkWrapper.GetUnknwonBubbleAvatarFilePath();
-                }
+                if (conversation.Type == Rainbow.Model.Conversation.ConversationType.User)
+                    filePath = GetContactAvatarFilePath(conversation.PeerId);
+                else if (conversation.Type == Rainbow.Model.Conversation.ConversationType.Room)
+                    filePath = GetBubbleAvatarFilePath(conversation.PeerId);
             }
             return filePath;
-        }
-
-        public static ImageSource GetBubbleAvatarImageSource(String bubbleId)
-        {
-            ImageSource result = null;
-            if (!String.IsNullOrEmpty(bubbleId))
-            {
-                String filePath = null;
-                try
-                {
-                    filePath = XamarinApplication.SdkWrapper.GetBubbleAvatarPath(bubbleId);
-                    log.Debug("[GetConversationAvatarImageSource] Bubble Avatar - Id:[{0}] - FilePath:[{1}]", bubbleId, filePath);
-                }
-                catch (Exception exc)
-                {
-                    log.Warn("[GetBubbleAvatarImageSource] bubbleId:[{0}] - exception occurs to create avatar:[{1}]", bubbleId, Rainbow.Util.SerializeException(exc));
-                    filePath = XamarinApplication.SdkWrapper.GetUnknwonBubbleAvatarFilePath();
-                }
-
-                try
-                {
-                    result = ImageSource.FromFile(filePath);
-
-                    //result = ImageSource.FromStream(() =>
-                    //{
-                    //    return Rainbow.Common.Util.GetStreamFromFile(filePath);
-                    //});
-
-                }
-                catch (Exception exc)
-                {
-                    log.Warn("[GetBubbleAvatarImageSource] bubbleId:[{0}] - exception occurs to display avatar[{1}]", bubbleId, Rainbow.Util.SerializeException(exc));
-                }
-            }
-            return result;
-        }
-
-        public static ImageSource GetContactAvatarImageSource(String contactId)
-        {
-            ImageSource result = null;
-            if (!String.IsNullOrEmpty(contactId))
-            {
-                String filePath = null;
-                try
-                {
-                    filePath = XamarinApplication.SdkWrapper.GetContactAvatarPath(contactId);
-                    log.Debug("[GetContactAvatarImageSource] contactId:[{0}] - filePath:[{1}]", contactId, filePath);
-                }
-                catch (Exception exc)
-                {
-                    log.Warn("[GetContactAvatarImageSource] contactId:[{0}] - exception occurs to create avatar:[{1}]", contactId, Rainbow.Util.SerializeException(exc));
-                    filePath = XamarinApplication.SdkWrapper.GetUnknwonContactAvatarFilePath();
-                }
-
-                try
-                {
-                    result = ImageSource.FromFile(filePath);
-                    //result = ImageSource.FromStream(() =>
-                    //{
-                    //    return Rainbow.Common.Util.GetStreamFromFile(filePath);
-                    //});
-
-                }
-                catch (Exception exc)
-                {
-                    log.Warn("[GetContactAvatarImageSource] contactId:[{0}] - exception occurs to display avatar[{1}]", contactId, Rainbow.Util.SerializeException(exc));
-                }
-
-            }
-            return result;
-        }
-
-        public static ImageSource GetConversationAvatarImageSource(ConversationModel conversation)
-        {
-            ImageSource result = null;
-            if (conversation != null)
-            {
-                String filePath = null;
-                try
-                {
-                    if (conversation.Type == Rainbow.Model.Conversation.ConversationType.User)
-                    {
-                        filePath = XamarinApplication.SdkWrapper.GetContactAvatarPath(conversation.PeerId);
-                        log.Debug("[GetConversationAvatarImageSource] Contact Avatar - Id:[{0}] - FilePath:[{1}]", conversation.PeerId, filePath);
-                    }
-                    else if (conversation.Type == Rainbow.Model.Conversation.ConversationType.Room)
-                    {
-                        filePath = XamarinApplication.SdkWrapper.GetBubbleAvatarPath(conversation.PeerId);
-                        log.Debug("[GetConversationAvatarImageSource] Bubble Avatar - Id:[{0}] - FilePath:[{1}]", conversation.PeerId, filePath);
-                    }
-                }
-                catch (Exception exc)
-                {
-                    log.Warn("[GetConversationAvatarImageSource] PeerId:[{0}] - exception occurs to create avatar:[{1}]", conversation.PeerId, Rainbow.Util.SerializeException(exc));
-                    if (conversation.Type == Rainbow.Model.Conversation.ConversationType.User)
-                        filePath = XamarinApplication.SdkWrapper.GetUnknwonContactAvatarFilePath();
-                    else if (conversation.Type == Rainbow.Model.Conversation.ConversationType.Room)
-                        filePath = XamarinApplication.SdkWrapper.GetUnknwonBubbleAvatarFilePath();
-                }
-
-                try
-                {
-                    result = ImageSource.FromFile(filePath);
-
-                    //result = ImageSource.FromStream(() =>
-                    //{
-                    //    return Rainbow.Common.Util.GetStreamFromFile(filePath);
-                    //});
-
-                }
-                catch (Exception exc)
-                {
-                    log.Warn("[GetConversationAvatarImageSource] PeerId:[{0}] - exception occurs to display avatar[{1}]", conversation.PeerId, Rainbow.Util.SerializeException(exc));
-                }
-   
-            }
-            return result;
         }
 
 #endregion AVATAR - IMAGE SOURCE    

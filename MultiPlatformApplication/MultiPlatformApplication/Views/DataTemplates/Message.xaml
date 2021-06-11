@@ -128,10 +128,10 @@
             <StackLayout Grid.Row="0" Grid.Column="1"
                     HorizontalOptions="Center" VerticalOptions="End"
                     Padding="0" Spacing="0" IsVisible="True">
-                <Image Source="{Binding AvatarSource}"
-                   Aspect="AspectFit" 
-                   WidthRequest="40" HeightRequest="40"
-                   VerticalOptions="Center" HorizontalOptions="Center"/>
+                <Image Source="{Binding AvatarImageSource}"
+                       Aspect="AspectFit" 
+                       WidthRequest="40" HeightRequest="40"
+                       VerticalOptions="Center" HorizontalOptions="Center"/>
             </StackLayout>
 
             <!-- BODY -->
@@ -246,10 +246,11 @@
             IsClippedToBounds="False">
 
                 <StackLayout Orientation="Horizontal" VerticalOptions="Center" HorizontalOptions="FillAndExpand">
-                    <Image Source="{Binding AvatarSource}"
-                       Aspect="AspectFit" 
-                       WidthRequest="40" HeightRequest="40"
-                       VerticalOptions="Center" />
+                        <Image Source="{Binding AvatarImageSource}"
+                               Aspect="AspectFit" 
+                               WidthRequest="40" 
+                               HeightRequest="40"
+                               VerticalOptions="Center" />
 
                     <StackLayout Orientation="Vertical" VerticalOptions="Center" HorizontalOptions="FillAndExpand" HeightRequest="60">
                         <Label HorizontalOptions="Start" TextColor="Black" FontSize="{StaticResource FontSizeSmall}" VerticalOptions="Center" Text="{Binding EventMessageBodyPart1}"/>

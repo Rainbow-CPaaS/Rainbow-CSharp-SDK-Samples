@@ -338,7 +338,7 @@ namespace MultiPlatformApplication.ViewModels
                 if (msg != null)
                 {
                     messagesList.Insert(0, msg);
-                    msg.AvatarSource = Helper.GetContactAvatarImageSource(msg.PeerId);
+                    msg.AvatarFilePath = Helper.GetContactAvatarFilePath(msg.PeerId);
 
                     AddContactInvolved(msg.PeerJid);
                 }
@@ -559,14 +559,8 @@ namespace MultiPlatformApplication.ViewModels
                 if (contact != null)
                 {
                     log.Debug("[UpdateMessagesForJid] peerJid:[{0}] - peerId:[{1}] - updateAvatar[{2}] - updateDisplayName:[{3}]", peerJid, contact.Id, updateAvatar, updateDisplayName);
-                    ImageSource imageSource;
-                    String displayName;
                     
-                    if (updateAvatar)
-                        imageSource = Helper.GetContactAvatarImageSource(contact.Id);
-                    else
-                        imageSource = null;
-
+                    String displayName;
                     if (updateDisplayName)
                         displayName = Rainbow.Util.GetContactDisplayName(contact);
                     else
@@ -577,8 +571,8 @@ namespace MultiPlatformApplication.ViewModels
                     {
                         foreach (MessageModel message in messages)
                         {
-                            if (imageSource != null)
-                                message.AvatarSource = imageSource;
+                            if (updateAvatar)
+                                message.AvatarFilePath = Helper.GetContactAvatarFilePath(contact.Id);
 
                             if (displayName != null)
                             {
@@ -967,7 +961,7 @@ namespace MultiPlatformApplication.ViewModels
                     }
 
                     // Since message is not null, set the Avatar Source
-                    newMsg.AvatarSource = Helper.GetContactAvatarImageSource(newMsg.PeerId);
+                    newMsg.AvatarFilePath = Helper.GetContactAvatarFilePath(newMsg.PeerId);
 
                     // Manage incoming REPLACE message
                     if (!String.IsNullOrEmpty(e.Message.ReplaceId))

@@ -21,7 +21,8 @@ namespace MultiPlatformApplication.Models
 
         Color backgroundColor;
         String peerDisplayNameIsVisible;
-        ImageSource avatarSource;
+        String avatarFilePath;
+        ImageSource avatarImageSource;
         DateTime messageDateTime;
         String  messageDateDisplay;
 
@@ -119,10 +120,27 @@ namespace MultiPlatformApplication.Models
             set { SetProperty(ref bodyColor, value); }
         }
 
-        public ImageSource AvatarSource
+        public String AvatarFilePath
         {
-            get { return avatarSource; }
-            set { SetProperty(ref avatarSource, value); }
+            get { return avatarFilePath; }
+            set
+            {
+                if (value != avatarFilePath)
+                {
+                    SetProperty(ref avatarFilePath, value);
+
+                    if (String.IsNullOrEmpty(value))
+                        AvatarImageSource = null;
+                    else
+                        AvatarImageSource = ImageSource.FromFile(AvatarFilePath);
+                }
+            }
+        }
+
+        public ImageSource AvatarImageSource
+        {
+            get { return avatarImageSource; }
+            set { SetProperty(ref avatarImageSource, value); }
         }
 
         public DateTime MessageDateTime
@@ -350,7 +368,7 @@ namespace MultiPlatformApplication.Models
             BodyIsVisible = "True";
             BodyFontAttributes = FontAttributes.None;
             BodyColor = Color.FromHex("#000000");
-            AvatarSource = null;
+            AvatarImageSource = null;
             MessageDateTime = DateTime.Now;
             MessageDateDisplay = "";
             IsEventMessage = "True";
@@ -388,7 +406,7 @@ namespace MultiPlatformApplication.Models
 
         ~MessageModel()
         {
-            AvatarSource = null;
+            AvatarImageSource = null;
             ReceiptImageSource = null;
             FileAttachmentImageSource = null;
         }
