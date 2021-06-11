@@ -8,7 +8,6 @@ using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 
 using Rainbow;
-using Rainbow.Helpers;
 
 using MultiPlatformApplication.Models;
 using MultiPlatformApplication.ViewModels;

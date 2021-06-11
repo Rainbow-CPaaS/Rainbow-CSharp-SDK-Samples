@@ -4,11 +4,11 @@ using System.Windows.Input;
 
 using Xamarin.Forms;
 
-using Rainbow.Helpers;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Xamarin.Forms.Shapes;
+using MultiPlatformApplication.Helpers;
 
 namespace MultiPlatformApplication.Models
 {

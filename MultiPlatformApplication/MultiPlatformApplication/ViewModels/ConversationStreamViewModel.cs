@@ -16,7 +16,6 @@ using Rainbow.Common;
 using Rainbow.Model;
 
 using NLog;
-using Rainbow.Helpers;
 
 
 namespace MultiPlatformApplication.ViewModels

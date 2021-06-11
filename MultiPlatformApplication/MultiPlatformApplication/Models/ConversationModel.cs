@@ -5,10 +5,9 @@ using System.Collections.ObjectModel;
 using Xamarin.Forms;
 
 using Rainbow;
-using Rainbow.Helpers;
 
 using NLog;
-
+using MultiPlatformApplication.Helpers;
 
 namespace MultiPlatformApplication.Models
 {

@@ -6,7 +6,6 @@ using System.Text;
 using Newtonsoft.Json;
 
 using Rainbow;
-using Rainbow.Helpers;
 
 using NLog;
 using Rainbow.Model;

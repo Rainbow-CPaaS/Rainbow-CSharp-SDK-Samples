@@ -5,7 +5,7 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 
 
-namespace Rainbow.Helpers
+namespace MultiPlatformApplication.Helpers
 {
     // BASED ON: https://github.com/jamesmontemagno/mvvm-helpers/blob/master/MvvmHelpers/ObservableRangeCollection.cs
 

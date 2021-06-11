@@ -9,7 +9,6 @@ using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 
 using Rainbow.Common;
-using Rainbow.Helpers;
 using MultiPlatformApplication.Models;
 using MultiPlatformApplication.ViewModels;
 

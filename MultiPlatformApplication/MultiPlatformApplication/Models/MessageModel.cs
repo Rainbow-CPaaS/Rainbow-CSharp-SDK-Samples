@@ -2,8 +2,8 @@
 
 using Xamarin.Forms;
 
-using Rainbow.Helpers;
 using System.IO;
+using MultiPlatformApplication.Helpers;
 
 namespace MultiPlatformApplication.Models
 {

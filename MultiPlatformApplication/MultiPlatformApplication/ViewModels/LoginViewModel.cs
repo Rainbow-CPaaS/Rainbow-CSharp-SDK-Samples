@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 
-using Rainbow.Helpers;
 using Rainbow.Model;
 
 using MultiPlatformApplication.Models;

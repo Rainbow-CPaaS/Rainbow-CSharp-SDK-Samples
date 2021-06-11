@@ -7,9 +7,7 @@ using Xamarin.Essentials;
 using Xamarin.Forms;
 
 using Rainbow;
-using Rainbow.Common;
 using Rainbow.Model;
-using Rainbow.Helpers;
 
 
 using NLog;

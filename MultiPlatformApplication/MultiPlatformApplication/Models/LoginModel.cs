@@ -4,7 +4,6 @@ using System.Text;
 
 using Xamarin.Forms.Xaml;
 
-using Rainbow.Helpers;
 using System.Windows.Input;
 using MultiPlatformApplication.Helpers;
 
@@ -47,7 +46,7 @@ namespace MultiPlatformApplication.Models
         public RelayCommand<object> ButtonConnectCommand
         {
             get { return m_buttonConnectCommand; }
-            set { m_buttonConnectCommand = value; }
+            set { SetProperty(ref m_buttonConnectCommand, value); }
         }
 
         //public LoginModel()
