@@ -30,7 +30,7 @@
     <ContentPage.Content>
         <StackLayout Orientation="Vertical">
             <!-- TITLE BAR - START -->
-            <Grid RowSpacing="0" ColumnSpacing="4" Padding="0" BackgroundColor="{StaticResource ColorMain}" HorizontalOptions="FillAndExpand" VerticalOptions="Start">
+            <Grid RowSpacing="0" ColumnSpacing="0" Margin="0" Padding="0" BackgroundColor="{StaticResource ColorMain}" HorizontalOptions="FillAndExpand" VerticalOptions="Start">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="40" /> <!-- BACK BTN -->
                     <ColumnDefinition Width="40" /> <!-- AVATAR -->
@@ -45,8 +45,11 @@
                 <!-- BACK BTN -->
                 <controls:CustomButton Grid.Row="0"
                                        Grid.Column="0"
+                                       HeightRequest="50"
+                                       WidthRequest="50"
                                        ImageSource="{StaticResource MainImage_loading_white}"
-                                       ImageSize="24"/>
+                                       ImageSize="24"
+                                       BackgroundColorOnMouseOver="{StaticResource ColorMainOnOver}"/>
                 
                 <!-- AVATAR IMG -->
                 <StackLayout 
@@ -76,8 +79,11 @@
                 <!-- MORE BTN -->
                 <controls:CustomButton Grid.Row="0"
                                        Grid.Column="3"
+                                       HeightRequest="50"
+                                       WidthRequest="50"
                                        ImageSource="{StaticResource MainImage_more_vert_white}"
-                                       ImageSize="24"/>
+                                       ImageSize="24"
+                                       BackgroundColorOnMouseOver="{StaticResource ColorMainOnOver}"/>
             </Grid>
             <!-- TITLE BAR - ENd -->
 
