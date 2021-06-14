@@ -71,8 +71,6 @@ namespace MultiPlatformApplication.Models
             set { SetProperty(ref topic, value); }
         }
 
-        public String TopicIsVisible => String.IsNullOrEmpty(Topic) ? "False" : "True";
-
         public String PresenceSource
         {
             get { return presenceSource; }
@@ -94,6 +92,7 @@ namespace MultiPlatformApplication.Models
                 
             }
         }
+        
         public Boolean PresenceIsVisible
         {
             get { return presenceIsVisible; }
