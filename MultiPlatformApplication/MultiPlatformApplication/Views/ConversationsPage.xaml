@@ -5,7 +5,7 @@
              xmlns:converters="clr-namespace:MultiPlatformApplication.Converters;assembly=MultiPlatformApplication" 
              xmlns:windows="clr-namespace:Xamarin.Forms.PlatformConfiguration.WindowsSpecific;assembly=Xamarin.Forms.Core"
              xmlns:dataTemplate="clr-namespace:MultiPlatformApplication.Views.DataTemplates" 
-             x:Class="MultiPlatformApplication.ConversationsPage"
+             x:Class="MultiPlatformApplication.Views.ConversationsPage"
              NavigationPage.HasNavigationBar="False">
     
     <ContentPage.Resources>
@@ -32,7 +32,7 @@
        
         <ListView x:Name="ConversationsListView" 
                   
-                  IsPullToRefreshEnabled="{Binding DynamicList.NoMoreItemsAvailable}"
+                  IsPullToRefreshEnabled="{Binding DynamicList.NoMoreItemsAvailable, Converter={StaticResource ReverseBooleanConverter}}"
                   IsRefreshing="{Binding DynamicList.AskingMoreItems}"
                   RefreshCommand="{Binding DynamicList.AskMoreItemsCommand}"
                   

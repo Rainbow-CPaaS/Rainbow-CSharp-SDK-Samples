@@ -4,7 +4,7 @@
              xmlns:controls="clr-namespace:MultiPlatformApplication.Controls"
              xmlns:converters="clr-namespace:MultiPlatformApplication.Converters;assembly=MultiPlatformApplication" 
              xmlns:dataTemplate="clr-namespace:MultiPlatformApplication.Views.DataTemplates" 
-             x:Class="MultiPlatformApplication.ConversationStreamPage"
+             x:Class="MultiPlatformApplication.Views.ConversationStreamPage"
              NavigationPage.HasNavigationBar="False">
     
     <ContentPage.Resources>
@@ -101,11 +101,10 @@
                 <ListView x:Name="MessagesListView"
                             HasUnevenRows="True"
                               
-                            CachingStrategy="RecycleElementAndDataTemplate"
                             ItemsSource="{Binding DynamicList.Items}"
                             ItemTemplate="{StaticResource MessageSelector}"                               
                               
-                            IsPullToRefreshEnabled="{Binding DynamicList.NoMoreItemsAvailable}"
+                            IsPullToRefreshEnabled="{Binding DynamicList.NoMoreItemsAvailable, Converter={StaticResource ReverseBooleanConverter}}"
                             IsRefreshing="{Binding DynamicList.AskingMoreItems}"
                             RefreshCommand="{Binding DynamicList.AskMoreItemsCommand}"
                               

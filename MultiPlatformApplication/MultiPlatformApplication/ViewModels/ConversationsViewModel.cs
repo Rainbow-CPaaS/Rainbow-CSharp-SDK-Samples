@@ -10,12 +10,11 @@ using Rainbow;
 using Rainbow.Model;
 
 using MultiPlatformApplication.Helpers;
+using MultiPlatformApplication.Models;
+using MultiPlatformApplication.Views;
 
 using NLog;
-using System.Collections.ObjectModel;
-using MultiPlatformApplication.Models;
-using System.Windows.Input;
-using System.Threading.Tasks;
+
 
 namespace MultiPlatformApplication.ViewModels
 {
@@ -71,7 +70,7 @@ namespace MultiPlatformApplication.ViewModels
                 DynamicList.ListView.SelectedItem = null;
         }
 
-        private void ListView_ItemSelected(object sender, SelectedItemChangedEventArgs e)
+        private async void ListView_ItemSelected(object sender, SelectedItemChangedEventArgs e)
         {
             if (e.SelectedItem == null)
                 return;
@@ -83,57 +82,13 @@ namespace MultiPlatformApplication.ViewModels
                     return;
 
                 XamarinApplication.CurrentConversationId = conversationId;
-                
-                ConversationStreamPage conversationStreamPage;
-                conversationStreamPage = new ConversationStreamPage(conversationId);
+                await XamarinApplication.NavigationService.NavigateAsync("ConversationStreamPage", conversationId);
 
-                App.Current.MainPage.Navigation.PushAsync(conversationStreamPage, false);
-                //App.Current.MainPage.Navigation.PushModalAsync(conversationStreamPage, false);
             }
         }
 
 
 #endregion PUBLIC METHODS
-
-
-#region EVENTS FROM CollectionView
-
-        private void CollectionView_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (e.CurrentSelection.Count == 0)
-                return;
-
-            if (e.CurrentSelection[0] == null)
-                return;
-
-            if (e.CurrentSelection[0] is ConversationModel)
-            {
-                String conversationId = ((ConversationModel)e.CurrentSelection[0])?.Id;
-                if (String.IsNullOrEmpty(conversationId))
-                    return;
-
-                XamarinApplication.CurrentConversationId = conversationId;
-
-                if (XamarinApplication.ConversationStreamPageList == null)
-                    XamarinApplication.ConversationStreamPageList = new Dictionary<String, ConversationStreamPage>();
-
-                ConversationStreamPage conversationStreamPage;
-                if (XamarinApplication.ConversationStreamPageList.ContainsKey(conversationId))
-                    conversationStreamPage = XamarinApplication.ConversationStreamPageList[conversationId];
-                else
-                {
-                    conversationStreamPage = new ConversationStreamPage(conversationId);
-                    XamarinApplication.ConversationStreamPageList.Add(conversationId, conversationStreamPage);
-
-                    //TODO - avoid to have too many Page in this list
-                }
-
-                App.Current.MainPage.Navigation.PushAsync(conversationStreamPage, false);
-                //App.Current.MainPage.Navigation.PushModalAsync(conversationStreamPage, false);
-            }
-        }
-
-#endregion EVENTS FROM CollectionView
 
 
 #region MANAGE COMMANDS FROM DynamicList

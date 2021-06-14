@@ -11,6 +11,7 @@ using Rainbow.Common;
 
 using MultiPlatformApplication.Assets;
 using MultiPlatformApplication.Helpers;
+using MultiPlatformApplication.Views;
 
 using NLog;
 
@@ -20,13 +21,17 @@ namespace MultiPlatformApplication
     public partial class App : Xamarin.Forms.Application
     {         
         private static Logger log;
-
         internal SdkWrapper SdkWrapper;
+
+
+        // Create the navigation service
+        internal NavigationService NavigationService { get; } = new NavigationService();
 
 
         // To store the current conversation followed
         internal String CurrentConversationId = null;
 
+        // To store the current theme used
         internal String CurrentThemeName = "light";
 
         // Define Pages used in the Xamarin Application
@@ -40,6 +45,7 @@ namespace MultiPlatformApplication
             // As soon as possible we want the device density
             double density = Helper.GetDensity();
 
+            // Get app foldr path in order to init logs
             string appFolderPath = Helper.GetAppFolderPath();
 
             InitLogs(appFolderPath);
@@ -64,42 +70,22 @@ namespace MultiPlatformApplication
                     break;
             }
 
+            // Set the wrapper according the environment to use/test
             if (ApplicationInfo.UseTestEnvironment)
                 SdkWrapper = new TestSdkWrapper();
             else
                 SdkWrapper = new RainbowSdkWrapper();
 
 
-            this.ModalPopped += App_ModalPopped;
-            this.ModalPopping += App_ModalPopping;
+            // Register views in the Navigation servcice
+            NavigationService.Configure("LoginPage", typeof(MultiPlatformApplication.Views.LoginPage));
+            NavigationService.Configure("ConversationsPage", typeof(MultiPlatformApplication.Views.ConversationsPage));
+            NavigationService.Configure("ConversationStreamPage", typeof(MultiPlatformApplication.Views.ConversationStreamPage));
 
-            this.ModalPushed += App_ModalPushed;
-            this.ModalPushing += App_ModalPushing;
 
-            MainPage = new NavigationPage(new LoginPage());
+            var mainPage = NavigationService.SetRootPage("LoginPage");
+            MainPage = mainPage;
         }
-
-        private void App_ModalPopped(object sender, ModalPoppedEventArgs e)
-        {
-
-        }
-
-
-        private void App_ModalPopping(object sender, ModalPoppingEventArgs e)
-        {
-
-        }
-
-        private void App_ModalPushed(object sender, ModalPushedEventArgs e)
-        {
-            
-        }
-
-        private void App_ModalPushing(object sender, ModalPushingEventArgs e)
-        {
-
-        }
-
 
 
         public void ChangeTheme(String themeName)

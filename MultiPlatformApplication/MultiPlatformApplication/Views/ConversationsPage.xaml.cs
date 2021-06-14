@@ -12,7 +12,7 @@ using Rainbow.Common;
 using MultiPlatformApplication.Models;
 using MultiPlatformApplication.ViewModels;
 
-namespace MultiPlatformApplication
+namespace MultiPlatformApplication.Views
 {
     [XamlCompilation(XamlCompilationOptions.Compile)]
     public partial class ConversationsPage : ContentPage

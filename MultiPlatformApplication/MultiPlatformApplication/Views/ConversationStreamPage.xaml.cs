@@ -15,7 +15,7 @@ using MultiPlatformApplication.ViewModels;
 using NLog;
 
 
-namespace MultiPlatformApplication
+namespace MultiPlatformApplication.Views
 {
     [XamlCompilation(XamlCompilationOptions.Compile)]
     public partial class ConversationStreamPage : ContentPage

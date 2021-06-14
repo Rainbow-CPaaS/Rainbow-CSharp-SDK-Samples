@@ -11,7 +11,7 @@ using Rainbow.Model;
 
 using MultiPlatformApplication.Models;
 using MultiPlatformApplication.Helpers;
-
+using MultiPlatformApplication.Views;
 
 namespace MultiPlatformApplication.ViewModels
 {
@@ -99,13 +99,9 @@ namespace MultiPlatformApplication.ViewModels
 
         void ShowConversationsPage()
         {
-            Device.BeginInvokeOnMainThread(() =>
+            Device.BeginInvokeOnMainThread(async () =>
             {
-                if (XamarinApplication.ConversationsPage == null)
-                    XamarinApplication.ConversationsPage = new ConversationsPage();
-
-                App.Current.MainPage.Navigation.PushAsync(XamarinApplication.ConversationsPage, false);
-                //App.Current.MainPage.Navigation.PushModalAsync(XamarinApplication.ConversationsPage, false);
+                await XamarinApplication.NavigationService.NavigateAsync("ConversationsPage");
             });
         }
 

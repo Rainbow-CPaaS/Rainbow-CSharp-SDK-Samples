@@ -13,7 +13,7 @@ using Rainbow.Model;
 using MultiPlatformApplication.Helpers;
 using MultiPlatformApplication.ViewModels;
 
-namespace MultiPlatformApplication
+namespace MultiPlatformApplication.Views
 {
     [XamlCompilation(XamlCompilationOptions.Compile)]
 	public partial class LoginPage : ContentPage
