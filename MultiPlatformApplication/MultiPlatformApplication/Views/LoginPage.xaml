@@ -26,7 +26,7 @@
                 HorizontalOptions="Center" BindingContext="{Binding LoginModel}">
             
             <StackLayout Orientation="Horizontal" HorizontalOptions="Center" VerticalOptions="Start" Padding="0, 30, 0, 30">
-                <Image Source="{extensions:ImageResource Id=rainbow_splash_logo.png}" />
+                <Image Source="{extensions:ImageResource Id=rainbow_splash_logo.png}" WidthRequest="150" HeightRequest="150"/>
             </StackLayout>
 
             <Entry
