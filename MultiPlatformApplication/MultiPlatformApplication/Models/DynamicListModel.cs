@@ -90,6 +90,16 @@ namespace MultiPlatformApplication.Models
 
 #region EVENTS RAISED BY ListView OBJECT
 
+        private void AskToScrollToIndex()
+        {
+            ScrollToPosition position;
+            if (indexToScroll == Items.Count - 1)
+                position = ScrollToPosition.MakeVisible;
+            else
+                position = ScrollToPosition.Start;
+            ListView.ScrollTo(Items[indexToScroll], position, false);
+        }
+
         private void ListView_Scrolled(object sender, ScrolledEventArgs e)
         {
             // ON UWP when the first element appears, if there is still some items available, we ask to load more
@@ -114,15 +124,7 @@ namespace MultiPlatformApplication.Models
                     ListView.EndRefresh();
                 }
                 else
-                {
-                    ScrollToPosition position;
-                    if (indexToScroll == Items.Count - 1)
-                        position = ScrollToPosition.MakeVisible;
-                    else
-                        position = ScrollToPosition.Start;
-
-                    ListView.ScrollTo(Items[indexToScroll], position, false);
-                }
+                    AskToScrollToIndex();
             }
         }
 
@@ -156,6 +158,11 @@ namespace MultiPlatformApplication.Models
 
                 askingScrolling = true;
                 Items.AddRange(items, System.Collections.Specialized.NotifyCollectionChangedAction.Reset, indexToAddRange);
+
+
+                if( (Device.RuntimePlatform == Device.iOS)
+                    || (Device.RuntimePlatform == Device.Android) )
+                    AskToScrollToIndex();
             }
         }
 
@@ -182,6 +189,10 @@ namespace MultiPlatformApplication.Models
 
                 askingScrolling = true;
                 Items.ReplaceRange(items);
+
+                if ((Device.RuntimePlatform == Device.iOS)
+                    || (Device.RuntimePlatform == Device.Android))
+                    AskToScrollToIndex();
             }
         }
 
