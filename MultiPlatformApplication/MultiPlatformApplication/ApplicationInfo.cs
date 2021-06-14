@@ -6,9 +6,9 @@ namespace MultiPlatformApplication
 {
     public static class ApplicationInfo
     {
-        static internal readonly string APP_ID = "7d20cfd0fedd11e8906d03093170a237";
-        static internal readonly string APP_SECRET_KEY = "Ql8rPqTAeddxerX0mpNnnulZx2bxtCB29SFimb8NfjxzczQqFMIoEMjMQu8m2IPJ";
-        static internal readonly string HOST_NAME = "openrainbow.com";
+        static internal readonly string APP_ID = "TO SPECIFY";
+        static internal readonly string APP_SECRET_KEY = "TO SPECIFY";
+        static internal readonly string HOST_NAME = "TO SPECIFY";
 
         static internal readonly Boolean UseTestEnvironment = false;
         static internal readonly Boolean DataStorageUsed = true;
