@@ -92,12 +92,15 @@ namespace MultiPlatformApplication.Models
 
         private void AskToScrollToIndex()
         {
-            ScrollToPosition position;
-            if (indexToScroll == Items.Count - 1)
-                position = ScrollToPosition.MakeVisible;
-            else
-                position = ScrollToPosition.Start;
-            ListView.ScrollTo(Items[indexToScroll], position, false);
+            if (Items.Count > 0)
+            {
+                ScrollToPosition position;
+                if (indexToScroll == Items.Count - 1)
+                    position = ScrollToPosition.MakeVisible;
+                else
+                    position = ScrollToPosition.Start;
+                ListView.ScrollTo(Items[indexToScroll], position, false);
+            }
         }
 
         private void ListView_Scrolled(object sender, ScrolledEventArgs e)
@@ -158,7 +161,6 @@ namespace MultiPlatformApplication.Models
 
                 askingScrolling = true;
                 Items.AddRange(items, System.Collections.Specialized.NotifyCollectionChangedAction.Reset, indexToAddRange);
-
 
                 if( (Device.RuntimePlatform == Device.iOS)
                     || (Device.RuntimePlatform == Device.Android) )
