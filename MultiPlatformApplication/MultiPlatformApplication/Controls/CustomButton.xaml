@@ -8,6 +8,7 @@
        Padding="0"
        HorizontalOptions="Center"
        VerticalOptions="Center"
+       BackgroundColor="#00000000"
        >
 
     <ContentView x:Name="ContentView"
