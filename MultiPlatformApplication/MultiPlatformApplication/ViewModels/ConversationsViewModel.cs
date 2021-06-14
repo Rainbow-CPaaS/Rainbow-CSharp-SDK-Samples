@@ -100,6 +100,8 @@ namespace MultiPlatformApplication.ViewModels
             {
                 ResetModelWithRbConversations(rbConversations);
 
+                DynamicList.AskingMoreItems = false;
+
                 // No more items will be added in this dynamic list
                 DynamicList.NoMoreItemsAvailable = true;
             }

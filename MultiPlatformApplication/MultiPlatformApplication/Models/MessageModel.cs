@@ -123,24 +123,7 @@ namespace MultiPlatformApplication.Models
         public String AvatarFilePath
         {
             get { return avatarFilePath; }
-            set
-            {
-                if (value != avatarFilePath)
-                {
-                    SetProperty(ref avatarFilePath, value);
-
-                    if (String.IsNullOrEmpty(value))
-                        AvatarImageSource = null;
-                    else
-                        AvatarImageSource = ImageSource.FromFile(AvatarFilePath);
-                }
-            }
-        }
-
-        public ImageSource AvatarImageSource
-        {
-            get { return avatarImageSource; }
-            set { SetProperty(ref avatarImageSource, value); }
+            set { SetProperty(ref avatarFilePath, value); }
         }
 
         public DateTime MessageDateTime
@@ -368,7 +351,6 @@ namespace MultiPlatformApplication.Models
             BodyIsVisible = "True";
             BodyFontAttributes = FontAttributes.None;
             BodyColor = Color.FromHex("#000000");
-            AvatarImageSource = null;
             MessageDateTime = DateTime.Now;
             MessageDateDisplay = "";
             IsEventMessage = "True";
@@ -406,7 +388,6 @@ namespace MultiPlatformApplication.Models
 
         ~MessageModel()
         {
-            AvatarImageSource = null;
             ReceiptImageSource = null;
             FileAttachmentImageSource = null;
         }

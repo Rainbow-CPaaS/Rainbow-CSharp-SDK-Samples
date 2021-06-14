@@ -1,8 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <ResourceDictionary xmlns="http://xamarin.com/schemas/2014/forms"
-            xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-            xmlns:converters="clr-namespace:MultiPlatformApplication.Converters;assembly=MultiPlatformApplication" 
-            x:Class="MultiPlatformApplication.Views.DataTemplates.Conversation">
+                    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+                    xmlns:controls="clr-namespace:MultiPlatformApplication.Controls"
+                    xmlns:converters="clr-namespace:MultiPlatformApplication.Converters;assembly=MultiPlatformApplication" 
+                    x:Class="MultiPlatformApplication.Views.DataTemplates.Conversation">
 
     <DataTemplate x:Key="ConversationDataTemplate">
         <ViewCell>
@@ -29,21 +30,14 @@
             </Grid.RowDefinitions>
 
             <!--AVATAR IMG-->
-            <StackLayout 
-                Grid.Row="0" 
-                Grid.Column="0"
-                HorizontalOptions="Center"
-                VerticalOptions="CenterAndExpand"
-                Padding="0"
-                Spacing="0"
-                IsVisible="True">
-                <Image
-                    Source="{Binding AvatarImageSource}"
-                    WidthRequest="40"
-                    HeightRequest="40"
-                    VerticalOptions="Center"
-                    HorizontalOptions="Center"/>
-            </StackLayout>
+            <controls:Avatar Grid.Row="0"
+                             Grid.Column="0"
+                             WidthRequest="40"
+                             HeightRequest="40"
+                             VerticalOptions="Center"
+                             HorizontalOptions="Center"
+                             AvatarFilePath="{Binding AvatarFilePath}"
+                                 />
 
             <!--PRESENCE BULLET-->
             <Frame 
@@ -94,7 +88,8 @@
             <!--LAST BUBBLE MSG:  (Buble Name or Contact Name) / Date / Last Message-->
 
             <Frame Grid.Row="0" Grid.Column="2"
-                   CornerRadius="5" 
+                   CornerRadius="0" 
+                   BackgroundColor="#00000000"
                    VerticalOptions="Center"
                    HorizontalOptions="FillAndExpand"
                    HasShadow="False"
