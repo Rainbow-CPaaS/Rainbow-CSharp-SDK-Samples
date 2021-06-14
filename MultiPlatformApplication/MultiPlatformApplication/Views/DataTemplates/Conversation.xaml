@@ -6,7 +6,7 @@
 
     <DataTemplate x:Key="ConversationDataTemplate">
         <ViewCell>
-        <Grid ColumnSpacing="0" RowSpacing="15" Padding="5">
+        <Grid ColumnSpacing="0" RowSpacing="0" Padding="0" Margin="0">
             <Grid.Resources>
                 <converters:TextToBooleanConverter x:Key="TextToBooleanConverter" />
                 <converters:IntToBoolConverter x:Key="IntToBooleanConverter" />
@@ -15,7 +15,7 @@
             <!--GRID COLUMN / ROW DEFINITION-->
             <Grid.ColumnDefinitions>
                 <!--Col 0: Conversation Avatar-->
-                <ColumnDefinition Width="60"/>
+                <ColumnDefinition Width="48"/>
 
                 <!--Col 1: Let space with the avatar-->
                 <ColumnDefinition Width="10"/>
@@ -25,7 +25,7 @@
             </Grid.ColumnDefinitions>
 
             <Grid.RowDefinitions>
-                <RowDefinition Height="60"></RowDefinition>
+                    <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
             <!--AVATAR IMG-->
@@ -33,15 +33,14 @@
                 Grid.Row="0" 
                 Grid.Column="0"
                 HorizontalOptions="Center"
-                VerticalOptions="Center"
+                VerticalOptions="CenterAndExpand"
                 Padding="0"
                 Spacing="0"
                 IsVisible="True">
                 <Image
                     Source="{Binding AvatarImageSource}"
-                    Aspect="AspectFit"
-                    WidthRequest="60"
-                    HeightRequest="60"
+                    WidthRequest="40"
+                    HeightRequest="40"
                     VerticalOptions="Center"
                     HorizontalOptions="Center"/>
             </StackLayout>
@@ -80,6 +79,7 @@
                 HorizontalOptions="End"
                 HasShadow="False"
                 IsClippedToBounds="False"
+                Margin="0"
                 Padding="0"
                 IsVisible="{Binding NbMsgUnread, Converter={StaticResource IntToBooleanConverter}}">
                 <Label
@@ -94,33 +94,33 @@
             <!--LAST BUBBLE MSG:  (Buble Name or Contact Name) / Date / Last Message-->
 
             <Frame Grid.Row="0" Grid.Column="2"
-                CornerRadius="5" 
-                VerticalOptions="Center"
-                HorizontalOptions="FillAndExpand"
-                HasShadow="False"
-                IsClippedToBounds="False"
-                Padding="0"
-                HeightRequest="60">
+                   CornerRadius="5" 
+                   VerticalOptions="Center"
+                   HorizontalOptions="FillAndExpand"
+                   HasShadow="False"
+                   IsClippedToBounds="False"
+                   Margin="0"
+                   Padding="0"
+                   HeightRequest="48">
 
-                <StackLayout Spacing="0" Padding="10,0,10,0" Orientation="Vertical" VerticalOptions="Center">
+                    <StackLayout Spacing="0" Padding="10,0,10,0"  Margin="0" Orientation="Vertical" VerticalOptions="Center">
 
-                    <!--USE A GRID TO AVOID TRUNCATED DATE-->
+                        <!--USE A GRID TO AVOID TRUNCATED DATE-->
+                        <Grid RowSpacing="0" ColumnSpacing="0" Padding="0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
 
-                    <Grid RowSpacing="0" ColumnSpacing="0" Padding="0" VerticalOptions="Center">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="*" />
-                        </Grid.RowDefinitions>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
+                            <Label Grid.Row="0" Grid.Column="0" HorizontalOptions="StartAndExpand" TextColor="Black" FontSize="{StaticResource FontSizeMedium}" MaxLines="1" LineBreakMode="TailTruncation" VerticalOptions="Start" Text="{Binding Name}"/>
+                            <Label Grid.Row="0" Grid.Column="1" HorizontalOptions="EndAndExpand" TextColor="Gray" FontSize="{StaticResource FontSizeMicro}" MaxLines="1" VerticalOptions="Center" Text="{Binding MessageTimeDisplay}"/>
+                        </Grid>
 
-                        <Label Grid.Row="0" Grid.Column="0" HorizontalOptions="StartAndExpand" TextColor="Black" FontSize="{StaticResource FontSizeMedium}" MaxLines="1" LineBreakMode="TailTruncation" VerticalOptions="Center" Text="{Binding Name}"/>
-                        <Label Grid.Row="0" Grid.Column="1" HorizontalOptions="EndAndExpand" TextColor="Gray" FontSize="{StaticResource FontSizeMicro}" MaxLines="1" VerticalOptions="Center" Text="{Binding MessageTimeDisplay}"/>
-                    </Grid>
-
-                    <Label TextColor="Gray" FontSize="{StaticResource FontSizeSmall}" MaxLines="1" LineBreakMode="TailTruncation" IsVisible="{Binding LastMessage, Converter={StaticResource TextToBooleanConverter}}" Text="{Binding LastMessage}"/>
-                </StackLayout>
+                        <Label TextColor="Gray" FontSize="{StaticResource FontSizeSmall}" MaxLines="1" LineBreakMode="TailTruncation" IsVisible="{Binding LastMessage, Converter={StaticResource TextToBooleanConverter}}" Text="{Binding LastMessage}"/>
+                    </StackLayout>
             </Frame>
         </Grid>
         </ViewCell>
