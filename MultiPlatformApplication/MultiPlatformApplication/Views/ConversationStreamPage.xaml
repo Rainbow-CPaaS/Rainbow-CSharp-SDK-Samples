@@ -47,7 +47,7 @@
                                        Grid.Column="0"
                                        HeightRequest="50"
                                        WidthRequest="50"
-                                       ImageSource="{StaticResource MainImage_loading_white}"
+                                       ImageSource="{StaticResource MainImage_arrow_back_white}"
                                        ImageSize="24"
                                        BackgroundColorOnMouseOver="{StaticResource ColorMainOnOver}"/>
                 

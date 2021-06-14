@@ -12,7 +12,7 @@ namespace MultiPlatformApplication.Assets
     public class ResourceDictionnaryMainImages : ResourceDictionary
     {
 
-        private List<String> svgList = new List<string> { "loading", 
+        private List<String> svgList = new List<string> { "loading", "arrow_back",
                                             "burger-menu", "dialpad", 
                                             "chat", "newsfeed", "bubble", "contacts", "calllog", 
                                             "send", "exclamation", "siren", "problem-alert", "bulb", "chat--resized", "mic", "attach", "more_horiz", "more_vert",
