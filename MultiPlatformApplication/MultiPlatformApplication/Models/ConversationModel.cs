@@ -122,8 +122,9 @@ namespace MultiPlatformApplication.Models
         {
             get { return lastMessageDateTime; }
             set {
+                SetProperty(ref lastMessageDateTime, value);
                 MessageTimeDisplay = Helpers.Helper.HumanizeDateTime(LastMessageDateTime);
-                SetProperty(ref lastMessageDateTime, value); }
+            }
         }
 
         public String MessageTimeDisplay
