@@ -82,7 +82,7 @@ namespace MultiPlatformApplication.ViewModels
                     return;
 
                 XamarinApplication.CurrentConversationId = conversationId;
-                await XamarinApplication.NavigationService.NavigateAsync("ConversationStreamPage", conversationId);
+                await XamarinApplication.NavigationService.NavigateModalAsync("ConversationStreamPage", conversationId);
 
             }
         }
@@ -458,7 +458,7 @@ namespace MultiPlatformApplication.ViewModels
             log.Debug("[UpdateModelForDateTimePurpose] - IN");
             //lock (lockObservableConversations)
             //{
-            //    foreach (ConversationModel conversation in Conversations)
+            //    foreach (ConversationModel conversation in DynamicList.Items)
             //        conversation.MessageTimeDisplay = Helpers.Helper.HumanizeDateTime(conversation.LastMessageDateTime);
             //}
 

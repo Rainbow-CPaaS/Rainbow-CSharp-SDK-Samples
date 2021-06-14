@@ -46,7 +46,6 @@ namespace MultiPlatformApplication.Views
             vm.Initialize(conversationId);
         }
 
-
         protected override void OnParentSet()
         {
             base.OnParentSet();

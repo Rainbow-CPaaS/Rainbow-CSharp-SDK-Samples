@@ -101,7 +101,7 @@ namespace MultiPlatformApplication.ViewModels
         {
             Device.BeginInvokeOnMainThread(async () =>
             {
-                await XamarinApplication.NavigationService.NavigateAsync("ConversationsPage");
+                await XamarinApplication.NavigationService.NavigateModalAsync("ConversationsPage");
             });
         }
 

@@ -30,6 +30,8 @@ namespace MultiPlatformApplication.ViewModels
 
 #region BINDINGS used in XAML
 
+        public NavigationModel Navigation { get; private set; } = new NavigationModel();
+
         public ConversationModel Conversation {
                 get { return conversationModel; }
                 set { SetProperty(ref conversationModel, value); }
@@ -73,6 +75,8 @@ namespace MultiPlatformApplication.ViewModels
         /// </summary>
         public ConversationStreamViewModel()
         {
+            Navigation.BackCommand = new RelayCommand<object>(new Action<object>(BackCommand));
+
             // Define commands
             DynamicList.AskMoreItemsCommand = new RelayCommand<object>(new Action<object>(AskMoreMessagesCommand));
         }
@@ -175,6 +179,11 @@ namespace MultiPlatformApplication.ViewModels
 #region EVENTS FROM CollectionView
 
 #region  COMMANDS
+
+        private async void BackCommand(object obj)
+        {
+            await XamarinApplication.NavigationService.GoBack();
+        }
 
         // Command used when asking to load more messages
         private void AskMoreMessagesCommand(object obj)
