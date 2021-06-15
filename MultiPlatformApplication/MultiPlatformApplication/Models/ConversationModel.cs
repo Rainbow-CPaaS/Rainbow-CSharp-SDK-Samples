@@ -28,7 +28,6 @@ namespace MultiPlatformApplication.Models
         DateTime lastMessageDateTime;
         String messageTimeDisplay;
         String avatarFilePath;
-        ImageSource avatarImageSource;
         ImageSource presenceImageSource;
 
         public String Test { get; set; }

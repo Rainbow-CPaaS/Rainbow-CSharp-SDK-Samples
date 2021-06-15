@@ -22,7 +22,6 @@ namespace MultiPlatformApplication.Models
         Color backgroundColor;
         String peerDisplayNameIsVisible;
         String avatarFilePath;
-        ImageSource avatarImageSource;
         DateTime messageDateTime;
         String  messageDateDisplay;
 
