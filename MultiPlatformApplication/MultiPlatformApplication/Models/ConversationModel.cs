@@ -30,8 +30,6 @@ namespace MultiPlatformApplication.Models
         String avatarFilePath;
         ImageSource presenceImageSource;
 
-        public String Test { get; set; }
-
         public string Id
         {
             get { return id; }
@@ -153,9 +151,6 @@ namespace MultiPlatformApplication.Models
             LastMessageDateTime = DateTime.Now;
 
             AvatarFilePath = "";
-
-            Test = "test";
-
         }
             
     }
