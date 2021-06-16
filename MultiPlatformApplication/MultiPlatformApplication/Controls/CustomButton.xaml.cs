@@ -2,6 +2,7 @@
 using MultiPlatformApplication.Models;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -193,7 +194,10 @@ namespace MultiPlatformApplication.Controls
 
         private static void IsSelectedPropertyChanged(BindableObject bindable, object oldValue, object newValue)
         {
-            SetImageDisplay((CustomButton)bindable);
+            var control = (CustomButton)bindable;
+            SetImageDisplay(control);
+            SetBackGroundColor(control);
+            
         }
 
         public Boolean IsSelected
@@ -486,6 +490,38 @@ namespace MultiPlatformApplication.Controls
 #endregion BackgroundColorOnMouseOverProperty
 
 
+#region BackgroundColorOnSelectedProperty
+
+        public static readonly BindableProperty BackgroundColorOnSelectedProperty =
+            BindableProperty.Create(nameof(BackgroundColorOnSelected),
+            typeof(Color),
+            typeof(CustomButton),
+            defaultValue: Color.Transparent,
+            defaultBindingMode: BindingMode.OneWay,
+            propertyChanged: BackgroundColorOnSelectedPropertyChanged);
+
+        private static void BackgroundColorOnSelectedPropertyChanged(BindableObject bindable, object oldValue, object newValue)
+        {
+            // Nothing to do here ???
+        }
+
+        public Color BackgroundColorOnSelected
+        {
+            get
+            {
+                var obj = base.GetValue(BackgroundColorOnSelectedProperty);
+                if(obj != null)
+                    return (Color)obj;
+                return Color.Transparent;
+            }
+            set
+            {
+                base.SetValue(BackgroundColorOnSelectedProperty, value);
+            }
+        }
+#endregion BackgroundColorOnSelectedProperty
+
+
 #region CommandProperty
 
         TapGestureRecognizer tapGestureRecognizer = new TapGestureRecognizer();
@@ -593,38 +629,43 @@ namespace MultiPlatformApplication.Controls
             control.Label.TextColor = control.TextColor;
         }
 
-        private void SetBackGroundColor()
+        private static void SetBackGroundColor(CustomButton control)
         {
-            if(IsEnabled)
+            if(control.IsEnabled)
             {
-                if (isMouseOver)
+                if (control.IsSelected)
                 {
-                    // Store original Background Color
-                    originalBackgroundColor = Color.FromHex(BackgroundColor.ToHex());
-
                     // Set new color
-                    BackgroundColor = BackgroundColorOnMouseOver;
+                    control.BackgroundColor = Color.FromHex(control.BackgroundColorOnSelected.ToHex());
                 }
                 else
                 {
-                    // Restore original Background Color
-                    BackgroundColor = Color.FromHex(originalBackgroundColor.ToHex());
+                    if (control.isMouseOver)
+                    {
+                        // Set new color
+                        control.BackgroundColor = Color.FromHex(control.BackgroundColorOnMouseOver.ToHex());
+                    }
+                    else
+                    {
+                        // Restore original Background Color
+                        control.BackgroundColor = Color.FromHex(control.originalBackgroundColor.ToHex());
+                    }
                 }
             }
             else
-                BackgroundColor = BackgroundColorOnMouseOver;
+                control.BackgroundColor = control.BackgroundColorOnMouseOver;
         }
 
         private void MouseOverCommand(object obj)
         {
             isMouseOver = true;
-            SetBackGroundColor();
+            SetBackGroundColor(this);
         }
 
         private void MouseOutCommand(object obj)
         {
             isMouseOver = false;
-            SetBackGroundColor();
+            SetBackGroundColor(this);
         }
 
         public CustomButton()
@@ -653,11 +694,18 @@ namespace MultiPlatformApplication.Controls
             
         }
 
-        private void CustomButton_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        private void CustomButton_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             if(e.PropertyName == "IsEnabled")
             {
-                SetBackGroundColor();
+                SetBackGroundColor(this);
+            }
+            else if (e.PropertyName == "BackgroundColor")
+            {
+                if ((!IsSelected) && (!isMouseOver))
+                {
+                    originalBackgroundColor = Color.FromHex(BackgroundColor.ToHex());
+                }
             }
         }
 
