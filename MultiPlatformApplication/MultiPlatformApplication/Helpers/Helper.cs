@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 
 using Xamarin.Essentials;
@@ -9,9 +10,9 @@ using Xamarin.Forms;
 using Rainbow;
 using Rainbow.Model;
 
+using MultiPlatformApplication.Models;
 
 using NLog;
-using MultiPlatformApplication.Models;
 
 namespace MultiPlatformApplication.Helpers
 {
@@ -480,10 +481,40 @@ namespace MultiPlatformApplication.Helpers
             }
         }
 
+        // Get image source using Id from merged resource dictionaries
+        static internal ImageSource GetImageSourceFromResourceDictionaryById(ResourceDictionary dictionary, String dictionaryId)
+        {
+            ImageSource result = null;
+
+            if (dictionary?.ContainsKey(dictionaryId) == true)
+            {
+                var obj = dictionary[dictionaryId];
+                if (obj is ImageSource)
+                    result = (ImageSource)obj;
+            }
+
+            if (result == null)
+            {
+                // Check on child merged dictionaries
+                if (dictionary.MergedDictionaries?.Count > 0)
+                {
+                    List<ResourceDictionary> list = dictionary.MergedDictionaries.ToList();
+                    for (int index = 0; index < dictionary.MergedDictionaries.Count; index++)
+                    {
+                        result = GetImageSourceFromResourceDictionaryById(list[index], dictionaryId);
+                        if (result != null)
+                            break;
+                    }
+                }
+            }
+
+            return result;
+        }
+
 #endregion RESOURCES - Get access to resources of this assembly
 
 #region GET PATH TO RESOURCE FOR: Presence icon bullet, Receipt type, doc type
-        
+
         public static String GetPresenceSourceFromPresence(Rainbow.Model.Presence presence)
         {
             String result = null;

@@ -1,7 +1,8 @@
-﻿using MultiPlatformApplication.Helpers;
-using System;
+﻿using System;
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
+
+using MultiPlatformApplication.Helpers;
 
 namespace MultiPlatformApplication.Extensions
 {
@@ -14,15 +15,23 @@ namespace MultiPlatformApplication.Extensions
 	public class ImageResourceExtension : IMarkupExtension<ImageSource>
 	{
 		/// <summary>
-		/// The Resource Id of the image.
+		/// The Resource Id of the image. Example: "icon_doc_blue.png"
 		/// </summary>
 		public string Id { get; set; }
 
 		public ImageSource ProvideValue(IServiceProvider serviceProvider)
 		{
 			ImageSource result = null;
-			if (Id != null)
-				result = ImageSource.FromResource(Helper.GetEmbededResourceFullPath(Id), typeof(ImageResourceExtension).Assembly);
+
+			if(!String.IsNullOrEmpty(Id))
+            {
+				String filePath = Helper.GetEmbededResourceFullPath(Id);
+				if (!String.IsNullOrEmpty(filePath))
+					result = ImageSource.FromResource(filePath, typeof(ImageResourceExtension).Assembly);
+				else
+					result = Helper.GetImageSourceFromResourceDictionaryById(App.Current.Resources, Id);
+			}
+
 			return result;
 		}
 

@@ -15,6 +15,71 @@ namespace MultiPlatformApplication.Controls
     public partial class CustomButton : Frame
     {
 
+#region ImageSourceIdProperty
+
+        public static readonly BindableProperty ImageSourceIdProperty =
+            BindableProperty.Create(nameof(ImageSourceId),
+            typeof(String),
+            typeof(CustomButton),
+            defaultValue: null,
+            defaultBindingMode: BindingMode.OneWay,
+            propertyChanged: ImageSourceIdChanged);
+
+        private static void ImageSourceIdChanged(BindableObject bindable, object oldValue, object newValue)
+        {
+            SetImageDisplay((CustomButton)bindable);
+        }
+
+        public String ImageSourceId
+        {
+            get
+            {
+                var obj = base.GetValue(ImageSourceIdProperty);
+                if (obj is String)
+                    return (String)obj;
+                return null;
+            }
+            set
+            {
+                base.SetValue(ImageSourceIdProperty, value);
+            }
+        }
+#endregion ImageSourceIdProperty
+
+
+#region ImageSourceIdOnSelectedProperty
+
+        public static readonly BindableProperty ImageSourceIdOnSelectedProperty =
+            BindableProperty.Create(nameof(ImageSourceIdOnSelected),
+            typeof(String),
+            typeof(CustomButton),
+            defaultValue: null,
+            defaultBindingMode: BindingMode.OneWay,
+            propertyChanged: ImageSourceIdOnSelectedChanged);
+
+        private static void ImageSourceIdOnSelectedChanged(BindableObject bindable, object oldValue, object newValue)
+        {
+            SetImageDisplay((CustomButton)bindable);
+        }
+
+        public String ImageSourceIdOnSelected
+        {
+            get
+            {
+                var obj = base.GetValue(ImageSourceIdOnSelectedProperty);
+                if (obj is String)
+                    return (String)obj;
+                return null;
+            }
+            set
+            {
+                base.SetValue(ImageSourceIdOnSelectedProperty, value);
+            }
+        }
+#endregion ImageSourceIdOnSelectedProperty
+
+
+
 #region ImageSourceProperty
 
         public static readonly BindableProperty ImageSourceProperty =
@@ -45,6 +110,38 @@ namespace MultiPlatformApplication.Controls
             }
         }
 #endregion ImageSourceProperty
+
+
+#region ImageSourceOnSelectedProperty
+
+        public static readonly BindableProperty ImageSourceOnSelectedProperty =
+            BindableProperty.Create(nameof(ImageSourceOnSelected),
+            typeof(ImageSource),
+            typeof(CustomButton),
+            defaultValue: null,
+            defaultBindingMode: BindingMode.OneWay,
+            propertyChanged: ImageSourceOnSelectedChanged);
+
+        private static void ImageSourceOnSelectedChanged(BindableObject bindable, object oldValue, object newValue)
+        {
+            SetImageDisplay((CustomButton)bindable);
+        }
+
+        public ImageSource ImageSourceOnSelected
+        {
+            get
+            {
+                var obj = base.GetValue(ImageSourceOnSelectedProperty);
+                if (obj is ImageSource)
+                    return (ImageSource)obj;
+                return null;
+            }
+            set
+            {
+                base.SetValue(ImageSourceOnSelectedProperty, value);
+            }
+        }
+#endregion ImageSourceOnSelectedProperty
 
 
 #region ImageSizeProperty
@@ -82,38 +179,6 @@ namespace MultiPlatformApplication.Controls
             }
         }
 #endregion ImageSizeProperty
-
-
-#region ImageSourceOnSelectedProperty
-
-        public static readonly BindableProperty ImageSourceOnSelectedProperty =
-            BindableProperty.Create(nameof(ImageSourceOnSelected),
-            typeof(ImageSource),
-            typeof(CustomButton),
-            defaultValue: null,
-            defaultBindingMode: BindingMode.OneWay,
-            propertyChanged: ImageSourceOnSelectedChanged);
-
-        private static void ImageSourceOnSelectedChanged(BindableObject bindable, object oldValue, object newValue)
-        {
-            SetImageDisplay((CustomButton)bindable);
-        }
-
-        public ImageSource ImageSourceOnSelected
-        {
-            get
-            {
-                var obj = base.GetValue(ImageSourceOnSelectedProperty);
-                if (obj is ImageSource)
-                    return (ImageSource)obj;
-                return null;
-            }
-            set
-            {
-                base.SetValue(ImageSourceOnSelectedProperty, value);
-            }
-        }
-#endregion ImageSourceOnSelectedProperty
 
 
 #region IsSelectedProperty
@@ -481,20 +546,40 @@ namespace MultiPlatformApplication.Controls
 
         private static void SetImageDisplay(CustomButton control)
         {
-            if ( control.IsSelected && (control.ImageSourceOnSelected != null) )
+            if (control.ImageSourceId != null)
             {
-                control.Image.IsVisible = true;
-                control.Image.Source = control.ImageSourceOnSelected;
-                return;
-            }
+                if (control.IsSelected && (control.ImageSourceIdOnSelected != null))
+                {
+                    control.Image.IsVisible = true;
+                    control.Image.Source = Helper.GetImageSourceFromResourceDictionaryById(App.Current.Resources, control.ImageSourceIdOnSelected);
+                    return;
+                }
 
-            if (control.ImageSource != null)
-            {
-                control.Image.IsVisible = true;
-                control.Image.Source = control.ImageSource;
+                if (control.ImageSourceId != null)
+                {
+                    control.Image.IsVisible = true;
+                    control.Image.Source = Helper.GetImageSourceFromResourceDictionaryById(App.Current.Resources, control.ImageSourceId);
+                }
+                else
+                    control.Image.IsVisible = false;
             }
             else
-                control.Image.IsVisible = false;
+            {
+                if (control.IsSelected && (control.ImageSourceOnSelected != null))
+                {
+                    control.Image.IsVisible = true;
+                    control.Image.Source = control.ImageSourceOnSelected;
+                    return;
+                }
+
+                if (control.ImageSource != null)
+                {
+                    control.Image.IsVisible = true;
+                    control.Image.Source = control.ImageSource;
+                }
+                else
+                    control.Image.IsVisible = false;
+            }
         }
 
         private static void SetTextColorDisplay(CustomButton control)
