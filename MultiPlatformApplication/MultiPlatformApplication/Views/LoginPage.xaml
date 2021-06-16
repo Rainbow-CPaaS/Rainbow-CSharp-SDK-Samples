@@ -1,10 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:local="clr-namespace:MultiPlatformApplication.Views"
              xmlns:converters="clr-namespace:MultiPlatformApplication.Converters;assembly=MultiPlatformApplication" 
              xmlns:controls="clr-namespace:MultiPlatformApplication.Controls"
-             xmlns:effects="clr-namespace:MultiPlatformApplication.Effects"
              xmlns:extensions="clr-namespace:MultiPlatformApplication.Extensions"
              x:Class="MultiPlatformApplication.Views.LoginPage"
              >
@@ -14,60 +12,62 @@
             <On Platform="iOS" Value="0,20,0,0"/>
         </OnPlatform>
     </ContentPage.Padding>
-
+    
     <ContentPage.Resources>
-        <ResourceDictionary>
-            <converters:ReverseBooleanConverter x:Key="ReverseBooleanConverter" />
-        </ResourceDictionary>
+        <converters:ReverseBooleanConverter x:Key="ReverseBooleanConverter" />
     </ContentPage.Resources>
+    
 
-        <StackLayout x:Name="MainStackLayout" Orientation="Vertical"
-                VerticalOptions="StartAndExpand" 
-                HorizontalOptions="Center" BindingContext="{Binding LoginModel}">
+    <StackLayout x:Name="MainStackLayout" 
+                 Orientation="Vertical"
+                 VerticalOptions="StartAndExpand" 
+                 HorizontalOptions="Center">
             
-            <StackLayout Orientation="Horizontal" HorizontalOptions="Center" VerticalOptions="Start" Padding="0, 30, 0, 30">
-                <Image Source="{extensions:ImageResource Id=rainbow_splash_logo.png}" WidthRequest="150" HeightRequest="150"/>
-            </StackLayout>
+        <StackLayout Orientation="Horizontal" HorizontalOptions="Center" VerticalOptions="Start" Padding="0, 30, 0, 30">
+            <Image Source="{extensions:ImageResource Id=rainbow_splash_logo.png}" WidthRequest="150" HeightRequest="150"/>
+        </StackLayout>
 
-            <Entry
-                    Margin="40,0"
-                    FontSize="{StaticResource FontSizeMedium}"
-                    WidthRequest="300"
-                    HorizontalOptions="Center" 
-                    Placeholder="Your email address"
-                    PlaceholderColor="LightGray"
-                    Text="{Binding Login}"
-                    IsEnabled="{Binding IsBusy, Converter={StaticResource ReverseBooleanConverter}}" />
+        <Entry
+                Margin="40,0"
+                FontSize="{StaticResource FontSizeMedium}"
+                WidthRequest="300"
+                HorizontalOptions="Center" 
+                Placeholder="Your email address"
+                PlaceholderColor="LightGray"
+                Text="{Binding LoginModel.Login}"
+                IsEnabled="{Binding LoginModel.IsBusy, Converter={StaticResource ReverseBooleanConverter}}" />
 
-            <Entry
-                    Margin="40,40"
-                    TextColor="Black"
-                    FontSize="{StaticResource FontSizeMedium}"
-                    IsPassword="True"
-                    WidthRequest="300"
-                    HorizontalOptions="CenterAndExpand"
-                    Placeholder="Your password"
-                    PlaceholderColor="Gray"
-                    Text="{Binding Password}"
-                    IsEnabled="{Binding IsBusy, Converter={StaticResource ReverseBooleanConverter}}" />
+        <Entry
+                Margin="40,40"
+                TextColor="Black"
+                FontSize="{StaticResource FontSizeMedium}"
+                IsPassword="True"
+                WidthRequest="300"
+                HorizontalOptions="CenterAndExpand"
+                Placeholder="Your password"
+                PlaceholderColor="Gray"
+                Text="{Binding LoginModel.Password}"
+                IsEnabled="{Binding LoginModel.IsBusy, Converter={StaticResource ReverseBooleanConverter}}" />
 
-            <controls:CustomButton Text="{Binding Connect}"
-                                   CornerRadius="4"
-                                   HeightRequest="30"
-                                   WidthRequest="200"
-                                   FontSize="{StaticResource FontSizeSmall}"
-                                   FontAttributes="Bold"
-                                   TextColor="White"
-                                   BackgroundColor="{StaticResource ColorMain}"
-                                   BackgroundColorOnMouseOver="{StaticResource ColorMainOnOver}"
-                                   Command="{Binding ButtonConnectCommand}"
-                                   IsEnabled="{Binding IsBusy, Converter={StaticResource ReverseBooleanConverter}}" />
+        <controls:CustomButton Text="{Binding LoginModel.Connect}"
+                                CornerRadius="4"
+                                HeightRequest="30"
+                                WidthRequest="200"
+                                FontSize="{StaticResource FontSizeSmall}"
+                                FontAttributes="Bold"
+                                TextColor="White"
+                                BackgroundColor="{StaticResource ColorMain}"
+                                BackgroundColorOnMouseOver="{StaticResource ColorMainOnOver}"
+                                Command="{Binding LoginModel.ButtonConnectCommand}"
+                                IsEnabled="{Binding LoginModel.IsBusy, Converter={StaticResource ReverseBooleanConverter}}" />
 
         <ActivityIndicator Color="Gray"
                            WidthRequest="80"
                            HeightRequest="80"
-                           IsRunning="{Binding IsBusy}"
-                           IsVisible="{Binding IsBusy}" />
+                           IsRunning="{Binding LoginModel.IsBusy}"
+                           IsVisible="{Binding LoginModel.IsBusy}" />
+
     </StackLayout>
+    
     
 </ContentPage>
