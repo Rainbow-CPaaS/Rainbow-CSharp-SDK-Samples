@@ -96,7 +96,8 @@
 
                     <StackLayout Orientation="Horizontal" Grid.Row="2" Grid.Column="0" HorizontalOptions="End" VerticalOptions="Center" Spacing="0">
                         <Label HorizontalOptions="End" TextColor="Gray" FontSize="{StaticResource FontSizeMicro}" VerticalOptions="Center" Text="{Binding MessageDateDisplay}"/>
-                        <Label HorizontalOptions="End" TextColor="Gray" FontSize="{StaticResource FontSizeMicro}" VerticalOptions="Center" Text=" - Edited" IsVisible="{Binding EditedIsVisible}"/>
+                        <Label HorizontalOptions="End" TextColor="Gray" FontSize="{StaticResource FontSizeMicro}" VerticalOptions="Center" Text=" - " IsVisible="{Binding EditedIsVisible}"/>
+                        <Label HorizontalOptions="End" TextColor="Gray" FontSize="{StaticResource FontSizeMicro}" VerticalOptions="Center" Text="{StaticResource Label_modified}" IsVisible="{Binding EditedIsVisible}"/>
                         <Image HorizontalOptions="End" VerticalOptions="Center" WidthRequest="12" HeightRequest="12" Source="{Binding ReceiptImageSource}" Margin="4, 0, 0, 0" />
                     </StackLayout>
                 </Grid>
@@ -208,7 +209,8 @@
 
                     <StackLayout Orientation="Horizontal" Grid.Row="4" Grid.Column="0" HorizontalOptions="End" VerticalOptions="Center" Spacing="0">
                         <Label  HorizontalOptions="End" TextColor="White" FontSize="{StaticResource FontSizeMicro}" VerticalOptions="Center" Text="{Binding MessageDateDisplay}"/>
-                        <Label HorizontalOptions="End" TextColor="White" FontSize="{StaticResource FontSizeMicro}" VerticalOptions="Center" Text=" - Edited" IsVisible="{Binding EditedIsVisible}"/>
+                        <Label HorizontalOptions="End" TextColor="White" FontSize="{StaticResource FontSizeMicro}" VerticalOptions="Center" Text=" - " IsVisible="{Binding EditedIsVisible}"/>
+                        <Label HorizontalOptions="End" TextColor="White" FontSize="{StaticResource FontSizeMicro}" VerticalOptions="Center" Text="{StaticResource Label_modified}" IsVisible="{Binding EditedIsVisible}"/>
                     </StackLayout>
                 </Grid>
             </Frame>
