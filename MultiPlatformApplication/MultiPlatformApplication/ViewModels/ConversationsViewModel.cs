@@ -59,11 +59,11 @@ namespace MultiPlatformApplication.ViewModels
 
                 // Define menu
                 Menu.SetDefaulMenuItemtSize(30, 50, 100);
-                Menu.AddItem(new MenuItemModel() { Id = "Conversations", Label = "Conversations", ImageSourceId = "MainImage_chat_white", IsSelected = true });
-                Menu.AddItem(new MenuItemModel() { Id = "Channels", Label = "Channels", ImageSourceId = "MainImage_newsfeed_white" });
-                Menu.AddItem(new MenuItemModel() { Id = "Bubbles", Label = "Bubbles", ImageSourceId = "MainImage_bubble_white" });
-                Menu.AddItem(new MenuItemModel() { Id = "Contacts", Label = "Contacts", ImageSourceId = "MainImage_contacts_white" });
-                Menu.AddItem(new MenuItemModel() { Id = "Calls", Label = "Calls", ImageSourceId = "MainImage_calllog_white" });
+                Menu.AddItem(new MenuItemModel() { Id = "Conversations", Label = Helper.GetLabel("conversationsItem"), ImageSourceId = "MainImage_chat_white", IsSelected = true });
+                Menu.AddItem(new MenuItemModel() { Id = "Channels", Label = Helper.GetLabel("channels"), ImageSourceId = "MainImage_newsfeed_white" });
+                Menu.AddItem(new MenuItemModel() { Id = "Bubbles", Label = Helper.GetLabel("bubbles"), ImageSourceId = "MainImage_bubble_white" });
+                Menu.AddItem(new MenuItemModel() { Id = "Contacts", Label = Helper.GetLabel("contacts"), ImageSourceId = "MainImage_contacts_white" });
+                Menu.AddItem(new MenuItemModel() { Id = "Calls", Label = Helper.GetLabel("tab-calllogs-title"), ImageSourceId = "MainImage_calllog_white" });
                 
                 InitializeSdkObjectsAndEvents();
 
