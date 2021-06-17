@@ -234,26 +234,25 @@ namespace MultiPlatformApplication.Helpers
                 switch (bubbleEvent)
                 {
                     case "conferenceEnded":
-                        result = displayName + " has ended the conference";
+                        result = GetLabel("conferenceRemoveMsgRoom", "userDisplayName", displayName);
                         break;
                     case "conferenceStarted":
-                        result = displayName + " has started the conference";
+                        result = GetLabel("conferenceAddMsgRoom", "userDisplayName", displayName);
                         break;
                     case "userJoin":
-                        result = displayName + " has joined the conference";
+                        result = GetLabel("joinMsgRoom", "userDisplayName", displayName);
                         break;
                     case "userLeave":
-                        result = displayName + " has left the conference";
+                        result = GetLabel("leaveMsgRoom", "userDisplayName", displayName);
                         break;
                     default:
-                        result = displayName + " - " + bubbleEvent;
+                        result = GetLabel(bubbleEvent, "userDisplayName", displayName);
                         break;
                 }
             }
 
             return result;
         }
-
 
         public static String GetLabel(String key)
         {
@@ -267,6 +266,23 @@ namespace MultiPlatformApplication.Helpers
                 label = "[! " + key + " !]";
             return label;
         }
+
+        public static String GetLabel(String key, String subtituteKey, String subtituteValue)
+        {
+            if (Languages == null)
+            {
+                // Get Rainbow Languages service
+                Languages = Rainbow.Common.Languages.Instance;
+            }
+            String label = Languages.GetLabel(key);
+            if (String.IsNullOrEmpty(label))
+                return "[! " + key + " !]";
+            
+            String _subtituteKey = "{{" + subtituteKey + "}}";
+            label = label.Replace(_subtituteKey, subtituteValue);
+            return label;
+        }
+
 
 #region AVATAR - IMAGE SOURCE
 
