@@ -127,26 +127,6 @@ namespace MultiPlatformApplication.Models
             set { SetProperty(ref commandParameter, value); }
         }
 
-
-        public void SetAsSelectedItem()
-        {
-            if (!IsSelected)
-            {
-                IsSelected = true;
-                //BackgroundColor = BackgroundColorOnSelected;
-            }
-        }
-
-        public void SetAsUnselectedItem()
-        {
-            if (IsSelected)
-            {
-                IsSelected = false;
-                //BackgroundColor = originalBackgroundColor;
-                
-            }
-        }
-
         public MenuItemModel()
         {
             IsSelected = false;
