@@ -12,8 +12,6 @@ namespace MultiPlatformApplication.Models
         private double defaultMenuItemHeightRequest;
         private double defaultMenuItemWidthRequest;
 
-        private String selectedItemId;
-
         private List<MenuItemModel> itemsOriginal;
         private ObservableRangeCollection<MenuItemModel> items;
 
@@ -52,7 +50,6 @@ namespace MultiPlatformApplication.Models
             set { SetProperty(ref command, value); }
         }
 
-
         public void SetItemSelected(int index)
         {
             if ( (items?.Count > 0) && (items?.Count < index) && index >= 0 )
@@ -66,9 +63,26 @@ namespace MultiPlatformApplication.Models
 
             if (items?.Count > 0)
             {
-                foreach (MenuItemModel item in items)
+                if (TextVisibleForSelectedItem && !TextVisible)
                 {
-                    item.IsSelected = (item.Id == id);
+                    foreach (MenuItemModel item in items)
+                    {
+                        if (item.Id == id)
+                        {
+                            item.IsSelected = true;
+                            item.Label = GetOriginalLabelOfItem(id);
+                        }
+                        else
+                        {
+                            item.IsSelected = false;
+                            item.Label = "";
+                        }
+                    }
+                }
+                else
+                {
+                    foreach (MenuItemModel item in items)
+                        item.IsSelected = (item.Id == id);
                 }
             }
 
@@ -104,8 +118,11 @@ namespace MultiPlatformApplication.Models
 
 
             // Change Text of display item if necessary
-            if ((!TextVisibleForSelectedItem) && originalItem.IsSelected)
-                displayItem.Label = "";
+            if(originalItem.IsSelected)
+            {
+                if(!TextVisibleForSelectedItem)
+                    displayItem.Label = "";
+            }
             else if (!TextVisible)
                 displayItem.Label = "";
 
@@ -155,9 +172,8 @@ namespace MultiPlatformApplication.Models
         private void ItemCommand(object obj)
         {
             if ( (obj != null) && (obj is String) )
-            {
                 SetItemSelected((String)obj);
-            }
+
 
             if (Command != null && Command.CanExecute(obj))
                 Command.Execute(obj);
@@ -165,7 +181,39 @@ namespace MultiPlatformApplication.Models
 
         private void UpdateTextOfItems()
         {
-            //TODO
+            if(itemsOriginal?.Count > 0)
+            {
+                for(int index=0; index < itemsOriginal.Count; index++)
+                {
+                    if(TextVisible)
+                    {
+                        items[index].Label = itemsOriginal[index].Label;
+                    }
+                    else
+                    {
+                        if(TextVisibleForSelectedItem)
+                        {
+                            if(items[index].IsSelected)
+                                items[index].Label = itemsOriginal[index].Label;
+                            else
+                                items[index].Label = "";
+                        }
+                        else
+                            items[index].Label = "";
+                    }
+                }
+            }
         }
+
+        private String GetOriginalLabelOfItem(string id)
+        {
+            foreach (MenuItemModel item in itemsOriginal)
+            {
+                if (item.Id == id)
+                    return item.Label;
+            }
+            return "";
+        }
+
     }
 }
