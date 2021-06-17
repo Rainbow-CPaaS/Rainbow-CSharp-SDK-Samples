@@ -32,7 +32,7 @@
                                                Text="{Binding Label}"
                                                TextColor="{Binding TextColor}"
                                                IsVisible="{Binding IsVisible}"
-                                               FontSize="{StaticResource FontSizeSmall}"
+                                               FontSize="{StaticResource FontSizeMicro}"
                                                HeightRequest="{Binding HeightRequest}"
                                                WidthRequest="{Binding WidthRequest}"
                                                ImageSize="{Binding ImageSize}"
