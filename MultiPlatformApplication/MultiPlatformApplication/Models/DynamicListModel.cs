@@ -25,7 +25,7 @@ namespace MultiPlatformApplication.Models
     /// <typeparam name="T"></typeparam>
     public class DynamicListModel<T> : ObservableObject
     {
-        // For scrolloning management we nneed to use two varaiables
+        // For scrolling management we nneed to use two variables
         int indexToScroll = 0; // To store the index where we want to scroll to
         Boolean askingScrolling; // To store the info taht we want to scroll to an element
 
