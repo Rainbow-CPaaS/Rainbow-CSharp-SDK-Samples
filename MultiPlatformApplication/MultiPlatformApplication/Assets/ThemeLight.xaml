@@ -6,6 +6,7 @@
     <!-- Main-->
     <Color x:Key="ColorMain">#2470E0</Color>
     <Color x:Key="ColorMainOnOver">#4783E5</Color>
+    <Color x:Key="ColorMainOnSelected">#1A59B7</Color>
     
     
     <!-- Conversation Stream -->

@@ -1,0 +1,52 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<ContentView xmlns="http://xamarin.com/schemas/2014/forms" 
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:controls="clr-namespace:MultiPlatformApplication.Controls"
+             x:Class="MultiPlatformApplication.Controls.MenuControl"
+             x:Name="ContentView">
+
+    <ContentView.Content>
+        <Grid x:Name="Grid"
+              HorizontalOptions="{Binding Source={x:Reference ContentView}, Path=HorizontalOptions}"
+              VerticalOptions="{Binding Source={x:Reference ContentView}, Path=VerticalOptions}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition x:Name="GridColumnDefinitions" Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Grid.RowDefinitions>
+                <RowDefinition x:Name="GridRowDefinitions" Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <StackLayout x:Name="StackLayout"
+                         Grid.Row="0"
+                         Grid.Column="0"
+                         Orientation="Horizontal"
+                         Margin="0" 
+                         Padding="0" 
+                         Spacing="0"
+                         BindableLayout.ItemsSource="{Binding Items}">
+                
+                <BindableLayout.ItemTemplate>
+                    <DataTemplate>
+                        <controls:CustomButton x:Name="CustomButton"
+                                               Text="{Binding Label}"
+                                               TextColor="{Binding TextColor}"
+                                               IsVisible="{Binding IsVisible}"
+                                               FontSize="{StaticResource FontSizeSmall}"
+                                               HeightRequest="{Binding HeightRequest}"
+                                               WidthRequest="{Binding WidthRequest}"
+                                               ImageSize="{Binding ImageSize}"
+                                               ImageSourceId="{Binding ImageSourceId}"
+                                               BackgroundColor="{Binding BackgroundColor}"
+                                               BackgroundColorOnSelected="{Binding BackgroundColorOnSelected}" 
+                                               BackgroundColorOnMouseOver="{Binding BackgroundColorOnMouseOver}" 
+                                               IsSelected="{Binding IsSelected}" 
+                                               Command="{Binding Command}" 
+                                               CommandParameter="{Binding Id}" />
+                    </DataTemplate>
+                </BindableLayout.ItemTemplate>
+                
+            </StackLayout>
+        </Grid>
+    </ContentView.Content>
+</ContentView>

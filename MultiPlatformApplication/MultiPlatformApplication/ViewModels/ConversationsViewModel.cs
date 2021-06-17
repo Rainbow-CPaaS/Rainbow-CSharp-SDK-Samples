@@ -38,6 +38,8 @@ namespace MultiPlatformApplication.ViewModels
         // We have a dynamic list of 'ConversationModel' to manage
         public DynamicListModel<ConversationModel> DynamicList { get; private set; } = new DynamicListModel<ConversationModel>();
 
+        public MenuItemListModel Menu { get; set; } = new MenuItemListModel();
+
 #endregion
 
 
@@ -54,6 +56,15 @@ namespace MultiPlatformApplication.ViewModels
             if(firstInitialization)
             {
                 firstInitialization = false;
+
+                // Define menu
+                Menu.SetDefaulMenuItemtSize(30, 50, 100);
+                Menu.AddItem(new MenuItemModel() { Id = "Conversations", Label = "Conversations", ImageSourceId = "MainImage_chat_white", IsSelected = true });
+                Menu.AddItem(new MenuItemModel() { Id = "Channels", Label = "Channels", ImageSourceId = "MainImage_newsfeed_white" });
+                Menu.AddItem(new MenuItemModel() { Id = "Bubbles", Label = "Bubbles", ImageSourceId = "MainImage_bubble_white" });
+                Menu.AddItem(new MenuItemModel() { Id = "Contacts", Label = "Contacts", ImageSourceId = "MainImage_contacts_white" });
+                Menu.AddItem(new MenuItemModel() { Id = "Calls", Label = "Calls", ImageSourceId = "MainImage_calllog_white" });
+                
                 InitializeSdkObjectsAndEvents();
 
                 // Need to manage some events of the collection view
