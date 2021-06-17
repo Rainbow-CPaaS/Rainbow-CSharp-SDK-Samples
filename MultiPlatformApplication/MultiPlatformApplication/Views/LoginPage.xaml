@@ -32,7 +32,7 @@
                 FontSize="{StaticResource FontSizeMedium}"
                 WidthRequest="300"
                 HorizontalOptions="Center" 
-                Placeholder="Your email address"
+                Placeholder="{StaticResource Label_loginEmail}"
                 PlaceholderColor="LightGray"
                 Text="{Binding LoginModel.Login}"
                 IsEnabled="{Binding LoginModel.IsBusy, Converter={StaticResource ReverseBooleanConverter}}" />
@@ -44,7 +44,7 @@
                 IsPassword="True"
                 WidthRequest="300"
                 HorizontalOptions="CenterAndExpand"
-                Placeholder="Your password"
+                Placeholder="{StaticResource Label_password}"
                 PlaceholderColor="Gray"
                 Text="{Binding LoginModel.Password}"
                 IsEnabled="{Binding LoginModel.IsBusy, Converter={StaticResource ReverseBooleanConverter}}" />

@@ -12,6 +12,11 @@
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
 
+        <ResourceDictionary x:Name="LabelDictionary">
+            <ResourceDictionary.MergedDictionaries>
+                <theme:ResourceDictionaryLabels/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
 
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>

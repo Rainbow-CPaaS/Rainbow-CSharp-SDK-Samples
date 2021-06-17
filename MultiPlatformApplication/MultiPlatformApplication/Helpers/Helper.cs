@@ -8,6 +8,7 @@ using Xamarin.Essentials;
 using Xamarin.Forms;
 
 using Rainbow;
+using Rainbow.Common;
 using Rainbow.Model;
 
 using MultiPlatformApplication.Models;
@@ -23,6 +24,8 @@ namespace MultiPlatformApplication.Helpers
         private static double density = 0;
 
         private static readonly App XamarinApplication;
+
+        private static Languages Languages = null;
 
         private static String AppFolderName = "Rainbow.CSharp.SDK.MultiOS";
         private static String AvatarsFolderName = "Avatars";
@@ -251,6 +254,16 @@ namespace MultiPlatformApplication.Helpers
             return result;
         }
 
+
+        public static String GetLabel(String key)
+        {
+            if (Languages == null)
+            {
+                // Get Rainbow Languages service
+                Languages = Rainbow.Common.Languages.Instance;
+            }
+            return Languages.GetLabel(key);
+        }
 
 #region AVATAR - IMAGE SOURCE
 

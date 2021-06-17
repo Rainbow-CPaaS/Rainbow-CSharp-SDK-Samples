@@ -38,7 +38,7 @@ namespace MultiPlatformApplication.ViewModels
         public void Initialize()
         {
             LoginModel.IsBusy = false;
-            LoginModel.Connect = "Connect";
+            LoginModel.Connect = Helper.GetLabel("connect");
 
             LoginModel.Login = XamarinApplication.SdkWrapper.GetUserLoginFromCache();
             LoginModel.Password = XamarinApplication.SdkWrapper.GetUserPasswordFromCache();
@@ -52,12 +52,12 @@ namespace MultiPlatformApplication.ViewModels
                 {
                     case ConnectionState.Connected:
                     case ConnectionState.Connecting:
-                        LoginModel.Connect = "Connecting";
+                        LoginModel.Connect = LoginModel.Connect = Helper.GetLabel("connecting");
                         LoginModel.IsBusy = true;
                         break;
 
                     case ConnectionState.Disconnected:
-                        LoginModel.Connect = "Connect";
+                        LoginModel.Connect = LoginModel.Connect = Helper.GetLabel("connect");
                         LoginModel.IsBusy = false;
                         break;
                 }
