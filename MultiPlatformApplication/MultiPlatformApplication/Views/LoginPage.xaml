@@ -5,6 +5,7 @@
              xmlns:controls="clr-namespace:MultiPlatformApplication.Controls"
              xmlns:extensions="clr-namespace:MultiPlatformApplication.Extensions"
              x:Class="MultiPlatformApplication.Views.LoginPage"
+             NavigationPage.HasNavigationBar="False"
              >
 
     <ContentPage.Padding>
