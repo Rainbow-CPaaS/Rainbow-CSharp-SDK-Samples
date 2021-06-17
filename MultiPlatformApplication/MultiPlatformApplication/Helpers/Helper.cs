@@ -262,7 +262,10 @@ namespace MultiPlatformApplication.Helpers
                 // Get Rainbow Languages service
                 Languages = Rainbow.Common.Languages.Instance;
             }
-            return Languages.GetLabel(key);
+            String label = Languages.GetLabel(key);
+            if(String.IsNullOrEmpty(label))
+                label = "[! " + key + " !]";
+            return label;
         }
 
 #region AVATAR - IMAGE SOURCE
