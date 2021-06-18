@@ -7,12 +7,14 @@ using Xamarin.Forms;
 namespace MultiPlatformApplication.Converters
 {
 
-    public class IntToBoolConverter : IValueConverter
+    public class IntToBooleanConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             if (value is Int64)
                 return  ((Int64)value) > 0;
+            if (value is Int32)
+                return ((Int32)value) > 0;
             return false;
         }
 

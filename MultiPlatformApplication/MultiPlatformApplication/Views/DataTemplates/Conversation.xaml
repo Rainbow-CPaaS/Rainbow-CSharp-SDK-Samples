@@ -10,7 +10,7 @@
         <Grid ColumnSpacing="0" RowSpacing="0" Padding="0" Margin="0">
             <Grid.Resources>
                 <converters:TextToBooleanConverter x:Key="TextToBooleanConverter" />
-                <converters:IntToBoolConverter x:Key="IntToBooleanConverter" />
+                    <converters:IntToBooleanConverter x:Key="IntToBooleanConverter" />
             </Grid.Resources>
             
             <!--GRID COLUMN / ROW DEFINITION-->
