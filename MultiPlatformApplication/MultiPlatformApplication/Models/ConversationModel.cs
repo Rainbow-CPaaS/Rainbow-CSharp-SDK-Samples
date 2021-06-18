@@ -22,12 +22,9 @@ namespace MultiPlatformApplication.Models
         String name;
         String topic;
         String lastMessage;
-        String presenceSource;
-        Boolean presenceIsVisible;
         Int64 nbMsgUnread;
         DateTime lastMessageDateTime;
         String messageTimeDisplay;
-        ImageSource presenceImageSource;
 
         public string Id
         {
@@ -67,40 +64,6 @@ namespace MultiPlatformApplication.Models
             set { SetProperty(ref topic, value); }
         }
 
-        public String PresenceSource
-        {
-            get { return presenceSource; }
-            set {
-                if (presenceSource != value)
-                {
-                    if (String.IsNullOrEmpty(value))
-                    {
-                        PresenceImageSource = null;
-                        PresenceIsVisible = false;
-                    }
-                    else
-                    {
-                        PresenceImageSource = ImageSource.FromResource(value, typeof(Helpers.Helper).Assembly);
-                        PresenceIsVisible = true;
-                    }
-                    SetProperty(ref presenceSource, value);
-                }
-                
-            }
-        }
-        
-        public Boolean PresenceIsVisible
-        {
-            get { return presenceIsVisible; }
-            set { SetProperty(ref presenceIsVisible, value); }
-        }
-
-        public ImageSource PresenceImageSource
-        {
-            get { return presenceImageSource; }
-            set { SetProperty(ref presenceImageSource, value); }
-        }
-
         public Int64 NbMsgUnread
         {
             get { return nbMsgUnread; }
@@ -136,7 +99,6 @@ namespace MultiPlatformApplication.Models
             PeerType = "";
             Name = "";
             Topic = "";
-            PresenceSource = "";
 
             NbMsgUnread = 0;
 

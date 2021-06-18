@@ -11,10 +11,34 @@
        BackgroundColor="#00000000"
        >
 
+    <Grid>
         <!-- IMAGE OF THE AVATAR -->
         <Image x:Name="Image"
+               Grid.Row="0"
+               Grid.Column="0"
                WidthRequest="{Binding Source={x:Reference Frame}, Path=WidthRequest}"
                HeightRequest="{Binding Source={x:Reference Frame}, Path=HeightRequest}"
                />
-        
+
+        <!--PRESENCE BULLET-->
+        <Frame x:Name="FrameForPesence"
+                Grid.Row="0" 
+                Grid.Column="0"
+                BackgroundColor="White"
+                HeightRequest="14"
+                WidthRequest="14"
+                CornerRadius="14"
+                VerticalOptions="End"
+                HorizontalOptions="End"
+                HasShadow="False"
+                IsClippedToBounds="False"
+                Margin="0,0,2,2"
+                Padding="0">
+            
+            <Image x:Name="ImagePresence"
+                    HeightRequest="10"
+                    WidthRequest="10"/>
+        </Frame>
+
+    </Grid>
 </Frame>

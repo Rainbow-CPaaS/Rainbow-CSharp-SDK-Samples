@@ -29,7 +29,7 @@
                     <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <!--AVATAR IMG-->
+            <!--AVATAR - IMG + PRESENCE-->
             <controls:Avatar Grid.Row="0"
                              Grid.Column="0"
                              WidthRequest="40"
@@ -38,28 +38,8 @@
                              HorizontalOptions="Center"
                              PeerId="{Binding PeerId}"
                              PeerType="{Binding PeerType}"
+                             DisplayPresence="True"
                                  />
-
-            <!--PRESENCE BULLET-->
-            <Frame 
-                Grid.Row="0" 
-                Grid.Column="0"
-                BackgroundColor="White"
-                HeightRequest="14"
-                WidthRequest="14"
-                CornerRadius="14"
-                VerticalOptions="End"
-                HorizontalOptions="End"
-                HasShadow="False"
-                IsClippedToBounds="False"
-                Margin="0,0,2,2"
-                Padding="0"
-                IsVisible="{Binding PresenceIsVisible}">
-                <Image 
-                    Source="{Binding PresenceImageSource}"
-                    HeightRequest="10"
-                    WidthRequest="10"/>
-            </Frame>
 
 
             <!--MSG UNREAD-->

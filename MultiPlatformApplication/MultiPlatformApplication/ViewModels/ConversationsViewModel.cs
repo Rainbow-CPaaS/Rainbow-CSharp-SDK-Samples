@@ -136,7 +136,6 @@ namespace MultiPlatformApplication.ViewModels
             XamarinApplication.SdkWrapper.ConversationUpdated += RbConversations_ConversationUpdated;
 
             // Manage event(s) from Rainbow SDK about CONTACTS
-            XamarinApplication.SdkWrapper.ContactPresenceChanged += RbContacts_ContactPresenceChanged;
             XamarinApplication.SdkWrapper.ContactAdded += RbContacts_ContactAdded;
             XamarinApplication.SdkWrapper.ContactInfoChanged += RbContacts_ContactInfoChanged;
 
@@ -233,7 +232,6 @@ namespace MultiPlatformApplication.ViewModels
                         oldConversation.Jid = newConversation.Jid;
                         oldConversation.PeerId = newConversation.PeerId;
                         oldConversation.Name = newConversation.Name;
-                        oldConversation.PresenceSource = newConversation.PresenceSource;
 
                         oldConversation.NbMsgUnread = newConversation.NbMsgUnread;
 
@@ -315,18 +313,6 @@ namespace MultiPlatformApplication.ViewModels
                 conversation.Name = name;
             }
             return result;
-        }
-
-        /// <summary>
-        /// Update the ViewModel using the Presence Level of the specified JID
-        /// </summary>
-        /// <param name="jid">Jid of the contact</param>
-        /// <param name="presence">Presence of the contact</param>
-        private void UpdateModelUsingPresence(String jid, Presence presence)
-        {
-            ConversationModel conversation = GetConversationByJid(jid);
-            if (conversation != null)
-                conversation.PresenceSource = Helpers.Helper.GetPresenceSourceFromPresence(presence);
         }
 
         /// <summary>
@@ -505,14 +491,6 @@ namespace MultiPlatformApplication.ViewModels
                    UpdateConversationNameByPeerId(contact.Id, Rainbow.Util.GetContactDisplayName(contact));
                });
             }
-        }
-
-        private void RbContacts_ContactPresenceChanged(object sender, Rainbow.Events.PresenceEventArgs e)
-        {
-            Device.BeginInvokeOnMainThread(() =>
-           {
-               UpdateModelUsingPresence(e.Jid, e.Presence);
-           });
         }
 
         private void RbConversations_ConversationUpdated(object sender, Rainbow.Events.ConversationEventArgs e)

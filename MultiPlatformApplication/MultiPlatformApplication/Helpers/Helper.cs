@@ -183,7 +183,6 @@ namespace MultiPlatformApplication.Helpers
                     conversation.Name = rbConversation.Name;
                     conversation.Topic = rbConversation.Topic;
                     conversation.Jid = rbConversation.Jid_im;
-                    conversation.PresenceSource = "";
 
                 }
                 else if (rbConversation.Type == Rainbow.Model.Conversation.ConversationType.User)
@@ -195,10 +194,6 @@ namespace MultiPlatformApplication.Helpers
                         conversation.Name = Rainbow.Util.GetContactDisplayName(contact);
                         conversation.Topic = "";
                         conversation.Jid = contact.Jid_im;
-
-                        Presence presence = XamarinApplication.SdkWrapper.GetAggregatedPresenceFromContactId(rbConversation.PeerId);
-                        conversation.PresenceSource = Helpers.Helper.GetPresenceSourceFromPresence(presence);
-
                     }
                     else
                     {

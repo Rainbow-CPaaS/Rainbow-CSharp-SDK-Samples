@@ -7,7 +7,10 @@ using System.Threading.Tasks;
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 
+using Rainbow.Model;
+
 using MultiPlatformApplication.Helpers;
+
 
 namespace MultiPlatformApplication.Controls
 {
@@ -29,6 +32,7 @@ namespace MultiPlatformApplication.Controls
         {
             var control = (Avatar)bindable;
             UpdateAvatarImageDisplay(control);
+            UpdatePresenceDisplay(control);
         }
 
         public String PeerId
@@ -62,6 +66,7 @@ namespace MultiPlatformApplication.Controls
         {
             var control = (Avatar)bindable;
             UpdateAvatarImageDisplay(control);
+            UpdatePresenceDisplay(control);
         }
 
         public String PeerType
@@ -93,18 +98,18 @@ namespace MultiPlatformApplication.Controls
 
         private static void DisplayPresenceChanged(BindableObject bindable, object oldValue, object newValue)
         {
-            //var control = (Avatar)bindable;
-            //TODO
+            var control = (Avatar)bindable;
+            UpdatePresenceDisplay((Avatar)bindable);
         }
 
-        public String DisplayPresence
+        public Boolean DisplayPresence
         {
             get
             {
                 var obj = base.GetValue(DisplayPresenceProperty);
-                if (obj is String)
-                    return (String)obj;
-                return null;
+                if (obj is Boolean)
+                    return (Boolean)obj;
+                return false;
             }
             set
             {
@@ -115,6 +120,7 @@ namespace MultiPlatformApplication.Controls
 #endregion DisplayPresenceProperty
 
         private SdkWrapper SdkWrapper;
+        private String peerJid;
 
         public Avatar()
         {
@@ -135,14 +141,43 @@ namespace MultiPlatformApplication.Controls
             if (String.IsNullOrEmpty(control.PeerId))
                 return;
 
-            if(control.PeerType == "user")
+            if ( (control.PeerType == "user") && (!String.IsNullOrEmpty(control.PeerId)) )
+            {
                 control.Image.Source = ImageSource.FromFile(Helper.GetContactAvatarFilePath(control.PeerId));
+
+                // Need to store peerJid if it's a user to manage presence update
+                Contact contact = control.SdkWrapper.GetContactFromContactId(control.PeerId);
+                control.peerJid = contact?.Jid_im;
+
+            }
             else if (control.PeerType == "room")
                 control.Image.Source = ImageSource.FromFile(Helper.GetBubbleAvatarFilePath(control.PeerId));
         }
 
-        private static void UpdatePresenceDisplay(Avatar avatar)
+        private static void UpdatePresenceDisplay(Avatar control)
         {
+            Boolean displayFrameForPresence = false;
+            if (control.DisplayPresence)
+            {
+
+                if ((control.PeerType == "user") && (!String.IsNullOrEmpty(control.PeerId)))
+                {
+                    Presence presence = control.SdkWrapper.GetAggregatedPresenceFromContactId(control.PeerId);
+
+                    if (presence == null)
+                    {
+                        control.ImagePresence.Source = null;
+                        displayFrameForPresence = false;
+                    }
+                    else
+                    {
+                        control.ImagePresence.Source = ImageSource.FromResource(Helper.GetPresenceSourceFromPresence(presence));
+                        displayFrameForPresence = true;
+                    }
+                }
+            }
+
+            control.FrameForPesence.IsVisible = displayFrameForPresence;
 
         }
 
@@ -150,7 +185,13 @@ namespace MultiPlatformApplication.Controls
 
         private void SdkWrapper_ContactPresenceChanged(object sender, Rainbow.Events.PresenceEventArgs e)
         {
-            //TODO
+            if (DisplayPresence && (PeerType == "user") && (peerJid == e.Jid))
+            {
+                Device.BeginInvokeOnMainThread(() =>
+                {
+                    UpdatePresenceDisplay(this);
+                });
+            }
         }
 
         private void SdkWrapper_ContactAvatarUpdated(object sender, Rainbow.Events.IdEventArgs e)
