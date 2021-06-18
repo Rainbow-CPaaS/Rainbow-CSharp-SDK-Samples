@@ -728,7 +728,6 @@ namespace MultiPlatformApplication.ViewModels
                     if (rbMessage.FileAttachment != null)
                     {
                         // Set Global info
-                        message.FileDefaultInfoIsVisible = "True";
                         message.FileId = rbMessage.FileAttachment.Id;
                         message.FileName = rbMessage.FileAttachment.Name;
                         message.FileSize = Helper.HumanizeFileSize(rbMessage.FileAttachment.Size);
@@ -756,8 +755,6 @@ namespace MultiPlatformApplication.ViewModels
                     }
                     else
                     {
-                        message.FileDefaultInfoIsVisible = "False";
-
                         message.FileAttachmentSourceWidth = 0;
                         message.FileAttachmentSourceHeight = 0;
                     }
@@ -799,8 +796,6 @@ namespace MultiPlatformApplication.ViewModels
                     message.FileAttachmentSourceHeight = (int)Math.Round(h / density);
 
                     message.FileAttachmentImageSource = ImageSource.FromFile(filePath);
-
-                    message.FileDefaultInfoIsVisible = "False";
                 }
             }
             catch { }

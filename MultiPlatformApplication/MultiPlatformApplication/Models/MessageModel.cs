@@ -52,7 +52,6 @@ namespace MultiPlatformApplication.Models
         ImageSource fileAttachmentImageSource;
         int fileAttachmentSourceWidth;
         int fileAttachmentSourceHeight;
-        String fileDefaultInfoIsVisible;
         String fileId;
         String fileName;
         String fileSize;
@@ -264,12 +263,6 @@ namespace MultiPlatformApplication.Models
             set { SetProperty(ref fileAttachmentSourceHeight, value); }
         }
 
-        public String FileDefaultInfoIsVisible
-        {
-            get { return fileDefaultInfoIsVisible; }
-            set { SetProperty(ref fileDefaultInfoIsVisible, value); }
-        }
-        
         public String FileId
         {
             get { return fileId; }
@@ -336,7 +329,6 @@ namespace MultiPlatformApplication.Models
 
             FileAttachmentSourceWidth = 0;
             FileAttachmentSourceHeight = 0;
-            FileDefaultInfoIsVisible = "False";
             FileId = "";
             FileName = "";
             FileSize = "";
