@@ -21,18 +21,7 @@ namespace MultiPlatformApplication.Extensions
 
 		public ImageSource ProvideValue(IServiceProvider serviceProvider)
 		{
-			ImageSource result = null;
-
-			if(!String.IsNullOrEmpty(Id))
-            {
-				String filePath = Helper.GetEmbededResourceFullPath(Id);
-				if (!String.IsNullOrEmpty(filePath))
-					result = ImageSource.FromResource(filePath, typeof(ImageResourceExtension).Assembly);
-				else
-					result = Helper.GetImageSourceFromResourceDictionaryById(App.Current.Resources, Id);
-			}
-
-			return result;
+			return Helper.GetImageSourceFromIdOrFilePath(Id);
 		}
 
 		object IMarkupExtension.ProvideValue(IServiceProvider serviceProvider)

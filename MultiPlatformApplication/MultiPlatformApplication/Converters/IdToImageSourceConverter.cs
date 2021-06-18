@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Text;
 using Xamarin.Forms;
 
@@ -11,22 +12,9 @@ namespace MultiPlatformApplication.Converters
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            ImageSource result = null;
             if (value is String)
-            {
-                String id = (String)value;
-
-                if (!String.IsNullOrEmpty(id))
-                {
-                    String filePath = Helper.GetEmbededResourceFullPath(id);
-                    if (!String.IsNullOrEmpty(filePath))
-                        result = ImageSource.FromResource(filePath, typeof(IdToImageSourceConverter).Assembly);
-                    else
-                        result = Helper.GetImageSourceFromResourceDictionaryById(App.Current.Resources, id);
-                }
-            }
-           
-            return result;
+                return Helper.GetImageSourceFromIdOrFilePath((String)value);
+            return null;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

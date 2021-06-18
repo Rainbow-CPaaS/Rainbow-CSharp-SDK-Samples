@@ -356,6 +356,64 @@ namespace MultiPlatformApplication.Helpers
             return filePath;
         }
 
+
+        // Get image source using Id specified - this id could alos be a file path
+        // Check first in embedded resource using the ID
+        // then check from file
+        // and finally check from ResourceDictionary
+        static internal ImageSource GetImageSourceFromIdOrFilePath(String id)
+        {
+            ImageSource result = null;
+
+            if (!String.IsNullOrEmpty(id))
+            {
+                String filePath = Helper.GetEmbededResourceFullPath(id);
+                if (!String.IsNullOrEmpty(filePath))
+                    result = ImageSource.FromResource(filePath, typeof(Helper).Assembly);
+                else
+                {
+                    // Check if it's a valid path
+                    if (File.Exists(id))
+                        result = ImageSource.FromFile(id);
+                    else
+                        result = GetImageSourceFromResourceDictionaryById(App.Current.Resources, id);
+                }
+            }
+
+            return result;
+        }
+
+        // Get image source using Id from merged resource dictionaries
+        static internal ImageSource GetImageSourceFromResourceDictionaryById(ResourceDictionary dictionary, String dictionaryId)
+        {
+            ImageSource result = null;
+
+            if (dictionary?.ContainsKey(dictionaryId) == true)
+            {
+                var obj = dictionary[dictionaryId];
+                if (obj is ImageSource)
+                    result = (ImageSource)obj;
+            }
+
+            if (result == null)
+            {
+                // Check on child merged dictionaries
+                if (dictionary.MergedDictionaries?.Count > 0)
+                {
+                    List<ResourceDictionary> list = dictionary.MergedDictionaries.ToList();
+                    for (int index = 0; index < dictionary.MergedDictionaries.Count; index++)
+                    {
+                        result = GetImageSourceFromResourceDictionaryById(list[index], dictionaryId);
+                        if (result != null)
+                            break;
+                    }
+                }
+            }
+
+            return result;
+        }
+
+
 #endregion AVATAR - IMAGE SOURCE    
 
 
@@ -510,35 +568,6 @@ namespace MultiPlatformApplication.Helpers
             }
         }
 
-        // Get image source using Id from merged resource dictionaries
-        static internal ImageSource GetImageSourceFromResourceDictionaryById(ResourceDictionary dictionary, String dictionaryId)
-        {
-            ImageSource result = null;
-
-            if (dictionary?.ContainsKey(dictionaryId) == true)
-            {
-                var obj = dictionary[dictionaryId];
-                if (obj is ImageSource)
-                    result = (ImageSource)obj;
-            }
-
-            if (result == null)
-            {
-                // Check on child merged dictionaries
-                if (dictionary.MergedDictionaries?.Count > 0)
-                {
-                    List<ResourceDictionary> list = dictionary.MergedDictionaries.ToList();
-                    for (int index = 0; index < dictionary.MergedDictionaries.Count; index++)
-                    {
-                        result = GetImageSourceFromResourceDictionaryById(list[index], dictionaryId);
-                        if (result != null)
-                            break;
-                    }
-                }
-            }
-
-            return result;
-        }
 
 #endregion RESOURCES - Get access to resources of this assembly
 
