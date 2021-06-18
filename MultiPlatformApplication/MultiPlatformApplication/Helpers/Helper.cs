@@ -470,11 +470,8 @@ namespace MultiPlatformApplication.Helpers
 
             if (resourceName.StartsWith(NamespaceResources))
             {
-                foreach (String resource in resources)
-                {
-                    if (resource == resourceName)
-                        result =  resource;
-                }
+                if(resources.Contains(resourceName))
+                    result = resourceName;
             }
             else
             {
