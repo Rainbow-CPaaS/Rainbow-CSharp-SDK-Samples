@@ -61,13 +61,6 @@ namespace MultiPlatformApplication.ViewModels
         private Dictionary<String, String> unknownRepliedMessagesListInvolved = new Dictionary<String, String>(); // To store list of messages involved in reply context in this Conversation (by message Id / message Stamp) but unknown for the moment
         private BackgroundWorker backgroundWorkerUnknownrepliedMessage = null;
 
-        // Define attributes to manage loading/scrolling of messages list view
-        private Boolean noMoreOlderMessagesAvailable = false;
-        private Boolean loadingOlderMessages = false;
-        private Boolean waitingScrollingDueToLoadingOlderMessages = false;
-        private int nbOlderMessagesFound = 0;
-        private Boolean newMessageAdded = false;
-
 #region PUBLIC METHODS
 
         /// <summary>
@@ -95,10 +88,6 @@ namespace MultiPlatformApplication.ViewModels
             XamarinApplication.SdkWrapper.FileDescriptorAvailable += FilePool_FileDescriptorAvailable;
             XamarinApplication.SdkWrapper.ThumbnailAvailable += FilePool_ThumbnailAvailable;
 
-            // Manage event(s) from AvatarPool
-            XamarinApplication.SdkWrapper.ContactAvatarUpdated += RbAvatars_ContactAvatarUpdated;
-            XamarinApplication.SdkWrapper.BubbleAvatarUpdated += RbAvatars_BubbleAvatarUpdated;
-
             // Manage event(s) from InstantMessaging
             XamarinApplication.SdkWrapper.MessageReceived += RbInstantMessaging_MessageReceived;
             XamarinApplication.SdkWrapper.ReceiptReceived += RbInstantMessaging_ReceiptReceived;
@@ -118,8 +107,6 @@ namespace MultiPlatformApplication.ViewModels
 
                 // Get Conversation Model Object using Rainbow Conversation
                 Conversation = Helper.GetConversationFromRBConversation(rbConversation);
-                if (Conversation != null)
-                    Conversation.AvatarFilePath = Helper.GetConversationAvatarFilePath(Conversation);
             }
         }
 
@@ -164,10 +151,6 @@ namespace MultiPlatformApplication.ViewModels
             // Unmanage event(s) from FilePool
             XamarinApplication.SdkWrapper.FileDescriptorAvailable -= FilePool_FileDescriptorAvailable;
             XamarinApplication.SdkWrapper.ThumbnailAvailable -= FilePool_ThumbnailAvailable;
-
-            // Unmanage event(s) from AvatarPool
-            XamarinApplication.SdkWrapper.ContactAvatarUpdated -= RbAvatars_ContactAvatarUpdated;
-            XamarinApplication.SdkWrapper.BubbleAvatarUpdated -= RbAvatars_BubbleAvatarUpdated;
 
             // Unmanage event(s) from InstantMessaging
             XamarinApplication.SdkWrapper.MessageReceived -= RbInstantMessaging_MessageReceived;
@@ -234,11 +217,6 @@ namespace MultiPlatformApplication.ViewModels
             ////    LoadMoreMessages();
         }
 
-        private void MessageSelectionChanged(object obj)
-        {
-            // Necessary ?
-        }
-
 #endregion  COMMANDS
 
  
@@ -264,28 +242,6 @@ namespace MultiPlatformApplication.ViewModels
         {
             XamarinApplication.SdkWrapper.SendMessageToConversationId(Conversation.Id, content, UrgencyType.Std);
             SetIsTyping(false);
-        }
-
-        public void ScrollingDueToLoadingOlderMessagesDone()
-        {
-            waitingScrollingDueToLoadingOlderMessages = false;
-        }
-
-        public Boolean WaitingScrollingDueToLoadingOlderMessages()
-        {
-            return waitingScrollingDueToLoadingOlderMessages;
-        }
-
-        public int NbOlderMessagesFound()
-        {
-            return nbOlderMessagesFound;
-        }
-
-        public Boolean CanLoadMoreMessages()
-        {
-            if (noMoreOlderMessagesAvailable || loadingOlderMessages || waitingScrollingDueToLoadingOlderMessages)
-                return false;
-            return true;
         }
 
         public void LoadMoreMessages()
@@ -316,15 +272,6 @@ namespace MultiPlatformApplication.ViewModels
             task.Start();
         }
 
-        public Boolean NewMessageAdded()
-        {
-            return newMessageAdded;
-        }
-
-        public void ScrollToNewMessageAddedDone()
-        {
-            newMessageAdded = false;
-        }
 
 #endregion PUBLIC METHODS
 
@@ -347,8 +294,6 @@ namespace MultiPlatformApplication.ViewModels
                 if (msg != null)
                 {
                     messagesList.Insert(0, msg);
-                    msg.AvatarFilePath = Helper.GetContactAvatarFilePath(msg.PeerId);
-
                     AddContactInvolved(msg.PeerJid);
                 }
             }
@@ -560,30 +505,22 @@ namespace MultiPlatformApplication.ViewModels
             return result;
         }
 
-        private void UpdateMessagesForJid(String peerJid, bool updateAvatar, bool updateDisplayName )
+        private void UpdateMessagesForJid(String peerJid)
         {
             if (contactsListInvolved.Contains(peerJid))
             {
                 Contact contact = XamarinApplication.SdkWrapper.GetContactFromContactJid(peerJid);
                 if (contact != null)
                 {
-                    log.Debug("[UpdateMessagesForJid] peerJid:[{0}] - peerId:[{1}] - updateAvatar[{2}] - updateDisplayName:[{3}]", peerJid, contact.Id, updateAvatar, updateDisplayName);
-                    
-                    String displayName;
-                    if (updateDisplayName)
-                        displayName = Rainbow.Util.GetContactDisplayName(contact);
-                    else
-                        displayName = null;
+                    log.Debug("[UpdateMessagesForJid] peerJid:[{0}] - peerId:[{1}]", peerJid, contact.Id);
 
-                    List<MessageModel> messages = GetMessagesByPeerJid(peerJid);
-                    lock (lockObservableMessagesList)
+                    String displayName = Rainbow.Util.GetContactDisplayName(contact);
+                    if (!String.IsNullOrEmpty(displayName))
                     {
-                        foreach (MessageModel message in messages)
+                        List<MessageModel> messages = GetMessagesByPeerJid(peerJid);
+                        lock (lockObservableMessagesList)
                         {
-                            if (updateAvatar)
-                                message.AvatarFilePath = Helper.GetContactAvatarFilePath(contact.Id);
-
-                            if (displayName != null)
+                            foreach (MessageModel message in messages)
                             {
                                 message.PeerDisplayName = displayName;
                                 message.BackgroundColor = Color.FromHex(SdkWrapper.GetColorFromDisplayName(message.PeerDisplayName));
@@ -954,9 +891,6 @@ namespace MultiPlatformApplication.ViewModels
                         return;
                     }
 
-                    // Since message is not null, set the Avatar Source
-                    newMsg.AvatarFilePath = Helper.GetContactAvatarFilePath(newMsg.PeerId);
-
                     // Manage incoming REPLACE message
                     if (!String.IsNullOrEmpty(e.Message.ReplaceId))
                     {
@@ -974,9 +908,6 @@ namespace MultiPlatformApplication.ViewModels
                     // Manage incoming NEW message
                     else
                     {
-                        // It's a new message to add in the list
-                        newMessageAdded = true;
-
                         lock (lockObservableMessagesList)
                         {
                             // Do we have already some message ?
@@ -1037,7 +968,7 @@ namespace MultiPlatformApplication.ViewModels
             Device.BeginInvokeOnMainThread( () =>
             {
                 // Need to update this contact in each messages (not avatar part)
-                UpdateMessagesForJid(e.Jid, false, true);
+                UpdateMessagesForJid(e.Jid);
 
                 // Need to update this contact in each replied part
                 UpdateRepliedMessagesForJid(e.Jid);
@@ -1049,7 +980,7 @@ namespace MultiPlatformApplication.ViewModels
             Device.BeginInvokeOnMainThread( () =>
             {
                 // Need to update this contact in each messages (avatar + display name)
-                UpdateMessagesForJid(e.Jid, true, true);
+                UpdateMessagesForJid(e.Jid);
 
                 // Need to update this contact in each replied part
                 UpdateRepliedMessagesForJid(e.Jid);
@@ -1057,48 +988,6 @@ namespace MultiPlatformApplication.ViewModels
         }
 
 #endregion EVENTS FROM RAINBOW SDK
-
-#region EVENTS FROM AVATAR POOL
-
-        private void RbAvatars_BubbleAvatarUpdated(object sender, Rainbow.Events.IdEventArgs e)
-        {
-            if( (rbConversation != null) 
-                && (rbConversation.Type == Rainbow.Model.Conversation.ConversationType.Room)
-                && (rbConversation.Id == e.Id) )
-            {
-                if (Conversation != null)
-                {
-                    Device.BeginInvokeOnMainThread( () =>
-                    {
-                        Conversation.AvatarFilePath = Helper.GetConversationAvatarFilePath(Conversation);
-                    });
-                }
-            }
-        }
-
-        private void RbAvatars_ContactAvatarUpdated(object sender, Rainbow.Events.IdEventArgs e)
-        {
-            Device.BeginInvokeOnMainThread( () =>
-            {
-                // Check Conversation Avatar
-                if ((rbConversation != null)
-                && (rbConversation.Type == Rainbow.Model.Conversation.ConversationType.User)
-                && (rbConversation.Id == e.Id))
-                {
-                    if (Conversation != null)
-                        Conversation.AvatarFilePath = Helper.GetConversationAvatarFilePath(Conversation);
-                }
-
-                // Need to update this contact in each messages (just avatar part)
-                Contact contact = XamarinApplication.SdkWrapper.GetContactFromContactId(e.Id);
-                if (contact != null)
-                    UpdateMessagesForJid(contact.Jid_im, true, false);
-                else
-                    log.Warn("[RbAvatars_ContactAvatarUpdated] Contact avatar updated but no related Contact object found");
-            });
-        }
-
-#endregion EVENTS FROM AVATAR POOL
 
 #region EVENTS FROM FILE POOL
 

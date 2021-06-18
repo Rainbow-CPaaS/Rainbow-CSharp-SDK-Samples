@@ -22,7 +22,6 @@ namespace MultiPlatformApplication.Models
 
         Color backgroundColor;
         
-        String avatarFilePath;
         DateTime messageDateTime;
         String  messageDateDisplay;
 
@@ -108,12 +107,6 @@ namespace MultiPlatformApplication.Models
         {
             get { return bodyColor; }
             set { SetProperty(ref bodyColor, value); }
-        }
-
-        public String AvatarFilePath
-        {
-            get { return avatarFilePath; }
-            set { SetProperty(ref avatarFilePath, value); }
         }
 
         public DateTime MessageDateTime

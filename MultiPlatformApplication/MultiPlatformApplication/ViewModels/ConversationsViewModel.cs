@@ -142,10 +142,6 @@ namespace MultiPlatformApplication.ViewModels
 
             // Manage event(s) from Rainbow SDK about BUBBLES
             XamarinApplication.SdkWrapper.BubbleInfoUpdated += RbBubbles_BubbleInfoUpdated;
-
-            // Manage event(s) from AvatarPool
-            XamarinApplication.SdkWrapper.ContactAvatarUpdated += RbAvatars_ContactAvatarUpdated;
-            XamarinApplication.SdkWrapper.BubbleAvatarUpdated += RbAvatars_BubbleAvatarUpdated;
         }
 
         /// <summary>
@@ -188,10 +184,6 @@ namespace MultiPlatformApplication.ViewModels
             lock (lockObservableConversations)
             {
                 DynamicList.ReplaceRangeAndScroll(conversationList, ScrollTo.START);
-
-                // Now we can now start Avatar download
-                foreach (ConversationModel conversation in DynamicList.Items)
-                    conversation.AvatarFilePath = Helper.GetConversationAvatarFilePath(conversation);
             }
 
             log.Debug("[ResetModelWithRbConversations] nb RBConversations:[{0}] - nb conversationList:[{1}] - nb Conversations:[{2}]", rbConversations?.Count, conversationList.Count, DynamicList.Items.Count);
@@ -216,11 +208,7 @@ namespace MultiPlatformApplication.ViewModels
                 ConversationModel newConversation;
                 newConversation = Helper.GetConversationFromRBConversation(rbConversation);
                 if (newConversation != null)
-                {
                     AddConversationToModel(newConversation);
-                    // Get Avatar only once the conversation has been added to the model
-                    newConversation.AvatarFilePath = Helper.GetConversationAvatarFilePath(newConversation);
-                }
             }
         }
 
@@ -561,44 +549,6 @@ namespace MultiPlatformApplication.ViewModels
         }
 
 #endregion EVENTS FIRED BY RAINBOW SDK
-
-
-#region AVATAR POOL EVENTS
-
-        private void RbAvatars_BubbleAvatarUpdated(object sender, Rainbow.Events.IdEventArgs e)
-        {
-            ConversationModel conversation = GetConversationByPeerId(e.Id);
-            if (conversation != null)
-            {
-                Device.BeginInvokeOnMainThread(() =>
-               {
-                   conversation.AvatarFilePath = Helper.GetConversationAvatarFilePath(conversation);
-                   log.Debug("[RbAvatars_BubbleAvatarUpdated] - bubbleId:[{0}] - conversationId:[{1}] - AvatarFilePath:[{2}]", e.Id, conversation.Id, conversation.AvatarFilePath);
-               });
-            }
-            else
-                log.Debug("[RbAvatars_BubbleAvatarChanged] No conversation found:[{1}]", e.Id);
-        }
-
-        private void RbAvatars_ContactAvatarUpdated(object sender, Rainbow.Events.IdEventArgs e)
-        {
-            ConversationModel conversation = GetConversationByPeerId(e.Id);
-            if (conversation != null)
-            {
-
-                Device.BeginInvokeOnMainThread(() =>
-               {
-                   conversation.AvatarFilePath = Helper.GetConversationAvatarFilePath(conversation);
-                   log.Debug("[RbAvatars_ContactAvatarChanged] - contactId:[{0}] - conversationId:[{1}] - AvatarFilePath:[{2}]", e.Id, conversation.Id, conversation.AvatarFilePath);
-               });
-            }
-            else
-            {
-                log.Debug("[RbAvatars_ContactAvatarChanged] - Avatar contactId:[{0}] but no conversation found ...", e.Id);
-            }
-        }
-
-#endregion AVATAR POOL EVENTS
 
     }
 }

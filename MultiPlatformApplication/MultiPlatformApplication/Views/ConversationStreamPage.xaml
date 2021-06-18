@@ -60,7 +60,9 @@
                                  HeightRequest="40"
                                  VerticalOptions="Center"
                                  HorizontalOptions="Center"
-                                 AvatarFilePath="{Binding Conversation.AvatarFilePath}"
+                                 PeerId="{Binding Conversation.PeerId}"
+                                 PeerType="{Binding Conversation.PeerType}"
+
                                  />
 
                 <!-- NAME AND TOPIC -->

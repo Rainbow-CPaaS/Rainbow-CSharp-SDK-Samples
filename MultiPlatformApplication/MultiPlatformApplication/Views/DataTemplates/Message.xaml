@@ -138,7 +138,7 @@
                              HeightRequest="40"
                              VerticalOptions="Center"
                              HorizontalOptions="Center"
-                             AvatarFilePath="{Binding AvatarFilePath}"
+                             PeerId="{Binding PeerId}"
                                 />
 
                 <!-- BODY -->
@@ -259,7 +259,7 @@
                                          HeightRequest="40"
                                          VerticalOptions="Center"
                                          HorizontalOptions="Center"
-                                         AvatarFilePath="{Binding AvatarFilePath}"
+                                         PeerId="{Binding PeerId}"
                                          />
 
                         <StackLayout Orientation="Vertical" VerticalOptions="Center" HorizontalOptions="FillAndExpand" HeightRequest="60">

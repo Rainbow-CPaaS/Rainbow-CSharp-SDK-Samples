@@ -27,7 +27,6 @@ namespace MultiPlatformApplication.Models
         Int64 nbMsgUnread;
         DateTime lastMessageDateTime;
         String messageTimeDisplay;
-        String avatarFilePath;
         ImageSource presenceImageSource;
 
         public string Id
@@ -48,7 +47,7 @@ namespace MultiPlatformApplication.Models
             set { SetProperty(ref peerId, value); }
         }
 
-        public string Type
+        public string PeerType
         {
             get { return type; }
             set { SetProperty(ref type, value); }
@@ -129,18 +128,12 @@ namespace MultiPlatformApplication.Models
             set { SetProperty(ref messageTimeDisplay, value); }
         }
 
-        public String AvatarFilePath
-        {
-            get { return avatarFilePath; }
-            set { SetProperty(ref avatarFilePath, value); }
-        }
-
         public ConversationModel()
         {
             Id = "";
             Jid = "";
             PeerId = "";
-            Type = "";
+            PeerType = "";
             Name = "";
             Topic = "";
             PresenceSource = "";
@@ -149,8 +142,6 @@ namespace MultiPlatformApplication.Models
 
             LastMessage = "";
             LastMessageDateTime = DateTime.Now;
-
-            AvatarFilePath = "";
         }
             
     }

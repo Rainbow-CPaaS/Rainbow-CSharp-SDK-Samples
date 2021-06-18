@@ -215,7 +215,7 @@ namespace MultiPlatformApplication.Helpers
 
                 conversation.PeerId = rbConversation.PeerId;
 
-                conversation.Type = rbConversation.Type;
+                conversation.PeerType = rbConversation.Type;
                 conversation.NbMsgUnread = rbConversation.UnreadMessageNumber;
 
                 conversation.LastMessage = rbConversation.LastMessageText;
@@ -348,14 +348,13 @@ namespace MultiPlatformApplication.Helpers
             String filePath = null;
             if (conversation != null)
             {
-                if (conversation.Type == Rainbow.Model.Conversation.ConversationType.User)
+                if (conversation.PeerType == Rainbow.Model.Conversation.ConversationType.User)
                     filePath = GetContactAvatarFilePath(conversation.PeerId);
-                else if (conversation.Type == Rainbow.Model.Conversation.ConversationType.Room)
+                else if (conversation.PeerType == Rainbow.Model.Conversation.ConversationType.Room)
                     filePath = GetBubbleAvatarFilePath(conversation.PeerId);
             }
             return filePath;
         }
-
 
         // Get image source using Id specified - this id could alos be a file path
         // Check first in embedded resource using the ID
@@ -412,7 +411,6 @@ namespace MultiPlatformApplication.Helpers
 
             return result;
         }
-
 
 #endregion AVATAR - IMAGE SOURCE    
 

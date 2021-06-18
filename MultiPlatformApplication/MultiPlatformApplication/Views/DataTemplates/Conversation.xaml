@@ -36,7 +36,8 @@
                              HeightRequest="40"
                              VerticalOptions="Center"
                              HorizontalOptions="Center"
-                             AvatarFilePath="{Binding AvatarFilePath}"
+                             PeerId="{Binding PeerId}"
+                             PeerType="{Binding PeerType}"
                                  />
 
             <!--PRESENCE BULLET-->
