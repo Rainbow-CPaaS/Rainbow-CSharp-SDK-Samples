@@ -613,8 +613,6 @@ namespace MultiPlatformApplication.ViewModels
                         {
                             log.Debug("[UpdateRepliedMessagesForJid] peerJid:[{0}] - message.Id:[{1}] - displayName:[{2}]", peerJid, message.Id, displayName);
 
-                            message.ReplyPartIsVisible = "True";
-
                             message.ReplyPeerId = contactReply.Id;
                             message.ReplyPeerDisplayName = displayName;
                         }
@@ -656,7 +654,7 @@ namespace MultiPlatformApplication.ViewModels
                 }
 
                 // We have the display name only in Room / Bubble context
-                message.PeerDisplayNameIsVisible = (conversationType == Rainbow.Model.Conversation.ConversationType.Room) ? "True" : "False";
+                message.IsBubbleContext = (conversationType == Rainbow.Model.Conversation.ConversationType.Room);
 
                 message.Id = rbMessage.Id;
                 message.PeerJid = rbMessage.FromJid;
@@ -701,12 +699,10 @@ namespace MultiPlatformApplication.ViewModels
                         }
                     }
 
-                    // Edited text visible ?
-                    message.EditedIsVisible = String.IsNullOrEmpty(rbMessage.ReplaceId) ? "False" : "True";
+                    // Store replace Id
+                    message.ReplaceId = rbMessage.ReplaceId;
 
                     // Reply part
-                    // By default is not displayed
-                    message.ReplyPartIsVisible = "False";
                     if (rbMessage.ReplyMessage != null)
                     {
                         // Store Id of this reply message
@@ -732,7 +728,6 @@ namespace MultiPlatformApplication.ViewModels
                     if (rbMessage.FileAttachment != null)
                     {
                         // Set Global info
-                        message.FileAttachmentIsVisible = "True";
                         message.FileDefaultInfoIsVisible = "True";
                         message.FileId = rbMessage.FileAttachment.Id;
                         message.FileName = rbMessage.FileAttachment.Name;
@@ -761,7 +756,6 @@ namespace MultiPlatformApplication.ViewModels
                     }
                     else
                     {
-                        message.FileAttachmentIsVisible = "False";
                         message.FileDefaultInfoIsVisible = "False";
 
                         message.FileAttachmentSourceWidth = 0;
@@ -769,7 +763,6 @@ namespace MultiPlatformApplication.ViewModels
                     }
 
                     message.Body = content;
-                    message.BodyIsVisible = String.IsNullOrEmpty(message.Body) ? "False" : "True";
                 }
 
                 // We store info about this contact in message context
@@ -843,9 +836,6 @@ namespace MultiPlatformApplication.ViewModels
             Rainbow.Model.Contact contactReply = XamarinApplication.SdkWrapper.GetContactFromContactJid(rbRepliedMessage.FromJid);
             if (contactReply != null)
             {
-                // Reply part is visible
-                message.ReplyPartIsVisible = "True";
-
                 message.ReplyPeerId = contactReply.Id;
                 message.ReplyPeerDisplayName = Rainbow.Util.GetContactDisplayName(contactReply);
             }
@@ -983,9 +973,8 @@ namespace MultiPlatformApplication.ViewModels
                         }
 
                         previousMessage.Body = newMsg.Body;
-                        previousMessage.BodyIsVisible = String.IsNullOrEmpty(previousMessage.Body) ? "False" : "True";
 
-                        previousMessage.EditedIsVisible = "True";
+                        previousMessage.ReplaceId = "True";
                     }
                     // Manage incoming NEW message
                     else

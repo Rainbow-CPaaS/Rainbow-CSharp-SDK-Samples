@@ -2,8 +2,13 @@
 <ResourceDictionary xmlns="http://xamarin.com/schemas/2014/forms"
                     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
                     xmlns:controls="clr-namespace:MultiPlatformApplication.Controls"
+                    xmlns:converters="clr-namespace:MultiPlatformApplication.Converters;assembly=MultiPlatformApplication" 
+                    xmlns:extensions="clr-namespace:MultiPlatformApplication.Extensions"
                     x:Class="MultiPlatformApplication.Views.DataTemplates.Message">
 
+    <converters:TextToBooleanConverter x:Key="TextToBooleanConverter" />
+    <converters:IntToReverseBooleanConverter x:Key="IntToReverseBooleanConverter" />
+    <converters:IdToImageSourceConverter x:Key="IdToImageSourceConverter" />
     
     <DataTemplate x:Key="MessageCurrentUserDataTemplate">
         <ViewCell>
@@ -46,7 +51,7 @@
                     </Grid.RowDefinitions>
 
                     <StackLayout Grid.Row="0" Grid.Column="0" Padding="3" HorizontalOptions="Start">
-                        <Frame IsVisible="{Binding ReplyPartIsVisible}"
+                        <Frame IsVisible="{Binding ReplyPeerId, Converter={StaticResource TextToBooleanConverter}}"
                            BackgroundColor="Gray"
                            CornerRadius="4" 
                            Padding="4"
@@ -68,11 +73,11 @@
                                 <Label Grid.Row="1" Grid.Column="0" HorizontalOptions="Start" TextColor="White" FontSize="{StaticResource FontSizeMicro}" MaxLines="1" LineBreakMode="TailTruncation" VerticalOptions="Center" Text="{Binding ReplyBody}"/>
                             </Grid>
                         </Frame>
-                        <Label HorizontalOptions="Start" FontSize="{StaticResource FontSizeSmall}"  VerticalOptions="Center" TextColor="{Binding BodyColor}" FontAttributes="{Binding BodyFontAttributes}" Text="{Binding Body}" IsVisible="{Binding BodyIsVisible}"/>
+                        <Label HorizontalOptions="Start" FontSize="{StaticResource FontSizeSmall}"  VerticalOptions="Center" TextColor="{Binding BodyColor}" FontAttributes="{Binding BodyFontAttributes}" Text="{Binding Body}" IsVisible="{Binding Body, Converter={StaticResource TextToBooleanConverter}}"/>
                     </StackLayout>
 
                     <!-- File Attachment-->
-                    <Grid  Grid.Row="1" Grid.Column="0" RowSpacing="0" ColumnSpacing="0" Padding="0" HorizontalOptions="Start" IsVisible="{Binding FileAttachmentIsVisible}">
+                    <Grid  Grid.Row="1" Grid.Column="0" RowSpacing="0" ColumnSpacing="0" Padding="0" HorizontalOptions="Start" IsVisible="{Binding FileId, Converter={StaticResource TextToBooleanConverter}}">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
@@ -88,7 +93,7 @@
                             </Image.GestureRecognizers>-->
                         </Image>
 
-                        <StackLayout Grid.Row="0" Grid.Column="1" Orientation="Vertical" HorizontalOptions="End" VerticalOptions="Center"  Spacing="0" IsVisible="{Binding FileDefaultInfoIsVisible}">
+                        <StackLayout Grid.Row="0" Grid.Column="1" Orientation="Vertical" HorizontalOptions="End" VerticalOptions="Center"  Spacing="0" IsVisible="{Binding FileAttachmentSourceWidth, Converter={StaticResource IntToReverseBooleanConverter}}">
                             <Label HorizontalOptions="Start" FontSize="{StaticResource FontSizeSmall}" VerticalOptions="Center" TextColor="{Binding BodyColor}" Text="{Binding FileName}" MaxLines="1" LineBreakMode="TailTruncation" />
                             <Label HorizontalOptions="Start" FontSize="{StaticResource FontSizeSmall}" VerticalOptions="Center" TextColor="{Binding BodyColor}" Text="{Binding FileSize}"/>
                         </StackLayout>
@@ -96,9 +101,9 @@
 
                     <StackLayout Orientation="Horizontal" Grid.Row="2" Grid.Column="0" HorizontalOptions="End" VerticalOptions="Center" Spacing="0">
                         <Label HorizontalOptions="End" TextColor="Gray" FontSize="{StaticResource FontSizeMicro}" VerticalOptions="Center" Text="{Binding MessageDateDisplay}"/>
-                        <Label HorizontalOptions="End" TextColor="Gray" FontSize="{StaticResource FontSizeMicro}" VerticalOptions="Center" Text=" - " IsVisible="{Binding EditedIsVisible}"/>
-                        <Label HorizontalOptions="End" TextColor="Gray" FontSize="{StaticResource FontSizeMicro}" VerticalOptions="Center" Text="{StaticResource Label_modified}" IsVisible="{Binding EditedIsVisible}"/>
-                        <Image HorizontalOptions="End" VerticalOptions="Center" WidthRequest="12" HeightRequest="12" Source="{Binding ReceiptImageSource}" Margin="4, 0, 0, 0" />
+                        <Label HorizontalOptions="End" TextColor="Gray" FontSize="{StaticResource FontSizeMicro}" VerticalOptions="Center" Text=" - " IsVisible="{Binding ReplaceId, Converter={StaticResource TextToBooleanConverter}}"/>
+                        <Label HorizontalOptions="End" TextColor="Gray" FontSize="{StaticResource FontSizeMicro}" VerticalOptions="Center" Text="{StaticResource Label_modified}" IsVisible="{Binding ReplaceId, Converter={StaticResource TextToBooleanConverter}}"/>
+                        <Image HorizontalOptions="End" VerticalOptions="Center" WidthRequest="12" HeightRequest="12" Source="{Binding ReceiptSource, Converter={StaticResource IdToImageSourceConverter}}" Margin="4, 0, 0, 0" />
                     </StackLayout>
                 </Grid>
             </Frame>
@@ -157,9 +162,9 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
-                    <Label Grid.Row="0" Grid.Column="0" HorizontalOptions="Start" TextColor="White" FontAttributes="Bold" FontSize="{StaticResource FontSizeMicro}" MaxLines="1" LineBreakMode="TailTruncation" VerticalOptions="Center" Text="{Binding PeerDisplayName}" IsVisible="{Binding PeerDisplayNameIsVisible}"/>
+                        <Label Grid.Row="0" Grid.Column="0" HorizontalOptions="Start" TextColor="White" FontAttributes="Bold" FontSize="{StaticResource FontSizeMicro}" MaxLines="1" LineBreakMode="TailTruncation" VerticalOptions="Center" Text="{Binding PeerDisplayName}" IsVisible="{Binding IsBubbleContext}"/>
                     <StackLayout Grid.Row="1" Grid.Column="0" Padding="3">
-                        <Frame IsVisible="{Binding ReplyPartIsVisible}"
+                        <Frame IsVisible="{Binding ReplyPeerId, Converter={StaticResource TextToBooleanConverter}}"
                            BackgroundColor="{Binding ReplyBackgroundColor}"
                            CornerRadius="4" 
                            Padding="4"
@@ -181,11 +186,11 @@
                                 <Label Grid.Row="1" Grid.Column="0" HorizontalOptions="Start" TextColor="White" FontSize="{StaticResource FontSizeSmall}" MaxLines="2" LineBreakMode="TailTruncation" VerticalOptions="Center" Text="{Binding ReplyBody}"/>
                             </Grid>
                         </Frame>
-                        <Label HorizontalOptions="Start" FontSize="{StaticResource FontSizeSmall}" VerticalOptions="Center" TextColor="{Binding BodyColor}" FontAttributes="{Binding BodyFontAttributes}" Text="{Binding Body}" IsVisible="{Binding BodyIsVisible}"/>
+                        <Label HorizontalOptions="Start" FontSize="{StaticResource FontSizeSmall}" VerticalOptions="Center" TextColor="{Binding BodyColor}" FontAttributes="{Binding BodyFontAttributes}" Text="{Binding Body}" IsVisible="{Binding Body, Converter={StaticResource TextToBooleanConverter}}"/>
                     </StackLayout>
 
                     <!-- File Attachment-->
-                    <Grid  Grid.Row="3" Grid.Column="0" RowSpacing="0" ColumnSpacing="0" Padding="0" HorizontalOptions="Start" IsVisible="{Binding FileAttachmentIsVisible}">
+                    <Grid  Grid.Row="3" Grid.Column="0" RowSpacing="0" ColumnSpacing="0" Padding="0" HorizontalOptions="Start" IsVisible="{Binding FileId, Converter={StaticResource TextToBooleanConverter}}">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
@@ -201,7 +206,7 @@
                             </Image.GestureRecognizers>-->
                         </Image>
 
-                        <StackLayout Grid.Row="0" Grid.Column="1" Orientation="Vertical" HorizontalOptions="End" VerticalOptions="Center"  Spacing="0" IsVisible="{Binding FileDefaultInfoIsVisible}">
+                        <StackLayout Grid.Row="0" Grid.Column="1" Orientation="Vertical" HorizontalOptions="End" VerticalOptions="Center"  Spacing="0" IsVisible="{Binding FileAttachmentSourceWidth, Converter={StaticResource IntToReverseBooleanConverter}}">
                             <Label HorizontalOptions="Start" FontSize="{StaticResource FontSizeSmall}" VerticalOptions="Center" TextColor="{Binding BodyColor}" Text="{Binding FileName}" MaxLines="1" LineBreakMode="TailTruncation" />
                             <Label HorizontalOptions="Start" FontSize="{StaticResource FontSizeSmall}" VerticalOptions="Center" TextColor="{Binding BodyColor}" Text="{Binding FileSize}"/>
                         </StackLayout>
@@ -209,8 +214,8 @@
 
                     <StackLayout Orientation="Horizontal" Grid.Row="4" Grid.Column="0" HorizontalOptions="End" VerticalOptions="Center" Spacing="0">
                         <Label  HorizontalOptions="End" TextColor="White" FontSize="{StaticResource FontSizeMicro}" VerticalOptions="Center" Text="{Binding MessageDateDisplay}"/>
-                        <Label HorizontalOptions="End" TextColor="White" FontSize="{StaticResource FontSizeMicro}" VerticalOptions="Center" Text=" - " IsVisible="{Binding EditedIsVisible}"/>
-                        <Label HorizontalOptions="End" TextColor="White" FontSize="{StaticResource FontSizeMicro}" VerticalOptions="Center" Text="{StaticResource Label_modified}" IsVisible="{Binding EditedIsVisible}"/>
+                        <Label HorizontalOptions="End" TextColor="White" FontSize="{StaticResource FontSizeMicro}" VerticalOptions="Center" Text=" - " IsVisible="{Binding ReplaceId, Converter={StaticResource TextToBooleanConverter}}"/>
+                        <Label HorizontalOptions="End" TextColor="White" FontSize="{StaticResource FontSizeMicro}" VerticalOptions="Center" Text="{StaticResource Label_modified}" IsVisible="{Binding ReplaceId, Converter={StaticResource TextToBooleanConverter}}"/>
                     </StackLayout>
                 </Grid>
             </Frame>
@@ -272,7 +277,7 @@
                                 <RowDefinition Height="*" />
                             </Grid.RowDefinitions>
 
-                            <Label Grid.Column="0" Grid.Row="0" VerticalOptions="Center" HorizontalOptions="StartAndExpand" FontSize="{StaticResource FontSizeMicro}" FontAttributes="Bold" TextColor="{Binding EventMessageBodyPart2Color}" Text="{Binding EventMessageBodyPart2}" IsVisible="{Binding EventMessageBodyPart2IsVisible}"/>
+                                <Label Grid.Column="0" Grid.Row="0" VerticalOptions="Center" HorizontalOptions="StartAndExpand" FontSize="{StaticResource FontSizeMicro}" FontAttributes="Bold" TextColor="{Binding EventMessageBodyPart2Color}" Text="{Binding EventMessageBodyPart2}" IsVisible="{Binding EventMessageBodyPart2, Converter={StaticResource TextToBooleanConverter}}"/>
                             <Label Grid.Column="1" Grid.Row="0" VerticalOptions="Center" HorizontalOptions="End" TextColor="Black" FontSize="{StaticResource FontSizeMicro}" Text="{Binding MessageDateDisplay}"/>
                         </Grid>
                     </StackLayout>

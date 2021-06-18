@@ -14,13 +14,14 @@ namespace MultiPlatformApplication.Models
         String peerJid;
         String peerId;
 
-        String bodyIsVisible;
+        Boolean isBubbleContext;
+
         String body;
         FontAttributes bodyFontAttributes;
         Color bodyColor;
 
         Color backgroundColor;
-        String peerDisplayNameIsVisible;
+        
         String avatarFilePath;
         DateTime messageDateTime;
         String  messageDateDisplay;
@@ -40,17 +41,14 @@ namespace MultiPlatformApplication.Models
         String replyPeerDisplayName;
         String replyPeerId;
         String replyPeerJid;
-        String replyPartIsVisible;
         Color replyBackgroundColor;
         String replyBody;
 
-        String editedIsVisible;
+        String replaceId;
 
         String receiptType;
         String receiptSource;
-        ImageSource receiptImageSource;
 
-        String fileAttachmentIsVisible;
         ImageSource fileAttachmentImageSource;
         int fileAttachmentSourceWidth;
         int fileAttachmentSourceHeight;
@@ -71,10 +69,10 @@ namespace MultiPlatformApplication.Models
             set { SetProperty(ref peerDisplayName, value); }
         }
 
-        public string PeerDisplayNameIsVisible // Used to avoid to display name in one-to-one conversation
+        public Boolean IsBubbleContext 
         {
-            get { return peerDisplayNameIsVisible; }
-            set { SetProperty(ref peerDisplayNameIsVisible, value); }
+            get { return isBubbleContext; }
+            set { SetProperty(ref isBubbleContext, value); }
         }
 
         public Color BackgroundColor
@@ -99,12 +97,6 @@ namespace MultiPlatformApplication.Models
         {
             get { return body; }
             set { SetProperty(ref body, value); }
-        }
-
-        public string BodyIsVisible
-        {
-            get { return bodyIsVisible; }
-            set { SetProperty(ref bodyIsVisible, value); }
         }
 
         public FontAttributes BodyFontAttributes
@@ -162,8 +154,6 @@ namespace MultiPlatformApplication.Models
             get { return eventMessageBodyPart2Color; }
             set { SetProperty(ref eventMessageBodyPart2Color, value); }
         }
-
-        public String EventMessageBodyPart2IsVisible => String.IsNullOrEmpty(EventMessageBodyPart2) ? "False": "True";
 
 #endregion PROPERTIES FOR EVENT
 
@@ -223,11 +213,6 @@ namespace MultiPlatformApplication.Models
             get { return replyPeerJid; }
             set { SetProperty(ref replyPeerJid, value); }
         }
-        public string ReplyPartIsVisible
-        {
-            get { return replyPartIsVisible; }
-            set { SetProperty(ref replyPartIsVisible, value); }
-        }
 
         public Color ReplyBackgroundColor
         {
@@ -254,42 +239,18 @@ namespace MultiPlatformApplication.Models
         public String ReceiptSource 
         {
             get { return receiptSource; }
-            set {
-
-                if (receiptSource != value)
-                {
-                    if (String.IsNullOrEmpty(value))
-                        ReceiptImageSource = null;
-                    else
-                        ReceiptImageSource = ImageSource.FromResource(value, typeof(Helpers.Helper).Assembly);
-
-                    SetProperty(ref receiptSource, value);
-                }
-            }
+            set { SetProperty(ref receiptSource, value); }
         }
-
-        public ImageSource ReceiptImageSource
-        {
-            get { return receiptImageSource; }
-            set { SetProperty(ref receiptImageSource, value); }
-        }
-
 
 #endregion PROPERTIES FOR RECEIPT DISPLAY
 
-        public String EditedIsVisible
+        public String ReplaceId
         {
-            get { return editedIsVisible; }
-            set { SetProperty(ref editedIsVisible, value); }
+            get { return replaceId; }
+            set { SetProperty(ref replaceId, value); }
         }
 
 #region PROPERTIES FOR FILE ATTACHMENT
-
-        public String FileAttachmentIsVisible
-        {
-            get { return fileAttachmentIsVisible; }
-            set { SetProperty(ref fileAttachmentIsVisible, value); }
-        }
 
         public int FileAttachmentSourceWidth
         {
@@ -342,12 +303,11 @@ namespace MultiPlatformApplication.Models
         {
             Id = "";
             PeerDisplayName = "";
-            PeerDisplayNameIsVisible = "False";
+            IsBubbleContext = false;
             BackgroundColor = Color.FromHex("#FFFFFF");
             PeerId = "";
             PeerJid = "";
             Body = "";
-            BodyIsVisible = "True";
             BodyFontAttributes = FontAttributes.None;
             BodyColor = Color.FromHex("#000000");
             MessageDateTime = DateTime.Now;
@@ -366,16 +326,14 @@ namespace MultiPlatformApplication.Models
             ReplyPeerDisplayName = "";
             ReplyPeerId = "";
             ReplyPeerJid = "";
-            ReplyPartIsVisible = "False";
             ReplyBackgroundColor = Color.FromHex("#000000");
             ReplyBody = "";
 
             ReceiptType = "";
             ReceiptSource = "";
 
-            EditedIsVisible = "False";
+            ReplaceId = "";
 
-            FileAttachmentIsVisible = "False";
             FileAttachmentSourceWidth = 0;
             FileAttachmentSourceHeight = 0;
             FileDefaultInfoIsVisible = "False";
@@ -387,7 +345,6 @@ namespace MultiPlatformApplication.Models
 
         ~MessageModel()
         {
-            ReceiptImageSource = null;
             FileAttachmentImageSource = null;
         }
     }
