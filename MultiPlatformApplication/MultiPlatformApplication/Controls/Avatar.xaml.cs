@@ -119,21 +119,16 @@ namespace MultiPlatformApplication.Controls
 
 #endregion DisplayPresenceProperty
 
-        private SdkWrapper SdkWrapper;
         private String peerJid;
 
         public Avatar()
         {
             InitializeComponent();
 
-            // Get SdkWrapper
-            App XamarinApplication = (App)Xamarin.Forms.Application.Current;
-            SdkWrapper = XamarinApplication.SdkWrapper;
+            Helper.SdkWrapper.ContactAvatarUpdated += SdkWrapper_ContactAvatarUpdated;
+            Helper.SdkWrapper.ContactPresenceChanged += SdkWrapper_ContactPresenceChanged;
 
-            SdkWrapper.ContactAvatarUpdated += SdkWrapper_ContactAvatarUpdated;
-            SdkWrapper.ContactPresenceChanged += SdkWrapper_ContactPresenceChanged;
-
-            SdkWrapper.BubbleAvatarUpdated += SdkWrapper_BubbleAvatarUpdated;
+            Helper.SdkWrapper.BubbleAvatarUpdated += SdkWrapper_BubbleAvatarUpdated;
         }
 
         private static void UpdateAvatarImageDisplay(Avatar control)
@@ -146,7 +141,7 @@ namespace MultiPlatformApplication.Controls
                 control.Image.Source = ImageSource.FromFile(Helper.GetContactAvatarFilePath(control.PeerId));
 
                 // Need to store peerJid if it's a user to manage presence update
-                Contact contact = control.SdkWrapper.GetContactFromContactId(control.PeerId);
+                Contact contact = Helper.SdkWrapper.GetContactFromContactId(control.PeerId);
                 control.peerJid = contact?.Jid_im;
 
             }
@@ -162,7 +157,7 @@ namespace MultiPlatformApplication.Controls
 
                 if ((control.PeerType == "user") && (!String.IsNullOrEmpty(control.PeerId)))
                 {
-                    Presence presence = control.SdkWrapper.GetAggregatedPresenceFromContactId(control.PeerId);
+                    Presence presence = Helper.SdkWrapper.GetAggregatedPresenceFromContactId(control.PeerId);
 
                     if (presence == null)
                     {

@@ -85,25 +85,25 @@ namespace MultiPlatformApplication.ViewModels
             XamarinApplication = (App)Xamarin.Forms.Application.Current;
 
             // Manage event(s) from FilePool
-            XamarinApplication.SdkWrapper.FileDescriptorAvailable += FilePool_FileDescriptorAvailable;
-            XamarinApplication.SdkWrapper.ThumbnailAvailable += FilePool_ThumbnailAvailable;
+            Helper.SdkWrapper.FileDescriptorAvailable += FilePool_FileDescriptorAvailable;
+            Helper.SdkWrapper.ThumbnailAvailable += FilePool_ThumbnailAvailable;
 
             // Manage event(s) from InstantMessaging
-            XamarinApplication.SdkWrapper.MessageReceived += RbInstantMessaging_MessageReceived;
-            XamarinApplication.SdkWrapper.ReceiptReceived += RbInstantMessaging_ReceiptReceived;
-            XamarinApplication.SdkWrapper.MessagesAllRead += RbInstantMessaging_MessagesAllRead;
-            XamarinApplication.SdkWrapper.UserTypingChanged += RbInstantMessaging_UserTypingChanged;
+            Helper.SdkWrapper.MessageReceived += RbInstantMessaging_MessageReceived;
+            Helper.SdkWrapper.ReceiptReceived += RbInstantMessaging_ReceiptReceived;
+            Helper.SdkWrapper.MessagesAllRead += RbInstantMessaging_MessagesAllRead;
+            Helper.SdkWrapper.UserTypingChanged += RbInstantMessaging_UserTypingChanged;
 
             // Manage event(s) from Contacts
-            XamarinApplication.SdkWrapper.ContactAdded += RbContacts_ContactAdded;
-            XamarinApplication.SdkWrapper.ContactInfoChanged += RbContacts_ContactInfoChanged;
+            Helper.SdkWrapper.ContactAdded += RbContacts_ContactAdded;
+            Helper.SdkWrapper.ContactInfoChanged += RbContacts_ContactInfoChanged;
 
-            currentContactJid = XamarinApplication.SdkWrapper.GetCurrentContactJid();
+            currentContactJid = Helper.SdkWrapper.GetCurrentContactJid();
 
             if (!String.IsNullOrEmpty(conversationId))
             {
                 // Get Rainbow Conversation object
-                rbConversation = XamarinApplication.SdkWrapper.GetConversationByIdFromCache(conversationId);
+                rbConversation = Helper.SdkWrapper.GetConversationByIdFromCache(conversationId);
 
                 // Get Conversation Model Object using Rainbow Conversation
                 Conversation = Helper.GetConversationFromRBConversation(rbConversation);
@@ -149,14 +149,14 @@ namespace MultiPlatformApplication.ViewModels
          private void UnnitializeSdkObjectsAndEvents()
         {
             // Unmanage event(s) from FilePool
-            XamarinApplication.SdkWrapper.FileDescriptorAvailable -= FilePool_FileDescriptorAvailable;
-            XamarinApplication.SdkWrapper.ThumbnailAvailable -= FilePool_ThumbnailAvailable;
+            Helper.SdkWrapper.FileDescriptorAvailable -= FilePool_FileDescriptorAvailable;
+            Helper.SdkWrapper.ThumbnailAvailable -= FilePool_ThumbnailAvailable;
 
             // Unmanage event(s) from InstantMessaging
-            XamarinApplication.SdkWrapper.MessageReceived -= RbInstantMessaging_MessageReceived;
-            XamarinApplication.SdkWrapper.ReceiptReceived -= RbInstantMessaging_ReceiptReceived;
-            XamarinApplication.SdkWrapper.MessagesAllRead -= RbInstantMessaging_MessagesAllRead;
-            XamarinApplication.SdkWrapper.UserTypingChanged -= RbInstantMessaging_UserTypingChanged;
+            Helper.SdkWrapper.MessageReceived -= RbInstantMessaging_MessageReceived;
+            Helper.SdkWrapper.ReceiptReceived -= RbInstantMessaging_ReceiptReceived;
+            Helper.SdkWrapper.MessagesAllRead -= RbInstantMessaging_MessagesAllRead;
+            Helper.SdkWrapper.UserTypingChanged -= RbInstantMessaging_UserTypingChanged;
         }
 
 #region EVENTS FROM CollectionView
@@ -179,7 +179,7 @@ namespace MultiPlatformApplication.ViewModels
             else
             {
                 // Get messages from cache
-                List<Rainbow.Model.Message> rbMessagesList = XamarinApplication.SdkWrapper.GetAllMessagesFromConversationIdFromCache(Conversation.Id);
+                List<Rainbow.Model.Message> rbMessagesList = Helper.SdkWrapper.GetAllMessagesFromConversationIdFromCache(Conversation.Id);
                 if (rbMessagesList?.Count > 0)
                 {
                     AddToModelRbMessages(rbMessagesList);
@@ -226,7 +226,7 @@ namespace MultiPlatformApplication.ViewModels
         {
             try
             {
-                XamarinApplication.SdkWrapper.MarkAllMessagesAsRead(Conversation?.Id);
+                Helper.SdkWrapper.MarkAllMessagesAsRead(Conversation?.Id);
             }
             catch
             {
@@ -235,12 +235,12 @@ namespace MultiPlatformApplication.ViewModels
 
         public void SetIsTyping(bool isTyping)
         {
-            XamarinApplication.SdkWrapper.SendIsTypingInConversationById(Conversation.Id, isTyping);
+            Helper.SdkWrapper.SendIsTypingInConversationById(Conversation.Id, isTyping);
         }
 
         public void SendMessage(String content)
         {
-            XamarinApplication.SdkWrapper.SendMessageToConversationId(Conversation.Id, content, UrgencyType.Std);
+            Helper.SdkWrapper.SendMessageToConversationId(Conversation.Id, content, UrgencyType.Std);
             SetIsTyping(false);
         }
 
@@ -248,7 +248,7 @@ namespace MultiPlatformApplication.ViewModels
         {
             Task task = new Task(() =>
             {
-                XamarinApplication.SdkWrapper.GetMessagesFromConversationId(Conversation.Id, NB_MESSAGE_LOADED_BY_ROW, callback =>
+                Helper.SdkWrapper.GetMessagesFromConversationId(Conversation.Id, NB_MESSAGE_LOADED_BY_ROW, callback =>
                 {
                     if (callback.Result.Success)
                     {
@@ -401,7 +401,7 @@ namespace MultiPlatformApplication.ViewModels
             Boolean result = false;
             ManualResetEvent manualEvent = new ManualResetEvent(false);
 
-            XamarinApplication.SdkWrapper.GetOneMessageFromConversationId(Conversation.Id, msgId, msgStamp, callback =>
+            Helper.SdkWrapper.GetOneMessageFromConversationId(Conversation.Id, msgId, msgStamp, callback =>
             {
                 Device.BeginInvokeOnMainThread(() =>
                 {
@@ -509,7 +509,7 @@ namespace MultiPlatformApplication.ViewModels
         {
             if (contactsListInvolved.Contains(peerJid))
             {
-                Contact contact = XamarinApplication.SdkWrapper.GetContactFromContactJid(peerJid);
+                Contact contact = Helper.SdkWrapper.GetContactFromContactJid(peerJid);
                 if (contact != null)
                 {
                     log.Debug("[UpdateMessagesForJid] peerJid:[{0}] - peerId:[{1}]", peerJid, contact.Id);
@@ -538,7 +538,7 @@ namespace MultiPlatformApplication.ViewModels
         {
             if(repliedContactsListInvolved.Contains(peerJid))
             {
-                Contact contactReply = XamarinApplication.SdkWrapper.GetContactFromContactJid(peerJid);
+                Contact contactReply = Helper.SdkWrapper.GetContactFromContactJid(peerJid);
                 if (contactReply != null)
                 {
                     String displayName = Rainbow.Util.GetContactDisplayName(contactReply);
@@ -572,7 +572,7 @@ namespace MultiPlatformApplication.ViewModels
                 message = new MessageModel();
                 message.EventMessageBodyPart2Color = Color.Black; // Set default value
 
-                Rainbow.Model.Contact contact = XamarinApplication.SdkWrapper.GetContactFromContactJid(rbMessage.FromJid);
+                Rainbow.Model.Contact contact = Helper.SdkWrapper.GetContactFromContactJid(rbMessage.FromJid);
                 if (contact != null)
                 {
                     message.PeerId = contact.Id;
@@ -587,7 +587,7 @@ namespace MultiPlatformApplication.ViewModels
                     log.Debug("[GetMessageFromRBMessage] Unknown Contact - Jid :[{0}]", rbMessage.FromJid);
 
                     // We ask to have more info about this contact usin AvatarPool
-                    XamarinApplication.SdkWrapper.AddUnknownContactToPoolByJid(rbMessage.FromJid);
+                    Helper.SdkWrapper.AddUnknownContactToPoolByJid(rbMessage.FromJid);
                 }
 
                 // We have the display name only in Room / Bubble context
@@ -649,7 +649,7 @@ namespace MultiPlatformApplication.ViewModels
                         message.ReplyBackgroundColor = Color.FromHex(SdkWrapper.GetDarkerColorFromDisplayName(message.PeerDisplayName));
 
                         // We need to get Name and text of the replied message ...
-                        Rainbow.Model.Message rbRepliedMessage = XamarinApplication.SdkWrapper.GetOneMessageFromConversationIdFromCache(Conversation.Id, rbMessage.ReplyMessage.Id);
+                        Rainbow.Model.Message rbRepliedMessage = Helper.SdkWrapper.GetOneMessageFromConversationIdFromCache(Conversation.Id, rbMessage.ReplyMessage.Id);
                         if (rbRepliedMessage != null)
                             SetReplyPartOfMessage(message, rbRepliedMessage);
                         else
@@ -669,14 +669,14 @@ namespace MultiPlatformApplication.ViewModels
                         message.FileName = rbMessage.FileAttachment.Name;
                         message.FileSize = Helper.HumanizeFileSize(rbMessage.FileAttachment.Size);
 
-                        if (XamarinApplication.SdkWrapper.IsThumbnailFileAvailable(Conversation.Id, rbMessage.FileAttachment.Id, rbMessage.FileAttachment.Name))
+                        if (Helper.SdkWrapper.IsThumbnailFileAvailable(Conversation.Id, rbMessage.FileAttachment.Id, rbMessage.FileAttachment.Name))
                         {
                             SetFileAttachmentSourceOfMessage(message, rbMessage.FileAttachment.Id);
                         }
                         else
                         {
                             // Ask more info about this file
-                            XamarinApplication.SdkWrapper.AskFileDescriptorDownload(Conversation.Id, rbMessage.FileAttachment.Id);
+                            Helper.SdkWrapper.AskFileDescriptorDownload(Conversation.Id, rbMessage.FileAttachment.Id);
 
                             // Set default icon
                             String defaultIconPath = Helpers.Helper.GetFileAttachmentSourceFromFileName(message.FileName);
@@ -707,7 +707,7 @@ namespace MultiPlatformApplication.ViewModels
 
         public void SetFileAttachmentSourceOfMessage(MessageModel message, String fileId)
         {
-            string filePath = XamarinApplication.SdkWrapper.GetThumbnailFullFilePath(fileId);
+            string filePath = Helper.SdkWrapper.GetThumbnailFullFilePath(fileId);
             try
             {
                 log.Debug("[SetFileAttachmentSourceOfMessage] FileId:[{0}] - Use filePath:[{1}]", fileId, filePath);
@@ -717,8 +717,8 @@ namespace MultiPlatformApplication.ViewModels
                     double density = Helper.GetDensity();
 
                     // Avoid to have a thumbnail too big
-                    float scaleWidth = (float)(XamarinApplication.SdkWrapper.MaxThumbnailWidth * density) / (float)size.Width;
-                    float scaleHeight = (float)(XamarinApplication.SdkWrapper.MaxThumbnailHeight * density) / (float)size.Height;
+                    float scaleWidth = (float)(Helper.SdkWrapper.MaxThumbnailWidth * density) / (float)size.Width;
+                    float scaleHeight = (float)(Helper.SdkWrapper.MaxThumbnailHeight * density) / (float)size.Height;
                     float scale = Math.Min(scaleHeight, scaleWidth);
 
                     // Don't increase size of the thumbnail 
@@ -765,7 +765,7 @@ namespace MultiPlatformApplication.ViewModels
 
             log.Debug("[SetReplyPartOfMessage] - message.Id:[{0}] - replyMsgId:[{1}] - replyBody:[{2}] - ContactJid:[{3}]", message.Id, rbRepliedMessage.Id, message.ReplyBody, rbRepliedMessage.FromJid);
 
-            Rainbow.Model.Contact contactReply = XamarinApplication.SdkWrapper.GetContactFromContactJid(rbRepliedMessage.FromJid);
+            Rainbow.Model.Contact contactReply = Helper.SdkWrapper.GetContactFromContactJid(rbRepliedMessage.FromJid);
             if (contactReply != null)
             {
                 message.ReplyPeerId = contactReply.Id;
@@ -776,7 +776,7 @@ namespace MultiPlatformApplication.ViewModels
                 log.Debug("[SetReplyPartOfMessage] - message.Id:[{0}] - replyMsgId:[{1}] - Unknown Contact Jid[{2}]", message.Id, rbRepliedMessage.Id, rbRepliedMessage.FromJid);
 
                 // We ask to have more info about this contact using AvatarPool
-                XamarinApplication.SdkWrapper.AddUnknownContactToPoolByJid(rbRepliedMessage.FromJid);
+                Helper.SdkWrapper.AddUnknownContactToPoolByJid(rbRepliedMessage.FromJid);
             }
 
             // We store info about this contact in reply context
@@ -810,7 +810,7 @@ namespace MultiPlatformApplication.ViewModels
 
         private void SetEventPartFromCallLog(MessageModel message)
         {
-            Rainbow.Model.Contact contact = XamarinApplication.SdkWrapper.GetContactFromContactJid(message.CallOtherJid);
+            Rainbow.Model.Contact contact = Helper.SdkWrapper.GetContactFromContactJid(message.CallOtherJid);
             if (contact != null)
             {
                 String displayName = Rainbow.Util.GetContactDisplayName(contact);
@@ -842,7 +842,7 @@ namespace MultiPlatformApplication.ViewModels
                 log.Debug("[SetEventPartFromCallLog] - message.Id:[{0}] - Unknown Contact Jid:[{1}]", message.Id, message.CallOtherJid);
 
                 // We ask to have more info about this contact using AvatarPool
-                XamarinApplication.SdkWrapper.AddUnknownContactToPoolByJid(message.CallOtherJid);
+                Helper.SdkWrapper.AddUnknownContactToPoolByJid(message.CallOtherJid);
             }
         }
 
@@ -944,7 +944,7 @@ namespace MultiPlatformApplication.ViewModels
 
                     // Mark the message as read
                     if (XamarinApplication.CurrentConversationId == Conversation.Id)
-                        XamarinApplication.SdkWrapper.MarkMessageAsRead(Conversation.Id, newMsg.Id);
+                        Helper.SdkWrapper.MarkMessageAsRead(Conversation.Id, newMsg.Id);
                 });
             }
         }
@@ -993,7 +993,7 @@ namespace MultiPlatformApplication.ViewModels
 
         private void FilePool_ThumbnailAvailable(object sender, Rainbow.Events.IdEventArgs e)
         {
-            String conversationId = XamarinApplication.SdkWrapper.GetConversationIdByFileDescriptorId(e.Id);
+            String conversationId = Helper.SdkWrapper.GetConversationIdByFileDescriptorId(e.Id);
             if(conversationId == Conversation.Id)
             {
                 MessageModel message = GetMessageByFileDescriptorId(e.Id);

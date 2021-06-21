@@ -97,7 +97,7 @@ namespace MultiPlatformApplication.ViewModels
 
         void ConversationLoadMoreItems(Object obj)
         {
-            List<Rainbow.Model.Conversation> rbConversations = XamarinApplication.SdkWrapper.GetAllConversationsFromCache();
+            List<Rainbow.Model.Conversation> rbConversations = Helper.SdkWrapper.GetAllConversationsFromCache();
             if (rbConversations != null)
             {
                 ResetModelWithRbConversations(rbConversations);
@@ -120,16 +120,16 @@ namespace MultiPlatformApplication.ViewModels
             XamarinApplication = (App)Xamarin.Forms.Application.Current;
 
             // Manage event(s) from Rainbow SDK about CONVERSATIONS
-            XamarinApplication.SdkWrapper.ConversationCreated += RbConversations_ConversationCreated;
-            XamarinApplication.SdkWrapper.ConversationRemoved += RbConversations_ConversationRemoved;
-            XamarinApplication.SdkWrapper.ConversationUpdated += RbConversations_ConversationUpdated;
+            Helper.SdkWrapper.ConversationCreated += RbConversations_ConversationCreated;
+            Helper.SdkWrapper.ConversationRemoved += RbConversations_ConversationRemoved;
+            Helper.SdkWrapper.ConversationUpdated += RbConversations_ConversationUpdated;
 
             // Manage event(s) from Rainbow SDK about CONTACTS
-            XamarinApplication.SdkWrapper.ContactAdded += RbContacts_ContactAdded;
-            XamarinApplication.SdkWrapper.ContactInfoChanged += RbContacts_ContactInfoChanged;
+            Helper.SdkWrapper.ContactAdded += RbContacts_ContactAdded;
+            Helper.SdkWrapper.ContactInfoChanged += RbContacts_ContactInfoChanged;
 
             // Manage event(s) from Rainbow SDK about BUBBLES
-            XamarinApplication.SdkWrapper.BubbleInfoUpdated += RbBubbles_BubbleInfoUpdated;
+            Helper.SdkWrapper.BubbleInfoUpdated += RbBubbles_BubbleInfoUpdated;
         }
 
         /// <summary>
@@ -443,7 +443,7 @@ namespace MultiPlatformApplication.ViewModels
 
         private void RbContacts_ContactAdded(object sender, Rainbow.Events.JidEventArgs e)
         {
-            Rainbow.Model.Contact contact = XamarinApplication.SdkWrapper.GetContactFromContactJid(e.Jid);
+            Rainbow.Model.Contact contact = Helper.SdkWrapper.GetContactFromContactJid(e.Jid);
             if (contact != null)
             {
                 Device.BeginInvokeOnMainThread(() =>
@@ -455,7 +455,7 @@ namespace MultiPlatformApplication.ViewModels
 
         private void RbContacts_ContactInfoChanged(object sender, Rainbow.Events.JidEventArgs e)
         {
-            Rainbow.Model.Contact contact = XamarinApplication.SdkWrapper.GetContactFromContactJid(e.Jid);
+            Rainbow.Model.Contact contact = Helper.SdkWrapper.GetContactFromContactJid(e.Jid);
             if (contact != null)
             {
                 Device.BeginInvokeOnMainThread(() =>

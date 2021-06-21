@@ -34,6 +34,8 @@ namespace MultiPlatformApplication.Helpers
         private static String ImageStorageFolderName = "ImageStorage";
 
 
+        public static SdkWrapper SdkWrapper { get; set; }
+
         static Helper()
         {
             // Get Xamarin Application
@@ -188,7 +190,7 @@ namespace MultiPlatformApplication.Helpers
                 else if (rbConversation.Type == Rainbow.Model.Conversation.ConversationType.User)
                 {
                     // Get Display name of this user
-                    Rainbow.Model.Contact contact = XamarinApplication.SdkWrapper.GetContactFromContactId(rbConversation.PeerId);
+                    Rainbow.Model.Contact contact = SdkWrapper.GetContactFromContactId(rbConversation.PeerId);
                     if (contact != null)
                     {
                         conversation.Name = Rainbow.Util.GetContactDisplayName(contact);
@@ -198,7 +200,7 @@ namespace MultiPlatformApplication.Helpers
                     else
                     {
                         //log.Debug("[GetConversationFromRBConversation] - unknown contact - contactId:[{0}]", rbConversation.PeerId);
-                        XamarinApplication.SdkWrapper.GetContactFromContactIdFromServer(rbConversation.PeerId, null);
+                        SdkWrapper.GetContactFromContactIdFromServer(rbConversation.PeerId, null);
                     }
                 }
                 else
@@ -306,13 +308,13 @@ namespace MultiPlatformApplication.Helpers
             {
                 try
                 {
-                    filePath = XamarinApplication.SdkWrapper.GetBubbleAvatarPath(bubbleId);
+                    filePath = SdkWrapper.GetBubbleAvatarPath(bubbleId);
                     log.Debug("[GetBubbleAvatarFilePath] Bubble Avatar - Id:[{0}] - FilePath:[{1}]", bubbleId, filePath);
                 }
                 catch (Exception exc)
                 {
                     log.Warn("[GetBubbleAvatarImageSource] bubbleId:[{0}] - exception occurs to create avatar:[{1}]", bubbleId, Rainbow.Util.SerializeException(exc));
-                    filePath = XamarinApplication.SdkWrapper.GetUnknwonBubbleAvatarFilePath();
+                    filePath = SdkWrapper.GetUnknwonBubbleAvatarFilePath();
                 }
 
             }
@@ -326,13 +328,13 @@ namespace MultiPlatformApplication.Helpers
             {
                 try
                 {
-                    filePath = XamarinApplication.SdkWrapper.GetContactAvatarPath(contactId);
+                    filePath = SdkWrapper.GetContactAvatarPath(contactId);
                     log.Debug("[GetContactAvatarImageSource] contactId:[{0}] - filePath:[{1}]", contactId, filePath);
                 }
                 catch (Exception exc)
                 {
                     log.Warn("[GetContactAvatarImageSource] contactId:[{0}] - exception occurs to create avatar:[{1}]", contactId, Rainbow.Util.SerializeException(exc));
-                    filePath = XamarinApplication.SdkWrapper.GetUnknwonContactAvatarFilePath();
+                    filePath = SdkWrapper.GetUnknwonContactAvatarFilePath();
                 }
             }
             return filePath;

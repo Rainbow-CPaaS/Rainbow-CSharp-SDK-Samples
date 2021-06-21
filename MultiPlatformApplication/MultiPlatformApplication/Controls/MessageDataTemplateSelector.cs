@@ -5,6 +5,7 @@ using System.Text;
 using Xamarin.Forms;
 
 using MultiPlatformApplication.Models;
+using MultiPlatformApplication.Helpers;
 
 namespace MultiPlatformApplication.Controls
 {
@@ -14,7 +15,6 @@ namespace MultiPlatformApplication.Controls
         public DataTemplate MessageCurrentUser { get; set; }
         public DataTemplate MessageOtherUser { get; set; }
 
-        
         private String currentContactId = null;
 
         protected override DataTemplate OnSelectTemplate(object item, BindableObject container)
@@ -34,10 +34,8 @@ namespace MultiPlatformApplication.Controls
         private String GetCurrentContactId()
         {
             if (currentContactId == null)
-            {
-                App XamarinApplication = (App)Xamarin.Forms.Application.Current;
-                currentContactId = XamarinApplication.SdkWrapper.GetCurrentContactId();
-            }
+                currentContactId = Helper.SdkWrapper.GetCurrentContactId();
+
             return currentContactId;
         }
     }

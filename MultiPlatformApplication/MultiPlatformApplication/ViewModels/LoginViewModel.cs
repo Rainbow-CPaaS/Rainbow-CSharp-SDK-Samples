@@ -31,8 +31,8 @@ namespace MultiPlatformApplication.ViewModels
 
             XamarinApplication = (App)Xamarin.Forms.Application.Current;
 
-            XamarinApplication.SdkWrapper.ConnectionStateChanged += RbApplication_ConnectionStateChanged;
-            XamarinApplication.SdkWrapper.InitializationPerformed += RbApplication_InitializationPerformed;
+            Helper.SdkWrapper.ConnectionStateChanged += RbApplication_ConnectionStateChanged;
+            Helper.SdkWrapper.InitializationPerformed += RbApplication_InitializationPerformed;
         }
 
         public void Initialize()
@@ -40,8 +40,8 @@ namespace MultiPlatformApplication.ViewModels
             LoginModel.IsBusy = false;
             LoginModel.Connect = Helper.GetLabel("connect");
 
-            LoginModel.Login = XamarinApplication.SdkWrapper.GetUserLoginFromCache();
-            LoginModel.Password = XamarinApplication.SdkWrapper.GetUserPasswordFromCache();
+            LoginModel.Login = Helper.SdkWrapper.GetUserLoginFromCache();
+            LoginModel.Password = Helper.SdkWrapper.GetUserPasswordFromCache();
         }
 
         private void RbApplication_ConnectionStateChanged(object sender, Rainbow.Events.ConnectionStateEventArgs e)
@@ -77,12 +77,12 @@ namespace MultiPlatformApplication.ViewModels
                 ManualResetEvent manualEventBubbles = new ManualResetEvent(false);
                 ManualResetEvent manualEventConversations = new ManualResetEvent(false);
 
-                XamarinApplication.SdkWrapper.GetAllConversations(callback =>
+                Helper.SdkWrapper.GetAllConversations(callback =>
                 {
                     manualEventConversations.Set();
                 });
 
-                XamarinApplication.SdkWrapper.GetAllBubbles(callback =>
+                Helper.SdkWrapper.GetAllBubbles(callback =>
                 {
                     manualEventBubbles.Set();
                 });
@@ -107,15 +107,15 @@ namespace MultiPlatformApplication.ViewModels
 
         public void ButtonConnectCommand(object obj)
         {
-            if (XamarinApplication.SdkWrapper.ConnectionState() == ConnectionState.Disconnected)
+            if (Helper.SdkWrapper.ConnectionState() == ConnectionState.Disconnected)
             {
-                XamarinApplication.SdkWrapper.Login(LoginModel.Login, LoginModel.Password, callback =>
+                Helper.SdkWrapper.Login(LoginModel.Login, LoginModel.Password, callback =>
                 {
                     //TODO - manage error
                 });
             }
             else
-                XamarinApplication.SdkWrapper.Logout();
+                Helper.SdkWrapper.Logout();
         }
     }
 }

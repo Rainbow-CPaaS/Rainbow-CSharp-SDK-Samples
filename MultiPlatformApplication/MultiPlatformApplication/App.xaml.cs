@@ -21,12 +21,9 @@ namespace MultiPlatformApplication
     public partial class App : Xamarin.Forms.Application
     {         
         private static Logger log;
-        internal SdkWrapper SdkWrapper;
-
 
         // Create the navigation service
         internal NavigationService NavigationService { get; } = new NavigationService();
-
 
         // To store the current conversation followed
         internal String CurrentConversationId = null;
@@ -34,9 +31,6 @@ namespace MultiPlatformApplication
         // To store the current theme used
         internal String CurrentThemeName = "light";
 
-        // Define Pages used in the Xamarin Application
-        internal ConversationsPage ConversationsPage = null; // Page used to display the list of Conversations
-        internal Dictionary<String, ConversationStreamPage> ConversationStreamPageList = null; // Pages used to display the conversation stream - we will store 5 of them - use PeerID as Key
 
         public App()
         {
@@ -72,14 +66,14 @@ namespace MultiPlatformApplication
 
             // Set the wrapper according the environment to use/test
             if (ApplicationInfo.UseTestEnvironment)
-                SdkWrapper = new TestSdkWrapper();
+                Helper.SdkWrapper = new TestSdkWrapper();
             else
-                SdkWrapper = new RainbowSdkWrapper();
+                Helper.SdkWrapper = new RainbowSdkWrapper();
 
 
             // Register views in the Navigation servcice
             NavigationService.Configure("LoginPage", typeof(MultiPlatformApplication.Views.LoginPage));
-            NavigationService.Configure("ConversationsPage", typeof(MultiPlatformApplication.Views.ConversationsPage));
+            NavigationService.Configure("MainPage", typeof(MultiPlatformApplication.Views.MainPage));
             NavigationService.Configure("ConversationStreamPage", typeof(MultiPlatformApplication.Views.ConversationStreamPage));
 
 
