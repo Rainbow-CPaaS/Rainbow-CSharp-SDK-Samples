@@ -18,10 +18,10 @@
     
     
     <ContentView.Content >
-        <StackLayout Orientation="Vertical" 
+        <!--<StackLayout Orientation="Vertical" 
                      Margin="0"
                      Padding="0"
-                     Spacing="0">
+                     Spacing="0">-->
 
             <ListView x:Name="ConversationsListView"
                       Margin="0"
@@ -35,6 +35,6 @@
                       ItemTemplate="{StaticResource ConversationDataTemplate}"
                       SelectionMode="Single"/>
 
-        </StackLayout>
+        <!--</StackLayout>-->
     </ContentView.Content>
 </ContentView>
