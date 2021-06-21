@@ -1,4 +1,5 @@
-﻿using MultiPlatformApplication.Helpers;
+﻿using MultiPlatformApplication.Controls;
+using MultiPlatformApplication.Helpers;
 using MultiPlatformApplication.Models;
 using MultiPlatformApplication.Views;
 using NLog;
@@ -20,6 +21,7 @@ namespace MultiPlatformApplication.ViewModels
         private String currentMenuIdSelected;
 
         private ConversationsView conversationsView;
+        private ContactsPanel contactsPanel;
 
         ContentView contentView; // We need to know the content view to display correct info according menu selection
 
@@ -45,60 +47,69 @@ namespace MultiPlatformApplication.ViewModels
 
                 // Define menu
                 Menu.Command = new RelayCommand<object>(new Action<object>(MenuCommand)); // Command raised when a menu item is selected
+
                 Menu.SetDefaulMenuItemtSize(30, 50, 100);
                 Menu.TextVisible = false;
                 Menu.TextVisibleForSelectedItem = true;
-                Menu.AddItem(new MenuItemModel() { Id = "Conversations", Label = Helper.GetLabel("conversationsItem"), ImageSourceId = "MainImage_chat_white", IsSelected = true });
+                Menu.AddItem(new MenuItemModel() { Id = "Conversations", Label = Helper.GetLabel("conversationsItem"), ImageSourceId = "MainImage_chat_white" });
                 Menu.AddItem(new MenuItemModel() { Id = "Channels", Label = Helper.GetLabel("channels"), ImageSourceId = "MainImage_newsfeed_white" });
                 Menu.AddItem(new MenuItemModel() { Id = "Bubbles", Label = Helper.GetLabel("bubbles"), ImageSourceId = "MainImage_bubble_white" });
                 Menu.AddItem(new MenuItemModel() { Id = "Contacts", Label = Helper.GetLabel("contacts"), ImageSourceId = "MainImage_contacts_white" });
                 Menu.AddItem(new MenuItemModel() { Id = "Calls", Label = Helper.GetLabel("tab-calllogs-title"), ImageSourceId = "MainImage_calllog_white" });
 
-
-                // Display by default "Conversations"
-                MenuCommand("Conversations");
+                // Select "Conversations" as selected item
+                Menu.SetItemSelected("Conversations");
             }
             else
             {
-                // We need to inform the current content view that we in "Initialize" step
-
-                switch (currentMenuIdSelected)
-                {
-                    case "Conversations":
-                        if (conversationsView != null)
-                            conversationsView.Initialize();
-                        break;
-
-                    default:
-                        
-                        break;
-                }
+                // We need to inform the current content view that we are in "Initialize" step
+                DisplayMenu(currentMenuIdSelected);
             }
         }
-#endregion PUBLIC METHODS
+        #endregion PUBLIC METHODS
 
 
+        private void DisplayMenu(String id)
+        {
+
+            View view;
+            switch (id)
+            {
+                case "Conversations":
+                    if (conversationsView == null)
+                        conversationsView = new ConversationsView();
+
+                    conversationsView.Initialize();
+                    view = conversationsView;
+                    break;
+
+                case "Contacts":
+                    if (contactsPanel == null)
+                        contactsPanel = new ContactsPanel();
+
+                    contactsPanel.Initialize();
+                    view = contactsPanel;
+                    break;
+
+                default:
+                    view = new Label() { Text = id + " - TO DO", HorizontalOptions = new LayoutOptions(LayoutAlignment.Center, false), VerticalOptions = new LayoutOptions(LayoutAlignment.Center, false) };
+                    break;
+            }
+
+            if (contentView.Content != view)
+                contentView.Content = view;
+
+        }
 
         private void MenuCommand(object obj)
         {
             if(obj is String)
             {
-                String Id = (String)obj;
-                if(Id != currentMenuIdSelected)
+                String id = (String)obj;
+                if(id != currentMenuIdSelected)
                 {
-                    currentMenuIdSelected = Id;
-                    switch (Id)
-                    {
-                        case "Conversations":
-                            if(conversationsView == null)
-                                conversationsView = new ConversationsView();
-                            contentView.Content = conversationsView;
-                            break;
-
-                        default:
-                            contentView.Content = new Label() { Text = Id + " - TO DO", HorizontalOptions = new LayoutOptions(LayoutAlignment.Center, false), VerticalOptions = new LayoutOptions(LayoutAlignment.Center, false) };
-                            break;
-                    }
+                    currentMenuIdSelected = id;
+                    DisplayMenu(id);
                 }
             }
         }
