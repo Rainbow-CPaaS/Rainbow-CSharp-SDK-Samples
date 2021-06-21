@@ -61,6 +61,8 @@ namespace MultiPlatformApplication.Models
             if (String.IsNullOrEmpty(id))
                 return;
 
+            Boolean itemSelected = false;
+
             if (items?.Count > 0)
             {
                 if (TextVisibleForSelectedItem && !TextVisible)
@@ -69,6 +71,8 @@ namespace MultiPlatformApplication.Models
                     {
                         if (item.Id == id)
                         {
+                            itemSelected = true;
+
                             item.IsSelected = true;
                             item.Label = GetOriginalLabelOfItem(id);
                         }
@@ -82,10 +86,19 @@ namespace MultiPlatformApplication.Models
                 else
                 {
                     foreach (MenuItemModel item in items)
+                    {
+                        if (item.Id == id)
+                            itemSelected = true;
                         item.IsSelected = (item.Id == id);
+                    }
+                }
+
+                if (itemSelected)
+                {
+                    if (Command != null && Command.CanExecute(id))
+                        Command.Execute(id);
                 }
             }
-
         }
 
         /// <summary>
