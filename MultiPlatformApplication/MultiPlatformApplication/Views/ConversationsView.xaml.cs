@@ -22,7 +22,6 @@ namespace MultiPlatformApplication.Views
             // Create / Init ViewModel
             vm = new ConversationsViewModel();
             vm.DynamicList.ListView = ConversationsListView; // Need to know the collection view
-            Initialize();
 
             ConversationsListView.BindingContext = vm;
         }
