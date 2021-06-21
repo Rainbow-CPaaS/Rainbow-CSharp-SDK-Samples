@@ -10,7 +10,6 @@ namespace MultiPlatformApplication
 {
     public class SdkWrapper
     {
-
 #region PUBLIC EVENT
 
         // From "Files" Service
@@ -45,8 +44,6 @@ namespace MultiPlatformApplication
         public event EventHandler<ConnectionStateEventArgs> ConnectionStateChanged;
         public event EventHandler<EventArgs> InitializationPerformed;
 #endregion PUBLIC EVENT
-
-
 
 #region TO RAISE EVENT
 
@@ -192,7 +189,6 @@ namespace MultiPlatformApplication
 
     #endregion STATIC METHODS
 
-
     #region WRAPPER - FILES
 
         virtual public int MaxThumbnailWidth { get; set; }
@@ -219,7 +215,6 @@ namespace MultiPlatformApplication
         }
 
     #endregion WRAPPER - FILES
-
 
     #region WRAPPER - AVATARS
 
@@ -250,7 +245,6 @@ namespace MultiPlatformApplication
 
 
     #endregion WRAPPER - AVATARS
-
 
     #region WRAPPER - INSTANT MESSAGING
 
@@ -290,7 +284,6 @@ namespace MultiPlatformApplication
 
     #endregion WRAPPER - INSTANT MESSAGING
 
-
     #region WRAPPER - CONVERSATIONS
 
         virtual public void GetAllConversations(Action<SdkResult<List<Conversation>>> callback)
@@ -309,7 +302,6 @@ namespace MultiPlatformApplication
 
     #endregion WRAPPER - CONVERSATIONS
 
-
     #region WRAPPER - BUBBLES
 
         virtual public void GetAllBubbles(Action<SdkResult<List<Bubble>>> callback = null)
@@ -317,7 +309,6 @@ namespace MultiPlatformApplication
         }
 
     #endregion WRAPPER - BUBBLES
-
 
     #region WRAPPER - CONTACTS
 
@@ -327,6 +318,11 @@ namespace MultiPlatformApplication
         }
         
         virtual public String GetCurrentContactJid()
+        {
+            return null;
+        }
+
+        virtual public List<Contact> GetAllContactsFromCache()
         {
             return null;
         }
@@ -351,7 +347,6 @@ namespace MultiPlatformApplication
         }
 
     #endregion WRAPPER - CONTACTS
-
 
     #region WRAPPER - APPLICATION
 

@@ -158,8 +158,6 @@ namespace MultiPlatformApplication
 
     #endregion WRAPPER - FILES
 
-
-
     #region WRAPPER - AVATARS
 
         public override void AddUnknownContactToPoolByJid(String contactJid)
@@ -237,7 +235,6 @@ namespace MultiPlatformApplication
 
 
     #endregion WRAPPER - AVATARS
-
 
     #region WRAPPER - INSTANT MESSAGING
 
@@ -330,7 +327,6 @@ namespace MultiPlatformApplication
 
     #endregion WRAPPER - INSTANT MESSAGING
 
-
     #region WRAPPER - CONVERSATIONS
 
         public override void GetAllConversations(Action<SdkResult<List<Conversation>>> callback)
@@ -358,7 +354,6 @@ namespace MultiPlatformApplication
 
     #endregion WRAPPER - CONVERSATIONS
 
-
     #region WRAPPER - BUBBLES
 
         public override void GetAllBubbles(Action<SdkResult<List<Bubble>>> callback = null)
@@ -371,7 +366,6 @@ namespace MultiPlatformApplication
 
     #endregion WRAPPER - BUBBLES
 
-
     #region WRAPPER - CONTACTS
 
         public override String GetCurrentContactId()
@@ -382,6 +376,11 @@ namespace MultiPlatformApplication
         public override string GetCurrentContactJid()
         {
             return currentContact?.Jid_im;
+        }
+        
+        public override List<Contact> GetAllContactsFromCache()
+        {
+            return contactsById.Values.ToList<Contact>();
         }
 
         public override Rainbow.Model.Contact GetContactFromContactId(String peerId)
@@ -421,7 +420,6 @@ namespace MultiPlatformApplication
         }
 
     #endregion WRAPPER - CONTACTS
-
 
     #region WRAPPER - APPLICATION
 
@@ -492,7 +490,6 @@ namespace MultiPlatformApplication
         }
 
     #endregion WRAPPER - APPLICATION
-
 
 #endregion PUBLIC API
     }
