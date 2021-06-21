@@ -6,9 +6,9 @@
              xmlns:converters="clr-namespace:MultiPlatformApplication.Converters;assembly=MultiPlatformApplication" 
              xmlns:dataTemplate="clr-namespace:MultiPlatformApplication.Views.DataTemplates" 
              xmlns:windows="clr-namespace:Xamarin.Forms.PlatformConfiguration.WindowsSpecific;assembly=Xamarin.Forms.Core"
-             x:Class="MultiPlatformApplication.Views.ConversationsPage"
+             x:Class="MultiPlatformApplication.Views.MainPage"
             >
-    
+
     <ContentPage.Resources>
         <converters:ReverseBooleanConverter x:Key="ReverseBooleanConverter" />
         <converters:TextToBooleanConverter x:Key="TextToBooleanConverter" />
@@ -27,27 +27,16 @@
     </ContentPage.Padding>
 
     <StackLayout Orientation="Vertical">
-       
-        <ListView x:Name="ConversationsListView" 
-                  
-                  VerticalOptions="StartAndExpand"
-                  
-                  IsPullToRefreshEnabled="{Binding DynamicList.NoMoreItemsAvailable, Converter={StaticResource ReverseBooleanConverter}}"
-                  IsRefreshing="{Binding DynamicList.AskingMoreItems}"
-                  RefreshCommand="{Binding DynamicList.AskMoreItemsCommand}"
-                  
-			      ItemsSource="{Binding DynamicList.Items}"
-                  ItemTemplate="{StaticResource ConversationDataTemplate}"
-
-                  SelectionMode="Single"/>
+        <ContentView x:Name="MainContentView"
+                     VerticalOptions="StartAndExpand"/>
 
         <controls:MenuControl BackgroundColor="{StaticResource ColorMain}"
                               BindingContext="{Binding Menu}"
                               Orientation="Horizontal"
                               HorizontalOptions="Center"
-                              VerticalOptions="Center"
+                              VerticalOptions="End"
                               />
     </StackLayout>
-    
+
 
 </ContentPage>

@@ -91,17 +91,17 @@ namespace MultiPlatformApplication.ViewModels
                 WaitHandle.WaitAll(new WaitHandle[] { manualEventBubbles, manualEventConversations }, 5000);
 
                 // Display conversations pages
-                ShowConversationsPage();
+                ShowMainPage();
 
             });
             task.Start();
         }
 
-        void ShowConversationsPage()
+        void ShowMainPage()
         {
             Device.BeginInvokeOnMainThread(async () =>
             {
-                await XamarinApplication.NavigationService.NavigateModalAsync("ConversationsPage");
+                await XamarinApplication.NavigationService.NavigateModalAsync("MainPage");
             });
         }
 
