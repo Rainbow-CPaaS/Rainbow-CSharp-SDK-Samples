@@ -51,6 +51,7 @@ namespace MultiPlatformApplication
             // Manage "Contacts" service events
             RbContacts.ContactAdded += RbContacts_ContactAdded;
             RbContacts.ContactInfoChanged += RbContacts_ContactInfoChanged;
+            RbContacts.ContactAggregatedPresenceChanged += RbContacts_ContactAggregatedPresenceChanged;
             RbContacts.ContactPresenceChanged += RbContacts_ContactPresenceChanged;
 
             // Manage "Conversations" service events
@@ -134,11 +135,15 @@ namespace MultiPlatformApplication
             OnContactInfoChanged(sender, e);
         }
 
+        private void RbContacts_ContactAggregatedPresenceChanged(object sender, Rainbow.Events.PresenceEventArgs e)
+        {
+            OnContactAggregatedPresenceChanged(sender, e);
+        }
+
         private void RbContacts_ContactPresenceChanged(object sender, Rainbow.Events.PresenceEventArgs e)
         {
             OnContactPresenceChanged(sender, e);
         }
-
 
         private void RbInstantMessaging_UserTypingChanged(object sender, Rainbow.Events.UserTypingEventArgs e)
         {

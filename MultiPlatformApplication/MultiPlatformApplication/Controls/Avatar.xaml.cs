@@ -126,7 +126,7 @@ namespace MultiPlatformApplication.Controls
             InitializeComponent();
 
             Helper.SdkWrapper.ContactAvatarUpdated += SdkWrapper_ContactAvatarUpdated;
-            Helper.SdkWrapper.ContactPresenceChanged += SdkWrapper_ContactPresenceChanged;
+            Helper.SdkWrapper.ContactAggregatedPresenceChanged += SdkWrapper_ContactAggregatedPresenceChanged;
 
             Helper.SdkWrapper.BubbleAvatarUpdated += SdkWrapper_BubbleAvatarUpdated;
         }
@@ -177,8 +177,7 @@ namespace MultiPlatformApplication.Controls
         }
 
 #region EVENTS FROM SDK WRAPPER
-
-        private void SdkWrapper_ContactPresenceChanged(object sender, Rainbow.Events.PresenceEventArgs e)
+        private void SdkWrapper_ContactAggregatedPresenceChanged(object sender, Rainbow.Events.PresenceEventArgs e)
         {
             if (DisplayPresence && (PeerType == "user") && (peerJid == e.Jid))
             {

@@ -31,6 +31,7 @@ namespace MultiPlatformApplication
         public event EventHandler<JidEventArgs> ContactAdded;
         public event EventHandler<JidEventArgs> ContactInfoChanged;
         public event EventHandler<PresenceEventArgs> ContactPresenceChanged;
+        public event EventHandler<PresenceEventArgs> ContactAggregatedPresenceChanged;
 
         // From "Conversations" Service
         public event EventHandler<ConversationEventArgs> ConversationCreated;
@@ -132,6 +133,11 @@ namespace MultiPlatformApplication
         internal void OnContactInfoChanged(object sender, JidEventArgs args)
         {
             ContactInfoChanged.Raise(sender, args);
+        }
+
+        internal void OnContactAggregatedPresenceChanged(object sender, PresenceEventArgs args)
+        {
+            ContactAggregatedPresenceChanged.Raise(sender, args);
         }
 
         internal void OnContactPresenceChanged(object sender, PresenceEventArgs args)
