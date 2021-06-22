@@ -18,13 +18,8 @@
     
     
     <ContentView.Content >
-        <!--<StackLayout Orientation="Vertical" 
-                     Margin="0"
-                     Padding="0"
-                     Spacing="0">-->
-
             <ListView x:Name="ConversationsListView"
-                      Margin="0"
+                      Margin="5,0"
                       VerticalOptions="StartAndExpand"
                       
                       IsPullToRefreshEnabled="{Binding DynamicList.NoMoreItemsAvailable, Converter={StaticResource ReverseBooleanConverter}}"
@@ -34,7 +29,5 @@
                       ItemsSource="{Binding DynamicList.Items}"
                       ItemTemplate="{StaticResource ConversationDataTemplate}"
                       SelectionMode="Single"/>
-
-        <!--</StackLayout>-->
     </ContentView.Content>
 </ContentView>
