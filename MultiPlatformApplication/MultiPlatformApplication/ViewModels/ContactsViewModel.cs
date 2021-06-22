@@ -24,13 +24,10 @@ namespace MultiPlatformApplication.ViewModels
         private Boolean firstInitialization = true;
 
         List<Contact> contactsList;
-        ListView listView;
 
 #region BINDINGS used by XAML
 
-        public ObservableRangeCollection<Contact> Contacts { get; private set; } = new ObservableRangeCollection<Contact>();
-
-        public List<ObjectsGroupingModel<String, Contact>>ContactsGrouped { get; private set; } = new List<ObjectsGroupingModel<String, Contact>>();
+        public ObservableRangeCollection<ContactModel> Contacts { get; private set; } = new ObservableRangeCollection<ContactModel>();
 
 #endregion BINDINGS used by XAML
 
@@ -48,6 +45,10 @@ namespace MultiPlatformApplication.ViewModels
                 // Get contacts from cache
                 contactsList = Helper.SdkWrapper.GetAllContactsFromCache();
 
+                // Remove contacts with "IsTerminated" equals to true and current contact
+                String currentContactId = Helper.SdkWrapper.GetCurrentContactId();
+                contactsList.RemoveAll(x => (x.IsTerminated) || (x.Id == currentContactId) );
+
                 // Update display Sorting/Grouping on First Name
                 UpdateDisplay("FirstName", true);
             }
@@ -58,7 +59,7 @@ namespace MultiPlatformApplication.ViewModels
             if (contactsList?.Count < 1)
                 return;
 
-            ContactsGrouped.Clear();
+            Contacts.Clear();
 
             // First we sort the contacts list
             switch (columnToSort)
@@ -81,6 +82,8 @@ namespace MultiPlatformApplication.ViewModels
             if (!ascending)
                 contactsList.Reverse();
 
+
+
             // Now we group the result
             IEnumerable<IGrouping<String, Contact>> groupedContacts;
                 
@@ -102,9 +105,13 @@ namespace MultiPlatformApplication.ViewModels
 
             foreach (var item in groupedContacts)
             {
-                ContactsGrouped.Add(new ObjectsGroupingModel<string, Contact>(item.Key, item.ToList()));
+                Contacts.Add(new ContactModel("[GROUP]", item.Key));
+
+                foreach(Contact contact in item.ToList())
+                {
+                    Contacts.Add(new ContactModel(contact.Id, contact.DisplayName, contact.CompanyName));
+                }
             }
-            
         }
 
     }

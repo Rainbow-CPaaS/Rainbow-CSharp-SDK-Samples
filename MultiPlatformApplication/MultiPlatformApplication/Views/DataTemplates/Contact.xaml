@@ -42,18 +42,42 @@
                              DisplayPresence="True"
                                  />
 
+
+                <Frame Grid.Row="0" Grid.Column="2"
+                   CornerRadius="0" 
+                   BackgroundColor="#00000000"
+                   VerticalOptions="Center"
+                   HorizontalOptions="FillAndExpand"
+                   HasShadow="False"
+                   IsClippedToBounds="False"
+                   Margin="0"
+                   Padding="0"
+                   HeightRequest="48">
+
+                    <StackLayout Spacing="0" Padding="10,0,10,0"  Margin="0" Orientation="Vertical" VerticalOptions="Center">
+                        <Label HorizontalOptions="StartAndExpand" TextColor="Black" FontSize="{StaticResource FontSizeMedium}" MaxLines="1" LineBreakMode="TailTruncation" VerticalOptions="Start" Text="{Binding DisplayName}"/>
+                        <Label HorizontalOptions="StartAndExpand" TextColor="Gray" FontSize="{StaticResource FontSizeSmall}" MaxLines="1" LineBreakMode="TailTruncation" IsVisible="{Binding Detail, Converter={StaticResource TextToBooleanConverter}}" Text="{Binding Detail}"/>
+                    </StackLayout>
+                </Frame>
+
             </Grid>
         </ViewCell>
     </DataTemplate>
 
     <DataTemplate x:Key="GroupHeaderContactDataTemplate">
         <ViewCell>
-            <StackLayout VerticalOptions="FillAndExpand"
+            <StackLayout Orientation="Vertical" 
+                         VerticalOptions="Center"
                          Margin="0"
-                         Padding="5,0"
-                         BackgroundColor="#3498DB">
-                <Label Text="{Binding Key}"
-                       TextColor="White" 
+                         Padding="5,5"
+                         BackgroundColor="{StaticResource ColorMain}"
+                         >
+                <Label Margin="0"
+                       Padding="0"
+                       Text="{Binding DisplayName}"
+                       TextColor="{StaticResource ColorConversationStreamMessageCurrentUserFont}" 
+                       FontSize="{StaticResource FontSizeMedium}"
+                       FontAttributes="Bold"
                        VerticalOptions="Center"/>
             </StackLayout>
         </ViewCell>
