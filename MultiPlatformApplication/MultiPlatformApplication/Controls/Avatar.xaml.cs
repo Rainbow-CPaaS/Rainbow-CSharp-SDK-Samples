@@ -166,7 +166,8 @@ namespace MultiPlatformApplication.Controls
                     }
                     else
                     {
-                        control.ImagePresence.Source = ImageSource.FromResource(Helper.GetPresenceSourceFromPresence(presence));
+                        String resource = Helper.GetPresenceSourceFromPresence(presence);
+                        control.ImagePresence.Source = ImageSource.FromResource(resource, typeof(Helper).Assembly);
                         displayFrameForPresence = true;
                     }
                 }
