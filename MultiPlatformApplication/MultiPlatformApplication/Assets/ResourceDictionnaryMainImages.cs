@@ -12,7 +12,7 @@ namespace MultiPlatformApplication.Assets
     public class ResourceDictionnaryMainImages : ResourceDictionary
     {
 
-        private List<String> svgList = new List<string> { "loading", "arrow_back",
+        private List<String> svgList = new List<string> { "loading", "arrow_back", "sort", "filter-list",
                                             "burger-menu", "dialpad", 
                                             "chat", "newsfeed", "bubble", "contacts", "calllog", 
                                             "send", "exclamation", "siren", "problem-alert", "bulb", "chat--resized", "mic", "attach", "more_horiz", "more_vert",
@@ -23,33 +23,40 @@ namespace MultiPlatformApplication.Assets
             CreateSvgFilesAndAddThemAsImageSource();
         }
 
-
         private Boolean CreateSvgFile(String svgResourceName, int size)
         {
-
-
             String imageFilePath;
             String imagePoolFolderPath = Helper.GetImagesStorageFolderPath();
 
-            // Get Svg with transparent background color and white color
-            SkiaSharp.SKBitmap bitmap = Rainbow.Common.ImageTools.GetBitmapFromSvgResourceName(svgResourceName, size, "#00000000", "#ffffff");
-            if (bitmap != null)
+            imageFilePath = Path.Combine(imagePoolFolderPath, svgResourceName + "_white.png");
+            if (!File.Exists(imageFilePath))
             {
-                // Save image
-                imageFilePath = Path.Combine(imagePoolFolderPath, svgResourceName + "_white.png");
-                Rainbow.Common.ImageTools.SaveBitmapToFile(bitmap, imageFilePath);
-
-                // Get Svg with transparent background color and black color
-                bitmap = Rainbow.Common.ImageTools.GetBitmapFromSvgResourceName(svgResourceName, size, "#00000000", "#000000");
+                // Get Svg with transparent background color and white color
+                SkiaSharp.SKBitmap bitmap = Rainbow.Common.ImageTools.GetBitmapFromSvgResourceName(svgResourceName, size, "#00000000", "#ffffff");
                 if (bitmap != null)
                 {
                     // Save image
-                    imageFilePath = Path.Combine(imagePoolFolderPath, svgResourceName + "_black.png");
                     Rainbow.Common.ImageTools.SaveBitmapToFile(bitmap, imageFilePath);
-                    return true;
                 }
+                else
+                    return false;
             }
-            return false;
+
+            imageFilePath = Path.Combine(imagePoolFolderPath, svgResourceName + "_black.png");
+            if (!File.Exists(imageFilePath))
+            {
+                // Get Svg with transparent background color and white color
+                SkiaSharp.SKBitmap bitmap = Rainbow.Common.ImageTools.GetBitmapFromSvgResourceName(svgResourceName, size, "#00000000", "#000000");
+                if (bitmap != null)
+                {
+                    // Save image
+                    Rainbow.Common.ImageTools.SaveBitmapToFile(bitmap, imageFilePath);
+                }
+                else
+                    return false;
+            }
+
+            return true;
         }
 
         public void CreateSvgFilesAndAddThemAsImageSource()
@@ -77,7 +84,5 @@ namespace MultiPlatformApplication.Assets
             }
         }
     }
-
-    
 
 }
