@@ -7,7 +7,7 @@
     
     <DataTemplate x:Key="ContactDataTemplate">
         <ViewCell>
-            <Grid ColumnSpacing="0" RowSpacing="0" Padding="0" Margin="0">
+            <Grid ColumnSpacing="0" RowSpacing="0" Padding="10, 0" Margin="0">
                 <Grid.Resources>
                     <converters:TextToBooleanConverter x:Key="TextToBooleanConverter" />
                     <converters:IntToBooleanConverter x:Key="IntToBooleanConverter" />
@@ -66,20 +66,21 @@
 
     <DataTemplate x:Key="GroupHeaderContactDataTemplate">
         <ViewCell>
-            <StackLayout Orientation="Vertical" 
-                         VerticalOptions="Center"
-                         Margin="0"
-                         Padding="5,5"
-                         BackgroundColor="{StaticResource ColorMain}"
-                         >
+            <Frame VerticalOptions="Center"
+                   BorderColor="Black"
+                   CornerRadius="1"
+                   HasShadow="False"
+                   Margin="0"
+                   Padding="5,5"
+                   BackgroundColor="LightGray">
                 <Label Margin="0"
                        Padding="0"
                        Text="{Binding DisplayName}"
-                       TextColor="{StaticResource ColorConversationStreamMessageCurrentUserFont}" 
+                       TextColor="Black" 
                        FontSize="{StaticResource FontSizeMedium}"
-                       FontAttributes="Bold"
+                       FontAttributes="None"
                        VerticalOptions="Center"/>
-            </StackLayout>
+            </Frame>
         </ViewCell>
     </DataTemplate>
 

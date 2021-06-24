@@ -3,12 +3,13 @@
        xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
        xmlns:dataTemplate="clr-namespace:MultiPlatformApplication.Views.DataTemplates" 
        xmlns:controls="clr-namespace:MultiPlatformApplication.Controls"
+       xmlns:converters="clr-namespace:MultiPlatformApplication.Converters;assembly=MultiPlatformApplication" 
        x:Class="MultiPlatformApplication.Controls.ContactsPanel"
        CornerRadius="0" 
-       Margin="5,0"
+       Margin="0,0"
        Padding="0"
-       HorizontalOptions="Center"
-       VerticalOptions="Center"
+       HorizontalOptions="Fill"
+       VerticalOptions="Fill"
        BackgroundColor="#00000000">
 
     <Frame.Resources>
@@ -18,27 +19,211 @@
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
 
+        <converters:TextToBooleanConverter x:Key="TextToBooleanConverter" />
+        
         <controls:GroupDataTemplateSelector  x:Key="ContactSelector"
                                               Group="{StaticResource GroupHeaderContactDataTemplate}"
                                               Item="{StaticResource ContactDataTemplate}"/>
     </Frame.Resources>
 
-    <ListView x:Name="ContactsListView"
-              Margin="0"
-              VerticalOptions="StartAndExpand"
-              
-              HasUnevenRows="True"
-              
-              IsPullToRefreshEnabled="false"
-              IsRefreshing="false"
+    <AbsoluteLayout x:Name="RootLayout" 
+                    Margin="0"
+                    Padding="0"
+                    HorizontalOptions="Fill" 
+                    VerticalOptions="Fill" >
+        
+        <!-- DEFINE MainLayout -->
+        <StackLayout x:Name="MainLayout" 
+                     Margin="0"
+                     Padding="0"
+                     Spacing="0"
+                     AbsoluteLayout.LayoutBounds="0,0,1,1" 
+                     AbsoluteLayout.LayoutFlags="All"
+                     HorizontalOptions="Fill" 
+                     VerticalOptions="Fill">
 
-              ItemsSource="{Binding Contacts}"
-                      
-              IsGroupingEnabled="false"
-                      
-              ItemTemplate="{StaticResource ContactSelector}"
-                      
-              SelectionMode="Single">
-    </ListView>
+            <controls:MenuControl BackgroundColor="{StaticResource ColorMain}"
+                                  BindingContext="{Binding Menu}"
+                                  Orientation="Horizontal"
+                                  HorizontalOptions="End"
+                                  VerticalOptions="End"/>
 
+            <ListView x:Name="ContactsListView"
+
+                      Margin="5,0"
+                      VerticalOptions="Fill"
+                      HorizontalOptions="Fill"
+              
+                      HasUnevenRows="True"
+              
+                      IsPullToRefreshEnabled="false"
+                      IsRefreshing="false"
+
+                      ItemsSource="{Binding Contacts}"
+                      ItemTemplate="{StaticResource ContactSelector}"
+                      
+                      SelectionMode="Single"
+                      SeparatorVisibility="None">
+            </ListView>
+        </StackLayout>
+
+        <!-- DEFINE Popup -->
+        <ContentView x:Name="PopupBackground"
+                     Margin="0"
+                     Padding="0"
+                     IsVisible="False"
+                     BackgroundColor="Gray"
+                     Opacity="0.5"
+                     AbsoluteLayout.LayoutBounds="0,0,1,1"
+                     AbsoluteLayout.LayoutFlags="All">
+        </ContentView>
+
+        <ContentView x:Name="PopupRoot" 
+                     IsVisible="False"
+                     Margin="0"  
+                     Padding="0"
+                     BackgroundColor="Transparent"
+                     AbsoluteLayout.LayoutBounds="0,0,1,1"
+                     AbsoluteLayout.LayoutFlags="All">
+            <ContentView.GestureRecognizers>
+                <TapGestureRecognizer Command="{Binding PopupModel.ButtonCancelCommand}" />
+            </ContentView.GestureRecognizers>
+            
+
+            <Frame Margin="5"
+                   HasShadow="True"
+                   BorderColor="Gray"
+                   CornerRadius="8"
+                   BackgroundColor="{StaticResource ColorConversationStreamMessageOtherUserBackGround}"
+                   VerticalOptions="Center"
+                   HorizontalOptions="Center">
+
+                <Frame.GestureRecognizers>
+                    <TapGestureRecognizer />
+                </Frame.GestureRecognizers>
+
+                <StackLayout Spacing="0"
+                             Margin="0"
+                             Padding="0"
+                             Orientation="Vertical"
+                             VerticalOptions="Start"
+                             HorizontalOptions="Center">
+
+                    <!-- Define Popup Title -->
+                    <Label Text="{Binding PopupModel.Title}"
+                           TextColor="Black" 
+                           FontSize="{StaticResource FontSizeLarge}"
+                           FontAttributes="Bold"
+                           IsVisible="{Binding PopupModel.Title, Converter={StaticResource TextToBooleanConverter}}"
+                           VerticalOptions="Start"
+                           HorizontalOptions="Center"/>
+
+                    <!-- Define Items which are displayed using popup -->
+                    <StackLayout x:Name="PopupItems"
+                                 Spacing="0"
+                                 Margin="0,0,0,5"
+                                 Padding="0"
+                                 Orientation="Vertical"
+                                 VerticalOptions="Center"
+                                 HorizontalOptions="Center">
+
+                        <!-- Define a Popup Item-->
+                        <StackLayout AutomationId="OrderBy"
+                                     Margin="0"
+                                     Padding="0"
+                                     Spacing="0"
+                                     HorizontalOptions="Center"
+                                     VerticalOptions="Center">
+                            <ListView Margin="0,10,0,10"                               
+                                      WidthRequest="200"
+                                      BindingContext="{Binding OrderByOptionsList}"
+                                      ItemsSource="{Binding Items}"
+                                      SelectedItem="{Binding SelectedItem, Mode=TwoWay}" 
+                                      RowHeight="35"
+                                      SeparatorVisibility="None">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <ViewCell>
+                                            <Label Text="{Binding Label}"
+                                                   VerticalOptions="Center"
+                                                   TextColor="Black" 
+                                                   FontSize="{StaticResource FontSizeMedium}"/>
+                                        </ViewCell>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                        </StackLayout>
+
+                        <!-- Define a Popup Item-->
+                        <StackLayout AutomationId="Filter"
+                                     Margin="0"
+                                     Padding="0"
+                                     Spacing="0"
+                                     HorizontalOptions="Center"
+                                     VerticalOptions="Center">
+                            <ListView Margin="0,10,0,10"                               
+                                      WidthRequest="200"
+                                      BindingContext="{Binding FilterOptionsList}"
+                                      ItemsSource="{Binding Items}"
+                                      SelectedItem="{Binding SelectedItem, Mode=TwoWay}" 
+                                      RowHeight="35"
+                                      SeparatorVisibility="None">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <ViewCell>
+                                            <Label Text="{Binding Label}"
+                                                   VerticalOptions="Center"
+                                                   TextColor="Black" 
+                                                   FontSize="{StaticResource FontSizeMedium}"/>
+                                        </ViewCell>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                        </StackLayout>
+
+                    </StackLayout>
+                    
+                    <!-- Define Popup button(s)-->
+                    <StackLayout x:Name="PopupButtons"
+                                 Margin="0, 10, 0, 0"
+                                 Padding="0"
+                                 Spacing="10"
+                                 Orientation="Horizontal"
+                                 VerticalOptions="End"
+                                 HorizontalOptions="Center">
+
+                        <controls:CustomButton x:Name="PopupButtonsAccept"
+                                               Text="{Binding PopupModel.AcceptText}"
+                                               CornerRadius="4"
+                                               HeightRequest="30"
+                                               WidthRequest="100"
+                                               FontSize="{StaticResource FontSizeSmall}"
+                                               FontAttributes="Bold"
+                                               TextColor="White"
+                                               BackgroundColor="{StaticResource ColorMain}"
+                                               BackgroundColorOnMouseOver="{StaticResource ColorMainOnOver}"
+                                               Command="{Binding PopupModel.ButtonAcceptCommand}"
+                                               IsVisible="{Binding PopupModel.AcceptText, Converter={StaticResource TextToBooleanConverter}}"/>
+
+                        <controls:CustomButton x:Name="PopupButtonsCancel"
+                                               Text="{Binding PopupModel.CancelText}"
+                                               CornerRadius="4"
+                                               HeightRequest="30"
+                                               WidthRequest="100"
+                                               FontSize="{StaticResource FontSizeSmall}"
+                                               FontAttributes="Bold"
+                                               TextColor="White"
+                                               BackgroundColor="{StaticResource ColorMain}"
+                                               BackgroundColorOnMouseOver="{StaticResource ColorMainOnOver}"
+                                               Command="{Binding PopupModel.ButtonCancelCommand}"
+                                               IsVisible="{Binding PopupModel.CancelText, Converter={StaticResource TextToBooleanConverter}}"/>
+                    </StackLayout>
+
+                </StackLayout>
+            </Frame>
+        </ContentView>
+
+
+        
+    </AbsoluteLayout>
 </Frame>

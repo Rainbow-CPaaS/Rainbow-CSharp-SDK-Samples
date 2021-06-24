@@ -20,6 +20,10 @@ namespace MultiPlatformApplication.Controls
             InitializeComponent();
 
             vm = new ContactsViewModel();
+
+            vm.SetListView(ContactsListView);
+            vm.SetRootView(this); // Need to know the Root Layout
+
             BindingContext = vm;
         }
 
