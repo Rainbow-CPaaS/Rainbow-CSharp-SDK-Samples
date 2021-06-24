@@ -28,6 +28,7 @@
                       
                       ItemsSource="{Binding DynamicList.Items}"
                       ItemTemplate="{StaticResource ConversationDataTemplate}"
-                      SelectionMode="Single"/>
+                      SelectionMode="Single"
+                      SeparatorVisibility="None"/>
     </ContentView.Content>
 </ContentView>

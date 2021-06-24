@@ -94,16 +94,16 @@
 
                 <!-- MESSAGE LIST - START -->
                 <ListView x:Name="MessagesListView"
-                            HasUnevenRows="True"
+                          HasUnevenRows="True"
+                          ItemsSource="{Binding DynamicList.Items}"
+                          ItemTemplate="{StaticResource MessageSelector}"                               
                               
-                            ItemsSource="{Binding DynamicList.Items}"
-                            ItemTemplate="{StaticResource MessageSelector}"                               
+                          IsPullToRefreshEnabled="{Binding DynamicList.NoMoreItemsAvailable, Converter={StaticResource ReverseBooleanConverter}}"
+                          IsRefreshing="{Binding DynamicList.AskingMoreItems}"
+                          RefreshCommand="{Binding DynamicList.AskMoreItemsCommand}"
                               
-                            IsPullToRefreshEnabled="{Binding DynamicList.NoMoreItemsAvailable, Converter={StaticResource ReverseBooleanConverter}}"
-                            IsRefreshing="{Binding DynamicList.AskingMoreItems}"
-                            RefreshCommand="{Binding DynamicList.AskMoreItemsCommand}"
-                              
-                            SelectionMode="None">
+                          SelectionMode="None"
+                          SeparatorVisibility="None">
                 </ListView>
                 <!-- MESSAGE LIST - END -->
 
