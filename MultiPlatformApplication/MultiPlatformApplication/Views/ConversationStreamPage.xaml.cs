@@ -29,6 +29,8 @@ namespace MultiPlatformApplication.Views
         {
             InitializeComponent();
 
+            MessagesListView.ItemSelected += MessagesListView_ItemSelected;
+
             this.conversationId = conversationId;
             
             vm = new ConversationStreamViewModel();
@@ -37,6 +39,12 @@ namespace MultiPlatformApplication.Views
             BindingContext = vm;
 
             BtnIMSend.Clicked += BtnIMSend_Clicked;
+        }
+
+        private void MessagesListView_ItemSelected(object sender, SelectedItemChangedEventArgs e)
+        {
+            // Reset selection
+            ((ListView)sender).SelectedItem = null;
         }
 
         protected override void OnAppearing()

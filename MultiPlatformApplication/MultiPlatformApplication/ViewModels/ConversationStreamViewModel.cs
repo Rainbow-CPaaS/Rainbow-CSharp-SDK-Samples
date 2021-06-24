@@ -131,9 +131,6 @@ namespace MultiPlatformApplication.ViewModels
 
             // Mark all msg as read
             MarkAllAsRead();
-
-            // Reset selection (if any)
-            DynamicList.ListView.SelectedItem = null;
         }
 
         public void Uninitialize()
