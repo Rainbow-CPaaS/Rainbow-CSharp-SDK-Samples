@@ -51,14 +51,14 @@ namespace MultiPlatformApplication.ViewModels
                 Menu.SetDefaulMenuItemtSize(30, 50, 100);
                 Menu.TextVisible = false;
                 Menu.TextVisibleForSelectedItem = true;
-                Menu.AddItem(new MenuItemModel() { Id = "Conversations", Label = Helper.GetLabel("conversationsItem"), ImageSourceId = "MainImage_chat_white" });
-                Menu.AddItem(new MenuItemModel() { Id = "Channels", Label = Helper.GetLabel("channels"), ImageSourceId = "MainImage_newsfeed_white" });
-                Menu.AddItem(new MenuItemModel() { Id = "Bubbles", Label = Helper.GetLabel("bubbles"), ImageSourceId = "MainImage_bubble_white" });
-                Menu.AddItem(new MenuItemModel() { Id = "Contacts", Label = Helper.GetLabel("contacts"), ImageSourceId = "MainImage_contacts_white" });
-                Menu.AddItem(new MenuItemModel() { Id = "Calls", Label = Helper.GetLabel("tab-calllogs-title"), ImageSourceId = "MainImage_calllog_white" });
+                Menu.AddItem(new MenuItemModel() { Id = "conversations", Label = Helper.GetLabel("conversationsItem"), ImageSourceId = "MainImage_chat_white" });
+                Menu.AddItem(new MenuItemModel() { Id = "channels", Label = Helper.GetLabel("channels"), ImageSourceId = "MainImage_newsfeed_white" });
+                Menu.AddItem(new MenuItemModel() { Id = "bubbles", Label = Helper.GetLabel("bubbles"), ImageSourceId = "MainImage_bubble_white" });
+                Menu.AddItem(new MenuItemModel() { Id = "contacts", Label = Helper.GetLabel("contacts"), ImageSourceId = "MainImage_contacts_white" });
+                Menu.AddItem(new MenuItemModel() { Id = "calls", Label = Helper.GetLabel("tab-calllogs-title"), ImageSourceId = "MainImage_calllog_white" });
 
-                // Select "Conversations" as selected item
-                Menu.SetItemSelected("Conversations");
+                // Select "conversations" as selected item
+                Menu.SetItemSelected("conversations");
             }
             else
             {
@@ -75,7 +75,7 @@ namespace MultiPlatformApplication.ViewModels
             View view;
             switch (id)
             {
-                case "Conversations":
+                case "conversations":
                     if (conversationsView == null)
                         conversationsView = new ConversationsView();
 
@@ -83,7 +83,7 @@ namespace MultiPlatformApplication.ViewModels
                     view = conversationsView;
                     break;
 
-                case "Contacts":
+                case "contacts":
                     if (contactsPanel == null)
                         contactsPanel = new ContactsPanel();
 
