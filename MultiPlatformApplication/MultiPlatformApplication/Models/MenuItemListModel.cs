@@ -54,13 +54,12 @@ namespace MultiPlatformApplication.Models
         {
             if ( (items?.Count > 0) && (items?.Count < index) && index >= 0 )
                 SetItemSelected(items[index].Id);
+            else
+                SetItemSelected("");
         }
 
         public void SetItemSelected(String id)
         {
-            if (String.IsNullOrEmpty(id))
-                return;
-
             Boolean itemSelected = false;
 
             if (items?.Count > 0)
