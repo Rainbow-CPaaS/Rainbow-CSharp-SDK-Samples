@@ -56,20 +56,12 @@ namespace MultiPlatformApplication.ViewModels
                 
                 InitializeSdkObjectsAndEvents();
 
-                // Need to manage some events of the collection view
-                if(DynamicList.ListView != null)
-                    DynamicList.ListView.ItemSelected += ListView_ItemSelected;
-
                 // Now ask to load more items => It's not working when using this in a Content View context ...
                 //DynamicList.AskingMoreItems = true;
                 //DynamicList.ListView.BeginRefresh();
 
                 ConversationLoadMoreItems(null);
             }
-
-            // Reset any selection
-            if (DynamicList.ListView != null)
-                DynamicList.ListView.SelectedItem = null;
         }
 
         private async void ListView_ItemSelected(object sender, SelectedItemChangedEventArgs e)
@@ -85,7 +77,6 @@ namespace MultiPlatformApplication.ViewModels
 
                 XamarinApplication.CurrentConversationId = conversationId;
                 await XamarinApplication.NavigationService.NavigateModalAsync("ConversationStreamPage", conversationId);
-
             }
         }
 
@@ -93,7 +84,21 @@ namespace MultiPlatformApplication.ViewModels
 #endregion PUBLIC METHODS
 
 
-#region MANAGE COMMANDS FROM DynamicList
+#region MANAGE COMMANDS 
+
+        public async void SelectedConversationCommand(Object obj)
+        {
+            if (obj is ConversationModel)
+            {
+                String conversationId = ((ConversationModel)obj)?.Id;
+                if (String.IsNullOrEmpty(conversationId))
+                    return;
+
+                XamarinApplication.CurrentConversationId = conversationId;
+                await XamarinApplication.NavigationService.NavigateModalAsync("ConversationStreamPage", conversationId);
+
+            }
+        }
 
         void ConversationLoadMoreItems(Object obj)
         {
