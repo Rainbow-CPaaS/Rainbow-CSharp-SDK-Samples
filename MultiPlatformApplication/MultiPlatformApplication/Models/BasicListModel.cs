@@ -9,36 +9,13 @@ namespace MultiPlatformApplication.Models
 {
     public class BasicListModel: ObservableObject
     {
-        private BasicListItemModel selectedItem;
         private ObservableCollection<BasicListItemModel> items;
-
-        private ICommand selectionCommand;
-
-        public BasicListItemModel SelectedItem
-        {
-            get { return selectedItem; }
-            set {
-
-                if (value != null)
-                    SelectionCommand?.Execute(value);
-
-                selectedItem = null;
-                SetProperty(ref selectedItem, value);
-            }
-        }
 
         public ObservableCollection<BasicListItemModel> Items
         {
             get { return items; }
             set { SetProperty(ref items, value); }
         }
-
-        public ICommand SelectionCommand
-        {
-            get { return selectionCommand; }
-            set { SetProperty(ref selectionCommand, value); }
-        }
-
 
         public BasicListModel()
         {

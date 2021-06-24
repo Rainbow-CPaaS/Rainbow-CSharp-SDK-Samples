@@ -19,13 +19,41 @@ namespace MultiPlatformApplication.Controls
         {
             InitializeComponent();
 
-            vm = new ContactsViewModel();
+            ContactsListView.ItemSelected += ContactsListView_ItemSelected;
+            OrderByListView.ItemSelected += OrderByListView_ItemSelected;
+            FilterListView.ItemSelected += FilterListView_ItemSelected;
 
-            vm.SetListView(ContactsListView);
+            vm = new ContactsViewModel();
             vm.SetRootView(this); // Need to know the Root Layout
 
             BindingContext = vm;
         }
+
+        private void FilterListView_ItemSelected(object sender, SelectedItemChangedEventArgs e)
+        {
+            vm?.SelectedFilterCommand(e.SelectedItem);
+
+            // Reset selection
+            ((ListView)sender).SelectedItem = null;
+        }
+
+        private void OrderByListView_ItemSelected(object sender, SelectedItemChangedEventArgs e)
+        {
+            vm?.SelectedOrderByCommand(e.SelectedItem);
+
+            // Reset selection
+            ((ListView)sender).SelectedItem = null;
+        }
+
+        private void ContactsListView_ItemSelected(object sender, SelectedItemChangedEventArgs e)
+        {
+            vm?.SelectedContactCommand(e.SelectedItem);
+
+            // Reset selection
+            ((ListView)sender).SelectedItem = null;
+        }
+
+
 
         public void Initialize()
         {

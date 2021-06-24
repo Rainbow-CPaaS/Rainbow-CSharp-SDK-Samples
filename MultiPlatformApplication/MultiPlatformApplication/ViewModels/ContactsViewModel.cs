@@ -24,6 +24,7 @@ namespace MultiPlatformApplication.ViewModels
 
         private Boolean firstInitialization = true;
 
+        ContactModel selectedContact;
         List<Contact> contactsList;
         List<Contact> originalContactsList;
 
@@ -42,19 +43,10 @@ namespace MultiPlatformApplication.ViewModels
 
 #endregion BINDINGS used by XAML
 
-
         public ContactsViewModel()
         {
             //PopupModel.ButtonAcceptCommand = new RelayCommand<object>(new Action<object>(PopupButtonAcceptCommand));
             PopupModel.ButtonCancelCommand = new RelayCommand<object>(new Action<object>(PopupButtonCancelCommand));
-
-            OrderByOptionsList.SelectionCommand = new RelayCommand<object>(new Action<object>(OrderBySelectionCommand));
-            FilterOptionsList.SelectionCommand = new RelayCommand<object>(new Action<object>(FilterSelectionCommand));
-        }
-
-        public void SetListView(ListView listview)
-        {
-            listview.ItemSelected += Listview_ItemSelected;
         }
 
         public new void Initialize()
@@ -175,7 +167,6 @@ namespace MultiPlatformApplication.ViewModels
             OrderByOptionsList.Add(new BasicListItemModel() { Id = "company", Label = Helper.GetLabel("companyOrder") });
         }
 
-
         private void UpdateLabelsForFilter()
         {
             FilterOptionsList.Clear();
@@ -185,30 +176,7 @@ namespace MultiPlatformApplication.ViewModels
             FilterOptionsList.Add(new BasicListItemModel() { Id = "offline", Label = Helper.GetLabel("offlineFilter") });
         }
 
-
-        private void Listview_ItemSelected(object sender, SelectedItemChangedEventArgs e)
-        {
-            //if (e.SelectedItemIndex != -1)
-            //{
-            //    if (e.SelectedItemIndex % 2 == 1)
-            //    {
-            //        UpdateLabelsForOrderBy();
-            //        DisplayPopup("OrderBy", Helper.GetLabel("orderTitle"), Helper.GetLabel("cancel"));
-            //    }
-            //    else
-            //    {
-            //        UpdateLabelsForSort();
-            //        DisplayPopup("Sort", Helper.GetLabel("filter"), Helper.GetLabel("cancel"));
-            //    }
-            //}
-
-            // Reset selection
-            ((ListView)sender).SelectedItem = null;
-        }
-
-
 #region MANAGE COMMANDS
-
 
         void MenuCommand(object obj)
         {
@@ -221,6 +189,7 @@ namespace MultiPlatformApplication.ViewModels
                         UpdateLabelsForOrderBy();
                         DisplayPopup("OrderBy", Helper.GetLabel("orderTitle"), Helper.GetLabel("cancel"));
                         break;
+
                     case "filter":
                         UpdateLabelsForFilter();
                         DisplayPopup("Filter", Helper.GetLabel("filter"), Helper.GetLabel("cancel"));
@@ -238,7 +207,22 @@ namespace MultiPlatformApplication.ViewModels
             HidePopup();
         }
 
-        void OrderBySelectionCommand(Object obj)
+        public void SelectedContactCommand(Object obj)
+        {
+            if (obj is ContactModel)
+            {
+                ContactModel contact = obj as ContactModel;
+                if (contact != null)
+                {
+                    if (contact.Id != "[GROUP]")
+                    {
+                        // TODO
+                    }
+                }
+            }
+        }
+
+        public void SelectedOrderByCommand(Object obj)
         {
             HidePopup();
 
@@ -249,16 +233,16 @@ namespace MultiPlatformApplication.ViewModels
             }
         }
 
-        void FilterSelectionCommand(Object obj)
+        public void SelectedFilterCommand(Object obj)
         {
-            // TODO
             HidePopup();
 
-            if (obj is BasicListItemModel)
-            {
-                BasicListItemModel item = obj as BasicListItemModel;
-                UpdateDisplay(currentOrderBy, item.Id);
-            }
+            // TODO
+            //if (obj is BasicListItemModel)
+            //{
+            //    BasicListItemModel item = obj as BasicListItemModel;
+            //    UpdateDisplay(currentOrderBy, item.Id);
+            //}
         }
 
 
