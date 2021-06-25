@@ -21,6 +21,8 @@ namespace MultiPlatformApplication.ViewModels
     {
         private static readonly Logger log = LogConfigurator.GetLogger(typeof(ContactsViewModel));
 
+        private App XamarinApplication;
+
         private Boolean firstInitialization = true;
 
         List<ContactModel> contactsList;
@@ -50,6 +52,9 @@ namespace MultiPlatformApplication.ViewModels
 
         public ContactsViewModel()
         {
+            // Get Xamarin Application
+            XamarinApplication = (App)Xamarin.Forms.Application.Current;
+
             //PopupModel.ButtonAcceptCommand = new RelayCommand<object>(new Action<object>(PopupButtonAcceptCommand));
             PopupModel.ButtonCancelCommand = new RelayCommand<object>(new Action<object>(PopupButtonCancelCommand));
         }
@@ -297,7 +302,7 @@ namespace MultiPlatformApplication.ViewModels
             HidePopup();
         }
 
-        public void SelectedContactCommand(Object obj)
+        public async void SelectedContactCommand(Object obj)
         {
             if (obj is ContactModel)
             {
@@ -306,7 +311,17 @@ namespace MultiPlatformApplication.ViewModels
                 {
                     if (contact.Id != "[GROUP]")
                     {
-                        // TODO
+                        Conversation conversation = Helper.SdkWrapper.GetOrCreateConversationFromUserId(contact.Id);
+                        if(conversation != null)
+                        {
+                            XamarinApplication.CurrentConversationId = conversation.Id;
+                            await XamarinApplication.NavigationService.NavigateModalAsync("ConversationStreamPage", conversation.Id);
+                        }
+                        else
+                        {
+                            // TODO
+                        }
+                        
                     }
                 }
             }
