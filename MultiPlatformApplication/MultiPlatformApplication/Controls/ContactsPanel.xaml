@@ -45,8 +45,8 @@
             <controls:MenuControl BackgroundColor="{StaticResource ColorMain}"
                                   BindingContext="{Binding Menu}"
                                   Orientation="Horizontal"
-                                  HorizontalOptions="End"
-                                  VerticalOptions="End"/>
+                                  HorizontalOptions="Start"
+                                  VerticalOptions="Center"/>
 
             <ListView x:Name="ContactsListView"
 
@@ -68,7 +68,7 @@
             </ListView>
         </StackLayout>
 
-        <!-- DEFINE Popup -->
+        <!-- DEFINE Popup Background -->
         <ContentView x:Name="PopupBackground"
                      Margin="0"
                      Padding="0"
@@ -79,6 +79,7 @@
                      AbsoluteLayout.LayoutFlags="All">
         </ContentView>
 
+        <!-- DEFINE Popup Root -->
         <ContentView x:Name="PopupRoot" 
                      IsVisible="False"
                      Margin="0"  
@@ -225,6 +226,16 @@
         </ContentView>
 
 
+        <!-- DEFINE Activity indicator -->
+        <ActivityIndicator Color="{StaticResource ColorMain}"
+                           WidthRequest="80"
+                           HeightRequest="80"
+                           IsRunning="{Binding IsBusy}"
+                           IsVisible="{Binding IsBusy}" 
+                           HorizontalOptions="Center"
+                           VerticalOptions="Center"
+                           AbsoluteLayout.LayoutBounds="0,0,1,1"
+                           AbsoluteLayout.LayoutFlags="All"/>
         
     </AbsoluteLayout>
 </Frame>

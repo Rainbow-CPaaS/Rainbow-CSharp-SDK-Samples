@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Linq;
+using Xamarin.Forms;
+using System.Threading;
+using System.Threading.Tasks;
 using Xamarin.Forms.Xaml;
 
 using MultiPlatformApplication.Helpers;
@@ -10,10 +13,6 @@ using Rainbow;
 using Rainbow.Model;
 
 using NLog;
-using System.Collections.ObjectModel;
-using System.Linq;
-using Xamarin.Forms;
-using System.Threading.Tasks;
 
 namespace MultiPlatformApplication.ViewModels
 {
@@ -24,14 +23,20 @@ namespace MultiPlatformApplication.ViewModels
 
         private Boolean firstInitialization = true;
 
-        ContactModel selectedContact;
-        List<Contact> contactsList;
-        List<Contact> originalContactsList;
+        List<ContactModel> contactsList;
+        List<ContactModel> originalContactsList;
 
         String currentOrderBy;
         String currentFilter;
+        Boolean isBusy;
 
 #region BINDINGS used by XAML
+
+
+        public Boolean IsBusy {
+            get { return isBusy; }
+            set { SetProperty(ref isBusy, value); }
+        }
 
         public ObservableRangeCollection<ContactModel> Contacts { get; private set; } = new ObservableRangeCollection<ContactModel>();
 
@@ -60,102 +65,187 @@ namespace MultiPlatformApplication.ViewModels
                 // Define menu
                 Menu.Command = new RelayCommand<object>(new Action<object>(MenuCommand)); // Command raised when a menu item is selected
                 
-                Menu.SetDefaulMenuItemtSize(30, 30, 30);
-                Menu.TextVisible = false;
-                Menu.TextVisibleForSelectedItem = false;
-                Menu.AddItem(new MenuItemModel() { Id = "orderby", ImageSourceId = "MainImage_sort_white" });
-                Menu.AddItem(new MenuItemModel() { Id = "filter", ImageSourceId = "MainImage_filter-list_white" });
-
-                // Get contacts from cache
-                originalContactsList = Helper.SdkWrapper.GetAllContactsFromCache();
-
-                // Remove contacts with "IsTerminated" equals to true and current contact
-                String currentContactId = Helper.SdkWrapper.GetCurrentContactId();
-                originalContactsList.RemoveAll(x => (x.IsTerminated) || (x.Id == currentContactId));
+                Menu.SetDefaulMenuItemtSize(30, 50, 80);
+                Menu.TextVisible = true;
+                Menu.TextVisibleForSelectedItem = true;
+                Menu.AddItem(new MenuItemModel() { Id = "orderby", Label = Helper.GetLabel("firstnameOrder"),  ImageSourceId = "MainImage_sort_white" });
+                Menu.AddItem(new MenuItemModel() { Id = "filter", Label = Helper.GetLabel("allFilter"), ImageSourceId = "MainImage_filter-list_white" });
 
                 // Update display Sorting/Grouping on First Name
-                UpdateDisplay("firstname", "all");
+                UpdateContactsListDisplay("firstname", "all");
             }
         }
 
-        private void UpdateDisplay(String orderBy = "firstname", String filter = "all")
+        private void UpdateContactsListDisplay(String orderBy = "firstname", String filter = "all")
         {
-            if ( (currentOrderBy == orderBy) && (currentFilter == filter) )
+            if ((currentOrderBy == orderBy) && (currentFilter == filter))
                 return;
 
-            currentOrderBy = orderBy;
-            currentFilter = filter;
+            Boolean orderByChanged = false;
+            Boolean filterChanged = false;
+
+            if (currentOrderBy != orderBy)
+            {
+                currentOrderBy = orderBy;
+                orderByChanged = true;
+            }
+
+            if (currentFilter != filter)
+            {
+                currentFilter = filter;
+                filterChanged = true;
+                orderByChanged = true;
+            }
 
             if (originalContactsList?.Count < 1)
                 return;
 
             Contacts.Clear();
+            IsBusy = true;
 
+            UpdateMenuDisplay();
 
-            // First we filter the list
-            switch (filter)
+            Task task = new Task(() =>
             {
-                case "all":
-                    contactsList = originalContactsList.ToList();
-                    break;
+                // Wait a little to let UI update with Activity indicator
+                Thread.Sleep(200);
 
+                // Create original contactsList if necessary
+                //if ( (originalContactsList == null) || (originalContactsList.Count == 0) )
+                {
+                    // Get contacts from cache
+                    List<Contact> rbContacts = Helper.SdkWrapper.GetAllContactsFromCache();
+
+                    String currentContactId = Helper.SdkWrapper.GetCurrentContactId();
+
+                    originalContactsList = new List<ContactModel>();
+                    foreach (Contact contact in rbContacts)
+                    {
+                        if( ! ( (contact.IsTerminated) || (contact.Id == currentContactId) ) )
+                            originalContactsList.Add(new ContactModel(contact));
+                    }
+                }
+
+
+                // First we filter the list
+                if (filterChanged)
+                {
+                    switch (filter)
+                    {
+                        case "online":
+                            contactsList = originalContactsList.FindAll(contact => (contact.Presence == "online") || (contact.Presence == "away"));
+                            break;
+
+                        case "offline":
+                            contactsList = originalContactsList.FindAll(contact => (contact.Presence == "offline") || (contact.Presence == null));
+                            break;
+
+                        case "all":
+                        default:
+                            contactsList = originalContactsList.ToList();
+                            break;
+
+                    }
+                }
+
+                // We sort the contacts list
+                if (orderByChanged)
+                {
+                    switch (orderBy)
+                    {
+                        case "company":
+                            contactsList = contactsList.OrderBy(x => x.CompanyForSort).ToList();
+                            break;
+
+                        case "lastname":
+                            contactsList = contactsList.OrderBy(x => x.LastNameForSort).ToList();
+                            break;
+
+                        case "firstname":
+                        default:
+                            contactsList = contactsList.OrderBy(x => x.FirstNameForSort).ToList();
+                            break;
+                    }
+                }
+
+                // Now we group the result
+                IEnumerable<IGrouping<String, ContactModel>> groupedContacts;
+
+                switch (orderBy)
+                {
+                    case "company":
+                        groupedContacts = contactsList.GroupBy(x => (String)(string.IsNullOrEmpty(x.CompanyForSort) ? "" : x.CompanyForSort.ToUpper()));
+                        break;
+
+                    case "lastname":
+                        groupedContacts = contactsList.GroupBy(x => (String)(string.IsNullOrEmpty(x.LastNameForSort) ? "" : x.LastNameForSort[0].ToString()));
+                        break;
+
+                    case "firstname":
+                    default:
+                        groupedContacts = contactsList.GroupBy(x => (String)(string.IsNullOrEmpty(x.FirstNameForSort) ? "" : x.FirstNameForSort[0].ToString()));
+                        break;
+                }
+
+                Device.BeginInvokeOnMainThread(() =>
+                {
+                    foreach (var item in groupedContacts)
+                    {
+                        Contacts.Add(new ContactModel("[GROUP]", item.Key));
+                        Contacts.AddRange(item.ToList(), System.Collections.Specialized.NotifyCollectionChangedAction.Add);
+                    }
+
+                    IsBusy = false;
+                });
+
+            });
+
+            
+            task.Start();
+        }
+
+        private void UpdateMenuDisplay()
+        {
+            String labelMenuFilter;
+            String labelMenuSort;
+
+            switch (currentFilter)
+            {
                 case "online":
-                    contactsList = contactsList.OrderBy(x => x.LastName.ToUpper()).ToList();
+                    labelMenuFilter = Helper.GetLabel("onlineFilter");
                     break;
 
                 case "offline":
-                default:
-                    contactsList = contactsList.OrderBy(x => x.FirstName.ToUpper()).ToList();
+                    labelMenuFilter = Helper.GetLabel("offlineFilter");
                     break;
-            }
 
+                case "all":
+                default:
+                    labelMenuFilter = Helper.GetLabel("allFilter");
+                    break;
+
+            }
 
             // First we sort the contacts list
-            switch (orderBy)
+            switch (currentOrderBy)
             {
                 case "company":
-                    contactsList = contactsList.OrderBy(x => x.CompanyName.ToUpper()).ToList();
+                    labelMenuSort = Helper.GetLabel("companyOrder");
                     break;
 
                 case "lastname":
-                    contactsList = contactsList.OrderBy(x => x.LastName.ToUpper()).ToList();
+                    labelMenuSort = Helper.GetLabel("lastnameOrder");
                     break;
 
                 case "firstname":
                 default:
-                    contactsList = contactsList.OrderBy(x => x.FirstName.ToUpper()).ToList();
+                    labelMenuSort = Helper.GetLabel("firstnameOrder");
                     break;
             }
 
-
-            // Now we group the result
-            IEnumerable<IGrouping<String, Contact>> groupedContacts;
-
-            switch (orderBy)
-            {
-                case "company":
-                    groupedContacts = contactsList.GroupBy(x => (String)(string.IsNullOrEmpty(x.CompanyName) ? "" : x.CompanyName.ToUpper()));
-                    break;
-
-                case "lastname":
-                    groupedContacts = contactsList.GroupBy(x => (String)(string.IsNullOrEmpty(x.LastName) ? "" : x.LastName[0].ToString().ToUpper()));
-                    break;
-
-                case "firstname":
-                default:
-                    groupedContacts = contactsList.GroupBy(x => (String)(string.IsNullOrEmpty(x.FirstName) ? "" : x.FirstName[0].ToString().ToUpper()));
-                    break;
-            }
-
-            foreach (var item in groupedContacts)
-            {
-                Contacts.Add(new ContactModel("[GROUP]", item.Key));
-
-                foreach (Contact contact in item.ToList())
-                {
-                    Contacts.Add(new ContactModel(contact.Id, contact.DisplayName, contact.CompanyName));
-                }
-            }
+            // Update labels of menu
+            Menu.Items[0].Label = labelMenuSort;
+            Menu.Items[1].Label = labelMenuFilter;
         }
 
         private void UpdateLabelsForOrderBy()
@@ -229,7 +319,7 @@ namespace MultiPlatformApplication.ViewModels
             if (obj is BasicListItemModel)
             {
                 BasicListItemModel item = obj as BasicListItemModel;
-                UpdateDisplay(item.Id, currentFilter);
+                UpdateContactsListDisplay(item.Id, currentFilter);
             }
         }
 
@@ -238,11 +328,11 @@ namespace MultiPlatformApplication.ViewModels
             HidePopup();
 
             // TODO
-            //if (obj is BasicListItemModel)
-            //{
-            //    BasicListItemModel item = obj as BasicListItemModel;
-            //    UpdateDisplay(currentOrderBy, item.Id);
-            //}
+            if (obj is BasicListItemModel)
+            {
+                BasicListItemModel item = obj as BasicListItemModel;
+                UpdateContactsListDisplay(currentOrderBy, item.Id);
+            }
         }
 
 
