@@ -62,7 +62,7 @@
                                 Command="{Binding LoginModel.ButtonConnectCommand}"
                                 IsEnabled="{Binding LoginModel.IsBusy, Converter={StaticResource ReverseBooleanConverter}}" />
 
-        <ActivityIndicator Color="Gray"
+        <ActivityIndicator Color="{StaticResource ColorMain}"
                            WidthRequest="80"
                            HeightRequest="80"
                            IsRunning="{Binding LoginModel.IsBusy}"
