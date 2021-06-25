@@ -352,6 +352,29 @@ namespace MultiPlatformApplication
             return null;
         }
 
+        public override Rainbow.Model.Conversation GetConversationByPeerIdFromCache(String peerId)
+        {
+            if(conversationsById != null)
+            {
+                foreach(Conversation conversation in conversationsById.Values)
+                {
+                    if (conversation.PeerId == peerId)
+                        return conversation;
+                }
+            }
+            return null;
+        }
+
+        public override Rainbow.Model.Conversation GetOrCreateConversationFromUserId(string userId)
+        {
+            return GetConversationByPeerIdFromCache(userId);
+        }
+
+        public override Rainbow.Model.Conversation GetOrCreateConversationFromBubbleId(string bubbleId)
+        {
+            return GetConversationByPeerIdFromCache(bubbleId);
+        }
+
     #endregion WRAPPER - CONVERSATIONS
 
     #region WRAPPER - BUBBLES

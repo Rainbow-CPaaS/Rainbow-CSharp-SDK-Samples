@@ -301,7 +301,22 @@ namespace MultiPlatformApplication
             return null;
         }
 
-        virtual public Rainbow.Model.Conversation GetConversationByIdFromCache(String id)
+        virtual public Rainbow.Model.Conversation GetConversationByIdFromCache(String conversationId)
+        {
+            return null;
+        }
+
+        virtual public Rainbow.Model.Conversation GetConversationByPeerIdFromCache(String peerId)
+        {
+            return null;
+        }
+
+        virtual public Rainbow.Model.Conversation GetOrCreateConversationFromUserId(string userId)
+        {
+            return null;
+        }
+
+        virtual public Rainbow.Model.Conversation GetOrCreateConversationFromBubbleId(string bubbleId)
         {
             return null;
         }
