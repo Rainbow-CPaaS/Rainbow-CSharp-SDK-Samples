@@ -9,6 +9,8 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Xamarin.Forms.Shapes;
 using MultiPlatformApplication.Helpers;
+using Xamarin.Forms.PlatformConfiguration;
+using Xamarin.Forms.PlatformConfiguration.WindowsSpecific;
 
 namespace MultiPlatformApplication.Models
 {
@@ -32,7 +34,7 @@ namespace MultiPlatformApplication.Models
         Boolean askingMoreItems;
         Boolean noMoreItemsAvaialble;
 
-        ListView listView;
+        Xamarin.Forms.ListView listView;
 
         ICommand askMoreItemsCommand;
 
@@ -71,13 +73,16 @@ namespace MultiPlatformApplication.Models
         /// <summary>
         /// Items view related to this dynamic list
         /// </summary>
-        public ListView ListView
+        public Xamarin.Forms.ListView ListView
         {
             get { return listView; }
             set { 
                 SetProperty(ref listView, value); 
                 if (listView != null)
                 {
+                    // We prevent MouseOver effect on ListView. "SelecionMode" must also be set to "None"
+                    listView.On<Windows>().SetSelectionMode(Xamarin.Forms.PlatformConfiguration.WindowsSpecific.ListViewSelectionMode.Inaccessible);
+
                     listView.ItemAppearing += ListView_ItemAppearing;
 
                     // ON UWP when the first element appears, if there is some items avaialble we ask to load more
