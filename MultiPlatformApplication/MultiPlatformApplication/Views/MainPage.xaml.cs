@@ -20,7 +20,7 @@ namespace MultiPlatformApplication.Views
             InitializeComponent();
 
             // Create / Init ViewModel
-            vm = new MainPageViewModel(MainContentView);
+            vm = new MainPageViewModel(this);
 
             BindingContext = vm;
         }

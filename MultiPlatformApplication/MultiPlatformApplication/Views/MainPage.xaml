@@ -26,9 +26,8 @@
         </OnPlatform>
     </ContentPage.Padding>
 
-    <StackLayout Orientation="Vertical">
-        <ContentView x:Name="MainContentView"
-                     VerticalOptions="StartAndExpand"/>
+    <StackLayout x:Name="StackLayoutMainContent"
+                 Orientation="Vertical">
 
         <controls:MenuControl BackgroundColor="{StaticResource ColorMain}"
                               BindingContext="{Binding Menu}"

@@ -23,7 +23,8 @@ namespace MultiPlatformApplication.ViewModels
         private ConversationsPanel conversationsPanel;
         private ContactsPanel contactsPanel;
 
-        ContentView contentView; // We need to know the content view to display correct info according menu selection
+        ContentPage contenPage; // Ref. to Content Page: necessary to find the stacklayout where content is switched to dispaly info according menu selection
+        StackLayout stackLayoutMainContent; // Stacklayout: First element is used (as content) to dispaly info according menu selection
 
 #region BINDINGS used by XAML
 
@@ -34,9 +35,9 @@ namespace MultiPlatformApplication.ViewModels
 
 #region PUBLIC METHODS
 
-        public MainPageViewModel(ContentView contentView)
+        public MainPageViewModel(ContentPage contenPage)
         {
-            this.contentView = contentView;
+            this.contenPage = contenPage;
         }
 
         public void Initialize()
@@ -44,6 +45,8 @@ namespace MultiPlatformApplication.ViewModels
             if(firstInitialization)
             {
                 firstInitialization = false;
+
+                stackLayoutMainContent = (StackLayout) contenPage.FindByName("StackLayoutMainContent");
 
                 // Define menu
                 Menu.Command = new RelayCommand<object>(new Action<object>(MenuCommand)); // Command raised when a menu item is selected
@@ -96,9 +99,20 @@ namespace MultiPlatformApplication.ViewModels
                     break;
             }
 
-            if (contentView.Content != view)
-                contentView.Content = view;
+            if(stackLayoutMainContent != null)
+            {
+                if (stackLayoutMainContent.Children.Count == 1)
+                    stackLayoutMainContent.Children.Insert(0, view);
+                else
+                {
+                    if (stackLayoutMainContent.Children[0] != view)
+                    {
+                        stackLayoutMainContent.Children.RemoveAt(0);
+                        stackLayoutMainContent.Children.Insert(0, view);
 
+                    }
+                }
+            }
         }
 
         private void MenuCommand(object obj)
