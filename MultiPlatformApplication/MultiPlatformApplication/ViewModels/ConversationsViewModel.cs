@@ -64,23 +64,6 @@ namespace MultiPlatformApplication.ViewModels
             }
         }
 
-        private async void ListView_ItemSelected(object sender, SelectedItemChangedEventArgs e)
-        {
-            if (e.SelectedItem == null)
-                return;
-
-            if (e.SelectedItem is ConversationModel)
-            {
-                String conversationId = ((ConversationModel)e.SelectedItem)?.Id;
-                if (String.IsNullOrEmpty(conversationId))
-                    return;
-
-                XamarinApplication.CurrentConversationId = conversationId;
-                await XamarinApplication.NavigationService.NavigateModalAsync("ConversationStreamPage", conversationId);
-            }
-        }
-
-
 #endregion PUBLIC METHODS
 
 
