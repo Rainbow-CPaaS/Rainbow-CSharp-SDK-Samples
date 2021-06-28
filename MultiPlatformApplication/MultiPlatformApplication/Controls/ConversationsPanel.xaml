@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:converters="clr-namespace:MultiPlatformApplication.Converters;assembly=MultiPlatformApplication" 
              xmlns:dataTemplate="clr-namespace:MultiPlatformApplication.Views.DataTemplates" 
-             x:Class="MultiPlatformApplication.Views.ConversationsView"
+             x:Class="MultiPlatformApplication.Controls.ConversationsPanel"
              Margin="0"
              Padding="0">
     

@@ -20,7 +20,7 @@ namespace MultiPlatformApplication.ViewModels
         private Boolean firstInitialization = true;
         private String currentMenuIdSelected;
 
-        private ConversationsView conversationsView;
+        private ConversationsPanel conversationsPanel;
         private ContactsPanel contactsPanel;
 
         ContentView contentView; // We need to know the content view to display correct info according menu selection
@@ -76,11 +76,11 @@ namespace MultiPlatformApplication.ViewModels
             switch (id)
             {
                 case "conversations":
-                    if (conversationsView == null)
-                        conversationsView = new ConversationsView();
+                    if (conversationsPanel == null)
+                        conversationsPanel = new ConversationsPanel();
 
-                    conversationsView.Initialize();
-                    view = conversationsView;
+                    conversationsPanel.Initialize();
+                    view = conversationsPanel;
                     break;
 
                 case "contacts":

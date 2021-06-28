@@ -8,14 +8,14 @@ using System.Threading.Tasks;
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 
-namespace MultiPlatformApplication.Views
+namespace MultiPlatformApplication.Controls
 {
     [XamlCompilation(XamlCompilationOptions.Compile)]
-    public partial class ConversationsView : ContentView
+    public partial class ConversationsPanel : ContentView
     {
         private ConversationsViewModel vm;
 
-        public ConversationsView()
+        public ConversationsPanel()
         {
             InitializeComponent();
 
