@@ -1,47 +1,52 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
-<Frame xmlns="http://xamarin.com/schemas/2014/forms" 
-       xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-       x:Class="MultiPlatformApplication.Controls.Avatar"
-       x:Name="Frame"
-       CornerRadius="0" 
-       Margin="0"
-       Padding="0"
-       HorizontalOptions="Center"
-       VerticalOptions="Center"
-       BackgroundColor="#00000000"
-       >
+<ContentView xmlns="http://xamarin.com/schemas/2014/forms" 
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MultiPlatformApplication.Controls.Avatar"
+             HorizontalOptions="Center"
+             VerticalOptions="Center"
+             BackgroundColor="Transparent">
+    
+    <Frame x:Name="Frame"
+           HorizontalOptions="Center"
+           VerticalOptions="Center"
+           CornerRadius="0" 
+           Margin="0"
+           Padding="0"
+           BackgroundColor="Transparent">
 
-    <Grid Margin="0" Padding="0" ColumnSpacing="0" RowSpacing="0">
-        <!-- IMAGE OF THE AVATAR -->
-        <Image x:Name="Image"
-               Grid.Row="0"
-               Grid.Column="0"
-               WidthRequest="{Binding Source={x:Reference Frame}, Path=WidthRequest}"
-               HeightRequest="{Binding Source={x:Reference Frame}, Path=HeightRequest}"
-               />
+        <Grid Margin="0" Padding="0" ColumnSpacing="0" RowSpacing="0">
+            <!-- IMAGE OF THE AVATAR -->
+            <Image x:Name="Image"
+                   Grid.Row="0"
+                   Grid.Column="0"
+                   WidthRequest="{Binding Source={x:Reference Frame}, Path=WidthRequest}"
+                   HeightRequest="{Binding Source={x:Reference Frame}, Path=HeightRequest}"
+                   />
 
-        <!--PRESENCE BULLET-->
-        <Frame x:Name="FrameForPesence"
-               Grid.Row="0" 
-               Grid.Column="0"
-               BackgroundColor="#FFFFFF"
-               HeightRequest="12"
-               WidthRequest="12"
-               CornerRadius="12"
-               VerticalOptions="End"
-               HorizontalOptions="End"
-               HasShadow="False"
-               IsClippedToBounds="True"
-               Margin="0,0,0,0"
-               Padding="0">
+            <!--PRESENCE BULLET-->
+            <Frame x:Name="FrameForPesence"
+                   Grid.Row="0" 
+                   Grid.Column="0"
+                   BackgroundColor="#FFFFFF"
+                   HeightRequest="12"
+                   WidthRequest="12"
+                   CornerRadius="12"
+                   VerticalOptions="End"
+                   HorizontalOptions="End"
+                   HasShadow="False"
+                   IsClippedToBounds="True"
+                   Margin="0,0,0,0"
+                   Padding="0"
+                   IsVisible="False">
             
-            <Image x:Name="ImagePresence"
-                   HorizontalOptions="Center"
-                   VerticalOptions="Center"
-                   Aspect="AspectFit"
-                   HeightRequest="10"
-                   WidthRequest="10"/>
-        </Frame>
+                <Image x:Name="ImagePresence"
+                       HorizontalOptions="Center"
+                       VerticalOptions="Center"
+                       Aspect="AspectFit"
+                       HeightRequest="10"
+                       WidthRequest="10"/>
+            </Frame>
 
-    </Grid>
-</Frame>
+        </Grid>
+    </Frame>
+</ContentView>

@@ -62,7 +62,7 @@ namespace MultiPlatformApplication
                 log.Error("CANNOT initialize Avatars service ...");
 
             // Set default max size to Thumbnail
-            MaxThumbnailWidth = MaxThumbnailHeight = 200;
+            MaxThumbnailWidth = MaxThumbnailHeight = 300;
         }
 
 #region PUBLIC API

@@ -17,6 +17,7 @@ namespace MultiPlatformApplication.Assets
             // Get Rainbow Languages service
             Languages = Rainbow.Common.Languages.Instance;
 
+            Languages.SetLanguageId("fr");
             UpdateLabels();
 
             // Want to update labels if langages is changed

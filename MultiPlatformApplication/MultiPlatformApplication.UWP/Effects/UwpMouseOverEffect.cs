@@ -1,4 +1,6 @@
 ﻿using MultiPlatformApplication.Effects;
+using Windows.UI.Xaml;
+using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Input;
 using Xamarin.Forms;
 

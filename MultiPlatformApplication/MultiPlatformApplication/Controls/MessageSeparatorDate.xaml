@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<ContentView xmlns="http://xamarin.com/schemas/2014/forms" 
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MultiPlatformApplication.Controls.MessageSeparatorDate">
+  <ContentView.Content>
+        <StackLayout Orientation="Vertical"
+                        HorizontalOptions="FillAndExpand"
+                        Padding="0,8"
+                        Margin="2"
+                        Spacing="0">
+            <StackLayout Orientation="Horizontal"
+                            HorizontalOptions="Center"
+                            Spacing="5">
+                <BoxView Margin="0"
+                            HeightRequest="1"
+                            WidthRequest="40"
+                            VerticalOptions="Center"
+                            BackgroundColor="{StaticResource ColorConversationStreamSeparatorDateFont}"/>
+                <Label Padding="5,0"
+                        FontAttributes="Bold"
+                        FontSize="{StaticResource FontSizeSmall}"
+                        TextColor="{StaticResource ColorConversationStreamSeparatorDateFont}"
+                        Text="{Binding Content.Body}"/>
+                <BoxView Margin="0"
+                            HeightRequest="1"
+                            WidthRequest="40"
+                            VerticalOptions="Center"
+                            BackgroundColor="{StaticResource ColorConversationStreamSeparatorDateFont}"/>
+            </StackLayout>
+        </StackLayout>
+    </ContentView.Content>
+</ContentView>

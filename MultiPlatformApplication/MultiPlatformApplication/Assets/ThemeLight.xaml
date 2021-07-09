@@ -8,6 +8,19 @@
     <Color x:Key="ColorMainOnOver">#4783E5</Color>
     <Color x:Key="ColorMainOnSelected">#1A59B7</Color>
     
+    <!-- Attachment -->
+    <Color x:Key="ColorAttachmentBackground">#FAEBD7</Color>
+    <Color x:Key="ColorAttachmentText">#5E5E5E</Color>
+    
+    <!-- URGENCY -->
+    <Color x:Key="ColorUrgencyEmergency">#F83E3E</Color>
+    <Color x:Key="ColorBackgroundUrgencyEmergency">#FDCFCF</Color>
+
+    <Color x:Key="ColorUrgencyImportant">#D95516</Color>
+    <Color x:Key="ColorBackgroundUrgencyImportant">#FFD27F</Color>
+
+    <Color x:Key="ColorUrgencyInformation">#1C8CFD</Color>
+    <Color x:Key="ColorBackgroundUrgencyInformation">#C6E2FE</Color>
     
     <!-- Conversation Stream -->
     <Color x:Key="ColorConversationStreamMainBackground">#E8EAED</Color>

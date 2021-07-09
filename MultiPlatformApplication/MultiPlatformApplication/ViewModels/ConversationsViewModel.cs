@@ -113,8 +113,8 @@ namespace MultiPlatformApplication.ViewModels
             Helper.SdkWrapper.ConversationUpdated += RbConversations_ConversationUpdated;
 
             // Manage event(s) from Rainbow SDK about CONTACTS
-            Helper.SdkWrapper.ContactAdded += RbContacts_ContactAdded;
-            Helper.SdkWrapper.ContactInfoChanged += RbContacts_ContactInfoChanged;
+            Helper.SdkWrapper.PeerAdded += RbContacts_PeerAdded;
+            Helper.SdkWrapper.PeerInfoChanged += RbContacts_PeerInfoChanged;
 
             // Manage event(s) from Rainbow SDK about BUBBLES
             Helper.SdkWrapper.BubbleInfoUpdated += RbBubbles_BubbleInfoUpdated;
@@ -206,9 +206,7 @@ namespace MultiPlatformApplication.ViewModels
                         Boolean needChangeOrder = (oldConversation.LastMessageDateTime != newConversation.LastMessageDateTime);
 
                         oldConversation.Id = newConversation.Id;
-                        oldConversation.Jid = newConversation.Jid;
-                        oldConversation.PeerId = newConversation.PeerId;
-                        oldConversation.Name = newConversation.Name;
+                        oldConversation.Peer = newConversation.Peer;
 
                         oldConversation.NbMsgUnread = newConversation.NbMsgUnread;
 
@@ -287,7 +285,7 @@ namespace MultiPlatformApplication.ViewModels
             if (conversation != null)
             {
                 result = true;
-                conversation.Name = name;
+                conversation.Peer.DisplayName = name;
             }
             return result;
         }
@@ -351,7 +349,7 @@ namespace MultiPlatformApplication.ViewModels
             {
                 foreach (ConversationModel conversation in DynamicList.Items)
                 {
-                    if (conversation.PeerId == peerId)
+                    if (conversation.Peer.Id == peerId)
                     {
                         conversationFound = conversation;
                         break;
@@ -429,9 +427,9 @@ namespace MultiPlatformApplication.ViewModels
            });
         }
 
-        private void RbContacts_ContactAdded(object sender, Rainbow.Events.JidEventArgs e)
+        private void RbContacts_PeerAdded(object sender, Rainbow.Events.PeerEventArgs e)
         {
-            Rainbow.Model.Contact contact = Helper.SdkWrapper.GetContactFromContactJid(e.Jid);
+            Rainbow.Model.Contact contact = Helper.SdkWrapper.GetContactFromContactJid(e.Peer.Jid);
             if (contact != null)
             {
                 Device.BeginInvokeOnMainThread(() =>
@@ -441,9 +439,9 @@ namespace MultiPlatformApplication.ViewModels
             }
         }
 
-        private void RbContacts_ContactInfoChanged(object sender, Rainbow.Events.JidEventArgs e)
+        private void RbContacts_PeerInfoChanged(object sender, Rainbow.Events.PeerEventArgs e)
         {
-            Rainbow.Model.Contact contact = Helper.SdkWrapper.GetContactFromContactJid(e.Jid);
+            Rainbow.Model.Contact contact = Helper.SdkWrapper.GetContactFromContactJid(e.Peer.Jid);
             if (contact != null)
             {
                 Device.BeginInvokeOnMainThread(() =>

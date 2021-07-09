@@ -8,18 +8,7 @@
              >
     
     <ContentPage.Resources>
-        <converters:ReverseBooleanConverter x:Key="ReverseBooleanConverter" />
         <converters:TextToBooleanConverter x:Key="TextToBooleanConverter" />
-        <ResourceDictionary>
-            <ResourceDictionary.MergedDictionaries>
-                <dataTemplate:Message/>
-            </ResourceDictionary.MergedDictionaries>
-        </ResourceDictionary>
-
-        <controls:MessageDataTemplateSelector  x:Key="MessageSelector"
-                                              MessageCurrentUser="{StaticResource MessageCurrentUserDataTemplate}"
-                                              MessageEvent="{StaticResource MessageEventDataTemplate}"
-                                              MessageOtherUser="{StaticResource MessageOtherUserDataTemplate}"/>
     </ContentPage.Resources>
     
     <ContentPage.Padding>
@@ -29,9 +18,15 @@
     </ContentPage.Padding>
     
     <ContentPage.Content>
-        <StackLayout Orientation="Vertical">
+        <StackLayout Padding="0" 
+                     Spacing="0" 
+                     Margin="0" 
+                     Orientation="Vertical" 
+                     VerticalOptions="FillAndExpand" 
+                     BackgroundColor="{StaticResource ColorConversationStreamMainBackground}">
+            
             <!-- TITLE BAR - START -->
-            <Grid RowSpacing="0" ColumnSpacing="0" Margin="0" Padding="0" BackgroundColor="{StaticResource ColorMain}" HorizontalOptions="FillAndExpand" VerticalOptions="Start">
+            <Grid RowSpacing="0" ColumnSpacing="0" Margin="0" Padding="0" BackgroundColor="{StaticResource ColorMain}" HorizontalOptions="Fill" VerticalOptions="Start">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="40" /> <!-- BACK BTN -->
                     <ColumnDefinition Width="40" /> <!-- AVATAR -->
@@ -60,15 +55,13 @@
                                  HeightRequest="40"
                                  VerticalOptions="Center"
                                  HorizontalOptions="Center"
-                                 PeerId="{Binding Conversation.PeerId}"
-                                 PeerType="{Binding Conversation.PeerType}"
-
+                                 BindingContext="{Binding Conversation.Peer}"
                                  />
 
                 <!-- NAME AND TOPIC -->
-                <StackLayout Grid.Row="0" Grid.Column="2" Padding="10, 0, 0, 0" Orientation="Vertical" VerticalOptions="Center" HorizontalOptions="StartAndExpand" Spacing="0">
-                    <Label HorizontalOptions="StartAndExpand" TextColor="{StaticResource ColorConversationStreamMessageCurrentUserFont}" FontSize="{StaticResource FontSizeMedium}" FontAttributes="Bold" MaxLines="1" LineBreakMode="TailTruncation" VerticalOptions="Center" Text="{Binding Conversation.Name}"/>
-                    <Label HorizontalOptions="StartAndExpand" TextColor="{StaticResource ColorConversationStreamMessageCurrentUserFont}" FontSize="{StaticResource FontSizeSmall}" MaxLines="1" LineBreakMode="TailTruncation" VerticalOptions="Center" Text="{Binding Conversation.Topic}" IsVisible="{Binding Conversation.Topic, Converter={StaticResource TextToBooleanConverter}}"/>
+                <StackLayout Grid.Row="0" Grid.Column="2" Padding="10, 0, 0, 0" Orientation="Vertical" VerticalOptions="Center" HorizontalOptions="Start" Spacing="0">
+                    <Label HorizontalOptions="Start" TextColor="{StaticResource ColorConversationStreamMessageCurrentUserFont}" FontSize="{StaticResource FontSizeMedium}" FontAttributes="Bold" MaxLines="1" LineBreakMode="TailTruncation" VerticalOptions="Center" Text="{Binding Conversation.Peer.DisplayName}"/>
+                    <Label HorizontalOptions="Start" TextColor="{StaticResource ColorConversationStreamMessageCurrentUserFont}" FontSize="{StaticResource FontSizeSmall}" MaxLines="1" LineBreakMode="TailTruncation" VerticalOptions="Center" Text="{Binding Conversation.Topic}" IsVisible="{Binding Conversation.Topic, Converter={StaticResource TextToBooleanConverter}}"/>
                 </StackLayout>
 
                 <!-- MORE BTN -->
@@ -82,78 +75,28 @@
             </Grid>
             <!-- TITLE BAR - ENd -->
 
-            <!-- MESSAGE LIST + INPUT TEXT - START -->
-            <Grid RowSpacing="0" ColumnSpacing="0" Padding="0" VerticalOptions="EndAndExpand">
-                <Grid.RowDefinitions>
-                    <!-- MESSAGE LIST -->
-                    <RowDefinition Height="*" />
-
-                    <!-- INPUT TEXT + SEND BTN -->
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-
-                <!-- MESSAGE LIST - START -->
-                <ListView x:Name="MessagesListView"
-                          HasUnevenRows="True"
-                          ItemsSource="{Binding DynamicList.Items}"
-                          ItemTemplate="{StaticResource MessageSelector}"                               
-                              
-                          IsPullToRefreshEnabled="{Binding DynamicList.NoMoreItemsAvailable, Converter={StaticResource ReverseBooleanConverter}}"
-                          IsRefreshing="{Binding DynamicList.AskingMoreItems}"
-                          RefreshCommand="{Binding DynamicList.AskMoreItemsCommand}"
-                              
-                          SelectionMode="None"
-                          SeparatorVisibility="None">
-                </ListView>
-                <!-- MESSAGE LIST - END -->
-
-                <!-- 'BLUR' MESSAGES LIST VIEW DISPLAY WILL ITEMS ARE ADDED - START -->
-                <StackLayout Grid.Row="0" 
-                                x:Name="MessagesListViewLoadingIndicator"
-                                Opacity="0.5" 
-                                BackgroundColor="White"
-                                HorizontalOptions="FillAndExpand" 
-                                VerticalOptions="FillAndExpand"
-                                IsVisible="{Binding DynamicList.AskingMoreItems}">
-                    
-                </StackLayout>
-                <!-- 'BLUR' MESSAGES LIST VIEW DISPLAY WILL ITEMS ARE ADDED - END -->
-
-                
-                <!-- LOADING  INDICATOR OVER MESSAGE LIST (for only some platforms) - START -->
-                <ContentView Grid.Row="0"
-                             HorizontalOptions="Center" 
-                             VerticalOptions="Start">
-                    <OnPlatform x:TypeArguments="View">
-                        <On Platform="UWP, WPF, macOS">
-                            <ActivityIndicator 
-                                               Color="Blue"
-                                               WidthRequest="80"
-                                               HeightRequest="80"
-                                               IsRunning="{Binding DynamicList.AskingMoreItems}"
-                                               IsVisible="{Binding DynamicList.AskingMoreItems}" />
-                        </On>
-                    </OnPlatform>
-                </ContentView>
-                <!-- LOADING  INDICATOR OVER MESSAGE LIST (for only some platforms) - END -->
-                
-
-                <!-- INPUT TEXT + SEND BTN  - START -->
-                <StackLayout Grid.Row="1" Orientation="Horizontal" Padding="10" BackgroundColor="#EFEFEF">
-                    <Entry x:Name="EntryIM"
-                           TextColor="Black"
-                           HorizontalOptions="FillAndExpand"
-                           HeightRequest="25" 
-                           Placeholder="Enter your text here ..." 
-                           PlaceholderColor="Gray"
-                           TextChanged="EntryIm_TextChanged" />
-                    <Button x:Name="BtnIMSend"
-                            Text="Send" />
-                </StackLayout>
-                <!-- INPUT TEXT + SEND BTN  - END -->
-                
-            </Grid>
-            <!-- MESSAGE LIST + INPUT TEXT - END -->
+            <!-- MESSAGE LIST - START -->
+            <controls:MessagesStream x:Name="MessagesStream" 
+                                     VerticalOptions="FillAndExpand"
+                                     HorizontalOptions="FillAndExpand"/>
+            
+            <!-- INPUT TEXT + SEND BTN  - START -->
+            <StackLayout Orientation="Horizontal"
+                         Padding="10" 
+                         BackgroundColor="#EFEFEF"
+                         HorizontalOptions="FillAndExpand"
+                         VerticalOptions="End">
+                <Entry x:Name="EntryIM"
+                        TextColor="Black"
+                        HorizontalOptions="FillAndExpand"
+                        HeightRequest="25" 
+                        Placeholder="Enter your text here ..." 
+                        PlaceholderColor="Gray"
+                        TextChanged="EntryIm_TextChanged" />
+                <Button x:Name="BtnIMSend"
+                        Text="Send" />
+            </StackLayout>
+            <!-- INPUT TEXT + SEND BTN  - END -->
 
         </StackLayout>
     </ContentPage.Content>

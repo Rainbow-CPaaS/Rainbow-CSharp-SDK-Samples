@@ -1,0 +1,87 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<ContentView xmlns="http://xamarin.com/schemas/2014/forms" 
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:converters="clr-namespace:MultiPlatformApplication.Converters;assembly=MultiPlatformApplication" 
+             xmlns:effects="clr-namespace:MultiPlatformApplication.Effects"
+             x:Class="MultiPlatformApplication.Controls.MessagesStream"
+             x:Name="RootElement"
+             BackgroundColor="{StaticResource ColorConversationStreamMainBackground}">
+
+    <ContentView.Resources>
+        <converters:ReverseBooleanConverter x:Key="ReverseBooleanConverter" />
+    </ContentView.Resources>
+
+    <ContentView.Content>
+
+        <!-- NEED DIFFERENT DISPLAY ACCORDING PLATFORM - START -->
+        <ContentView x:Name="ContentViewPlatformSpecific">
+            <OnPlatform x:TypeArguments="View">
+                <On Platform="WPF, macOS, UWP">
+                    <!-- THERE IS A BUG (at least on UWP) WITH ScrollView INSIDE A RefreshView: Text Selection in child elements is not possible once we scroll a little ... -->
+                    <Grid RowSpacing="0" 
+                          ColumnSpacing="0" 
+                          Padding="0" 
+                          VerticalOptions="Fill">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <ScrollView x:Name="ScrollViewDesktop"
+                                    Grid.Column="0"
+                                    Grid.Row="0"
+                                    Padding="0"
+                                    Margin="0">
+                            <!--IsEnabled="{Binding AskingMoreItems, Converter={StaticResource ReverseBooleanConverter}}">-->
+                            <StackLayout x:Name="StackLayoutDesktop"
+                                         Padding="0"
+                                         Margin="0"
+                                         VerticalOptions="Start" />
+                        </ScrollView>
+
+                        <Frame Grid.Column="0"
+                               Grid.Row="0"
+                               HorizontalOptions="Fill"
+                               VerticalOptions="Fill"
+                               Opacity="0.5"
+                               BorderColor="LightGray"
+                               BackgroundColor="LightGray"
+                               IsVisible="{Binding AskingMoreItems}">
+                            <ActivityIndicator Color="{StaticResource ColorMain}"
+                                               HorizontalOptions="Center"
+                                               VerticalOptions="Center"
+                                               WidthRequest="80"
+                                               HeightRequest="80"
+                                               IsRunning="{Binding AskingMoreItems}"/>
+                        </Frame>
+                    </Grid>
+                </On>
+
+                <On Platform="iOS, Android">
+                    <RefreshView x:Name="RefreshViewMobile"
+                                 Padding="0" 
+                                 Margin="0"
+                                 BackgroundColor="Transparent"
+                                 RefreshColor="{StaticResource ColorMain}"
+                                 IsRefreshing="{Binding AskingMoreItems}"
+                                 IsEnabled="{Binding MoreItemsAvailable}"
+                                 Command="{Binding AskMoreItemsCommand}">
+                        <ScrollView x:Name="ScrollViewMobile"
+                                    Padding="0"
+                                    Margin="0">
+                            <StackLayout x:Name="StackLayoutMobile"
+                                         Padding="0"
+                                         Margin="0"
+                                         VerticalOptions="Start" />
+                        </ScrollView>
+                    </RefreshView>
+                </On>
+            </OnPlatform>
+        </ContentView>
+        <!-- NEED DIFFERENT DISPLAY ACCORDING PLATFORM - END -->
+
+
+    </ContentView.Content>
+</ContentView>

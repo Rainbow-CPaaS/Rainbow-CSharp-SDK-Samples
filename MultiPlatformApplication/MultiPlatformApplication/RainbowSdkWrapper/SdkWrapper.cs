@@ -17,8 +17,7 @@ namespace MultiPlatformApplication
         public event EventHandler<IdEventArgs> FileDescriptorAvailable;
 
         // From "Avatars" Service
-        public event EventHandler<IdEventArgs> ContactAvatarUpdated;
-        public event EventHandler<IdEventArgs> BubbleAvatarUpdated;
+        public event EventHandler<PeerEventArgs> PeerAvatarUpdated;
 
         // From "Instant Messaging" Service
         public event EventHandler<MessageEventArgs> MessageReceived;
@@ -28,8 +27,8 @@ namespace MultiPlatformApplication
         public event EventHandler<IdEventArgs> MessagesAllDeleted;
 
         // From "Contacts" Service
-        public event EventHandler<JidEventArgs> ContactAdded;
-        public event EventHandler<JidEventArgs> ContactInfoChanged;
+        public event EventHandler<PeerEventArgs> PeerAdded;
+        public event EventHandler<PeerEventArgs> PeerInfoChanged;
         public event EventHandler<PresenceEventArgs> ContactPresenceChanged;
         public event EventHandler<PresenceEventArgs> ContactAggregatedPresenceChanged;
 
@@ -65,14 +64,9 @@ namespace MultiPlatformApplication
 
     #region AVATARS SERVICE
 
-        internal void OnContactAvatarUpdated(object sender, IdEventArgs args)
+        internal void OnPeerAvatarUpdated(object sender, PeerEventArgs args)
         {
-            ContactAvatarUpdated.Raise(sender, args);
-        }
-
-        internal void OnBubbleAvatarUpdated(object sender, IdEventArgs args)
-        {
-            BubbleAvatarUpdated.Raise(sender, args);
+            PeerAvatarUpdated.Raise(sender, args);
         }
 
     #endregion AVATARS SERVICE
@@ -125,14 +119,14 @@ namespace MultiPlatformApplication
 
     #region CONTACTS SERVICE
 
-        internal void OnContactAdded(object sender, JidEventArgs args)
+        internal void OnContactAdded(object sender, PeerEventArgs args)
         {
-            ContactAdded.Raise(sender, args);
+            PeerAdded.Raise(sender, args);
         }
 
-        internal void OnContactInfoChanged(object sender, JidEventArgs args)
+        internal void OnContactInfoChanged(object sender, PeerEventArgs args)
         {
-            ContactInfoChanged.Raise(sender, args);
+            PeerInfoChanged.Raise(sender, args);
         }
 
         internal void OnContactAggregatedPresenceChanged(object sender, PresenceEventArgs args)

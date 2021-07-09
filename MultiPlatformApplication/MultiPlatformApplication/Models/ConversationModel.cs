@@ -16,10 +16,8 @@ namespace MultiPlatformApplication.Models
         private static readonly Logger log = LogConfigurator.GetLogger(typeof(ConversationModel));
 
         String id;
-        String jid;
-        String peerId;
-        String type;
-        String name;
+        PeerModel peer;
+
         String topic;
         String lastMessage;
         Int64 nbMsgUnread;
@@ -32,31 +30,13 @@ namespace MultiPlatformApplication.Models
             set { SetProperty(ref id, value); }
         }
 
-        public string Jid
+        public PeerModel Peer
         {
-            get { return jid; }
-            set { SetProperty(ref jid, value); }
+            get { return peer; }
+            set { SetProperty(ref peer, value); }
         }
 
-        public string PeerId
-        {
-            get { return peerId; }
-            set { SetProperty(ref peerId, value); }
-        }
-
-        public string PeerType
-        {
-            get { return type; }
-            set { SetProperty(ref type, value); }
-        }
-
-        public string Name
-        {
-            get { return name; }
-            set { SetProperty(ref name, value); }
-        }
-
-        public String BackgroundColor => SdkWrapper.GetColorFromDisplayName(Name);
+        //public String BackgroundColor => SdkWrapper.GetColorFromDisplayName(Peer.DisplayName);
 
         public string Topic
         {
@@ -94,10 +74,8 @@ namespace MultiPlatformApplication.Models
         public ConversationModel()
         {
             Id = "";
-            Jid = "";
-            PeerId = "";
-            PeerType = "";
-            Name = "";
+            Peer = new PeerModel();
+
             Topic = "";
 
             NbMsgUnread = 0;

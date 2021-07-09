@@ -35,6 +35,8 @@ namespace MultiPlatformApplication.Models
         Boolean noMoreItemsAvaialble;
 
         Xamarin.Forms.ListView listView;
+        Xamarin.Forms.ScrollView scrollView;
+        Xamarin.Forms.RefreshView refreshView;
 
         ICommand askMoreItemsCommand;
 

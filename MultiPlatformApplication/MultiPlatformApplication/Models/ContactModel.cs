@@ -8,7 +8,7 @@ namespace MultiPlatformApplication.Models
 {
     public class ContactModel: GroupModel
     {
-        public String DisplayName { get; set; }
+        public PeerModel Peer { get; set; }
 
         public String Detail { get; set; }
 
@@ -18,27 +18,34 @@ namespace MultiPlatformApplication.Models
         public String LastNameForSort { get; set; }
         public String CompanyForSort { get; set; }
 
-        public ContactModel(String id, String displayName, String presence = null, String detail = null)
+        public ContactModel(String groupdDisplayName)
         {
-            Id = id;
-            DisplayName = displayName;
-            Presence = presence;
-            Detail = detail;
+            GroupName = groupdDisplayName;
+            Peer = new PeerModel();
         }
 
         public ContactModel(Contact contact)
         {
-            Id = contact.Id;
-            DisplayName = Rainbow.Util.GetContactDisplayName(contact);
+            Peer = new PeerModel(contact);
+            Peer.DisplayPresence = true;
+
             Detail = contact.CompanyName;
 
             Rainbow.Model.Presence presence = Helper.SdkWrapper.GetAggregatedPresenceFromContactId(contact.Id);
             Presence = presence?.PresenceLevel;
 
+            if(String.IsNullOrEmpty(contact.FirstName))
+                FirstNameForSort = Peer.DisplayName.ToUpper();
+            else
+                FirstNameForSort = contact.FirstName.ToUpper();
 
-            FirstNameForSort = contact.FirstName?.ToUpper();
-            LastNameForSort = contact.FirstName?.ToUpper();
+            if (String.IsNullOrEmpty(contact.LastName))
+                LastNameForSort = Peer.DisplayName.ToUpper();
+            else
+                LastNameForSort = contact.LastName.ToUpper();
+
             CompanyForSort = contact.CompanyName?.ToUpper();
+
         }
     }
 }

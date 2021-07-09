@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<ContentView xmlns="http://xamarin.com/schemas/2014/forms" 
+       xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+       x:Class="MultiPlatformApplication.Controls.MessageContentUrgency">
+    <ContentView.Content>
+      <StackLayout x:Name="StackLayout"
+                   Orientation="Horizontal"
+                   Margin="0"
+                   Padding="6">
+            <Image x:Name="Image" HeightRequest="16" WidthRequest="16"/>
+            <Label x:Name="Label" FontAttributes="Bold" FontSize="{StaticResource FontSizeSmall}"/>
+      </StackLayout>
+  </ContentView.Content>
+</ContentView>

@@ -13,7 +13,6 @@
                     <converters:IntToBooleanConverter x:Key="IntToBooleanConverter" />
                 </Grid.Resources>
 
-
                 <!--GRID COLUMN / ROW DEFINITION-->
                 <Grid.ColumnDefinitions>
                     <!--Col 0: Avatar-->
@@ -32,15 +31,12 @@
 
                 <!--AVATAR - IMG + PRESENCE-->
                 <controls:Avatar Grid.Row="0"
-                             Grid.Column="0"
-                             WidthRequest="40"
-                             HeightRequest="40"
-                             VerticalOptions="Center"
-                             HorizontalOptions="Center"
-                             PeerId="{Binding Id}"
-                             PeerType="user"
-                             DisplayPresence="True"
-                                 />
+                                 Grid.Column="0"
+                                 WidthRequest="40"
+                                 HeightRequest="40"
+                                 VerticalOptions="Center"
+                                 HorizontalOptions="Center"
+                                 BindingContext="{Binding Peer}"/>
 
 
                 <Frame Grid.Row="0" Grid.Column="2"
@@ -55,7 +51,7 @@
                    HeightRequest="48">
 
                     <StackLayout Spacing="0" Padding="10,0,10,0"  Margin="0" Orientation="Vertical" VerticalOptions="Center">
-                        <Label HorizontalOptions="StartAndExpand" TextColor="Black" FontSize="{StaticResource FontSizeMedium}" MaxLines="1" LineBreakMode="TailTruncation" VerticalOptions="Start" Text="{Binding DisplayName}"/>
+                        <Label HorizontalOptions="StartAndExpand" TextColor="Black" FontSize="{StaticResource FontSizeMedium}" MaxLines="1" LineBreakMode="TailTruncation" VerticalOptions="Start" Text="{Binding Peer.DisplayName}"/>
                         <Label HorizontalOptions="StartAndExpand" TextColor="Gray" FontSize="{StaticResource FontSizeSmall}" MaxLines="1" LineBreakMode="TailTruncation" IsVisible="{Binding Detail, Converter={StaticResource TextToBooleanConverter}}" Text="{Binding Detail}"/>
                     </StackLayout>
                 </Frame>
@@ -75,7 +71,7 @@
                    BackgroundColor="LightGray">
                 <Label Margin="0"
                        Padding="0"
-                       Text="{Binding DisplayName}"
+                       Text="{Binding GroupName}"
                        TextColor="Black" 
                        FontSize="{StaticResource FontSizeMedium}"
                        FontAttributes="None"

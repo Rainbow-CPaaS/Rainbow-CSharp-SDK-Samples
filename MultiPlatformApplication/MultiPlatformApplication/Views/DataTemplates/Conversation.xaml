@@ -36,10 +36,7 @@
                              HeightRequest="40"
                              VerticalOptions="Center"
                              HorizontalOptions="Center"
-                             PeerId="{Binding PeerId}"
-                             PeerType="{Binding PeerType}"
-                             DisplayPresence="True"
-                                 />
+                             BindingContext="{Binding Peer}"/>
 
 
             <!--MSG UNREAD-->
@@ -91,7 +88,7 @@
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
 
-                            <Label Grid.Row="0" Grid.Column="0" HorizontalOptions="StartAndExpand" TextColor="Black" FontSize="{StaticResource FontSizeMedium}" MaxLines="1" LineBreakMode="TailTruncation" VerticalOptions="Start" Text="{Binding Name}"/>
+                            <Label Grid.Row="0" Grid.Column="0" HorizontalOptions="StartAndExpand" TextColor="Black" FontSize="{StaticResource FontSizeMedium}" MaxLines="1" LineBreakMode="TailTruncation" VerticalOptions="Start" Text="{Binding Peer.DisplayName}"/>
                             <Label Grid.Row="0" Grid.Column="1" HorizontalOptions="EndAndExpand" TextColor="Gray" FontSize="{StaticResource FontSizeMicro}" MaxLines="1" VerticalOptions="Center" Text="{Binding MessageTimeDisplay}"/>
                         </Grid>
 

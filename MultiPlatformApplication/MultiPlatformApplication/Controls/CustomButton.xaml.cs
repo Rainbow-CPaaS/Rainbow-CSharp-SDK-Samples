@@ -80,7 +80,6 @@ namespace MultiPlatformApplication.Controls
 #endregion ImageSourceIdOnSelectedProperty
 
 
-
 #region ImageSourceProperty
 
         public static readonly BindableProperty ImageSourceProperty =
@@ -587,14 +586,14 @@ namespace MultiPlatformApplication.Controls
                 if (control.IsSelected && (control.ImageSourceIdOnSelected != null))
                 {
                     control.Image.IsVisible = true;
-                    control.Image.Source = Helper.GetImageSourceFromResourceDictionaryById(App.Current.Resources, control.ImageSourceIdOnSelected);
+                    control.Image.Source = Helper.GetResourceDictionaryById<ImageSource>(control.ImageSourceIdOnSelected);
                     return;
                 }
 
                 if (control.ImageSourceId != null)
                 {
                     control.Image.IsVisible = true;
-                    control.Image.Source = Helper.GetImageSourceFromResourceDictionaryById(App.Current.Resources, control.ImageSourceId);
+                    control.Image.Source = Helper.GetResourceDictionaryById<ImageSource>(control.ImageSourceId);
                 }
                 else
                     control.Image.IsVisible = false;

@@ -1,0 +1,70 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<ContentView xmlns="http://xamarin.com/schemas/2014/forms" 
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:controls="clr-namespace:MultiPlatformApplication.Controls"
+             xmlns:converters="clr-namespace:MultiPlatformApplication.Converters;assembly=MultiPlatformApplication" 
+             x:Class="MultiPlatformApplication.Controls.MessageContentBodyWithImg"
+             Margin="0"
+             Padding="6">
+    
+    <ContentView.Resources>
+        <converters:ReverseBooleanConverter x:Key="ReverseBooleanConverter" />
+    </ContentView.Resources>
+    
+    <ContentView.Content>
+        <Grid Margin="0"
+              Padding="0"
+              ColumnSpacing="0"
+              RowSpacing="0">
+            <Image x:Name="Image" 
+                   Grid.Row="0"
+                   Grid.Column="0"
+                   Aspect="AspectFit"
+                   IsAnimationPlaying="{Binding IsPlaying, Mode=TwoWay}">
+                <Image.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding AnimationCommand}"/>
+                </Image.GestureRecognizers>
+            </Image>
+
+            <controls:CustomButton x:Name="CustomButton" 
+                                   Text="GIF"
+                                   Grid.Row="0"
+                                   Grid.Column="0"
+                                   CornerRadius="20"
+                                   HeightRequest="40"
+                                   WidthRequest="40"
+                                   FontSize="{StaticResource FontSizeMedium}"
+                                   TextColor="White"
+                                   BackgroundColor="#BB1b1919"
+                                   BackgroundColorOnMouseOver="#BB1b1919"
+                                   Command="{Binding AnimationCommand}"
+                                   IsVisible="{Binding Source={x:Reference Image}, Path=IsAnimationPlaying, Converter={StaticResource ReverseBooleanConverter}}"/>
+
+
+            <!--<Frame Margin="0" 
+                   Padding="0"
+                   CornerRadius="20"
+                   BorderColor="Transparent"
+                   BackgroundColor="#BB1b1919"
+                   HeightRequest="40"
+                   WidthRequest="40"
+                   HorizontalOptions="Center"
+                   VerticalOptions="Center"
+                   >
+                <Frame.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding AnimationCommand}"/>
+                </Frame.GestureRecognizers>
+                <Label Text="GIF" 
+                       TextColor="White"
+                       FontSize="{StaticResource FontSizeMedium}"
+                       HorizontalOptions="Center"
+                       VerticalOptions="Center">
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding AnimationCommand}"/>
+                    </Label.GestureRecognizers>
+                </Label>
+            </Frame>-->
+        </Grid>
+    </ContentView.Content>
+    
+</ContentView>

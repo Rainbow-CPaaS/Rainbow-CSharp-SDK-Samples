@@ -196,7 +196,7 @@ namespace MultiPlatformApplication.ViewModels
                 {
                     foreach (var item in groupedContacts)
                     {
-                        Contacts.Add(new ContactModel("[GROUP]", item.Key));
+                        Contacts.Add(new ContactModel(item.Key));
                         Contacts.AddRange(item.ToList(), System.Collections.Specialized.NotifyCollectionChangedAction.Add);
                     }
 
@@ -309,9 +309,9 @@ namespace MultiPlatformApplication.ViewModels
                 ContactModel contact = obj as ContactModel;
                 if (contact != null)
                 {
-                    if (contact.Id != "[GROUP]")
+                    if (String.IsNullOrEmpty(contact.GroupName))
                     {
-                        Conversation conversation = Helper.SdkWrapper.GetOrCreateConversationFromUserId(contact.Id);
+                        Conversation conversation = Helper.SdkWrapper.GetOrCreateConversationFromUserId(contact.Peer.Id);
                         if(conversation != null)
                         {
                             XamarinApplication.CurrentConversationId = conversation.Id;

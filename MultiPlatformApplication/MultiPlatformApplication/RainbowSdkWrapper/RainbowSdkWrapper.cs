@@ -49,8 +49,8 @@ namespace MultiPlatformApplication
             RbInstantMessaging.UserTypingChanged += RbInstantMessaging_UserTypingChanged;
 
             // Manage "Contacts" service events
-            RbContacts.ContactAdded += RbContacts_ContactAdded;
-            RbContacts.ContactInfoChanged += RbContacts_ContactInfoChanged;
+            RbContacts.PeerAdded += RbContacts_PeerAdded;
+            RbContacts.PeerInfoChanged += RbContacts_PeerInfoChanged;
             RbContacts.ContactAggregatedPresenceChanged += RbContacts_ContactAggregatedPresenceChanged;
             RbContacts.ContactPresenceChanged += RbContacts_ContactPresenceChanged;
 
@@ -82,14 +82,9 @@ namespace MultiPlatformApplication
             OnFileDescriptorAvailable(sender, e);
         }
 
-        private void RbAvatars_BubbleAvatarUpdated(object sender, Rainbow.Events.IdEventArgs e)
+        private void RbAvatars_PeerAvatarUpdated(object sender, Rainbow.Events.PeerEventArgs e)
         {
-            OnBubbleAvatarUpdated(sender, e);
-        }
-
-        private void RbAvatars_ContactAvatarUpdated(object sender, Rainbow.Events.IdEventArgs e)
-        {
-            OnContactAvatarUpdated(sender, e);
+            OnPeerAvatarUpdated(sender, e);
         }
 
         private void RbApplication_InitializationPerformed(object sender, EventArgs e)
@@ -102,12 +97,10 @@ namespace MultiPlatformApplication
             OnConnectionStateChanged(sender, e);
         }
 
-
         private void RbBubbles_BubbleInfoUpdated(object sender, Rainbow.Events.BubbleInfoEventArgs e)
         {
             OnBubbleInfoUpdated(sender, e);
         }
-
 
         private void RbConversations_ConversationUpdated(object sender, Rainbow.Events.ConversationEventArgs e)
         {
@@ -125,12 +118,12 @@ namespace MultiPlatformApplication
         }
 
 
-        private void RbContacts_ContactAdded(object sender, Rainbow.Events.JidEventArgs e)
+        private void RbContacts_PeerAdded(object sender, Rainbow.Events.PeerEventArgs e)
         {
             OnContactAdded(sender, e);
         }
 
-        private void RbContacts_ContactInfoChanged(object sender, Rainbow.Events.JidEventArgs e)
+        private void RbContacts_PeerInfoChanged(object sender, Rainbow.Events.PeerEventArgs e)
         {
             OnContactInfoChanged(sender, e);
         }
@@ -466,8 +459,7 @@ namespace MultiPlatformApplication
             RbAvatars.AllowToAskInfoForUnknownContact(true);
             RbAvatars.AllowToAskInfoAboutUnknowBubble(true);
 
-            RbAvatars.ContactAvatarUpdated += RbAvatars_ContactAvatarUpdated;
-            RbAvatars.BubbleAvatarUpdated += RbAvatars_BubbleAvatarUpdated;
+            RbAvatars.PeerAvatarUpdated += RbAvatars_PeerAvatarUpdated;
 
             if (!RbAvatars.Initialize())
                 log.Error("CANNOT initialize Avatars service ...");
@@ -484,12 +476,13 @@ namespace MultiPlatformApplication
             RbFiles.SetFolderPath(filePoolFolderPath);
             RbFiles.SetApplication(ref RbApplication);
 
+            RbFiles.MaxThumbnailHeight = RbFiles.MaxThumbnailWidth = 300;
+
             RbFiles.AllowAutomaticThumbnailDownload = true;
             RbFiles.AutomaticDownloadLimitSizeForImages = 250 * 1024; // 250 Ko
 
             RbFiles.FileDescriptorAvailable += FilePool_FileDescriptorAvailable;
             RbFiles.ThumbnailAvailable += FilePool_ThumbnailAvailable;
-
         }
 
 #endregion PRIVATE API

@@ -1,0 +1,56 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<ContentView xmlns="http://xamarin.com/schemas/2014/forms" 
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:controls="clr-namespace:MultiPlatformApplication.Controls"
+             xmlns:converters="clr-namespace:MultiPlatformApplication.Converters;assembly=MultiPlatformApplication" 
+             x:Class="MultiPlatformApplication.Controls.MessageContent">
+
+    <!-- /!\ BINDING CONTEXT HERE: MessageElementModel -->
+
+    <ContentView.Resources>
+        <converters:TextToBooleanConverter x:Key="TextToBooleanConverter" />
+    </ContentView.Resources>
+
+    <ContentView.Content>
+        <Frame x:Name="Frame"
+               HasShadow="False"
+               IsClippedToBounds="True"
+               Padding="0"
+               Margin="0"
+               CornerRadius="2">
+
+            <Grid RowSpacing="0" ColumnSpacing="0" Padding="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <!-- TO ENSURE TO HAVE A MINIMAL WIDTH -->
+                <BoxView Grid.Row="0" Grid.Column="0" BackgroundColor="Transparent" WidthRequest="80" HeightRequest="1"/>
+
+                <!-- DEFINE MAIN STACK LAYOUT -->
+                <Grid x:Name="MainGrid"
+                      Grid.Row="0" 
+                          Grid.Column="0"
+                          RowSpacing="0" 
+                          ColumnSpacing="0" 
+                          Padding="0">
+
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                </Grid>
+            </Grid>
+        </Frame>
+    </ContentView.Content>
+</ContentView>

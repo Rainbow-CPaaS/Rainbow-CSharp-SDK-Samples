@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:converters="clr-namespace:MultiPlatformApplication.Converters;assembly=MultiPlatformApplication" 
              xmlns:controls="clr-namespace:MultiPlatformApplication.Controls"
+             xmlns:effects="clr-namespace:MultiPlatformApplication.Effects"
              xmlns:extensions="clr-namespace:MultiPlatformApplication.Extensions"
              x:Class="MultiPlatformApplication.Views.LoginPage"
              NavigationPage.HasNavigationBar="False"
@@ -60,14 +61,13 @@
                                 BackgroundColor="{StaticResource ColorMain}"
                                 BackgroundColorOnMouseOver="{StaticResource ColorMainOnOver}"
                                 Command="{Binding LoginModel.ButtonConnectCommand}"
-                                IsEnabled="{Binding LoginModel.IsBusy, Converter={StaticResource ReverseBooleanConverter}}" />
+                                IsEnabled="{Binding LoginModel.IsBusy, Converter={StaticResource ReverseBooleanConverter}}"/>
 
         <ActivityIndicator Color="{StaticResource ColorMain}"
                            WidthRequest="80"
                            HeightRequest="80"
                            IsRunning="{Binding LoginModel.IsBusy}"
                            IsVisible="{Binding LoginModel.IsBusy}" />
-
     </StackLayout>
     
     

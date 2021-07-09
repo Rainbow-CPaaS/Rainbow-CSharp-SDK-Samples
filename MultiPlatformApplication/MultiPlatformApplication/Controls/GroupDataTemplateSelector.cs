@@ -19,9 +19,9 @@ namespace MultiPlatformApplication.Controls
             if (item is GroupModel)
             {
                 GroupModel model = item as GroupModel;
-                if (model.Id == "[GROUP]")
-                    return Group;
-                return Item;
+                if (String.IsNullOrEmpty(model.GroupName))
+                    return Item;
+                return Group;
             }
             return null;
         }

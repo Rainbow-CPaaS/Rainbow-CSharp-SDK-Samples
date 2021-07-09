@@ -6,7 +6,7 @@ namespace MultiPlatformApplication.Models
 {
     public class GroupModel
     {
-        // ID is set "[GROUP]" to create a list with a system of group
-        public String Id { get; set; }
+        // Set a GroupName to indicate a start of a group
+        public String GroupName { get; set; }
     }
 }

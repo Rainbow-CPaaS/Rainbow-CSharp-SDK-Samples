@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<ContentView xmlns="http://xamarin.com/schemas/2014/forms" 
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:effects="clr-namespace:MultiPlatformApplication.Effects"
+             x:Class="MultiPlatformApplication.Controls.MessageContentBodyWithCode"
+             Margin="0"
+             Padding="2"
+             BackgroundColor="{StaticResource ColorMain}">
+  <ContentView.Content>
+        <Frame Padding="6"
+               Margin="0"
+               CornerRadius="0"
+               BackgroundColor="White">
+            <Label x:Name="Label" 
+                   HorizontalOptions="Start" 
+                   FontSize="{StaticResource FontSizeSmall}" 
+                   VerticalOptions="Center" 
+                   effects:SelectableLabelEffect.Enabled="True"/>
+        </Frame>
+    </ContentView.Content>
+</ContentView>

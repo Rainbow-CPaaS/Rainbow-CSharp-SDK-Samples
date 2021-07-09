@@ -179,12 +179,14 @@ namespace MultiPlatformApplication.Helpers
                 conversation = new ConversationModel();
                 conversation.Id = rbConversation.Id;
 
+                conversation.Peer.Id = rbConversation.PeerId;
+                conversation.Peer.Type = rbConversation.Type;
 
                 if (rbConversation.Type == Rainbow.Model.Conversation.ConversationType.Room)
                 {
-                    conversation.Name = rbConversation.Name;
+                    conversation.Peer.Jid = rbConversation.Jid_im;
+                    conversation.Peer.DisplayName= rbConversation.Name;
                     conversation.Topic = rbConversation.Topic;
-                    conversation.Jid = rbConversation.Jid_im;
 
                 }
                 else if (rbConversation.Type == Rainbow.Model.Conversation.ConversationType.User)
@@ -193,9 +195,10 @@ namespace MultiPlatformApplication.Helpers
                     Rainbow.Model.Contact contact = SdkWrapper.GetContactFromContactId(rbConversation.PeerId);
                     if (contact != null)
                     {
-                        conversation.Name = Rainbow.Util.GetContactDisplayName(contact);
+                        conversation.Peer.Jid = contact.Jid_im;
+                        conversation.Peer.DisplayName= Rainbow.Util.GetContactDisplayName(contact);
+                        conversation.Peer.DisplayPresence = true;
                         conversation.Topic = "";
-                        conversation.Jid = contact.Jid_im;
                     }
                     else
                     {
@@ -210,9 +213,6 @@ namespace MultiPlatformApplication.Helpers
                     return null;
                 }
 
-                conversation.PeerId = rbConversation.PeerId;
-
-                conversation.PeerType = rbConversation.Type;
                 conversation.NbMsgUnread = rbConversation.UnreadMessageNumber;
 
                 conversation.LastMessage = rbConversation.LastMessageText;
@@ -271,12 +271,9 @@ namespace MultiPlatformApplication.Helpers
                 // Get Rainbow Languages service
                 Languages = Rainbow.Common.Languages.Instance;
             }
-            String label = Languages.GetLabel(key);
+            String label = Languages.GetLabel(key, subtituteKey, subtituteValue);
             if (String.IsNullOrEmpty(label))
-                return "[! " + key + " !]";
-            
-            String _subtituteKey = "{{" + subtituteKey + "}}";
-            label = label.Replace(_subtituteKey, subtituteValue);
+                label = "[! " + key + " !]";
             return label;
         }
 
@@ -345,10 +342,10 @@ namespace MultiPlatformApplication.Helpers
             String filePath = null;
             if (conversation != null)
             {
-                if (conversation.PeerType == Rainbow.Model.Conversation.ConversationType.User)
-                    filePath = GetContactAvatarFilePath(conversation.PeerId);
-                else if (conversation.PeerType == Rainbow.Model.Conversation.ConversationType.Room)
-                    filePath = GetBubbleAvatarFilePath(conversation.PeerId);
+                if (conversation.Peer.Type == Rainbow.Model.Conversation.ConversationType.User)
+                    filePath = GetContactAvatarFilePath(conversation.Peer.Id);
+                else if (conversation.Peer.Type == Rainbow.Model.Conversation.ConversationType.Room)
+                    filePath = GetBubbleAvatarFilePath(conversation.Peer.Id);
             }
             return filePath;
         }
@@ -372,7 +369,7 @@ namespace MultiPlatformApplication.Helpers
                     if (File.Exists(id))
                         result = ImageSource.FromFile(id);
                     else
-                        result = GetImageSourceFromResourceDictionaryById(App.Current.Resources, id);
+                        result = GetResourceDictionaryById<ImageSource>(id);
                 }
             }
 
@@ -380,18 +377,26 @@ namespace MultiPlatformApplication.Helpers
         }
 
         // Get image source using Id from merged resource dictionaries
-        static internal ImageSource GetImageSourceFromResourceDictionaryById(ResourceDictionary dictionary, String dictionaryId)
+
+        private static T GetResourceDictionaryById<T>(string dictionaryId, ref Boolean found, ResourceDictionary dictionary = null) //where T : class
         {
-            ImageSource result = null;
+            T result = default(T);
+
+            if (dictionary == null)
+                dictionary = App.Current.Resources;
+
 
             if (dictionary?.ContainsKey(dictionaryId) == true)
             {
                 var obj = dictionary[dictionaryId];
-                if (obj is ImageSource)
-                    result = (ImageSource)obj;
+                if (obj is T)
+                {
+                    found = true;
+                    result = (T)obj;
+                }
             }
 
-            if (result == null)
+            if (!found)
             {
                 // Check on child merged dictionaries
                 if (dictionary.MergedDictionaries?.Count > 0)
@@ -399,14 +404,22 @@ namespace MultiPlatformApplication.Helpers
                     List<ResourceDictionary> list = dictionary.MergedDictionaries.ToList();
                     for (int index = 0; index < dictionary.MergedDictionaries.Count; index++)
                     {
-                        result = GetImageSourceFromResourceDictionaryById(list[index], dictionaryId);
-                        if (result != null)
+                        result = GetResourceDictionaryById<T>(dictionaryId, ref found, list[index]);
+                        if (found)
                             break;
                     }
                 }
             }
-
             return result;
+        }
+
+        public static T GetResourceDictionaryById<T>(string dictionaryId, ResourceDictionary dictionary = null) //where T : class
+        {
+            if (dictionary == null)
+                dictionary = App.Current.Resources;
+
+            Boolean found = false;
+            return GetResourceDictionaryById<T>(dictionaryId, ref found, dictionary);
         }
 
 #endregion AVATAR - IMAGE SOURCE    
@@ -621,6 +634,149 @@ namespace MultiPlatformApplication.Helpers
 
             return null;
         }
+
+        public static String GetFileSourceIdFromFileName(String fileName)
+        {
+            if (String.IsNullOrEmpty(fileName))
+                return null;
+
+            String result = null;
+
+            String extension = Path.GetExtension(fileName);
+            switch (extension)
+            {
+                case ".doc":
+                case ".docm":
+                case ".docx":
+                case ".dot":
+                case ".dotx":
+                    result = "document-type";
+                    break;
+
+                case ".pot":
+                case ".potm":
+                case ".potx":
+                case ".pps":
+                case ".ppsm":
+                case ".ppsx":
+                case ".ppt":
+                case ".pptm":
+                case ".pptx":
+                    result = "powerpoint-type";
+                    break;
+
+                case ".xla":
+                case ".xlam":
+                case ".xlm":
+                case ".xls":
+                case ".xlsm":
+                case ".xlsx":
+                case ".xlt":
+                case ".xltm":
+                case ".xltx":
+                    result = "excel-type";
+                    break;
+
+                case ".ai":
+                case ".bmp":
+                case ".gif":
+                case ".ico":
+                case ".jpg":
+                case ".jpeg":
+                case ".png":
+                case ".ps":
+                case ".svg":
+                case ".tif":
+                case ".tiff":
+                    result = "image-type";
+                    break;
+
+                case ".psd":
+                    result = "psd-type";
+                    break;
+
+                case ".aif":
+                case ".cda":
+                case ".mid":
+                case ".midi":
+                case ".mp3":
+                case ".mpa":
+                case ".ogg":
+                case ".wav":
+                case ".wma":
+                case ".wpl":
+                    result = "audio-type";
+                    break;
+
+                case ".3g2":
+                case ".3gp":
+                case ".avi":
+                case ".flv":
+                case ".h264":
+                case ".m4v":
+                case ".mkv":
+                case ".mov":
+                case ".mp4":
+                case ".mpg":
+                case ".mpeg":
+                case ".rm":
+                case ".swf":
+                case ".vob":
+                case ".wmv":
+                    result = "video-type";
+                    break;
+
+                case ".7z":
+                case ".arj":
+                case ".deb":
+                case ".pkg":
+                case ".rar":
+                case ".rpm":
+                case ".tar.gz":
+                case ".z":
+                case ".zip":
+                    result = "archive-type";
+                    break;
+
+                case ".c":
+                case ".cgi":
+                case ".pl":
+                case ".class":
+                case ".cpp":
+                case ".cs":
+                case ".xaml":
+                case ".h":
+                case ".java":
+                case ".php":
+                case ".py":
+                case ".sh":
+                case ".swift":
+                case ".vb":
+                    result = "code-type";
+                    break;
+
+                case ".pdf":
+                    result = "pdf-type";
+                    break;
+
+                case ".txt":
+                case ".md":
+                case ".json":
+                    result = "txt-type";
+                    break;
+
+                default:
+                    result = "unknown-type";
+                    break;
+            }
+
+            if (!String.IsNullOrEmpty(result))
+                return "MainImage_" + result;
+
+            return result;
+        }
+
+
 
         public static String GetFileAttachmentSourceFromFileName(String fileName)
         {

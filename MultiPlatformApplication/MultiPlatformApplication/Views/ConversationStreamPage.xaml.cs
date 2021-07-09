@@ -22,36 +22,30 @@ namespace MultiPlatformApplication.Views
     {
         private static readonly Logger log = LogConfigurator.GetLogger(typeof(ConversationStreamPage));
 
-        private ConversationStreamViewModel vm;
+        private ConversationStreamViewModel vm2;
+
         private String conversationId;
 
         public ConversationStreamPage(String conversationId)
         {
             InitializeComponent();
 
-            MessagesListView.ItemSelected += MessagesListView_ItemSelected;
-
             this.conversationId = conversationId;
-            
-            vm = new ConversationStreamViewModel();
-            vm.DynamicList.ListView = MessagesListView; // Need to know the collection view
 
-            BindingContext = vm;
+            MessagesStream.BindingContext = conversationId;
+
+            vm2 = new ConversationStreamViewModel();
+
+            BindingContext = vm2;
 
             BtnIMSend.Clicked += BtnIMSend_Clicked;
-        }
-
-        private void MessagesListView_ItemSelected(object sender, SelectedItemChangedEventArgs e)
-        {
-            // Reset selection
-            ((ListView)sender).SelectedItem = null;
         }
 
         protected override void OnAppearing()
         {
             base.OnAppearing();
 
-            vm.Initialize(conversationId);
+            vm2.Initialize(conversationId);
         }
 
         protected override void OnParentSet()
@@ -68,11 +62,12 @@ namespace MultiPlatformApplication.Views
                 disposableBindingContext.Dispose();
             }
 
-            if (vm != null)
+            if (vm2 != null)
             {
-                vm.Uninitialize();
-                vm = null;
+                vm2.Uninitialize();
+                vm2 = null;
             }
+
             BindingContext = null;
 
         }
@@ -91,9 +86,9 @@ namespace MultiPlatformApplication.Views
             if (e.NewTextValue != e.OldTextValue)
             {
                 if (String.IsNullOrEmpty(e.NewTextValue))
-                    vm.SetIsTyping(false);
+                    vm2.SetIsTyping(false);
                 else
-                    vm.SetIsTyping(e.NewTextValue.Length > 0);
+                    vm2.SetIsTyping(e.NewTextValue.Length > 0);
             }
         }
 
@@ -102,7 +97,7 @@ namespace MultiPlatformApplication.Views
             if (String.IsNullOrEmpty(EntryIM.Text))
                 return;
 
-            vm.SendMessage(EntryIM.Text);
+            vm2.SendMessage(EntryIM.Text);
             EntryIM.Text = "";
         }
 

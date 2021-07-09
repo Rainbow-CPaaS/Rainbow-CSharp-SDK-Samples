@@ -10,208 +10,153 @@ using Xamarin.Forms.Xaml;
 using Rainbow.Model;
 
 using MultiPlatformApplication.Helpers;
-
+using MultiPlatformApplication.Models;
+using NLog;
+using Rainbow;
 
 namespace MultiPlatformApplication.Controls
 {
     [XamlCompilation(XamlCompilationOptions.Compile)]
-    public partial class Avatar : Frame
+    public partial class Avatar : ContentView
     {
-        
-#region PeerIdProperty
+        private static readonly Logger log = LogConfigurator.GetLogger(typeof(Avatar));
 
-        public static readonly BindableProperty PeerIdProperty =
-            BindableProperty.Create(nameof(PeerId),
-            typeof(String),
-            typeof(Avatar),
-            defaultValue: null,
-            defaultBindingMode: BindingMode.OneWay,
-            propertyChanged: PeerIdChanged);
-
-        private static void PeerIdChanged(BindableObject bindable, object oldValue, object newValue)
-        {
-            var control = (Avatar)bindable;
-            UpdateAvatarImageDisplay(control);
-            UpdatePresenceDisplay(control);
-        }
-
-        public String PeerId
-        {
-            get
-            {
-                var obj = base.GetValue(PeerIdProperty);
-                if (obj is String)
-                    return (String)obj;
-                return null;
-            }
-            set
-            {
-                base.SetValue(PeerIdProperty, value);
-            }
-        }
-
-#endregion PeerIdProperty
-       
-#region PeerTypeProperty
-
-        public static readonly BindableProperty PeerTypeProperty =
-            BindableProperty.Create(nameof(PeerType),
-            typeof(String),
-            typeof(Avatar),
-            defaultValue: "user",
-            defaultBindingMode: BindingMode.OneWay,
-            propertyChanged: PeerTypeChanged);
-
-        private static void PeerTypeChanged(BindableObject bindable, object oldValue, object newValue)
-        {
-            var control = (Avatar)bindable;
-            UpdateAvatarImageDisplay(control);
-            UpdatePresenceDisplay(control);
-        }
-
-        public String PeerType
-        {
-            get
-            {
-                var obj = base.GetValue(PeerTypeProperty);
-                if (obj is String)
-                    return (String)obj;
-                return null;
-            }
-            set
-            {
-                base.SetValue(PeerTypeProperty, value);
-            }
-        }
-
-#endregion PeerTypeProperty
-
-#region DisplayPresenceProperty
-
-        public static readonly BindableProperty DisplayPresenceProperty =
-            BindableProperty.Create(nameof(DisplayPresence),
-            typeof(Boolean),
-            typeof(Avatar),
-            defaultValue: false,
-            defaultBindingMode: BindingMode.OneWay,
-            propertyChanged: DisplayPresenceChanged);
-
-        private static void DisplayPresenceChanged(BindableObject bindable, object oldValue, object newValue)
-        {
-            var control = (Avatar)bindable;
-            UpdatePresenceDisplay((Avatar)bindable);
-        }
-
-        public Boolean DisplayPresence
-        {
-            get
-            {
-                var obj = base.GetValue(DisplayPresenceProperty);
-                if (obj is Boolean)
-                    return (Boolean)obj;
-                return false;
-            }
-            set
-            {
-                base.SetValue(DisplayPresenceProperty, value);
-            }
-        }
-
-#endregion DisplayPresenceProperty
-
-        private String peerJid;
+        PeerModel peer;
+        Boolean manageAvatarDisplay = false;
+        Boolean managePresenceDisplay = false;
 
         public Avatar()
         {
             InitializeComponent();
 
-            Helper.SdkWrapper.ContactAvatarUpdated += SdkWrapper_ContactAvatarUpdated;
-            Helper.SdkWrapper.ContactAggregatedPresenceChanged += SdkWrapper_ContactAggregatedPresenceChanged;
-
-            Helper.SdkWrapper.BubbleAvatarUpdated += SdkWrapper_BubbleAvatarUpdated;
+            this.BindingContextChanged += Avatar_BindingContextChanged;
         }
 
-        private static void UpdateAvatarImageDisplay(Avatar control)
+        private void Avatar_BindingContextChanged(object sender, EventArgs e)
         {
-            if (String.IsNullOrEmpty(control.PeerId))
-                return;
-
-            if ( (control.PeerType == "user") && (!String.IsNullOrEmpty(control.PeerId)) )
+            if (BindingContext != null)
             {
-                control.Image.Source = ImageSource.FromFile(Helper.GetContactAvatarFilePath(control.PeerId));
-
-                // Need to store peerJid if it's a user to manage presence update
-                Contact contact = Helper.SdkWrapper.GetContactFromContactId(control.PeerId);
-                control.peerJid = contact?.Jid_im;
-
-            }
-            else if (control.PeerType == "room")
-                control.Image.Source = ImageSource.FromFile(Helper.GetBubbleAvatarFilePath(control.PeerId));
-        }
-
-        private static void UpdatePresenceDisplay(Avatar control)
-        {
-            Boolean displayFrameForPresence = false;
-            if (control.DisplayPresence)
-            {
-
-                if ((control.PeerType == "user") && (!String.IsNullOrEmpty(control.PeerId)))
+                peer = (PeerModel)BindingContext;
+                if ((peer != null) && (peer.Jid != null))
                 {
-                    Presence presence = Helper.SdkWrapper.GetAggregatedPresenceFromContactId(control.PeerId);
-
-                    if (presence == null)
-                    {
-                        control.ImagePresence.Source = null;
-                        displayFrameForPresence = false;
-                    }
-                    else
-                    {
-                        String resource = Helper.GetPresenceSourceFromPresence(presence);
-                        control.ImagePresence.Source = ImageSource.FromResource(resource, typeof(Helper).Assembly);
-                        displayFrameForPresence = true;
-                    }
+                    ManageAvatarDisplay();
+                    ManagePresenceDisplay();
                 }
             }
+        }
+        private void ManageAvatarDisplay()
+        {
+            if (!manageAvatarDisplay)
+            {
+                manageAvatarDisplay = true;
 
-            control.FrameForPesence.IsVisible = displayFrameForPresence;
+                Helper.SdkWrapper.PeerAvatarUpdated += SdkWrapper_PeerAvatarUpdated;
+                Helper.SdkWrapper.PeerAdded += SdkWrapper_PeerAdded;
+                
+            }
+            UpdateAvatarImageDisplay();
+        }
 
+        private void SdkWrapper_PeerAdded(object sender, Rainbow.Events.PeerEventArgs e)
+        {
+            if (e.Peer.Jid == peer.Jid)
+            {
+                peer.Id = e.Peer.Id;
+                ManageAvatarDisplay();
+            }
+        }
+
+        private void ManagePresenceDisplay()
+        {
+            if (!managePresenceDisplay)
+            {
+                if ((!String.IsNullOrEmpty(peer?.Id)) && (peer.Type == Rainbow.Model.Conversation.ConversationType.User) )
+                {
+                    managePresenceDisplay = true;
+                    Helper.SdkWrapper.ContactAggregatedPresenceChanged += SdkWrapper_ContactAggregatedPresenceChanged;
+                    UpdatePresenceDisplay();
+                }
+            }
+        }
+
+        private void UpdateAvatarImageSource(String filePath)
+        {
+            Device.BeginInvokeOnMainThread(() =>
+            {
+                Image.Source = ImageSource.FromFile(filePath);
+            });
+        }
+
+        private void UpdatePresenceImageSource(String resource)
+        {
+            Device.BeginInvokeOnMainThread(() =>
+            {
+                if (resource == null)
+                {
+                    ImagePresence.Source = null;
+                    FrameForPesence.IsVisible = false;
+                }
+                else
+                {
+                    ImagePresence.Source = ImageSource.FromResource(resource, typeof(Helper).Assembly);
+                    FrameForPesence.IsVisible = true;
+                }
+            });
+        }
+
+        private void UpdateAvatarImageDisplay()
+        {
+            if (String.IsNullOrEmpty(peer.Id))
+                return;
+
+            if (peer.Type == Rainbow.Model.Conversation.ConversationType.User)
+            {
+                UpdateAvatarImageSource(Helper.GetContactAvatarFilePath(peer.Id));
+            }
+            else if (peer.Type == Rainbow.Model.Conversation.ConversationType.Room)
+            {
+                UpdateAvatarImageSource(Helper.GetBubbleAvatarFilePath(peer.Id));
+            }
+        }
+
+        private void UpdatePresenceDisplay()
+        {
+            if (String.IsNullOrEmpty(peer?.Id))
+                return;
+
+            if ( (peer?.DisplayPresence == true) && (peer?.Type == Rainbow.Model.Conversation.ConversationType.User))
+            {
+                Presence presence = Helper.SdkWrapper.GetAggregatedPresenceFromContactId(peer.Id);
+
+                if (presence == null)
+                    UpdatePresenceImageSource(null);
+                else
+                    UpdatePresenceImageSource(Helper.GetPresenceSourceFromPresence(presence));
+            }
         }
 
 #region EVENTS FROM SDK WRAPPER
+
+        private void SdkWrapper_PeerAvatarUpdated(object sender, Rainbow.Events.PeerEventArgs e)
+        {
+            if (peer.Jid == e.Peer.Jid)
+            {
+                peer.Id = e.Peer.Id;
+
+                log.Debug("[SdkWrapper_PeerAvatarUpdated] Jid:[{0}]", peer.Jid);
+                UpdateAvatarImageDisplay();
+            }
+        }
+
         private void SdkWrapper_ContactAggregatedPresenceChanged(object sender, Rainbow.Events.PresenceEventArgs e)
         {
-            if (DisplayPresence && (PeerType == "user") && (peerJid == e.Jid))
+            if ((peer?.DisplayPresence == true) && (peer?.Type == Rainbow.Model.Conversation.ConversationType.User) && (peer?.Jid == e.Jid))
             {
-                Device.BeginInvokeOnMainThread(() =>
-                {
-                    UpdatePresenceDisplay(this);
-                });
+                UpdatePresenceDisplay();
             }
         }
 
-        private void SdkWrapper_ContactAvatarUpdated(object sender, Rainbow.Events.IdEventArgs e)
-        {
-            if ((PeerType == "user") && (PeerId == e.Id))
-            {
-                Device.BeginInvokeOnMainThread(() =>
-                {
-                    UpdateAvatarImageDisplay(this);
-                });
-            }
-        }
-
-        private void SdkWrapper_BubbleAvatarUpdated(object sender, Rainbow.Events.IdEventArgs e)
-        {
-            if ((PeerType == "room") && (PeerId == e.Id))
-            {
-                Device.BeginInvokeOnMainThread(() =>
-                {
-                    UpdateAvatarImageDisplay(this);
-                });
-            }
-        }
-
-#endregion EVENTS FROM SDK WRAPPER
+    #endregion EVENTS FROM SDK WRAPPER
 
     }
 }
