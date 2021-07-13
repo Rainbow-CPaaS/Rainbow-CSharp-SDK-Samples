@@ -59,6 +59,8 @@ namespace MultiPlatformApplication.Assets
             CreateUrgencyFile(themeLight, "ColorUrgencyImportant", "problem-alert");
 
             CreateUrgencyFile(themeLight, "ColorUrgencyInformation", "bulb");
+
+            CreateUrgencyFile(themeLight, "#000000", "conversations");
         }
 
         private void CreateBlackAndWhiteSvgFilesAndAddThemAsImageSource(bool blackVersion)
@@ -129,20 +131,22 @@ namespace MultiPlatformApplication.Assets
 
         private Boolean CreateUrgencyFile(ResourceDictionary resourceDictionary, String colorKey, String svgResourceName)
         {
+            Color color;
             if (resourceDictionary.ContainsKey(colorKey))
-            {
-                Color color = (Color)resourceDictionary[colorKey];
-                String imagePoolFolderPath = Helper.GetImagesStorageFolderPath();
+                color = (Color)resourceDictionary[colorKey];
+            else
+                color = Color.FromHex(colorKey);
 
-                String imageFilePath = Path.Combine(imagePoolFolderPath, svgResourceName + ".png");
-                if (CreateImageFile(imageFilePath, svgResourceName, 36, "#00000000", color.ToHex()))
-                {
-                    ImageSource imageSource = ImageSource.FromFile(imageFilePath);
-                    Add("MainImage_" + svgResourceName, imageSource);
-                    return true;
-                }
+            String imagePoolFolderPath = Helper.GetImagesStorageFolderPath();
+            String imageFilePath = Path.Combine(imagePoolFolderPath, svgResourceName + ".png");
+            if (CreateImageFile(imageFilePath, svgResourceName, 36, "#00000000", color.ToHex()))
+            {
+                ImageSource imageSource = ImageSource.FromFile(imageFilePath);
+                Add("MainImage_" + svgResourceName, imageSource);
+                return true;
             }
             return false;
+            
         }
     }
 
