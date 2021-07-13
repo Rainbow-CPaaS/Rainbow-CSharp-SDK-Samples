@@ -34,7 +34,6 @@
                                     Grid.Row="0"
                                     Padding="0"
                                     Margin="0">
-                            <!--IsEnabled="{Binding AskingMoreItems, Converter={StaticResource ReverseBooleanConverter}}">-->
                             <StackLayout x:Name="StackLayoutDesktop"
                                          Padding="0"
                                          Margin="0"
