@@ -26,8 +26,8 @@ namespace MultiPlatformApplication.UWP.PlatformEffect
         private void PointerExited(object sender, PointerRoutedEventArgs e)
         {
             var command = MouseOutEffect.GetCommand(Element);
-            if (command != null && command.CanExecute(null))
-                command.Execute(null);
+            if (command != null && command.CanExecute(Element))
+                command.Execute(Element);
         }
     }
 }
