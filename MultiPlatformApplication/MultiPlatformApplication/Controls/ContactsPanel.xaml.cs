@@ -20,11 +20,17 @@ namespace MultiPlatformApplication.Controls
             InitializeComponent();
 
             ContactsListView.ItemSelected += ContactsListView_ItemSelected;
-            OrderByListView.ItemSelected += OrderByListView_ItemSelected;
-            FilterListView.ItemSelected += FilterListView_ItemSelected;
+            ContextMenuOrderByListView.ItemSelected += OrderByListView_ItemSelected;
+            ContextMenuFilterListView.ItemSelected += FilterListView_ItemSelected;
 
             vm = new ContactsViewModel();
             vm.SetRootView(this); // Need to know the Root Layout
+
+            RelativeLayout.SetHeightConstraint(ContactsListView, Constraint.RelativeToParent((rl) =>
+            {
+                return rl.Height - MenuControl.Height;
+            }));
+
 
             BindingContext = vm;
         }

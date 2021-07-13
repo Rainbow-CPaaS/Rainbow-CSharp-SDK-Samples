@@ -1,0 +1,182 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:converters="clr-namespace:MultiPlatformApplication.Converters;assembly=MultiPlatformApplication" 
+             xmlns:controls="clr-namespace:MultiPlatformApplication.Controls"
+             xmlns:effects="clr-namespace:MultiPlatformApplication.Effects"
+             xmlns:extensions="clr-namespace:MultiPlatformApplication.Extensions"
+             x:Class="MultiPlatformApplication.Views.TestPage"
+             NavigationPage.HasNavigationBar="False">
+
+    <ContentPage.Padding>
+        <OnPlatform x:TypeArguments="Thickness">
+            <On Platform="iOS" Value="0,20,0,0"/>
+        </OnPlatform>
+    </ContentPage.Padding>
+
+    <ContentPage.Resources>
+        <converters:ReverseBooleanConverter x:Key="ReverseBooleanConverter" />
+        <converters:IdToImageSourceConverter x:Key="IdToImageSourceConverter" />
+        <converters:TextToBooleanConverter x:Key="TextToBooleanConverter" />
+    </ContentPage.Resources>
+
+    <RelativeLayout x:Name="MyRelativeLayout" Margin="0" 
+                    Padding="0"
+                    HorizontalOptions="Fill"
+                    VerticalOptions="Fill">
+    
+
+        <StackLayout x:Name="MainStackLayout"                      
+                     RelativeLayout.WidthConstraint="{ConstraintExpression Type=RelativeToParent, Property=Width}"
+                     RelativeLayout.HeightConstraint="{ConstraintExpression Type=RelativeToParent, Property=Height}"
+                     Orientation="Vertical"
+                     VerticalOptions="StartAndExpand" 
+                     HorizontalOptions="Center">
+
+            <StackLayout Orientation="Horizontal" HorizontalOptions="Center" VerticalOptions="Start" Padding="0, 30, 0, 30">
+                <Image x:Name="ImageLogo" Source="{extensions:ImageResource Id=rainbow_splash_logo.png}" WidthRequest="150" HeightRequest="150"/>
+            </StackLayout>
+
+            <Entry
+                    Margin="40,0"
+                    FontSize="{StaticResource FontSizeMedium}"
+                    WidthRequest="300"
+                    HorizontalOptions="Center" 
+                    Placeholder="{StaticResource Label_loginEmail}"
+                    PlaceholderColor="LightGray"
+                    Text="{Binding LoginModel.Login}"
+                    IsEnabled="{Binding LoginModel.IsBusy, Converter={StaticResource ReverseBooleanConverter}}" />
+
+            <Entry
+                    Margin="40,40"
+                    TextColor="Black"
+                    FontSize="{StaticResource FontSizeMedium}"
+                    IsPassword="True"
+                    WidthRequest="300"
+                    HorizontalOptions="CenterAndExpand"
+                    Placeholder="{StaticResource Label_password}"
+                    PlaceholderColor="Gray"
+                    Text="{Binding LoginModel.Password}"
+                    IsEnabled="{Binding LoginModel.IsBusy, Converter={StaticResource ReverseBooleanConverter}}" />
+
+            <controls:CustomButton Text="{Binding LoginModel.Connect}"
+                                    CornerRadius="4"
+                                    HeightRequest="30"
+                                    WidthRequest="200"
+                                    FontSize="{StaticResource FontSizeSmall}"
+                                    FontAttributes="Bold"
+                                    TextColor="White"
+                                    BackgroundColor="{StaticResource ColorMain}"
+                                    BackgroundColorOnMouseOver="{StaticResource ColorMainOnOver}"
+                                    Command="{Binding LoginModel.ButtonConnectCommand}"
+                                    IsEnabled="{Binding LoginModel.IsBusy, Converter={StaticResource ReverseBooleanConverter}}"/>
+
+            <ActivityIndicator Color="{StaticResource ColorMain}"
+                               WidthRequest="80"
+                               HeightRequest="80"
+                               IsRunning="{Binding LoginModel.IsBusy}"
+                               IsVisible="{Binding LoginModel.IsBusy}" />
+
+            <Label Text="Hello World - true"
+               effects:SelectableLabelEffect.Enabled="True"/>
+
+            <Label Text="Hello World - false"
+               effects:SelectableLabelEffect.Enabled="False"/>
+
+            
+        </StackLayout>
+
+        <Grid  x:Name="ContextMenuMessageUrgency"
+               Margin="0"
+               Padding="2"
+               effects:ContextMenu.Enabled="True"
+               effects:ContextMenu.LinkedTo="ImageLogo"
+               effects:ContextMenu.OnLeft="True"
+               effects:ContextMenu.OnTop="False">
+            
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <Frame Margin="0"
+                   Padding="0"
+                   CornerRadius="1"
+                   BorderColor="#999999"
+                   BackgroundColor="White"
+                   HeightRequest="228"
+                   WidthRequest="280" >
+
+                <ListView x:Name="ListView" 
+                          Margin="6"
+                          BindingContext="{Binding MessageUrgency}"
+                          ItemsSource="{Binding Items}"
+                          BackgroundColor="Transparent"
+                          SeparatorVisibility="None"
+                          RowHeight="54"
+                          VerticalScrollBarVisibility="Never">
+                    
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <ViewCell>
+                                <Grid Margin="0"
+                                      Padding="4,0"
+                                      ColumnSpacing="4"
+                                      RowSpacing="0"
+                                      VerticalOptions="Center"
+                                      effects:Background.Enabled="{Binding IsSelected}"
+                                      effects:Background.Color="LightGray"
+                                      >
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="54"/>
+                                    </Grid.RowDefinitions>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="28"/>
+                                        <ColumnDefinition Width="230"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <Image Grid.Column="0"
+                                           Grid.Row="0"
+                                           Margin="0"
+                                           Source="{Binding ImageSourceId, Converter={StaticResource IdToImageSourceConverter}}"                                               
+                                           HorizontalOptions="Center"
+                                           VerticalOptions="Center"
+                                           WidthRequest="20"
+                                           HeightRequest="20"/>
+
+                                    <StackLayout Grid.Column="1"
+                                                 Grid.Row="0"
+                                                 Margin="0"
+                                                 Padding="0"
+                                                 Spacing="0"
+                                                 Orientation="Vertical"
+                                                 VerticalOptions="Center">
+                                        <Label Margin="0"
+                                               Padding="0" 
+                                               Text="{Binding Title}" 
+                                               FontAttributes="Bold" 
+                                               FontSize="{StaticResource FontSizeSmall}" 
+                                               TextColor="{Binding TextColor}"/>
+
+                                        <Label Margin="0"
+                                               Padding="0"
+                                               Text="{Binding Description}"
+                                               FontSize="{StaticResource FontSizeMicro}" 
+                                               TextColor="{Binding TextColor}"
+                                               IsVisible="{Binding Description, Converter={StaticResource TextToBooleanConverter }}"/>
+                                    </StackLayout>
+
+                                </Grid>
+                            </ViewCell>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+
+                </ListView>
+            </Frame>
+        </Grid>
+
+    </RelativeLayout>
+</ContentPage>

@@ -13,17 +13,22 @@ using Rainbow;
 using Rainbow.Model;
 
 using NLog;
+using MultiPlatformApplication.Effects;
 
 namespace MultiPlatformApplication.ViewModels
 {
     [XamlCompilation(XamlCompilationOptions.Compile)]
-    public class ContactsViewModel : PopupViewModel
+    public class ContactsViewModel: ObservableObject
     {
         private static readonly Logger log = LogConfigurator.GetLogger(typeof(ContactsViewModel));
 
         private App XamarinApplication;
 
         private Boolean firstInitialization = true;
+
+        View rootView;
+        View contextMenuOrderBy;
+        View contextMenuFilter;
 
         List<ContactModel> contactsList;
         List<ContactModel> originalContactsList;
@@ -42,9 +47,8 @@ namespace MultiPlatformApplication.ViewModels
 
         public ObservableRangeCollection<ContactModel> Contacts { get; private set; } = new ObservableRangeCollection<ContactModel>();
 
-        public BasicListModel OrderByOptionsList { get; private set; } = new BasicListModel();
-
-        public BasicListModel FilterOptionsList { get; private set; } = new BasicListModel();
+        public ContextMenuModel OrderByOptions { get; private set; } = new ContextMenuModel();
+        public ContextMenuModel FilterOptions { get; private set; } = new ContextMenuModel();
 
         public MenuItemListModel Menu { get; set; } = new MenuItemListModel();
 
@@ -54,30 +58,45 @@ namespace MultiPlatformApplication.ViewModels
         {
             // Get Xamarin Application
             XamarinApplication = (App)Xamarin.Forms.Application.Current;
-
-            //PopupModel.ButtonAcceptCommand = new RelayCommand<object>(new Action<object>(PopupButtonAcceptCommand));
-            PopupModel.ButtonCancelCommand = new RelayCommand<object>(new Action<object>(PopupButtonCancelCommand));
         }
 
-        public new void Initialize()
+        public void SetRootView(View view)
         {
-            base.Initialize();
+            rootView = view;
 
+            contextMenuOrderBy = rootView.FindByName<Grid>("ContextMenuOrderBy");
+            contextMenuFilter = rootView.FindByName<Grid>("ContextMenuFilter");
+        }
+
+        public void Initialize()
+        {
             if (firstInitialization)
             {
                 firstInitialization = false;
 
                 // Define menu
                 Menu.Command = new RelayCommand<object>(new Action<object>(MenuCommand)); // Command raised when a menu item is selected
-                
+
                 Menu.SetDefaulMenuItemtSize(30, 50, 80);
                 Menu.TextVisible = true;
                 Menu.TextVisibleForSelectedItem = true;
-                Menu.AddItem(new MenuItemModel() { Id = "orderby", Label = Helper.GetLabel("firstnameOrder"),  ImageSourceId = "MainImage_sort_white" });
+                Menu.AddItem(new MenuItemModel() { Id = "orderby", Label = Helper.GetLabel("firstnameOrder"), ImageSourceId = "MainImage_sort_white" });
                 Menu.AddItem(new MenuItemModel() { Id = "filter", Label = Helper.GetLabel("allFilter"), ImageSourceId = "MainImage_filter-list_white" });
+
+
+                UpdateLabelsForOrderBy();
+                SetSelectedItemOnContextMenu(OrderByOptions, OrderByOptions.Items[0].Id);
+
+                UpdateLabelsForFilter();
+                SetSelectedItemOnContextMenu(FilterOptions, FilterOptions.Items[0].Id);
 
                 // Update display Sorting/Grouping on First Name
                 UpdateContactsListDisplay("firstname", "all");
+            }
+            else
+            {
+                ContextMenu.Hide(contextMenuOrderBy);
+                ContextMenu.Hide(contextMenuFilter);
             }
         }
 
@@ -255,21 +274,32 @@ namespace MultiPlatformApplication.ViewModels
 
         private void UpdateLabelsForOrderBy()
         {
-            OrderByOptionsList.Clear();
-
-            OrderByOptionsList.Add(new BasicListItemModel() { Id = "firstname", Label = Helper.GetLabel("firstnameOrder") });
-            OrderByOptionsList.Add(new BasicListItemModel() { Id = "lastname", Label = Helper.GetLabel("lastnameOrder") });
-            OrderByOptionsList.Add(new BasicListItemModel() { Id = "company", Label = Helper.GetLabel("companyOrder") });
+            OrderByOptions.Clear();
+            OrderByOptions.Add(new ContextMenuItemModel() { Id = "firstname", Title = Helper.GetLabel("firstnameOrder") });
+            OrderByOptions.Add(new ContextMenuItemModel() { Id = "lastname", Title = Helper.GetLabel("lastnameOrder") });
+            OrderByOptions.Add(new ContextMenuItemModel() { Id = "company", Title = Helper.GetLabel("companyOrder") });
         }
 
         private void UpdateLabelsForFilter()
         {
-            FilterOptionsList.Clear();
-
-            FilterOptionsList.Add(new BasicListItemModel() { Id = "all", Label = Helper.GetLabel("allFilter") });
-            FilterOptionsList.Add(new BasicListItemModel() { Id = "online", Label = Helper.GetLabel("onlineFilter") });
-            FilterOptionsList.Add(new BasicListItemModel() { Id = "offline", Label = Helper.GetLabel("offlineFilter") });
+            FilterOptions.Clear();
+            FilterOptions.Add(new ContextMenuItemModel() { Id = "all", Title = Helper.GetLabel("allFilter") });
+            FilterOptions.Add(new ContextMenuItemModel() { Id = "online", Title = Helper.GetLabel("onlineFilter") });
+            FilterOptions.Add(new ContextMenuItemModel() { Id = "offline", Title = Helper.GetLabel("offlineFilter") });
         }
+
+        private void SetSelectedItemOnContextMenu(ContextMenuModel contextMenuModel, String selectedId)
+        {
+            if (String.IsNullOrEmpty(selectedId))
+                return;
+
+            if (contextMenuModel?.Items?.Count > 0)
+            {
+                for (int i = 0; i < contextMenuModel.Items.Count; i++)
+                    contextMenuModel.Items[i].IsSelected = (contextMenuModel.Items[i].Id == selectedId);
+            }
+        }
+
 
 #region MANAGE COMMANDS
 
@@ -281,13 +311,11 @@ namespace MultiPlatformApplication.ViewModels
                 switch(id)
                 {
                     case "orderby":
-                        UpdateLabelsForOrderBy();
-                        DisplayPopup("OrderBy", Helper.GetLabel("orderTitle"), Helper.GetLabel("cancel"));
+                        contextMenuOrderBy.IsVisible = true;
                         break;
 
                     case "filter":
-                        UpdateLabelsForFilter();
-                        DisplayPopup("Filter", Helper.GetLabel("filter"), Helper.GetLabel("cancel"));
+                        contextMenuFilter.IsVisible = true;
                         break;
                 }
                 
@@ -295,11 +323,6 @@ namespace MultiPlatformApplication.ViewModels
             }
             Menu.SetItemSelected(-1);
 
-        }
-
-        void PopupButtonCancelCommand(Object obj)
-        {
-            HidePopup();
         }
 
         public async void SelectedContactCommand(Object obj)
@@ -329,23 +352,22 @@ namespace MultiPlatformApplication.ViewModels
 
         public void SelectedOrderByCommand(Object obj)
         {
-            HidePopup();
-
-            if (obj is BasicListItemModel)
+            if (obj is ContextMenuItemModel)
             {
-                BasicListItemModel item = obj as BasicListItemModel;
+                ContextMenuItemModel item = obj as ContextMenuItemModel;
+                SetSelectedItemOnContextMenu(OrderByOptions, item.Id);
+                contextMenuOrderBy.IsVisible = false;
                 UpdateContactsListDisplay(item.Id, currentFilter);
             }
         }
 
         public void SelectedFilterCommand(Object obj)
         {
-            HidePopup();
-
-            // TODO
-            if (obj is BasicListItemModel)
+            if (obj is ContextMenuItemModel)
             {
-                BasicListItemModel item = obj as BasicListItemModel;
+                ContextMenuItemModel item = obj as ContextMenuItemModel;
+                SetSelectedItemOnContextMenu(FilterOptions, item.Id);
+                contextMenuFilter.IsVisible = false;
                 UpdateContactsListDisplay(currentOrderBy, item.Id);
             }
         }

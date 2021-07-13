@@ -47,32 +47,32 @@ namespace MultiPlatformApplication.ViewModels
                 if (rootView != null)
                 {
 
-                    // Get background view used in the Popup structure
-                    popupBackgroundView = (View)rootView.FindByName("PopupBackground");
+                    //// Get background view used in the Popup structure
+                    //popupBackgroundView = (View)rootView.FindByName("PopupBackground");
 
-                    // Get root view used in the Popup structure
-                    popupRootView = (View)rootView.FindByName("PopupRoot");
+                    //// Get root view used in the Popup structure
+                    //popupRootView = (View)rootView.FindByName("PopupRoot");
 
-                    // Get all items used as poup content - AutomationId is used to get their names
-                    if (popupRootView != null)
-                    {
-                        StackLayout stackLayout = (StackLayout)popupRootView.FindByName("PopupItems");
+                    //// Get all items used as poup content - AutomationId is used to get their names
+                    //if (popupRootView != null)
+                    //{
+                    //    StackLayout stackLayout = (StackLayout)popupRootView.FindByName("PopupItems");
 
-                        if (stackLayout?.Children?.Count > 0)
-                        {
-                            String name;
-                            foreach (View item in stackLayout.Children)
-                            {
-                                name = item.AutomationId;
-                                if (!String.IsNullOrEmpty(name))
-                                    popupItems.Add(name, item);
-                            }
-                        }
-                    }
+                    //    if (stackLayout?.Children?.Count > 0)
+                    //    {
+                    //        String name;
+                    //        foreach (View item in stackLayout.Children)
+                    //        {
+                    //            name = item.AutomationId;
+                    //            if (!String.IsNullOrEmpty(name))
+                    //                popupItems.Add(name, item);
+                    //        }
+                    //    }
+                    //}
                 }
             }
 
-            HidePopup();
+            //HidePopup();
         }
 
         public Boolean DisplayPopup(String itemName, String title = null, String cancelText = null, String acceptText = null)
