@@ -1,18 +1,17 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
-<Frame xmlns="http://xamarin.com/schemas/2014/forms" 
+<ContentView xmlns="http://xamarin.com/schemas/2014/forms" 
        xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
        xmlns:dataTemplate="clr-namespace:MultiPlatformApplication.Views.DataTemplates" 
        xmlns:controls="clr-namespace:MultiPlatformApplication.Controls"
        xmlns:converters="clr-namespace:MultiPlatformApplication.Converters;assembly=MultiPlatformApplication" 
        x:Class="MultiPlatformApplication.Controls.ContactsPanel"
-       CornerRadius="0" 
-       Margin="0,0"
+       Margin="0"
        Padding="0"
        HorizontalOptions="Fill"
        VerticalOptions="Fill"
        BackgroundColor="#00000000">
 
-    <Frame.Resources>
+    <ContentView.Resources>
         <ResourceDictionary >
             <ResourceDictionary.MergedDictionaries>
                 <dataTemplate:Contact/>
@@ -24,7 +23,7 @@
         <controls:GroupDataTemplateSelector  x:Key="ContactSelector"
                                               Group="{StaticResource GroupHeaderContactDataTemplate}"
                                               Item="{StaticResource ContactDataTemplate}"/>
-    </Frame.Resources>
+    </ContentView.Resources>
 
     <AbsoluteLayout x:Name="RootLayout" 
                     Margin="0"
@@ -238,4 +237,4 @@
                            AbsoluteLayout.LayoutFlags="All"/>
         
     </AbsoluteLayout>
-</Frame>
+</ContentView>

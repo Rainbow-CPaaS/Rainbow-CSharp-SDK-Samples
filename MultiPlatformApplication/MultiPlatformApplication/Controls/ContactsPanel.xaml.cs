@@ -11,7 +11,7 @@ using Xamarin.Forms.Xaml;
 namespace MultiPlatformApplication.Controls
 {
     [XamlCompilation(XamlCompilationOptions.Compile)]
-    public partial class ContactsPanel : Frame
+    public partial class ContactsPanel : ContentView
     {
         private readonly ContactsViewModel vm;
 
