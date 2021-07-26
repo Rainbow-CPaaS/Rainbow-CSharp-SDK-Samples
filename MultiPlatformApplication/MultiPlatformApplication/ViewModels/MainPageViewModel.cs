@@ -54,11 +54,11 @@ namespace MultiPlatformApplication.ViewModels
                 Menu.SetDefaulMenuItemtSize(30, 50, 100);
                 Menu.TextVisible = false;
                 Menu.TextVisibleForSelectedItem = true;
-                Menu.AddItem(new MenuItemModel() { Id = "conversations", Label = Helper.GetLabel("conversationsItem"), ImageSourceId = "MainImage_chat_white" });
-                Menu.AddItem(new MenuItemModel() { Id = "channels", Label = Helper.GetLabel("channels"), ImageSourceId = "MainImage_newsfeed_white" });
+                Menu.AddItem(new MenuItemModel() { Id = "conversations", Label = Helper.GetLabel("conversationsItem"), ImageSourceId = "Font_CommentAlt|#FFFFFF" });
+                Menu.AddItem(new MenuItemModel() { Id = "channels", Label = Helper.GetLabel("channels"), ImageSourceId = "Font_Newspaper|#FFFFFF" });
                 Menu.AddItem(new MenuItemModel() { Id = "bubbles", Label = Helper.GetLabel("bubbles"), ImageSourceId = "MainImage_bubble_white" });
-                Menu.AddItem(new MenuItemModel() { Id = "contacts", Label = Helper.GetLabel("contacts"), ImageSourceId = "MainImage_contacts_white" });
-                Menu.AddItem(new MenuItemModel() { Id = "calls", Label = Helper.GetLabel("tab-calllogs-title"), ImageSourceId = "MainImage_calllog_white" });
+                Menu.AddItem(new MenuItemModel() { Id = "contacts", Label = Helper.GetLabel("contacts"), ImageSourceId = "Font_Users|#FFFFFF" });
+                Menu.AddItem(new MenuItemModel() { Id = "calls", Label = Helper.GetLabel("tab-calllogs-title"), ImageSourceId = "Font_Clock|#FFFFFF" });
 
                 // Select "conversations" as selected item
                 Menu.SetItemSelected("conversations");

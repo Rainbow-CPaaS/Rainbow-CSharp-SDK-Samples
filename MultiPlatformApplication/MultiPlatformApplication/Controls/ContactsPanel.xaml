@@ -20,7 +20,6 @@
         </ResourceDictionary>
 
         <converters:TextToBooleanConverter x:Key="TextToBooleanConverter" />
-        <converters:IdToImageSourceConverter x:Key="IdToImageSourceConverter" />
         
         <controls:GroupDataTemplateSelector  x:Key="ContactSelector"
                                               Group="{StaticResource GroupHeaderContactDataTemplate}"

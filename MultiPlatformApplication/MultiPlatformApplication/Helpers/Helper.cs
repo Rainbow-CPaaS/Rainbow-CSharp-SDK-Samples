@@ -350,16 +350,49 @@ namespace MultiPlatformApplication.Helpers
             return filePath;
         }
 
-        // Get image source using Id specified - this id could alos be a file path
-        // Check first in embedded resource using the ID
-        // then check from file
-        // and finally check from ResourceDictionary
+        static internal ImageSource GetImageSourceFromFont(String id)
+        {
+
+            String name;
+            String color = "#FFFFFF";
+
+            if (id.StartsWith("font_", StringComparison.InvariantCultureIgnoreCase))
+                name = id.Substring(5);
+            else
+                name = id;
+
+            int index = name.IndexOf("|");
+            if (index > 0)
+            {
+                color = name.Substring(index+1);
+                name = name.Substring(0, index);
+            }
+
+            if (iconsFont.ContainsKey(name))
+            {
+                FontImageSource result = new FontImageSource();
+                result.FontFamily = "FontAwesomeSolid5";
+                result.Glyph = iconsFont[name];
+                result.Color = Color.FromHex(color);
+
+                return result;
+            }
+            return null;
+        }
+
+        // Get image source using Id specified - Using ID provided:
+        //  - Check first in embedded resource
+        //  - Then check from file
+        //  - Then check from ResourceDictionary
         static internal ImageSource GetImageSourceFromIdOrFilePath(String id)
         {
             ImageSource result = null;
 
             if (!String.IsNullOrEmpty(id))
             {
+                if (id.StartsWith("font_", StringComparison.InvariantCultureIgnoreCase))
+                    return GetImageSourceFromFont(id);
+
                 String filePath = Helper.GetEmbededResourceFullPath(id);
                 if (!String.IsNullOrEmpty(filePath))
                     result = ImageSource.FromResource(filePath, typeof(Helper).Assembly);
@@ -377,7 +410,6 @@ namespace MultiPlatformApplication.Helpers
         }
 
         // Get image source using Id from merged resource dictionaries
-
         private static T GetResourceDictionaryById<T>(string dictionaryId, ref Boolean found, ResourceDictionary dictionary = null) //where T : class
         {
             T result = default(T);
@@ -650,7 +682,7 @@ namespace MultiPlatformApplication.Helpers
                 case ".docx":
                 case ".dot":
                 case ".dotx":
-                    result = "document-type";
+                    result = "Font_FileWord|#D3D3D3"; // "light gray"
                     break;
 
                 case ".pot":
@@ -662,7 +694,7 @@ namespace MultiPlatformApplication.Helpers
                 case ".ppt":
                 case ".pptm":
                 case ".pptx":
-                    result = "powerpoint-type";
+                    result = "FilePowerpoint|#D3D3D3"; // "light gray"
                     break;
 
                 case ".xla":
@@ -674,7 +706,7 @@ namespace MultiPlatformApplication.Helpers
                 case ".xlt":
                 case ".xltm":
                 case ".xltx":
-                    result = "excel-type";
+                    result = "FileExcel|#D3D3D3"; // "light gray"
                     break;
 
                 case ".ai":
@@ -688,11 +720,7 @@ namespace MultiPlatformApplication.Helpers
                 case ".svg":
                 case ".tif":
                 case ".tiff":
-                    result = "image-type";
-                    break;
-
-                case ".psd":
-                    result = "psd-type";
+                    result = "FileImage|#D3D3D3"; // "light gray"
                     break;
 
                 case ".aif":
@@ -705,7 +733,7 @@ namespace MultiPlatformApplication.Helpers
                 case ".wav":
                 case ".wma":
                 case ".wpl":
-                    result = "audio-type";
+                    result = "FileAudio|#D3D3D3"; // "light gray"
                     break;
 
                 case ".3g2":
@@ -723,7 +751,7 @@ namespace MultiPlatformApplication.Helpers
                 case ".swf":
                 case ".vob":
                 case ".wmv":
-                    result = "video-type";
+                    result = "FileVideo|#D3D3D3"; // "light gray"
                     break;
 
                 case ".7z":
@@ -735,7 +763,7 @@ namespace MultiPlatformApplication.Helpers
                 case ".tar.gz":
                 case ".z":
                 case ".zip":
-                    result = "archive-type";
+                    result = "FileArchive|#D3D3D3"; // "light gray"
                     break;
 
                 case ".c":
@@ -752,31 +780,26 @@ namespace MultiPlatformApplication.Helpers
                 case ".sh":
                 case ".swift":
                 case ".vb":
-                    result = "code-type";
+                    result = "FilePowerpoint|#D3D3D3"; // "light gray"
                     break;
 
                 case ".pdf":
-                    result = "pdf-type";
+                    result = "FileCode|#D3D3D3"; // "light gray"
                     break;
 
                 case ".txt":
                 case ".md":
                 case ".json":
-                    result = "txt-type";
+                    result = "FileAlt|#D3D3D3"; // "light gray"
                     break;
 
                 default:
-                    result = "unknown-type";
+                    result = "File|#D3D3D3"; // "light gray"
                     break;
             }
 
-            if (!String.IsNullOrEmpty(result))
-                return "MainImage_" + result;
-
             return result;
         }
-
-
 
         public static String GetFileAttachmentSourceFromFileName(String fileName)
         {
@@ -847,6 +870,56 @@ namespace MultiPlatformApplication.Helpers
         }
 
 #endregion GET PATH TO RESOURCE FOR: Presence icon bullet, Receipt type, doc type
+
+#region ICON FONT
+
+        public static Dictionary<String, String> iconsFont = new Dictionary<string, string>()
+        {
+            { "ArrowLeft", "\uf060" },
+            { "Bars", "\uf0c9" },
+            { "Clock", "\uf017" },
+            { "Calendar", "\uf133" },
+            { "CalendarAlt", "\uf073" },
+            { "Cloud", "\uf0c2" },
+            { "Cog", "\uf013" },
+            { "Comment", "\uf075" },
+            { "CommentAlt", "\uf27a" },
+            { "CommentDots", "\uf4ad" },
+            { "EllipsisH", "\uf141" },
+            { "EllipsisV", "\uf142" },
+            { "Exclamation", "\uf12a" },
+            { "ExclamationTriangle", "\uf071" },
+            { "File", "\uf15b" },
+            { "FileAlt", "\uf15c" },
+            { "FileArchive", "\uf1c6" },
+            { "FileAudio", "\uf1c7" },
+            { "FileCode", "\uf1c9" },
+            { "FileExcel", "\uf1c3" },
+            { "FileImage", "\uf1c5" },
+            { "FilePdf", "\uf1c1" },
+            { "FilePowerpoint", "\uf1c4" },
+            { "FileVideo", "\uf1c8" },
+            { "FileWord", "\uf1c2" },
+            { "Filter", "\uf0b0" },
+            { "Fire", "\uf06d" },
+            { "InfoCircle", "\uf05a" },
+            { "Lightbulb", "\uf0eb" },
+            { "Lock", "\uf023" },
+            { "Microphone", "\uf130" },
+            { "MicrophoneSlash", "\uf131" },
+            { "MobileAlt", "\uf3cd" },
+            { "Newspaper", "\uf1ea" },
+            { "Paperclip", "\uf0c6" },
+            { "PaperPlane", "\uf1d8" },
+            { "QuestionCircle", "\uf059" },
+            { "SortAlphaDown", "\uf15d" },
+            { "UnlockAlt", "\uf13e" },
+            { "Users", "\uf0c0" },
+            { "UserCircle", "\uf2bd" },
+            { "UserAlt", "\uf406" }
+        };
+
+#endregion ICON FONT
 
     }
 }

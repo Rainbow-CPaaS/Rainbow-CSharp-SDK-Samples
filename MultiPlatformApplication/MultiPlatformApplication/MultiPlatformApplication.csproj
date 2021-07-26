@@ -11,12 +11,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Resources\images\document\icon_doc_blue.png" />
-    <None Remove="Resources\images\document\icon_image_blue.png" />
-    <None Remove="Resources\images\document\icon_pdf_blue.png" />
-    <None Remove="Resources\images\document\icon_ppt_blue.png" />
-    <None Remove="Resources\images\document\icon_unknown_blue.png" />
-    <None Remove="Resources\images\document\icon_xls_blue.png" />
+    <None Remove="Resources\fonts\FontAwesomeSolid.5.15.3.otf" />
     <None Remove="Resources\images\message\msg_check.png" />
     <None Remove="Resources\images\message\msg_not_read.png" />
     <None Remove="Resources\images\message\msg_read.png" />
@@ -34,12 +29,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Resources\images\document\icon_doc_blue.png" />
-    <EmbeddedResource Include="Resources\images\document\icon_image_blue.png" />
-    <EmbeddedResource Include="Resources\images\document\icon_pdf_blue.png" />
-    <EmbeddedResource Include="Resources\images\document\icon_ppt_blue.png" />
-    <EmbeddedResource Include="Resources\images\document\icon_unknown_blue.png" />
-    <EmbeddedResource Include="Resources\images\document\icon_xls_blue.png" />
+    <EmbeddedResource Include="Resources\fonts\FontAwesomeSolid.5.15.3.otf" />
     <EmbeddedResource Include="Resources\images\message\msg_check.png" />
     <EmbeddedResource Include="Resources\images\message\msg_not_read.png" />
     <EmbeddedResource Include="Resources\images\message\msg_read.png" />

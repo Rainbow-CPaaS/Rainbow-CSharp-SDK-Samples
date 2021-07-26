@@ -31,6 +31,7 @@ namespace MultiPlatformApplication.Controls
                 {
                     String backgroudColorKey = null;
                     String colorKey = null;
+                    Color color;
                     String labelKey = null;
                     String imageSourceKey = null;
 
@@ -40,30 +41,32 @@ namespace MultiPlatformApplication.Controls
                             backgroudColorKey = "ColorBackgroundUrgencyEmergency";
                             colorKey = "ColorUrgencyEmergency";
                             labelKey = "emergencyAlert";
-                            imageSourceKey = "siren";
+                            imageSourceKey = "Font_Fire";
                             break;
 
                         case Rainbow.Model.UrgencyType.Middle:
                             backgroudColorKey = "ColorBackgroundUrgencyImportant";
                             colorKey = "ColorUrgencyImportant";
                             labelKey = "warningAlert";
-                            imageSourceKey = "problem-alert";
+                            imageSourceKey = "Font_ExclamationTriangle";
                             break;
 
                         case Rainbow.Model.UrgencyType.Low:
                             backgroudColorKey = "ColorBackgroundUrgencyInformation";
                             colorKey = "ColorUrgencyInformation";
                             labelKey = "notifyAlert";
-                            imageSourceKey = "bulb";
+                            imageSourceKey = "Font_Lightbulb";
                             break;
                     }
 
+                    color = Helper.GetResourceDictionaryById<Color>(colorKey);
+
                     StackLayout.BackgroundColor = Helper.GetResourceDictionaryById<Color>(backgroudColorKey);
 
-                    Label.TextColor = Helper.GetResourceDictionaryById<Color>(colorKey);
+                    Label.TextColor = color;
                     Label.Text = Helper.GetLabel(labelKey);
 
-                    Image.Source = Helper.GetResourceDictionaryById<ImageSource>("MainImage_" + imageSourceKey);
+                    Image.Source = Helper.GetImageSourceFromFont(imageSourceKey + "|" + color.ToHex());
                 }
             }
         }

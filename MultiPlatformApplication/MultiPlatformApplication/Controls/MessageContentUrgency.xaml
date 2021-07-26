@@ -6,9 +6,17 @@
       <StackLayout x:Name="StackLayout"
                    Orientation="Horizontal"
                    Margin="0"
-                   Padding="6">
-            <Image x:Name="Image" HeightRequest="16" WidthRequest="16"/>
-            <Label x:Name="Label" FontAttributes="Bold" FontSize="{StaticResource FontSizeSmall}"/>
+                   Padding="6,3">
+            <Image x:Name="Image" 
+                   Margin="0"
+                   HeightRequest="20" 
+                   WidthRequest="20"/>
+            <Label x:Name="Label" 
+                   Margin="0"
+                   Padding="0"
+                   VerticalOptions="Center"
+                   FontAttributes="Bold" 
+                   FontSize="{StaticResource FontSizeSmall}"/>
       </StackLayout>
   </ContentView.Content>
 </ContentView>

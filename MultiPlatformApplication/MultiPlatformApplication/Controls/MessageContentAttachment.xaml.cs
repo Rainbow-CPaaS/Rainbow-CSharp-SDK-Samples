@@ -58,7 +58,7 @@ namespace MultiPlatformApplication.Controls
                             String imageSourceId = Helper.GetFileSourceIdFromFileName(message.Content.Attachment.Name);
                             Image.HeightRequest = 30;
                             Image.WidthRequest = 30;
-                            Image.Source = Helper.GetResourceDictionaryById<ImageSource>(imageSourceId);
+                            Image.Source = Helper.GetImageSourceFromFont(imageSourceId);
                         }
                     }
                 }

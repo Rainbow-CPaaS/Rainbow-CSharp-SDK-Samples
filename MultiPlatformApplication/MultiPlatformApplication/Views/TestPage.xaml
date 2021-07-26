@@ -83,9 +83,24 @@
             <Label Text="Hello World - false"
                effects:SelectableLabelEffect.Enabled="False"/>
 
-            
+            <Image Source="{extensions:ImageResource Id=font_ArrowLeft|#FF0000}" 
+                   WidthRequest="50" 
+                   HeightRequest="50"/>
+
+            <Image WidthRequest="50"
+                   HeightRequest="50">
+                <Image.Source>
+                    <FontImageSource FontFamily="FontAwesomeSolid5"
+                                     Color="LightGray"
+                                     Glyph="&#xf164;"/>
+                </Image.Source>
+            </Image>
+
         </StackLayout>
 
+        
+        
+        
         <Grid  x:Name="ContextMenuMessageUrgency"
                Margin="0"
                Padding="2"
@@ -141,7 +156,7 @@
                                     <Image Grid.Column="0"
                                            Grid.Row="0"
                                            Margin="0"
-                                           Source="{Binding ImageSourceId, Converter={StaticResource IdToImageSourceConverter}}"                                               
+                                           Source="{Binding ImageSourceId, Converter={StaticResource IdToImageSourceConverter}}"
                                            HorizontalOptions="Center"
                                            VerticalOptions="Center"
                                            WidthRequest="20"

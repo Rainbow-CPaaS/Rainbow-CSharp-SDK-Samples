@@ -12,55 +12,11 @@ namespace MultiPlatformApplication.Assets
     public class ResourceDictionaryMainImages : ResourceDictionary
     {
 
-        private List<String> svgList = new List<string> { "loading", "arrow_back", "sort", "filter-list",
-                                            "burger-menu", "dialpad", 
-                                            "chat", "newsfeed", "bubble", "contacts", "calllog", 
-                                            "send", "exclamation", "siren", "problem-alert", "bulb", "chat--resized", "mic", "attach", "more_horiz", "more_vert",
-                                            "profil", "phone_mobile", "cloud", "meeting", "settings", "help", "info", "logout"};
-
-        private List<String> svgFileTypeList = new List<string> { "ai-type", "audio-type", "archive-type", "code-type", "document-type", 
-                                                    "excel-type", "image-type", "pdf-type", "powerpoint-type", "psd-type", "txt-type", 
-                                                    "unknown-type", "video-type" };
+        private List<String> svgList = new List<string> { "dialpad", "bubble" };
 
         public ResourceDictionaryMainImages()
         {
             CreateBlackAndWhiteSvgFilesAndAddThemAsImageSource(false);
-
-            CreateUrgencyFiles();
-
-            CreateFileTypes();
-        }
-
-        private void CreateFileTypes()
-        {
-            int size = 60;
-            String imageFilePath;
-            String imagePoolFolderPath = Helper.GetImagesStorageFolderPath();
-
-            foreach (String svgResourceName in svgFileTypeList)
-            {
-                imageFilePath = Path.Combine(imagePoolFolderPath, svgResourceName + ".png");
-                if(CreateImageFile(imageFilePath, svgResourceName, size, "#00000000", null))
-                {
-                    ImageSource imageSource = ImageSource.FromFile(imageFilePath);
-                    Add("MainImage_" + svgResourceName, imageSource);
-                }
-            }
-        }
-
-        private void CreateUrgencyFiles()
-        {
-            // TODO: need to update code when Theme switching will be supported
-            ThemeLight themeLight = new ThemeLight();
-
-            // Emergency:
-            CreateUrgencyFile(themeLight, "ColorUrgencyEmergency", "siren");
-
-            CreateUrgencyFile(themeLight, "ColorUrgencyImportant", "problem-alert");
-
-            CreateUrgencyFile(themeLight, "ColorUrgencyInformation", "bulb");
-
-            CreateUrgencyFile(themeLight, "#000000", "conversations");
         }
 
         private void CreateBlackAndWhiteSvgFilesAndAddThemAsImageSource(bool blackVersion)
@@ -128,26 +84,7 @@ namespace MultiPlatformApplication.Assets
             }
             return true;
         }
-
-        private Boolean CreateUrgencyFile(ResourceDictionary resourceDictionary, String colorKey, String svgResourceName)
-        {
-            Color color;
-            if (resourceDictionary.ContainsKey(colorKey))
-                color = (Color)resourceDictionary[colorKey];
-            else
-                color = Color.FromHex(colorKey);
-
-            String imagePoolFolderPath = Helper.GetImagesStorageFolderPath();
-            String imageFilePath = Path.Combine(imagePoolFolderPath, svgResourceName + ".png");
-            if (CreateImageFile(imageFilePath, svgResourceName, 36, "#00000000", color.ToHex()))
-            {
-                ImageSource imageSource = ImageSource.FromFile(imageFilePath);
-                Add("MainImage_" + svgResourceName, imageSource);
-                return true;
-            }
-            return false;
-            
-        }
+        
     }
 
 }

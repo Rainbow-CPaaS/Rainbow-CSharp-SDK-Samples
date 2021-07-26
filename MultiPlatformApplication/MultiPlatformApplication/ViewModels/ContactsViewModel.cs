@@ -80,8 +80,8 @@ namespace MultiPlatformApplication.ViewModels
                 Menu.SetDefaulMenuItemtSize(30, 50, 80);
                 Menu.TextVisible = true;
                 Menu.TextVisibleForSelectedItem = true;
-                Menu.AddItem(new MenuItemModel() { Id = "orderby", Label = Helper.GetLabel("firstnameOrder"), ImageSourceId = "MainImage_sort_white" });
-                Menu.AddItem(new MenuItemModel() { Id = "filter", Label = Helper.GetLabel("allFilter"), ImageSourceId = "MainImage_filter-list_white" });
+                Menu.AddItem(new MenuItemModel() { Id = "orderby", Label = Helper.GetLabel("firstnameOrder"), ImageSourceId = "Font_SortAlphaDown|#FFFFFF" });
+                Menu.AddItem(new MenuItemModel() { Id = "filter", Label = Helper.GetLabel("allFilter"), ImageSourceId = "Font_Filter|#FFFFFF" });
 
 
                 UpdateLabelsForOrderBy();

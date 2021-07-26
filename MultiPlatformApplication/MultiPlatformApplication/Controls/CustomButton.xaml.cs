@@ -586,14 +586,14 @@ namespace MultiPlatformApplication.Controls
                 if (control.IsSelected && (control.ImageSourceIdOnSelected != null))
                 {
                     control.Image.IsVisible = true;
-                    control.Image.Source = Helper.GetResourceDictionaryById<ImageSource>(control.ImageSourceIdOnSelected);
+                    control.Image.Source = Helper.GetImageSourceFromIdOrFilePath(control.ImageSourceIdOnSelected);
                     return;
                 }
 
                 if (control.ImageSourceId != null)
                 {
                     control.Image.IsVisible = true;
-                    control.Image.Source = Helper.GetResourceDictionaryById<ImageSource>(control.ImageSourceId);
+                    control.Image.Source = Helper.GetImageSourceFromIdOrFilePath(control.ImageSourceId);
                 }
                 else
                     control.Image.IsVisible = false;
