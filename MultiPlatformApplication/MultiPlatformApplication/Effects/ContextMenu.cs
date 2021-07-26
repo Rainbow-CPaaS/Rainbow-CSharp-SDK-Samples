@@ -111,7 +111,7 @@ namespace MultiPlatformApplication.Effects
             }
             if (GetEnabled(bindable))
             {
-                view.StyleId = "ContextMenu";
+                //view.StyleId = "ContextMenu";
                 view.IsVisible = false;
 
                 if (effect == null)
@@ -206,7 +206,10 @@ namespace MultiPlatformApplication.Effects
             Frame contextMenuBackground = GetContextMenuBackgroundElement(bindable);
             contextMenuBackground.IsVisible = true;
 
-            //relativeLayout.ForceLayout();
+
+            // Display context menu "on the front"
+            relativeLayout.RaiseChild(view);
+
         }
 
         public static Frame GetContextMenuBackgroundElement(BindableObject bindable)
@@ -225,28 +228,20 @@ namespace MultiPlatformApplication.Effects
 
             if (result == null)
             {
+                // Create and add context menu background to the relative layout
                 contextMenuBackground = new Frame() { StyleId = "ContextMenuBackground", Margin = 0, Padding = 0, BackgroundColor=Color.LightGray, Opacity=0.5, IsVisible = false };
 
-                // We need to insert contextMenuBackground just before the first "ContextMenu"
-                for(var index =0; index < relativeLayout.Children.Count; index ++)
-                {
-                    if (relativeLayout.Children[index].StyleId == "ContextMenu")
-                    {
-                        relativeLayout.Children.Insert(index, contextMenuBackground);
+                relativeLayout.Children.Add(contextMenuBackground, null, null, 
+                                            Constraint.RelativeToParent((rl) =>
+                                            {
+                                                return rl.Width;
+                                            }),
+                                            Constraint.RelativeToParent((rl) =>
+                                            {
+                                                return rl.Height;
+                                            })
+                );
 
-                        RelativeLayout.SetWidthConstraint(contextMenuBackground, Constraint.RelativeToParent((rl) =>
-                        {
-                            return rl.Width;
-                        }));
-
-                        RelativeLayout.SetHeightConstraint(contextMenuBackground, Constraint.RelativeToParent((rl) =>
-                        {
-                            return rl.Height;
-                        }));
-
-                        break;
-                    }
-                }
             }
             else
             {

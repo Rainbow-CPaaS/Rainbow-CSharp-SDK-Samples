@@ -10,6 +10,7 @@ namespace MultiPlatformApplication.UWP.PlatformEffect
     {
         VisualElement visualElement = null; 
         Frame contextMenuBackground = null;
+        TapGestureRecognizer tapGestureRecognizer;
 
         protected override void OnAttached()
         {
@@ -41,9 +42,13 @@ namespace MultiPlatformApplication.UWP.PlatformEffect
                     if (contextMenuBackground == null)
                     {
                         contextMenuBackground = ContextMenu.GetContextMenuBackgroundElement(visualElement);
-                        TapGestureRecognizer tapGestureRecognizer = new TapGestureRecognizer();
-                        tapGestureRecognizer.Tapped += TapGestureRecognizer_Tapped;
-                        contextMenuBackground.GestureRecognizers.Add(tapGestureRecognizer);
+
+                        if (tapGestureRecognizer == null)
+                        {
+                            tapGestureRecognizer = new TapGestureRecognizer();
+                            tapGestureRecognizer.Tapped += TapGestureRecognizer_Tapped;
+                            contextMenuBackground.GestureRecognizers.Add(tapGestureRecognizer);
+                        }
                     }
                 }
             }
@@ -58,6 +63,9 @@ namespace MultiPlatformApplication.UWP.PlatformEffect
         {
             if (visualElement != null)
             {
+                if (tapGestureRecognizer != null)
+                    contextMenuBackground.GestureRecognizers.Remove(tapGestureRecognizer);
+
                 visualElement.PropertyChanged -= VisualElement_PropertyChanged;
             }
         }
