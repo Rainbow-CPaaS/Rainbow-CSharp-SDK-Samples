@@ -800,74 +800,7 @@ namespace MultiPlatformApplication.Helpers
 
             return result;
         }
-
-        public static String GetFileAttachmentSourceFromFileName(String fileName)
-        {
-            if (String.IsNullOrEmpty(fileName))
-                return null;
-
-            String result = null;
-
-            String extension = Path.GetExtension(fileName);
-            switch(extension)
-            {
-                case ".doc":
-                case ".docm":
-                case ".docx":
-                case ".dot":
-                case ".dotx":
-                    result = "icon_doc_blue.png";
-                    break;
-
-                case ".pot":
-                case ".potm":
-                case ".potx":
-                case ".pps":
-                case ".ppsm":
-                case ".ppsx":
-                case ".ppt":
-                case ".pptm":
-                case ".pptx":
-                    result = "icon_ppt_blue.png";
-                    break;
-
-                case ".xla":
-                case ".xlam":
-                case ".xlm":
-                case ".xls":
-                case ".xlsm":
-                case ".xlsx":
-                case ".xlt":
-                case ".xltm":
-                case ".xltx":
-                    result = "icon_xls_blue.png";
-                    break;
-
-                case ".bmp":
-                case ".gif":
-                case ".jpg":
-                case ".jpeg":
-                case ".png":
-                case ".svg":
-                case ".tif":
-                case ".tiff":
-                    result = "icon_image_blue.png";
-                    break;
-
-                case ".pdf":
-                    result = "icon_pdf_blue.png";
-                    break;
-
-                default:
-                    result = "icon_unknown_blue.png";
-                    break;
-            }
-
-            if (!String.IsNullOrEmpty(result))
-                return NamespaceResources + ".images.document." + result;
-
-            return result;
-        }
+       
 
 #endregion GET PATH TO RESOURCE FOR: Presence icon bullet, Receipt type, doc type
 
@@ -877,6 +810,7 @@ namespace MultiPlatformApplication.Helpers
         {
             { "ArrowLeft", "\uf060" },
             { "Bars", "\uf0c9" },
+            { "Bubble", "\ue004" },
             { "Clock", "\uf017" },
             { "Calendar", "\uf133" },
             { "CalendarAlt", "\uf073" },
@@ -885,6 +819,7 @@ namespace MultiPlatformApplication.Helpers
             { "Comment", "\uf075" },
             { "CommentAlt", "\uf27a" },
             { "CommentDots", "\uf4ad" },
+            { "DialPad", "\ue003" },
             { "EllipsisH", "\uf141" },
             { "EllipsisV", "\uf142" },
             { "Exclamation", "\uf12a" },

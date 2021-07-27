@@ -83,7 +83,7 @@
             <Label Text="Hello World - false"
                effects:SelectableLabelEffect.Enabled="False"/>
 
-            <Image Source="{extensions:ImageResource Id=font_ArrowLeft|#FF0000}" 
+            <Image Source="{extensions:ImageResource Id=font_DialPad|#FF0000}" 
                    WidthRequest="50" 
                    HeightRequest="50"/>
 
@@ -92,7 +92,7 @@
                 <Image.Source>
                     <FontImageSource FontFamily="FontAwesomeSolid5"
                                      Color="LightGray"
-                                     Glyph="&#xf164;"/>
+                                     Glyph="&#xe004;"/>
                 </Image.Source>
             </Image>
 

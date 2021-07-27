@@ -12,7 +12,7 @@ namespace MultiPlatformApplication.Assets
     public class ResourceDictionaryMainImages : ResourceDictionary
     {
 
-        private List<String> svgList = new List<string> { "dialpad", "bubble" };
+        private List<String> svgList = new List<string>();
 
         public ResourceDictionaryMainImages()
         {

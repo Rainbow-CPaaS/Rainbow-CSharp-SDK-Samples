@@ -56,7 +56,7 @@ namespace MultiPlatformApplication.ViewModels
                 Menu.TextVisibleForSelectedItem = true;
                 Menu.AddItem(new MenuItemModel() { Id = "conversations", Label = Helper.GetLabel("conversationsItem"), ImageSourceId = "Font_CommentAlt|#FFFFFF" });
                 Menu.AddItem(new MenuItemModel() { Id = "channels", Label = Helper.GetLabel("channels"), ImageSourceId = "Font_Newspaper|#FFFFFF" });
-                Menu.AddItem(new MenuItemModel() { Id = "bubbles", Label = Helper.GetLabel("bubbles"), ImageSourceId = "MainImage_bubble_white" });
+                Menu.AddItem(new MenuItemModel() { Id = "bubbles", Label = Helper.GetLabel("bubbles"), ImageSourceId = "Font_Bubble|#FFFFFF" });
                 Menu.AddItem(new MenuItemModel() { Id = "contacts", Label = Helper.GetLabel("contacts"), ImageSourceId = "Font_Users|#FFFFFF" });
                 Menu.AddItem(new MenuItemModel() { Id = "calls", Label = Helper.GetLabel("tab-calllogs-title"), ImageSourceId = "Font_Clock|#FFFFFF" });
 
