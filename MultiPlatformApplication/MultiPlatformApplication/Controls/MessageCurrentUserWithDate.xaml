@@ -2,7 +2,9 @@
 <ContentView xmlns="http://xamarin.com/schemas/2014/forms" 
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:controls="clr-namespace:MultiPlatformApplication.Controls"
-             x:Class="MultiPlatformApplication.Controls.MessageCurrentUserWithDate">
+             x:Class="MultiPlatformApplication.Controls.MessageCurrentUserWithDate"
+             Margin="0"
+             Padding="0">
   <ContentView.Content>
         <StackLayout Orientation="Vertical" 
                          HorizontalOptions="Fill" 

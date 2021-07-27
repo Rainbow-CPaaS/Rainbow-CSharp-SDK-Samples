@@ -2,7 +2,9 @@
 <ContentView xmlns="http://xamarin.com/schemas/2014/forms" 
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:effects="clr-namespace:MultiPlatformApplication.Effects"
-             x:Class="MultiPlatformApplication.Controls.MessageContentReply">
+             x:Class="MultiPlatformApplication.Controls.MessageContentReply"
+             Margin="0"
+             Padding="0">
     <ContentView.Content>
         <Frame  x:Name="Frame"
                 CornerRadius="0"

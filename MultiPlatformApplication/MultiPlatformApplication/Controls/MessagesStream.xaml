@@ -5,7 +5,9 @@
              xmlns:effects="clr-namespace:MultiPlatformApplication.Effects"
              x:Class="MultiPlatformApplication.Controls.MessagesStream"
              x:Name="RootElement"
-             BackgroundColor="{StaticResource ColorConversationStreamMainBackground}">
+             BackgroundColor="{StaticResource ColorConversationStreamMainBackground}"
+             Margin="0"
+             Padding="0">
 
     <ContentView.Resources>
         <converters:ReverseBooleanConverter x:Key="ReverseBooleanConverter" />
@@ -37,6 +39,7 @@
                             <StackLayout x:Name="StackLayoutDesktop"
                                          Padding="0"
                                          Margin="0"
+                                         Spacing="0"
                                          VerticalOptions="Start" />
                         </ScrollView>
 
@@ -73,6 +76,7 @@
                             <StackLayout x:Name="StackLayoutMobile"
                                          Padding="0"
                                          Margin="0"
+                                         Spacing="0"
                                          VerticalOptions="Start" />
                         </ScrollView>
                     </RefreshView>

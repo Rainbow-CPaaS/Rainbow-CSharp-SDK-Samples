@@ -1,13 +1,17 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <ContentView xmlns="http://xamarin.com/schemas/2014/forms" 
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="MultiPlatformApplication.Controls.MessageSeparatorEvent">
+             x:Class="MultiPlatformApplication.Controls.MessageSeparatorEvent"
+             Margin="0"
+             Padding="0">
   <ContentView.Content>
+      
       <StackLayout Orientation="Vertical"
                    HorizontalOptions="FillAndExpand"
                    Padding="0,8"
                    Margin="2"
                    Spacing="0">
+          
           <Frame CornerRadius="2"
                  Margin="0"
                  Padding="10, 5"

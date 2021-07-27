@@ -1,9 +1,11 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <ContentView xmlns="http://xamarin.com/schemas/2014/forms" 
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="MultiPlatformApplication.Controls.MessageSeparatorDisplayName">
+             x:Class="MultiPlatformApplication.Controls.MessageSeparatorDisplayName"
+             Margin="0"
+             Padding="0">
   <ContentView.Content>
-      <Grid RowSpacing="0" ColumnSpacing="2" Padding="0">
+      <Grid RowSpacing="0" ColumnSpacing="2" Padding="0" Margin="0">
           <Grid.ColumnDefinitions>
                 <!-- SPACE -->
                 <ColumnDefinition Width="4" />

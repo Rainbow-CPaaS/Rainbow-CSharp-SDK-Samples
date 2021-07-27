@@ -2,7 +2,9 @@
 <ContentView xmlns="http://xamarin.com/schemas/2014/forms" 
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:controls="clr-namespace:MultiPlatformApplication.Controls"
-             x:Class="MultiPlatformApplication.Controls.MessageCurrentUser">
+             x:Class="MultiPlatformApplication.Controls.MessageCurrentUser"
+             Margin="0"
+             Padding="0">
   <ContentView.Content>
         <StackLayout Orientation="Vertical" 
                          HorizontalOptions="Fill" 
@@ -10,9 +12,9 @@
                          Padding="0" 
                          Spacing="0">
             <Grid RowSpacing="0" 
-                      ColumnSpacing="2" 
-                      Padding="0" 
-                      HorizontalOptions="End">
+                  ColumnSpacing="2" 
+                  Padding="0" 
+                  HorizontalOptions="End">
                 <Grid.ColumnDefinitions>
                     <!-- SPACE -->
                     <ColumnDefinition Width="4" />
@@ -23,9 +25,9 @@
                 </Grid.ColumnDefinitions>
 
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="4" />
+                    <RowDefinition Height="1" />
                     <RowDefinition Height="Auto" />
-                    <RowDefinition Height="4" />
+                    <RowDefinition Height="1" />
                 </Grid.RowDefinitions>
 
                 <!-- BODY -->
