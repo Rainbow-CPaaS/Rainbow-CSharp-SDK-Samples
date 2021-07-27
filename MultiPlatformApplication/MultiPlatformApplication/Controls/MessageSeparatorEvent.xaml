@@ -18,10 +18,10 @@
                            HorizontalOptions="Center"
                            Margin="0"
                            Spacing="8">
-                  <Label FontSize="{StaticResource FontSizeSmall}"
+                  <Label x:Name="Label"
+                         FontSize="{StaticResource FontSizeSmall}"
                          FontAttributes="Bold"
-                         TextColor="{StaticResource ColorConversationStreamEventFont}"
-                         Text="{Binding Content.Body}"/>
+                         TextColor="{StaticResource ColorConversationStreamEventFont}"/>
                   
                   <Label FontSize="{StaticResource FontSizeSmall}"
                             FontAttributes="Italic"

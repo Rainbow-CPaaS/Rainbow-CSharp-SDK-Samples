@@ -387,7 +387,7 @@ namespace MultiPlatformApplication.ViewModels
                 if (!String.IsNullOrEmpty(rbMessage.BubbleEvent))
                 {
                     message.Content.Type = "event";
-                    message.Content.Body = Helper.GetBubbleEventMessageBody(contact, rbMessage.BubbleEvent);
+                    message.Content.Body = rbMessage.BubbleEvent; // Store bubble event - will be used in "MessageSeparatorEvent" class
                 }
                 // Is-it an "CallLog message" ?
                 else if (rbMessage.CallLogAttachment != null)
