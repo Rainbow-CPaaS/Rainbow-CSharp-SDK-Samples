@@ -26,16 +26,32 @@
         </OnPlatform>
     </ContentPage.Padding>
 
-    <StackLayout x:Name="StackLayoutMainContent"
-                 Orientation="Vertical">
+    <Grid x:Name="GridMainContent"  
+          Margin="0"
+          Padding="0"
+          ColumnSpacing="0"
+          RowSpacing="0"
+          BackgroundColor="{StaticResource ColorMain}"
+          VerticalOptions="Fill">
+        
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="50"/>
+        </Grid.RowDefinitions>
+        
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
 
-        <controls:MenuControl BackgroundColor="{StaticResource ColorMain}"
+        <controls:MenuControl Grid.Column="0"
+                              Grid.Row="1"
+                              Padding="0"
+                              Margin="0"
+                              BackgroundColor="{StaticResource ColorMain}"
                               BindingContext="{Binding Menu}"
                               Orientation="Horizontal"
                               HorizontalOptions="Center"
-                              VerticalOptions="End"
                               />
-    </StackLayout>
 
-
+    </Grid>
 </ContentPage>

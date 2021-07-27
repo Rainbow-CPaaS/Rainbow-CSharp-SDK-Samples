@@ -24,7 +24,9 @@ namespace MultiPlatformApplication.ViewModels
         private ContactsPanel contactsPanel;
 
         ContentPage contenPage; // Ref. to Content Page: necessary to find the stacklayout where content is switched to dispaly info according menu selection
-        StackLayout stackLayoutMainContent; // Stacklayout: First element is used (as content) to dispaly info according menu selection
+        Grid gridMainContent; // Grid is used (as content) to dispaly info according menu selection
+
+        View currentView = null; // To know which current view is displayed in the grid row=0 col=0
 
 #region BINDINGS used by XAML
 
@@ -46,7 +48,7 @@ namespace MultiPlatformApplication.ViewModels
             {
                 firstInitialization = false;
 
-                stackLayoutMainContent = (StackLayout) contenPage.FindByName("StackLayoutMainContent");
+                gridMainContent= (Grid)contenPage.FindByName("GridMainContent");
 
                 // Define menu
                 Menu.Command = new RelayCommand<object>(new Action<object>(MenuCommand)); // Command raised when a menu item is selected
@@ -81,7 +83,7 @@ namespace MultiPlatformApplication.ViewModels
                 case "conversations":
                     if (conversationsPanel == null)
                         conversationsPanel = new ConversationsPanel();
-
+                    
                     conversationsPanel.Initialize();
                     view = conversationsPanel;
                     break;
@@ -95,23 +97,17 @@ namespace MultiPlatformApplication.ViewModels
                     break;
 
                 default:
-                    view = new Label() { Text = id + " - TO DO", HorizontalOptions = new LayoutOptions(LayoutAlignment.Center, false), VerticalOptions = new LayoutOptions(LayoutAlignment.Center, false) };
+                    view = new Label() { Text = id + " - TO DO", HorizontalOptions = new LayoutOptions(LayoutAlignment.Center, false), VerticalOptions = new LayoutOptions(LayoutAlignment.Center, false), BackgroundColor = Color.White };
                     break;
             }
 
-            if(stackLayoutMainContent != null)
+            if(gridMainContent != null)
             {
-                if (stackLayoutMainContent.Children.Count == 1)
-                    stackLayoutMainContent.Children.Insert(0, view);
-                else
-                {
-                    if (stackLayoutMainContent.Children[0] != view)
-                    {
-                        stackLayoutMainContent.Children.RemoveAt(0);
-                        stackLayoutMainContent.Children.Insert(0, view);
+                if (currentView != null)
+                    gridMainContent.Children.Remove(currentView);
 
-                    }
-                }
+                currentView = view;
+                gridMainContent.Children.Add(currentView, 0, 0);
             }
         }
 

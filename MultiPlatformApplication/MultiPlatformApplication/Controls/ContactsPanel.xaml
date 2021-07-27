@@ -8,9 +8,8 @@
              x:Class="MultiPlatformApplication.Controls.ContactsPanel"
              Margin="0"
              Padding="0"
-             HorizontalOptions="FillAndExpand"
-             VerticalOptions="FillAndExpand"
-             BackgroundColor="#00000000">
+             x:Name="RootContentView"
+             BackgroundColor="#FFFFFF">
 
     <ContentView.Resources>
         <ResourceDictionary >
@@ -26,11 +25,12 @@
                                               Item="{StaticResource ContactDataTemplate}"/>
     </ContentView.Resources>
 
+    <ContentView.Content>
+        
     <RelativeLayout x:Name="RootLayout" 
                     Margin="0"
                     Padding="0"
-                    HorizontalOptions="Fill"
-                    VerticalOptions="Fill">
+                    VerticalOptions="StartAndExpand">
 
 
         <controls:MenuControl x:Name="MenuControl"
@@ -45,10 +45,9 @@
 
         <ListView x:Name="ContactsListView"
                   Margin="5,0"
-                  VerticalOptions="Fill"
-                  HorizontalOptions="Fill"
-              
                   HasUnevenRows="True"
+                  
+                  VerticalOptions="Start"
               
                   IsPullToRefreshEnabled="false"
                   IsRefreshing="false"
@@ -60,9 +59,9 @@
                   SeparatorVisibility="None"
                   
                   RelativeLayout.YConstraint="{ConstraintExpression Type=RelativeToView, ElementName=MenuControl, Property=Height}" 
-                  RelativeLayout.WidthConstraint="{ConstraintExpression Type=RelativeToParent, Property=Width}"
+                  RelativeLayout.WidthConstraint="{ConstraintExpression Type=RelativeToParent, Property=Width}"                  
                   >
-            
+                <!-- /!\ RelativeLayout.HeightConstraint is defined in code behind -->
         </ListView>
 
 
@@ -215,4 +214,5 @@
                            RelativeLayout.HeightConstraint="{ConstraintExpression Type=RelativeToParent, Property=Height}"/>
         
     </RelativeLayout>
+    </ContentView.Content>
 </ContentView>

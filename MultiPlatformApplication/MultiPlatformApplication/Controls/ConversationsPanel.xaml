@@ -5,7 +5,8 @@
              xmlns:dataTemplate="clr-namespace:MultiPlatformApplication.Views.DataTemplates" 
              x:Class="MultiPlatformApplication.Controls.ConversationsPanel"
              Margin="0"
-             Padding="0">
+             Padding="0"
+             BackgroundColor="#FFFFFF">
     
     <ContentView.Resources>
         <converters:ReverseBooleanConverter x:Key="ReverseBooleanConverter" />
