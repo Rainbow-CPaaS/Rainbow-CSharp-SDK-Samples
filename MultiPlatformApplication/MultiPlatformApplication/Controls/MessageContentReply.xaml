@@ -12,12 +12,12 @@
                 Padding="6,6,6,0">
 
             <Grid x:Name="Grid"
-                      Margin="0"
-                      Padding="0"
-                      RowSpacing="0"
-                      ColumnSpacing="0"
-                      BackgroundColor="{StaticResource ColorConversationStreamReplyOtherUserBackGround}"
-                      HorizontalOptions="Fill">
+                  Margin="0"
+                  Padding="0"
+                  RowSpacing="0"
+                  ColumnSpacing="0"
+                  BackgroundColor="{StaticResource ColorConversationStreamReplyOtherUserBackGround}"
+                  HorizontalOptions="Fill">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="8" />
                     <ColumnDefinition Width="Auto" />

@@ -21,7 +21,7 @@
                Margin="0"
                CornerRadius="2">
 
-            <Grid RowSpacing="0" ColumnSpacing="0" Padding="0">
+            <Grid RowSpacing="0" ColumnSpacing="0" Padding="0" Margin="0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
@@ -36,10 +36,11 @@
                 <!-- DEFINE MAIN STACK LAYOUT -->
                 <Grid x:Name="MainGrid"
                       Grid.Row="0" 
-                          Grid.Column="0"
-                          RowSpacing="0" 
-                          ColumnSpacing="0" 
-                          Padding="0">
+                      Grid.Column="0"
+                      RowSpacing="0" 
+                      ColumnSpacing="0" 
+                      Padding="0"
+                      Margin="0">
 
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>

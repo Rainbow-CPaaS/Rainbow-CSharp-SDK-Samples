@@ -30,13 +30,21 @@ namespace MultiPlatformApplication.Controls
                 if (message != null)
                 {
                     String colorKey;
+                    String backgroundColorKey;
 
                     if (message.Peer.Id == Helper.SdkWrapper.GetCurrentContactId())
+                    {
                         colorKey = "ColorConversationStreamMessageCurrentUserFont";
+                        backgroundColorKey = "ColorConversationStreamMessageCurrentUserBackGround";
+                    }
                     else
+                    {
                         colorKey = "ColorConversationStreamMessageOtherUserFont";
+                        backgroundColorKey = "ColorConversationStreamMessageOtherUserBackGround";
+                    }
 
                     Label.TextColor = Helper.GetResourceDictionaryById<Color>(colorKey);
+                    BackgroundColor = Helper.GetResourceDictionaryById<Color>(backgroundColorKey);
                 }
             }
         }
