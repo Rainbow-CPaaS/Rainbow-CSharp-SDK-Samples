@@ -361,6 +361,7 @@ namespace MultiPlatformApplication.Helpers
             else
                 name = id;
 
+            // Do we have a color specified ?
             int index = name.IndexOf("|");
             if (index > 0)
             {
@@ -368,16 +369,20 @@ namespace MultiPlatformApplication.Helpers
                 name = name.Substring(0, index);
             }
 
+            FontImageSource result = new FontImageSource();
+            result.FontFamily = "FontAwesomeSolid5";
+            result.Color = Color.FromHex(color);
+
             if (iconsFont.ContainsKey(name))
             {
-                FontImageSource result = new FontImageSource();
-                result.FontFamily = "FontAwesomeSolid5";
                 result.Glyph = iconsFont[name];
-                result.Color = Color.FromHex(color);
-
-                return result;
             }
-            return null;
+            else
+            {
+                //Need to transform "f060" to "\uf060" ...
+                result.Glyph = System.Text.RegularExpressions.Regex.Unescape("\\u" + name);
+            }
+            return result;
         }
 
         // Get image source using Id specified - Using ID provided:
