@@ -10,6 +10,8 @@ namespace MultiPlatformApplication.Models
     {
         public String Id { get; set; }
 
+        public String ConversationType { get; set; } // Rainbow.Model.Conversation.ConversationType.Room | User | Bot | Channel
+
         public String ConversationId { get; set; } // Needed to manage attachment
 
         public DateTime Date { get; set; } // Necessary ?
@@ -22,7 +24,9 @@ namespace MultiPlatformApplication.Models
 
         public String ReplaceId { get; set; }
 
-        public String ReceiptSourceId { get; set; }
+        public String Receipt { get; set; }
+
+        public CallLogAttachment CallLogAttachment { get; set; }
 
         public MessageContentModel Content { get; set; }
 

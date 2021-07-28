@@ -251,6 +251,52 @@ namespace MultiPlatformApplication.Helpers
             return result;
         }
 
+        public static String GetCallLogEventMessageBody(CallLogAttachment callLogAttachment)
+        {
+            String body = "";
+            String displayName = "?";
+
+            String currentContactJid = Helper.SdkWrapper.GetCurrentContactJid();
+
+            Rainbow.Model.Contact contact;
+            if (callLogAttachment.Caller == currentContactJid)
+                contact = Helper.SdkWrapper.GetContactFromContactJid(callLogAttachment.Callee);
+            else
+                contact = Helper.SdkWrapper.GetContactFromContactJid(callLogAttachment.Caller);
+
+            if (contact != null)
+                displayName = Rainbow.Util.GetContactDisplayName(contact);
+
+            if (String.IsNullOrEmpty(displayName))
+                displayName = "?";
+
+            switch (callLogAttachment.State)
+            {
+                case CallLog.LogState.ANSWERED:
+
+                    if (callLogAttachment.Caller == currentContactJid)
+                        body = Helper.GetLabel("activeCallRecvMsg", "userDisplayName", displayName);
+                    else
+                        body = Helper.GetLabel("activeCallMsg", "userDisplayName", displayName);
+
+                    double nbSecs = Math.Round((double)callLogAttachment.Duration / 1000);
+                    int mns = (int)(nbSecs / 60);
+                    int sec = (int)Math.Round(nbSecs - (mns * 60));
+                    body = body + " (" + ((mns > 0) ? mns + ((mns > 1) ? "mns " : "mn ") : "") + ((sec > 0) ? sec + "s" : "") + ")";
+                    break;
+
+                case CallLog.LogState.MISSED:
+                    body = Helper.GetLabel("missedCall");
+                    break;
+
+                case CallLog.LogState.FAILED:
+                    body = Helper.GetLabel("noAnswer");
+                    break;
+            }
+
+            return body;
+        }
+
         public static String GetLabel(String key)
         {
             if (Languages == null)
@@ -271,6 +317,11 @@ namespace MultiPlatformApplication.Helpers
                 // Get Rainbow Languages service
                 Languages = Rainbow.Common.Languages.Instance;
             }
+            if(String.IsNullOrEmpty(key))
+            {
+                return "[! label key is NULL !]";
+            }
+            
             String label = Languages.GetLabel(key, subtituteKey, subtituteValue);
             if (String.IsNullOrEmpty(label))
                 label = "[! " + key + " !]";
@@ -648,28 +699,26 @@ namespace MultiPlatformApplication.Helpers
             return result;
         }
 
-        public static String GetReceiptSourceFromReceiptType(ReceiptType receiptType)
+        public static String GetReceiptSourceIdFromReceiptType(String receiptType)
         {
             String result = null;
             switch (receiptType)
             {
-                case ReceiptType.ServerReceived:
-                    result = "msg_check.png";
+                case "ServerReceived":
+                    result = "Font_Check|#D3D3D3";
                     break;
-                case ReceiptType.ClientReceived:
-                    result = "msg_not_read.png";
+                case "ClientReceived":
+                    result = "Font_CheckDouble|#D3D3D3";
                     break;
-                case ReceiptType.ClientRead:
-                    result = "msg_read.png";
+                case "ClientRead":
+                    result = "Font_CheckDouble|#3EA5D8";
                     break;
-                case ReceiptType.None:
-                    result = "msg_sending.png";
+                case "None":
+                    result = "Font_Clock|#D3D3D3";
                     break;
             }
-            if (!String.IsNullOrEmpty(result))
-                return NamespaceResources + ".images.message." + result;
-
-            return null;
+            
+            return result;
         }
 
         public static String GetFileSourceIdFromFileName(String fileName)

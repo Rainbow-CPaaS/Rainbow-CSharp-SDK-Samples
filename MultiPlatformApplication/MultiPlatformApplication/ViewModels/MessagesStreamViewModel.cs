@@ -90,9 +90,10 @@ namespace MultiPlatformApplication.ViewModels
         {
             // Manage event(s) from InstantMessaging
             Helper.SdkWrapper.MessageReceived += SdkWrapper_MessageReceived;
+            Helper.SdkWrapper.UserTypingChanged += SdkWrapper_UserTypingChanged;
+
             Helper.SdkWrapper.ReceiptReceived += SdkWrapper_ReceiptReceived;
             Helper.SdkWrapper.MessagesAllRead += SdkWrapper_MessagesAllRead;
-            Helper.SdkWrapper.UserTypingChanged += SdkWrapper_UserTypingChanged;
 
             currentContactId = Helper.SdkWrapper.GetCurrentContactId();
             currentContactJid = Helper.SdkWrapper.GetCurrentContactJid();
@@ -358,13 +359,19 @@ namespace MultiPlatformApplication.ViewModels
                 message = new MessageElementModel();
 
                 message.Id = rbMessage.Id;
+
+                message.ConversationType = conversationType;
                 message.ConversationId = conversationId;
 
                 message.Peer.Jid = rbMessage.FromJid;
                 message.Peer.Type = Rainbow.Model.Conversation.ConversationType.User;
 
+
+                // Store replace Id
+                message.ReplaceId = rbMessage.ReplaceId;
+
                 message.Date = rbMessage.Date;
-                message.DateDisplayed = Helper.HumanizeDateTime(rbMessage.Date);
+                message.DateDisplayed = Helper.HumanizeDateTime(rbMessage.Date) + (String.IsNullOrEmpty(message.ReplaceId) ? "" : " - " + Helper.GetLabel("modified") );
 
                 Rainbow.Model.Contact contact = Helper.SdkWrapper.GetContactFromContactJid(rbMessage.FromJid);
                 if (contact != null)
@@ -381,7 +388,7 @@ namespace MultiPlatformApplication.ViewModels
                 }
 
                 // Receipt
-                SetReceiptPartOfMessage(message, rbMessage.Receipt);
+                message.Receipt = rbMessage.Receipt.ToString();
 
                 // Is-it an "Event message" ?
                 if (!String.IsNullOrEmpty(rbMessage.BubbleEvent))
@@ -392,7 +399,8 @@ namespace MultiPlatformApplication.ViewModels
                 // Is-it an "CallLog message" ?
                 else if (rbMessage.CallLogAttachment != null)
                 {
-                    SetCallLogPartOfMessage(message, rbMessage.CallLogAttachment);
+                    message.Content.Type = "event";
+                    message.CallLogAttachment = rbMessage.CallLogAttachment;
                 }
                 else
                 {
@@ -411,9 +419,6 @@ namespace MultiPlatformApplication.ViewModels
                             message.Content.Body = Helper.GetLabel("messageReceivedDeleted");
                         }
                     }
-
-                    // Store replace Id
-                    message.ReplaceId = rbMessage.ReplaceId;
 
                     // Reply part
                     if (rbMessage.ReplyMessage != null)
@@ -440,57 +445,7 @@ namespace MultiPlatformApplication.ViewModels
             return message;
         }
 
-        public void SetReceiptPartOfMessage(MessageElementModel message, ReceiptType receiptType)
-        {
-            String receipt = receiptType.ToString();
-            message.ReceiptSourceId = Helper.GetReceiptSourceFromReceiptType(receiptType);
-        }
 
-        private void SetCallLogPartOfMessage(MessageElementModel message, CallLogAttachment callLogAttachment)
-        {
-            String body = "";
-            String displayName = "?";
-
-            Contact contact;
-            if (callLogAttachment.Caller == currentContactJid)
-                contact = Helper.SdkWrapper.GetContactFromContactJid(callLogAttachment.Callee);
-            else
-                contact = Helper.SdkWrapper.GetContactFromContactJid(callLogAttachment.Caller);
-
-            if (contact != null)
-                displayName = Rainbow.Util.GetContactDisplayName(contact);
-
-            if (String.IsNullOrEmpty(displayName))
-                displayName = "?";
-
-            switch (callLogAttachment.State)
-            {
-                case CallLog.LogState.ANSWERED:
-
-                    if (callLogAttachment.Caller == currentContactJid)
-                        body = Helper.GetLabel("activeCallRecvMsg", "userDisplayName", displayName);
-                    else
-                        body = Helper.GetLabel("activeCallMsg", "userDisplayName", displayName);
-
-                    double nbSecs = Math.Round((double)callLogAttachment.Duration / 1000);
-                    int mns = (int)(nbSecs / 60);
-                    int sec = (int)Math.Round(nbSecs - (mns * 60));
-                    body = body + " (" + ((mns > 0) ? mns + ((mns > 1) ? "mns " : "mn ") : "") + ((sec > 0) ? sec + "s" : "") + ")";
-                    break;
-
-                case CallLog.LogState.MISSED:
-                    body = Helper.GetLabel("missedCall");
-                    break;
-
-                case CallLog.LogState.FAILED:
-                    body = Helper.GetLabel("noAnswer");
-                    break;
-            }
-
-            message.Content.Type = "event";
-            message.Content.Body = body;
-
-        }
 
 #region SCROLLING STUFF
 
@@ -589,42 +544,6 @@ namespace MultiPlatformApplication.ViewModels
                     AddToModelRbMessages(list, true);
                 }
             }
-        }
-
-        private void SdkWrapper_ReceiptReceived(object sender, Rainbow.Events.ReceiptReceivedEventArgs e)
-        {
-            // TODO
-            //Device.BeginInvokeOnMainThread(() =>
-            //{
-            //    if (e.ConversationId == Conversation.Id)
-            //    {
-            //        log.Debug("[RbInstantMessaging_ReceiptReceived] MessageId:[{0}] - ReceiptType:[{1}]", e.MessageId, e.ReceiptType);
-            //        MessageElementModel message = GetMessageByMessageId(e.MessageId);
-            //        if (message != null)
-            //            SetReceiptPartOfMessage(message, e.ReceiptType);
-            //    }
-            //});
-        }
-
-        private void SdkWrapper_MessagesAllRead(object sender, Rainbow.Events.IdEventArgs e)
-        {
-            // TODO
-            //// Set to ClientRead all messages in the list
-            //if (e.Id == Conversation.Id)
-            //{
-            //    Device.BeginInvokeOnMainThread(() =>
-            //    {
-            //        log.Debug("[RbInstantMessaging_MessagesAllRead] conversationId:[{0}]", Conversation.Id);
-            //        lock (lockObservableMessagesList)
-            //        {
-            //            foreach (MessageElementModel message in MessagesList)
-            //            {
-            //                if (message.Peer.Jid == currentContactJid)
-            //                    SetReceiptPartOfMessage(message, Rainbow.Model.ReceiptType.ClientRead);
-            //            }
-            //        }
-            //    });
-            //}
         }
 
         private void SdkWrapper_UserTypingChanged(object sender, Rainbow.Events.UserTypingEventArgs e)
