@@ -56,8 +56,8 @@
                        FontSize="{StaticResource FontSizeSmall}"
                        MaxLines="1" 
                        LineBreakMode="TailTruncation"
-                       TextColor="{StaticResource ColorConversationStreamReplyOtherUserFont}"
-                       effects:SelectableLabelEffect.Enabled="True"/>
+                       TextColor="{StaticResource ColorConversationStreamReplyOtherUserFont}"/>
+                        <!-- /!\ it's not possible to have selectable and truncated text in same time -->
 
                 <Image x:Name="Image"
                        Grid.Row="0"
