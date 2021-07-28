@@ -12,10 +12,6 @@
 
   <ItemGroup>
     <None Remove="Resources\fonts\FontAwesomeSolid.5.15.3Enhanced.otf" />
-    <None Remove="Resources\images\message\msg_check.png" />
-    <None Remove="Resources\images\message\msg_not_read.png" />
-    <None Remove="Resources\images\message\msg_read.png" />
-    <None Remove="Resources\images\message\msg_sending.png" />
     <None Remove="Resources\images\presence\presence_away.png" />
     <None Remove="Resources\images\presence\presence_busy.png" />
     <None Remove="Resources\images\presence\presence_dnd.png" />
@@ -30,10 +26,6 @@
 
   <ItemGroup>
     <EmbeddedResource Include="Resources\fonts\FontAwesomeSolid.5.15.3Enhanced.otf" />
-    <EmbeddedResource Include="Resources\images\message\msg_check.png" />
-    <EmbeddedResource Include="Resources\images\message\msg_not_read.png" />
-    <EmbeddedResource Include="Resources\images\message\msg_read.png" />
-    <EmbeddedResource Include="Resources\images\message\msg_sending.png" />
     <EmbeddedResource Include="Resources\images\presence\presence_away.png" />
     <EmbeddedResource Include="Resources\images\presence\presence_busy.png" />
     <EmbeddedResource Include="Resources\images\presence\presence_dnd.png" />

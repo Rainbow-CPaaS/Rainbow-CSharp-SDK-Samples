@@ -92,9 +92,6 @@ namespace MultiPlatformApplication.ViewModels
             Helper.SdkWrapper.MessageReceived += SdkWrapper_MessageReceived;
             Helper.SdkWrapper.UserTypingChanged += SdkWrapper_UserTypingChanged;
 
-            Helper.SdkWrapper.ReceiptReceived += SdkWrapper_ReceiptReceived;
-            Helper.SdkWrapper.MessagesAllRead += SdkWrapper_MessagesAllRead;
-
             currentContactId = Helper.SdkWrapper.GetCurrentContactId();
             currentContactJid = Helper.SdkWrapper.GetCurrentContactJid();
 
