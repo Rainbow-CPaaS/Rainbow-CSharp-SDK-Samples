@@ -6,11 +6,16 @@
              Padding="0">
     
     <ContentView.Content>
-        <Frame  x:Name="RootFrame" CornerRadius="2"
+        <Frame  x:Name="RootFrame" 
+                BackgroundColor="Transparent"
+                HasShadow="False"
+                CornerRadius="2"
                 Margin="0"
                 Padding="4">
             
             <Frame x:Name="Frame"
+                   BackgroundColor="Transparent"
+                   HasShadow="False"
                    CornerRadius="2"
                    Margin="0"
                    Padding="2">

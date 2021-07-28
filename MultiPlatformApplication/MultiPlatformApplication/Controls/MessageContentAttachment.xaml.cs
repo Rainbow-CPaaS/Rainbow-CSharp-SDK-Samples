@@ -37,6 +37,8 @@ namespace MultiPlatformApplication.Controls
                 {
                     if (message.Content.Attachment != null)
                     {
+                        Frame.BackgroundColor = Color.Transparent;
+
                         if (message.Peer.Id == Helper.SdkWrapper.GetCurrentContactId())
                             Label.TextColor = Helper.GetResourceDictionaryById<Color>("ColorConversationStreamMessageCurrentUserFont");
 
@@ -93,7 +95,7 @@ namespace MultiPlatformApplication.Controls
                     Image.WidthRequest = (int)Math.Round(w / density);
                     Image.Source = ImageSource.FromFile(filePath);
 
-                    Frame.BackgroundColor = Color.Transparent;
+                    
 
                     Label.IsVisible = false;
                 }

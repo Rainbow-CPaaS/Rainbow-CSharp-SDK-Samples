@@ -13,6 +13,7 @@
                    Spacing="0">
           
           <Frame CornerRadius="2"
+                 HasShadow="False"
                  Margin="0"
                  Padding="10, 5"
                  BackgroundColor="{StaticResource ColorConversationStreamEventBackground}"
