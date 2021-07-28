@@ -7,10 +7,10 @@
              Padding="0">
   <ContentView.Content>
         <StackLayout Orientation="Vertical" 
-                         HorizontalOptions="Fill" 
-                         Margin="0" 
-                         Padding="0" 
-                         Spacing="0">
+                     HorizontalOptions="Fill" 
+                     Margin="0" 
+                     Padding="0" 
+                     Spacing="0">
             <Grid RowSpacing="0" 
                   ColumnSpacing="2" 
                   Padding="0" 
