@@ -813,11 +813,17 @@ namespace MultiPlatformApplication.Helpers
 
         public static Dictionary<String, String> iconsFont = new Dictionary<string, string>()
         {
+            // Added in Font Awesome 'manually' using Glyphr Studio: https://www.glyphrstudio.com/online/
+            { "Bubble", "\ue004" },
+            { "DialPad", "\ue003" },
+
+            // In Font Awesome (5.15.3)
             { "ArrowLeft", "\uf060" },
             { "Bars", "\uf0c9" },
             { "Bell", "\uf0f3" },
             { "BellSlash", "\uf1f6" },
-            { "Bubble", "\ue004" },
+            { "Check", "\uf00c" },
+            { "CheckDouble", "\uf560" },
             { "Clock", "\uf017" },
             { "Calendar", "\uf133" },
             { "CalendarAlt", "\uf073" },
@@ -831,7 +837,6 @@ namespace MultiPlatformApplication.Helpers
             { "CommentAlt", "\uf27a" },
             { "CommentDots", "\uf4ad" },
             { "Crown", "\uf521" },
-            { "DialPad", "\ue003" },
             { "EllipsisH", "\uf141" },
             { "EllipsisV", "\uf142" },
             { "Exclamation", "\uf12a" },
