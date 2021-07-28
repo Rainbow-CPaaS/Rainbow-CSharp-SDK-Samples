@@ -37,7 +37,7 @@
                 <Image x:Name="ImageLogo" Source="{extensions:ImageResource Id=rainbow_splash_logo.png}" WidthRequest="150" HeightRequest="150"/>
             </StackLayout>
 
-            <Entry
+            <Entry  x:Name="Login"
                     Margin="40,0"
                     FontSize="{StaticResource FontSizeMedium}"
                     WidthRequest="300"
@@ -83,9 +83,11 @@
             <Label Text="Hello World - false"
                effects:SelectableLabelEffect.Enabled="False"/>
 
-            <Image Source="{extensions:ImageResource Id=font_DialPad|#FF0000}" 
+            <Image Source="{extensions:ImageResource Id=Font_Laugh|#FF0000}" 
                    WidthRequest="50" 
-                   HeightRequest="50"/>
+                   HeightRequest="50"
+                   effects:EmojiSelector.EntryName="Login"
+                   />
 
             <Image WidthRequest="50"
                    HeightRequest="50">
