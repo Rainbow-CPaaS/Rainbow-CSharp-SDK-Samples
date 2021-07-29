@@ -17,7 +17,7 @@ namespace MultiPlatformApplication.UWP.PlatformEffect
     public class UwpEmojiSelector : Xamarin.Forms.Platform.UWP.PlatformEffect
     {
         VisualElement visualElement = null;
-        Entry entry;
+        View entry;
 
         InputInjector inputInjector = null;
         InjectedInputKeyboardInfo leftWindowsDown, leftWindowsUp = null;
