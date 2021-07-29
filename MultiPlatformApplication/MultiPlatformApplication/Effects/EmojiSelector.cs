@@ -53,7 +53,7 @@ namespace MultiPlatformApplication.Effects
 #endregion  EntryName Property
 
 
-        public static Entry OnPointerReleased(BindableObject bindable)
+        public static View OnPointerReleased(BindableObject bindable)
         {
             var view = bindable as View;
             if (view == null)
@@ -65,14 +65,14 @@ namespace MultiPlatformApplication.Effects
                 return null;
 
             Element parent = view;
-            Entry entry = null;
+            View entry = null;
             while ( (view.Parent is VisualElement) && (entry == null))
             {
                 parent = parent.Parent;
 
                 try
                 {
-                    entry = parent.FindByName<Entry>(name);
+                    entry = parent.FindByName<View>(name);
                 }
                 catch
                 {
