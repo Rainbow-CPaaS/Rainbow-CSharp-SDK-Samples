@@ -45,19 +45,18 @@
                     Placeholder="{StaticResource Label_loginEmail}"
                     PlaceholderColor="LightGray"
                     Text="{Binding LoginModel.Login}"
-                    IsEnabled="{Binding LoginModel.IsBusy, Converter={StaticResource ReverseBooleanConverter}}" />
+                    IsEnabled="{Binding LoginModel.IsBusy, Converter={StaticResource ReverseBooleanConverter}}"/>
 
-            <Entry
-                    Margin="40,40"
-                    TextColor="Black"
-                    FontSize="{StaticResource FontSizeMedium}"
-                    IsPassword="True"
-                    WidthRequest="300"
-                    HorizontalOptions="CenterAndExpand"
-                    Placeholder="{StaticResource Label_password}"
-                    PlaceholderColor="Gray"
-                    Text="{Binding LoginModel.Password}"
-                    IsEnabled="{Binding LoginModel.IsBusy, Converter={StaticResource ReverseBooleanConverter}}" />
+            <Entry Margin="40,40"
+                   TextColor="Black"
+                   FontSize="{StaticResource FontSizeMedium}"
+                   IsPassword="True"
+                   WidthRequest="300"
+                   HorizontalOptions="CenterAndExpand"
+                   Placeholder="{StaticResource Label_password}"
+                   PlaceholderColor="Gray"
+                   Text="{Binding LoginModel.Password}"
+                   IsEnabled="{Binding LoginModel.IsBusy, Converter={StaticResource ReverseBooleanConverter}}" />
 
             <controls:CustomButton Text="{Binding LoginModel.Connect}"
                                     CornerRadius="4"
@@ -77,37 +76,45 @@
                                IsRunning="{Binding LoginModel.IsBusy}"
                                IsVisible="{Binding LoginModel.IsBusy}" />
 
-            <Label Text="Hello World - true"
-               effects:SelectableLabelEffect.Enabled="True"/>
+            <StackLayout Orientation="Vertical"
+                         HorizontalOptions="Center"
+                         Spacing="0"
+                         Margin="0"
+                         Padding="0">
 
-            <Label Text="Hello World - false"
-               effects:SelectableLabelEffect.Enabled="False"/>
+                <Entry  Margin="0"
+                        BackgroundColor="Transparent"
+                        TextColor="Black"
+                        FontSize="{StaticResource FontSizeMedium}"
+                        WidthRequest="200"
+                        HorizontalOptions="Center" 
+                        Placeholder="{StaticResource Label_loginEmail}"
+                        PlaceholderColor="LightGray"
+                        Text="{Binding LoginModel.Login}"
+                        IsEnabled="{Binding LoginModel.IsBusy, Converter={StaticResource ReverseBooleanConverter}}"
+                        effects:Entry.NoBorder="True"
+                        effects:Entry.NoTintColored="True"/>
 
-            <Image Source="{extensions:ImageResource Id=Font_Laugh|#FF0000}" 
+                <Frame BorderColor="Blue"
+                       HasShadow="False"
+                       HeightRequest="2"
+                       CornerRadius="2"
+                       VerticalOptions="Start"
+                       Margin="0"
+                       Padding="0" />
+
+            </StackLayout>
+
+            <Label Text="Hello World - selectable"
+                   effects:SelectableLabelEffect.Enabled="True"/>
+
+
+            <Image Source="{extensions:ImageResource Id=Font_Laugh|#D3D3D3}" 
                    WidthRequest="50" 
                    HeightRequest="50"
-                   effects:EmojiSelector.EntryName="Login"
-                   />
-
-            <Image Source="{extensions:ImageResource Id=Font_f1c3|#FF0000}" 
-                   WidthRequest="50" 
-                   HeightRequest="50"
-                   effects:EmojiSelector.EntryName="Login"
-                   />
-
-            <Image WidthRequest="50"
-                   HeightRequest="50">
-                <Image.Source>
-                    <FontImageSource FontFamily="FontAwesomeSolid5"
-                                     Color="LightGray"
-                                     Glyph="&#xe004;"/>
-                </Image.Source>
-            </Image>
+                   effects:EmojiSelector.EntryName="Login"/>
 
         </StackLayout>
-
-        
-        
         
         <Grid  x:Name="ContextMenuMessageUrgency"
                Margin="0"
