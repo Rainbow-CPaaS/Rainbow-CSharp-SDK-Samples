@@ -405,7 +405,8 @@ namespace MultiPlatformApplication.Helpers
         {
 
             String name;
-            String color = "#FFFFFF";
+            Color color = Color.White;
+            String colorStr = "#FFFFFF";
 
             if (id.StartsWith("font_", StringComparison.InvariantCultureIgnoreCase))
                 name = id.Substring(5);
@@ -416,13 +417,23 @@ namespace MultiPlatformApplication.Helpers
             int index = name.IndexOf("|");
             if (index > 0)
             {
-                color = name.Substring(index+1);
+                colorStr = name.Substring(index+1);
                 name = name.Substring(0, index);
+            }
+
+            // Is-it a color define in hexa ?
+            if(colorStr.StartsWith("#"))
+            {
+                color = Color.FromHex(colorStr);
+            }
+            else
+            {
+                color = GetResourceDictionaryById<Color>(colorStr);
             }
 
             FontImageSource result = new FontImageSource();
             result.FontFamily = "FontAwesomeSolid5";
-            result.Color = Color.FromHex(color);
+            result.Color = color;
 
             if (iconsFont.ContainsKey(name))
             {
@@ -430,8 +441,15 @@ namespace MultiPlatformApplication.Helpers
             }
             else
             {
-                //Need to transform "f060" to "\uf060" ...
-                result.Glyph = System.Text.RegularExpressions.Regex.Unescape("\\u" + name);
+                try
+                {
+                    //Need to transform "f060" to "\uf060" ...
+                    result.Glyph = System.Text.RegularExpressions.Regex.Unescape("\\u" + name);
+                }
+                catch
+                {
+                    result.Glyph = "\uf128"; // => Question glyph
+                }
             }
             return result;
         }
@@ -914,10 +932,11 @@ namespace MultiPlatformApplication.Helpers
             { "MicrophoneSlash", "\uf131" },
             { "MobileAlt", "\uf3cd" },
             { "Newspaper", "\uf1ea" },
-            { "Paperclip", "\uf0c6" },
+            { "PaperClip", "\uf0c6" },
             { "PaperPlane", "\uf1d8" },
             { "PhoneVolume", "\uf2a0" },
             { "PuzzlePiece", "\uf12e" },
+            { "Question", "\uf128" },
             { "QuestionCircle", "\uf059" },
             { "SignInAlt", "\uf2f6" },
             { "SignOutAlt", "\uf2f5" },
