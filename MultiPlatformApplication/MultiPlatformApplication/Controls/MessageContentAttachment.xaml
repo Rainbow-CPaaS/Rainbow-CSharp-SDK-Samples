@@ -14,7 +14,7 @@
                 Padding="4">
             
             <Frame x:Name="Frame"
-                   BackgroundColor="Transparent"
+                   BackgroundColor="{StaticResource ColorAttachmentBackground}"
                    HasShadow="False"
                    CornerRadius="2"
                    Margin="0"

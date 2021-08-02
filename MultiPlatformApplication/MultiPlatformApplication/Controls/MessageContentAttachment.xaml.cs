@@ -37,10 +37,12 @@ namespace MultiPlatformApplication.Controls
                 {
                     if (message.Content.Attachment != null)
                     {
-                        Frame.BackgroundColor = Color.Transparent;
-
                         if (message.Peer.Id == Helper.SdkWrapper.GetCurrentContactId())
+                        {
+                            Frame.BackgroundColor = Color.Transparent;
                             Label.TextColor = Helper.GetResourceDictionaryById<Color>("ColorConversationStreamMessageCurrentUserFont");
+                        }
+
 
                         if (Helper.SdkWrapper.IsThumbnailFileAvailable(message.ConversationId, message.Content.Attachment.Id, message.Content.Attachment.Name))
                         {
