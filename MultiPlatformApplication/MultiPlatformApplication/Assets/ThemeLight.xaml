@@ -7,7 +7,14 @@
     <Color x:Key="ColorMain">#2470E0</Color>
     <Color x:Key="ColorMainOnOver">#4783E5</Color>
     <Color x:Key="ColorMainOnSelected">#1A59B7</Color>
-    
+
+    <Color x:Key="ColorButtonForeground">#ADADAD</Color>
+    <Color x:Key="ColorButtonMouseOver">#EBEBEB</Color>
+
+    <Color x:Key="ColorEntryBackground">#FFFFFF</Color>
+    <Color x:Key="ColorEntryText">#000000</Color>
+    <Color x:Key="ColorEntryPlaceHolder">#A1AAAD</Color>
+
     <!-- Attachment -->
     <Color x:Key="ColorAttachmentBackground">#FAEBD7</Color>
     <Color x:Key="ColorAttachmentText">#5E5E5E</Color>
