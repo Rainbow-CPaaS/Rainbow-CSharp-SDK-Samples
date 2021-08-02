@@ -38,9 +38,13 @@ namespace MultiPlatformApplication.Controls
             Message.UrgencyCommand = new RelayCommand<object>(new Action<object>(MessageInputUrgencyCommand));
             Message.SendCommand = new RelayCommand<object>(new Action<object>(MessageInputSendCommand));
 
+            Message.ValidationKeyModifier = "shift";
+            Message.ValidationCommand = new RelayCommand<object>(new Action<object>(MessageInputValidationCommand));
+
             InitializeComponent();
             BindingContext = this;
 
+            
             ButtonTyping.PropertyChanged += ButtonTyping_PropertyChanged;
             EntryMessage.PropertyChanged += EntryMessage_PropertyChanged;
             EntryMessage.TextChanged += EntryMessage_TextChanged;
@@ -252,7 +256,15 @@ namespace MultiPlatformApplication.Controls
         private void MessageInputSendCommand(object obj)
         {
             if (EntryMessage.Text?.Length > 0)
-                MessageSendClicked?.Raise(this, new IdEventArgs(EntryMessage.Text));
+            {
+                string content = EntryMessage.Text.Trim();
+                MessageSendClicked?.Raise(this, new IdEventArgs(content));
+            }
+        }
+
+        private void MessageInputValidationCommand(object obj)
+        {
+            MessageInputSendCommand(obj);
         }
     }
 }

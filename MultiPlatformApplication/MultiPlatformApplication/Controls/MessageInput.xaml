@@ -61,14 +61,14 @@
 
                     <controls:CustomButton x:Name="ButtonUrgency"
                                            CornerRadius="2"
-                                           Padding="0,2,0,0"
-                                           HeightRequest="24"
-                                           WidthRequest="24"
                                            ImageSize="20"
+                                           HeightRequest="24"
+                                           Padding="0,2,0,0"
+                                           WidthRequest="24"
                                            BackgroundColor="Transparent"
+                                           VerticalOptions="Center"
                                            BackgroundColorOnMouseOver="{StaticResource ColorButtonMouseOver}"
                                            ImageSourceId="Font_Exclamation|ColorButtonForeground"
-                                           VerticalOptions="Center"
                                            Command="{Binding Message.UrgencyCommand}"/>
 
                     <Frame x:Name="FrameUrgency"
@@ -97,51 +97,52 @@
                                        FontSize="{StaticResource FontSizeSmall}"/>
 
                             <Editor x:Name="EntryMessage"
-                                        BackgroundColor="Transparent"
-                                        effects:Entry.NoBorder="True"
-                                        effects:Entry.AutoExpandToNbLines="5"
-                                        Margin="0"
-                                        FontSize="{StaticResource FontSizeSmall}" 
-                                        TextColor="{StaticResource ColorEntryText}"
-                                        Placeholder="Enter your text here ..." 
-                                        PlaceholderColor="{StaticResource ColorEntryPlaceHolder}"
-                                        HorizontalOptions="Fill"                            
-                                        VerticalOptions="Center"
-                                        />
+                                    BackgroundColor="Transparent"
+                                    effects:Entry.NoBorder="True"
+                                    effects:Entry.AutoExpandToNbLines="5"
+                                    effects:Entry.ValidationKeyModifier="{Binding Message.ValidationKeyModifier}"
+                                    effects:Entry.ValidationCommand="{Binding Message.ValidationCommand}"
+                                    Margin="0"
+                                    FontSize="{StaticResource FontSizeSmall}" 
+                                    TextColor="{StaticResource ColorEntryText}"
+                                    Placeholder="Enter your text here ..." 
+                                    PlaceholderColor="{StaticResource ColorEntryPlaceHolder}"
+                                    HorizontalOptions="Fill"
+                                    VerticalOptions="Center"/>
 
                         </StackLayout>
                     </Frame>
 
                     <controls:CustomButton x:Name="ButtonSend"
-                                               CornerRadius="2"
-                                               Padding="0,2,0,0"
-                                               HeightRequest="24"
-                                               WidthRequest="24"
-                                               ImageSize="20"
-                                               BackgroundColor="Transparent"
-                                               BackgroundColorOnMouseOver="{StaticResource ColorButtonMouseOver}"
-                                               ImageSourceId="Font_PaperPlane|ColorButtonForeground"
-                                               VerticalOptions="Center"
-                                               Command="{Binding Message.SendCommand}"/>
+                                           CornerRadius="2"
+                                           Padding="0,2,0,0"
+                                           HeightRequest="24"
+                                           WidthRequest="24"
+                                           ImageSize="20"
+                                           BackgroundColor="Transparent"
+                                           BackgroundColorOnMouseOver="{StaticResource ColorButtonMouseOver}"
+                                           ImageSourceId="Font_PaperPlane|ColorButtonForeground"
+                                           VerticalOptions="Center"
+                                           Command="{Binding Message.SendCommand}"/>
 
                     <Frame WidthRequest="2"
-                               Padding="0"
-                               Margin="1,3"
-                               HasShadow="False"
-                               CornerRadius="0"
-                               BackgroundColor="{StaticResource ColorButtonMouseOver}"/>
+                           Padding="0"
+                           Margin="1,3"
+                           HasShadow="False"
+                           CornerRadius="0"
+                           BackgroundColor="{StaticResource ColorButtonMouseOver}"/>
 
                     <controls:CustomButton x:Name="ButtonAttachment"
-                                               CornerRadius="2"
-                                               Padding="0,2,0,0"
-                                               HeightRequest="24"
-                                               WidthRequest="24"
-                                               ImageSize="20"
-                                               BackgroundColor="Transparent"
-                                               BackgroundColorOnMouseOver="{StaticResource ColorButtonMouseOver}"
-                                               ImageSourceId="Font_PaperClip|ColorButtonForeground"
-                                               VerticalOptions="Center"
-                                               Command="{Binding Message.AttachmentCommand}"/>
+                                           CornerRadius="2"
+                                           Padding="0,2,0,0"
+                                           HeightRequest="24"
+                                           WidthRequest="24"
+                                           ImageSize="20"
+                                           BackgroundColor="Transparent"
+                                           BackgroundColorOnMouseOver="{StaticResource ColorButtonMouseOver}"
+                                           ImageSourceId="Font_PaperClip|ColorButtonForeground"
+                                           VerticalOptions="Center"
+                                           Command="{Binding Message.AttachmentCommand}"/>
 
                 </StackLayout>
             </Frame>

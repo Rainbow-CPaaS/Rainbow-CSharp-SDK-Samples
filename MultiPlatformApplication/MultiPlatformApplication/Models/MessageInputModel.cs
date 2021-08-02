@@ -16,6 +16,8 @@ namespace MultiPlatformApplication.Models
 
         public ICommand SendCommand { get; set; }
 
+        public ICommand ValidationCommand { get; set; }
 
+        public String ValidationKeyModifier { get; set; }
     }
 }
