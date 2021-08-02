@@ -8,9 +8,38 @@ namespace MultiPlatformApplication.Effects
 {
     public class Entry
     {
+
+#region  AutoExpandToNbLines Property
+
+        public static readonly BindableProperty AutoExpandToNbLinesProperty = BindableProperty.Create("AutoExpandToNbLines", typeof(int), typeof(Entry), 0, propertyChanged: OnAutoExpandToNbLinesChanged);
+
+        public static int GetAutoExpandToNbLines(BindableObject view)
+        {
+            return (int)view.GetValue(AutoExpandToNbLinesProperty);
+        }
+
+        public static void SetAutoExpandToNbLines(BindableObject view, int value)
+        {
+            view.SetValue(AutoExpandToNbLinesProperty, value);
+        }
+
+        static void OnAutoExpandToNbLinesChanged(BindableObject bindable, object oldValue, object newValue)
+        {
+            var view = bindable as View;
+            if (view == null)
+                return;
+
+            int AutoExpandToNbLines = (int)newValue;
+            if (AutoExpandToNbLines > 0)
+                AddEffect(view);
+        }
+
+#endregion  AutoExpandToNbLines Property
+
+
 #region  NoBorder Property
 
-        public static readonly BindableProperty NoBorderProperty = BindableProperty.Create("NoBorder", typeof(Boolean), typeof(Background), false, propertyChanged: OnNoBorderChanged);
+        public static readonly BindableProperty NoBorderProperty = BindableProperty.Create("NoBorder", typeof(Boolean), typeof(Entry), false, propertyChanged: OnNoBorderChanged);
 
         public static Boolean GetNoBorder(BindableObject view)
         {
@@ -38,7 +67,7 @@ namespace MultiPlatformApplication.Effects
 
 #region  NoTintColored Property
 
-        public static readonly BindableProperty NoTintColoredProperty = BindableProperty.Create("NoTintColored", typeof(Boolean), typeof(Background), false, propertyChanged: OnNoTintColoredChanged);
+        public static readonly BindableProperty NoTintColoredProperty = BindableProperty.Create("NoTintColored", typeof(Boolean), typeof(Entry), false, propertyChanged: OnNoTintColoredChanged);
 
         public static Boolean GetNoTintColored(BindableObject view)
         {
