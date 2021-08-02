@@ -37,6 +37,9 @@ namespace MultiPlatformApplication.ViewModels
 
         private Object lockObservableMessagesList = new Object(); // To lock access to the observable collection: 'MessagesList'
 
+
+        private List<String> PeerJidTyping = new List<string>();
+
         private List<MessageElementModel> MessagesList { get; set; } = new List<MessageElementModel>();
 
 #region BINDINGS used in XAML
@@ -56,6 +59,7 @@ namespace MultiPlatformApplication.ViewModels
                 messageInput.MessageUrgencyClicked += MessageInput_MessageUrgencyClicked;
                 messageInput.MessageAttachmentClicked += MessageInput_MessageAttachmentClicked;
                 messageInput.MessageSendClicked += MessageInput_MessageSendClicked;
+                messageInput.UserIsTyping += MessageInput_UserIsTyping;
             }
 
             contextMenuMessageUrgencyListView = rootView.FindByName<ListView>("ContextMenuMessageUrgencyListView");
@@ -476,12 +480,48 @@ namespace MultiPlatformApplication.ViewModels
 
         private void MessageInput_MessageSendClicked(object sender, Rainbow.Events.IdEventArgs e)
         {
-            // TODO
+            String text = e.Id;
+            String urgency = GetMessageUrgencySelection();
+            UrgencyType urgencyType;
+
+            // Set urgency type
+            switch(urgency)
+            {
+                case "Emergency":
+                    urgencyType = UrgencyType.High;
+                    break;
+
+                case "Important":
+                    urgencyType = UrgencyType.Middle;
+                    break;
+
+                case "Information":
+                    urgencyType = UrgencyType.Low;
+                    break;
+
+                default:
+                    urgencyType = UrgencyType.Std;
+                    break;
+            }
+
+            // Send message
+            Helper.SdkWrapper.SendMessageToConversationId(conversationId, text, urgencyType);
+
+            // Cleart text
+            messageInput.ClearText();
+
+            // Set to standard urgency
+            SetMessageUrgencySelectedItem(3);
         }
 
         private void MessageInput_MessageAttachmentClicked(object sender, EventArgs e)
         {
             // TODO
+        }
+
+        private void MessageInput_UserIsTyping(object sender, Rainbow.Events.IdEventArgs e)
+        {
+            Helper.SdkWrapper.SendIsTypingInConversationById(conversationId, String.Equals(e.Id, "True", StringComparison.InvariantCultureIgnoreCase) );
         }
 
         private void MessageInput_MessageUrgencyClicked(object sender, EventArgs e)
@@ -582,6 +622,21 @@ namespace MultiPlatformApplication.ViewModels
 			contextMenuMessageUrgency.IsVisible = true;
 		}
 
+        private String GetMessageUrgencySelection()
+        {
+            String result = "Standard";
+
+            for (int i = 0; i < MessageUrgency.Items.Count; i++)
+            {
+                if (MessageUrgency.Items[i].IsSelected)
+                {
+                    result = MessageUrgency.Items[i].Id;
+                    break;
+                }
+            }
+            return result;
+        }
+
 		private void SetMessageUrgencySelectedItem(int selectedIndex)
         {
 			if (selectedIndex == -1)
@@ -634,7 +689,6 @@ namespace MultiPlatformApplication.ViewModels
             HideMessageUrgencyContextMenu();
         }
 
-
 #endregion MESSAGE URGENCY CONTEXT MENU STUFF
 
 #region EVENTS FROM SDKWRAPPER
@@ -665,7 +719,33 @@ namespace MultiPlatformApplication.ViewModels
 
         private void SdkWrapper_UserTypingChanged(object sender, Rainbow.Events.UserTypingEventArgs e)
         {
-            // TODO
+            if(e.ConversationId == conversationId)
+            {
+                if (String.IsNullOrEmpty(e.ContactJid))
+                    return;
+
+                bool updateDone = false;
+
+                if(PeerJidTyping.Contains(e.ContactJid))
+                {
+                    if (!e.IsTyping)
+                    {
+                        updateDone = true;
+                        PeerJidTyping.Remove(e.ContactJid);
+                    }
+                }
+                else
+                {
+                    if (e.IsTyping)
+                    {
+                        updateDone = true;
+                        PeerJidTyping.Add(e.ContactJid);
+                    }
+                }
+
+                if (updateDone)
+                    messageInput.UpdateUsersTyping(PeerJidTyping);
+            }
         }
 
 #endregion EVENTS FROM SDKWRAPPER

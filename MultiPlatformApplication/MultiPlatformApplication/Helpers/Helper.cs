@@ -33,7 +33,6 @@ namespace MultiPlatformApplication.Helpers
         private static String DataStorageFolderName = "DataStorage";
         private static String ImageStorageFolderName = "ImageStorage";
 
-
         public static SdkWrapper SdkWrapper { get; set; }
 
         static Helper()
@@ -328,6 +327,18 @@ namespace MultiPlatformApplication.Helpers
             return label;
         }
 
+        public static String GetContactDisplayName(String jid)
+        {
+            if (String.IsNullOrEmpty(jid))
+                return null;
+
+            Rainbow.Model.Contact contact = SdkWrapper.GetContactFromContactJid(jid);
+
+            if (contact == null)
+                return null;
+
+            return Rainbow.Util.GetContactDisplayName(contact);
+        }
 
 #region AVATAR - IMAGE SOURCE
 

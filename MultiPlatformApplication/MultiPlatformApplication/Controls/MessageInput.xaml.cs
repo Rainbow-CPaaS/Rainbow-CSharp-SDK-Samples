@@ -18,6 +18,9 @@ namespace MultiPlatformApplication.Controls
     public partial class MessageInput : ContentView
     {
         Boolean userIsTyping = false;
+        List<String> peerJidTyping = new List<string>();
+
+        Animation userTypingAnimation;
 
         public event EventHandler<IdEventArgs> UserIsTyping;
         public event EventHandler<IdEventArgs> MessageSendClicked;
@@ -29,7 +32,6 @@ namespace MultiPlatformApplication.Controls
 
 #endregion BINDINGS used in XAML
 
-
         public MessageInput()
         {
             Message.AttachmentCommand = new RelayCommand<object>(new Action<object>(MessageInputAttachmentCommand));
@@ -39,10 +41,125 @@ namespace MultiPlatformApplication.Controls
             InitializeComponent();
             BindingContext = this;
 
-
+            ButtonTyping.PropertyChanged += ButtonTyping_PropertyChanged;
             EntryMessage.PropertyChanged += EntryMessage_PropertyChanged;
-
             EntryMessage.TextChanged += EntryMessage_TextChanged;
+
+            var opacityToZero = new Animation((d) => { ButtonTyping.Opacity = d; }, 0.6, 0.4, Easing.Linear);
+            var opacityToOne = new Animation((d) => { ButtonTyping.Opacity = d; }, 0.4, 0.6, Easing.Linear);
+
+            userTypingAnimation = new Animation();
+            userTypingAnimation.Add(0.25, 0.5, opacityToZero);
+            userTypingAnimation.Add(0.75, 1, opacityToOne);
+
+            // We need to update UserIsTyping viex if contact are updated
+            Helper.SdkWrapper.PeerInfoChanged += SdkWrapper_PeerUpdated;
+            Helper.SdkWrapper.PeerAdded += SdkWrapper_PeerUpdated;
+        }
+
+        private void ButtonTyping_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if(e.PropertyName == "IsVisible")
+            {
+                // Need to force the layout of the parent ...
+                ((Layout)this.Parent)?.ForceLayout();
+            }
+        }
+
+        private void SdkWrapper_PeerUpdated(object sender, PeerEventArgs e)
+        {
+            if(peerJidTyping?.Count > 0)
+            {
+                if (peerJidTyping.Contains(e.Peer.Jid))
+                    UpdateUsersTyping(peerJidTyping);
+            }
+        }
+
+        private void StartUserTypingAnimationAnimation()
+        {
+            if (!ButtonTyping.IsVisible)
+            {
+                ButtonTyping.IsVisible = true;
+                userTypingAnimation.Commit(this, "UserTypingAnimation", length: 4000, repeat: () => true);
+            }
+        }
+
+        private void StopUserTypingAnimationAnimation()
+        {
+            if (ButtonTyping.IsVisible)
+            {
+                this.AbortAnimation("UserTypingAnimation");
+                ButtonTyping.IsVisible = false;
+                LabelTyping.Text = " ";
+            }
+        }
+
+        public void ClearText()
+        {
+            Device.BeginInvokeOnMainThread(() =>
+            {
+                if(EntryMessage?.Text.Length > 0)
+                    EntryMessage.Text = "";
+            });
+        }
+
+        public void UpdateUsersTyping(List<String> peerJidTyping)
+        {
+            Boolean start = false;
+            String label = " ";
+
+            if ((peerJidTyping == null) || (peerJidTyping?.Count == 0) )
+            {
+                this.peerJidTyping.Clear();
+            }
+            else
+            {
+                // Copy content
+                this.peerJidTyping = new List<string>(peerJidTyping);
+
+                // Get list of display name
+                String displayNameList = null;
+                String displayName;
+                int nbAccount = 0;
+                foreach (String jid in peerJidTyping)
+                {
+
+                    displayName = Helper.GetContactDisplayName(jid);
+                    if(!String.IsNullOrEmpty(displayName))
+                    {
+                        nbAccount++;
+
+                        if (displayNameList == null)
+                            displayNameList = displayName;
+                        else
+                            displayNameList += ", " + displayName;
+                    }
+                }
+                
+                if (nbAccount > 0)
+                {
+                    if (nbAccount == 1)
+                        label = Helper.GetLabel("isTyping");
+                    else
+                        label = Helper.GetLabel("areTyping");
+
+
+                    label = "<b>" + displayNameList + "</b> " + label;
+                    start = true;
+                }
+           }
+
+            // Update UI using correct thread
+            Device.BeginInvokeOnMainThread(() =>
+            {
+                LabelTyping.Text = label;
+
+                if (start)
+                    StartUserTypingAnimationAnimation();
+                else
+                    StopUserTypingAnimationAnimation();
+            });
+
         }
 
         private void EntryMessage_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -56,7 +173,6 @@ namespace MultiPlatformApplication.Controls
 
         private void EntryMessage_TextChanged(object sender, TextChangedEventArgs e)
         {
-
             if (e.NewTextValue?.Length > 0)
             {
                 if (!userIsTyping)
@@ -74,7 +190,6 @@ namespace MultiPlatformApplication.Controls
                 }
             }
         }
-
 
         public void SetUrgencySelection(String id)
         {
@@ -123,7 +238,6 @@ namespace MultiPlatformApplication.Controls
             // Need to force the layout of the parent ...
             ((Layout)this.Parent).ForceLayout();
         }
-
 
         private void MessageInputAttachmentCommand(object obj)
         {

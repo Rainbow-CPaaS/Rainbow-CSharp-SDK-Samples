@@ -102,8 +102,8 @@
                 <controls:MessageInput x:Name="MessageInput"
                                        Grid.Column="0"
                                        Grid.Row="1"
+                                       Margin="0"
                                        Padding="0"/>
-                
 
             <!-- Context Menu Message Urgency -->
             <Grid x:Name="ContextMenuMessageUrgency"
