@@ -22,6 +22,10 @@ namespace MultiPlatformApplication.ViewModels
         private static readonly int NB_MESSAGE_LOADED_BY_ROW = 20;
 
         private View rootView;
+        private MessageInput messageInput;
+        private ListView contextMenuMessageUrgencyListView;
+        private ContentView contentViewPlatformSpecific;
+        private View contextMenuMessageUrgency;
         private RefreshView refreshView;
         private StackLayout stackLayout;
         private ScrollView scrollView;
@@ -38,12 +42,34 @@ namespace MultiPlatformApplication.ViewModels
 #region BINDINGS used in XAML
         public DynamicStreamModel DynamicStream { get; private set; } = new DynamicStreamModel();
 
+        public ContextMenuModel MessageUrgency { get; private set; } = new ContextMenuModel();
+
 #endregion BINDINGS used in XAML
 
-        public MessagesStreamViewModel(ContentView contentViewPlatformSpecific)
+        public MessagesStreamViewModel(View rootView)
         {
-            this.rootView = contentViewPlatformSpecific;
+            this.rootView = rootView;
 
+            messageInput = rootView.FindByName<MessageInput>("MessageInput");
+            if (messageInput != null)
+            {
+                messageInput.MessageUrgencyClicked += MessageInput_MessageUrgencyClicked;
+                messageInput.MessageAttachmentClicked += MessageInput_MessageAttachmentClicked;
+                messageInput.MessageSendClicked += MessageInput_MessageSendClicked;
+            }
+
+            contextMenuMessageUrgencyListView = rootView.FindByName<ListView>("ContextMenuMessageUrgencyListView");
+            if(contextMenuMessageUrgencyListView != null)
+            contextMenuMessageUrgencyListView.ItemSelected += ContextMenuMessageUrgencyListView_ItemSelected;
+
+            contentViewPlatformSpecific = rootView.FindByName<ContentView>("ContentViewPlatformSpecific");
+
+            contextMenuMessageUrgency = rootView.FindByName<Grid>("ContextMenuMessageUrgency");
+            contextMenuMessageUrgency.BindingContext = this;
+
+
+            if (contentViewPlatformSpecific == null)
+                return;
             // Set Binding Context
             contentViewPlatformSpecific.Content.BindingContext = DynamicStream;
 
@@ -51,15 +77,15 @@ namespace MultiPlatformApplication.ViewModels
             Type type = contentViewPlatformSpecific.Content.GetType();
             if (type == typeof(RefreshView))
             {
-                refreshView = rootView.FindByName<RefreshView>("RefreshViewMobile");
-                scrollView = rootView.FindByName<ScrollView>("ScrollViewMobile");
-                stackLayout = rootView.FindByName<StackLayout>("StackLayoutMobile");
+                refreshView = contentViewPlatformSpecific.FindByName<RefreshView>("RefreshViewMobile");
+                scrollView = contentViewPlatformSpecific.FindByName<ScrollView>("ScrollViewMobile");
+                stackLayout = contentViewPlatformSpecific.FindByName<StackLayout>("StackLayoutMobile");
             }
             else
             {
                 refreshView = null;
-                scrollView = rootView.FindByName<ScrollView>("ScrollViewDesktop");
-                stackLayout = rootView.FindByName<StackLayout>("StackLayoutDesktop");
+                scrollView = contentViewPlatformSpecific.FindByName<ScrollView>("ScrollViewDesktop");
+                stackLayout = contentViewPlatformSpecific.FindByName<StackLayout>("StackLayoutDesktop");
             }
 
             scrollView.Scrolled += ScrollView_Scrolled;
@@ -76,6 +102,10 @@ namespace MultiPlatformApplication.ViewModels
                 this.conversationId = conversationId;
 
                 InitializeSdkObjectsAndEvents();
+
+                SetMessageUrgencyModel();
+                // Set default selection
+                SetMessageUrgencySelectedItem(3);
 
                 Task task = new Task(() =>
                 {
@@ -271,7 +301,7 @@ namespace MultiPlatformApplication.ViewModels
                         element.BindingContext = message;
 
                         
-                        stackLayout.Children.Insert(indexInsert,element);
+                        stackLayout?.Children.Insert(indexInsert,element);
                         MessagesList.Insert(indexInsert,message);
                         indexInsert++;
                     }
@@ -442,7 +472,28 @@ namespace MultiPlatformApplication.ViewModels
             return message;
         }
 
+#region MESSAGE INPUT STUFF
 
+        private void MessageInput_MessageSendClicked(object sender, Rainbow.Events.IdEventArgs e)
+        {
+            // TODO
+        }
+
+        private void MessageInput_MessageAttachmentClicked(object sender, EventArgs e)
+        {
+            // TODO
+        }
+
+        private void MessageInput_MessageUrgencyClicked(object sender, EventArgs e)
+        {
+            Device.BeginInvokeOnMainThread(() =>
+            {
+                SetMessageUrgencyModel();
+                DisplayMessageUrgencyContextMenu();
+            });
+        }
+
+#endregion MESSAGE INPUT STUFF
 
 #region SCROLLING STUFF
 
@@ -453,6 +504,9 @@ namespace MultiPlatformApplication.ViewModels
 
         private void StoreScrollingPosition()
         {
+            if (scrollView == null)
+                return;
+
             // Get delta Y from the bottom before loading new items
             double v = scrollView.Content.Height - scrollView.Height;
             DynamicStream.DeltaYFromTheBottom = (v > 0) ? v : 0;
@@ -516,6 +570,72 @@ namespace MultiPlatformApplication.ViewModels
 
 #endregion SCROLLING STUFF
 
+#region MESSAGE URGENCY CONTEXT MENU STUFF
+
+        private void HideMessageUrgencyContextMenu()
+        {
+			contextMenuMessageUrgency.IsVisible = false;
+		}
+
+		private void DisplayMessageUrgencyContextMenu()
+        {
+			contextMenuMessageUrgency.IsVisible = true;
+		}
+
+		private void SetMessageUrgencySelectedItem(int selectedIndex)
+        {
+			if (selectedIndex == -1)
+				return;
+
+			if(MessageUrgency?.Items?.Count > selectedIndex)
+            {
+                for (int i = 0; i < MessageUrgency.Items.Count; i++)
+                {
+                    if (i == selectedIndex)
+                    {
+                        messageInput?.SetUrgencySelection(MessageUrgency.Items[i].Id);
+                        MessageUrgency.Items[i].IsSelected = true;
+                    }
+                    else
+                        MessageUrgency.Items[i].IsSelected = false;
+                }
+			}
+        }
+
+        private void SetMessageUrgencyModel()
+        {
+			MessageUrgency.Clear();
+
+			Color color;
+			ContextMenuItemModel  messageUrgencyModelItem;
+
+			color = Helper.GetResourceDictionaryById<Color>("ColorUrgencyEmergency");
+			messageUrgencyModelItem = new ContextMenuItemModel () { Id = "Emergency", ImageSourceId = "Font_Fire|" + color.ToHex(), Title = Helper.GetLabel("emergencyAlert"), Description = Helper.GetLabel("emergencyAlertInfo"), TextColor = color };
+			MessageUrgency.Add(messageUrgencyModelItem);
+
+			color = Helper.GetResourceDictionaryById<Color>("ColorUrgencyImportant");
+			messageUrgencyModelItem = new ContextMenuItemModel () { Id = "Important", ImageSourceId = "Font_ExclamationTriangle|" + color.ToHex(), Title = Helper.GetLabel("warningAlert"), Description = Helper.GetLabel("warningAlertInfo"), TextColor = color };
+			MessageUrgency.Add(messageUrgencyModelItem);
+
+			color = Helper.GetResourceDictionaryById<Color>("ColorUrgencyInformation");
+			messageUrgencyModelItem = new ContextMenuItemModel () { Id = "Information", ImageSourceId = "Font_Lightbulb|" + color.ToHex(), Title = Helper.GetLabel("notifyAlert"), Description = Helper.GetLabel("notifyAlertInfo"), TextColor = color };
+			MessageUrgency.Add(messageUrgencyModelItem);
+
+            color = Helper.GetResourceDictionaryById<Color>("ColorConversationStreamMessageOtherUserFont");
+            messageUrgencyModelItem = new ContextMenuItemModel () { Id = "Standard", ImageSourceId = "Font_CommentAlt|" + color.ToHex(), Title = Helper.GetLabel("standardAlert"), Description = Helper.GetLabel("standardAlertInfo"), TextColor = color };
+			MessageUrgency.Add(messageUrgencyModelItem);
+		}
+
+        private void ContextMenuMessageUrgencyListView_ItemSelected(object sender, SelectedItemChangedEventArgs e)
+        {
+            SetMessageUrgencySelectedItem(e.SelectedItemIndex);
+            contextMenuMessageUrgencyListView.SelectedItem = null;
+
+            HideMessageUrgencyContextMenu();
+        }
+
+
+#endregion MESSAGE URGENCY CONTEXT MENU STUFF
 
 #region EVENTS FROM SDKWRAPPER
 

@@ -6,7 +6,8 @@
              xmlns:effects="clr-namespace:MultiPlatformApplication.Effects"
              xmlns:extensions="clr-namespace:MultiPlatformApplication.Extensions"
              x:Class="MultiPlatformApplication.Views.TestPage"
-             NavigationPage.HasNavigationBar="False">
+             NavigationPage.HasNavigationBar="False"
+             BackgroundColor="{StaticResource ColorConversationStreamMainBackground}">
 
     <ContentPage.Padding>
         <OnPlatform x:TypeArguments="Thickness">
@@ -22,14 +23,15 @@
 
     <RelativeLayout x:Name="MyRelativeLayout" Margin="0" 
                     Padding="0"
-                    HorizontalOptions="Fill"
-                    VerticalOptions="Fill">
+                    HorizontalOptions="FillAndExpand"
+                    VerticalOptions="FillAndExpand">
     
 
         <StackLayout x:Name="MainStackLayout"                      
                      RelativeLayout.WidthConstraint="{ConstraintExpression Type=RelativeToParent, Property=Width}"
                      RelativeLayout.HeightConstraint="{ConstraintExpression Type=RelativeToParent, Property=Height}"
                      Orientation="Vertical"
+                     
                      VerticalOptions="StartAndExpand" 
                      HorizontalOptions="Center">
 
@@ -109,10 +111,139 @@
                    effects:SelectableLabelEffect.Enabled="True"/>
 
 
-            <Image Source="{extensions:ImageResource Id=Font_Laugh|#D3D3D3}" 
-                   WidthRequest="50" 
-                   HeightRequest="50"
-                   effects:EmojiSelector.EntryName="Login"/>
+            <!-- DEFINE VIEW TO SEND NEW MESSAGE -->
+            <controls:MessageInput HorizontalOptions="FillAndExpand" />
+
+            <!--<Frame Margin="0,0"
+                   Padding="0"
+                   CornerRadius="2"
+                   BackgroundColor="{StaticResource ColorEntryBackground}"
+                   HasShadow="False"
+                   HorizontalOptions="FillAndExpand"
+                   VerticalOptions="FillAndExpand">
+                
+                <StackLayout Margin="3, 0"
+                             Padding="0"
+                             Spacing="2"
+                             Orientation="Horizontal"
+                             HorizontalOptions="FillAndExpand"
+                             VerticalOptions="Center">
+
+                    <controls:CustomButton x:Name="ButtonEmoji"
+                                           effects:EmojiSelector.EntryName="EntryIM"
+                                           CornerRadius="2"
+                                           Padding="0,2,0,0"
+                                           HeightRequest="24"
+                                           WidthRequest="24"
+                                           ImageSize="20"
+                                           BackgroundColor="Transparent"
+                                           BackgroundColorOnMouseOver="{StaticResource ColorButtonMouseOver}"
+                                           ImageSourceId="Font_Laugh|ColorButtonForeground"
+                                           VerticalOptions="Center"
+                                           />
+
+                    <Frame WidthRequest="2"
+                           Padding="0"
+                           Margin="1,3"
+                           HasShadow="False"
+                           CornerRadius="0"
+                           BackgroundColor="{StaticResource ColorButtonMouseOver}"/>
+
+                    <controls:CustomButton x:Name="ButtonEmergency"
+                                           CornerRadius="2"
+                                           Padding="0,2,0,0"
+                                           HeightRequest="24"
+                                           WidthRequest="24"
+                                           ImageSize="20"
+                                           BackgroundColor="Transparent"
+                                           BackgroundColorOnMouseOver="{StaticResource ColorButtonMouseOver}"
+                                           ImageSourceId="Font_Exclamation|ColorButtonForeground"
+                                           VerticalOptions="Center"/>
+
+                    <Frame HasShadow="False"
+                           Padding="0"
+                           Margin="0"
+                           CornerRadius="2"
+                           HorizontalOptions="FillAndExpand"
+                           BackgroundColor="{StaticResource ColorBackgroundUrgencyImportant}">
+
+                        <StackLayout Margin="0"
+                                     Padding="0"
+                                     Spacing="0"
+                                     Orientation="Vertical"
+                                     VerticalOptions="Center"
+                                     BackgroundColor="Transparent">
+                            
+                            <Label x:Name="LabelUrgency"
+                                   IsVisible="False"
+                                   Text="Emergency"
+                                   TextColor="{StaticResource ColorUrgencyEmergency}"
+                                   Margin="0"
+                                   Padding="0"
+                                   VerticalOptions="Start"
+                                   HorizontalOptions="Start"
+                                   FontAttributes="Bold" 
+                                   FontSize="{StaticResource FontSizeSmall}"/>
+
+                            <Editor x:Name="EntryIM"
+                                    BackgroundColor="{StaticResource ColorBackgroundUrgencyImportant}"
+                                    effects:Entry.NoBorder="True"
+                                    effects:Entry.AutoExpandToNbLines="5"
+                                    effects:Background.Color="{StaticResource ColorBackgroundUrgencyImportant}"
+                                    effects:Background.Enabled="True"
+                                    Margin="0"
+                                    FontSize="{StaticResource FontSizeSmall}" 
+                                    TextColor="{StaticResource ColorEntryText}"
+                                    Placeholder="Enter your text here ..." 
+                                    PlaceholderColor="{StaticResource ColorEntryPlaceHolder}"
+                                    HorizontalOptions="Fill"                            
+                                    VerticalOptions="Center"/>
+
+                        </StackLayout>
+                    </Frame>
+
+                    <controls:CustomButton x:Name="ButtonSend"
+                                           CornerRadius="2"
+                                           Padding="0,2,0,0"
+                                           HeightRequest="24"
+                                           WidthRequest="24"
+                                           ImageSize="20"
+                                           BackgroundColor="Transparent"
+                                           BackgroundColorOnMouseOver="{StaticResource ColorButtonMouseOver}"
+                                           ImageSourceId="Font_PaperPlane|ColorButtonForeground"
+                                           VerticalOptions="Center"/>
+
+                    <Frame WidthRequest="2"
+                           Padding="0"
+                           Margin="1,3"
+                           HasShadow="False"
+                           CornerRadius="0"
+                           BackgroundColor="{StaticResource ColorButtonMouseOver}"/>
+
+                    <controls:CustomButton x:Name="ButtonAttach"
+                                           CornerRadius="2"
+                                           Padding="0,2,0,0"
+                                           HeightRequest="24"
+                                           WidthRequest="24"
+                                           ImageSize="20"
+                                           BackgroundColor="Transparent"
+                                           BackgroundColorOnMouseOver="{StaticResource ColorButtonMouseOver}"
+                                           ImageSourceId="Font_PaperClip|ColorButtonForeground"
+                                           VerticalOptions="Center"/>
+
+                </StackLayout>
+            </Frame>-->
+
+            
+
+            <Image x:Name="ButtonEmoji2"
+                           HeightRequest="20"
+                           WidthRequest="20"
+                           effects:EmojiSelector.EntryName="Login"
+                           Source="{extensions:ImageResource Id=Font_Laugh|#D3D3D3}"
+                           Margin="0"
+                           VerticalOptions="Center"/>
+            
 
         </StackLayout>
         

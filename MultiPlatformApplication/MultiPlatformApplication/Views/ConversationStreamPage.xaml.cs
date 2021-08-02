@@ -38,7 +38,7 @@ namespace MultiPlatformApplication.Views
 
             BindingContext = vm2;
 
-            BtnIMSend.Clicked += BtnIMSend_Clicked;
+            //BtnIMSend.Clicked += BtnIMSend_Clicked;
         }
 
         protected override void OnAppearing()
@@ -94,11 +94,11 @@ namespace MultiPlatformApplication.Views
 
         private void BtnIMSend_Clicked(object sender, EventArgs e)
         {
-            if (String.IsNullOrEmpty(EntryIM.Text))
-                return;
+            //if (String.IsNullOrEmpty(EntryIM.Text))
+            //    return;
 
-            vm2.SendMessage(EntryIM.Text);
-            EntryIM.Text = "";
+            //vm2.SendMessage(EntryIM.Text);
+            //EntryIM.Text = "";
         }
 
 #endregion EVENTS FIRED ON THIS CONTENT PAGE

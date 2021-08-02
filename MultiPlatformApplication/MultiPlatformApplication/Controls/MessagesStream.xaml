@@ -1,90 +1,207 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <ContentView xmlns="http://xamarin.com/schemas/2014/forms" 
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:controls="clr-namespace:MultiPlatformApplication.Controls"
              xmlns:converters="clr-namespace:MultiPlatformApplication.Converters;assembly=MultiPlatformApplication" 
              xmlns:effects="clr-namespace:MultiPlatformApplication.Effects"
+             xmlns:extensions="clr-namespace:MultiPlatformApplication.Extensions"
              x:Class="MultiPlatformApplication.Controls.MessagesStream"
              x:Name="RootElement"
              BackgroundColor="{StaticResource ColorConversationStreamMainBackground}"
              Margin="0"
-             Padding="0">
+             Padding="0"
+             HorizontalOptions="Fill"
+             VerticalOptions="Fill">
 
     <ContentView.Resources>
         <converters:ReverseBooleanConverter x:Key="ReverseBooleanConverter" />
+        <converters:IdToImageSourceConverter x:Key="IdToImageSourceConverter" />
+        <converters:TextToBooleanConverter x:Key="TextToBooleanConverter" />
     </ContentView.Resources>
 
     <ContentView.Content>
+        <RelativeLayout Margin="0" 
+                        Padding="0"
+                        HorizontalOptions="Fill"
+                        VerticalOptions="Fill">
 
-        <!-- NEED DIFFERENT DISPLAY ACCORDING PLATFORM - START -->
-        <ContentView x:Name="ContentViewPlatformSpecific">
-            <OnPlatform x:TypeArguments="View">
-                <On Platform="WPF, macOS, UWP">
-                    <!-- THERE IS A BUG (at least on UWP) WITH ScrollView INSIDE A RefreshView: Text Selection in child elements is not possible once we scroll a little ... -->
-                    <Grid RowSpacing="0" 
-                          ColumnSpacing="0" 
-                          Padding="0" 
-                          VerticalOptions="Fill">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="*" />
-                        </Grid.RowDefinitions>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
+                <!-- NEED DIFFERENT DISPLAY ACCORDING PLATFORM - START -->
+                <ContentView x:Name="ContentViewPlatformSpecific"
+                             Grid.Column="0"
+                             Grid.Row="0"
+                             VerticalOptions="Fill">
+                    <OnPlatform x:TypeArguments="View">
+                        <On Platform="WPF, macOS, UWP">
+                            <!-- THERE IS A BUG (at least on UWP) WITH ScrollView INSIDE A RefreshView: Text Selection in child elements is not possible once we scroll a little ... -->
+                            <Grid RowSpacing="0" 
+                                  ColumnSpacing="0" 
+                                  Padding="0" 
+                                  VerticalOptions="Fill">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*" />
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
 
-                        <ScrollView x:Name="ScrollViewDesktop"
-                                    Grid.Column="0"
-                                    Grid.Row="0"
-                                    Padding="0"
-                                    Margin="0">
-                            <StackLayout x:Name="StackLayoutDesktop"
-                                         Padding="0"
+                                <ScrollView x:Name="ScrollViewDesktop"
+                                            Grid.Column="0"
+                                            Grid.Row="0"
+                                            Padding="0"
+                                            Margin="0">
+                                    <StackLayout x:Name="StackLayoutDesktop"
+                                                 Padding="0"
+                                                 Margin="0"
+                                                 Spacing="0"
+                                                 VerticalOptions="Start" />
+                                </ScrollView>
+
+                                <Frame Grid.Column="0"
+                                       Grid.Row="0"
+                                       HorizontalOptions="Fill"
+                                       VerticalOptions="Fill"
+                                       Opacity="0.5"
+                                       BorderColor="LightGray"
+                                       BackgroundColor="LightGray"
+                                       IsVisible="{Binding AskingMoreItems}">
+                                    <ActivityIndicator Color="{StaticResource ColorMain}"
+                                                       HorizontalOptions="Center"
+                                                       VerticalOptions="Center"
+                                                       WidthRequest="80"
+                                                       HeightRequest="80"
+                                                       IsRunning="{Binding AskingMoreItems}"/>
+                                </Frame>
+                            </Grid>
+                        </On>
+
+                        <On Platform="iOS, Android">
+                            <RefreshView x:Name="RefreshViewMobile"
+                                         Padding="0" 
                                          Margin="0"
-                                         Spacing="0"
-                                         VerticalOptions="Start" />
-                        </ScrollView>
+                                         BackgroundColor="Transparent"
+                                         RefreshColor="{StaticResource ColorMain}"
+                                         IsRefreshing="{Binding AskingMoreItems}"
+                                         IsEnabled="{Binding MoreItemsAvailable}"
+                                         Command="{Binding AskMoreItemsCommand}">
+                                <ScrollView x:Name="ScrollViewMobile"
+                                            Padding="0"
+                                            Margin="0">
+                                    <StackLayout x:Name="StackLayoutMobile"
+                                                 Padding="0"
+                                                 Margin="0"
+                                                 Spacing="0"
+                                                 VerticalOptions="Start" />
+                                </ScrollView>
+                            </RefreshView>
+                        </On>
+                    </OnPlatform>
+                </ContentView>
+                <!-- NEED DIFFERENT DISPLAY ACCORDING PLATFORM - END -->
 
-                        <Frame Grid.Column="0"
-                               Grid.Row="0"
-                               HorizontalOptions="Fill"
-                               VerticalOptions="Fill"
-                               Opacity="0.5"
-                               BorderColor="LightGray"
-                               BackgroundColor="LightGray"
-                               IsVisible="{Binding AskingMoreItems}">
-                            <ActivityIndicator Color="{StaticResource ColorMain}"
+                <!-- DEFINE VIEW TO SEND NEW MESSAGE -->
+                <controls:MessageInput x:Name="MessageInput"
+                                       Grid.Column="0"
+                                       Grid.Row="1"
+                                       Padding="0"/>
+                
+
+            <!-- Context Menu Message Urgency -->
+            <Grid x:Name="ContextMenuMessageUrgency"
+                  Margin="0"
+                  Padding="2"
+                  effects:ContextMenu.Enabled="True"
+                  effects:ContextMenu.LinkedTo="MessageInput"
+                  RelativeLayout.YConstraint="{ConstraintExpression Type=RelativeToParent, Property=Height, Constant=-270}"
+                  RelativeLayout.XConstraint="{ConstraintExpression Type=RelativeToParent, Property=X, Constant=40}">
+
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <Frame Margin="0"
+                       Padding="0"
+                       CornerRadius="1"
+                       BorderColor="#999999"
+                       BackgroundColor="White"
+                       HeightRequest="228"
+                       WidthRequest="280" >
+
+                    <ListView x:Name="ContextMenuMessageUrgencyListView"
+                              Margin="6"
+                              BindingContext="{Binding MessageUrgency}"
+                              ItemsSource="{Binding Items}"
+                              BackgroundColor="Transparent"
+                              SeparatorVisibility="None"
+                              RowHeight="54"
+                              VerticalScrollBarVisibility="Never">
+
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <ViewCell>
+                                    <Grid Margin="0"
+                                          Padding="4,0"
+                                          ColumnSpacing="4"
+                                          RowSpacing="0"
+                                          VerticalOptions="Center"
+                                          effects:Background.Enabled="{Binding IsSelected}"
+                                          effects:Background.Color="LightGray">
+                                        
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="54"/>
+                                        </Grid.RowDefinitions>
+                                        
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="28"/>
+                                            <ColumnDefinition Width="230"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <Image Grid.Column="0"
+                                               Grid.Row="0"
+                                               Margin="0"
+                                               Source="{Binding ImageSourceId, Converter={StaticResource IdToImageSourceConverter}}"
                                                HorizontalOptions="Center"
                                                VerticalOptions="Center"
-                                               WidthRequest="80"
-                                               HeightRequest="80"
-                                               IsRunning="{Binding AskingMoreItems}"/>
-                        </Frame>
-                    </Grid>
-                </On>
+                                               WidthRequest="20"
+                                               HeightRequest="20"/>
 
-                <On Platform="iOS, Android">
-                    <RefreshView x:Name="RefreshViewMobile"
-                                 Padding="0" 
-                                 Margin="0"
-                                 BackgroundColor="Transparent"
-                                 RefreshColor="{StaticResource ColorMain}"
-                                 IsRefreshing="{Binding AskingMoreItems}"
-                                 IsEnabled="{Binding MoreItemsAvailable}"
-                                 Command="{Binding AskMoreItemsCommand}">
-                        <ScrollView x:Name="ScrollViewMobile"
-                                    Padding="0"
-                                    Margin="0">
-                            <StackLayout x:Name="StackLayoutMobile"
-                                         Padding="0"
-                                         Margin="0"
-                                         Spacing="0"
-                                         VerticalOptions="Start" />
-                        </ScrollView>
-                    </RefreshView>
-                </On>
-            </OnPlatform>
-        </ContentView>
-        <!-- NEED DIFFERENT DISPLAY ACCORDING PLATFORM - END -->
+                                        <StackLayout Grid.Column="1"
+                                                     Grid.Row="0"
+                                                     Margin="0"
+                                                     Padding="0"
+                                                     Spacing="0"
+                                                     Orientation="Vertical"
+                                                     VerticalOptions="Center">
+                                            
+                                            <Label Margin="0"
+                                                   Padding="0" 
+                                                   Text="{Binding Title}" 
+                                                   FontAttributes="Bold" 
+                                                   FontSize="{StaticResource FontSizeSmall}" 
+                                                   TextColor="{Binding TextColor}"/>
 
+                                            <Label Margin="0"
+                                                   Padding="0"
+                                                   Text="{Binding Description}"
+                                                   FontSize="{StaticResource FontSizeMicro}" 
+                                                   TextColor="{Binding TextColor}"
+                                                   IsVisible="{Binding Description, Converter={StaticResource TextToBooleanConverter }}"/>
+                                            
+                                        </StackLayout>
+
+                                    </Grid>
+                                </ViewCell>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </Frame>
+            </Grid>
+
+
+        </RelativeLayout>
 
     </ContentView.Content>
 </ContentView>
