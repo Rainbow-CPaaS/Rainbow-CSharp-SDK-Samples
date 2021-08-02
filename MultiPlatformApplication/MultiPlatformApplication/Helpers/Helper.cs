@@ -754,7 +754,7 @@ namespace MultiPlatformApplication.Helpers
                 case ".docx":
                 case ".dot":
                 case ".dotx":
-                    result = "Font_FileWord|#D3D3D3"; // "light gray"
+                    result = "Font_FileWord";
                     break;
 
                 case ".pot":
@@ -766,7 +766,7 @@ namespace MultiPlatformApplication.Helpers
                 case ".ppt":
                 case ".pptm":
                 case ".pptx":
-                    result = "FilePowerpoint|#D3D3D3"; // "light gray"
+                    result = "FilePowerpoint";
                     break;
 
                 case ".xla":
@@ -778,7 +778,7 @@ namespace MultiPlatformApplication.Helpers
                 case ".xlt":
                 case ".xltm":
                 case ".xltx":
-                    result = "FileExcel|#D3D3D3"; // "light gray"
+                    result = "FileExcel";
                     break;
 
                 case ".ai":
@@ -792,7 +792,7 @@ namespace MultiPlatformApplication.Helpers
                 case ".svg":
                 case ".tif":
                 case ".tiff":
-                    result = "FileImage|#D3D3D3"; // "light gray"
+                    result = "FileImage";
                     break;
 
                 case ".aif":
@@ -805,7 +805,7 @@ namespace MultiPlatformApplication.Helpers
                 case ".wav":
                 case ".wma":
                 case ".wpl":
-                    result = "FileAudio|#D3D3D3"; // "light gray"
+                    result = "FileAudio";
                     break;
 
                 case ".3g2":
@@ -823,7 +823,7 @@ namespace MultiPlatformApplication.Helpers
                 case ".swf":
                 case ".vob":
                 case ".wmv":
-                    result = "FileVideo|#D3D3D3"; // "light gray"
+                    result = "FileVideo";
                     break;
 
                 case ".7z":
@@ -835,7 +835,7 @@ namespace MultiPlatformApplication.Helpers
                 case ".tar.gz":
                 case ".z":
                 case ".zip":
-                    result = "FileArchive|#D3D3D3"; // "light gray"
+                    result = "FileArchive";
                     break;
 
                 case ".c":
@@ -852,23 +852,27 @@ namespace MultiPlatformApplication.Helpers
                 case ".sh":
                 case ".swift":
                 case ".vb":
-                    result = "FilePowerpoint|#D3D3D3"; // "light gray"
+                    result = "FilePowerpoint";
                     break;
 
                 case ".pdf":
-                    result = "FileCode|#D3D3D3"; // "light gray"
+                    result = "FileCode";
                     break;
 
                 case ".txt":
                 case ".md":
                 case ".json":
-                    result = "FileAlt|#D3D3D3"; // "light gray"
+                    result = "FileAlt";
                     break;
 
                 default:
-                    result = "File|#D3D3D3"; // "light gray"
+                    result = "File";
                     break;
             }
+
+            // Set color to white
+            if (!String.IsNullOrEmpty(result))
+                result += "|#FFFFFF";
 
             return result;
         }
