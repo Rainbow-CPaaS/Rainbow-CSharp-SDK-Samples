@@ -700,7 +700,8 @@ namespace MultiPlatformApplication.ViewModels
                 log.Debug("[SdkWrapper_MessageReceived] - FromJId:[{0}] - ToJid:[{1}] - CarbonCopy:[{2}] - Message.Id:[{3}] - Message.ReplaceId:[{4}]", e.Message.FromJid, e.Message.ToJid, e.CarbonCopy, e.Message.Id, e.Message.ReplaceId);
 
                 // Mark  the message as read
-                Helper.SdkWrapper.MarkMessageAsRead(conversationId, e.Message.Id);
+                if(e.Message.FromJid != currentContactJid)
+                    Helper.SdkWrapper.MarkMessageAsRead(conversationId, e.Message.Id);
 
 
                 // Manage incoming REPLACE message
