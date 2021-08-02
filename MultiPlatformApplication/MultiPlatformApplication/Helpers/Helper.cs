@@ -728,22 +728,34 @@ namespace MultiPlatformApplication.Helpers
             return result;
         }
 
-        public static String GetReceiptSourceIdFromReceiptType(String receiptType)
+        public static String GetReceiptSourceIdFromReceiptType(String receiptType, String receiptReceived)
         {
+            if (String.IsNullOrEmpty(receiptType))
+                receiptType = "None";
+
+            if (String.IsNullOrEmpty(receiptReceived))
+                receiptReceived = receiptType;
+
             String result = null;
-            switch (receiptType)
+            switch (receiptReceived)
             {
-                case "ServerReceived":
-                    result = "Font_Check|#D3D3D3";
-                    break;
-                case "ClientReceived":
-                    result = "Font_CheckDouble|#D3D3D3";
-                    break;
                 case "ClientRead":
                     result = "Font_CheckDouble|#3EA5D8";
                     break;
+
+                case "ClientReceived":
+                    if(receiptType != "ClientRead")
+                        result = "Font_CheckDouble|#D3D3D3";
+                    break;
+
+                case "ServerReceived":
+                    if ( (receiptType != "ClientRead") && (receiptType != "ClientReceived"))
+                        result = "Font_Check|#D3D3D3";
+                    break;
+
                 case "None":
-                    result = "Font_Clock|#D3D3D3";
+                    if (receiptType == "None")
+                        result = "Font_Clock|#D3D3D3";
                     break;
             }
             

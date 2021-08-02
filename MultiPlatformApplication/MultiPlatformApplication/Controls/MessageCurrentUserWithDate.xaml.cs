@@ -17,6 +17,7 @@ namespace MultiPlatformApplication.Controls
         String messageId;
         String conversationId;
         String receipt;
+        String receiptReceived;
         Boolean receiptManaged = false;
 
 		public MessageCurrentUserWithDate ()
@@ -54,7 +55,7 @@ namespace MultiPlatformApplication.Controls
         {
             if (e.Id == conversationId)
             {
-                receipt = Rainbow.Model.ReceiptType.ClientRead.ToString();
+                receiptReceived = receipt = Rainbow.Model.ReceiptType.ClientRead.ToString();
                 UpdateDisplay();
             }
         }
@@ -63,7 +64,7 @@ namespace MultiPlatformApplication.Controls
         {
             if( (e.ConversationId == conversationId) && (e.MessageId == messageId))
             {
-                receipt = e.ReceiptType.ToString();
+                receiptReceived = e.ReceiptType.ToString();
                 UpdateDisplay();
             }
         }
@@ -72,9 +73,13 @@ namespace MultiPlatformApplication.Controls
         {
             Device.BeginInvokeOnMainThread(() =>
             {
-                String imageSourceId = Helper.GetReceiptSourceIdFromReceiptType(receipt);
-                Receipt.Source = Helper.GetImageSourceFromIdOrFilePath(imageSourceId);
-                Receipt.IsVisible = true;
+                String imageSourceId = Helper.GetReceiptSourceIdFromReceiptType(receipt, receiptReceived);
+                if (imageSourceId != null)
+                {
+                    receipt = receiptReceived;
+                    Receipt.Source = Helper.GetImageSourceFromIdOrFilePath(imageSourceId);
+                    Receipt.IsVisible = true;
+                }
             });
         }
     }
