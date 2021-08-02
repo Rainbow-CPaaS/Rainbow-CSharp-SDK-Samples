@@ -2,12 +2,77 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Windows.Input;
 using Xamarin.Forms;
 
 namespace MultiPlatformApplication.Effects
 {
     public class Entry
     {
+
+        public static readonly BindableProperty ValidationCommandProperty = BindableProperty.Create("ValidationCommand", typeof(ICommand), typeof(Entry), null, propertyChanged: OnValidationCommandChanged);
+
+
+        public static ICommand GetValidationCommand(BindableObject view)
+        {
+            return (ICommand)view.GetValue(ValidationCommandProperty);
+        }
+
+        public static void SetValidationCommand(BindableObject view, ICommand value)
+        {
+            view.SetValue(ValidationCommandProperty, value);
+        }
+
+        static void OnValidationCommandChanged(BindableObject bindable, object oldValue, object newValue)
+        {
+            // USEFULL ONLY IN UWP context - Could be also added in WPF and MacOS
+            if (Device.RuntimePlatform != Device.UWP)
+                return;
+
+            var view = bindable as View;
+            if (view == null)
+                return;
+
+            ICommand command = (ICommand)newValue;
+            if (command != null)
+                AddEffect(view);
+        }
+
+
+#region  ValidationKeyModifier Property
+
+        public static readonly BindableProperty ValidationKeyModifierProperty = BindableProperty.Create("ValidationKeyModifier", typeof(String), typeof(Entry), null, propertyChanged: OnValidationKeyModifierChanged);
+
+        public static String GetValidationKeyModifier(BindableObject view)
+        {
+            String value = (String)view.GetValue(ValidationKeyModifierProperty);
+            if(value!= null)
+                return value.ToLower();
+            return null;
+        }
+
+        public static void SetValidationKeyModifier(BindableObject view, String value)
+        {
+            view.SetValue(ValidationKeyModifierProperty, value);
+        }
+
+        static void OnValidationKeyModifierChanged(BindableObject bindable, object oldValue, object newValue)
+        {
+            // USEFULL ONLY IN UWP context - Could be also added in WPF and MacOS
+            if (Device.RuntimePlatform != Device.UWP)
+                return;
+
+            var view = bindable as View;
+            if (view == null)
+                return;
+
+            String ValidationKeyModifier = (String)newValue;
+            if (ValidationKeyModifier != null)
+                AddEffect(view);
+        }
+
+#endregion  ValidationKeyModifier Property
+
 
 #region  AutoExpandToNbLines Property
 

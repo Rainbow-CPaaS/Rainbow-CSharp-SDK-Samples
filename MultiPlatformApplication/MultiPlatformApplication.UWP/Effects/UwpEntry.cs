@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Windows.System;
+using Windows.UI.Core;
 using Windows.UI.Input.Preview.Injection;
 using Windows.UI.ViewManagement.Core;
 using Windows.UI.Xaml.Controls;
@@ -18,6 +19,7 @@ namespace MultiPlatformApplication.UWP.PlatformEffect
     public class UwpEntry : Xamarin.Forms.Platform.UWP.PlatformEffect
     {
         TextBox textBox = null;
+        String validateKeyModifier;
 
         int autoExpandToNbLines = 0;
         double maxHeigthSize = 0;
@@ -28,12 +30,69 @@ namespace MultiPlatformApplication.UWP.PlatformEffect
             {
                 textBox = (TextBox)Control;
 
+                validateKeyModifier = MultiPlatformApplication.Effects.Entry.GetValidationKeyModifier(Element);
+                if(validateKeyModifier != null)
+                    textBox.KeyUp += TextBox_KeyUp;
+
                 autoExpandToNbLines = MultiPlatformApplication.Effects.Entry.GetAutoExpandToNbLines(Element);
                 if (autoExpandToNbLines > 0)
+                {
+                    
                     textBox.TextChanged += TextBox_TextChanged;
+                }
 
                 if (MultiPlatformApplication.Effects.Entry.GetNoBorder(Element))
                     NoBorder();
+            }
+        }
+
+        private static bool IsCtrlKeyPressed()
+        {
+            var ctrlState = CoreWindow.GetForCurrentThread().GetKeyState(VirtualKey.Control);
+            return (ctrlState & CoreVirtualKeyStates.Down) == CoreVirtualKeyStates.Down;
+        }
+
+        private static bool IsShifKeyPressed()
+        {
+            var ctrlState = CoreWindow.GetForCurrentThread().GetKeyState(VirtualKey.Shift);
+            return (ctrlState & CoreVirtualKeyStates.Down) == CoreVirtualKeyStates.Down;
+        }
+
+        private static bool IsAltKeyPressed()
+        {
+            var ctrlState = CoreWindow.GetForCurrentThread().GetKeyState(VirtualKey.Menu);
+            return (ctrlState & CoreVirtualKeyStates.Down) == CoreVirtualKeyStates.Down;
+        }
+
+        private void TextBox_KeyUp(object sender, Windows.UI.Xaml.Input.KeyRoutedEventArgs e)
+        {
+
+            if(e.OriginalKey == VirtualKey.Enter)
+            {
+                bool validate = false;
+                if((validateKeyModifier == "shift") && IsShifKeyPressed())
+                {
+                    validate = true;
+                }
+                else if((validateKeyModifier == "control") && IsCtrlKeyPressed())
+                {
+                    validate = true;
+                }
+                else if((validateKeyModifier == "alt") && IsAltKeyPressed())
+                {
+                    validate = true;
+                }
+                else if(validateKeyModifier == "")
+                {
+                    validate = true;
+                }
+
+                if (validate)
+                {
+                    var command = MultiPlatformApplication.Effects.Entry.GetValidationCommand(Element);
+                    if (command != null && command.CanExecute(Element))
+                        command.Execute(Element);
+                }
             }
         }
 
