@@ -15,6 +15,7 @@ namespace MultiPlatformApplication
         // From "Files" Service
         public event EventHandler<IdEventArgs> ThumbnailAvailable;
         public event EventHandler<IdEventArgs> FileDescriptorAvailable;
+        public event EventHandler<IdEventArgs> FileDescriptorNotAvailable;
 
         // From "Avatars" Service
         public event EventHandler<PeerEventArgs> PeerAvatarUpdated;
@@ -58,6 +59,12 @@ namespace MultiPlatformApplication
         {
             FileDescriptorAvailable.Raise(sender, args);
         }
+
+        internal void OnFileDescriptorNotAvailable(object sender, IdEventArgs args)
+        {
+            FileDescriptorNotAvailable.Raise(sender, args);
+        }
+
 
     #endregion AVATARS SERVICE
 
@@ -196,6 +203,11 @@ namespace MultiPlatformApplication
         virtual public int MaxThumbnailHeight { get; set; }
 
         virtual public Boolean IsThumbnailFileAvailable(String conversationId, String fileDescriptorId, String fileName)
+        {
+            return false;
+        }
+
+        virtual public Boolean IsFileDescriptorNotAvailable(String fileDescriptorId)
         {
             return false;
         }

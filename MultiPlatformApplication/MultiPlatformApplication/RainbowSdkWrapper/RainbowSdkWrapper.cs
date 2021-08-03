@@ -82,6 +82,11 @@ namespace MultiPlatformApplication
             OnFileDescriptorAvailable(sender, e);
         }
 
+        private void FilePool_FileDescriptorNotAvailable(object sender, Rainbow.Events.IdEventArgs e)
+        {
+            OnFileDescriptorNotAvailable(sender, e);
+        }
+
         private void RbAvatars_PeerAvatarUpdated(object sender, Rainbow.Events.PeerEventArgs e)
         {
             OnPeerAvatarUpdated(sender, e);
@@ -179,6 +184,11 @@ namespace MultiPlatformApplication
         public override Boolean IsThumbnailFileAvailable(String conversationId, String fileDescriptorId, String fileName)
         {
             return RbFiles.IsThumbnailFileAvailable(conversationId, fileDescriptorId, fileName) ;
+        }
+
+        public override Boolean IsFileDescriptorNotAvailable(String fileDescriptorId)
+        {
+            return RbFiles.IsFileDescriptorNotAvailable(fileDescriptorId);
         }
 
         public override void AskFileDescriptorDownload(String conversationId, String fileDescriptorId)
@@ -482,6 +492,7 @@ namespace MultiPlatformApplication
             RbFiles.AutomaticDownloadLimitSizeForImages = 250 * 1024; // 250 Ko
 
             RbFiles.FileDescriptorAvailable += FilePool_FileDescriptorAvailable;
+            RbFiles.FileDescriptorNotAvailable += FilePool_FileDescriptorNotAvailable;
             RbFiles.ThumbnailAvailable += FilePool_ThumbnailAvailable;
         }
 
