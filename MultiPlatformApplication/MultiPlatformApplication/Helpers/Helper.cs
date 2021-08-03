@@ -913,6 +913,7 @@ namespace MultiPlatformApplication.Helpers
 
             // In Font Awesome (5.15.3)
             { "ArrowLeft", "\uf060" },
+            { "Ban", "\uf05e" },
             { "Bars", "\uf0c9" },
             { "Bell", "\uf0f3" },
             { "BellSlash", "\uf1f6" },
