@@ -22,6 +22,8 @@ namespace MultiPlatformApplication.Controls
 
         Animation userTypingAnimation;
 
+        public event EventHandler<EventArgs> UpdateParentLayout; // To ask parent to update the layout when the size of this UI component has changed
+
         public event EventHandler<IdEventArgs> UserIsTyping;
         public event EventHandler<IdEventArgs> MessageSendClicked;
         public event EventHandler<EventArgs> MessageUrgencyClicked;
@@ -66,7 +68,8 @@ namespace MultiPlatformApplication.Controls
             if(e.PropertyName == "IsVisible")
             {
                 // Need to force the layout of the parent ...
-                ((Layout)this.Parent)?.ForceLayout();
+                UpdateParentLayout?.Raise(this, null);
+                //((Layout)this.Parent)?.ForceLayout();
             }
         }
 
@@ -96,15 +99,6 @@ namespace MultiPlatformApplication.Controls
                 ButtonTyping.IsVisible = false;
                 LabelTyping.Text = " ";
             }
-        }
-
-        public void ClearText()
-        {
-            Device.BeginInvokeOnMainThread(() =>
-            {
-                if(EntryMessage?.Text.Length > 0)
-                    EntryMessage.Text = "";
-            });
         }
 
         public void UpdateUsersTyping(List<String> peerJidTyping)
@@ -171,7 +165,8 @@ namespace MultiPlatformApplication.Controls
             if(e.PropertyName == "Height")
             {
                 // Need to force the layout of the parent ...
-                ((Layout)this.Parent).ForceLayout();
+                UpdateParentLayout?.Raise(this, null);
+                //((Layout)this.Parent).ForceLayout();
             }
         }
 
@@ -240,7 +235,8 @@ namespace MultiPlatformApplication.Controls
             EntryMessage.Focus();
 
             // Need to force the layout of the parent ...
-            ((Layout)this.Parent).ForceLayout();
+            UpdateParentLayout?.Raise(this, null);
+            //((Layout)this.Parent).ForceLayout();
         }
 
         private void MessageInputAttachmentCommand(object obj)
@@ -257,7 +253,13 @@ namespace MultiPlatformApplication.Controls
         {
             if (EntryMessage.Text?.Length > 0)
             {
+                //Get Content and trim it
                 string content = EntryMessage.Text.Trim();
+
+                // Clear text: as consequence this compoent size will be change and eventually we ask parent to update layout
+                EntryMessage.Text = "";
+
+                // Ask to send this message
                 MessageSendClicked?.Raise(this, new IdEventArgs(content));
             }
         }

@@ -60,6 +60,8 @@ namespace MultiPlatformApplication.ViewModels
                 messageInput.MessageAttachmentClicked += MessageInput_MessageAttachmentClicked;
                 messageInput.MessageSendClicked += MessageInput_MessageSendClicked;
                 messageInput.UserIsTyping += MessageInput_UserIsTyping;
+
+                messageInput.UpdateParentLayout += MessageInput_UpdateParentLayout;
             }
 
             contextMenuMessageUrgencyListView = rootView.FindByName<ListView>("ContextMenuMessageUrgencyListView");
@@ -97,6 +99,24 @@ namespace MultiPlatformApplication.ViewModels
 
 
             DynamicStream.AskMoreItemsCommand = new RelayCommand<object>(new Action<object>(AskMoreMessagesCommand));
+        }
+
+        private void MessageInput_UpdateParentLayout(object sender, EventArgs e)
+        {
+            StoreScrollingPosition();
+            DynamicStream.CodeAskingToScroll = true;
+            ((Layout)messageInput.Parent).ForceLayout();
+
+            // We need to wait a little before to scroll on correct position
+            Task task = new Task(() =>
+            {
+                Thread.Sleep(100);
+                Device.BeginInvokeOnMainThread(() =>
+                {
+                    ScrollToCorrectPosition();
+                });
+            });
+            task.Start();
         }
 
         public void Initialize(String conversationId)
@@ -542,9 +562,6 @@ namespace MultiPlatformApplication.ViewModels
 
             // Send message
             Helper.SdkWrapper.SendMessageToConversationId(conversationId, text, urgencyType);
-
-            // Cleart text
-            messageInput.ClearText();
 
             // Set to standard urgency
             SetMessageUrgencySelectedItem(3);
