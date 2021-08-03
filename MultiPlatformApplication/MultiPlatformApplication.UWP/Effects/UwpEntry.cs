@@ -119,8 +119,6 @@ namespace MultiPlatformApplication.UWP.PlatformEffect
                             Control.MaxHeight = maxHeigthSize;
 
                         ScrollViewer.SetVerticalScrollBarVisibility(Control, Windows.UI.Xaml.Controls.ScrollBarVisibility.Visible);
-
-                        //MultiPlatformApplication.Effects.Entry.ForceParentLayout(Element);
                     }
                 });
             }
@@ -133,8 +131,6 @@ namespace MultiPlatformApplication.UWP.PlatformEffect
                         ((Editor)Element).AutoSize = EditorAutoSizeOption.TextChanges;
 
                         ScrollViewer.SetVerticalScrollBarVisibility(Control, Windows.UI.Xaml.Controls.ScrollBarVisibility.Hidden);
-
-                        //MultiPlatformApplication.Effects.Entry.ForceParentLayout(Element);
                     }
                 });
             }
