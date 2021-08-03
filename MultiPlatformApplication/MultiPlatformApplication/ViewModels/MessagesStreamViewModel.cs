@@ -246,6 +246,7 @@ namespace MultiPlatformApplication.ViewModels
 
             Device.BeginInvokeOnMainThread(() =>
             {
+                ContentView element;
                 lock (lockObservableMessagesList)
                 {
                     DynamicStream.UserAskingToScroll = false;
@@ -253,23 +254,56 @@ namespace MultiPlatformApplication.ViewModels
 
                     if (MessagesList.Count != 0)
                     {
-                        // Remove first element of current list if it's a "date" message separator
-                        MessageElementModel lastElementAdded = messagesElementList.Last();
-                        MessageElementModel firstElement = MessagesList[0];
-                        if (AreBothMessagesFromSameDay(lastElementAdded, firstElement))
+                        if (!atTheEnd)
                         {
-                            if (MessagesList[0].Content.Type == "date")
+                            // Remove first element displayed of the current list if it's a "date" message separator and the last element added is fro the same day
+                            MessageElementModel firstElementDisplayed = MessagesList[0];
+                            MessageElementModel lastElementToAdd = messagesElementList.Last();
+                            if (AreBothMessagesFromSameDay(lastElementToAdd, firstElementDisplayed))
                             {
-                                MessagesList.RemoveAt(0);
-                                stackLayout.Children.RemoveAt(0);
+                                if (MessagesList[0].Content.Type == "date")
+                                {
+                                    MessagesList.RemoveAt(0);
+                                    stackLayout.Children.RemoveAt(0);
+                                }
                             }
+                        }
+                        else
+                        {
+                            // If last element displayed in the list as the same sender than the new one added, perhaps ne need to avoid to display Avatar on each message
+                            MessageElementModel lastElementDisplayed = MessagesList.Last();
+                            MessageElementModel firstElementToAdd = messagesElementList[0];
+                            if (lastElementDisplayed.Peer.Jid == firstElementToAdd.Peer.Jid)
+                            {
+                                if (firstElementToAdd.Content.WithAvatar)
+                                {
+                                    // Avoid avatar on previous message if the delay is less than one minute
+                                    if (firstElementToAdd.Date.Subtract(lastElementDisplayed.Date).TotalMinutes <= 1)
+                                    {
+                                        // Remove the previous one
+                                        stackLayout.Children.RemoveAt(stackLayout.Children.Count - 1);
+                                        MessagesList.RemoveAt(MessagesList.Count - 1);
+
+                                        // Update the new one
+                                        lastElementDisplayed.Content.WithAvatar = false;
+                                        if (lastElementDisplayed.Peer.Jid == currentContactJid)
+                                            element = new MessageCurrentUser();
+                                        else
+                                            element = new MessageOtherUser();
+
+                                        element.BindingContext = lastElementDisplayed;
+                                        stackLayout?.Children.Add(element);
+                                        MessagesList.Add(lastElementDisplayed);
+                                    }
+                                }
+                            }
+
                         }
                     }
 
                     // NEED TO STORE SCROLLING INFO TO SCROLL TO SAME POSITION ONCE ELEMENTS ARE ADDED
                     StoreScrollingPosition();
-
-                    ContentView element;
+                    
                     int indexInsert;
 
                     if (atTheEnd)
@@ -288,7 +322,7 @@ namespace MultiPlatformApplication.ViewModels
                         else if (message.Content.Type == "displayName")
                             element = new MessageSeparatorDisplayName();
 
-                        else if (message.Peer.Id != currentContactId)
+                        else if (message.Peer.Jid != currentContactJid)
                         {
                             if (message.Content.WithAvatar)
                                 element = new MessageOtherUserWithAvatar();
@@ -329,6 +363,8 @@ namespace MultiPlatformApplication.ViewModels
             return false;
         }
 
+        // Check if a display name separator must be used 
+        // But also to know if an avatar must be displayed for this message and/or for the previous one
         private Boolean NeedDisplayNameSeparator(MessageElementModel msg, MessageElementModel previousMsg)
         {
             Boolean result = false;
@@ -548,8 +584,8 @@ namespace MultiPlatformApplication.ViewModels
                 return;
 
             // Get delta Y from the bottom before loading new items
-            double v = scrollView.Content.Height - scrollView.Height;
-            DynamicStream.DeltaYFromTheBottom = (v > 0) ? v : 0;
+            double v = scrollView.Content.Height - (scrollView.Height + scrollView.ScrollY);
+            DynamicStream.DeltaYFromTheBottom = (v > 10) ? v : 0;
         }
 
         private double GetPositionToScroll()
