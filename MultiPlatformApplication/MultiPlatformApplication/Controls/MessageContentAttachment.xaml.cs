@@ -19,7 +19,13 @@ namespace MultiPlatformApplication.Controls
     {
         private static readonly Logger log = LogConfigurator.GetLogger(typeof(MessageContentAttachment));
 
-        private MessageElementModel message = null;
+        Boolean manageDisplay = false;
+
+        String peerJid;
+        String attachmentId;
+        String attachmentName;
+        String attachmentSize;
+        String conversationId;
 
         public MessageContentAttachment()
         {
@@ -30,51 +36,117 @@ namespace MultiPlatformApplication.Controls
 
         private void MessageContentAttachment_BindingContextChanged(object sender, EventArgs e)
         {
-            if ( (BindingContext != null) && (message == null) )
+            if ( BindingContext != null )
             {
-                message = (MessageElementModel)BindingContext;
+                MessageElementModel message = (MessageElementModel)BindingContext;
                 if (message != null)
                 {
                     if (message.Content.Attachment != null)
                     {
-                        if (message.Peer.Id == Helper.SdkWrapper.GetCurrentContactId())
-                        {
-                            Frame.BackgroundColor = Color.Transparent;
-                            Label.TextColor = Helper.GetResourceDictionaryById<Color>("ColorConversationStreamMessageCurrentUserFont");
-                        }
+                        conversationId = message.ConversationId;
+                        peerJid = message.Peer.Jid;
+                        attachmentId = message.Content.Attachment.Id;
+                        attachmentName = message.Content.Attachment.Name;
+                        attachmentSize = message.Content.Attachment.Size;
 
-
-                        if (Helper.SdkWrapper.IsThumbnailFileAvailable(message.ConversationId, message.Content.Attachment.Id, message.Content.Attachment.Name))
-                        {
-                            DisplayThumbnail();
-                        }
-                        else
-                        {
-                            // Manage event(s) from FilePool
-                            Helper.SdkWrapper.ThumbnailAvailable += SdkWrapper_ThumbnailAvailable;
-
-                            // Ask more info about this file
-                            Helper.SdkWrapper.AskFileDescriptorDownload(message.ConversationId, message.Content.Attachment.Id);
-
-                            // CASE: File has no thumbnail or it's not an image file
-                            Label.Text = message.Content.Attachment.Name + " - " + message.Content.Attachment.Size;
-
-                            String imageSourceId = Helper.GetFileSourceIdFromFileName(message.Content.Attachment.Name);
-                            Image.HeightRequest = 30;
-                            Image.WidthRequest = 30;
-                            Image.Source = Helper.GetImageSourceFromFont(imageSourceId);
-                        }
+                        ManageDisplay();
                     }
                 }
             }
         }
 
+        private void ManageDisplay()
+        {
+            if(!manageDisplay)
+            {
+                manageDisplay = true;
+
+                if (peerJid == Helper.SdkWrapper.GetCurrentContactJid())
+                {
+                    Frame.BackgroundColor = Color.Transparent;
+                    Label.TextColor = Helper.GetResourceDictionaryById<Color>("ColorConversationStreamMessageCurrentUserFont");
+                }
+
+                // Manage event(s) from FilePool
+                Helper.SdkWrapper.ThumbnailAvailable += SdkWrapper_ThumbnailAvailable;
+                Helper.SdkWrapper.FileDescriptorNotAvailable += SdkWrapper_FileDescriptorNotAvailable;
+
+
+                if (Helper.SdkWrapper.IsThumbnailFileAvailable(conversationId, attachmentId, attachmentName))
+                {
+                    DisplayThumbnail();
+                }
+                else if (Helper.SdkWrapper.IsFileDescriptorNotAvailable(attachmentId))
+                {
+                    DisplayDeletedFile();
+                }
+                else 
+                { 
+                    // Ask more info about this file
+                    Helper.SdkWrapper.AskFileDescriptorDownload(conversationId, attachmentId);
+
+                    // CASE: File has no thumbnail or it's not an image file
+                    Label.TextType = TextType.Text;
+                    Label.Text = attachmentName + " - " + attachmentSize;
+                    Label.Opacity = 1;
+
+                    String imageSourceId = Helper.GetFileSourceIdFromFileName(attachmentName);
+                    Image.HeightRequest = 30;
+                    Image.WidthRequest = 30;
+                    Image.Source = Helper.GetImageSourceFromFont(imageSourceId);
+                    Image.Margin = new Thickness(0);
+                    Image.Opacity = 1;
+                }
+            }
+        }
+
+        private void SdkWrapper_FileDescriptorNotAvailable(object sender, Rainbow.Events.IdEventArgs e)
+        {
+            if (attachmentId == e.Id)
+            {
+                Device.BeginInvokeOnMainThread(() =>
+                {
+                    DisplayDeletedFile();
+                });
+            }
+        }
+
+        private void DisplayDeletedFile()
+        {
+            String label;
+            String color;
+
+            if (peerJid == Helper.SdkWrapper.GetCurrentContactJid())
+            {
+                label = Helper.GetLabel("messageSentDeleted");
+                color = "ColorConversationStreamMessageCurrentUserFont";
+            }
+            else
+            {
+                label = Helper.GetLabel("messageReceivedDeleted");
+                color = "ColorConversationStreamMessageOtherUserFont";
+            }
+
+            Frame.BackgroundColor = Color.Transparent;
+
+            Label.TextType = TextType.Html;
+            Label.Text = "<i>" + label + "</i>";
+            Label.Opacity = 0.5;
+            Label.IsVisible = true;
+
+            Image.HeightRequest = 20;
+            Image.WidthRequest = 20;
+            Image.Source = Helper.GetImageSourceFromFont("Font_Ban|" + color);
+            Image.Margin = new Thickness(0, 0, 0, -5);
+            Image.Opacity = 0.5;
+        }
+
         private void DisplayThumbnail()
         {
-            string filePath = Helper.SdkWrapper.GetThumbnailFullFilePath(message.Content.Attachment.Id);
+            string filePath = Helper.SdkWrapper.GetThumbnailFullFilePath(attachmentId);
             try
             {
-                log.Debug("[DisplayThumbnail] FileId:[{0}] - Use filePath:[{1}]", message.Content.Attachment.Id, filePath);
+                log.Debug("[DisplayThumbnail] FileId:[{0}] - Use filePath:[{1}]", attachmentId, filePath);
                 System.Drawing.Size size = ImageTools.GetImageSize(filePath);
                 if ((size.Width > 0) && (size.Height > 0))
                 {
@@ -96,8 +168,7 @@ namespace MultiPlatformApplication.Controls
                     Image.HeightRequest = (int)Math.Round(h / density);
                     Image.WidthRequest = (int)Math.Round(w / density);
                     Image.Source = ImageSource.FromFile(filePath);
-
-                    
+                    Image.Opacity = 1;
 
                     Label.IsVisible = false;
                 }
@@ -105,11 +176,9 @@ namespace MultiPlatformApplication.Controls
             catch { }
         }
 
-       
-
         private void SdkWrapper_ThumbnailAvailable(object sender, Rainbow.Events.IdEventArgs e)
         {
-            if (message.Content?.Attachment?.Id == e.Id)
+            if (attachmentId == e.Id)
             {
                 Device.BeginInvokeOnMainThread(() =>
                 {
