@@ -12,20 +12,20 @@ using Xamarin.Forms.Xaml;
 namespace MultiPlatformApplication.Controls
 {
     [XamlCompilation(XamlCompilationOptions.Compile)]
-    public partial class MessageContentDeleted : ContentView
+    public partial class MessageContentForward : ContentView
     {
         Boolean manageDisplay = false;
 
         String peerJid;
 
-
-        public MessageContentDeleted()
+        public MessageContentForward()
         {
             InitializeComponent();
-            this.BindingContextChanged += MessageContentDeleted_BindingContextChanged;
+
+            this.BindingContextChanged += MessageContentForward_BindingContextChanged;
         }
 
-        private void MessageContentDeleted_BindingContextChanged(object sender, EventArgs e)
+        private void MessageContentForward_BindingContextChanged(object sender, EventArgs e)
         {
             if (BindingContext != null)
             {
@@ -44,34 +44,29 @@ namespace MultiPlatformApplication.Controls
             if (!manageDisplay)
             {
                 manageDisplay = true;
-                DisplayDeletedFile();
+                DisplayForwarded();
             }
         }
 
-        private void DisplayDeletedFile()
+        private void DisplayForwarded()
         {
             String label;
             String colorName;
 
+            label = Helper.GetLabel("msgForwarded");
             if (peerJid == Helper.SdkWrapper.GetCurrentContactJid())
-            {
-                label = Helper.GetLabel("messageSentDeleted");
                 colorName = "ColorConversationStreamMessageCurrentUserFont";
-            }
             else
-            {
-                label = Helper.GetLabel("messageReceivedDeleted");
                 colorName = "ColorConversationStreamMessageOtherUserFont";
-            }
 
-            Label.TextType = TextType.Html;
-            Label.Text = "<i>" + label + "</i>";
+            //Label.TextType = TextType.Html;
+            Label.Text = label;
             Label.Opacity = 0.5;
             Label.TextColor = Helper.GetResourceDictionaryById<Color>(colorName);
 
-            Image.HeightRequest = 20;
-            Image.WidthRequest = 20;
-            Image.Source = Helper.GetImageSourceFromFont("Font_Ban|" + colorName);
+            Image.HeightRequest = 16;
+            Image.WidthRequest = 16;
+            Image.Source = Helper.GetImageSourceFromFont("Font_ArrowRight|" + colorName);
             Image.Margin = new Thickness(0, 0, 0, -5);
             Image.Opacity = 0.5;
         }

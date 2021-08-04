@@ -59,7 +59,7 @@ namespace MultiPlatformApplication.Models
     {
         public UrgencyType Urgency { get; set; } //  Std, Low, Middle, High
 
-        public String Type { get; set; } // "message", "quote", "image",  "deletedMessage",  "displayName", "date", "event"
+        public String Type { get; set; } // "message", "deletedMessage",  "forwardedMessage",  "image",  "displayName", "date", "event"
 
         public String Body { get; set; }
 

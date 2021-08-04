@@ -24,6 +24,7 @@ namespace MultiPlatformApplication.Controls
         MessageContentBodyWithCode messageContentBodyWithCode = null;
         MessageContentAttachment messageContentAttachment = null;
         MessageContentDeleted messageContentDeleted = null;
+        MessageContentForward messageContentForward = null;
 
         public MessageContent()
         {
@@ -54,6 +55,17 @@ namespace MultiPlatformApplication.Controls
                             messageContentUrgency = new MessageContentUrgency();
                             messageContentUrgency.BindingContext = message;
                             MainGrid.Children.Add(messageContentUrgency, 0, 0);
+                        }
+                    }
+
+                    // Add forward header
+                    if(message.Content.Type == "forwardedMessage")
+                    {
+                        if(messageContentForward == null)
+                        {
+                            messageContentForward = new MessageContentForward();
+                            messageContentForward.BindingContext = message;
+                            MainGrid.Children.Add(messageContentForward, 0, 0);
                         }
                     }
 

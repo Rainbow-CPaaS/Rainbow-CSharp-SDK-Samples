@@ -249,7 +249,6 @@ namespace MultiPlatformApplication.ViewModels
             }
         }
 
-
         private int GetIndexUsingMessageId(String messageId)
         {
             int result = -1;
@@ -563,7 +562,10 @@ namespace MultiPlatformApplication.ViewModels
 
                     if (!String.IsNullOrEmpty(rbMessage.Content))
                     {
-                        message.Content.Type = "message";
+                        if(rbMessage.IsForwarded)
+                            message.Content.Type = "forwardedMessage";
+                        else
+                            message.Content.Type = "message";
                         message.Content.Body = rbMessage.Content;
                     }
                     else

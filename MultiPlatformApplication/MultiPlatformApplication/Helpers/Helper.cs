@@ -932,6 +932,7 @@ namespace MultiPlatformApplication.Helpers
 
             // In Font Awesome (5.15.3)
             { "ArrowLeft", "\uf060" },
+            { "ArrowRight", "\uf061" },
             { "Ban", "\uf05e" },
             { "Bars", "\uf0c9" },
             { "Bell", "\uf0f3" },
@@ -985,6 +986,7 @@ namespace MultiPlatformApplication.Helpers
             { "PuzzlePiece", "\uf12e" },
             { "Question", "\uf128" },
             { "QuestionCircle", "\uf059" },
+            { "Share", "\uf064" },
             { "SignInAlt", "\uf2f6" },
             { "SignOutAlt", "\uf2f5" },
             { "SortAlphaDown", "\uf15d" },
