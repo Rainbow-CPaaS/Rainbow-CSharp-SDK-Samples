@@ -151,6 +151,8 @@ namespace MultiPlatformApplication.Controls
             string filePath = Helper.SdkWrapper.GetThumbnailFullFilePath(attachmentId);
             try
             {
+                Frame.BackgroundColor = Color.Transparent;
+
                 log.Debug("[DisplayThumbnail] FileId:[{0}] - Use filePath:[{1}]", attachmentId, filePath);
                 System.Drawing.Size size = ImageTools.GetImageSize(filePath);
                 if ((size.Width > 0) && (size.Height > 0))
