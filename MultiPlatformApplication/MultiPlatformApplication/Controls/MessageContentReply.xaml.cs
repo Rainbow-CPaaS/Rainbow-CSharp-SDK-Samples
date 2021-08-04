@@ -100,7 +100,10 @@ namespace MultiPlatformApplication.Controls
         {
             Device.BeginInvokeOnMainThread(() =>
             {
-                LabelDisplayName.Text = message?.Reply?.Peer?.DisplayName;
+                if (message?.Reply?.Peer?.Jid == Helper.SdkWrapper.GetCurrentContactJid())
+                    LabelDisplayName.Text = Helper.GetLabel("me");
+                else
+                    LabelDisplayName.Text = message?.Reply?.Peer?.DisplayName;
                 LabelBody.Text = message?.Reply?.Content?.Body;
             });
         }
@@ -119,11 +122,12 @@ namespace MultiPlatformApplication.Controls
                 if (rbRepliedMessage.FileAttachment != null)
                 {
                     message.Reply.Content.Body = rbRepliedMessage.FileAttachment.Name;
-                    message.Reply.Content.Attachment = new MessageAttachmentModel() {
-                                                            Id = rbRepliedMessage.FileAttachment.Id,
-                                                            Name = rbRepliedMessage.FileAttachment.Name,
-                                                            Size = Helper.HumanizeFileSize(rbRepliedMessage.FileAttachment.Size)
-                                                        };
+                    message.Reply.Content.Attachment = new MessageAttachmentModel()
+                    {
+                        Id = rbRepliedMessage.FileAttachment.Id,
+                        Name = rbRepliedMessage.FileAttachment.Name,
+                        Size = Helper.HumanizeFileSize(rbRepliedMessage.FileAttachment.Size)
+                    };
 
                     attachmentId = message.Reply.Content.Attachment.Id;
 
@@ -145,7 +149,7 @@ namespace MultiPlatformApplication.Controls
                     message.Reply.Content.Body = "File id: " + rbRepliedMessage.Id; // Bad display but should permit to debug this situation
             }
             else
-                message.Reply.Content.Body = rbRepliedMessage.Content;
+                message.Reply.Content.Body = Helper.ReplaceCRLFFromString(rbRepliedMessage.Content, " ");
 
             log.Debug("[SetReplyPartOfMessage] - message.Id:[{0}] - replyMsgId:[{1}] - replyBody:[{2}] - ContactJid:[{3}]", message.Id, rbRepliedMessage.Id, message.Reply.Content.Body, rbRepliedMessage.FromJid);
 
