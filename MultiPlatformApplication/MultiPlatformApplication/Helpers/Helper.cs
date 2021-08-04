@@ -169,6 +169,25 @@ namespace MultiPlatformApplication.Helpers
             return result;
         }
 
+        public static String RemoveCRLFFromString(String str)
+        {
+            if (str == null)
+                return "";
+
+            //Remove carriage returns
+            return str.Replace("\n", "").Replace("\r", "");
+        }
+
+        public static String ReplaceCRLFFromString(String str, string replace)
+        {
+            if (str == null)
+                return "";
+
+            //Replace carriage returns
+            String result = str.Replace("\r\n", replace).Replace("\n", replace).Replace("\r", replace);
+            return result;
+        }
+
         public static ConversationModel GetConversationFromRBConversation(Rainbow.Model.Conversation rbConversation)
         {
             ConversationModel conversation = null;
