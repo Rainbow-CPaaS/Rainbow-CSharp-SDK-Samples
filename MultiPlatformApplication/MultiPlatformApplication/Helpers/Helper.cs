@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 using Xamarin.Essentials;
 using Xamarin.Forms;
@@ -14,6 +15,7 @@ using Rainbow.Model;
 using MultiPlatformApplication.Models;
 
 using NLog;
+
 
 namespace MultiPlatformApplication.Helpers
 {
@@ -357,6 +359,68 @@ namespace MultiPlatformApplication.Helpers
                 return null;
 
             return Rainbow.Util.GetContactDisplayName(contact);
+        }
+
+        public static PickOptions GetDefaultPickOptions()
+        {
+            var customFileType = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
+            {
+                { DevicePlatform.UWP, null },       // => OK (can select any files)
+                { DevicePlatform.Android, null },   // => OK (can select any files)
+
+                { DevicePlatform.iOS, null },       // TODO - it's working ? (can specify any files ?)
+                { DevicePlatform.macOS, null },     // TODO - it's working ? (can specify any files ?)
+
+                { DevicePlatform.tvOS, null },      // it's working ? (can specify any files ?)
+                { DevicePlatform.Tizen, null },     // it's working ? (can specify any files ?)
+                { DevicePlatform.Unknown, null },   // it's working ? (can specify any files ?)
+                { DevicePlatform.watchOS, null },   // it's working ? (can specify any files ?)
+            });
+
+            var options = new PickOptions
+            {
+                FileTypes = customFileType
+            };
+
+            return options;
+        }
+
+        // To let enduser to pick severalfile using specified options
+        public static async Task<IEnumerable<FileResult>> PickFilesAndShow(PickOptions options = null)
+        {
+            if(options == null)
+                options = GetDefaultPickOptions();
+
+            try
+            {
+                var result = await FilePicker.PickMultipleAsync(options);
+                return result;
+            }
+            catch (Exception ex)
+            {
+                // The user canceled or something went wrong
+            }
+
+            return null;
+        }
+
+        // To let enduser to pick a file using specified options
+        public static async Task<FileResult> PickFileAndShow(PickOptions options = null)
+        {
+            if (options == null)
+                options = GetDefaultPickOptions();
+
+            try
+            {
+                var result = await FilePicker.PickAsync(options);
+                return result;
+            }
+            catch (Exception ex)
+            {
+                // The user canceled or something went wrong
+            }
+
+            return null;
         }
 
 #region AVATAR - IMAGE SOURCE
