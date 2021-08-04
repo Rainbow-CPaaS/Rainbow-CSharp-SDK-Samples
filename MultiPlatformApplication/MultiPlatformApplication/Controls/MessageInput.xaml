@@ -31,7 +31,7 @@
                    BackgroundColor="{StaticResource ColorEntryBackground}"
                    HasShadow="False"
                    HorizontalOptions="FillAndExpand"
-                   VerticalOptions="StartAndExpand">
+                   VerticalOptions="FillAndExpand">
 
                 <StackLayout Margin="3, 0"
                              Padding="0"
@@ -54,10 +54,11 @@
 
                     <Frame WidthRequest="2"
                            Padding="0"
-                           Margin="1,3"
+                           Margin="1,4"
                            HasShadow="False"
                            CornerRadius="0"
-                           BackgroundColor="{StaticResource ColorButtonMouseOver}"/>
+                           BackgroundColor="{StaticResource ColorButtonMouseOver}"
+                           IsVisible="{Binding Source={x:Reference ButtonEmoji}, Path=IsVisible}"/>
 
                     <controls:CustomButton x:Name="ButtonUrgency"
                                            CornerRadius="2"
@@ -77,7 +78,7 @@
                            Margin="0"
                            CornerRadius="2"
                            HorizontalOptions="FillAndExpand"
-                           BackgroundColor="{StaticResource ColorBackgroundUrgencyImportant}">
+                           BackgroundColor="Transparent">
 
                         <StackLayout x:Name="StackLayoutUrgency"
                                          Margin="0"
@@ -97,7 +98,7 @@
                                        FontSize="{StaticResource FontSizeSmall}"/>
 
                             <Editor x:Name="EntryMessage"
-                                    BackgroundColor="Transparent"
+                                    BackgroundColor="White"
                                     effects:Entry.NoBorder="True"
                                     effects:Entry.AutoExpandToNbLines="5"
                                     effects:Entry.ValidationKeyModifier="{Binding Message.ValidationKeyModifier}"
@@ -127,7 +128,7 @@
 
                     <Frame WidthRequest="2"
                            Padding="0"
-                           Margin="1,3"
+                           Margin="1,4"
                            HasShadow="False"
                            CornerRadius="0"
                            BackgroundColor="{StaticResource ColorButtonMouseOver}"/>
