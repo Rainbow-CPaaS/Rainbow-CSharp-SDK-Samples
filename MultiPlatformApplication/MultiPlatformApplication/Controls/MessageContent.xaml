@@ -31,7 +31,7 @@
                 </Grid.RowDefinitions>
 
                 <!-- TO ENSURE TO HAVE A MINIMAL WIDTH -->
-                <BoxView Grid.Row="0" Grid.Column="0" BackgroundColor="Transparent" WidthRequest="80" HeightRequest="1"/>
+                <BoxView Grid.Row="0" Grid.Column="0" BackgroundColor="Transparent" WidthRequest="120" HeightRequest="1"/>
 
                 <!-- DEFINE MAIN STACK LAYOUT -->
                 <Grid x:Name="MainGrid"
