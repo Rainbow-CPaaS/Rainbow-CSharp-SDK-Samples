@@ -61,16 +61,9 @@ namespace MultiPlatformApplication.Controls
             {
                 manageDisplay = true;
 
-                if (peerJid == Helper.SdkWrapper.GetCurrentContactJid())
-                {
-                    Frame.BackgroundColor = Color.Transparent;
-                    Label.TextColor = Helper.GetResourceDictionaryById<Color>("ColorConversationStreamMessageCurrentUserFont");
-                }
-
                 // Manage event(s) from FilePool
                 Helper.SdkWrapper.ThumbnailAvailable += SdkWrapper_ThumbnailAvailable;
                 Helper.SdkWrapper.FileDescriptorNotAvailable += SdkWrapper_FileDescriptorNotAvailable;
-
 
                 if (Helper.SdkWrapper.IsThumbnailFileAvailable(conversationId, attachmentId, attachmentName))
                 {
@@ -81,7 +74,18 @@ namespace MultiPlatformApplication.Controls
                     DisplayDeletedFile();
                 }
                 else 
-                { 
+                {
+                    if (peerJid == Helper.SdkWrapper.GetCurrentContactJid())
+                    {
+                        Frame.BackgroundColor = Color.Transparent;
+                        Label.TextColor = Helper.GetResourceDictionaryById<Color>("ColorConversationStreamMessageCurrentUserFont");
+                    }
+                    else
+                    {
+                        Frame.BackgroundColor = Helper.GetResourceDictionaryById<Color>("ColorAttachmentBackground");
+                        Label.TextColor = Helper.GetResourceDictionaryById<Color>("ColorAttachmentText");
+                    }
+
                     // Ask more info about this file
                     Helper.SdkWrapper.AskFileDescriptorDownload(conversationId, attachmentId);
 
@@ -114,17 +118,17 @@ namespace MultiPlatformApplication.Controls
         private void DisplayDeletedFile()
         {
             String label;
-            String color;
+            String colorName;
 
             if (peerJid == Helper.SdkWrapper.GetCurrentContactJid())
             {
                 label = Helper.GetLabel("messageSentDeleted");
-                color = "ColorConversationStreamMessageCurrentUserFont";
+                colorName = "ColorConversationStreamMessageCurrentUserFont";
             }
             else
             {
                 label = Helper.GetLabel("messageReceivedDeleted");
-                color = "ColorConversationStreamMessageOtherUserFont";
+                colorName = "ColorConversationStreamMessageOtherUserFont";
             }
 
             Frame.BackgroundColor = Color.Transparent;
@@ -133,10 +137,11 @@ namespace MultiPlatformApplication.Controls
             Label.Text = "<i>" + label + "</i>";
             Label.Opacity = 0.5;
             Label.IsVisible = true;
+            Label.TextColor = Helper.GetResourceDictionaryById<Color>(colorName);
 
             Image.HeightRequest = 20;
             Image.WidthRequest = 20;
-            Image.Source = Helper.GetImageSourceFromFont("Font_Ban|" + color);
+            Image.Source = Helper.GetImageSourceFromFont("Font_Ban|" + colorName);
             Image.Margin = new Thickness(0, 0, 0, -5);
             Image.Opacity = 0.5;
         }
