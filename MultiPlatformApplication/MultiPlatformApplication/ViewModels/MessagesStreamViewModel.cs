@@ -108,15 +108,7 @@ namespace MultiPlatformApplication.ViewModels
             ((Layout)messageInput.Parent).ForceLayout();
 
             // We need to wait a little before to scroll on correct position
-            Task task = new Task(() =>
-            {
-                Thread.Sleep(100);
-                Device.BeginInvokeOnMainThread(() =>
-                {
-                    ScrollToCorrectPosition();
-                });
-            });
-            task.Start();
+            WaitAndScrollToCorrectPosition();
         }
 
         public void Initialize(String conversationId)
@@ -206,6 +198,106 @@ namespace MultiPlatformApplication.ViewModels
                     // TODO
                 }
             });
+        }
+
+        private void UpdateModelWithMessage(Rainbow.Model.Message rbMessage)
+        {
+            String replaceId = rbMessage.ReplaceId;
+
+            int index = GetIndexUsingMessageId(rbMessage.Id);
+
+            if (index > -1)
+            {
+                // We need to
+                //  - remove the previous view from the stack layout
+                //  - create the new view using new message
+
+
+                // We need to use the date of the originale message
+                MessageElementModel previousMessageBeforeReplace = MessagesList[index];
+                rbMessage.Date = previousMessageBeforeReplace.Date;
+
+                // Create message element model using the RB Message
+                MessageElementModel message = GetMessageFromRBMessage(rbMessage, rbConversation.Type);
+                
+                // Get from the list, the message just before
+                MessageElementModel previousMessageInList = null;
+                if (index > 0)
+                    previousMessageInList = MessagesList[index - 1];
+
+                // Using previous and current message, check if we need to have avatar or not ?
+                NeedDisplayNameSeparator(message, previousMessageInList);
+
+                // Create UI element using message element model
+                ContentView element = GetContentViewAccordingMessage(message);
+
+                // Now update the display list: remove older message and add the new one
+                Device.BeginInvokeOnMainThread(() =>
+                {
+                    StoreScrollingPosition();
+                    DynamicStream.CodeAskingToScroll = true;
+                            
+                    stackLayout?.Children.RemoveAt(index);
+                    MessagesList.RemoveAt(index);
+
+                    stackLayout?.Children.Insert(index, element);
+                    MessagesList.Insert(index, message);
+
+                    // We need to wait a little before to scroll on correct position
+                    WaitAndScrollToCorrectPosition();
+                });
+            }
+        }
+
+
+        private int GetIndexUsingMessageId(String messageId)
+        {
+            int result = -1;
+            if (MessagesList?.Count > 0)
+            {
+                int nb = MessagesList.Count;
+                for (int index = nb - 1; index >= 0; index--)
+                {
+                    if (MessagesList[index].Id == messageId)
+                        return index;
+                }
+            }
+            return result;
+        }
+
+        private ContentView GetContentViewAccordingMessage(MessageElementModel message)
+        {
+            if (message == null)
+                return null;
+
+            ContentView element;
+
+            if (message.Content.Type == "date")
+                element = new MessageSeparatorDate();
+
+            else if (message.Content.Type == "event")
+                element = new MessageSeparatorEvent();
+
+            else if (message.Content.Type == "displayName")
+                element = new MessageSeparatorDisplayName();
+
+            else if (message.Peer.Jid != currentContactJid)
+            {
+                if (message.Content.WithAvatar)
+                    element = new MessageOtherUserWithAvatar();
+                else
+                    element = new MessageOtherUser();
+            }
+            else
+            {
+                if (message.Content.WithAvatar)
+                    element = new MessageCurrentUserWithDate();
+                else
+                    element = new MessageCurrentUser();
+            }
+            element.BindingContext = message;
+
+            return element;
         }
 
         private void AddToModelRbMessages(List<Rainbow.Model.Message> rbMessagesList, bool atTheEnd = false)
@@ -333,32 +425,8 @@ namespace MultiPlatformApplication.ViewModels
 
                     foreach (MessageElementModel message in messagesElementList)
                     {
-                        if (message.Content.Type == "date")
-                            element = new MessageSeparatorDate();
+                        element = GetContentViewAccordingMessage(message);
 
-                        else if (message.Content.Type == "event")
-                            element = new MessageSeparatorEvent();
-
-                        else if (message.Content.Type == "displayName")
-                            element = new MessageSeparatorDisplayName();
-
-                        else if (message.Peer.Jid != currentContactJid)
-                        {
-                            if (message.Content.WithAvatar)
-                                element = new MessageOtherUserWithAvatar();
-                            else
-                                element = new MessageOtherUser();
-                        }
-                        else
-                        {
-                            if (message.Content.WithAvatar)
-                                element = new MessageCurrentUserWithDate();
-                            else
-                                element = new MessageCurrentUser();
-                        }
-                        element.BindingContext = message;
-
-                        
                         stackLayout?.Children.Insert(indexInsert,element);
                         MessagesList.Insert(indexInsert,message);
                         indexInsert++;
@@ -503,7 +571,7 @@ namespace MultiPlatformApplication.ViewModels
                         if (!String.IsNullOrEmpty(rbMessage.ReplaceId))
                         {
                             message.Content.Type = "deletedMessage";
-                            message.Content.Body = Helper.GetLabel("messageReceivedDeleted");
+                            message.Content.Body = "";
                         }
                     }
 
@@ -615,6 +683,19 @@ namespace MultiPlatformApplication.ViewModels
                 y = contentHeight - height - DynamicStream.DeltaYFromTheBottom;
 
             return y;
+        }
+
+        private void WaitAndScrollToCorrectPosition()
+        {
+            Task task = new Task(() =>
+            {
+                Thread.Sleep(100);
+                Device.BeginInvokeOnMainThread(() =>
+                {
+                    ScrollToCorrectPosition();
+                });
+            });
+            task.Start();
         }
 
         private void ScrollToCorrectPosition()
@@ -760,7 +841,7 @@ namespace MultiPlatformApplication.ViewModels
                 // Manage incoming REPLACE message
                 if (!String.IsNullOrEmpty(e.Message.ReplaceId))
                 {
-                    // TO DO
+                    UpdateModelWithMessage(e.Message);
                 }
                 else
                 {
