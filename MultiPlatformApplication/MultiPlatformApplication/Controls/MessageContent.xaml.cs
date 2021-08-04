@@ -23,6 +23,7 @@ namespace MultiPlatformApplication.Controls
         MessageContentBodyWithImg messageContentBodyWithImg = null;
         MessageContentBodyWithCode messageContentBodyWithCode = null;
         MessageContentAttachment messageContentAttachment = null;
+        MessageContentDeleted messageContentDeleted = null;
 
         public MessageContent()
         {
@@ -94,6 +95,13 @@ namespace MultiPlatformApplication.Controls
                             messageContentBody.BindingContext = message;
                             MainGrid.Children.Add(messageContentBody, 0, 2);
                         }
+                    }
+                    else if(message.Content.Type == "deletedMessage")
+                    {
+                        // Create MessageContentDeleted
+                        messageContentDeleted = new MessageContentDeleted();
+                        messageContentDeleted.BindingContext = message;
+                        MainGrid.Children.Add(messageContentDeleted, 0, 2);
                     }
 
                     // Add Attachment element ?
