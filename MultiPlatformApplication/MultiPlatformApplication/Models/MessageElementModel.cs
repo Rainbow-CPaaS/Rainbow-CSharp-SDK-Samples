@@ -22,6 +22,8 @@ namespace MultiPlatformApplication.Models
 
         public MessageReplyModel Reply { get; set; }
 
+        public Boolean IsForwarded { get; set; }
+
         public String ReplaceId { get; set; }
 
         public String Receipt { get; set; }
@@ -59,7 +61,7 @@ namespace MultiPlatformApplication.Models
     {
         public UrgencyType Urgency { get; set; } //  Std, Low, Middle, High
 
-        public String Type { get; set; } // "message", "deletedMessage",  "forwardedMessage",  "image",  "displayName", "date", "event"
+        public String Type { get; set; } // "message", "deletedMessage",  "image",  "displayName", "date", "event"
 
         public String Body { get; set; }
 

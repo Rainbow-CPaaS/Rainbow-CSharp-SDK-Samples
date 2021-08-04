@@ -59,7 +59,7 @@ namespace MultiPlatformApplication.Controls
                     }
 
                     // Add forward header
-                    if(message.Content.Type == "forwardedMessage")
+                    if(message.IsForwarded)
                     {
                         if(messageContentForward == null)
                         {

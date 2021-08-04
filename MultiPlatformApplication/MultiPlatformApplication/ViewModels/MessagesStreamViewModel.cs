@@ -520,9 +520,11 @@ namespace MultiPlatformApplication.ViewModels
                 message.Peer.Jid = rbMessage.FromJid;
                 message.Peer.Type = Rainbow.Model.Conversation.ConversationType.User;
 
-
                 // Store replace Id
                 message.ReplaceId = rbMessage.ReplaceId;
+
+                // Store forward info
+                message.IsForwarded = rbMessage.IsForwarded;
 
                 message.Date = rbMessage.Date;
                 message.DateDisplayed = Helper.HumanizeDateTime(rbMessage.Date) + (String.IsNullOrEmpty(message.ReplaceId) ? "" : " - " + Helper.GetLabel("modified") );
@@ -562,10 +564,7 @@ namespace MultiPlatformApplication.ViewModels
 
                     if (!String.IsNullOrEmpty(rbMessage.Content))
                     {
-                        if(rbMessage.IsForwarded)
-                            message.Content.Type = "forwardedMessage";
-                        else
-                            message.Content.Type = "message";
+                        message.Content.Type = "message";
                         message.Content.Body = rbMessage.Content;
                     }
                     else
