@@ -361,6 +361,8 @@ namespace MultiPlatformApplication.Helpers
             return Rainbow.Util.GetContactDisplayName(contact);
         }
 
+#region PICK FILE(S)
+
         public static PickOptions GetDefaultPickOptions()
         {
             var customFileType = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
@@ -396,7 +398,7 @@ namespace MultiPlatformApplication.Helpers
                 var result = await FilePicker.PickMultipleAsync(options);
                 return result;
             }
-            catch (Exception ex)
+            catch
             {
                 // The user canceled or something went wrong
             }
@@ -415,13 +417,15 @@ namespace MultiPlatformApplication.Helpers
                 var result = await FilePicker.PickAsync(options);
                 return result;
             }
-            catch (Exception ex)
+            catch
             {
                 // The user canceled or something went wrong
             }
 
             return null;
         }
+
+#endregion PICK FILE(S)
 
 #region AVATAR - IMAGE SOURCE
 
