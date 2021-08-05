@@ -6,6 +6,8 @@ using System.Text;
 using System.Threading.Tasks;
 
 using Xamarin.Forms;
+using Xamarin.Forms.PlatformConfiguration;
+using Xamarin.Forms.PlatformConfiguration.WindowsSpecific;
 using Xamarin.Forms.Xaml;
 
 namespace MultiPlatformApplication.Controls
@@ -21,9 +23,11 @@ namespace MultiPlatformApplication.Controls
 
             ConversationsListView.ItemSelected += ConversationsListView_ItemSelected;
 
+            // We prevent MouseOver effect on ListView. "SelecionMode" must also be set to "None"
+            ConversationsListView.On<Windows>().SetSelectionMode(Xamarin.Forms.PlatformConfiguration.WindowsSpecific.ListViewSelectionMode.Inaccessible);
+
             // Create / Init ViewModel
             vm = new ConversationsViewModel();
-            vm.DynamicList.ListView = ConversationsListView; // Need to know the collection view
 
             ConversationsListView.BindingContext = vm;
         }
@@ -33,7 +37,7 @@ namespace MultiPlatformApplication.Controls
             vm.SelectedConversationCommand(e.SelectedItem);
 
             //Reset selection
-            ((ListView)sender).SelectedItem = null;
+            ((Xamarin.Forms.ListView)sender).SelectedItem = null;
         }
 
         public void Initialize()

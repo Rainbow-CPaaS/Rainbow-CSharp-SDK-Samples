@@ -23,9 +23,9 @@
                       Margin="5,0"
                       VerticalOptions="StartAndExpand"
                       
-                      IsPullToRefreshEnabled="{Binding DynamicList.NoMoreItemsAvailable, Converter={StaticResource ReverseBooleanConverter}}"
+                      IsPullToRefreshEnabled="False"
+                      RefreshCommand=""
                       IsRefreshing="{Binding DynamicList.AskingMoreItems}"
-                      RefreshCommand="{Binding DynamicList.AskMoreItemsCommand}"
                       
                       ItemsSource="{Binding DynamicList.Items}"
                       ItemTemplate="{StaticResource ConversationDataTemplate}"

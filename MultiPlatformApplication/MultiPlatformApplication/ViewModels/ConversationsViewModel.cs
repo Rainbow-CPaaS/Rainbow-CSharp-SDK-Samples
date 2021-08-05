@@ -44,8 +44,6 @@ namespace MultiPlatformApplication.ViewModels
 
         public ConversationsViewModel()
         {
-            // Initialize DynamicList commands
-            DynamicList.AskMoreItemsCommand = new RelayCommand<object>(new Action<object>(ConversationLoadMoreItems));
         }
 
         public void Initialize()
@@ -55,10 +53,6 @@ namespace MultiPlatformApplication.ViewModels
                 firstInitialization = false;
                 
                 InitializeSdkObjectsAndEvents();
-
-                // Now ask to load more items => It's not working when using this in a Content View context ...
-                //DynamicList.AskingMoreItems = true;
-                //DynamicList.ListView.BeginRefresh();
 
                 ConversationLoadMoreItems(null);
             }
@@ -89,11 +83,6 @@ namespace MultiPlatformApplication.ViewModels
             if (rbConversations != null)
             {
                 ResetModelWithRbConversations(rbConversations);
-
-                DynamicList.AskingMoreItems = false;
-
-                // No more items will be added in this dynamic list
-                DynamicList.NoMoreItemsAvailable = true;
             }
         }
 
@@ -159,13 +148,10 @@ namespace MultiPlatformApplication.ViewModels
 
             lock (lockObservableConversations)
             {
-                DynamicList.ReplaceRangeAndScroll(conversationList, ScrollTo.START);
+                DynamicList.ReplaceRange(conversationList);
             }
 
             log.Debug("[ResetModelWithRbConversations] nb RBConversations:[{0}] - nb conversationList:[{1}] - nb Conversations:[{2}]", rbConversations?.Count, conversationList.Count, DynamicList.Items.Count);
-
-
-           
 
             // Check if we need to update the view due to DateTime purpose
             //if (conversationList.Count > 0)
@@ -403,11 +389,11 @@ namespace MultiPlatformApplication.ViewModels
         private void UpdateModelForDateTimePurpose()
         {
             log.Debug("[UpdateModelForDateTimePurpose] - IN");
-            //lock (lockObservableConversations)
-            //{
-            //    foreach (ConversationModel conversation in DynamicList.Items)
-            //        conversation.MessageTimeDisplay = Helpers.Helper.HumanizeDateTime(conversation.LastMessageDateTime);
-            //}
+            lock (lockObservableConversations)
+            {
+                foreach (ConversationModel conversation in DynamicList.Items)
+                    conversation.MessageTimeDisplay = Helpers.Helper.HumanizeDateTime(conversation.LastMessageDateTime);
+            }
 
             // We ask the next update 
             CheckIfUpdateModelForDateTimePurpose(mostRecentDateTimeMessage);

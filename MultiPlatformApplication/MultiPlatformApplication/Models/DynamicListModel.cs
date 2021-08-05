@@ -27,17 +27,8 @@ namespace MultiPlatformApplication.Models
     /// <typeparam name="T"></typeparam>
     public class DynamicListModel<T> : ObservableObject
     {
-        // For scrolling management we nneed to use two variables
-        int indexToScroll = 0; // To store the index where we want to scroll to
-        Boolean askingScrolling; // To store the info taht we want to scroll to an element
-
         Boolean askingMoreItems;
         Boolean noMoreItemsAvaialble;
-
-        Xamarin.Forms.ListView listView;
-        Xamarin.Forms.ScrollView scrollView;
-        Xamarin.Forms.RefreshView refreshView;
-
         ICommand askMoreItemsCommand;
 
         /// <summary>
@@ -58,10 +49,6 @@ namespace MultiPlatformApplication.Models
             set { SetProperty(ref noMoreItemsAvaialble, value); }
         }
 
-        /// <summary>
-        /// Items list display in the ListView
-        /// </summary>
-        public ObservableRangeCollection<T> Items { get; set; } = new ObservableRangeCollection<T>();
 
         /// <summary>
         /// Command used when we asked to refresh the list view  by code (using ListView.BeginRefresh()) or by gesture
@@ -73,176 +60,30 @@ namespace MultiPlatformApplication.Models
         }
 
         /// <summary>
-        /// Items view related to this dynamic list
+        /// Items list display in the ListView
         /// </summary>
-        public Xamarin.Forms.ListView ListView
-        {
-            get { return listView; }
-            set { 
-                SetProperty(ref listView, value); 
-                if (listView != null)
-                {
-                    // We prevent MouseOver effect on ListView. "SelecionMode" must also be set to "None"
-                    listView.On<Windows>().SetSelectionMode(Xamarin.Forms.PlatformConfiguration.WindowsSpecific.ListViewSelectionMode.Inaccessible);
-
-                    listView.ItemAppearing += ListView_ItemAppearing;
-
-                    // ON UWP when the first element appears, if there is some items avaialble we ask to load more
-                    // We need to manage like this because there is no gesture to raise "RefreshCommand"
-                    if (Device.RuntimePlatform == Device.UWP)
-                        listView.Scrolled += ListView_Scrolled;
-                }
-            }
-        }
-
-#region EVENTS RAISED BY ListView OBJECT
-
-        private void AskToScrollToIndex()
-        {
-            if (Items.Count > 0)
-            {
-                ScrollToPosition position;
-                if (indexToScroll == Items.Count - 1)
-                    position = ScrollToPosition.MakeVisible;
-                else
-                    position = ScrollToPosition.Start;
-                ListView.ScrollTo(Items[indexToScroll], position, false);
-            }
-        }
-
-        private void ListView_Scrolled(object sender, ScrolledEventArgs e)
-        {
-            // ON UWP when the first element appears, if there is still some items available, we ask to load more
-            if ( (e.ScrollY <= 5) 
-                && (!NoMoreItemsAvailable) 
-                && (! (AskingMoreItems || askingScrolling) ) )
-            {
-                AskingMoreItems = true;
-                ListView.BeginRefresh();
-            }
-        }
-
-        private void ListView_ItemAppearing(object sender, ItemVisibilityEventArgs e)
-        {
-            if (AskingMoreItems || askingScrolling)
-            {
-
-                if(e.ItemIndex == indexToScroll)
-                {
-                    askingScrolling = false;
-                    AskingMoreItems = false;
-                    ListView.EndRefresh();
-                }
-                else
-                    AskToScrollToIndex();
-            }
-        }
-
-#endregion EVENTS RAISED BY ListView OBJECT
+        public ObservableRangeCollection<T> Items { get; set; } = new ObservableRangeCollection<T>();
 
 
         /// <summary>
-        /// To add a range of items in the ListView and scroll to the correct position
+        /// To add a range of items in the list
         /// </summary>
         /// <param name="items">List of items</param>
         /// <param name="indexToAddRange">Position where new items are added</param>
-        /// <param name="scrollTo">To indicate where to scroll to once items are added</param>
-        public void AddRangeAndScroll(List<T> items, int indexToAddRange, ScrollTo scrollTo)
+        public void AddRangeAndScroll(List<T> items, int indexToAddRange)
         {
             if (items != null)
-            {
-                switch(scrollTo)
-                {
-                    case ScrollTo.START:
-                        indexToScroll = 0;
-                        break;
-
-                    case ScrollTo.END:
-                        indexToScroll = items.Count  + Items.Count - 1;
-                        break;
-
-                    case ScrollTo.END_OF_RANGE_ADDED:
-                        indexToScroll = items.Count - 1;
-                        break;
-                }
-
-                askingScrolling = true;
                 Items.AddRange(items, System.Collections.Specialized.NotifyCollectionChangedAction.Reset, indexToAddRange);
-
-                if( (Device.RuntimePlatform == Device.iOS)
-                    || (Device.RuntimePlatform == Device.Android) )
-                    AskToScrollToIndex();
-            }
         }
 
         /// <summary>
-        /// To replace items of the ListView and scroll to the correct position
+        /// To replace items of the ListView
         /// </summary>
         /// <param name="items">List of items </param>
-        /// <param name="scrollTo">To indicate where to scroll to once items are added</param>
-        public void ReplaceRangeAndScroll(List<T> items, ScrollTo scrollTo)
+        public void ReplaceRange(List<T> items)
         {
             if (items != null)
-            {
-                switch (scrollTo)
-                {
-                    case ScrollTo.END_OF_RANGE_ADDED: // Not really
-                    case ScrollTo.START:
-                        indexToScroll = 0;
-                        break;
-
-                    case ScrollTo.END:
-                        indexToScroll = items.Count - 1;
-                        break;
-                }
-
-                askingScrolling = true;
                 Items.ReplaceRange(items);
-
-                if ((Device.RuntimePlatform == Device.iOS)
-                    || (Device.RuntimePlatform == Device.Android))
-                    AskToScrollToIndex();
-            }
-        }
-
-        /// <summary>
-        /// To scroll to the start of the ListView
-        /// </summary>
-        public void ScrollToStart()
-        {
-            ScrollToIndex(0, ScrollToPosition.Start);
-        }
-
-        /// <summary>
-        /// To scroll to the end of the ListView
-        /// </summary>
-        public void ScrollToEnd()
-        {
-            if(Items?.Count > 0)
-                ScrollToIndex(Items.Count-1, ScrollToPosition.MakeVisible);
-        }
-
-        /// <summary>
-        /// To scroll to the specified index of the ListView
-        /// </summary>
-        /// <param name="index">Index to scroll to</param>
-        /// <param name="position">Position of the index once scrolled to</param>
-        public void ScrollToIndex(int index, ScrollToPosition position)
-        {
-            Device.BeginInvokeOnMainThread(() =>
-            {
-                try
-                {
-                    askingScrolling = true;
-                    indexToScroll = index;
-
-                    ListView.ScrollTo(Items[index], position, false);
-                }
-                catch
-                {
-                }
-            });
-            
         }
 
         public DynamicListModel()
@@ -253,12 +94,6 @@ namespace MultiPlatformApplication.Models
 
         public void Dispose()
         {
-            if (ListView != null)
-            {
-                listView.ItemAppearing -= ListView_ItemAppearing;
-                ListView = null;
-            }
-
             if (Items != null)
             {
                 Items.Clear();
