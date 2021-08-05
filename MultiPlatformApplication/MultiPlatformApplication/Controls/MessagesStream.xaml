@@ -58,6 +58,9 @@
 
                                 <Frame Grid.Column="0"
                                        Grid.Row="0"
+                                       HasShadow="False"
+                                       Margin="0"
+                                       Padding="0"
                                        HorizontalOptions="Fill"
                                        VerticalOptions="Fill"
                                        Opacity="0.5"
@@ -124,6 +127,7 @@
 
                 <Frame Margin="0"
                        Padding="0"
+                       HasShadow="False"
                        CornerRadius="1"
                        BorderColor="#999999"
                        BackgroundColor="White"

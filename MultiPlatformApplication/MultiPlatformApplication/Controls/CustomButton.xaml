@@ -4,6 +4,7 @@
        xmlns:effects="clr-namespace:MultiPlatformApplication.Effects"
        x:Class="MultiPlatformApplication.Controls.CustomButton"
        CornerRadius="0" 
+       HasShadow="False"
        Margin="0"
        Padding="0"
        HorizontalOptions="Center"

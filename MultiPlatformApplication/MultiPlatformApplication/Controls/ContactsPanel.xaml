@@ -83,6 +83,7 @@
 
             <Frame Margin="0"
                    Padding="0"
+                   HasShadow="False"
                    CornerRadius="1"
                    BorderColor="#999999"
                    BackgroundColor="White"
@@ -152,6 +153,7 @@
 
             <Frame Margin="0"
                    Padding="0"
+                   HasShadow="False"
                    CornerRadius="1"
                    BorderColor="#999999"
                    BackgroundColor="White"

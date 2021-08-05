@@ -40,26 +40,25 @@
 
 
             <!--MSG UNREAD-->
-            <Frame 
-                Grid.Row="0" 
-                Grid.Column="0"
-                BackgroundColor="Red"
-                HeightRequest="20"
-                WidthRequest="20"
-                CornerRadius="20" 
-                VerticalOptions="Start"
-                HorizontalOptions="End"
-                HasShadow="False"
-                IsClippedToBounds="False"
-                Margin="0"
-                Padding="0"
-                IsVisible="{Binding NbMsgUnread, Converter={StaticResource IntToBooleanConverter}}">
-                <Label
-                    VerticalOptions="Center"
-                    HorizontalOptions="Center"
-                    FontSize="{StaticResource FontSizeMicro}"
-                    TextColor="White"
-                    Text="{Binding NbMsgUnread}"/>
+            <Frame Grid.Row="0"
+                   Grid.Column="0"
+                   BackgroundColor="Red"
+                   HeightRequest="20"
+                   WidthRequest="20"
+                   CornerRadius="20"
+                   VerticalOptions="Start"
+                   HorizontalOptions="End"
+                   IsClippedToBounds="False"
+                   HasShadow="False"
+                   Margin="0"
+                   Padding="0"
+                   IsVisible="{Binding NbMsgUnread, Converter={StaticResource IntToBooleanConverter}}">
+                
+                <Label VerticalOptions="Center"
+                       HorizontalOptions="Center"
+                       FontSize="{StaticResource FontSizeMicro}"
+                       TextColor="White"
+                       Text="{Binding NbMsgUnread}"/>
             </Frame>
 
 

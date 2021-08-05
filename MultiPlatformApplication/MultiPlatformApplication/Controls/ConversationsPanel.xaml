@@ -24,7 +24,6 @@
                       VerticalOptions="StartAndExpand"
                       
                       IsPullToRefreshEnabled="False"
-                      RefreshCommand=""
                       IsRefreshing="{Binding DynamicList.AskingMoreItems}"
                       
                       ItemsSource="{Binding DynamicList.Items}"

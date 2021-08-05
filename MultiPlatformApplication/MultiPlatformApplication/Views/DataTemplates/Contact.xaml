@@ -40,15 +40,15 @@
 
 
                 <Frame Grid.Row="0" Grid.Column="2"
-                   CornerRadius="0" 
-                   BackgroundColor="#00000000"
-                   VerticalOptions="Center"
-                   HorizontalOptions="FillAndExpand"
-                   HasShadow="False"
-                   IsClippedToBounds="False"
-                   Margin="0"
-                   Padding="0"
-                   HeightRequest="48">
+                       CornerRadius="0" 
+                       BackgroundColor="#00000000"
+                       VerticalOptions="Center"
+                       HorizontalOptions="FillAndExpand"
+                       IsClippedToBounds="False"
+                       HasShadow="False"
+                       Margin="0"
+                       Padding="0"
+                       HeightRequest="48">
 
                     <StackLayout Spacing="0" Padding="10,0,10,0"  Margin="0" Orientation="Vertical" VerticalOptions="Center">
                         <Label HorizontalOptions="StartAndExpand" TextColor="Black" FontSize="{StaticResource FontSizeMedium}" MaxLines="1" LineBreakMode="TailTruncation" VerticalOptions="Start" Text="{Binding Peer.DisplayName}"/>

@@ -9,6 +9,7 @@
   <ContentView.Content>
         <Frame Padding="6"
                Margin="0"
+               HasShadow="False"
                CornerRadius="0"
                BackgroundColor="White">
             <Label x:Name="Label" 

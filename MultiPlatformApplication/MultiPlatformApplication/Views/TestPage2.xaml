@@ -86,9 +86,7 @@
 
             <RelativeLayout BackgroundColor="#FF0000"
                             Margin="0" 
-                            Padding="0"
-                            
-                            >
+                            Padding="0">
 
                 <Grid  RelativeLayout.XConstraint="{ ConstraintExpression Constant=0}"
                        RelativeLayout.YConstraint="{ ConstraintExpression Constant=0}"
@@ -110,23 +108,23 @@
 
 
                     <Frame Grid.Column="0"
-                       Grid.Row="0"
-                       BackgroundColor="#00EEEE"
-                       Margin="0"
-                       Padding="0"
-                       CornerRadius="0"
-                       HasShadow="False"
-                       VerticalOptions="Fill"/>
+                           Grid.Row="0"
+                           BackgroundColor="#00EEEE"
+                           Margin="0"
+                           Padding="0"
+                           CornerRadius="0"
+                           HasShadow="False"
+                           VerticalOptions="Fill"/>
 
                     <Frame Grid.Column="0"
-                       Grid.Row="1"
+                           Grid.Row="1"
                            HeightRequest="80"
-                       BackgroundColor="#EEEE00"
-                       Margin="0"
-                       Padding="0"
-                       CornerRadius="0"
-                       HasShadow="False"
-                       VerticalOptions="End"/>
+                           BackgroundColor="#EEEE00"
+                           Margin="0"
+                           Padding="0"
+                           CornerRadius="0"
+                           HasShadow="False"
+                           VerticalOptions="End"/>
                 </Grid>
             </RelativeLayout>
         </StackLayout>

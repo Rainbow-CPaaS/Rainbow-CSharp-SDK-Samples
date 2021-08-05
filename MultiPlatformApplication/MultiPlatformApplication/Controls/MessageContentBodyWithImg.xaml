@@ -39,31 +39,6 @@
                                    BackgroundColorOnMouseOver="#BB1b1919"
                                    Command="{Binding AnimationCommand}"
                                    IsVisible="{Binding Source={x:Reference Image}, Path=IsAnimationPlaying, Converter={StaticResource ReverseBooleanConverter}}"/>
-
-
-            <!--<Frame Margin="0" 
-                   Padding="0"
-                   CornerRadius="20"
-                   BorderColor="Transparent"
-                   BackgroundColor="#BB1b1919"
-                   HeightRequest="40"
-                   WidthRequest="40"
-                   HorizontalOptions="Center"
-                   VerticalOptions="Center"
-                   >
-                <Frame.GestureRecognizers>
-                    <TapGestureRecognizer Command="{Binding AnimationCommand}"/>
-                </Frame.GestureRecognizers>
-                <Label Text="GIF" 
-                       TextColor="White"
-                       FontSize="{StaticResource FontSizeMedium}"
-                       HorizontalOptions="Center"
-                       VerticalOptions="Center">
-                    <Label.GestureRecognizers>
-                        <TapGestureRecognizer Command="{Binding AnimationCommand}"/>
-                    </Label.GestureRecognizers>
-                </Label>
-            </Frame>-->
         </Grid>
     </ContentView.Content>
     

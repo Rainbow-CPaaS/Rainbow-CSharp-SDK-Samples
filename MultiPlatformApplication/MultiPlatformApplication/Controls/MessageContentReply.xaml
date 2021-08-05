@@ -8,6 +8,7 @@
     <ContentView.Content>
         <Frame  x:Name="Frame"
                 CornerRadius="0"
+                HasShadow="False"
                 Margin="0"
                 Padding="6,6,6,0">
 
