@@ -7,8 +7,9 @@
              BackgroundColor="Transparent">
     
     <Frame x:Name="Frame"
-           HorizontalOptions="Center"
-           VerticalOptions="Center"
+           HasShadow="False"
+           HorizontalOptions="Fill"
+           VerticalOptions="Fill"
            CornerRadius="0" 
            Margin="0"
            Padding="0"
