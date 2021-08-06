@@ -1,0 +1,35 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<ContentView xmlns="http://xamarin.com/schemas/2014/forms" 
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MultiPlatformApplication.Controls.EditorExpandableWithMaxLines"
+             xmlns:effects="clr-namespace:MultiPlatformApplication.Effects"             
+             x:Name="ContentView"
+             Margin="0"
+             Padding="0"
+             VerticalOptions="Center"
+             HorizontalOptions="FillAndExpand"
+             BackgroundColor="Transparent">
+  <ContentView.Content>
+        <ScrollView x:Name="ScrollView"
+                    BackgroundColor="Transparent"
+                    IsClippedToBounds="True"
+                    Margin="0"
+                    Padding="0"
+                    WidthRequest="{Binding Source={x:Reference ContentView}, Path=Width}"
+                    HorizontalScrollBarVisibility="Never"
+                    VerticalScrollBarVisibility="Always">
+
+            <Editor x:Name="Editor"
+                    effects:Entry.NoBorder="True"
+                    AutoSize="TextChanges"
+                    Margin="0"
+                    FontSize="{StaticResource FontSizeSmall}" 
+                    BackgroundColor="{StaticResource ColorEntryBackground}"
+                    TextColor="{StaticResource ColorEntryText}"
+                    Placeholder="Enter your text here ..." 
+                    PlaceholderColor="{StaticResource ColorEntryPlaceHolder}"
+                    HorizontalOptions="Fill"
+                    VerticalOptions="Center"/>
+        </ScrollView>
+    </ContentView.Content>
+</ContentView>
