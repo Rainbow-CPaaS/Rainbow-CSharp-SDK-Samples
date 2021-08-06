@@ -14,13 +14,6 @@ using Xamarin.Forms.PlatformConfiguration.WindowsSpecific;
 
 namespace MultiPlatformApplication.Models
 {
-    public enum ScrollTo
-    {
-        START,
-        END,
-        END_OF_RANGE_ADDED
-    }
-
     /// <summary>
     /// To manage easily a ListView using a Refresh sytem and automatic scrolling when items are added
     /// </summary>
@@ -70,10 +63,22 @@ namespace MultiPlatformApplication.Models
         /// </summary>
         /// <param name="items">List of items</param>
         /// <param name="indexToAddRange">Position where new items are added</param>
-        public void AddRangeAndScroll(List<T> items, int indexToAddRange)
+        public void AddRange(List<T> items, int indexToAddRange)
         {
             if (items != null)
                 Items.AddRange(items, System.Collections.Specialized.NotifyCollectionChangedAction.Reset, indexToAddRange);
+        }
+
+        /// <summary>
+        /// To add a range of items in the list
+        /// </summary>
+        /// <param name="items">List of items</param>
+        /// <param name="indexToAddRange">Position where new items are added</param>
+        public void Add(T item, int indexToAdd)
+        {
+            var list = new List<T>();
+            list.Add(item);
+            AddRange(list, indexToAdd);
         }
 
         /// <summary>
