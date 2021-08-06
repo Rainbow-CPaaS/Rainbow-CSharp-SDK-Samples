@@ -41,7 +41,7 @@
                              VerticalOptions="Start">
 
                     <controls:CustomButton x:Name="ButtonEmoji"
-                                           effects:EmojiSelector.EntryName="EntryMessage"
+                                           effects:EmojiSelector.EntryName="EntryMessage.Editor"
                                            CornerRadius="2"
                                            Padding="0,2,0,0"
                                            HeightRequest="24"
@@ -81,12 +81,12 @@
                            BackgroundColor="Transparent">
 
                         <StackLayout x:Name="StackLayoutUrgency"
-                                         Margin="0"
-                                         Padding="0"
-                                         Spacing="0"
-                                         Orientation="Vertical"
-                                         VerticalOptions="Center"
-                                         BackgroundColor="Transparent">
+                                     Margin="0"
+                                     Padding="0"
+                                     Spacing="0"
+                                     Orientation="Vertical"
+                                     VerticalOptions="Center"
+                                     BackgroundColor="Transparent">
 
                             <Label x:Name="LabelUrgency"
                                        IsVisible="{Binding Source={x:Reference LabelUrgency}, Path=Text, Converter={StaticResource TextToBooleanConverter }}"
@@ -97,20 +97,9 @@
                                        FontAttributes="Bold" 
                                        FontSize="{StaticResource FontSizeSmall}"/>
 
-                            <Editor x:Name="EntryMessage"
-                                    BackgroundColor="White"
-                                    effects:Entry.NoBorder="True"
-                                    effects:Entry.AutoExpandToNbLines="5"
-                                    effects:Entry.ValidationKeyModifier="{Binding Message.ValidationKeyModifier}"
-                                    effects:Entry.ValidationCommand="{Binding Message.ValidationCommand}"
-                                    Margin="0"
-                                    FontSize="{StaticResource FontSizeSmall}" 
-                                    TextColor="{StaticResource ColorEntryText}"
-                                    Placeholder="Enter your text here ..." 
-                                    PlaceholderColor="{StaticResource ColorEntryPlaceHolder}"
-                                    HorizontalOptions="Fill"
-                                    VerticalOptions="Center"/>
-
+                            <controls:EditorExpandableWithMaxLines x:Name="EntryMessage"
+                                                                    MaxLines="5"
+                                                                    VerticalOptions="Center"/>
                         </StackLayout>
                     </Frame>
 

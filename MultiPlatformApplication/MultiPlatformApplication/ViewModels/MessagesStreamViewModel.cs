@@ -57,7 +57,6 @@ namespace MultiPlatformApplication.ViewModels
             if (messageInput != null)
             {
                 messageInput.MessageUrgencyClicked += MessageInput_MessageUrgencyClicked;
-                messageInput.MessageAttachmentClicked += MessageInput_MessageAttachmentClicked;
                 messageInput.MessageSendClicked += MessageInput_MessageSendClicked;
                 messageInput.UserIsTyping += MessageInput_UserIsTyping;
 
@@ -634,11 +633,6 @@ namespace MultiPlatformApplication.ViewModels
 
             // Set to standard urgency
             SetMessageUrgencySelectedItem(3);
-        }
-
-        private void MessageInput_MessageAttachmentClicked(object sender, EventArgs e)
-        {
-            // TODO
         }
 
         private void MessageInput_UserIsTyping(object sender, Rainbow.Events.IdEventArgs e)

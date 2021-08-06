@@ -9,6 +9,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using Xamarin.Essentials;
+
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 
@@ -27,7 +29,6 @@ namespace MultiPlatformApplication.Controls
         public event EventHandler<IdEventArgs> UserIsTyping;
         public event EventHandler<IdEventArgs> MessageSendClicked;
         public event EventHandler<EventArgs> MessageUrgencyClicked;
-        public event EventHandler<EventArgs> MessageAttachmentClicked;
 
 #region BINDINGS used in XAML
         public MessageInputModel Message { get; private set; } = new MessageInputModel();
@@ -45,9 +46,10 @@ namespace MultiPlatformApplication.Controls
 
             InitializeComponent();
             BindingContext = this;
-
             
             ButtonTyping.PropertyChanged += ButtonTyping_PropertyChanged;
+
+            EntryMessage.Placeholder = Helper.GetLabel("enterTextHere");
             EntryMessage.PropertyChanged += EntryMessage_PropertyChanged;
             EntryMessage.TextChanged += EntryMessage_TextChanged;
 
@@ -232,16 +234,20 @@ namespace MultiPlatformApplication.Controls
             LabelUrgency.TextColor = textColor;
             FrameUrgency.BackgroundColor = bgdColor;
 
-            EntryMessage.Focus();
+            EntryMessage.SetFocus();
 
             // Need to force the layout of the parent ...
             UpdateParentLayout?.Raise(this, null);
             //((Layout)this.Parent).ForceLayout();
         }
 
-        private void MessageInputAttachmentCommand(object obj)
+        private async void MessageInputAttachmentCommand(object obj)
         {
-            MessageAttachmentClicked?.Raise(this, null);
+            List<FileResult> filesList = (await Helper.PickFilesAndShow())?.ToList();
+            
+            // TODO: Create UI to display attachments list
+
+            //MessageAttachmentClicked?.Raise(this, null);
         }
 
         private void MessageInputUrgencyCommand(object obj)
@@ -251,13 +257,15 @@ namespace MultiPlatformApplication.Controls
 
         private void MessageInputSendCommand(object obj)
         {
-            if (EntryMessage.Text?.Length > 0)
+            String text = EntryMessage.GetEditorText();
+
+            if (text?.Length > 0)
             {
                 //Get Content and trim it
-                string content = EntryMessage.Text.Trim();
+                string content = text.Trim();
 
                 // Clear text: as consequence this compoent size will be change and eventually we ask parent to update layout
-                EntryMessage.Text = "";
+                EntryMessage.SetEditorText("");
 
                 // Ask to send this message
                 MessageSendClicked?.Raise(this, new IdEventArgs(content));
