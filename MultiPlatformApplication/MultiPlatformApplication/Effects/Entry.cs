@@ -78,35 +78,11 @@ namespace MultiPlatformApplication.Effects
 #endregion  ValidationKeyModifier Property
 
 
-#region  AutoExpandToNbLines Property
-
-        public static readonly BindableProperty AutoExpandToNbLinesProperty = BindableProperty.Create("AutoExpandToNbLines", typeof(int), typeof(Entry), 0, propertyChanged: OnAutoExpandToNbLinesChanged);
-
-        public static int GetAutoExpandToNbLines(BindableObject view)
-        {
-            return (int)view.GetValue(AutoExpandToNbLinesProperty);
-        }
-
-        public static void SetAutoExpandToNbLines(BindableObject view, int value)
-        {
-            view.SetValue(AutoExpandToNbLinesProperty, value);
-        }
-
-        static void OnAutoExpandToNbLinesChanged(BindableObject bindable, object oldValue, object newValue)
-        {
-            var view = bindable as View;
-            if (view == null)
-                return;
-
-            int AutoExpandToNbLines = (int)newValue;
-            if (AutoExpandToNbLines > 0)
-                Helper.AddEffect(view, new ControlEntryEffect());
-        }
-
-#endregion  AutoExpandToNbLines Property
-
-
 #region  NoBorder Property
+
+        // No border implementation: (Android, iOs, UWP)
+        //      https://alexdunn.org/2017/03/08/xamarin-forms-borderless-entry/
+        //      https://stackoverflow.com/questions/53095961/how-to-remove-the-border-from-a-entry-control-with-xamarin-forms
 
         public static readonly BindableProperty NoBorderProperty = BindableProperty.Create("NoBorder", typeof(Boolean), typeof(Entry), false, propertyChanged: OnNoBorderChanged);
 

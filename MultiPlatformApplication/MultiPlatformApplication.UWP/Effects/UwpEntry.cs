@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Input;
 using Windows.System;
 using Windows.UI.Core;
 using Windows.UI.Input.Preview.Injection;
@@ -19,10 +20,9 @@ namespace MultiPlatformApplication.UWP.PlatformEffect
     public class UwpEntry : Xamarin.Forms.Platform.UWP.PlatformEffect
     {
         TextBox textBox = null;
+        
         String validateKeyModifier;
-
-        int autoExpandToNbLines = 0;
-        double maxHeigthSize = 0;
+        ICommand validationCommand;
 
         protected override void OnAttached()
         {
@@ -30,15 +30,13 @@ namespace MultiPlatformApplication.UWP.PlatformEffect
             {
                 textBox = (TextBox)Control;
 
-                validateKeyModifier = MultiPlatformApplication.Effects.Entry.GetValidationKeyModifier(Element);
-                if(validateKeyModifier != null)
-                    textBox.KeyUp += TextBox_KeyUp;
-
-                autoExpandToNbLines = MultiPlatformApplication.Effects.Entry.GetAutoExpandToNbLines(Element);
-                if (autoExpandToNbLines > 0)
+                validationCommand = MultiPlatformApplication.Effects.Entry.GetValidationCommand(Element);
+                if (validationCommand != null)
                 {
-                    
-                    textBox.TextChanged += TextBox_TextChanged;
+                    validateKeyModifier = MultiPlatformApplication.Effects.Entry.GetValidationKeyModifier(Element);
+                    if (validateKeyModifier == null)
+                        validateKeyModifier = "";
+                    textBox.KeyUp += TextBox_KeyUp;
                 }
 
                 if (MultiPlatformApplication.Effects.Entry.GetNoBorder(Element))
@@ -96,51 +94,11 @@ namespace MultiPlatformApplication.UWP.PlatformEffect
             }
         }
 
-        private void TextBox_TextChanged(object sender, Windows.UI.Xaml.Controls.TextChangedEventArgs e)
-        {
-            int count = textBox.Text.Count(f => f == '\r');
-
-            if (count == autoExpandToNbLines - 1)
-            {
-                maxHeigthSize = Control.ActualHeight;
-            }
-            else if (count >= autoExpandToNbLines)
-            {
-                Device.BeginInvokeOnMainThread(() =>
-                {
-                    if (Element is Editor)
-                    {
-                        Editor editor = (Editor)Element;
-                        editor.AutoSize = EditorAutoSizeOption.Disabled;
-
-                        if (maxHeigthSize == 0)
-                            Control.MaxHeight = 80; // We need to set a value ...
-                        else
-                            Control.MaxHeight = maxHeigthSize;
-
-                        ScrollViewer.SetVerticalScrollBarVisibility(Control, Windows.UI.Xaml.Controls.ScrollBarVisibility.Visible);
-                    }
-                });
-            }
-            else
-            {
-                Device.BeginInvokeOnMainThread(() =>
-                {
-                    if (Element is Editor)
-                    {
-                        ((Editor)Element).AutoSize = EditorAutoSizeOption.TextChanges;
-
-                        ScrollViewer.SetVerticalScrollBarVisibility(Control, Windows.UI.Xaml.Controls.ScrollBarVisibility.Hidden);
-                    }
-                });
-            }
-        }
-
         protected override void OnDetached()
         {
             if(textBox != null)
             {
-                textBox.TextChanged -= TextBox_TextChanged;
+                textBox.KeyUp -= TextBox_KeyUp;
             }
         }
 

@@ -13,6 +13,7 @@ using static Android.Views.ViewGroup;
 namespace MultiPlatformApplication.Droid.PlatformEffect
 {
     // Based on: https://stackoverflow.com/questions/53095961/how-to-remove-the-border-from-a-entry-control-with-xamarin-forms
+
     public class DroidEntry : Xamarin.Forms.Platform.Android.PlatformEffect
     {
         EditText editText = null;
