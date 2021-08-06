@@ -98,8 +98,10 @@
                                        FontSize="{StaticResource FontSizeSmall}"/>
 
                             <controls:EditorExpandableWithMaxLines x:Name="EntryMessage"
-                                                                    MaxLines="5"
-                                                                    VerticalOptions="Center"/>
+                                                                   ValidationKeyModifier="{Binding Message.ValidationKeyModifier}"
+                                                                   ValidationCommand="{Binding Message.ValidationCommand}"
+                                                                   MaxLines="5"
+                                                                   VerticalOptions="Center"/>
                         </StackLayout>
                     </Frame>
 
