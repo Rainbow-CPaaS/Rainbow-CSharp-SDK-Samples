@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MultiPlatformApplication.Helpers;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -27,6 +28,7 @@ namespace MultiPlatformApplication.Effects
         {
             CheckEffect(bindable);
         }
+
 #endregion  Enabled Property
 
 
@@ -49,6 +51,7 @@ namespace MultiPlatformApplication.Effects
         {
             CheckEffect(bindable);
         }
+
 #endregion  LinkedTo Property
 
 
@@ -101,24 +104,15 @@ namespace MultiPlatformApplication.Effects
             if (view == null)
                 return;
 
-            Effect effect = null;
-            try
-            {
-                effect = view.Effects.First(e => e is ControlContextMenuEffect);
-            }
-            catch
-            { 
-            }
             if (GetEnabled(bindable))
             {
                 //view.StyleId = "ContextMenu";
                 view.IsVisible = false;
 
-                if (effect == null)
-                    view.Effects.Add(new ControlContextMenuEffect());
+                Helper.AddEffect(view, new ControlContextMenuEffect());
             }
-            else if (effect != null)
-                view.Effects.Remove(effect);
+            else
+                Helper.RemoveEffect(view, typeof(ControlContextMenuEffect));
         }
 
         public static void Hide(BindableObject bindable)

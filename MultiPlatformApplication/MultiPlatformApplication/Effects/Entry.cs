@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MultiPlatformApplication.Helpers;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,6 +10,8 @@ namespace MultiPlatformApplication.Effects
 {
     public class Entry
     {
+
+#region  ValidationCommand Property
 
         public static readonly BindableProperty ValidationCommandProperty = BindableProperty.Create("ValidationCommand", typeof(ICommand), typeof(Entry), null, propertyChanged: OnValidationCommandChanged);
 
@@ -35,9 +38,10 @@ namespace MultiPlatformApplication.Effects
 
             ICommand command = (ICommand)newValue;
             if (command != null)
-                AddEffect(view);
+                Helper.AddEffect(view, new ControlEntryEffect());
         }
 
+#endregion ValidationCommand Property
 
 #region  ValidationKeyModifier Property
 
@@ -68,7 +72,7 @@ namespace MultiPlatformApplication.Effects
 
             String ValidationKeyModifier = (String)newValue;
             if (ValidationKeyModifier != null)
-                AddEffect(view);
+                Helper.AddEffect(view, new ControlEntryEffect());
         }
 
 #endregion  ValidationKeyModifier Property
@@ -96,7 +100,7 @@ namespace MultiPlatformApplication.Effects
 
             int AutoExpandToNbLines = (int)newValue;
             if (AutoExpandToNbLines > 0)
-                AddEffect(view);
+                Helper.AddEffect(view, new ControlEntryEffect());
         }
 
 #endregion  AutoExpandToNbLines Property
@@ -124,7 +128,7 @@ namespace MultiPlatformApplication.Effects
 
             Boolean NoBorder = (Boolean)newValue;
             if (NoBorder)
-                AddEffect(view);
+                Helper.AddEffect(view, new ControlEntryEffect());
         }
 
 #endregion  NoBorder Property
@@ -153,26 +157,10 @@ namespace MultiPlatformApplication.Effects
 
             Boolean NoTintColored = (Boolean)newValue;
             if (NoTintColored)
-                AddEffect(view);
+                Helper.AddEffect(view, new ControlEntryEffect());
         }
 
 #endregion  NoTintColored Property
-
-        private static void AddEffect(View view)
-        {
-            RemoveEffect(view);
-            view.Effects.Add(new ControlEntryEffect());
-        }
-
-        private static void RemoveEffect(View view)
-        {
-            if (view == null)
-                return;
-
-            var toRemove = view.Effects.FirstOrDefault(e => e is ControlEntryEffect);
-            if (toRemove != null)
-                view.Effects.Remove(toRemove);
-        }
 
         class ControlEntryEffect : RoutingEffect
         {

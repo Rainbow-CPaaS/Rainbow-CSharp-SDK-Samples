@@ -78,6 +78,28 @@ namespace MultiPlatformApplication.Helpers
 
 #endregion FOLDERS PATH
 
+#region EFFECT - ADD / REMOVE
+        public static void AddEffect(View view, Effect effect)
+        {
+            if (view == null)
+                return;
+
+            RemoveEffect(view, effect.GetType());
+            view.Effects.Add(effect);
+        }
+
+        public static void RemoveEffect(View view, Type effectType)
+        {
+            if (view == null)
+                return;
+            
+            var toRemove = view.Effects.FirstOrDefault(e => e.GetType().Equals(effectType));
+            if (toRemove != null)
+                view.Effects.Remove(toRemove);
+        }
+
+#endregion EFFECT - ADD / REMOVE
+
         /// <summary>
         /// Get Humanized string of the specifed DateTime. The DateTime must not be gerated than UtcNow ...
         /// 

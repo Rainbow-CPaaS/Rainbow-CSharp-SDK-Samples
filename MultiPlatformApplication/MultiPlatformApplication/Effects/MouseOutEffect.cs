@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MultiPlatformApplication.Helpers;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -36,18 +37,9 @@ namespace MultiPlatformApplication.Effects
 
             ICommand command = (ICommand)newValue;
             if (command != null)
-            {
-                view.Effects.Add(new ControlMouseOutEffect());
-            }
+                Helper.AddEffect(view, new ControlMouseOutEffect());
             else
-            {
-                var toRemove = view.Effects.FirstOrDefault(e => e is ControlMouseOutEffect);
-                if (toRemove != null)
-                {
-                    view.Effects.Remove(toRemove);
-                }
-            }
-
+                Helper.RemoveEffect(view, typeof(ControlMouseOutEffect));
         }
 
         class ControlMouseOutEffect : RoutingEffect

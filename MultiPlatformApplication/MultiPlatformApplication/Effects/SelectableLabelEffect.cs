@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MultiPlatformApplication.Helpers;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -32,17 +33,9 @@ namespace MultiPlatformApplication.Effects
             {
                 Boolean enabled = (Boolean)newValue;
                 if(enabled)
-                {
-                    view.Effects.Add(new ControlSelectableLabelEffect());
-                }
+                    Helper.AddEffect(view, new ControlSelectableLabelEffect());
                 else
-                {
-                    var toRemove = view.Effects.FirstOrDefault(e => e is ControlSelectableLabelEffect);
-                    if (toRemove != null)
-                    {
-                        view.Effects.Remove(toRemove);
-                    }
-                }
+                    Helper.RemoveEffect(view, typeof(ControlSelectableLabelEffect));
             }
         }
 

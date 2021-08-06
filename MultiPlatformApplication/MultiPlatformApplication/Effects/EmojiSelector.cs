@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MultiPlatformApplication.Helpers;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -37,17 +38,9 @@ namespace MultiPlatformApplication.Effects
 
             String entryName = (String)newValue;
             if (!String.IsNullOrEmpty(entryName))
-            {
-                view.Effects.Add(new ControlEmojiSelectorEffect());
-            }
+                Helper.AddEffect(view, new ControlEmojiSelectorEffect());
             else
-            {
-                var toRemove = view.Effects.FirstOrDefault(e => e is ControlEmojiSelectorEffect);
-                if (toRemove != null)
-                {
-                    view.Effects.Remove(toRemove);
-                }
-            }
+                Helper.RemoveEffect(view, typeof(ControlEmojiSelectorEffect));
         }
 
 #endregion  EntryName Property
