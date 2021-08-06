@@ -162,7 +162,7 @@ namespace MultiPlatformApplication.Helpers
         /// </summary>
         /// <param name="fileSizeInOctet"><see cref="double"/>Double value to format</param>
         /// <returns></returns>
-        public static string HumanizeFileSize(this double fileSizeInOctet)
+        public static string HumanizeFileSize(double fileSizeInOctet)
         {
             string[] suffixes = { "bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"};
             for (int i = 0; i < suffixes.Length; i++)
@@ -898,7 +898,7 @@ namespace MultiPlatformApplication.Helpers
                 case ".ppt":
                 case ".pptm":
                 case ".pptx":
-                    result = "FilePowerpoint";
+                    result = "Font_FilePowerpoint";
                     break;
 
                 case ".xla":
@@ -910,7 +910,7 @@ namespace MultiPlatformApplication.Helpers
                 case ".xlt":
                 case ".xltm":
                 case ".xltx":
-                    result = "FileExcel";
+                    result = "Font_FileExcel";
                     break;
 
                 case ".ai":
@@ -924,7 +924,7 @@ namespace MultiPlatformApplication.Helpers
                 case ".svg":
                 case ".tif":
                 case ".tiff":
-                    result = "FileImage";
+                    result = "Font_FileImage";
                     break;
 
                 case ".aif":
@@ -937,7 +937,7 @@ namespace MultiPlatformApplication.Helpers
                 case ".wav":
                 case ".wma":
                 case ".wpl":
-                    result = "FileAudio";
+                    result = "Font_FileAudio";
                     break;
 
                 case ".3g2":
@@ -955,7 +955,7 @@ namespace MultiPlatformApplication.Helpers
                 case ".swf":
                 case ".vob":
                 case ".wmv":
-                    result = "FileVideo";
+                    result = "Font_FileVideo";
                     break;
 
                 case ".7z":
@@ -967,7 +967,7 @@ namespace MultiPlatformApplication.Helpers
                 case ".tar.gz":
                 case ".z":
                 case ".zip":
-                    result = "FileArchive";
+                    result = "Font_FileArchive";
                     break;
 
                 case ".c":
@@ -984,21 +984,21 @@ namespace MultiPlatformApplication.Helpers
                 case ".sh":
                 case ".swift":
                 case ".vb":
-                    result = "FilePowerpoint";
+                    result = "Font_FilePowerpoint";
                     break;
 
                 case ".pdf":
-                    result = "FileCode";
+                    result = "Font_FileCode";
                     break;
 
                 case ".txt":
                 case ".md":
                 case ".json":
-                    result = "FileAlt";
+                    result = "Font_FileAlt";
                     break;
 
                 default:
-                    result = "File";
+                    result = "Font_File";
                     break;
             }
 
@@ -1082,6 +1082,7 @@ namespace MultiPlatformApplication.Helpers
             { "SortAlphaDown", "\uf15d" },
             { "Star", "\uf005" },
             { "Store", "\uf54e" },
+            { "Times", "\uf00d" },
             { "UnlockAlt", "\uf13e" },
             { "Users", "\uf0c0" },
             { "UserCircle", "\uf2bd" },
