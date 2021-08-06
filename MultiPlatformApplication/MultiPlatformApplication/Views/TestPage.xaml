@@ -110,18 +110,9 @@
             <Label Text="Hello World - selectable"
                    effects:SelectableLabelEffect.Enabled="True"/>
 
-
-            <!-- DEFINE VIEW TO SEND NEW MESSAGE -->
             <controls:MessageInput HorizontalOptions="FillAndExpand" />
 
-            <Image x:Name="ButtonEmoji2"
-                           HeightRequest="20"
-                           WidthRequest="20"
-                           effects:EmojiSelector.EntryName="Login"
-                           Source="{extensions:ImageResource Id=Font_Laugh|#D3D3D3}"
-                           Margin="0"
-                           VerticalOptions="Center"/>
-            
+            <controls:EditorExpandableWithMaxLines />
 
         </StackLayout>
         
