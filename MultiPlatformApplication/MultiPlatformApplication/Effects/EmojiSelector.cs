@@ -64,20 +64,49 @@ namespace MultiPlatformApplication.Effects
             if (String.IsNullOrEmpty(name))
                 return null;
 
+            // The name can be a path to an element
+            List<String>path = name.Split('.').ToList();
+
+            View entry = GetParentElementByName(view, path[0]);
+
+            if(entry != null)
+            {
+                if(path.Count > 1)
+                {
+                    for (int index = 1; index < path.Count; index++)
+                    {
+                        entry = GetChildrenByName(entry, path[index]);
+                        if (entry == null)
+                            break;
+                    }
+                }
+            }
+            return entry;
+        }
+
+        public static View GetChildrenByName(View view, String name)
+        {
+            View entry = null;
+            try
+            {
+                entry = view?.FindByName<View>(name);
+            }
+            catch
+            {
+
+            }
+            return entry;
+        }
+
+        public static View GetParentElementByName(View view, String name)
+        {
             Element parent = view;
             View entry = null;
-            while ( (view.Parent is VisualElement) && (entry == null))
+            while ((view.Parent is VisualElement) && (entry == null))
             {
                 parent = parent.Parent;
 
-                try
-                {
-                    entry = parent.FindByName<View>(name);
-                }
-                catch
-                {
-
-                }
+                entry = GetChildrenByName((View)parent, name);
 
                 // Don't go deeper than Content Page
                 if (parent is ContentPage)
@@ -86,6 +115,7 @@ namespace MultiPlatformApplication.Effects
 
             return entry;
         }
+
 
         class ControlEmojiSelectorEffect : RoutingEffect
         {
