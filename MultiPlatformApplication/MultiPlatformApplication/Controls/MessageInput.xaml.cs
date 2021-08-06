@@ -46,6 +46,8 @@ namespace MultiPlatformApplication.Controls
 
             InitializeComponent();
             BindingContext = this;
+
+            MessageInputAttachments.UpdateParentLayout += MessageInputAttachments_UpdateParentLayout;
             
             ButtonTyping.PropertyChanged += ButtonTyping_PropertyChanged;
 
@@ -63,6 +65,12 @@ namespace MultiPlatformApplication.Controls
             // We need to update UserIsTyping viex if contact are updated
             Helper.SdkWrapper.PeerInfoChanged += SdkWrapper_PeerUpdated;
             Helper.SdkWrapper.PeerAdded += SdkWrapper_PeerUpdated;
+        }
+
+        private void MessageInputAttachments_UpdateParentLayout(object sender, EventArgs e)
+        {
+            // Need to force the layout of the parent ...
+            UpdateParentLayout?.Raise(this, null);
         }
 
         private void ButtonTyping_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -241,13 +249,9 @@ namespace MultiPlatformApplication.Controls
             //((Layout)this.Parent).ForceLayout();
         }
 
-        private async void MessageInputAttachmentCommand(object obj)
+        private void MessageInputAttachmentCommand(object obj)
         {
-            List<FileResult> filesList = (await Helper.PickFilesAndShow())?.ToList();
-            
-            // TODO: Create UI to display attachments list
-
-            //MessageAttachmentClicked?.Raise(this, null);
+            MessageInputAttachments.PickFiles();
         }
 
         private void MessageInputUrgencyCommand(object obj)
@@ -264,7 +268,7 @@ namespace MultiPlatformApplication.Controls
                 //Get Content and trim it
                 string content = text.Trim();
 
-                // Clear text: as consequence this compoent size will be change and eventually we ask parent to update layout
+                // Clear text: as consequence this component size will be changed and eventually we ask parent to update layout
                 EntryMessage.SetEditorText("");
 
                 // Ask to send this message

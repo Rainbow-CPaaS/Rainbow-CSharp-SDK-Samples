@@ -25,6 +25,11 @@
                      VerticalOptions="Start"
                      BackgroundColor="Transparent">
 
+            <!-- FILES ATTACHMENT DISPLAY -->
+            <controls:MessageInputAttachments x:Name="MessageInputAttachments" />
+
+
+            <!-- EMOJI BUTTON - URGENCY SELECTOR - EDITOR - SEND MESSAGE BUTTON - ATTACH FILE BUTTON -->
             <Frame Margin=" 0"
                    Padding="0"
                    CornerRadius="2"
@@ -139,6 +144,7 @@
                 </StackLayout>
             </Frame>
 
+            <!-- USERS ARE TYPING -->
             <StackLayout Orientation="Horizontal"
                          Margin="5,0,5,0"
                          Padding="0"

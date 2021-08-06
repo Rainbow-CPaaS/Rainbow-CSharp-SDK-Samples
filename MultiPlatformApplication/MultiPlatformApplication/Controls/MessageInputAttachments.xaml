@@ -1,0 +1,99 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<ContentView xmlns="http://xamarin.com/schemas/2014/forms" 
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:controls="clr-namespace:MultiPlatformApplication.Controls"
+             xmlns:converters="clr-namespace:MultiPlatformApplication.Converters;assembly=MultiPlatformApplication" 
+             xmlns:effects="clr-namespace:MultiPlatformApplication.Effects"
+             x:Class="MultiPlatformApplication.Controls.MessageInputAttachments"
+             HorizontalOptions="Fill"
+             VerticalOptions="Fill"
+             Margin="10, 0"
+             BackgroundColor="Transparent">
+   <ContentView.Resources>
+        <converters:IdToImageSourceConverter x:Key="IdToImageSourceConverter" />
+    </ContentView.Resources>
+    
+    <ContentView.Content>
+
+        <Frame x:Name="Frame"
+               IsVisible="False"
+               BackgroundColor="{StaticResource ColorEntryBackground}"
+               HasShadow="False"
+               CornerRadius="2"
+               Margin="0"
+               Padding="0"
+               HorizontalOptions="Fill"
+               VerticalOptions="Fill">
+
+            <ListView x:Name="AttachmentsListView"
+                      Margin="2"
+                      SelectionMode="None"
+                      SeparatorVisibility="None"
+                      RowHeight="34">
+
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <ViewCell>
+                            <Grid Margin="2"
+                                  Padding="4,0"
+                                  ColumnSpacing="4"
+                                  RowSpacing="0"
+                                  VerticalOptions="Center"
+                                  BackgroundColor="{StaticResource ColorConversationStreamMainBackground}">
+
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="34"/>
+                                </Grid.RowDefinitions>
+
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="34"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="34"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Image Grid.Column="0"
+                                       Grid.Row="0"
+                                       Margin="0,0,0,-2"
+                                       Source="{Binding ImageSourceId, Converter={StaticResource IdToImageSourceConverter}}"
+                                       HorizontalOptions="Center"
+                                       VerticalOptions="Center"
+                                       WidthRequest="30"
+                                       HeightRequest="30"/>
+
+                                <Label Grid.Column="1"
+                                       Grid.Row="0"
+                                       effects:SelectableLabelEffect.Enabled="True"
+                                       Margin="0"
+                                       Padding="0" 
+                                       Text="{Binding FileDetails}" 
+                                       FontAttributes="None" 
+                                       FontSize="{StaticResource FontSizeSmall}" 
+                                       TextColor="{StaticResource ColorEntryText}"
+                                       HeightRequest="30"
+                                       VerticalTextAlignment="Center"
+                                       VerticalOptions="Center"/>
+
+                                <controls:CustomButton Grid.Column="2"
+                                                       Grid.Row="0"
+                                                       CornerRadius="2"
+                                                       Padding="0,2,0,0"
+                                                       HeightRequest="24"
+                                                       WidthRequest="24"
+                                                       ImageSize="20"
+                                                       BackgroundColor="Transparent"
+                                                       BackgroundColorOnMouseOver="{StaticResource ColorEntryBackground}"
+                                                       ImageSourceId="Font_Times|ColorButtonForeground"
+                                                       VerticalOptions="Center"
+                                                       Command="{Binding SelectionCommand}"
+                                                       CommandParameter="{Binding FileId}"/>
+
+                            </Grid>
+                        </ViewCell>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+
+        </Frame>
+        
+    </ContentView.Content>
+</ContentView>
