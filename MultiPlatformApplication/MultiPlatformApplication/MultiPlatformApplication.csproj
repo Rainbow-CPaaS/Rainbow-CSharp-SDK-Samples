@@ -75,10 +75,10 @@
     <EmbeddedResource Update="Controls\ContactsPanel.xaml">
       <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
     </EmbeddedResource>
-    <EmbeddedResource Update="Controls\ContextMenu.xaml">
+    <EmbeddedResource Update="Controls\CustomButton.xaml">
       <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
     </EmbeddedResource>
-    <EmbeddedResource Update="Controls\CustomButton.xaml">
+    <EmbeddedResource Update="Controls\EditorExpandableWithMaxLines.xaml">
       <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
     </EmbeddedResource>
     <EmbeddedResource Update="Controls\MenuControl.xaml">
