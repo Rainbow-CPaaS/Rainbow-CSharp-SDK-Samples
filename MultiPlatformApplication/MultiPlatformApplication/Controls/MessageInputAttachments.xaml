@@ -7,6 +7,7 @@
              x:Class="MultiPlatformApplication.Controls.MessageInputAttachments"
              HorizontalOptions="Fill"
              VerticalOptions="Fill"
+             Padding="0"
              Margin="10, 0"
              BackgroundColor="Transparent">
    <ContentView.Resources>
@@ -26,16 +27,17 @@
                VerticalOptions="Fill">
 
             <ListView x:Name="AttachmentsListView"
-                      Margin="2"
+                      BackgroundColor="Transparent"
+                      Margin="2,2,2,0"
                       SelectionMode="None"
-                      SeparatorVisibility="None"
-                      RowHeight="34">
+                      RowHeight="36"
+                      SeparatorVisibility="None">
 
                 <ListView.ItemTemplate>
                     <DataTemplate>
                         <ViewCell>
-                            <Grid Margin="2"
-                                  Padding="4,0"
+                            <Grid Margin="2,2,2,0"
+                                  Padding="0"
                                   ColumnSpacing="4"
                                   RowSpacing="0"
                                   VerticalOptions="Center"
@@ -46,19 +48,22 @@
                                 </Grid.RowDefinitions>
 
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="34"/>
+                                    <ColumnDefinition Width="28"/>
                                     <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="34"/>
+                                    <ColumnDefinition Width="40"/>
                                 </Grid.ColumnDefinitions>
 
-                                <Image Grid.Column="0"
-                                       Grid.Row="0"
-                                       Margin="0,0,0,-2"
-                                       Source="{Binding ImageSourceId, Converter={StaticResource IdToImageSourceConverter}}"
-                                       HorizontalOptions="Center"
-                                       VerticalOptions="Center"
-                                       WidthRequest="30"
-                                       HeightRequest="30"/>
+                                <controls:CustomButton Grid.Column="0"
+                                                       Grid.Row="0"
+                                                       CornerRadius="2"
+                                                       Margin="0"
+                                                       Padding="0,2,0,0"
+                                                       HeightRequest="24"
+                                                       WidthRequest="24"
+                                                       ImageSize="20"
+                                                       BackgroundColor="Transparent"
+                                                       ImageSourceId="{Binding ImageSourceId}"
+                                                       VerticalOptions="Center"/>
 
                                 <Label Grid.Column="1"
                                        Grid.Row="0"
@@ -69,7 +74,7 @@
                                        FontAttributes="None" 
                                        FontSize="{StaticResource FontSizeSmall}" 
                                        TextColor="{StaticResource ColorEntryText}"
-                                       HeightRequest="30"
+                                       HeightRequest="24"
                                        VerticalTextAlignment="Center"
                                        VerticalOptions="Center"/>
 
