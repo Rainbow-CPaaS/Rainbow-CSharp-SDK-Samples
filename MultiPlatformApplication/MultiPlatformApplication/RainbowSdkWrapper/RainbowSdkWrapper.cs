@@ -42,6 +42,10 @@ namespace MultiPlatformApplication
             RbInstantMessaging = RbApplication.GetInstantMessaging();
             RbFileStorage = RbApplication.GetFileStorage();
 
+            // Manage "File Storage" service events
+            RbFileStorage.FileDownloadUpdated += RbFileStorage_FileDownloadUpdated;
+            RbFileStorage.FileUploadUpdated += RbFileStorage_FileUploadUpdated;
+
             // Manage "Instant Messaging" service events
             RbInstantMessaging.MessageReceived += RbInstantMessaging_MessageReceived;
             RbInstantMessaging.ReceiptReceived += RbInstantMessaging_ReceiptReceived;
@@ -70,7 +74,7 @@ namespace MultiPlatformApplication
             InitFilePool();
         }
 
-#region EVENTS FROM SDK
+    #region EVENTS FROM SDK
 
         private void FilePool_ThumbnailAvailable(object sender, Rainbow.Events.IdEventArgs e)
         {
@@ -122,7 +126,6 @@ namespace MultiPlatformApplication
             OnConversationCreated(sender, e);
         }
 
-
         private void RbContacts_PeerAdded(object sender, Rainbow.Events.PeerEventArgs e)
         {
             OnContactAdded(sender, e);
@@ -161,6 +164,16 @@ namespace MultiPlatformApplication
         private void RbInstantMessaging_MessageReceived(object sender, Rainbow.Events.MessageEventArgs e)
         {
             OnMessageReceived(sender, e);
+        }
+
+        private void RbFileStorage_FileUploadUpdated(object sender, Rainbow.Events.FileUploadEventArgs e)
+        {
+            OnFileUploadUpdated(sender, e);
+        }
+
+        private void RbFileStorage_FileDownloadUpdated(object sender, Rainbow.Events.FileDownloadEventArgs e)
+        {
+            OnFileDownloadUpdated(sender, e);
         }
 
 #endregion EVENTS FROM SDK

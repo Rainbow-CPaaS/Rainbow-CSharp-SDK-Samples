@@ -12,7 +12,11 @@ namespace MultiPlatformApplication
     {
 #region PUBLIC EVENT
 
-        // From "Files" Service
+        // From "File Storage" Service
+        public event EventHandler<FileUploadEventArgs> FileUploadUpdated;
+        public event EventHandler<FileDownloadEventArgs> FileDownloadUpdated;
+
+        // From "Files Pool" Service
         public event EventHandler<IdEventArgs> ThumbnailAvailable;
         public event EventHandler<IdEventArgs> FileDescriptorAvailable;
         public event EventHandler<IdEventArgs> FileDescriptorNotAvailable;
@@ -44,11 +48,26 @@ namespace MultiPlatformApplication
         // From "Application" Service
         public event EventHandler<ConnectionStateEventArgs> ConnectionStateChanged;
         public event EventHandler<EventArgs> InitializationPerformed;
+
 #endregion PUBLIC EVENT
 
 #region TO RAISE EVENT
 
-    #region AVATARS SERVICE
+    #region FILE STORAGE SERVICE
+
+        internal void OnFileUploadUpdated(object sender, FileUploadEventArgs args)
+        {
+            FileUploadUpdated.Raise(sender, args);
+        }
+
+        internal void OnFileDownloadUpdated(object sender, FileDownloadEventArgs args)
+        {
+            FileDownloadUpdated.Raise(sender, args);
+        }
+
+    #endregion FILE STORAGE SERVICE
+
+    #region FILE POOL SERVICE
 
         internal void OnThumbnailAvailable(object sender, IdEventArgs args)
         {
@@ -65,8 +84,7 @@ namespace MultiPlatformApplication
             FileDescriptorNotAvailable.Raise(sender, args);
         }
 
-
-    #endregion AVATARS SERVICE
+    #endregion FILE POOL SERVICE
 
 
     #region AVATARS SERVICE
