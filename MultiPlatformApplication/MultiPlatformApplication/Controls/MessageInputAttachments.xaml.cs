@@ -45,6 +45,21 @@ namespace MultiPlatformApplication.Controls
             SelectionCommand = new RelayCommand<object>(new Action<object>(SelectionCommandExecute));
         }
 
+        public List<FileResult> GetFilesAttached()
+        {
+            // We return a copy
+            List<FileResult> result = new List<FileResult>(filesResultAttached);
+            return result;
+        }
+
+        public void Clear()
+        {
+            FilesAttached.Clear();
+            filesResultAttached.Clear();
+
+            UpdateFrameSize();
+        }
+
         private void Frame_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             if (e.PropertyName == "IsVisible")

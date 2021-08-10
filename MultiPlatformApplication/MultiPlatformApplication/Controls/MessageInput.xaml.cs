@@ -26,13 +26,13 @@ namespace MultiPlatformApplication.Controls
 
         public event EventHandler<EventArgs> UpdateParentLayout; // To ask parent to update the layout when the size of this UI component has changed
 
-        public event EventHandler<IdEventArgs> UserIsTyping;
-        public event EventHandler<IdEventArgs> MessageSendClicked;
+        public event EventHandler<BooleanEventArgs> UserIsTyping;
         public event EventHandler<EventArgs> MessageUrgencyClicked;
+
+        public event EventHandler<EventArgs> MessageToSend;
 
 #region BINDINGS used in XAML
         public MessageInputModel Message { get; private set; } = new MessageInputModel();
-
 #endregion BINDINGS used in XAML
 
         public MessageInput()
@@ -65,6 +65,25 @@ namespace MultiPlatformApplication.Controls
             // We need to update UserIsTyping viex if contact are updated
             Helper.SdkWrapper.PeerInfoChanged += SdkWrapper_PeerUpdated;
             Helper.SdkWrapper.PeerAdded += SdkWrapper_PeerUpdated;
+        }
+
+        public String GetMessageContent()
+        {
+            return EntryMessage.GetEditorText();
+        }
+
+        public List<FileResult> GetFilesToSend()
+        {
+            return MessageInputAttachments.GetFilesAttached();
+        }
+
+        public void Clear()
+        {
+            // Clear text: as consequence this component's size will be changed and eventually we ask parent to update layout
+            EntryMessage.SetEditorText("");
+
+            // Clear attachment
+            MessageInputAttachments.Clear();
         }
 
         private void MessageInputAttachments_UpdateParentLayout(object sender, EventArgs e)
@@ -187,7 +206,7 @@ namespace MultiPlatformApplication.Controls
                 if (!userIsTyping)
                 {
                     userIsTyping = true;
-                    UserIsTyping?.Raise(this, new IdEventArgs("true"));
+                    UserIsTyping?.Raise(this, new BooleanEventArgs(true));
                 }
             }
             else
@@ -195,7 +214,7 @@ namespace MultiPlatformApplication.Controls
                 if (userIsTyping)
                 {
                     userIsTyping = false;
-                    UserIsTyping?.Raise(this, new IdEventArgs("false"));
+                    UserIsTyping?.Raise(this, new BooleanEventArgs(false));
                 }
             }
         }
@@ -259,26 +278,14 @@ namespace MultiPlatformApplication.Controls
             MessageUrgencyClicked?.Raise(this, null);
         }
 
-        private void MessageInputSendCommand(object obj)
-        {
-            String text = EntryMessage.GetEditorText();
-
-            if (text?.Length > 0)
-            {
-                //Get Content and trim it
-                string content = text.Trim();
-
-                // Clear text: as consequence this component size will be changed and eventually we ask parent to update layout
-                EntryMessage.SetEditorText("");
-
-                // Ask to send this message
-                MessageSendClicked?.Raise(this, new IdEventArgs(content));
-            }
-        }
-
         private void MessageInputValidationCommand(object obj)
         {
             MessageInputSendCommand(obj);
+        }
+
+        private void MessageInputSendCommand(object obj)
+        {
+            MessageToSend?.Raise(this, null);
         }
     }
 }

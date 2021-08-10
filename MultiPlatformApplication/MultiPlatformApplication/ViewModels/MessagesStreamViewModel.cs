@@ -10,6 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Xamarin.Essentials;
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 
@@ -57,7 +58,7 @@ namespace MultiPlatformApplication.ViewModels
             if (messageInput != null)
             {
                 messageInput.MessageUrgencyClicked += MessageInput_MessageUrgencyClicked;
-                messageInput.MessageSendClicked += MessageInput_MessageSendClicked;
+                messageInput.MessageToSend += MessageInput_MessageToSend;
                 messageInput.UserIsTyping += MessageInput_UserIsTyping;
 
                 messageInput.UpdateParentLayout += MessageInput_UpdateParentLayout;
@@ -99,6 +100,7 @@ namespace MultiPlatformApplication.ViewModels
 
             DynamicStream.AskMoreItemsCommand = new RelayCommand<object>(new Action<object>(AskMoreMessagesCommand));
         }
+
 
         private void MessageInput_UpdateParentLayout(object sender, EventArgs e)
         {
@@ -602,9 +604,9 @@ namespace MultiPlatformApplication.ViewModels
 
 #region MESSAGE INPUT STUFF
 
-        private void MessageInput_MessageSendClicked(object sender, Rainbow.Events.IdEventArgs e)
+        private void MessageInput_MessageToSend(object sender, EventArgs e)
         {
-            String text = e.Id;
+            // Get urgency
             String urgency = GetMessageUrgencySelection();
             UrgencyType urgencyType;
 
@@ -628,16 +630,39 @@ namespace MultiPlatformApplication.ViewModels
                     break;
             }
 
-            // Send message
-            Helper.SdkWrapper.SendMessageToConversationId(conversationId, text, urgencyType);
+            MessageInput messageInput = (MessageInput)sender;
 
-            // Set to standard urgency
-            SetMessageUrgencySelectedItem(3);
+            // Manage message as TEXT
+            String text = messageInput.GetMessageContent();
+            text = text.Trim();
+
+            // Manage message with files
+            List<FileResult> attachments = messageInput.GetFilesToSend();
+
+
+            // Clear messsage input
+            messageInput.Clear();
+
+            // Set to standard urgency if at least we have to send something
+            if ( (!String.IsNullOrEmpty(text)) || (attachments?.Count > 0))
+                SetMessageUrgencySelectedItem(3);
+
+            // Send text message
+            if (!String.IsNullOrEmpty(text))
+                Helper.SdkWrapper.SendMessageToConversationId(conversationId, text, urgencyType);
+
+            // Send text message
+            if (attachments?.Count > 0)
+            {
+                // TODO
+            }
+
+
         }
 
-        private void MessageInput_UserIsTyping(object sender, Rainbow.Events.IdEventArgs e)
+        private void MessageInput_UserIsTyping(object sender, Rainbow.Events.BooleanEventArgs e)
         {
-            Helper.SdkWrapper.SendIsTypingInConversationById(conversationId, String.Equals(e.Id, "True", StringComparison.InvariantCultureIgnoreCase) );
+            Helper.SdkWrapper.SendIsTypingInConversationById(conversationId, e.Value );
         }
 
         private void MessageInput_MessageUrgencyClicked(object sender, EventArgs e)
