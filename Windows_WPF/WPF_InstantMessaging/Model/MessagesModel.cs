@@ -520,7 +520,7 @@ namespace InstantMessaging.Model
                         imageSource = null;
 
                     if (updateDisplayName)
-                        displayName = Util.GetContactDisplayName(contact, AvatarPool.Instance.GetFirstNameFirst());
+                        displayName = Util.GetContactDisplayName(contact);
                     else
                         displayName = null;
 
@@ -558,7 +558,7 @@ namespace InstantMessaging.Model
                 Contact contactReply = RbContacts.GetContactFromContactJid(peerJid);
                 if (contactReply != null)
                 {
-                    String displayName = Util.GetContactDisplayName(contactReply, AvatarPool.Instance.GetFirstNameFirst());
+                    String displayName = Util.GetContactDisplayName(contactReply);
 
                     List<MessageViewModel> messages = GetMessagesByReplyPeerJid(peerJid);
                     lock (lockObservableMessagesList)
@@ -726,7 +726,7 @@ namespace InstantMessaging.Model
                 message.ReplyPartIsVisible = Visibility.Visible;
 
                 message.ReplyPeerId = contactReply.Id;
-                message.ReplyPeerDisplayName = Util.GetContactDisplayName(contactReply, AvatarPool.GetFirstNameFirst());
+                message.ReplyPeerDisplayName = Util.GetContactDisplayName(contactReply);
             }
             else
             {
@@ -769,7 +769,7 @@ namespace InstantMessaging.Model
             Rainbow.Model.Contact contact = RbContacts.GetContactFromContactJid(message.CallOtherJid);
             if (contact != null)
             {
-                String displayName = Util.GetContactDisplayName(contact, AvatarPool.Instance.GetFirstNameFirst());
+                String displayName = Util.GetContactDisplayName(contact);
                 if (message.CallState == CallLog.LogState.ANSWERED.ToString())
                 {
                     if (message.CallOriginator == "True")
@@ -819,12 +819,12 @@ namespace InstantMessaging.Model
 
                     if (message.PeerId == CurrentApplication.CurrentUserId)
                     {
-                        message.PeerDisplayName = Util.GetContactDisplayName(contact, AvatarPool.GetFirstNameFirst());
+                        message.PeerDisplayName = Util.GetContactDisplayName(contact);
                         message.BackgroundColor = Brushes.LightGray;
                     }
                     else
                     {
-                        message.PeerDisplayName = Util.GetContactDisplayName(contact, AvatarPool.GetFirstNameFirst());
+                        message.PeerDisplayName = Util.GetContactDisplayName(contact);
                         message.BackgroundColor = new BrushConverter().ConvertFromString(AvatarPool.GetColorFromDisplayName(message.PeerDisplayName)) as SolidColorBrush;
                     }
                 }

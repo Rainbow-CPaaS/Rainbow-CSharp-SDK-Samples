@@ -77,7 +77,7 @@ namespace SDK.WpfApp
 
             // We can now specify the avatars path
             webRtcControl.SetContactAvatarFolderPath(rbAvatars.GetAvatarsFolderPath(Rainbow.Common.Avatars.AvatarType.ROUNDED, true));
-            webRtcControl.SetUnknownAvatarFilePath(rbAvatars.GetUnknwonAvatarFilePath()); ;
+            webRtcControl.SetUnknownAvatarFilePath(rbAvatars.GetUnknwonContactAvatarFilePath());
         }
 
     #region EVENT FROM AVATARS SERVICE

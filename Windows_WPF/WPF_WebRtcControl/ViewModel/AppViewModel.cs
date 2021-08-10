@@ -106,7 +106,7 @@ namespace SDK.WpfApp.ViewModel
 
             // Get Rainbow Languages service
             rbLanguages = Rainbow.Common.Languages.Instance;
-            SetLanguagesList(rbLanguages.GetLanguagesList());
+            SetLanguagesList(rbLanguages.GetLanguagesIdList());
 
             // Create ConstraintModel
             ConstraintModel = new ConstraintModel()
@@ -769,11 +769,11 @@ namespace SDK.WpfApp.ViewModel
 
         public void SetLanguageCommand(object obj)
         {
-            String currentLanguage  = rbLanguages.GetLanguage();
+            String currentLanguage  = rbLanguages.GetLanguageId();
 
             string newLanguage = LanguagesModel.LanguageSelected;
 
-            if (rbLanguages.SetLanguage(newLanguage))
+            if (rbLanguages.SetLanguageId(newLanguage))
                 RbWebRtcControl.SetLabels(rbLanguages.GetLabels());
             else
                 LanguagesModel.LanguageSelected = currentLanguage;

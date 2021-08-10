@@ -264,7 +264,7 @@ namespace InstantMessaging.Pool
 
             Contact contact = contacts.GetContactFromContactJid(e.Jid);
             if (contact != null)
-                log.Debug("[Contacts_RosterContactRemoved] Contact - Id:[{0}] - Jid:[{1}] - DisplayName:[{2}]", contact.Id, contact.Jid_im, Util.GetContactDisplayName(contact, AvatarPool.Instance.GetFirstNameFirst()));
+                log.Debug("[Contacts_RosterContactRemoved] Contact - Id:[{0}] - Jid:[{1}] - DisplayName:[{2}]", contact.Id, contact.Jid_im, Util.GetContactDisplayName(contact));
 
         }
 
@@ -820,8 +820,8 @@ namespace InstantMessaging.Pool
         {
             Boolean updated = true;
 
-            String displayName = Util.GetContactDisplayName(contact, firstNameFirst);
-            String initials = Util.GetContactInitials(contact, firstNameFirst);
+            String displayName = Util.GetContactDisplayName(contact);
+            String initials = Util.GetContactInitials(contact);
 
             if (avatarsData.contactsInfo.ContainsKey(contact.Id))
             {

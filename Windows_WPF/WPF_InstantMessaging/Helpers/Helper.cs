@@ -265,7 +265,7 @@ namespace InstantMessaging.Helpers
                         {
                             Presence presence = CurrentApplication.RbContacts.GetAggregatedPresenceFromContactId(rbConversation.PeerId);
 
-                            result.Name = Util.GetContactDisplayName(contact, avatarPool.GetFirstNameFirst());
+                            result.Name = Util.GetContactDisplayName(contact);
                             result.PresenceSource = InstantMessaging.Helpers.Helper.GetPresenceSourceFromPresence(presence, rbConversation.PeerId == CurrentApplication.CurrentUserId);
                         }
                         else
@@ -350,7 +350,7 @@ namespace InstantMessaging.Helpers
                     Rainbow.Model.Contact contact = CurrentApplication.RbContacts.GetContactFromContactId(rbConversation.PeerId);
                     if (contact != null)
                     {
-                        conversation.Name = Util.GetContactDisplayName(contact, avatarPool.GetFirstNameFirst());
+                        conversation.Name = Util.GetContactDisplayName(contact);
                         conversation.Topic = "";
                         conversation.Jid = contact.Jid_im;
 
@@ -401,7 +401,7 @@ namespace InstantMessaging.Helpers
 
             String displayName = "?";
             if (contact != null)
-                displayName = Util.GetContactDisplayName(contact, AvatarPool.Instance.GetFirstNameFirst());
+                displayName = Util.GetContactDisplayName(contact);
 
             switch (bubbleEvent)
             {

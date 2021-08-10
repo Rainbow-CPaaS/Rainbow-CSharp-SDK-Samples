@@ -528,7 +528,7 @@ namespace InstantMessaging.Model
                 {
                     Rainbow.Model.Contact contact = RbContacts.GetContactFromContactJid(e.Jid);
                     if (contact != null)
-                        UpdateConversationNameByPeerId(contact.Id, Util.GetContactDisplayName(contact, AvatarPool.GetFirstNameFirst()));
+                        UpdateConversationNameByPeerId(contact.Id, Util.GetContactDisplayName(contact));
                 }));
             }
         }
@@ -541,7 +541,7 @@ namespace InstantMessaging.Model
                 {
                     Rainbow.Model.Contact contact = RbContacts.GetContactFromContactJid(e.Jid);
                     if (contact != null)
-                        UpdateConversationNameByPeerId(contact.Id, Util.GetContactDisplayName(contact, AvatarPool.GetFirstNameFirst()));
+                        UpdateConversationNameByPeerId(contact.Id, Util.GetContactDisplayName(contact));
                 }));
             }
         }

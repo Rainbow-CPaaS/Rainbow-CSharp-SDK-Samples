@@ -11,10 +11,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="NLog" Version="4.7.7" />
-    <PackageReference Include="Rainbow.CSharp.SDK" Version="1.22.2" />
-    <PackageReference Include="Rainbow.CSharp.SDK.Common" Version="0.0.1" />
-    <PackageReference Include="Rainbow.CSharp.SDK.Wpf.WebRtcControl" Version="0.0.1" />
+    <PackageReference Include="NLog" Version="4.7.10" />
+    <PackageReference Include="Rainbow.CSharp.SDK" Version="2.2.5" />
+    <PackageReference Include="Rainbow.CSharp.SDK.Common" Version="2.2.5" />
+    <PackageReference Include="Rainbow.CSharp.SDK.Wpf.WebRtcControl" Version="2.2.5" />
   </ItemGroup>
 
   <ItemGroup>
