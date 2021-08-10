@@ -179,7 +179,7 @@ namespace InstantMessaging.Helpers
                     Rainbow.Model.Contact contact = XamarinApplication.RbContacts.GetContactFromContactId(rbConversation.PeerId);
                     if (contact != null)
                     {
-                        conversation.Name = Util.GetContactDisplayName(contact, avatarPool.GetFirstNameFirst());
+                        conversation.Name = Util.GetContactDisplayName(contact);
                         conversation.Topic = "";
                         conversation.Jid = contact.Jid_im;
 
@@ -222,7 +222,7 @@ namespace InstantMessaging.Helpers
 
             if(contact != null)
             {
-                String displayName = Util.GetContactDisplayName(contact, AvatarPool.Instance.GetFirstNameFirst());
+                String displayName = Util.GetContactDisplayName(contact);
                 switch (bubbleEvent)
                 {
                     case "conferenceEnded":

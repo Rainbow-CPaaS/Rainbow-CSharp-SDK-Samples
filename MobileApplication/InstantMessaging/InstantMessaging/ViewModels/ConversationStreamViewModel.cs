@@ -463,7 +463,7 @@ namespace InstantMessaging
                         imageSource = null;
 
                     if (updateDisplayName)
-                        displayName = Util.GetContactDisplayName(contact, AvatarPool.Instance.GetFirstNameFirst());
+                        displayName = Util.GetContactDisplayName(contact);
                     else
                         displayName = null;
 
@@ -496,7 +496,7 @@ namespace InstantMessaging
                 Contact contactReply = XamarinApplication.RbContacts.GetContactFromContactJid(peerJid);
                 if (contactReply != null)
                 {
-                    String displayName = Util.GetContactDisplayName(contactReply, AvatarPool.Instance.GetFirstNameFirst());
+                    String displayName = Util.GetContactDisplayName(contactReply);
 
                     List<InstantMessaging.Model.Message> messages = GetMessagesByReplyPeerJid(peerJid);
                     lock (lockObservableMessagesList)
@@ -535,7 +535,7 @@ namespace InstantMessaging
                 {
                     message.PeerId = contact.Id;
 
-                    message.PeerDisplayName = Util.GetContactDisplayName(contact, avatarPool.GetFirstNameFirst());
+                    message.PeerDisplayName = Util.GetContactDisplayName(contact);
                     message.BackgroundColor = Color.FromHex(Rainbow.Helpers.AvatarPool.GetColorFromDisplayName(message.PeerDisplayName));
                 }
                 else
@@ -735,7 +735,7 @@ namespace InstantMessaging
                 message.ReplyPartIsVisible = "True";
 
                 message.ReplyPeerId = contactReply.Id;
-                message.ReplyPeerDisplayName = Util.GetContactDisplayName(contactReply, avatarPool.GetFirstNameFirst());
+                message.ReplyPeerDisplayName = Util.GetContactDisplayName(contactReply);
             }
             else
             {
@@ -778,7 +778,7 @@ namespace InstantMessaging
             Rainbow.Model.Contact contact = XamarinApplication.RbContacts.GetContactFromContactJid(message.CallOtherJid);
             if (contact != null)
             {
-                String displayName = Util.GetContactDisplayName(contact, AvatarPool.Instance.GetFirstNameFirst());
+                String displayName = Util.GetContactDisplayName(contact);
                 if (message.CallState == CallLog.LogState.ANSWERED.ToString())
                 {
                     if (message.CallOriginator == "True")

@@ -125,7 +125,7 @@ namespace InstantMessaging
         {
             Rainbow.Model.Contact contact = XamarinApplication.RbContacts.GetContactFromContactJid(e.Jid);
             if (contact != null)
-                vm.UpdateConversationNameByPeerId(contact.Id, Util.GetContactDisplayName(contact, Rainbow.Helpers.AvatarPool.Instance.GetFirstNameFirst()));
+                vm.UpdateConversationNameByPeerId(contact.Id, Util.GetContactDisplayName(contact));
         }
 
 
@@ -133,7 +133,7 @@ namespace InstantMessaging
         {
             Rainbow.Model.Contact contact = XamarinApplication.RbContacts.GetContactFromContactJid(e.Jid);
             if (contact != null)
-                vm.UpdateConversationNameByPeerId(contact.Id, Util.GetContactDisplayName(contact, Rainbow.Helpers.AvatarPool.Instance.GetFirstNameFirst()));
+                vm.UpdateConversationNameByPeerId(contact.Id, Util.GetContactDisplayName(contact));
         }
 
         private void RbContacts_ContactPresenceChanged(object sender, Rainbow.Events.PresenceEventArgs e)

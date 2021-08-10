@@ -107,8 +107,8 @@ namespace Rainbow.Helpers
             Contact contact = contacts.GetContactFromContactJid(e.Jid);
             if (contact != null)
             {
-                String displayName = Util.GetContactDisplayName(contact, firstNameFirst);
-                String initials = Util.GetContactInitials(contact, firstNameFirst);
+                String displayName = Util.GetContactDisplayName(contact);
+                String initials = Util.GetContactInitials(contact);
 
                 Boolean needInitialUpdate = true;
 
@@ -154,7 +154,7 @@ namespace Rainbow.Helpers
             Contact contact = contacts.GetContactFromContactJid(e.Jid);
             if (contact != null)
             {
-                log.Debug("[Contacts_ContactAdded] Contact - Id:[{0}] - Jid:[{1}] - DisplayName:[{2}]", contact.Id, contact.Jid_im, Util.GetContactDisplayName(contact, AvatarPool.Instance.GetFirstNameFirst()));
+                log.Debug("[Contacts_ContactAdded] Contact - Id:[{0}] - Jid:[{1}] - DisplayName:[{2}]", contact.Id, contact.Jid_im, Util.GetContactDisplayName(contact));
 
                 // Raise event ContactAvatarChanged
                 ContactAvatarChanged?.Invoke(this, new IdEventArgs(contact.Id));
@@ -168,7 +168,7 @@ namespace Rainbow.Helpers
 
             Contact contact = contacts.GetContactFromContactJid(e.Jid);
             if (contact != null)
-                log.Debug("[Contacts_RosterContactRemoved] Contact - Id:[{0}] - Jid:[{1}] - DisplayName:[{2}]", contact.Id, contact.Jid_im, Util.GetContactDisplayName(contact, AvatarPool.Instance.GetFirstNameFirst()));
+                log.Debug("[Contacts_RosterContactRemoved] Contact - Id:[{0}] - Jid:[{1}] - DisplayName:[{2}]", contact.Id, contact.Jid_im, Util.GetContactDisplayName(contact));
 
         }
 
@@ -179,7 +179,7 @@ namespace Rainbow.Helpers
 
             Contact contact = contacts.GetContactFromContactJid(e.Jid);
             if (contact != null)
-                log.Debug("[Contacts_RosterContactAdded] Contact - Id:[{0}] - Jid:[{1}] - DisplayName:[{2}]", contact.Id, contact.Jid_im, Util.GetContactDisplayName(contact, AvatarPool.Instance.GetFirstNameFirst()));
+                log.Debug("[Contacts_RosterContactAdded] Contact - Id:[{0}] - Jid:[{1}] - DisplayName:[{2}]", contact.Id, contact.Jid_im, Util.GetContactDisplayName(contact));
 
         }
 
@@ -616,8 +616,8 @@ namespace Rainbow.Helpers
             Contact contact = contacts.GetContactFromContactId(contactId);
             if (contact != null)
             {
-                String displayName = Util.GetContactDisplayName(contact, firstNameFirst);
-                String initials = Util.GetContactInitials(contact, firstNameFirst);
+                String displayName = Util.GetContactDisplayName(contact);
+                String initials = Util.GetContactInitials(contact);
 
                 avatarsData.contactsInfo.Remove(contactId);
                 avatarsData.contactsInfo.Add(contactId, new Tuple<string, string>(initials, displayName));

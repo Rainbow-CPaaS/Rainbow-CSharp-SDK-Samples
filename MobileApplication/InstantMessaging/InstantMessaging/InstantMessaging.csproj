@@ -6,9 +6,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Rainbow.CSharp.SDK" Version="1.22.0" />
-    <PackageReference Include="Sharp.Ws.Xmpp" Version="1.22.0" />
-    <PackageReference Include="Xamarin.Forms" Version="4.7.0.1142" />
+    <PackageReference Include="Rainbow.CSharp.SDK" Version="2.2.5" />
+    <PackageReference Include="Sharp.Ws.Xmpp" Version="2.2.5" />
+    <PackageReference Include="Xamarin.Forms" Version="5.0.0.2083" />
   </ItemGroup>
 
   <ItemGroup>
