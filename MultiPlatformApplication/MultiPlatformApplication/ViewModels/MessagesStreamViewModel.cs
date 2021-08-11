@@ -6,6 +6,7 @@ using Rainbow;
 using Rainbow.Model;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -604,7 +605,7 @@ namespace MultiPlatformApplication.ViewModels
 
 #region MESSAGE INPUT STUFF
 
-        private void MessageInput_MessageToSend(object sender, EventArgs e)
+        private async void MessageInput_MessageToSend(object sender, EventArgs e)
         {
             // Get urgency
             String urgency = GetMessageUrgencySelection();
@@ -634,7 +635,8 @@ namespace MultiPlatformApplication.ViewModels
 
             // Manage message as TEXT
             String text = messageInput.GetMessageContent();
-            text = text.Trim();
+            if(!String.IsNullOrEmpty(text))
+                text = text.Trim();
 
             // Manage message with files
             List<FileResult> attachments = messageInput.GetFilesToSend();
@@ -654,10 +656,45 @@ namespace MultiPlatformApplication.ViewModels
             // Send text message
             if (attachments?.Count > 0)
             {
+                foreach(FileResult fileResult in attachments)
+                {
+                    Stream stream = await fileResult.OpenReadAsync();
+                    Helper.SdkWrapper.SendMessageWithFileToConversationId(conversationId, stream, fileResult.FileName, urgencyType,
+                        callbackFileDescriptor =>
+                        {
+                            if (!callbackFileDescriptor.Result.Success)
+                            {
+                                if (stream != null)
+                                {
+                                    try
+                                    {
+                                        stream.Close();
+                                        stream.Dispose();
+                                        stream = null;
+                                    }
+                                    catch { }
+                                }
+                            }
+                        },
+                        callbackMessage =>
+                        {
+                            if (!callbackMessage.Result.Success)
+                            {
+                                if (stream != null)
+                                {
+                                    try
+                                    {
+                                        stream.Close();
+                                        stream.Dispose();
+                                        stream = null;
+                                    }
+                                    catch { }
+                                }
+                            }
+                        });
+                }
                 // TODO
             }
-
-
         }
 
         private void MessageInput_UserIsTyping(object sender, Rainbow.Events.BooleanEventArgs e)
