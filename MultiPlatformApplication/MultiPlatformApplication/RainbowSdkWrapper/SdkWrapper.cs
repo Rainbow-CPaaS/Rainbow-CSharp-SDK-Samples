@@ -215,6 +215,20 @@ namespace MultiPlatformApplication
 
     #endregion STATIC METHODS
 
+    #region WRAPPER - APPLICATION
+
+        virtual public Boolean IsInitialized()
+        {
+            return true;
+        }
+
+        virtual public String GetResourceId()
+        {
+            return "";
+        }
+
+    #endregion WRAPPER - APPLICATION
+
     #region WRAPPER - FILES
 
         virtual public int MaxThumbnailWidth { get; set; }

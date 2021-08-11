@@ -181,8 +181,23 @@ namespace MultiPlatformApplication
 
 #region PUBLIC API
 
-    #region WRAPPER - FILES
 
+    #region WRAPPER - APPLICATION
+
+        public override Boolean IsInitialized()
+        {
+            return RbApplication.IsInitialized();
+        }
+
+        public override String GetResourceId()
+        {
+            return RbApplication.GetResourceId();
+        }
+
+
+    #endregion WRAPPER - APPLICATION
+
+    #region WRAPPER - FILES
         public override int MaxThumbnailWidth 
         {
             get { return RbFiles.MaxThumbnailWidth; }
