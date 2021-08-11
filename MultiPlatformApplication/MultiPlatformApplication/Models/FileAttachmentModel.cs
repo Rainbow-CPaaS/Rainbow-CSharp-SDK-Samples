@@ -30,6 +30,11 @@ namespace MultiPlatformApplication.Models
         {
             Items.Insert(index, item);
         }
+
+        public void Clear()
+        {
+            Items.Clear();
+        }
     }
 
     public class FileAttachmentModel: ObservableObject
