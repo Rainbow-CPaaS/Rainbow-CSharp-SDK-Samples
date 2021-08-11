@@ -9,12 +9,6 @@
                    Orientation="Horizontal"
                    Margin="0"
                    Padding="6,3">
-            
-          <!-- 
-            /!\ We need to have a Width at least of '120': Image => 20, Label => 100
-            120 is the the minimal width specified in MessageContent.xaml 
-            If not the background correct will not be correct
-          -->
           
             <Image x:Name="Image" 
                    Margin="0"
@@ -25,7 +19,6 @@
                    Padding="0"
                    VerticalOptions="Center"
                    FontAttributes="Bold" 
-                   WidthRequest="100"
                    FontSize="{StaticResource FontSizeSmall}"/>
       </StackLayout>
   </ContentView.Content>

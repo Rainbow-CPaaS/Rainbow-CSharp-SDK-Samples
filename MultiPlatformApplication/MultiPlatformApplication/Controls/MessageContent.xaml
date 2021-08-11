@@ -21,7 +21,7 @@
                Margin="0"
                CornerRadius="2">
 
-            <Grid RowSpacing="0" ColumnSpacing="0" Padding="0" Margin="0">
+            <Grid RowSpacing="0" ColumnSpacing="0" Padding="0" Margin="0" >
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
@@ -31,7 +31,7 @@
                 </Grid.RowDefinitions>
 
                 <!-- TO ENSURE TO HAVE A MINIMAL WIDTH -->
-                <BoxView Grid.Row="0" Grid.Column="0" BackgroundColor="Transparent" WidthRequest="120" HeightRequest="1"/>
+                <BoxView x:Name="BowViewForMinimalWidth" Grid.Row="0" Grid.Column="0" BackgroundColor="Transparent" WidthRequest="120" HeightRequest="1"/>
 
                 <!-- DEFINE MAIN STACK LAYOUT -->
                 <Grid x:Name="MainGrid"

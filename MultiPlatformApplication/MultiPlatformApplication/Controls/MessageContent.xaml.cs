@@ -15,6 +15,8 @@ namespace MultiPlatformApplication.Controls
     [XamlCompilation(XamlCompilationOptions.Compile)]
     public partial class MessageContent : ContentView
     {
+        public static double MINIMAL_MESSAGE_WIDTH = 120;
+
         private MessageElementModel message = null;
 
         MessageContentUrgency messageContentUrgency = null;
@@ -29,6 +31,8 @@ namespace MultiPlatformApplication.Controls
         public MessageContent()
         {
             InitializeComponent();
+
+            BowViewForMinimalWidth.WidthRequest = MINIMAL_MESSAGE_WIDTH;
         }
 
 

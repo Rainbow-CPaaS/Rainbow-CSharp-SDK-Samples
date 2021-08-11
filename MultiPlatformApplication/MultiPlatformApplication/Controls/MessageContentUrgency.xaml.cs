@@ -66,6 +66,12 @@ namespace MultiPlatformApplication.Controls
                     Label.TextColor = color;
                     Label.Text = Helper.GetLabel(labelKey);
 
+                    /*
+                        /!\ We need to have a Width at least of MINIMAL_MESSAGE_WIDTH: Image => 20
+                        If not the background correct will not be correct
+                    */
+                    Label.WidthRequest = MessageContent.MINIMAL_MESSAGE_WIDTH - Image.WidthRequest;
+
                     Image.Source = Helper.GetImageSourceFromFont(imageSourceKey + "|" + color.ToHex());
                 }
             }
