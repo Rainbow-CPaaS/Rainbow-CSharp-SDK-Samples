@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 
 using Rainbow;
 using static Rainbow.Common.Avatars;
@@ -291,8 +292,13 @@ namespace MultiPlatformApplication
         {
         }
 
-        virtual public void SendMessageToConversationId(String id, String content, UrgencyType urgencyType)
+        virtual public void SendMessageToConversationId(String id, String content, UrgencyType urgencyType, List<String> mentions = null, Action<SdkResult<Message>> callbackMessage = null)
         {
+        }
+
+        virtual public void SendMessageWithFileToConversationId(String id, Stream stream, String filename, UrgencyType urgencyType, Action<SdkResult<FileDescriptor>> callbackFileDescriptor, Action<SdkResult<Message>> callbackMessage)
+        {
+
         }
 
         virtual public void SendIsTypingInConversationById(String id, Boolean isTyping)

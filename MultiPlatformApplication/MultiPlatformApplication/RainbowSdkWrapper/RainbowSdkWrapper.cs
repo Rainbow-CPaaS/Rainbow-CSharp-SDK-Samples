@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 
 using Rainbow;
 using Rainbow.Common;
@@ -9,7 +10,7 @@ using Rainbow.Model;
 using MultiPlatformApplication.Helpers;
 
 using NLog;
-using System.IO;
+
 
 namespace MultiPlatformApplication
 {
@@ -284,9 +285,14 @@ namespace MultiPlatformApplication
             
         }
 
-        public override void SendMessageToConversationId(String id, String content, UrgencyType urgencyType)
+        public override void SendMessageToConversationId(String id, String content, UrgencyType urgencyType, List<String> mentions = null,  Action<SdkResult<Message>> callbackMessage = null)
         {
-            RbInstantMessaging.SendMessageToConversationId(id, content, null, urgencyType);
+            RbInstantMessaging.SendMessageToConversationId(id, content, mentions, urgency: urgencyType, callback: callbackMessage);
+        }
+
+        public override void SendMessageWithFileToConversationId(String id, Stream stream, String filename, UrgencyType urgencyType, Action<SdkResult<FileDescriptor>> callbackFileDescriptor, Action<SdkResult<Message>> callbackMessage)
+        {
+            RbInstantMessaging.SendMessageWithFileToConversationId(id, "", stream, filename, null, urgencyType, null, callbackFileDescriptor, callbackMessage);
         }
 
         public override void SendIsTypingInConversationById(String id, Boolean isTyping)
