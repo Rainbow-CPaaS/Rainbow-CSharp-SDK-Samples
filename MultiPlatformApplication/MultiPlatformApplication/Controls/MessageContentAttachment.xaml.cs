@@ -89,7 +89,7 @@ namespace MultiPlatformApplication.Controls
                     // Ask more info about this file
                     Helper.SdkWrapper.AskFileDescriptorDownload(conversationId, attachmentId);
 
-                    // CASE: File has no thumbnail or it's not an image file
+                    // File has no thumbnail or it's not an image file
                     Label.TextType = TextType.Text;
                     Label.Text = attachmentName + " - " + attachmentSize;
                     Label.Opacity = 1;
@@ -100,6 +100,8 @@ namespace MultiPlatformApplication.Controls
                     Image.Source = Helper.GetImageSourceFromFont(imageSourceId);
                     Image.Margin = new Thickness(0);
                     Image.Opacity = 1;
+
+                    Spinner.IsVisible = false; 
                 }
             }
         }
@@ -132,6 +134,7 @@ namespace MultiPlatformApplication.Controls
             }
 
             Frame.BackgroundColor = Color.Transparent;
+            Spinner.IsVisible = false;
 
             Label.TextType = TextType.Html;
             Label.Text = "<i>" + label + "</i>";
@@ -144,6 +147,7 @@ namespace MultiPlatformApplication.Controls
             Image.Source = Helper.GetImageSourceFromFont("Font_Ban|" + colorName);
             Image.Margin = new Thickness(0, 0, 0, -5);
             Image.Opacity = 0.5;
+            Image.Margin = new Thickness(0);
         }
 
         private void DisplayThumbnail()
@@ -152,6 +156,7 @@ namespace MultiPlatformApplication.Controls
             try
             {
                 Frame.BackgroundColor = Color.Transparent;
+                Spinner.IsVisible = false;
 
                 log.Debug("[DisplayThumbnail] FileId:[{0}] - Use filePath:[{1}]", attachmentId, filePath);
                 System.Drawing.Size size = ImageTools.GetImageSize(filePath);
@@ -176,6 +181,13 @@ namespace MultiPlatformApplication.Controls
                     Image.WidthRequest = (int)Math.Round(w / density);
                     Image.Source = ImageSource.FromFile(filePath);
                     Image.Opacity = 1;
+
+                    // To center horizontally Imge if its size is small
+                    if(Image.WidthRequest < MessageContent.MINIMAL_MESSAGE_WIDTH)
+                    {
+                        double m = (double)((MessageContent.MINIMAL_MESSAGE_WIDTH - Image.WidthRequest) / 2);
+                        Image.Margin = new Thickness(m,0);
+                    }
 
                     Label.IsVisible = false;
                 }
