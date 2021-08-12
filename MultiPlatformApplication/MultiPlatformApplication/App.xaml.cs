@@ -15,6 +15,8 @@ using MultiPlatformApplication.Services;
 using NLog;
 
 
+[assembly: ExportFont("FontAwesomeSolid.5.15.3Enhanced.otf", Alias = "FontAwesomeSolid5")]
+
 namespace MultiPlatformApplication
 {
     public partial class App : Xamarin.Forms.Application
