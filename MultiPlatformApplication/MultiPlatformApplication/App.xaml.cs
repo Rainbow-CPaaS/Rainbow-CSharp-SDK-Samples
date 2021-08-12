@@ -7,11 +7,10 @@ using Xamarin.Essentials;
 using Xamarin.Forms;
 
 using Rainbow;
-using Rainbow.Common;
 
 using MultiPlatformApplication.Assets;
 using MultiPlatformApplication.Helpers;
-using MultiPlatformApplication.Views;
+using MultiPlatformApplication.Services;
 
 using NLog;
 
@@ -24,6 +23,9 @@ namespace MultiPlatformApplication
 
         // Create the navigation service
         internal NavigationService NavigationService { get; } = new NavigationService();
+
+        // Create the FilesUpload service
+        internal FilesUpload FilesUpload { get; } = FilesUpload.Instance;
 
         // To store the current conversation followed
         internal String CurrentConversationId = null;
@@ -76,8 +78,12 @@ namespace MultiPlatformApplication
             NavigationService.Configure("MainPage", typeof(MultiPlatformApplication.Views.MainPage));
             NavigationService.Configure("ConversationStreamPage", typeof(MultiPlatformApplication.Views.ConversationStreamPage));
 
+            //NavigationService.Configure("TestPage", typeof(MultiPlatformApplication.Views.TestPage));
+            //NavigationService.Configure("TestPage2", typeof(MultiPlatformApplication.Views.TestPage2));
+            //var mainPage = NavigationService.SetRootPage("TestPage");
 
             var mainPage = NavigationService.SetRootPage("LoginPage");
+
             MainPage = mainPage;
         }
 
