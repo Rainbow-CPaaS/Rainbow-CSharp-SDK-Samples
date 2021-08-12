@@ -53,7 +53,6 @@
                                                       HeightRequest="20"
                                                       Easing="True"
                                                       Color="{StaticResource ColorMain}" 
-                                                      Progress="35" 
                                                       Stroke="3"/>
 
                     <Label x:Name="Label" Grid.Column="1" Margin="0" Padding="0" VerticalOptions="CenterAndExpand" MaxLines="1" LineBreakMode="TailTruncation" TextColor="{StaticResource ColorAttachmentText}" FontSize="{StaticResource FontSizeSmall}"/>

@@ -37,7 +37,6 @@ namespace MultiPlatformApplication.Models
             Peer = new PeerModel();
             Content = new MessageContentModel();
         }
-
     }
 
     public class MessageReplyModel
@@ -68,7 +67,6 @@ namespace MultiPlatformApplication.Models
         public Boolean WithAvatar { get; set; }
 
         public MessageAttachmentModel Attachment { get; set; }
-
     }
 
     public class MessageAttachmentModel
@@ -78,5 +76,7 @@ namespace MultiPlatformApplication.Models
         public String Name { get; set; }
 
         public String Size { get; set; }
+
+        public String Action { get; set; } // "upload", "download", "" (none)
     }
 }

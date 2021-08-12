@@ -22,10 +22,15 @@ namespace MultiPlatformApplication.Controls
         Boolean manageDisplay = false;
 
         String peerJid;
+        String conversationId;
+
         String attachmentId;
         String attachmentName;
         String attachmentSize;
-        String conversationId;
+        String attachmentAction;
+
+        double uploadProgress = 2;
+        double downloadProgress = 2;
 
         public MessageContentAttachment()
         {
@@ -48,6 +53,7 @@ namespace MultiPlatformApplication.Controls
                         attachmentId = message.Content.Attachment.Id;
                         attachmentName = message.Content.Attachment.Name;
                         attachmentSize = message.Content.Attachment.Size;
+                        attachmentAction = message.Content.Attachment.Action;
 
                         ManageDisplay();
                     }
@@ -57,7 +63,7 @@ namespace MultiPlatformApplication.Controls
 
         private void ManageDisplay()
         {
-            if(!manageDisplay)
+            if (!manageDisplay)
             {
                 manageDisplay = true;
 
@@ -65,7 +71,14 @@ namespace MultiPlatformApplication.Controls
                 Helper.SdkWrapper.ThumbnailAvailable += SdkWrapper_ThumbnailAvailable;
                 Helper.SdkWrapper.FileDescriptorNotAvailable += SdkWrapper_FileDescriptorNotAvailable;
 
-                if (Helper.SdkWrapper.IsThumbnailFileAvailable(conversationId, attachmentId, attachmentName))
+
+                if (attachmentAction?.Equals("upload", StringComparison.InvariantCultureIgnoreCase) == true)
+                {
+                    Helper.SdkWrapper.FileUploadUpdated += SdkWrapper_FileUploadUpdated;
+                    DisplayUpload();
+
+                }
+                else if (Helper.SdkWrapper.IsThumbnailFileAvailable(conversationId, attachmentId, attachmentName))
                 {
                     DisplayThumbnail();
                 }
@@ -73,48 +86,74 @@ namespace MultiPlatformApplication.Controls
                 {
                     DisplayDeletedFile();
                 }
-                else 
+                else
                 {
-                    if (peerJid == Helper.SdkWrapper.GetCurrentContactJid())
-                    {
-                        Frame.BackgroundColor = Color.Transparent;
-                        Label.TextColor = Helper.GetResourceDictionaryById<Color>("ColorConversationStreamMessageCurrentUserFont");
-                    }
-                    else
-                    {
-                        Frame.BackgroundColor = Helper.GetResourceDictionaryById<Color>("ColorAttachmentBackground");
-                        Label.TextColor = Helper.GetResourceDictionaryById<Color>("ColorAttachmentText");
-                    }
-
-                    // Ask more info about this file
-                    Helper.SdkWrapper.AskFileDescriptorDownload(conversationId, attachmentId);
-
-                    // File has no thumbnail or it's not an image file
-                    Label.TextType = TextType.Text;
-                    Label.Text = attachmentName + " - " + attachmentSize;
-                    Label.Opacity = 1;
-
-                    String imageSourceId = Helper.GetFileSourceIdFromFileName(attachmentName);
-                    Image.HeightRequest = 30;
-                    Image.WidthRequest = 30;
-                    Image.Source = Helper.GetImageSourceFromFont(imageSourceId);
-                    Image.Margin = new Thickness(0);
-                    Image.Opacity = 1;
-
-                    Spinner.IsVisible = false; 
+                    DisplayAttachment();
                 }
+
+
+                // TODO - manage download progress
+                //if (attachmentAction?.Equals("download", StringComparison.InvariantCultureIgnoreCase) == true)
+                //{
+                //    // TODO
+                //    Helper.SdkWrapper.FileUploadUpdated += SdkWrapper_FileUploadUpdated;
+                //    DisplayDownload();
+                //}
             }
         }
 
-        private void SdkWrapper_FileDescriptorNotAvailable(object sender, Rainbow.Events.IdEventArgs e)
+        private void DisplayUpload()
         {
-            if (attachmentId == e.Id)
+            // The display is nearly the same than a basic attachment - only the spinner is vislble
+            
+            DisplayAttachment();
+
+            Spinner.Progress = uploadProgress;
+            Spinner.IsVisible = true;
+        }
+
+        private void UpdateDisplayUpload()
+        {
+            Device.BeginInvokeOnMainThread(() =>
             {
-                Device.BeginInvokeOnMainThread(() =>
-                {
-                    DisplayDeletedFile();
-                });
+                if (uploadProgress >= 100)
+                    Spinner.IsVisible = false;
+                else if (uploadProgress > Spinner.Progress)
+                    Spinner.Progress = uploadProgress;
+            });
+        }
+
+
+        private void DisplayAttachment()
+        {
+            if (peerJid == Helper.SdkWrapper.GetCurrentContactJid())
+            {
+                Frame.BackgroundColor = Color.Transparent;
+                Label.TextColor = Helper.GetResourceDictionaryById<Color>("ColorConversationStreamMessageCurrentUserFont");
             }
+            else
+            {
+                Frame.BackgroundColor = Helper.GetResourceDictionaryById<Color>("ColorAttachmentBackground");
+                Label.TextColor = Helper.GetResourceDictionaryById<Color>("ColorAttachmentText");
+            }
+
+            // Ask more info about this file
+            Helper.SdkWrapper.AskFileDescriptorDownload(conversationId, attachmentId);
+
+            // No Spinner visible
+            Spinner.IsVisible = false;
+
+            // File has no thumbnail or it's not an image file
+            Label.TextType = TextType.Text;
+            Label.Text = attachmentName + " - " + attachmentSize;
+            Label.Opacity = 1;
+
+            String imageSourceId = Helper.GetFileSourceIdFromFileName(attachmentName);
+            Image.HeightRequest = 30;
+            Image.WidthRequest = 30;
+            Image.Source = Helper.GetImageSourceFromFont(imageSourceId);
+            Image.Margin = new Thickness(0);
+            Image.Opacity = 1;
         }
 
         private void DisplayDeletedFile()
@@ -133,8 +172,10 @@ namespace MultiPlatformApplication.Controls
                 colorName = "ColorConversationStreamMessageOtherUserFont";
             }
 
-            Frame.BackgroundColor = Color.Transparent;
+            // No Spinner visible
             Spinner.IsVisible = false;
+
+            Frame.BackgroundColor = Color.Transparent;
 
             Label.TextType = TextType.Html;
             Label.Text = "<i>" + label + "</i>";
@@ -155,8 +196,10 @@ namespace MultiPlatformApplication.Controls
             string filePath = Helper.SdkWrapper.GetThumbnailFullFilePath(attachmentId);
             try
             {
-                Frame.BackgroundColor = Color.Transparent;
+                // No Spinner visible
                 Spinner.IsVisible = false;
+
+                Frame.BackgroundColor = Color.Transparent;
 
                 log.Debug("[DisplayThumbnail] FileId:[{0}] - Use filePath:[{1}]", attachmentId, filePath);
                 System.Drawing.Size size = ImageTools.GetImageSize(filePath);
@@ -203,6 +246,42 @@ namespace MultiPlatformApplication.Controls
                 {
                     DisplayThumbnail();
                 });
+            }
+        }
+
+        private void SdkWrapper_FileDescriptorNotAvailable(object sender, Rainbow.Events.IdEventArgs e)
+        {
+            if (attachmentId == e.Id)
+            {
+                Device.BeginInvokeOnMainThread(() =>
+                {
+                    DisplayDeletedFile();
+                });
+            }
+        }
+
+        private void SdkWrapper_FileUploadUpdated(object sender, Rainbow.Events.FileUploadEventArgs e)
+        {
+            if(attachmentId == e.FileDescriptor.Id)
+            {
+                if (e.InProgress)
+                {
+                    if (e?.FileDescriptor?.Size > 0)
+                    {
+                        uploadProgress = (double)((e.SizeUploaded / e?.FileDescriptor?.Size) * 100);
+                        UpdateDisplayUpload();
+                    }
+                } 
+                else if(e.Completed)
+                {
+                    // Upload finished
+                    uploadProgress = 100;
+                    UpdateDisplayUpload();
+                }
+                else
+                {
+                    // Error occurred
+                }
             }
         }
     }
