@@ -108,11 +108,13 @@
             </StackLayout>
 
             <Label Text="Hello World - selectable"
+                   
                    effects:SelectableLabelEffect.Enabled="True"/>
 
-            <controls:MessageInput HorizontalOptions="FillAndExpand" />
+            <controls:MessageInput HorizontalOptions="FillAndExpand"
+                                   IsEnabled="True"/>
 
-            <controls:EditorExpandableWithMaxLines />
+            <controls:EditorExpandableWithMaxLines IsEnabled="True" />
 
         </StackLayout>
         
