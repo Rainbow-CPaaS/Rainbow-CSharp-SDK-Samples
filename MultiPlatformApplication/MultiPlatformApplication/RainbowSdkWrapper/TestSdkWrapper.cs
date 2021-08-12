@@ -19,7 +19,7 @@ namespace MultiPlatformApplication
     {
         private static readonly Logger log = LogConfigurator.GetLogger(typeof(TestSdkWrapper));
 
-        // /!\ Necesasry only to get correct path/folders about Avatars
+        // /!\ Necessary only to get correct path/folders about Avatars
         Rainbow.Application RbApplication;
         Rainbow.Common.Avatars RbAvatars;
 
@@ -286,7 +286,12 @@ namespace MultiPlatformApplication
             task.Start();
         }
 
-        public override void SendMessageToConversationId(String id, String content, UrgencyType urgencyType)
+        public override void SendMessageToConversationId(String id, String content, UrgencyType urgencyType, List<String> mentions = null, Action<SdkResult<Message>> callbackMessage = null)
+        {
+            // TODO
+        }
+
+        public override void SendMessageWithFileToConversationId(String id, Stream stream, String filename, UrgencyType urgencyType, Action<SdkResult<FileDescriptor>> callbackFileDescriptor, Action<SdkResult<Message>> callbackMessage)
         {
             // TODO
         }
