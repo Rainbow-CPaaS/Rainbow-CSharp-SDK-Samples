@@ -70,6 +70,19 @@ namespace MultiPlatformApplication.Services
             UseFileDescriptorPool();
         }
 
+        internal Rainbow.Model.Message CreateRbMessage(FileUploadModel fileUploadModel, String toJid)
+        {
+            String fromJid = Helper.SdkWrapper.GetCurrentContactJid();
+            String fromResource = Helper.SdkWrapper.GetResourceId();
+            Restrictions.SDKMessageStorageMode messageStorageMode = Helper.SdkWrapper.GetMessageStorageMode();
+
+            // Create Rainbow.Message
+            Rainbow.Model.Message message = Rainbow.Model.Message.FromTextAndFileDescriptor(fromJid, fromResource, toJid, fileUploadModel.PeerType, "", fileUploadModel.Urgency, null, null, messageStorageMode, fileUploadModel.FileDescriptor);
+            message.Content = "";
+
+            return message;
+        }
+
 #region BACKGROUND WORKER  - TO UPLOAD FILE
         private void UseUploadPool()
         {
@@ -117,17 +130,9 @@ namespace MultiPlatformApplication.Services
                         {
                             if (callback.Result.Success)
                             {
-                                // Need to send IM:
-                                String fromJid = Helper.SdkWrapper.GetCurrentContactJid();
-                                String fromResource = Helper.SdkWrapper.GetResourceId();
-                                Conversation conversation = Helper.SdkWrapper.GetConversationByPeerIdFromCache(fileUploadModel.PeerId);
-                                Restrictions.SDKMessageStorageMode messageStorageMode = Helper.SdkWrapper.GetMessageStorageMode();
-
-                                // Create Rainbow.Message
-                                Rainbow.Model.Message message = Rainbow.Model.Message.FromTextAndFileDescriptor(fromJid, fromResource, conversation.Jid_im, fileUploadModel.PeerType, "", fileUploadModel.Urgency, null, null, messageStorageMode, fileUploadModel.FileDescriptor);
-                                message.Content = "";
-
                                 // Send message
+                                Conversation conversation = Helper.SdkWrapper.GetConversationByPeerIdFromCache(fileUploadModel.PeerId);
+                                Rainbow.Model.Message message = fileUploadModel.RbMessage;
                                 Helper.SdkWrapper.SendMessage(conversation, ref message);
 
                                 // Close stream
@@ -201,7 +206,6 @@ namespace MultiPlatformApplication.Services
             return result;
         }
 
-
 #endregion BACKGROUND WORKER  - TO UPLOAD FILE
 
 
@@ -263,6 +267,11 @@ namespace MultiPlatformApplication.Services
 
                                 // Store file descriptor
                                 fileUploadModel.FileDescriptor = callback.Data;
+
+
+                                // Create Rainbow.Message
+                                Conversation conversation = Helper.SdkWrapper.GetConversationByPeerIdFromCache(fileUploadModel.PeerId);
+                                fileUploadModel.RbMessage = CreateRbMessage(fileUploadModel, conversation.Jid_im);
 
                                 // TODO - need to inform that a file descriptor has been created
                             }
