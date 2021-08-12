@@ -73,6 +73,9 @@ namespace MultiPlatformApplication
                 Helper.SdkWrapper = new RainbowSdkWrapper();
 
 
+            // Set language to EN
+            Helper.SdkWrapper.SetLanguageId("en");
+
             // Register views in the Navigation servcice
             NavigationService.Configure("LoginPage", typeof(MultiPlatformApplication.Views.LoginPage));
             NavigationService.Configure("MainPage", typeof(MultiPlatformApplication.Views.MainPage));
