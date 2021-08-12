@@ -184,6 +184,12 @@ namespace MultiPlatformApplication
 
     #region WRAPPER - APPLICATION
 
+
+        override public Restrictions.SDKMessageStorageMode GetMessageStorageMode()
+        {
+            return RbApplication.Restrictions.MessageStorageMode;
+        }
+
         public override Boolean IsInitialized()
         {
             return RbApplication.IsInitialized();
@@ -194,8 +200,28 @@ namespace MultiPlatformApplication
             return RbApplication.GetResourceId();
         }
 
+        public override int GetTimeout()
+        {
+            return RbApplication.GetTimeout();
+        }
 
     #endregion WRAPPER - APPLICATION
+
+
+    #region WRAPPER - FILESTORAGE
+        
+        public override void CreateFileDescriptor(String fileName, long fileSize, String peerId, String peerType, Action<SdkResult<FileDescriptor>> callback)
+        {
+            RbFileStorage.CreateFileDescriptor(fileName, fileSize, peerId, peerType, callback);
+        }
+
+        override public void UploadFile(Stream fileStream, String peerId, String peerType, FileDescriptor fileDescriptor, Action<SdkResult<Boolean>> callbackResult)
+        {
+            RbFileStorage.UploadFile(fileStream, peerId, peerType, fileDescriptor, callbackResult);
+        }
+
+    #endregion WRAPPER - FILESTORAGE
+
 
     #region WRAPPER - FILES
         public override int MaxThumbnailWidth 
@@ -298,6 +324,11 @@ namespace MultiPlatformApplication
             });
 
             
+        }
+
+        override public bool SendMessage(Conversation conversation, ref Message message)
+        {
+            return RbInstantMessaging.SendMessage(conversation, ref message);
         }
 
         public override void SendMessageToConversationId(String id, String content, UrgencyType urgencyType, List<String> mentions = null,  Action<SdkResult<Message>> callbackMessage = null)

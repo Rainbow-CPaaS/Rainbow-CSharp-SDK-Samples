@@ -217,6 +217,11 @@ namespace MultiPlatformApplication
 
     #region WRAPPER - APPLICATION
 
+        virtual public Restrictions.SDKMessageStorageMode GetMessageStorageMode()
+        {
+            return Restrictions.SDKMessageStorageMode.Store;
+        }
+
         virtual public Boolean IsInitialized()
         {
             return true;
@@ -227,7 +232,24 @@ namespace MultiPlatformApplication
             return "";
         }
 
+        virtual public int GetTimeout()
+        {
+            return 2000;
+        }
+
     #endregion WRAPPER - APPLICATION
+
+    #region WRAPPER - FILESTORAGE
+
+        virtual public void CreateFileDescriptor(String fileName, long fileSize, String peerId, String peerType, Action<SdkResult<FileDescriptor>> callback)
+        {
+        }
+
+        virtual public void UploadFile(Stream fileStream, String peerId, String peerType, FileDescriptor fileDescriptor, Action<SdkResult<Boolean>> callbackResult)
+        {
+        }
+
+    #endregion WRAPPER - FILESTORAGE
 
     #region WRAPPER - FILES
 
@@ -304,6 +326,11 @@ namespace MultiPlatformApplication
 
         virtual public void GetMessagesFromConversationId(string conversationId, int nbMessages, Action<SdkResult<List<Message>>> callback)
         {
+        }
+
+        virtual public bool SendMessage(Conversation conversation, ref Message message)
+        {
+            return true;
         }
 
         virtual public void SendMessageToConversationId(String id, String content, UrgencyType urgencyType, List<String> mentions = null, Action<SdkResult<Message>> callbackMessage = null)
