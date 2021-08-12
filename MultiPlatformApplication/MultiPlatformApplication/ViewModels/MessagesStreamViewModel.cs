@@ -1,6 +1,7 @@
 ﻿using MultiPlatformApplication.Controls;
 using MultiPlatformApplication.Helpers;
 using MultiPlatformApplication.Models;
+using MultiPlatformApplication.Services;
 using NLog;
 using Rainbow;
 using Rainbow.Model;
@@ -641,7 +642,6 @@ namespace MultiPlatformApplication.ViewModels
             // Manage message with files
             List<FileResult> attachments = messageInput.GetFilesToSend();
 
-
             // Clear messsage input
             messageInput.Clear();
 
@@ -653,47 +653,39 @@ namespace MultiPlatformApplication.ViewModels
             if (!String.IsNullOrEmpty(text))
                 Helper.SdkWrapper.SendMessageToConversationId(conversationId, text, urgencyType);
 
-            // Send text message
+            // Send File message using FilesUpload service
             if (attachments?.Count > 0)
             {
-                foreach(FileResult fileResult in attachments)
+                List<FileUploadModel> filesUploadList = new List<FileUploadModel>();
+                Stream stream;
+                FileUploadModel fileUpload;
+
+                foreach (FileResult attachment in attachments)
                 {
-                    Stream stream = await fileResult.OpenReadAsync();
-                    Helper.SdkWrapper.SendMessageWithFileToConversationId(conversationId, stream, fileResult.FileName, urgencyType,
-                        callbackFileDescriptor =>
-                        {
-                            if (!callbackFileDescriptor.Result.Success)
-                            {
-                                if (stream != null)
-                                {
-                                    try
-                                    {
-                                        stream.Close();
-                                        stream.Dispose();
-                                        stream = null;
-                                    }
-                                    catch { }
-                                }
-                            }
-                        },
-                        callbackMessage =>
-                        {
-                            if (!callbackMessage.Result.Success)
-                            {
-                                if (stream != null)
-                                {
-                                    try
-                                    {
-                                        stream.Close();
-                                        stream.Dispose();
-                                        stream = null;
-                                    }
-                                    catch { }
-                                }
-                            }
-                        });
+                    try
+                    {
+                        fileUpload = new FileUploadModel();
+
+                        fileUpload.FileFullPath = attachment.FullPath;
+                        fileUpload.FileName = attachment.FileName;
+                        fileUpload.PeerId = rbConversation.PeerId;
+                        fileUpload.PeerType = rbConversation.Type;
+                        fileUpload.Urgency = urgencyType;
+
+                        // /!\ Can we store a lot of Stream objects ???
+                        stream = await attachment.OpenReadAsync();
+                        fileUpload.Stream = stream;
+                        fileUpload.FileSize = stream.Length;
+
+                        filesUploadList.Add(fileUpload);
+                    }
+                    catch
+                    {
+
+                    }
                 }
-                // TODO
+                if(filesUploadList.Count > 0)
+                    FilesUpload.Instance.AddFiles(filesUploadList);
             }
         }
 
