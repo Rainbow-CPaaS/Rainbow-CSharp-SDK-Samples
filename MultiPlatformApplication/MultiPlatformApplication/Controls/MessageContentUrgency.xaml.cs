@@ -64,7 +64,7 @@ namespace MultiPlatformApplication.Controls
                     StackLayout.BackgroundColor = Helper.GetResourceDictionaryById<Color>(backgroudColorKey);
 
                     Label.TextColor = color;
-                    Label.Text = Helper.GetLabel(labelKey);
+                    Label.Text = Helper.SdkWrapper.GetLabel(labelKey);
 
                     /*
                         /!\ We need to have a Width at least of MINIMAL_MESSAGE_WIDTH: Image => 20

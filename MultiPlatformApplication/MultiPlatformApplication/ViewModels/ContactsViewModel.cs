@@ -80,8 +80,8 @@ namespace MultiPlatformApplication.ViewModels
                 Menu.SetDefaulMenuItemtSize(30, 50, 80);
                 Menu.TextVisible = true;
                 Menu.TextVisibleForSelectedItem = true;
-                Menu.AddItem(new MenuItemModel() { Id = "orderby", Label = Helper.GetLabel("firstnameOrder"), ImageSourceId = "Font_SortAlphaDown|#FFFFFF" });
-                Menu.AddItem(new MenuItemModel() { Id = "filter", Label = Helper.GetLabel("allFilter"), ImageSourceId = "Font_Filter|#FFFFFF" });
+                Menu.AddItem(new MenuItemModel() { Id = "orderby", Label = Helper.SdkWrapper.GetLabel("firstnameOrder"), ImageSourceId = "Font_SortAlphaDown|#FFFFFF" });
+                Menu.AddItem(new MenuItemModel() { Id = "filter", Label = Helper.SdkWrapper.GetLabel("allFilter"), ImageSourceId = "Font_Filter|#FFFFFF" });
 
 
                 UpdateLabelsForOrderBy();
@@ -236,16 +236,16 @@ namespace MultiPlatformApplication.ViewModels
             switch (currentFilter)
             {
                 case "online":
-                    labelMenuFilter = Helper.GetLabel("onlineFilter");
+                    labelMenuFilter = Helper.SdkWrapper.GetLabel("onlineFilter");
                     break;
 
                 case "offline":
-                    labelMenuFilter = Helper.GetLabel("offlineFilter");
+                    labelMenuFilter = Helper.SdkWrapper.GetLabel("offlineFilter");
                     break;
 
                 case "all":
                 default:
-                    labelMenuFilter = Helper.GetLabel("allFilter");
+                    labelMenuFilter = Helper.SdkWrapper.GetLabel("allFilter");
                     break;
 
             }
@@ -254,16 +254,16 @@ namespace MultiPlatformApplication.ViewModels
             switch (currentOrderBy)
             {
                 case "company":
-                    labelMenuSort = Helper.GetLabel("companyOrder");
+                    labelMenuSort = Helper.SdkWrapper.GetLabel("companyOrder");
                     break;
 
                 case "lastname":
-                    labelMenuSort = Helper.GetLabel("lastnameOrder");
+                    labelMenuSort = Helper.SdkWrapper.GetLabel("lastnameOrder");
                     break;
 
                 case "firstname":
                 default:
-                    labelMenuSort = Helper.GetLabel("firstnameOrder");
+                    labelMenuSort = Helper.SdkWrapper.GetLabel("firstnameOrder");
                     break;
             }
 
@@ -275,17 +275,17 @@ namespace MultiPlatformApplication.ViewModels
         private void UpdateLabelsForOrderBy()
         {
             OrderByOptions.Clear();
-            OrderByOptions.Add(new ContextMenuItemModel() { Id = "firstname", Title = Helper.GetLabel("firstnameOrder") });
-            OrderByOptions.Add(new ContextMenuItemModel() { Id = "lastname", Title = Helper.GetLabel("lastnameOrder") });
-            OrderByOptions.Add(new ContextMenuItemModel() { Id = "company", Title = Helper.GetLabel("companyOrder") });
+            OrderByOptions.Add(new ContextMenuItemModel() { Id = "firstname", Title = Helper.SdkWrapper.GetLabel("firstnameOrder") });
+            OrderByOptions.Add(new ContextMenuItemModel() { Id = "lastname", Title = Helper.SdkWrapper.GetLabel("lastnameOrder") });
+            OrderByOptions.Add(new ContextMenuItemModel() { Id = "company", Title = Helper.SdkWrapper.GetLabel("companyOrder") });
         }
 
         private void UpdateLabelsForFilter()
         {
             FilterOptions.Clear();
-            FilterOptions.Add(new ContextMenuItemModel() { Id = "all", Title = Helper.GetLabel("allFilter") });
-            FilterOptions.Add(new ContextMenuItemModel() { Id = "online", Title = Helper.GetLabel("onlineFilter") });
-            FilterOptions.Add(new ContextMenuItemModel() { Id = "offline", Title = Helper.GetLabel("offlineFilter") });
+            FilterOptions.Add(new ContextMenuItemModel() { Id = "all", Title = Helper.SdkWrapper.GetLabel("allFilter") });
+            FilterOptions.Add(new ContextMenuItemModel() { Id = "online", Title = Helper.SdkWrapper.GetLabel("onlineFilter") });
+            FilterOptions.Add(new ContextMenuItemModel() { Id = "offline", Title = Helper.SdkWrapper.GetLabel("offlineFilter") });
         }
 
         private void SetSelectedItemOnContextMenu(ContextMenuModel contextMenuModel, String selectedId)

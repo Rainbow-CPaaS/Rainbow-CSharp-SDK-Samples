@@ -101,7 +101,7 @@ namespace MultiPlatformApplication.Controls
             Device.BeginInvokeOnMainThread(() =>
             {
                 if (message?.Reply?.Peer?.Jid == Helper.SdkWrapper.GetCurrentContactJid())
-                    LabelDisplayName.Text = Helper.GetLabel("me");
+                    LabelDisplayName.Text = Helper.SdkWrapper.GetLabel("me");
                 else
                     LabelDisplayName.Text = message?.Reply?.Peer?.DisplayName;
                 LabelBody.Text = message?.Reply?.Content?.Body;

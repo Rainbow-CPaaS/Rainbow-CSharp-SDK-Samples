@@ -53,7 +53,7 @@ namespace MultiPlatformApplication.Controls
             String label;
             String colorName;
 
-            label = Helper.GetLabel("msgForwarded");
+            label = Helper.SdkWrapper.GetLabel("msgForwarded");
             if (peerJid == Helper.SdkWrapper.GetCurrentContactJid())
                 colorName = "ColorConversationStreamMessageCurrentUserFont";
             else

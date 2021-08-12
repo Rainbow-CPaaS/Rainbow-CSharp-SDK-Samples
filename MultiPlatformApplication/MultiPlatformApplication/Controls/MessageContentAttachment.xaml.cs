@@ -163,12 +163,12 @@ namespace MultiPlatformApplication.Controls
 
             if (peerJid == Helper.SdkWrapper.GetCurrentContactJid())
             {
-                label = Helper.GetLabel("messageSentDeleted");
+                label = Helper.SdkWrapper.GetLabel("messageSentDeleted");
                 colorName = "ColorConversationStreamMessageCurrentUserFont";
             }
             else
             {
-                label = Helper.GetLabel("messageReceivedDeleted");
+                label = Helper.SdkWrapper.GetLabel("messageReceivedDeleted");
                 colorName = "ColorConversationStreamMessageOtherUserFont";
             }
 

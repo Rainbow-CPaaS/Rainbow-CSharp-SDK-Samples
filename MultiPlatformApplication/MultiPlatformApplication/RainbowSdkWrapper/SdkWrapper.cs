@@ -11,6 +11,9 @@ namespace MultiPlatformApplication
 {
     public class SdkWrapper
     {
+
+        internal Rainbow.Common.Languages RbLanguages = Rainbow.Common.Languages.Instance;
+
 #region PUBLIC EVENT
 
         // From "File Storage" Service
@@ -200,6 +203,39 @@ namespace MultiPlatformApplication
 #endregion TO RAISE EVENT
 
 #region PUBLIC API
+
+
+    #region LANGUAGES SERVICE
+
+        public  Boolean SetLanguageId(String languageId)
+        {
+            return RbLanguages.SetLanguageId(languageId);
+        }
+
+        public String GetLabel(String key)
+        {
+            if (String.IsNullOrEmpty(key))
+                return "[! label key is NULL !]";
+
+            String label = RbLanguages.GetLabel(key);
+            if (String.IsNullOrEmpty(label))
+                label = "[! " + key + " !]";
+            return label;
+        }
+
+        public String GetLabel(String key, String subtituteKey, String subtituteValue)
+        {
+            if(String.IsNullOrEmpty(key))
+                return "[! label key is NULL !]";
+            
+            String label = RbLanguages.GetLabel(key, subtituteKey, subtituteValue);
+            if (String.IsNullOrEmpty(label))
+                label = "[! " + key + " !]";
+            return label;
+        }
+
+
+    #endregion LANGUAGES SERVICE
 
     #region STATIC METHODS
         public static String GetColorFromDisplayName(String displayName)

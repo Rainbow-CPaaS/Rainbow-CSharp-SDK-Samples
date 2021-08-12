@@ -51,7 +51,7 @@ namespace MultiPlatformApplication.Controls
             
             ButtonTyping.PropertyChanged += ButtonTyping_PropertyChanged;
 
-            EntryMessage.Placeholder = Helper.GetLabel("enterTextHere");
+            EntryMessage.Placeholder = Helper.SdkWrapper.GetLabel("enterTextHere");
             EntryMessage.PropertyChanged += EntryMessage_PropertyChanged;
             EntryMessage.TextChanged += EntryMessage_TextChanged;
 
@@ -166,9 +166,9 @@ namespace MultiPlatformApplication.Controls
                 if (nbAccount > 0)
                 {
                     if (nbAccount == 1)
-                        label = Helper.GetLabel("isTyping");
+                        label = Helper.SdkWrapper.GetLabel("isTyping");
                     else
-                        label = Helper.GetLabel("areTyping");
+                        label = Helper.SdkWrapper.GetLabel("areTyping");
 
 
                     label = "<b>" + displayNameList + "</b> " + label;
@@ -229,19 +229,19 @@ namespace MultiPlatformApplication.Controls
                 case "Emergency":
                     textColor = Helper.GetResourceDictionaryById<Color>("ColorUrgencyEmergency");
                     bgdColor = Helper.GetResourceDictionaryById<Color>("ColorBackgroundUrgencyEmergency");
-                    label = Helper.GetLabel("emergencyAlert");
+                    label = Helper.SdkWrapper.GetLabel("emergencyAlert");
                     break;
 
                 case "Important":
                     textColor = Helper.GetResourceDictionaryById<Color>("ColorUrgencyImportant");
                     bgdColor = Helper.GetResourceDictionaryById<Color>("ColorBackgroundUrgencyImportant");
-                    label = Helper.GetLabel("warningAlert");
+                    label = Helper.SdkWrapper.GetLabel("warningAlert");
                     break;
 
                 case "Information":
                     textColor = Helper.GetResourceDictionaryById<Color>("ColorUrgencyInformation");
                     bgdColor = Helper.GetResourceDictionaryById<Color>("ColorBackgroundUrgencyInformation");
-                    label = Helper.GetLabel("notifyAlert");
+                    label = Helper.SdkWrapper.GetLabel("notifyAlert");
                     break;
 
                 case "Standard":

@@ -38,7 +38,7 @@ namespace MultiPlatformApplication.ViewModels
         public void Initialize()
         {
             LoginModel.IsBusy = false;
-            LoginModel.Connect = Helper.GetLabel("connect");
+            LoginModel.Connect = Helper.SdkWrapper.GetLabel("connect");
 
             LoginModel.Login = Helper.SdkWrapper.GetUserLoginFromCache();
             LoginModel.Password = Helper.SdkWrapper.GetUserPasswordFromCache();
@@ -52,12 +52,12 @@ namespace MultiPlatformApplication.ViewModels
                 {
                     case ConnectionState.Connected:
                     case ConnectionState.Connecting:
-                        LoginModel.Connect = LoginModel.Connect = Helper.GetLabel("connecting");
+                        LoginModel.Connect = LoginModel.Connect = Helper.SdkWrapper.GetLabel("connecting");
                         LoginModel.IsBusy = true;
                         break;
 
                     case ConnectionState.Disconnected:
-                        LoginModel.Connect = LoginModel.Connect = Helper.GetLabel("connect");
+                        LoginModel.Connect = LoginModel.Connect = Helper.SdkWrapper.GetLabel("connect");
                         LoginModel.IsBusy = false;
                         break;
                 }

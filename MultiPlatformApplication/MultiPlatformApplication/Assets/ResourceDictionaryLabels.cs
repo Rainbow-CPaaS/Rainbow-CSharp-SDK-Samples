@@ -7,6 +7,7 @@ using Xamarin.Forms.Xaml;
 
 namespace MultiPlatformApplication.Assets
 {
+    // Used in App.Xaml file - permit from xaml file to access labels
     [XamlCompilation(XamlCompilationOptions.Compile)]
     public class ResourceDictionaryLabels: ResourceDictionary
     {
@@ -17,7 +18,6 @@ namespace MultiPlatformApplication.Assets
             // Get Rainbow Languages service
             Languages = Rainbow.Common.Languages.Instance;
 
-            Languages.SetLanguageId("fr");
             UpdateLabels();
 
             // Want to update labels if langages is changed

@@ -27,8 +27,6 @@ namespace MultiPlatformApplication.Helpers
 
         private static readonly App XamarinApplication;
 
-        private static Languages Languages = null;
-
         private static String AppFolderName = "Rainbow.CSharp.SDK.MultiOS";
         private static String AvatarsFolderName = "Avatars";
         private static String FileStorageFolderName = "FileStorage";
@@ -273,19 +271,19 @@ namespace MultiPlatformApplication.Helpers
                 switch (bubbleEvent)
                 {
                     case "conferenceEnded":
-                        result = GetLabel("conferenceRemoveMsgRoom", "userDisplayName", displayName);
+                        result = SdkWrapper.GetLabel("conferenceRemoveMsgRoom", "userDisplayName", displayName);
                         break;
                     case "conferenceStarted":
-                        result = GetLabel("conferenceAddMsgRoom", "userDisplayName", displayName);
+                        result = SdkWrapper.GetLabel("conferenceAddMsgRoom", "userDisplayName", displayName);
                         break;
                     case "userJoin":
-                        result = GetLabel("joinMsgRoom", "userDisplayName", displayName);
+                        result = SdkWrapper.GetLabel("joinMsgRoom", "userDisplayName", displayName);
                         break;
                     case "userLeave":
-                        result = GetLabel("leaveMsgRoom", "userDisplayName", displayName);
+                        result = SdkWrapper.GetLabel("leaveMsgRoom", "userDisplayName", displayName);
                         break;
                     default:
-                        result = GetLabel(bubbleEvent, "userDisplayName", displayName);
+                        result = SdkWrapper.GetLabel(bubbleEvent, "userDisplayName", displayName);
                         break;
                 }
             }
@@ -317,9 +315,9 @@ namespace MultiPlatformApplication.Helpers
                 case CallLog.LogState.ANSWERED:
 
                     if (callLogAttachment.Caller == currentContactJid)
-                        body = Helper.GetLabel("activeCallRecvMsg", "userDisplayName", displayName);
+                        body = Helper.SdkWrapper.GetLabel("activeCallRecvMsg", "userDisplayName", displayName);
                     else
-                        body = Helper.GetLabel("activeCallMsg", "userDisplayName", displayName);
+                        body = Helper.SdkWrapper.GetLabel("activeCallMsg", "userDisplayName", displayName);
 
                     double nbSecs = Math.Round((double)callLogAttachment.Duration / 1000);
                     int mns = (int)(nbSecs / 60);
@@ -328,46 +326,15 @@ namespace MultiPlatformApplication.Helpers
                     break;
 
                 case CallLog.LogState.MISSED:
-                    body = Helper.GetLabel("missedCall");
+                    body = Helper.SdkWrapper.GetLabel("missedCall");
                     break;
 
                 case CallLog.LogState.FAILED:
-                    body = Helper.GetLabel("noAnswer");
+                    body = Helper.SdkWrapper.GetLabel("noAnswer");
                     break;
             }
 
             return body;
-        }
-
-        public static String GetLabel(String key)
-        {
-            if (Languages == null)
-            {
-                // Get Rainbow Languages service
-                Languages = Rainbow.Common.Languages.Instance;
-            }
-            String label = Languages.GetLabel(key);
-            if(String.IsNullOrEmpty(label))
-                label = "[! " + key + " !]";
-            return label;
-        }
-
-        public static String GetLabel(String key, String subtituteKey, String subtituteValue)
-        {
-            if (Languages == null)
-            {
-                // Get Rainbow Languages service
-                Languages = Rainbow.Common.Languages.Instance;
-            }
-            if(String.IsNullOrEmpty(key))
-            {
-                return "[! label key is NULL !]";
-            }
-            
-            String label = Languages.GetLabel(key, subtituteKey, subtituteValue);
-            if (String.IsNullOrEmpty(label))
-                label = "[! " + key + " !]";
-            return label;
         }
 
         public static String GetContactDisplayName(String jid)
