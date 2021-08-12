@@ -21,7 +21,10 @@ Features available for the moment:
 - Conversation stream
     - Display list of messages received / sent
     - Display files thumbnail when they are available
-    - Allow to send new message (not implemented in MVVM for the moment)
+    - Allow to send message 
+        - with or without Emoji
+        - with or without Files 
+        - with urgency mode selection
     
 Elements implemented but not demonstrable 
 - Themes: display is based on a selected theme
@@ -48,3 +51,16 @@ It uses data previously stored locally to use the application without the needs 
 
 Very useful to add new functionnalities, test/update code with real data without any connection.   
  
+
+# Screenshots
+--- 
+
+## Conversation stream
+
+Screenshsots to demonstrate differences between Rainbow Offical Web / Desktop CLient, SDK C# on Windows (UWP) and SDK C# on Android emulator 
+
+![On Web / Desktop client](./images/MessageStream-WebClient.png)
+
+![SDK C# - UWP](./images/MessageStream-CSharp-UWP.png)
+
+![SDK C# - Android](./images/MessageStream-CSharp-Android.png)
