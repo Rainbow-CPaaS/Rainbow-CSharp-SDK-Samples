@@ -53,6 +53,13 @@ namespace MultiPlatformApplication.Controls
             false,
             propertyChanged: OnEasingPropertyChanged);
 
+        public static readonly BindableProperty FilledProperty = BindableProperty.Create(
+            nameof(Filled),
+            typeof(bool),
+            typeof(CircularProgressBar),
+            false,
+            propertyChanged: OnFilledPropertyChanged);
+
         public double Progress
         {
             get => (double)GetValue(ProgressProperty);
@@ -85,6 +92,12 @@ namespace MultiPlatformApplication.Controls
         {
             get => (bool)GetValue(EasingProperty);
             set => SetValue(EasingProperty, value);
+        }
+
+        public bool Filled
+        {
+            get => (bool)GetValue(FilledProperty);
+            set => SetValue(FilledProperty, value);
         }
 
         /// <summary>
@@ -150,6 +163,18 @@ namespace MultiPlatformApplication.Controls
             view.canvas.InvalidateSurface();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="bindable"></param>
+        /// <param name="oldValue"></param>
+        /// <param name="newValue"></param>
+        private static void OnFilledPropertyChanged(BindableObject bindable, object oldValue, object newValue)
+        {
+            var view = (CircularProgressBar)bindable;
+            view.canvas.InvalidateSurface();
+        }
+
         public CircularProgressBar()
         {
             UpdatePaint();
@@ -167,7 +192,7 @@ namespace MultiPlatformApplication.Controls
         {
             paint = new SKPaint()
             {
-                Style = SKPaintStyle.Stroke,
+                Style = Filled ? SKPaintStyle.Fill : SKPaintStyle.Stroke,
                 Color = Color.ToSKColor(),
                 StrokeCap = SKStrokeCap.Round,
                 StrokeJoin = SKStrokeJoin.Round,
@@ -237,14 +262,15 @@ namespace MultiPlatformApplication.Controls
                 });
             }
 
-
-
             var canvas = e.Surface.Canvas;
             canvas.Clear();
 
-            rect.Size = new SKSize(e.Info.Width - paint.StrokeWidth - padding, e.Info.Height - paint.StrokeWidth - padding);
-            rect.Location = new SKPoint(paint.StrokeWidth / 2, paint.StrokeWidth / 2);
+            float strokeWidth = 0;
+            if(!Filled)
+                strokeWidth = Math.Max(paint.StrokeWidth, paintBackground.StrokeWidth);
 
+            rect.Size = new SKSize(e.Info.Width - strokeWidth - padding, e.Info.Height - strokeWidth - padding);
+            rect.Location = new SKPoint(strokeWidth / 2, strokeWidth / 2);
 
             double delta = (this.Progress - currentProgress) * (float)Xamarin.Forms.Easing.CubicInOut.Ease(_easing);
             this.value = currentProgress + delta;
@@ -255,7 +281,18 @@ namespace MultiPlatformApplication.Controls
             double _sweepAngle = _angle;
 
             SKPath path = new SKPath();
-            path.AddArc(rect, (float)_startAngle, (float)_sweepAngle);
+            if (Filled)
+            {
+                path.MoveTo((rect.Width + strokeWidth) / 2, (rect.Height + strokeWidth) / 2);
+                path.LineTo((rect.Width + strokeWidth) / 2, 0);
+                path.AddArc(rect, (float)_startAngle, (float)_sweepAngle);
+                path.LineTo((rect.Width + strokeWidth) / 2, (rect.Height + strokeWidth) / 2);
+            } 
+            else
+            {
+                path.AddArc(rect, (float)_startAngle, (float)_sweepAngle);
+            }
+            
 
             SKPath pathBackground = new SKPath();
             pathBackground.AddArc(rect, 0, 360);
