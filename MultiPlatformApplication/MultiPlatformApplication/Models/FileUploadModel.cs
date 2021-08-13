@@ -15,16 +15,25 @@ namespace MultiPlatformApplication.Models
 
         public UrgencyType Urgency { get; set; }
 
+#region FILE ATTRIBUTES        
+
+        public Stream Stream { get; set; }
+
         public String FileFullPath{ get; set; }
 
         public String FileName { get; set; }
 
         public long FileSize { get; set; }
 
-        public Stream Stream { get; set; }
+#endregion FILE ATTRIBUTES        
+
+
+#region RB SDK ATTRIBUTES        
 
         public FileDescriptor FileDescriptor { get; set; }
 
         public Rainbow.Model.Message RbMessage { get; set; }
+
+#endregion RB SDK ATTRIBUTES        
     }
 }

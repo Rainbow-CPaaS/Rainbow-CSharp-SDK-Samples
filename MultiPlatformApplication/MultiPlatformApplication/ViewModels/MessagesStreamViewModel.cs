@@ -24,6 +24,8 @@ namespace MultiPlatformApplication.ViewModels
         private static readonly Logger log = LogConfigurator.GetLogger(typeof(MessagesStreamViewModel));
         private static readonly int NB_MESSAGE_LOADED_BY_ROW = 20;
 
+        private FilesUpload FilesUpload;
+
         private View rootView;
         private MessageInput messageInput;
         private ListView contextMenuMessageUrgencyListView;
@@ -40,10 +42,14 @@ namespace MultiPlatformApplication.ViewModels
 
         private Object lockObservableMessagesList = new Object(); // To lock access to the observable collection: 'MessagesList'
 
-
         private List<String> PeerJidTyping = new List<string>();
 
         private List<MessageElementModel> MessagesList { get; set; } = new List<MessageElementModel>();
+
+
+        private Object lockUploadObjects = new Object();
+        private List<String> filesDescriptorIdListUploading = new List<string>(); // To store the list of FileDescriptorId in a upload process
+
 
 #region BINDINGS used in XAML
         public DynamicStreamModel DynamicStream { get; private set; } = new DynamicStreamModel();
@@ -55,6 +61,15 @@ namespace MultiPlatformApplication.ViewModels
         public MessagesStreamViewModel(View rootView)
         {
             this.rootView = rootView;
+
+            // Need to deal with filesUpload
+            FilesUpload = FilesUpload.Instance;
+            FilesUpload.FileDescriptorCreated += FilesUpload_FileDescriptorCreated;
+            FilesUpload.FileDescriptorNotCreated += FilesUpload_FileDescriptorNotCreated;
+            FilesUpload.UploadNotPerformed += FilesUpload_UploadNotPerformed;
+
+            // We need to follow file upload progress
+            Helper.SdkWrapper.FileUploadUpdated += SdkWrapper_FileUploadUpdated;
 
             messageInput = rootView.FindByName<MessageInput>("MessageInput");
             if (messageInput != null)
@@ -102,7 +117,6 @@ namespace MultiPlatformApplication.ViewModels
 
             DynamicStream.AskMoreItemsCommand = new RelayCommand<object>(new Action<object>(AskMoreMessagesCommand));
         }
-
 
         private void MessageInput_UpdateParentLayout(object sender, EventArgs e)
         {
@@ -302,7 +316,7 @@ namespace MultiPlatformApplication.ViewModels
             return element;
         }
 
-        private void AddToModelRbMessages(List<Rainbow.Model.Message> rbMessagesList, bool atTheEnd = false)
+        private void AddToModelRbMessages(List<Rainbow.Model.Message> rbMessagesList, bool atTheEnd = false, String fileAction = "")
         {
             if (rbMessagesList == null)
                 return;
@@ -325,7 +339,10 @@ namespace MultiPlatformApplication.ViewModels
 
             foreach (Rainbow.Model.Message rbMessage in messagesList)
             {
-                msg = GetMessageFromRBMessage(rbMessage, rbConversation.Type);
+                if (rbMessage == null)
+                    continue;
+
+                msg = GetMessageFromRBMessage(rbMessage, rbConversation.Type, fileAction);
 
                 if (msg != null)
                 {
@@ -384,12 +401,21 @@ namespace MultiPlatformApplication.ViewModels
                         }
                         else
                         {
-                            // If last element displayed in the list as the same sender than the new one added, perhaps ne need to avoid to display Avatar on each message
+                            // If last element displayed in the list as the same sender than the new one added, perhaps we need
+                            //  - to avoid to have same file sent (one to display upload progress and the other one to display the real message sent)
+                            //  - to avoid to display Avatar on each message
                             MessageElementModel lastElementDisplayed = MessagesList.Last();
                             MessageElementModel firstElementToAdd = messagesElementList[0];
                             if (lastElementDisplayed.Peer.Jid == firstElementToAdd.Peer.Jid)
                             {
-                                if (firstElementToAdd.Content.WithAvatar)
+                                if (lastElementDisplayed?.Content?.Attachment?.Id == firstElementToAdd?.Content?.Attachment?.Id)
+                                {
+                                    // Remove the previous one
+                                    stackLayout.Children.RemoveAt(stackLayout.Children.Count - 1);
+                                    MessagesList.RemoveAt(MessagesList.Count - 1);
+
+                                }
+                                else if (firstElementToAdd.Content.WithAvatar)
                                 {
                                     // Avoid avatar on previous message if the delay is less than one minute
                                     if (firstElementToAdd.Date.Subtract(lastElementDisplayed.Date).TotalMinutes <= 1)
@@ -506,7 +532,7 @@ namespace MultiPlatformApplication.ViewModels
             return result;
         }
 
-        private MessageElementModel GetMessageFromRBMessage(Rainbow.Model.Message rbMessage, String conversationType)
+        private MessageElementModel GetMessageFromRBMessage(Rainbow.Model.Message rbMessage, String conversationType, String fileAction = "")
         {
             MessageElementModel message = null;
             if (rbMessage != null)
@@ -596,7 +622,8 @@ namespace MultiPlatformApplication.ViewModels
                         {
                             Id = rbMessage.FileAttachment.Id,
                             Name = rbMessage.FileAttachment.Name,
-                            Size = Helper.HumanizeFileSize(rbMessage.FileAttachment.Size)
+                            Size = Helper.HumanizeFileSize(rbMessage.FileAttachment.Size),
+                            Action = fileAction
                         };
                     }
                 }
@@ -657,7 +684,6 @@ namespace MultiPlatformApplication.ViewModels
             if (attachments?.Count > 0)
             {
                 List<FileUploadModel> filesUploadList = new List<FileUploadModel>();
-                Stream stream;
                 FileUploadModel fileUpload;
 
                 foreach (FileResult attachment in attachments)
@@ -666,26 +692,26 @@ namespace MultiPlatformApplication.ViewModels
                     {
                         fileUpload = new FileUploadModel();
 
-                        fileUpload.FileFullPath = attachment.FullPath;
-                        fileUpload.FileName = attachment.FileName;
                         fileUpload.PeerId = rbConversation.PeerId;
                         fileUpload.PeerType = rbConversation.Type;
                         fileUpload.Urgency = urgencyType;
 
                         // /!\ Can we store a lot of Stream objects ???
-                        stream = await attachment.OpenReadAsync();
-                        fileUpload.Stream = stream;
-                        fileUpload.FileSize = stream.Length;
+
+                        fileUpload.Stream = await attachment.OpenReadAsync();
+                        fileUpload.FileFullPath = attachment.FullPath;
+                        fileUpload.FileName = attachment.FileName;
+                        fileUpload.FileSize = fileUpload.Stream.Length;
 
                         filesUploadList.Add(fileUpload);
                     }
                     catch
                     {
-
+                        log.Warn("[MessageInput_MessageToSend] Cannot create stream object for this file:[{0}]", attachment.FullPath);
                     }
                 }
                 if(filesUploadList.Count > 0)
-                    FilesUpload.Instance.AddFiles(filesUploadList);
+                    FilesUpload.AddFiles(filesUploadList);
             }
         }
 
@@ -933,6 +959,71 @@ namespace MultiPlatformApplication.ViewModels
         }
 
 #endregion EVENTS FROM SDKWRAPPER
+
+
+#region EVENTS ABOUT UPLOAD STUFF
+
+        private void FilesUpload_FileDescriptorCreated(object sender, Rainbow.Events.StringListEventArgs e)
+        {
+            // 1) A FileDescriptor is created when a file is sent in a conversation
+            if (e.Values?.Count >= 2)
+            {
+                // Check if it's related to this conversation
+                if (e.Values[0] == rbConversation?.PeerId)
+                {
+                    log.Debug("[FilesUpload_FileDescriptorCreated] PeerId:[{0}] - FileDescriptorId:[{1}]", e.Values[0], e.Values[1]);
+
+                    // Get FileUploadModel
+                    FileUploadModel fileUploadModel = FilesUpload.GetFileUploadByFileDescriptorId(e.Values[1]);
+
+                    // Get RbMessage
+                    Rainbow.Model.Message RbMessage = fileUploadModel?.RbMessage;
+
+                    // Update the UI
+                    AddToModelRbMessages(new List<Message>() { RbMessage }, true, "upload");
+                }
+            }
+        }
+
+        private void SdkWrapper_FileUploadUpdated(object sender, Rainbow.Events.FileUploadEventArgs e)
+        {
+            // 2) After FileDescriptor is created, the upload process starts. Here we have info updated about this process
+
+            // Check if it's related to this conversation
+            if (e.PeerId == rbConversation?.PeerId)
+            {
+                log.Debug("[SdkWrapper_FileUploadUpdated] PeerId:[{0}] - InProgress:[{1}] - Completed:[{2}] - SizeUploaded:[{3}]", e.PeerId, e.InProgress, e.Completed, e.SizeUploaded);
+            }
+        }
+
+        private void FilesUpload_FileDescriptorNotCreated(object sender, Rainbow.Events.StringListEventArgs e)
+        {
+            // 3) Unfortunatly, it's not possible to create a FileDescriptor ... 
+            if (e.Values?.Count >= 2)
+            {
+                // Check if it's related to this conversation
+                if (e.Values[0] == rbConversation?.PeerId)
+                {
+                    log.Warn("[FilesUpload_FileDescriptorCreated] PeerId:[{0}] - FileName:[{1}]", e.Values[0], e.Values[1]);
+                }
+            }
+        }
+
+
+        private void FilesUpload_UploadNotPerformed(object sender, Rainbow.Events.StringListEventArgs e)
+        {
+            // 4) Unfortunatly, it's not possible to start the upload process ...
+            if (e.Values?.Count >= 3)
+            {
+                // Check if it's related to this conversation
+                if (e.Values[0] == rbConversation?.PeerId)
+                {
+                    log.Warn("[FilesUpload_FileDescriptorCreated] PeerId:[{0}] - FileName:[{1}] - FileDescriptorId:[{2}]", e.Values[0], e.Values[1], e.Values[2]);
+                }
+            }
+        }
+
+#endregion EVENTS ABOUT UPLOAD STUFF
 
     }
 }

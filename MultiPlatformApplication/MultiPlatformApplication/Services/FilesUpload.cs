@@ -2,11 +2,13 @@
 using MultiPlatformApplication.Models;
 using NLog;
 using Rainbow;
+using Rainbow.Events;
 using Rainbow.Model;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,69 +21,45 @@ namespace MultiPlatformApplication.Services
     /// </summary>
     public sealed class FilesUpload
     {
-        private static readonly Logger log = LogConfigurator.GetLogger(typeof(FilesUpload));
+        private  readonly Logger log = LogConfigurator.GetLogger(typeof(FilesUpload));
+
+#region PUBLIC EVENTS
+        /// <summary>
+        /// Event raised when a file descriptor has been created just before the procees of file upload 
+        /// 
+        /// Information provided in the event: PeerId and FileDescriptorId
+        /// </summary>
+        public event EventHandler<StringListEventArgs> FileDescriptorCreated;
+
+        /// <summary>
+        /// Event raised when a file descriptor cannot be created.
+        /// 
+        /// Information provided in the event: PeerId and FileName
+        /// </summary>
+        public event EventHandler<StringListEventArgs> FileDescriptorNotCreated;
+
+        /// <summary>
+        /// Event raised when the file upload process cannot start
+        /// 
+        /// Information provided in the event: PeerId, FileName and FileDescriptorId
+        /// </summary>
+        public event EventHandler<StringListEventArgs> UploadNotPerformed;
+
+#endregion PUBLIC EVENTS
 
         private static FilesUpload instance = null;
-
         private Object lockFiles = new Object();
+
+        private Dictionary<String, FileUploadModel> FilesByFullPath = new Dictionary<String, FileUploadModel>(); // Dictionary of FileUploadModel by FileFullPath (MAIN DICTIONARY)
+        private Dictionary<String, String> FileFullPathByFileDescriptorId = new Dictionary<String, String>(); // Dictionary of FileFullPath by FileDescriptorId
+        private Dictionary<String, List<String>> FilesFullPathListByPeerId = new Dictionary<String, List<String>>(); // Dictionary of List<FileFullPath> by PeerId
         
-        Dictionary<String, FileUploadModel> FilesByFullPath = new Dictionary<String, FileUploadModel>(); // Dictionary of FileUploadModel by FileFullPath (MAIN DICTIONARY)
-
-        Dictionary<String, String> FileFullPathByFileDescriptorId = new Dictionary<String, String>(); // Dictionary of FileFullPath by FileDescriptorId
-        Dictionary<String, List<String>> FilesFullPathListByPeerId = new Dictionary<String, List<String>>(); // Dictionary of List<FileFullPath> by PeerId
-
         private BackgroundWorker backgroundWorkerFileDescriptor = null;
         private BackgroundWorker backgroundWorkerUpload = null;
 
+        private Boolean initEventsDone = false;
+        private String uploadFileDescriptorIdInProgress = null;
 
-        // Must be called on UI THREAD
-        public void AddFiles(List<FileUploadModel> files)
-        {
-            lock (lockFiles)
-            {
-                if (files?.Count > 0)
-                {
-                    List<String> filesFullPathList;
-
-                    foreach (FileUploadModel fileUploadModel in files)
-                    {
-                        if (!FilesByFullPath.ContainsKey(fileUploadModel.FileFullPath))
-                        {
-                            // Update Dictionary of FilesByFullPath
-                            FilesByFullPath.Add(fileUploadModel.FileFullPath, fileUploadModel);
-
-                            // Update Dictionary of FileFullPathByConversationId
-                            if (FilesFullPathListByPeerId.ContainsKey(fileUploadModel.PeerId))
-                            {
-                                filesFullPathList = FilesFullPathListByPeerId[fileUploadModel.PeerId];
-                                filesFullPathList.Add(fileUploadModel.FileFullPath);
-                            }
-                            else
-                            {
-                                filesFullPathList = new List<string>();
-                                filesFullPathList.Add(fileUploadModel.FileFullPath);
-                                FilesFullPathListByPeerId.Add(fileUploadModel.PeerId, filesFullPathList);
-                            }
-                        }
-                    }
-                }
-            }
-            // Use file descriptor pool => to start the creation of File Descriptor
-            UseFileDescriptorPool();
-        }
-
-        internal Rainbow.Model.Message CreateRbMessage(FileUploadModel fileUploadModel, String toJid)
-        {
-            String fromJid = Helper.SdkWrapper.GetCurrentContactJid();
-            String fromResource = Helper.SdkWrapper.GetResourceId();
-            Restrictions.SDKMessageStorageMode messageStorageMode = Helper.SdkWrapper.GetMessageStorageMode();
-
-            // Create Rainbow.Message
-            Rainbow.Model.Message message = Rainbow.Model.Message.FromTextAndFileDescriptor(fromJid, fromResource, toJid, fileUploadModel.PeerType, "", fileUploadModel.Urgency, null, null, messageStorageMode, fileUploadModel.FileDescriptor);
-            message.Content = "";
-
-            return message;
-        }
 
 #region BACKGROUND WORKER  - TO UPLOAD FILE
         private void UseUploadPool()
@@ -108,87 +86,37 @@ namespace MultiPlatformApplication.Services
 
         private void BackgroundWorkerUpload_DoWork(object sender, DoWorkEventArgs e)
         {
-            List<FileUploadModel> filesUploadModelList = new List<FileUploadModel>();
-
-            // We will upload file one by one 
+            FileUploadModel fileUploadModel = null;
             lock (lockFiles)
             {
-                foreach (FileUploadModel fileUploadModel in FilesByFullPath.Values)
-                    filesUploadModelList.Add(fileUploadModel);
-            }
+                if (uploadFileDescriptorIdInProgress != null)
+                    return;
 
-            if (filesUploadModelList.Count > 0)
-            {
-                ManualResetEvent manualResetEvent = new ManualResetEvent(false);
-
-                foreach (FileUploadModel fileUploadModel in filesUploadModelList)
+                if (FilesByFullPath.Count > 0)
                 {
-                    try
-                    {
-                        manualResetEvent.Reset();
-                        Helper.SdkWrapper.UploadFile(fileUploadModel.Stream, fileUploadModel.PeerId, fileUploadModel.PeerType, fileUploadModel.FileDescriptor, callback =>
-                        {
-                            if (callback.Result.Success)
-                            {
-                                // Send message
-                                Conversation conversation = Helper.SdkWrapper.GetConversationByPeerIdFromCache(fileUploadModel.PeerId);
-                                Rainbow.Model.Message message = fileUploadModel.RbMessage;
-                                Helper.SdkWrapper.SendMessage(conversation, ref message);
+                    // Take first element
+                    fileUploadModel = FilesByFullPath.First().Value;
 
-                                // Close stream
-                                CloseStream(fileUploadModel);
-
-                                // Remove this file from dictionaries
-                                RemoveFileByFullPath(fileUploadModel.FileFullPath);
-                            }
-                            else
-                            {
-                                // Cannot upload file
-                                UploadCannnotBeDone(fileUploadModel);
-                            }
-
-                            manualResetEvent.Set();
-                        });
-
-                        // We upload file one by one so we wait before to continue
-                        if (!manualResetEvent.WaitOne(Helper.SdkWrapper.GetTimeout()))
-                        {
-                            // Cannot upload file
-                            UploadCannnotBeDone(fileUploadModel);
-                        }
-                    }
-                    catch
-                    {
-                        UploadCannnotBeDone(fileUploadModel);
-                    }
+                    // Store the FileDescriptor Id which will be uploaded
+                    uploadFileDescriptorIdInProgress = fileUploadModel.FileDescriptor.Id;
                 }
             }
-        }
 
-        private void CloseStream(FileUploadModel fileUploadModel)
-        {
-            if(fileUploadModel?.Stream != null)
-            {
-                try
-                {
-                    fileUploadModel.Stream.Close();
-                    fileUploadModel.Stream.Dispose();
-                    fileUploadModel.Stream = null;
-                }
-                catch
-                { }
-            }
+            // Start the upload
+            if(fileUploadModel != null)
+                Helper.SdkWrapper.UploadFile(fileUploadModel.Stream, fileUploadModel.PeerId, fileUploadModel.PeerType, fileUploadModel.FileDescriptor, null);
         }
 
         private void UploadCannnotBeDone(FileUploadModel fileUploadModel)
         {
-            // TODO
-            // Need to inform that this file cannot be uploaded => need to add event
-
+            // Close the stream
             CloseStream(fileUploadModel);
 
             // Remove this file from dictionaries
             RemoveFileByFullPath(fileUploadModel.FileFullPath);
+
+            // Need to inform that this file cannot be uploaded
+            UploadNotPerformed.Raise(this, new StringListEventArgs(new List<String>() { fileUploadModel.PeerId, fileUploadModel.FileName, fileUploadModel.FileDescriptor?.Id }));
         }
 
         private Boolean CanUseUploadPool()
@@ -196,12 +124,10 @@ namespace MultiPlatformApplication.Services
             Boolean result = false;
 
             // If we are connected, chcek if at least a file must be uploade
-            if(Helper.SdkWrapper.IsInitialized())
+            lock (lockFiles)
             {
-                lock(lockFiles)
-                {
-                    result = (FilesByFullPath.Count > 0);
-                }
+                if (Helper.SdkWrapper.IsInitialized())
+                    result = (FilesByFullPath.Count > 0) && (uploadFileDescriptorIdInProgress == null);
             }
             return result;
         }
@@ -268,12 +194,19 @@ namespace MultiPlatformApplication.Services
                                 // Store file descriptor
                                 fileUploadModel.FileDescriptor = callback.Data;
 
+                                // Store the correlation between FileDescriptor.Id and FileFullPath
+                                FileFullPathByFileDescriptorId.Add(fileUploadModel.FileDescriptor.Id, fileUploadModel.FileFullPath);
 
                                 // Create Rainbow.Message
                                 Conversation conversation = Helper.SdkWrapper.GetConversationByPeerIdFromCache(fileUploadModel.PeerId);
                                 fileUploadModel.RbMessage = CreateRbMessage(fileUploadModel, conversation.Jid_im);
 
-                                // TODO - need to inform that a file descriptor has been created
+                                // Inform that a file descriptor has been created
+                                Task task = new Task(() =>
+                                {
+                                    FileDescriptorCreated.Raise(instance, new StringListEventArgs(new List<String>() { fileUploadModel.PeerId, fileUploadModel.FileDescriptor.Id }));
+                                });
+                                task.Start();
                             }
                             else
                             {
@@ -281,6 +214,7 @@ namespace MultiPlatformApplication.Services
                                 FileDescriptorCannnotBeCreated(fileUploadModel);
                             }
 
+                            // Stop to wait
                             manualResetEvent.Set();
                         });
 
@@ -307,16 +241,17 @@ namespace MultiPlatformApplication.Services
 
         private void FileDescriptorCannnotBeCreated(FileUploadModel fileUploadModel)
         {
-            // TODO
-            // Need to inform that this file cannot be uploaded => need to add event
-
+            // Close the stream
             CloseStream(fileUploadModel);
 
             // Remove this file from dictionaries
             RemoveFileByFullPath(fileUploadModel?.FileFullPath);
+
+            // Need to inform that this file cannot be uploaded 
+            FileDescriptorNotCreated.Raise(instance, new StringListEventArgs(new List<String>() { fileUploadModel.PeerId, fileUploadModel.FileName }));
         }
 
-        private Boolean CanUseFileDescriptorPool()
+        private  Boolean CanUseFileDescriptorPool()
         {
             Boolean result = false;
 
@@ -339,6 +274,96 @@ namespace MultiPlatformApplication.Services
         }
 
 #endregion BACKGROUND WORKER - TO GET FILE DESCRIPTOR
+
+
+#region EVENTS FROM SDK WRAPPER
+
+        private void SdkWrapper_FileUploadUpdated(object sender, FileUploadEventArgs e)
+        {
+            if(e.FileDescriptor.Id == uploadFileDescriptorIdInProgress)
+            {
+                if(!e.InProgress)
+                {
+                    FileUploadModel fileUploadModel = GetFileUploadByFileDescriptorId(uploadFileDescriptorIdInProgress);
+                    if (e.Completed)
+                    {
+                        // Send message
+                        Conversation conversation = Helper.SdkWrapper.GetConversationByPeerIdFromCache(fileUploadModel.PeerId);
+                        Rainbow.Model.Message message = fileUploadModel.RbMessage;
+                        Helper.SdkWrapper.SendMessage(conversation, ref message);
+
+                        // Remove this file from dictionaries
+                        RemoveFileByFullPath(fileUploadModel.FileFullPath); // The stream is closed in this method
+                    }
+                    else
+                    { 
+                        UploadCannnotBeDone(fileUploadModel);
+                    }
+
+                    // The upload is finished
+                    uploadFileDescriptorIdInProgress = null;
+
+                    // Use upload pool
+                    UseUploadPool();
+                }
+            }
+        }
+
+#endregion EVENTS FROM SDK WRAPPER
+
+
+#region PUBLIC METHODS
+
+        public static FilesUpload Instance
+        {
+            get
+            {
+                if (instance == null)
+                {
+                    instance = new FilesUpload();
+                }
+                return instance;
+            }
+        }
+
+        // Must be called on UI THREAD
+        public void AddFiles(List<FileUploadModel> files)
+        {
+            // We will need to deal with some dkWrapper events
+            InitSdkWrapperEvents();
+
+            lock (lockFiles)
+            {
+                if (files?.Count > 0)
+                {
+                    List<String> filesFullPathList;
+
+                    foreach (FileUploadModel fileUploadModel in files)
+                    {
+                        if (!FilesByFullPath.ContainsKey(fileUploadModel.FileFullPath))
+                        {
+                            // Update Dictionary of FilesByFullPath
+                            FilesByFullPath.Add(fileUploadModel.FileFullPath, fileUploadModel);
+
+                            // Update Dictionary of FileFullPathByConversationId
+                            if (FilesFullPathListByPeerId.ContainsKey(fileUploadModel.PeerId))
+                            {
+                                filesFullPathList = FilesFullPathListByPeerId[fileUploadModel.PeerId];
+                                filesFullPathList.Add(fileUploadModel.FileFullPath);
+                            }
+                            else
+                            {
+                                filesFullPathList = new List<string>();
+                                filesFullPathList.Add(fileUploadModel.FileFullPath);
+                                FilesFullPathListByPeerId.Add(fileUploadModel.PeerId, filesFullPathList);
+                            }
+                        }
+                    }
+                }
+            }
+            // Use file descriptor pool => to start the creation of File Descriptor
+            UseFileDescriptorPool();
+        }
 
         public FileUploadModel GetFileUploadByFileDescriptorId(String fileDescriptorId)
         {
@@ -379,6 +404,20 @@ namespace MultiPlatformApplication.Services
             return result;
         }
 
+#endregion PUBLIC METHODS
+
+
+#region PRIVATE METHODS
+
+        private void InitSdkWrapperEvents()
+        {
+            if (!initEventsDone)
+            {
+                initEventsDone = true;
+                Helper.SdkWrapper.FileUploadUpdated += SdkWrapper_FileUploadUpdated;
+            }
+        }
+
         private void RemoveFileByFullPath(String fullPath)
         {
             if (String.IsNullOrEmpty(fullPath))
@@ -390,48 +429,74 @@ namespace MultiPlatformApplication.Services
                 {
                     FileUploadModel fileUploadModel = FilesByFullPath[fullPath];
 
-                    // Update FileFullPathByFileDescriptorId Dictionary
-                    String fileDescriptorId = fileUploadModel?.FileDescriptor?.Id;
-                    if(fileDescriptorId != null)
+                    if (fileUploadModel != null)
                     {
-                        if (FileFullPathByFileDescriptorId.ContainsKey(fileDescriptorId))
-                            FileFullPathByFileDescriptorId.Remove(fileDescriptorId);
-                    }
+                        CloseStream(fileUploadModel);
 
-                    // Update FilesFullPathListByConversationId Dictionary
-                    String conversationId = fileUploadModel.PeerId;
-                    if (conversationId != null)
-                    {
-                        if (FilesFullPathListByPeerId.ContainsKey(conversationId))
+                        // Update FileFullPathByFileDescriptorId Dictionary
+                        String fileDescriptorId = fileUploadModel?.FileDescriptor?.Id;
+                        if (fileDescriptorId != null)
                         {
-                            List<String> fullPathList = FilesFullPathListByPeerId[conversationId];
-                            
-                            if (fullPathList?.Contains(fullPath) == true)
-                                fullPathList.Remove(fullPath);
-
-                            if(fullPathList?.Count == 0)
-                                FilesFullPathListByPeerId.Remove(conversationId);
+                            if (FileFullPathByFileDescriptorId.ContainsKey(fileDescriptorId))
+                                FileFullPathByFileDescriptorId.Remove(fileDescriptorId);
                         }
-                    }
 
-                    // Update FilesByFullPath Dictionary
-                    FilesByFullPath.Remove(fullPath);
+                        // Update FilesFullPathListByConversationId Dictionary
+                        String conversationId = fileUploadModel.PeerId;
+                        if (conversationId != null)
+                        {
+                            if (FilesFullPathListByPeerId.ContainsKey(conversationId))
+                            {
+                                List<String> fullPathList = FilesFullPathListByPeerId[conversationId];
+
+                                if (fullPathList?.Contains(fullPath) == true)
+                                    fullPathList.Remove(fullPath);
+
+                                if (fullPathList?.Count == 0)
+                                    FilesFullPathListByPeerId.Remove(conversationId);
+                            }
+                        }
+
+                        // Update FilesByFullPath Dictionary
+                        FilesByFullPath.Remove(fullPath);
+                    }
                 }
             }
         }
 
-        public static FilesUpload Instance
+        private Rainbow.Model.Message CreateRbMessage(FileUploadModel fileUploadModel, String toJid)
         {
-            get
+            String fromJid = Helper.SdkWrapper.GetCurrentContactJid();
+            String fromResource = Helper.SdkWrapper.GetResourceId();
+            Restrictions.SDKMessageStorageMode messageStorageMode = Helper.SdkWrapper.GetMessageStorageMode();
+
+            // Create Rainbow.Message
+            Rainbow.Model.Message message = Rainbow.Model.Message.FromTextAndFileDescriptor(fromJid, fromResource, toJid, fileUploadModel.PeerType, "", fileUploadModel.Urgency, null, null, messageStorageMode, fileUploadModel.FileDescriptor);
+            message.Content = "";
+
+            return message;
+        }
+
+        private void CloseStream(FileUploadModel fileUploadModel)
+        {
+            if (fileUploadModel?.Stream != null)
             {
-                if (instance == null)
-                    instance = new FilesUpload();
-                return instance;
+                try
+                {
+                    fileUploadModel.Stream.Close();
+                    fileUploadModel.Stream.Dispose();
+                    fileUploadModel.Stream = null;
+                }
+                catch
+                { }
             }
         }
 
-        static FilesUpload()
+        private FilesUpload()
         {
+            
         }
+
+#endregion PRIVATE METHODS
     }
 }
