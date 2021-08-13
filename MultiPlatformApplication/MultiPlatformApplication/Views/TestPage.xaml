@@ -116,6 +116,12 @@
 
             <controls:EditorExpandableWithMaxLines IsEnabled="True" />
 
+            <StackLayout Orientation="Horizontal">
+                <controls:CircularProgressBar WidthRequest="30" HeightRequest="30" Easing="True" Progress="40" Color="#FF0000"/>
+
+                <controls:CircularProgressBar WidthRequest="30" HeightRequest="30" Easing="True" Filled="True" Progress="40" Color="#FF0000"/>
+            </StackLayout>
+
         </StackLayout>
         
         <Grid  x:Name="ContextMenuMessageUrgency"
