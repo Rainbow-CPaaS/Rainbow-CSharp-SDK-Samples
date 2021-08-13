@@ -29,8 +29,7 @@ namespace MultiPlatformApplication.Controls
         String attachmentSize;
         String attachmentAction;
 
-        double uploadProgress = 2;
-        double downloadProgress = 2;
+        double uploadProgress = 0;
 
         public MessageContentAttachment()
         {
@@ -122,7 +121,6 @@ namespace MultiPlatformApplication.Controls
                     Spinner.Progress = uploadProgress;
             });
         }
-
 
         private void DisplayAttachment()
         {
@@ -268,7 +266,8 @@ namespace MultiPlatformApplication.Controls
                 {
                     if (e?.FileDescriptor?.Size > 0)
                     {
-                        uploadProgress = (double)((e.SizeUploaded / e?.FileDescriptor?.Size) * 100);
+                        double size = e.FileDescriptor.Size;
+                        uploadProgress = ((e.SizeUploaded / size) * 100);
                         UpdateDisplayUpload();
                     }
                 } 
