@@ -401,21 +401,41 @@ namespace MultiPlatformApplication.ViewModels
                         }
                         else
                         {
-                            // If last element displayed in the list as the same sender than the new one added, perhaps we need
-                            //  - to avoid to have same file sent (one to display upload progress and the other one to display the real message sent)
-                            //  - to avoid to display Avatar on each message
-                            MessageElementModel lastElementDisplayed = MessagesList.Last();
+                            
                             MessageElementModel firstElementToAdd = messagesElementList[0];
+
+                            // We check if we have already a message with same File descriptor id in upload scenario process
+                            String id = firstElementToAdd?.Content?.Attachment?.Id;
+                            if ( (id != null)  && filesDescriptorIdListUploading.Contains(id))
+                            {
+                                // Remove this id from the list
+                                filesDescriptorIdListUploading.Remove(id);
+
+                                // Get the element already displayd using this id (we start from end of the list)
+                                if (MessagesList.Count > 0)
+                                {
+                                    for (int index = MessagesList.Count-1; index>0; index--)
+                                    {
+                                        if(MessagesList[index]?.Content?.Attachment?.Id == id)
+                                        {
+                                            // Remove this element
+                                            stackLayout.Children.RemoveAt(index);
+                                            MessagesList.RemoveAt(index);
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+
+
+                            MessageElementModel lastElementDisplayed = MessagesList.Last();
+                            // If last element displayed in the list as the same sender than the new one added, perhaps we need to:
+                            //          - Avoid to display Avatar on each message
+                            //          - Another case ? (non for the moment=
                             if (lastElementDisplayed.Peer.Jid == firstElementToAdd.Peer.Jid)
                             {
-                                if (lastElementDisplayed?.Content?.Attachment?.Id == firstElementToAdd?.Content?.Attachment?.Id)
-                                {
-                                    // Remove the previous one
-                                    stackLayout.Children.RemoveAt(stackLayout.Children.Count - 1);
-                                    MessagesList.RemoveAt(MessagesList.Count - 1);
-
-                                }
-                                else if (firstElementToAdd.Content.WithAvatar)
+                                //  Avoid to display Avatar on each message
+                                if (firstElementToAdd.Content.WithAvatar)
                                 {
                                     // Avoid avatar on previous message if the delay is less than one minute
                                     if (firstElementToAdd.Date.Subtract(lastElementDisplayed.Date).TotalMinutes <= 1)
@@ -453,6 +473,10 @@ namespace MultiPlatformApplication.ViewModels
 
                     foreach (MessageElementModel message in messagesElementList)
                     {
+                        // Store File Descriptor Id since we are uploading a file
+                        if (message?.Content?.Attachment?.Action == "upload")
+                            filesDescriptorIdListUploading.Add(message.Content.Attachment.Id);
+
                         element = GetContentViewAccordingMessage(message);
 
                         stackLayout?.Children.Insert(indexInsert,element);
