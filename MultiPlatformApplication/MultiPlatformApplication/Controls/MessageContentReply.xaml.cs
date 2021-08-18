@@ -27,6 +27,9 @@ namespace MultiPlatformApplication.Controls
         public MessageContentReply()
         {
             InitializeComponent();
+
+            BowViewForMinimalWidth.MinimumWidthRequest = MessageContent.MINIMAL_MESSAGE_WIDTH;
+
             this.BindingContextChanged += MessageContentReply_BindingContextChanged;
 
         }
