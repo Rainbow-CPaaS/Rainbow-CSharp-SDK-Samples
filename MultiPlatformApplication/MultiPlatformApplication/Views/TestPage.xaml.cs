@@ -1,6 +1,7 @@
 ﻿using MultiPlatformApplication.Helpers;
 using MultiPlatformApplication.Models;
 using MultiPlatformApplication.ViewModels;
+using Rainbow.Model;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -60,22 +61,33 @@ namespace MultiPlatformApplication.Views
 			MessageUrgency.Clear();
 
 			Color color;
+			Color backgroundColor;
+			String title;
+			String label;
+			String imageSourceId;
+
 			ContextMenuItemModel  messageUrgencyModelItem;
 
-			color = Helper.GetResourceDictionaryById<Color>("ColorUrgencyEmergency");
-			messageUrgencyModelItem = new ContextMenuItemModel () { Id = "Emergency", ImageSourceId = "Font_Fire|" + color.ToHex(), Title = Helper.SdkWrapper.GetLabel("emergencyAlert"), Description = Helper.SdkWrapper.GetLabel("emergencyAlertInfo"), TextColor = color };
+			String urgencyType;
+
+			urgencyType = UrgencyType.High.ToString();
+			Helper.GetUrgencyInfo(urgencyType, out backgroundColor, out color, out title, out label, out imageSourceId);
+			messageUrgencyModelItem = new ContextMenuItemModel() { Id = urgencyType, ImageSourceId = imageSourceId, Title = title, Description = label, TextColor = color };
 			MessageUrgency.Add(messageUrgencyModelItem);
 
-			color = Helper.GetResourceDictionaryById<Color>("ColorUrgencyImportant");
-			messageUrgencyModelItem = new ContextMenuItemModel () { Id = "Important", ImageSourceId = "Font_ExclamationTriangle|" + color.ToHex(), Title = Helper.SdkWrapper.GetLabel("warningAlert"), Description = Helper.SdkWrapper.GetLabel("warningAlertInfo"), TextColor = color };
+			urgencyType = UrgencyType.Middle.ToString();
+			Helper.GetUrgencyInfo(urgencyType, out backgroundColor, out color, out title, out label, out imageSourceId);
+			messageUrgencyModelItem = new ContextMenuItemModel() { Id = urgencyType, ImageSourceId = imageSourceId, Title = title, Description = label, TextColor = color };
 			MessageUrgency.Add(messageUrgencyModelItem);
 
-			color = Helper.GetResourceDictionaryById<Color>("ColorUrgencyInformation");
-			messageUrgencyModelItem = new ContextMenuItemModel () { Id = "Information", ImageSourceId = "Font_Lightbulb|" + color.ToHex(), Title = Helper.SdkWrapper.GetLabel("notifyAlert"), Description = Helper.SdkWrapper.GetLabel("notifyAlertInfo"), TextColor = color };
+			urgencyType = UrgencyType.Low.ToString();
+			Helper.GetUrgencyInfo(urgencyType, out backgroundColor, out color, out title, out label, out imageSourceId);
+			messageUrgencyModelItem = new ContextMenuItemModel() { Id = urgencyType, ImageSourceId = imageSourceId, Title = title, Description = label, TextColor = color };
 			MessageUrgency.Add(messageUrgencyModelItem);
 
-			color = Color.FromHex("#000000");
-			messageUrgencyModelItem = new ContextMenuItemModel () { Id = "Standard", ImageSourceId = "Font_CommentAlt|" + color.ToHex(), Title = Helper.SdkWrapper.GetLabel("standardAlert"), Description = Helper.SdkWrapper.GetLabel("standardAlertInfo"), TextColor = color };
+			urgencyType = UrgencyType.Std.ToString();
+			Helper.GetUrgencyInfo(urgencyType, out backgroundColor, out color, out title, out label, out imageSourceId);
+			messageUrgencyModelItem = new ContextMenuItemModel() { Id = urgencyType, ImageSourceId = imageSourceId, Title = title, Description = label, TextColor = color };
 			MessageUrgency.Add(messageUrgencyModelItem);
 		}
 
