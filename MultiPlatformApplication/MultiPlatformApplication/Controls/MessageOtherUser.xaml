@@ -27,7 +27,8 @@
             </Grid.RowDefinitions>
 
             <!-- BODY -->
-            <controls:MessageContent Grid.Row="1" 
+            <controls:MessageContent x:Name="MessageContent"
+                                     Grid.Row="1" 
                                      Grid.Column="3"
                                      VerticalOptions="Center"
                                      HorizontalOptions="Start"/>

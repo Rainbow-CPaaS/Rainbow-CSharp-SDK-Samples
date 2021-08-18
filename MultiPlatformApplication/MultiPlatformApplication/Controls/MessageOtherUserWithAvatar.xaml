@@ -37,11 +37,12 @@
                                  BindingContext="{Binding Peer}"/>
 
             <!-- BODY -->
-            <controls:MessageContent Grid.Row="1" 
-                                         Grid.Column="3"
-                                         VerticalOptions="Center"
-                                         HorizontalOptions="Start"
-                                         BindingContext="{Binding .}"/>
+            <controls:MessageContent x:Name="MessageContent"
+                                     Grid.Row="1" 
+                                     Grid.Column="3"
+                                     VerticalOptions="Center"
+                                     HorizontalOptions="Start"
+                                     BindingContext="{Binding .}"/>
 
             <!-- DATE (+ message edited/modified) -->
             <Label Grid.Row="2"

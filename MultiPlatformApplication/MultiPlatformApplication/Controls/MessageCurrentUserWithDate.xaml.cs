@@ -1,5 +1,6 @@
 ﻿using MultiPlatformApplication.Helpers;
 using MultiPlatformApplication.Models;
+using Rainbow;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,6 +15,8 @@ namespace MultiPlatformApplication.Controls
 	[XamlCompilation(XamlCompilationOptions.Compile)]
 	public partial class MessageCurrentUserWithDate : ContentView
 	{
+        public event EventHandler<EventArgs> ButtonActionUsed;
+
         String messageId;
         String conversationId;
         String receipt;
@@ -25,7 +28,14 @@ namespace MultiPlatformApplication.Controls
 			InitializeComponent ();
 
             this.BindingContextChanged += MessageCurrentUserWithDate_BindingContextChanged;
-		}
+
+            MessageContent.ButtonActionUsed += MessageContent_ButtonActionUsed;
+        }
+
+        private void MessageContent_ButtonActionUsed(object sender, EventArgs e)
+        {
+            ButtonActionUsed?.Raise(this, null);
+        }
 
         private void MessageCurrentUserWithDate_BindingContextChanged(object sender, EventArgs e)
         {

@@ -1,6 +1,7 @@
 ﻿using MultiPlatformApplication.Effects;
 using MultiPlatformApplication.Helpers;
 using MultiPlatformApplication.Models;
+using Rainbow;
 using Rainbow.Model;
 using System;
 using System.Collections.Generic;
@@ -17,6 +18,8 @@ namespace MultiPlatformApplication.Controls
     public partial class MessageContent : ContentView
     {
         public static double MINIMAL_MESSAGE_WIDTH = 120;
+
+        public event EventHandler<EventArgs> ButtonActionUsed;
 
         private MessageElementModel message = null;
 
@@ -62,7 +65,7 @@ namespace MultiPlatformApplication.Controls
 
         private void BtnActionCommand(object obj)
         {
-            // TODO
+            ButtonActionUsed.Raise(this, null);
         }
 
         private void MouseOverCommand(object obj)

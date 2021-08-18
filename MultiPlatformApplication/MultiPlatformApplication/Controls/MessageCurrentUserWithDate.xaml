@@ -32,11 +32,12 @@
                 </Grid.RowDefinitions>
 
                 <!-- BODY -->
-                <controls:MessageContent Grid.Row="1" 
-                                             Grid.Column="1"
-                                             VerticalOptions="Center"
-                                             HorizontalOptions="End"
-                                             BindingContext="{Binding .}"/>
+                <controls:MessageContent x:Name="MessageContent"
+                                         Grid.Row="1" 
+                                         Grid.Column="1"
+                                         VerticalOptions="Center"
+                                         HorizontalOptions="End"
+                                         BindingContext="{Binding .}"/>
 
                 <!-- DATE (+ message edited/modified) -->
                 <StackLayout Grid.Row="2"

@@ -300,20 +300,43 @@ namespace MultiPlatformApplication.ViewModels
             else if (message.Peer.Jid != currentContactJid)
             {
                 if (message.Content.WithAvatar)
+                {
                     element = new MessageOtherUserWithAvatar();
+                    ((MessageOtherUserWithAvatar)element).ButtonActionUsed += MessagesStreamViewModel_ButtonActionUsed;
+                }
                 else
+                {
                     element = new MessageOtherUser();
+                    ((MessageOtherUser)element).ButtonActionUsed += MessagesStreamViewModel_ButtonActionUsed;
+                }
             }
             else
             {
                 if (message.Content.WithAvatar)
+                {
                     element = new MessageCurrentUserWithDate();
+                    ((MessageCurrentUserWithDate)element).ButtonActionUsed += MessagesStreamViewModel_ButtonActionUsed;
+                }
                 else
+                {
                     element = new MessageCurrentUser();
+                    ((MessageCurrentUser)element).ButtonActionUsed += MessagesStreamViewModel_ButtonActionUsed;
+                }
             }
             element.BindingContext = message;
 
             return element;
+        }
+
+        private void MessagesStreamViewModel_ButtonActionUsed(object sender, EventArgs e)
+        {
+            if( (sender != null) && (sender is ContentView))
+            {
+                ContentView element = (ContentView)sender;
+                MessageElementModel message = (MessageElementModel)element.BindingContext;
+
+                // TODO
+            }
         }
 
         private void AddToModelRbMessages(List<Rainbow.Model.Message> rbMessagesList, bool atTheEnd = false, String fileAction = "")
