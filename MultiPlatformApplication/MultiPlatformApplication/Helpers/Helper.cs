@@ -350,6 +350,68 @@ namespace MultiPlatformApplication.Helpers
             return Rainbow.Util.GetContactDisplayName(contact);
         }
 
+        public static void GetUrgencyInfo(String urgencyTypeString, out Color BackgroundColor, out Color color, out String title, out String label, out String imageSourceId)
+        {
+            String backgroudColorKey;
+            String colorKey;
+            String titleKey;
+            String labelKey;
+            String imageSourceKey;
+
+            switch (urgencyTypeString)
+            {
+                case "High":
+                    backgroudColorKey = "ColorBackgroundUrgencyEmergency";
+                    colorKey = "ColorUrgencyEmergency";
+
+                    titleKey = "emergencyAlert";
+                    labelKey = "emergencyAlertInfo";
+
+                    imageSourceKey = "Font_Fire";
+                    break;
+
+                case "Middle":
+                    backgroudColorKey = "ColorBackgroundUrgencyImportant";
+                    colorKey = "ColorUrgencyImportant";
+
+                    titleKey = "warningAlert";
+                    labelKey = "warningAlertInfo";
+
+                    imageSourceKey = "Font_ExclamationTriangle";
+                    break;
+
+                case "Low":
+                    backgroudColorKey = "ColorBackgroundUrgencyInformation";
+                    colorKey = "ColorUrgencyInformation";
+
+                    titleKey = "notifyAlert";
+                    labelKey = "notifyAlertInfo";
+
+                    imageSourceKey = "Font_Lightbulb";
+                    break;
+
+                case "Std":
+                default:
+                    backgroudColorKey = "ColorBackgroundUrgencyInformation";
+                    colorKey = "ColorConversationStreamMessageOtherUserFont";
+
+                    titleKey = "standardAlert";
+                    labelKey = "standardAlertInfo";
+
+                    imageSourceKey = "Font_CommentAlt";
+                    break;
+            }
+
+            BackgroundColor = Helper.GetResourceDictionaryById<Color>(backgroudColorKey);
+            color = Helper.GetResourceDictionaryById<Color>(colorKey);
+
+            title = Helper.SdkWrapper.GetLabel(titleKey);
+            label = Helper.SdkWrapper.GetLabel(labelKey);
+
+            imageSourceId = imageSourceKey + "|" + color.ToHex();
+        }
+
+
 #region PICK FILE(S)
 
         public static PickOptions GetDefaultPickOptions()

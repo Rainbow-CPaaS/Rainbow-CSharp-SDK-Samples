@@ -3,6 +3,7 @@ using MultiPlatformApplication.Models;
 using MultiPlatformApplication.ViewModels;
 using Rainbow;
 using Rainbow.Events;
+using Rainbow.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -219,47 +220,26 @@ namespace MultiPlatformApplication.Controls
             }
         }
 
-        public void SetUrgencySelection(String id)
+        public void SetUrgencySelection(String urgencyTypeString)
         {
-            Color textColor;
-            Color bgdColor;
-            String label;
-            switch (id)
-            {
-                case "Emergency":
-                    textColor = Helper.GetResourceDictionaryById<Color>("ColorUrgencyEmergency");
-                    bgdColor = Helper.GetResourceDictionaryById<Color>("ColorBackgroundUrgencyEmergency");
-                    label = Helper.SdkWrapper.GetLabel("emergencyAlert");
-                    break;
+            Helper.GetUrgencyInfo(urgencyTypeString, out Color backgroundColor, out Color color, out String title, out String label, out String imageSourceId);
 
-                case "Important":
-                    textColor = Helper.GetResourceDictionaryById<Color>("ColorUrgencyImportant");
-                    bgdColor = Helper.GetResourceDictionaryById<Color>("ColorBackgroundUrgencyImportant");
-                    label = Helper.SdkWrapper.GetLabel("warningAlert");
-                    break;
-
-                case "Information":
-                    textColor = Helper.GetResourceDictionaryById<Color>("ColorUrgencyInformation");
-                    bgdColor = Helper.GetResourceDictionaryById<Color>("ColorBackgroundUrgencyInformation");
-                    label = Helper.SdkWrapper.GetLabel("notifyAlert");
-                    break;
-
-                case "Standard":
-                default:
-                    textColor = Helper.GetResourceDictionaryById<Color>("ColorConversationStreamMessageOtherUserFont");
-                    bgdColor = Helper.GetResourceDictionaryById<Color>("ColorConversationStreamMessageOtherUserBackGround");
-                    label = "";
-                    break;
-            }
+            if (urgencyTypeString == UrgencyType.Std.ToString())
+                label = "";
 
             if (String.IsNullOrEmpty(label))
+            {
                 StackLayoutUrgency.Padding = new Thickness(0);
+                color = Helper.GetResourceDictionaryById<Color>("ColorConversationStreamMessageOtherUserFont");
+                backgroundColor = Helper.GetResourceDictionaryById<Color>("ColorConversationStreamMessageOtherUserBackGround");
+                title = "";
+            }
             else
                 StackLayoutUrgency.Padding = new Thickness(2);
 
-            LabelUrgency.Text = label;
-            LabelUrgency.TextColor = textColor;
-            FrameUrgency.BackgroundColor = bgdColor;
+            LabelUrgency.Text = title;
+            LabelUrgency.TextColor = color;
+            FrameUrgency.BackgroundColor = backgroundColor;
 
             EntryMessage.SetFocus();
 

@@ -427,7 +427,6 @@ namespace MultiPlatformApplication.ViewModels
                                 }
                             }
 
-
                             MessageElementModel lastElementDisplayed = MessagesList.Last();
                             // If last element displayed in the list as the same sender than the new one added, perhaps we need to:
                             //          - Avoid to display Avatar on each message
@@ -660,28 +659,7 @@ namespace MultiPlatformApplication.ViewModels
         private async void MessageInput_MessageToSend(object sender, EventArgs e)
         {
             // Get urgency
-            String urgency = GetMessageUrgencySelection();
-            UrgencyType urgencyType;
-
-            // Set urgency type
-            switch(urgency)
-            {
-                case "Emergency":
-                    urgencyType = UrgencyType.High;
-                    break;
-
-                case "Important":
-                    urgencyType = UrgencyType.Middle;
-                    break;
-
-                case "Information":
-                    urgencyType = UrgencyType.Low;
-                    break;
-
-                default:
-                    urgencyType = UrgencyType.Std;
-                    break;
-            }
+            UrgencyType urgencyType = (UrgencyType)Enum.Parse(typeof(UrgencyType), GetMessageUrgencySelection(), true);
 
             MessageInput messageInput = (MessageInput)sender;
 
@@ -857,7 +835,7 @@ namespace MultiPlatformApplication.ViewModels
 
         private String GetMessageUrgencySelection()
         {
-            String result = "Standard";
+            String result = UrgencyType.Std.ToString();
 
             for (int i = 0; i < MessageUrgency.Items.Count; i++)
             {
@@ -881,7 +859,7 @@ namespace MultiPlatformApplication.ViewModels
                 {
                     if (i == selectedIndex)
                     {
-                        messageInput?.SetUrgencySelection(MessageUrgency.Items[i].Id);
+                        messageInput?.SetUrgencySelection(MessageUrgency.Items[i].Id.ToString());
                         MessageUrgency.Items[i].IsSelected = true;
                     }
                     else
@@ -892,27 +870,38 @@ namespace MultiPlatformApplication.ViewModels
 
         private void SetMessageUrgencyModel()
         {
-			MessageUrgency.Clear();
+            MessageUrgency.Clear();
 
-			Color color;
-			ContextMenuItemModel  messageUrgencyModelItem;
+            Color color;
+            Color backgroundColor;
+            String title;
+            String label;
+            String imageSourceId;
 
-			color = Helper.GetResourceDictionaryById<Color>("ColorUrgencyEmergency");
-			messageUrgencyModelItem = new ContextMenuItemModel () { Id = "Emergency", ImageSourceId = "Font_Fire|" + color.ToHex(), Title = Helper.SdkWrapper.GetLabel("emergencyAlert"), Description = Helper.SdkWrapper.GetLabel("emergencyAlertInfo"), TextColor = color };
-			MessageUrgency.Add(messageUrgencyModelItem);
+            ContextMenuItemModel messageUrgencyModelItem;
 
-			color = Helper.GetResourceDictionaryById<Color>("ColorUrgencyImportant");
-			messageUrgencyModelItem = new ContextMenuItemModel () { Id = "Important", ImageSourceId = "Font_ExclamationTriangle|" + color.ToHex(), Title = Helper.SdkWrapper.GetLabel("warningAlert"), Description = Helper.SdkWrapper.GetLabel("warningAlertInfo"), TextColor = color };
-			MessageUrgency.Add(messageUrgencyModelItem);
+            String urgencyType;
 
-			color = Helper.GetResourceDictionaryById<Color>("ColorUrgencyInformation");
-			messageUrgencyModelItem = new ContextMenuItemModel () { Id = "Information", ImageSourceId = "Font_Lightbulb|" + color.ToHex(), Title = Helper.SdkWrapper.GetLabel("notifyAlert"), Description = Helper.SdkWrapper.GetLabel("notifyAlertInfo"), TextColor = color };
-			MessageUrgency.Add(messageUrgencyModelItem);
+            urgencyType = UrgencyType.High.ToString();
+            Helper.GetUrgencyInfo(urgencyType, out backgroundColor, out color, out title, out label, out imageSourceId);
+            messageUrgencyModelItem = new ContextMenuItemModel() { Id = urgencyType, ImageSourceId = imageSourceId, Title = title, Description = label, TextColor = color };
+            MessageUrgency.Add(messageUrgencyModelItem);
 
-            color = Helper.GetResourceDictionaryById<Color>("ColorConversationStreamMessageOtherUserFont");
-            messageUrgencyModelItem = new ContextMenuItemModel () { Id = "Standard", ImageSourceId = "Font_CommentAlt|" + color.ToHex(), Title = Helper.SdkWrapper.GetLabel("standardAlert"), Description = Helper.SdkWrapper.GetLabel("standardAlertInfo"), TextColor = color };
-			MessageUrgency.Add(messageUrgencyModelItem);
-		}
+            urgencyType = UrgencyType.Middle.ToString();
+            Helper.GetUrgencyInfo(urgencyType, out backgroundColor, out color, out title, out label, out imageSourceId);
+            messageUrgencyModelItem = new ContextMenuItemModel() { Id = urgencyType, ImageSourceId = imageSourceId, Title = title, Description = label, TextColor = color };
+            MessageUrgency.Add(messageUrgencyModelItem);
+
+            urgencyType = UrgencyType.Low.ToString();
+            Helper.GetUrgencyInfo(urgencyType, out backgroundColor, out color, out title, out label, out imageSourceId);
+            messageUrgencyModelItem = new ContextMenuItemModel() { Id = urgencyType, ImageSourceId = imageSourceId, Title = title, Description = label, TextColor = color };
+            MessageUrgency.Add(messageUrgencyModelItem);
+
+            urgencyType = UrgencyType.Std.ToString();
+            Helper.GetUrgencyInfo(urgencyType, out backgroundColor, out color, out title, out label, out imageSourceId);
+            messageUrgencyModelItem = new ContextMenuItemModel() { Id = urgencyType, ImageSourceId = imageSourceId, Title = title, Description = label, TextColor = color };
+            MessageUrgency.Add(messageUrgencyModelItem);
+        }
 
         private void ContextMenuMessageUrgencyListView_ItemSelected(object sender, SelectedItemChangedEventArgs e)
         {
