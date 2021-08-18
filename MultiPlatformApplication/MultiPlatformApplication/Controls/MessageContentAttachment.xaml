@@ -22,10 +22,15 @@
                    Padding="2">
 
                 <Grid x:Name="Grid"
-                      Margin="0"
                       Padding="0"
                       RowSpacing="0"
                       ColumnSpacing="0">
+                    <Grid.Margin>
+                        <OnPlatform x:TypeArguments="Thickness">
+                            <On Platform="UWP, macOs" Value="0,0,24,0" /> <!-- NEED TO ADD SPACE FOR "BtnAction" IN THESE PLATFORMS-->
+                            <On Platform="Default" Value="0,0,0,0" />
+                        </OnPlatform>
+                    </Grid.Margin>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />

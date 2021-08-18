@@ -12,10 +12,15 @@
     </ContentView.Resources>
     
     <ContentView.Content>
-        <Grid Margin="0"
-              Padding="0"
+        <Grid Padding="0"
               ColumnSpacing="0"
               RowSpacing="0">
+            <Grid.Margin>
+                <OnPlatform x:TypeArguments="Thickness">
+                    <On Platform="UWP, macOs" Value="0,0,24,0" /> <!-- NEED TO ADD SPACE FOR "BtnAction" IN THESE PLATFORMS-->
+                    <On Platform="Default" Value="0,0,0,0" />
+                </OnPlatform>
+            </Grid.Margin>
             <Image x:Name="Image" 
                    Grid.Row="0"
                    Grid.Column="0"

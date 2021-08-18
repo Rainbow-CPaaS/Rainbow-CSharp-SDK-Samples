@@ -13,7 +13,14 @@
                FontSize="{StaticResource FontSizeSmall}" 
                VerticalOptions="Center" 
                Text="{Binding Content.Body}"
-               effects:SelectableLabelEffect.Enabled="True"/>
+               effects:SelectableLabelEffect.Enabled="True">
+            <Label.Margin>
+                <OnPlatform x:TypeArguments="Thickness">
+                    <On Platform="UWP, macOs" Value="0,0,24,0" /> <!-- NEED TO ADD SPACE FOR "BtnAction" IN THESE PLATFORMS-->
+                    <On Platform="Default" Value="0,0,0,0" />
+                </OnPlatform>
+            </Label.Margin>
+        </Label>
     </ContentView.Content>
     
 </ContentView>
