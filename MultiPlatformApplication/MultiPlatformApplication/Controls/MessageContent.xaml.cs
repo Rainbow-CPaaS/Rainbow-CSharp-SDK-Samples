@@ -19,7 +19,9 @@ namespace MultiPlatformApplication.Controls
     {
         public static double MINIMAL_MESSAGE_WIDTH = 120;
 
-        public event EventHandler<EventArgs> ButtonActionUsed;
+        // Event raised when we want to display an Action menu related to a message
+        // To propose actions like: Edit, Dwl, Reply, Fwd, Save, Copy, Delete
+        public event EventHandler<EventArgs> ActionMenuToDisplay;
 
         private MessageElementModel message = null;
 
@@ -32,40 +34,114 @@ namespace MultiPlatformApplication.Controls
         private MessageContentDeleted messageContentDeleted = null;
         private MessageContentForward messageContentForward = null;
 
-        // Define commands used for  Mouse Over / Mouse Out purpose
-        public MouseOverAndOutModel mouseCommands { get; set; }
-        private Boolean needActionButton = false;
+        // Define elements related to BtnAction UI Components
+        private CustomButton BtnAction = null; // BtnAction UI Component
+        private Boolean needActionButton = false; // To know if we need the BtnAction UI Component
+        private int BtnActionIndex = -1; // To know where to add BtnAction in the Grid
+        private MouseOverAndOutModel mouseCommands { get; set; } // Commands used to manage Mouse Out / Over  - Useful only we the BtnAction is needed
+
+
+        // Define elements used in Long Press scenario to display eventually an Action Menu
+        private CancelableDelay cancelableDelayToAskActionMenuDisplay = null;
+        private int delayBeforeActionMenuDisplay = 500; // in ms - default value in iOS
+        private bool longPressStarted = false;
+
 
         public MessageContent()
         {
             InitializeComponent();
 
-            // Add Mouse out/oVer management only for some platforms
+            BowViewForMinimalWidth.WidthRequest = MINIMAL_MESSAGE_WIDTH;
+
+            // Add Mouse out/over management only for some platforms
             if ((Device.RuntimePlatform == Device.UWP)
                 || (Device.RuntimePlatform == Device.WPF)
                 || (Device.RuntimePlatform == Device.macOS))
             {
                 needActionButton = true;
-
-                mouseCommands = new MouseOverAndOutModel();
-                mouseCommands.MouseOverCommand = new RelayCommand<object>(new Action<object>(MouseOverCommand));
-                mouseCommands.MouseOutCommand = new RelayCommand<object>(new Action<object>(MouseOutCommand));
-
-                //Add mouse over effect
-                MouseOverEffect.SetCommand(RootGrid, mouseCommands.MouseOverCommand);
-
-                //Add mouse out effect
-                MouseOutEffect.SetCommand(RootGrid, mouseCommands.MouseOutCommand);
-
-                BtnAction.Command = new RelayCommand<object>(new Action<object>(BtnActionCommand));
             }
+            else
+            {
+                // Add touch effects for others platforms
+                AddTouchEffect();
+            }
+        }
 
-            BowViewForMinimalWidth.WidthRequest = MINIMAL_MESSAGE_WIDTH;
+        private void AddTouchEffect()
+        {
+            TouchEffect touchEffect = new TouchEffect();
+            touchEffect.TouchAction += TouchEffect_TouchAction;
+            Helper.AddEffect(RootGrid, touchEffect);
+
+            longPressStarted = false;
+        }
+
+
+        private void TouchEffect_TouchAction(object sender, TouchActionEventArgs e)
+        {
+            switch(e.Type)
+            {
+                case TouchActionType.Cancelled:
+                case TouchActionType.Entered:
+                case TouchActionType.Exited:
+                case TouchActionType.Moved:
+                case TouchActionType.Released:
+                    if (longPressStarted)
+                    {
+                        longPressStarted = false;
+                        if (cancelableDelayToAskActionMenuDisplay != null)
+                        {
+                            cancelableDelayToAskActionMenuDisplay.Cancel();
+                            cancelableDelayToAskActionMenuDisplay = null;
+                        }
+                    }
+                    break;
+
+                case TouchActionType.Pressed:
+                    longPressStarted = true;
+
+                    if (cancelableDelayToAskActionMenuDisplay != null)
+                    {
+                        cancelableDelayToAskActionMenuDisplay.Cancel();
+                        cancelableDelayToAskActionMenuDisplay = null;
+                    }
+                    cancelableDelayToAskActionMenuDisplay = CancelableDelay.StartAfter(delayBeforeActionMenuDisplay, () => ActionMenuToDisplay.Raise(this, null));
+                    break;
+            }
+        }
+
+        private void CreateBtnAction()
+        {
+            BtnAction = new CustomButton();
+            BtnAction.HorizontalOptions = new LayoutOptions(LayoutAlignment.End, false);
+            BtnAction.VerticalOptions = new LayoutOptions(LayoutAlignment.Start, false);
+
+            BtnAction.IsVisible = false;
+
+            BtnAction.CornerRadius = 2;
+            BtnAction.Padding = new Thickness(2,2,0,0);
+            BtnAction.Margin = new Thickness(1,2,2,2);
+
+            BtnAction.HeightRequest = 22;
+            BtnAction.WidthRequest = 22;
+            BtnAction.ImageSize = 20;
+
+            mouseCommands = new MouseOverAndOutModel();
+            mouseCommands.MouseOverCommand = new RelayCommand<object>(new Action<object>(MouseOverCommand));
+            mouseCommands.MouseOutCommand = new RelayCommand<object>(new Action<object>(MouseOutCommand));
+
+            //Add mouse over effect
+            MouseOverEffect.SetCommand(RootGrid, mouseCommands.MouseOverCommand);
+
+            //Add mouse out effect
+            MouseOutEffect.SetCommand(RootGrid, mouseCommands.MouseOutCommand);
+
+            BtnAction.Command = new RelayCommand<object>(new Action<object>(BtnActionCommand));
         }
 
         private void BtnActionCommand(object obj)
         {
-            ButtonActionUsed.Raise(this, null);
+            ActionMenuToDisplay.Raise(this, null);
         }
 
         private void MouseOverCommand(object obj)
@@ -94,25 +170,6 @@ namespace MultiPlatformApplication.Controls
                     Color color;
                     Color backgroundColor;
 
-                    if (message.Peer.Id == Helper.SdkWrapper.GetCurrentContactId())
-                    {
-                        color = Helper.GetResourceDictionaryById<Color>("ColorConversationStreamMessageCurrentUserFont");
-                        backgroundColor = Helper.GetResourceDictionaryById<Color>("ColorConversationStreamMessageCurrentUserBackGround");
-                    }
-                    else
-                    {
-                        color = Helper.GetResourceDictionaryById<Color>("ColorConversationStreamMessageOtherUserFont");
-                        backgroundColor = Helper.GetResourceDictionaryById<Color>("ColorConversationStreamMessageOtherUserBackGround");
-                    }
-
-                    Frame.BackgroundColor = backgroundColor;
-                    if (needActionButton)
-                    {
-                        BtnAction.ImageSourceId = "Font_EllipsisV|" + color.ToHex();
-                        BtnAction.BackgroundColor = backgroundColor;
-                        BtnAction.BackgroundColorOnMouseOver = ColorInterpolator.InterpolateBetween(color, backgroundColor, 0.5);
-                    }
-
                     // Add Urgency element ?
                     if (message.Content.Urgency != UrgencyType.Std)
                     {
@@ -120,11 +177,11 @@ namespace MultiPlatformApplication.Controls
                         {
                             messageContentUrgency = new MessageContentUrgency();
                             messageContentUrgency.BindingContext = message;
-                            HeaderGrid.Children.Add(messageContentUrgency, 0, 0);
+                            ContentGrid.Children.Add(messageContentUrgency, 0, 0);
 
                             // Need to define here the BackgroundColor of the HeaderGrid to ensure to have correct display if the message body is short
                             Helper.GetUrgencyInfo(message.Content.Urgency.ToString(), out backgroundColor, out color, out String title, out String label, out String imageSourceId);
-                            HeaderGrid.BackgroundColor = backgroundColor;
+                            ContentGrid.BackgroundColor = backgroundColor;
                         }
                     }
 
@@ -135,7 +192,7 @@ namespace MultiPlatformApplication.Controls
                         {
                             messageContentForward = new MessageContentForward();
                             messageContentForward.BindingContext = message;
-                            HeaderGrid.Children.Add(messageContentForward, 0, 0);
+                            ContentGrid.Children.Add(messageContentForward, 0, 0);
                         }
                     }
 
@@ -146,7 +203,7 @@ namespace MultiPlatformApplication.Controls
                         {
                             messageContentReply = new MessageContentReply();
                             messageContentReply.BindingContext = message;
-                            HeaderGrid.Children.Add(messageContentReply, 0, 1);
+                            ContentGrid.Children.Add(messageContentReply, 0, 1);
                         }
                     }
 
@@ -159,7 +216,7 @@ namespace MultiPlatformApplication.Controls
                             {
                                 messageContentBodyWithImg = new MessageContentBodyWithImg();
                                 messageContentBodyWithImg.BindingContext = message;
-                                ContentGrid.Children.Add(messageContentBodyWithImg, 0, 0);
+                                ContentGrid.Children.Add(messageContentBodyWithImg, 0, 2);
                             }
                         }
                         else if (message.Content.Body.StartsWith("/code", StringComparison.InvariantCultureIgnoreCase))
@@ -168,15 +225,18 @@ namespace MultiPlatformApplication.Controls
                             {
                                 messageContentBodyWithCode = new MessageContentBodyWithCode();
                                 messageContentBodyWithCode.BindingContext = message;
-                                ContentGrid.Children.Add(messageContentBodyWithCode, 0, 0);
+                                ContentGrid.Children.Add(messageContentBodyWithCode, 0, 2);
                             }
                         }
                         else if (messageContentBody == null)
                         {
                             messageContentBody = new MessageContentBody();
                             messageContentBody.BindingContext = message;
-                            ContentGrid.Children.Add(messageContentBody, 0, 0);
+                            ContentGrid.Children.Add(messageContentBody, 0, 2);
                         }
+
+                        BtnActionIndex = 2;
+
                     }
                     else if (message.Content.Type == "deletedMessage")
                     {
@@ -186,7 +246,7 @@ namespace MultiPlatformApplication.Controls
                         // Create MessageContentDeleted
                         messageContentDeleted = new MessageContentDeleted();
                         messageContentDeleted.BindingContext = message;
-                        ContentGrid.Children.Add(messageContentDeleted, 0, 0);
+                        ContentGrid.Children.Add(messageContentDeleted, 0, 2);
                     }
 
                     // Add Attachment element ?
@@ -196,8 +256,37 @@ namespace MultiPlatformApplication.Controls
                         {
                             messageContentAttachment = new MessageContentAttachment();
                             messageContentAttachment.BindingContext = message;
-                            ContentGrid.Children.Add(messageContentAttachment, 0, 1);
+                            ContentGrid.Children.Add(messageContentAttachment, 0, 3);
+
+                            if (BtnActionIndex == -1)
+                                BtnActionIndex = 3;
                         }
+                    }
+
+                    // Set background color
+                    if (message.Peer.Id == Helper.SdkWrapper.GetCurrentContactId())
+                    {
+                        color = Helper.GetResourceDictionaryById<Color>("ColorConversationStreamMessageCurrentUserFont");
+                        backgroundColor = Helper.GetResourceDictionaryById<Color>("ColorConversationStreamMessageCurrentUserBackGround");
+                    }
+                    else
+                    {
+                        color = Helper.GetResourceDictionaryById<Color>("ColorConversationStreamMessageOtherUserFont");
+                        backgroundColor = Helper.GetResourceDictionaryById<Color>("ColorConversationStreamMessageOtherUserBackGround");
+                    }
+
+                    Frame.BackgroundColor = backgroundColor;
+
+                    // Add Btn Action in the correct place
+                    if (needActionButton && (BtnActionIndex != -1))
+                    {
+                        CreateBtnAction();
+
+                        BtnAction.ImageSourceId = "Font_EllipsisV|" + color.ToHex();
+                        BtnAction.BackgroundColor = backgroundColor;
+                        BtnAction.BackgroundColorOnMouseOver = ColorInterpolator.InterpolateBetween(color, backgroundColor, 0.5);
+
+                        ContentGrid.Children.Add(BtnAction, 0, BtnActionIndex);
                     }
                 }
             }

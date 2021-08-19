@@ -15,7 +15,7 @@ namespace MultiPlatformApplication.Controls
 	[XamlCompilation(XamlCompilationOptions.Compile)]
 	public partial class MessageCurrentUserWithDate : ContentView
 	{
-        public event EventHandler<EventArgs> ButtonActionUsed;
+        public event EventHandler<EventArgs> ActionMenuToDisplay;
 
         String messageId;
         String conversationId;
@@ -29,12 +29,12 @@ namespace MultiPlatformApplication.Controls
 
             this.BindingContextChanged += MessageCurrentUserWithDate_BindingContextChanged;
 
-            MessageContent.ButtonActionUsed += MessageContent_ButtonActionUsed;
+            MessageContent.ActionMenuToDisplay += MessageContent_ButtonActionUsed;
         }
 
         private void MessageContent_ButtonActionUsed(object sender, EventArgs e)
         {
-            ButtonActionUsed?.Raise(this, null);
+            ActionMenuToDisplay?.Raise(this, null);
         }
 
         private void MessageCurrentUserWithDate_BindingContextChanged(object sender, EventArgs e)

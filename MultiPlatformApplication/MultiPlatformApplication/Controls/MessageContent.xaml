@@ -36,7 +36,7 @@
                 <BoxView x:Name="BowViewForMinimalWidth" Grid.Row="0" Grid.Column="0" BackgroundColor="Transparent" WidthRequest="120" HeightRequest="1"/>
 
                 <!-- HeaderGrid: to display Urgency / Forward-->
-                <Grid x:Name="HeaderGrid"
+                <Grid x:Name="ContentGrid"
                       Grid.Row="0" 
                       Grid.Column="0"
                       RowSpacing="0" 
@@ -52,59 +52,12 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-
-                </Grid>
-
-
-                <!-- ContentGrid: to display Body / Attachement-->
-                <Grid x:Name="ContentGrid"
-                      Grid.Row="1" 
-                      Grid.Column="0"
-                      RowSpacing="0" 
-                      ColumnSpacing="0" 
-                      Padding="0"
-                      Margin="0"
-                      HorizontalOptions="Fill">
-
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-
-                    <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
                 </Grid>
-
-                <!-- Add "BtnACtion" only for platform with mouse support -->
-                <ContentView x:Name="ContentViewPlatformSpecific"
-                             Grid.Column="0"
-                             Grid.Row="1"
-                             HorizontalOptions="End"
-                             VerticalOptions="Start">
-
-                    <OnPlatform x:TypeArguments="View">
-                        <On Platform="WPF, macOS, UWP">
-                            
-                            <controls:CustomButton x:Name="BtnAction"
-                                                   
-                                                   HorizontalOptions="Center"
-                                                   VerticalOptions="Center"
-                                                   
-                                                   IsVisible="False"
-                                                   
-                                                   CornerRadius="2"
-                                                   Padding="2,2,0,0"
-                                                   Margin="1,2,2,2"
-                                                   
-                                                   HeightRequest="22"
-                                                   WidthRequest="22"
-                                                   ImageSize="20"/>
-                        </On>
-                    </OnPlatform>
-                </ContentView>
+                
             </Grid>
         </Frame>
     </ContentView.Content>

@@ -302,12 +302,12 @@ namespace MultiPlatformApplication.ViewModels
                 if (message.Content.WithAvatar)
                 {
                     element = new MessageOtherUserWithAvatar();
-                    ((MessageOtherUserWithAvatar)element).ButtonActionUsed += MessagesStreamViewModel_ButtonActionUsed;
+                    ((MessageOtherUserWithAvatar)element).ActionMenuToDisplay += MessagesStreamViewModel_ActionMenuToDisplay;
                 }
                 else
                 {
                     element = new MessageOtherUser();
-                    ((MessageOtherUser)element).ButtonActionUsed += MessagesStreamViewModel_ButtonActionUsed;
+                    ((MessageOtherUser)element).ActionMenuToDisplay += MessagesStreamViewModel_ActionMenuToDisplay;
                 }
             }
             else
@@ -315,12 +315,12 @@ namespace MultiPlatformApplication.ViewModels
                 if (message.Content.WithAvatar)
                 {
                     element = new MessageCurrentUserWithDate();
-                    ((MessageCurrentUserWithDate)element).ButtonActionUsed += MessagesStreamViewModel_ButtonActionUsed;
+                    ((MessageCurrentUserWithDate)element).ActionMenuToDisplay += MessagesStreamViewModel_ActionMenuToDisplay;
                 }
                 else
                 {
                     element = new MessageCurrentUser();
-                    ((MessageCurrentUser)element).ButtonActionUsed += MessagesStreamViewModel_ButtonActionUsed;
+                    ((MessageCurrentUser)element).ActionMenuToDisplay += MessagesStreamViewModel_ActionMenuToDisplay;
                 }
             }
             element.BindingContext = message;
@@ -328,14 +328,40 @@ namespace MultiPlatformApplication.ViewModels
             return element;
         }
 
-        private void MessagesStreamViewModel_ButtonActionUsed(object sender, EventArgs e)
+        private void MessagesStreamViewModel_ActionMenuToDisplay(object sender, EventArgs e)
         {
             if( (sender != null) && (sender is ContentView))
             {
                 ContentView element = (ContentView)sender;
                 MessageElementModel message = (MessageElementModel)element.BindingContext;
 
-                // TODO
+                // Actions possible: (to display in this order)
+                //      - Edit       => Context: Last message of current user
+                //      - Download  => Context: File Attachment
+                //      - Reply     => Context: Always
+                //      - Forward   => Context: Always
+                //      - Copy      => Context: Body.Content not null
+                //      - Delete    => Context: Last message of current user OR File Attachment
+                //      - Save      => Context: File Attachment + Other User
+
+
+                if (message != null)
+                {
+                    bool isCurrentUser = false;
+                    bool lastMessageOfCurrentUser = false;
+                    bool withFileAttachment = false;
+                    bool withBodyContent = false;
+                    
+                }
+
+                // TODO: To facilitate tests - need to me removed
+                Device.BeginInvokeOnMainThread(() =>
+                {
+                    DisplayMessageUrgencyContextMenu();
+                });
+
+                
+                // TODO - display action menu
             }
         }
 
