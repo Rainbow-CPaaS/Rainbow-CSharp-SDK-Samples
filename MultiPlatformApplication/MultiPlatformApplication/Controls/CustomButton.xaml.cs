@@ -1,4 +1,5 @@
-﻿using MultiPlatformApplication.Helpers;
+﻿using MultiPlatformApplication.Effects;
+using MultiPlatformApplication.Helpers;
 using MultiPlatformApplication.Models;
 using System;
 using System.Collections.Generic;
@@ -569,15 +570,15 @@ namespace MultiPlatformApplication.Controls
             }
         }
 
-#endregion CommandParameterProperty
-
+        #endregion CommandParameterProperty
 
         // Define commands used for  Mouse Over / Mouse Out purpose
-        public MouseOverAndOutModel mouseCommands { get; set; }
+        private MouseOverAndOutModel mouseCommands { get; set; }
 
         // Need to store original background color
         private Color originalBackgroundColor;
         private Boolean isMouseOver = false;
+        private Point pressLocation;
 
         private static void SetImageDisplay(CustomButton control)
         {
@@ -667,30 +668,59 @@ namespace MultiPlatformApplication.Controls
             SetBackGroundColor(this);
         }
 
+        private void AddMouseOverAndOutEffects()
+        {
+            if (Helper.IsDesktopPlatform())
+            {
+                // Create mouse over / out commands
+                mouseCommands = new MouseOverAndOutModel();
+                mouseCommands.MouseOverCommand = new RelayCommand<object>(new Action<object>(MouseOverCommand));
+                mouseCommands.MouseOutCommand = new RelayCommand<object>(new Action<object>(MouseOutCommand));
+
+                //Add mouse over / out effects
+                MouseOverEffect.SetCommand(ContentView, mouseCommands.MouseOverCommand);
+                MouseOutEffect.SetCommand(ContentView, mouseCommands.MouseOutCommand);
+            }
+        }
+
+        private void AddTouchEffect()
+        {
+            TouchEffect touchEffect = new TouchEffect();
+            touchEffect.TouchAction += TouchEffect_TouchAction;
+            Helper.AddEffect(ContentView, touchEffect);
+        }
+
+        private void TouchEffect_TouchAction(object sender, TouchActionEventArgs e)
+        {
+            if(e.Type == TouchActionType.Pressed)
+            {
+                pressLocation = e.Location;
+
+                // If there is no parameter set, we provide the current CustomButton
+                var param = CommandParameter;
+                if (param == null)
+                    param = this;
+
+                if (Command != null && Command.CanExecute(param))
+                    Command.Execute(param);
+            };
+        }
+        public Point GetPressLocation()
+        {
+            return pressLocation;
+        }
+
         public CustomButton()
         {
             InitializeComponent();
 
             this.PropertyChanged += CustomButton_PropertyChanged;
 
-            mouseCommands = new MouseOverAndOutModel();
-            mouseCommands.MouseOverCommand = new RelayCommand<object>(new Action<object>(MouseOverCommand));
-            mouseCommands.MouseOutCommand = new RelayCommand<object>(new Action<object>(MouseOutCommand));
-            ContentView.BindingContext = mouseCommands;
+            // Add mouse over and out effects
+            AddMouseOverAndOutEffects();
 
-            tapGestureRecognizer.Tapped += (s, e) => {
-                if (Command != null && Command.CanExecute(CommandParameter))
-                {
-                    Command.Execute(CommandParameter);
-                }
-            };
-
-            // Seems not necessary to specify Tap Gesture Recognizer on all components - only on ContentView seems enough
-            //Label.GestureRecognizers.Add(tapGestureRecognizer);
-            //Label.GestureRecognizers.Add(tapGestureRecognizer);
-            //StackLayout.GestureRecognizers.Add(tapGestureRecognizer);
-            ContentView.GestureRecognizers.Add(tapGestureRecognizer);
-            
+            // Add TouchEffect
+            AddTouchEffect();
         }
 
         private void CustomButton_PropertyChanged(object sender, PropertyChangedEventArgs e)

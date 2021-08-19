@@ -12,8 +12,6 @@
        BackgroundColor="Transparent">
 
     <ContentView x:Name="ContentView"
-                 effects:MouseOverEffect.Command="{Binding MouseOverCommand}"
-                 effects:MouseOutEffect.Command="{Binding MouseOutCommand}"
                  BackgroundColor="Transparent">
         
         <StackLayout x:Name="StackLayout"
