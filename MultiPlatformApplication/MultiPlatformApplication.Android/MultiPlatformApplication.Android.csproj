@@ -65,6 +65,7 @@
   <ItemGroup>
     <Compile Include="Effects\DroidContextMenu.cs" />
     <Compile Include="Effects\DroidEntry.cs" />
+    <Compile Include="Effects\DroidLongPress.cs" />
     <Compile Include="Effects\DroidSelectableLabelEffect.cs" />
     <Compile Include="MainActivity.cs" />
     <Compile Include="Resources\Resource.designer.cs" />
