@@ -31,7 +31,7 @@
                              Grid.Row="0"
                              VerticalOptions="Fill">
                     <OnPlatform x:TypeArguments="View">
-                        <On Platform="WPF, macOS, UWP">
+                        <On Platform="UWP, WPF, macOs">
                             <!-- THERE IS A BUG (at least on UWP) WITH ScrollView INSIDE A RefreshView: Text Selection in child elements is not possible once we scroll a little ... -->
                             <Grid RowSpacing="0" 
                                   ColumnSpacing="0" 
