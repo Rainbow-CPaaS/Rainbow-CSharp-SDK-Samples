@@ -83,8 +83,10 @@ namespace MultiPlatformApplication.Helpers
             if (view == null)
                 return;
 
-            RemoveEffect(view, effect.GetType());
-            view.Effects.Add(effect);
+            Type type = effect.GetType();
+            var currentEffect = view.Effects.FirstOrDefault(e => e.GetType().Equals(type));
+            if(currentEffect == null)
+                view.Effects.Add(effect);
         }
 
         public static void RemoveEffect(View view, Type effectType)
