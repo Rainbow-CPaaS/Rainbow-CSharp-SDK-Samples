@@ -30,4 +30,12 @@ namespace MultiPlatformApplication.Effects
         Exited,
         Cancelled
     }
+
+    public enum TouchMouseButton
+    {
+        Unknown,
+        Left,
+        Middle,
+        Right
+    }
 }

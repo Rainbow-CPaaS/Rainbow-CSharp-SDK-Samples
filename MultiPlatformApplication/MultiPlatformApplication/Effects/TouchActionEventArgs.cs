@@ -5,12 +5,13 @@ namespace MultiPlatformApplication.Effects
 {
     public class TouchActionEventArgs : EventArgs
     {
-        public TouchActionEventArgs(long id, TouchActionType type, Point location, bool isInContact)
+        public TouchActionEventArgs(long id, TouchActionType type, Point location, bool isInContact, TouchMouseButton touchMouseButton = TouchMouseButton.Unknown)
         {
             Id = id;
             Type = type;
             Location = location;
             IsInContact = isInContact;
+            MouseButton = touchMouseButton;
         }
 
         public long Id { private set; get; }
@@ -20,5 +21,7 @@ namespace MultiPlatformApplication.Effects
         public Point Location { private set; get; }
 
         public bool IsInContact { private set; get; }
+
+        public TouchMouseButton MouseButton { private set; get; }
     }
 }

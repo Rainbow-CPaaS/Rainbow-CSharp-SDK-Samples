@@ -96,12 +96,23 @@ namespace MultiPlatformApplication.UWP.PlatformEffect
         void CommonHandler(object sender, TouchActionType touchActionType, PointerRoutedEventArgs args)
         {
             PointerPoint pointerPoint = args.GetCurrentPoint(sender as UIElement);
+
+            // Get mouse button used
+            TouchMouseButton touchMouseButton = TouchMouseButton.Unknown;
+            if (pointerPoint.Properties != null)
+            {
+                if (pointerPoint.Properties.IsLeftButtonPressed) touchMouseButton = TouchMouseButton.Left;
+                if (pointerPoint.Properties.IsMiddleButtonPressed) touchMouseButton = TouchMouseButton.Middle;
+                if (pointerPoint.Properties.IsRightButtonPressed) touchMouseButton = TouchMouseButton.Right;
+            }
+
             Windows.Foundation.Point windowsPoint = pointerPoint.Position;  
 
             onTouchAction(Element, new TouchActionEventArgs(args.Pointer.PointerId,
                                                             touchActionType,
                                                             new Point(windowsPoint.X, windowsPoint.Y),
-                                                            args.Pointer.IsInContact));
+                                                            args.Pointer.IsInContact,
+                                                            touchMouseButton));
         }
     }
 }
