@@ -29,8 +29,8 @@ namespace MultiPlatformApplication.Effects
             if (view == null)
                 return;
 
-            // This element is visible only in UWP Context
-            if(Device.RuntimePlatform != Device.UWP)
+            // Usefull only in desktop context
+            if (!Helper.IsDesktopPlatform())
             {
                 view.IsVisible = false;
                 return;

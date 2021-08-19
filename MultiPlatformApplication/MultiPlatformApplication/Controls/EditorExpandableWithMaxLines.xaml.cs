@@ -1,4 +1,5 @@
-﻿using Rainbow;
+﻿using MultiPlatformApplication.Helpers;
+using Rainbow;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -238,7 +239,7 @@ namespace MultiPlatformApplication.Controls
 
             if (Editor.Text != null)
             {
-                if (Device.RuntimePlatform == Device.UWP)
+                if (Helper.IsWindowsPlatform())
                     countLines = Editor.Text.Count(f => f == '\r');
                 else
                     countLines = Editor.Text.Count(f => f == '\n');

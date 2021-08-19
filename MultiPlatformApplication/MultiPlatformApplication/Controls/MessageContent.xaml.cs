@@ -53,13 +53,9 @@ namespace MultiPlatformApplication.Controls
 
             BowViewForMinimalWidth.WidthRequest = MINIMAL_MESSAGE_WIDTH;
 
-            // Add Mouse out/over management only for some platforms
-            if ((Device.RuntimePlatform == Device.UWP)
-                || (Device.RuntimePlatform == Device.WPF)
-                || (Device.RuntimePlatform == Device.macOS))
-            {
+            // Add Mouse Out/Over management only for desktop platforms
+            if (Helper.IsDesktopPlatform())
                 needActionButton = true;
-            }
             else
             {
                 // Add touch effects for others platforms

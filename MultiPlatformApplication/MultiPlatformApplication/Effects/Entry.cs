@@ -28,8 +28,8 @@ namespace MultiPlatformApplication.Effects
 
         static void OnValidationCommandChanged(BindableObject bindable, object oldValue, object newValue)
         {
-            // USEFULL ONLY IN UWP context - Could be also added in WPF and MacOS
-            if (Device.RuntimePlatform != Device.UWP)
+            // Usefull only in desktop context
+            if (!Helper.IsDesktopPlatform())
                 return;
 
             var view = bindable as View;
@@ -62,8 +62,8 @@ namespace MultiPlatformApplication.Effects
 
         static void OnValidationKeyModifierChanged(BindableObject bindable, object oldValue, object newValue)
         {
-            // USEFULL ONLY IN UWP context - Could be also added in WPF and MacOS
-            if (Device.RuntimePlatform != Device.UWP)
+            // Usefull only in desktop context
+            if (!Helper.IsDesktopPlatform())
                 return;
 
             var view = bindable as View;
@@ -83,6 +83,8 @@ namespace MultiPlatformApplication.Effects
         // No border implementation: (Android, iOs, UWP)
         //      https://alexdunn.org/2017/03/08/xamarin-forms-borderless-entry/
         //      https://stackoverflow.com/questions/53095961/how-to-remove-the-border-from-a-entry-control-with-xamarin-forms
+        //      
+        //      https://github.com/xamarin/XamarinCommunityToolkit/tree/main/src/CommunityToolkit/Xamarin.CommunityToolkit/Effects/RemoveBorder
 
         public static readonly BindableProperty NoBorderProperty = BindableProperty.Create("NoBorder", typeof(Boolean), typeof(Entry), false, propertyChanged: OnNoBorderChanged);
 

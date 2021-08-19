@@ -76,6 +76,7 @@ namespace MultiPlatformApplication.Helpers
 
 #endregion FOLDERS PATH
 
+
 #region EFFECT - ADD / REMOVE
         public static void AddEffect(View view, Effect effect)
         {
@@ -196,8 +197,7 @@ namespace MultiPlatformApplication.Helpers
             if (str == null)
                 return "";
 
-            //Remove carriage returns
-            return str.Replace("\n", "").Replace("\r", "");
+            return ReplaceCRLFFromString(str, "");
         }
 
         public static String ReplaceCRLFFromString(String str, string replace)
@@ -206,7 +206,7 @@ namespace MultiPlatformApplication.Helpers
                 return "";
 
             //Replace carriage returns
-            String result = str.Replace("\r\n", replace).Replace("\n", replace).Replace("\r", replace);
+            String result = str.Replace("\n", replace).Replace("\r", replace);
             return result;
         }
 
@@ -411,6 +411,23 @@ namespace MultiPlatformApplication.Helpers
             imageSourceId = imageSourceKey + "|" + color.ToHex();
         }
 
+#region PLATFORM / DEVICE RELATED
+
+        public static Boolean IsDesktopPlatform()
+        {
+            return (Device.RuntimePlatform == Device.UWP)
+                        || (Device.RuntimePlatform == Device.WPF)
+                        || (Device.RuntimePlatform == Device.macOS);
+        }
+
+        public static Boolean IsWindowsPlatform()
+        {
+            return (Device.RuntimePlatform == Device.UWP)
+                        || (Device.RuntimePlatform == Device.WPF);
+        }
+
+#endregion PLATFORM / DEVICE RELATED
+
 
 #region PICK FILE(S)
 
@@ -477,6 +494,7 @@ namespace MultiPlatformApplication.Helpers
         }
 
 #endregion PICK FILE(S)
+
 
 #region AVATAR - IMAGE SOURCE
 
@@ -834,6 +852,7 @@ namespace MultiPlatformApplication.Helpers
 
 #endregion RESOURCES - Get access to resources of this assembly
 
+
 #region GET PATH TO RESOURCE FOR: Presence icon bullet, Receipt type, doc type
 
         public static String GetPresenceSourceFromPresence(Rainbow.Model.Presence presence)
@@ -1037,9 +1056,9 @@ namespace MultiPlatformApplication.Helpers
 
             return result;
         }
-       
 
 #endregion GET PATH TO RESOURCE FOR: Presence icon bullet, Receipt type, doc type
+
 
 #region ICON FONT
 

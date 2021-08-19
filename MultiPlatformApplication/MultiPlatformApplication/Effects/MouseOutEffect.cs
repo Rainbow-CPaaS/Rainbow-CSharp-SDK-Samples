@@ -25,11 +25,9 @@ namespace MultiPlatformApplication.Effects
 
         static void OnhandlerChanged(BindableObject bindable, object oldValue, object newValue)
         {
-            // USEFULL ONLY IN UWP context - Could be also adde in WPF
-            if (Device.RuntimePlatform != Device.UWP)
+            // Useful only in Desktop platforms
+            if (!Helper.IsDesktopPlatform())
                 return;
-
-            // TODO: perhaps could be usefull in Chrome book context too
 
             var view = bindable as View;
             if (view == null)
