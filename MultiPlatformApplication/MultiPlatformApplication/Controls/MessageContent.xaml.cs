@@ -53,9 +53,11 @@ namespace MultiPlatformApplication.Controls
 
             BowViewForMinimalWidth.WidthRequest = MINIMAL_MESSAGE_WIDTH;
 
-            // Add Mouse Out/Over management only for desktop platforms
             if (Helper.IsDesktopPlatform())
+            {
+                // Add Mouse Out/Over management only for desktop platforms
                 needActionButton = true;
+            }
             else
             {
                 // Add touch effects for others platforms
@@ -75,7 +77,12 @@ namespace MultiPlatformApplication.Controls
 
         private void TouchEffect_TouchAction(object sender, TouchActionEventArgs e)
         {
-            switch(e.Type)
+            // We don't care if Middle or Right Mouse button is used.
+            if ((e.MouseButton == TouchMouseButton.Middle)
+                        || (e.MouseButton == TouchMouseButton.Right))
+                return;
+
+            switch (e.Type)
             {
                 case TouchActionType.Cancelled:
                 case TouchActionType.Entered:
@@ -95,7 +102,6 @@ namespace MultiPlatformApplication.Controls
 
                 case TouchActionType.Pressed:
                     longPressStarted = true;
-
                     if (cancelableDelayToAskActionMenuDisplay != null)
                     {
                         cancelableDelayToAskActionMenuDisplay.Cancel();
