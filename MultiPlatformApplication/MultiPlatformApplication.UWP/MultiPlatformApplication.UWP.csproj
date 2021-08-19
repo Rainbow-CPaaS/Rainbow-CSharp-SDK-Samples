@@ -103,6 +103,7 @@
     <Compile Include="Effects\UwpEntry.cs" />
     <Compile Include="Effects\UwpMouseOutEffect.cs" />
     <Compile Include="Effects\UwpSelectableLabelEffect.cs" />
+    <Compile Include="Effects\UwpTouchEffect.cs" />
     <Compile Include="MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
