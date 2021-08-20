@@ -413,6 +413,87 @@ namespace MultiPlatformApplication.Helpers
             imageSourceId = imageSourceKey + "|" + color.ToHex();
         }
 
+#region VISUAL ELEMENT
+
+        public static Rect GetRelativePosition(VisualElement child, Type ancestorType)
+        {
+            Rect rect = new Rect();
+
+            if (child == null)
+                return rect;
+
+            // STore default values
+            rect.Width = child.Width;
+            rect.Height = child.Height;
+            rect.X += child.X;
+            rect.Y += child.Y;
+
+            // Now we loop on all parents of the child until we reach the parent of the Parent 
+
+            VisualElement parent = (VisualElement)child.Parent;
+            while (parent != null)
+            {
+                if (parent.GetType() == ancestorType)
+                    break;
+
+                // Need to remove scrolling X and Y
+                if (parent is ScrollView sv)
+                {
+                    rect.X -= sv.ScrollX;
+                    rect.Y -= sv.ScrollY;
+                }
+                // TODO - When a ListView or a CollectionView is used we don't have a ScrollX or Scroll Y values ....
+
+                rect.X += parent.X;
+                rect.Y += parent.Y;
+
+                parent = (VisualElement)parent.Parent;
+            }
+
+
+            return rect;
+        }
+
+        public static Rect GetRelativePosition(VisualElement child, VisualElement ancestor)
+        {
+            Rect rect = new Rect();
+
+            if ((child == null) || (ancestor == null) || (ancestor.Parent == null) )
+                return rect;
+
+            // STore default values
+            rect.Width = child.Width;
+            rect.Height = child.Height;
+            rect.X += child.X;
+            rect.Y += child.Y;
+
+            // Now we loop on all parents of the child until we reach the parent of the Parent 
+            VisualElement parent = (VisualElement)child.Parent;
+            while (parent != null)
+            {
+                if (parent == ancestor.Parent)
+                    break;
+
+                // Need to remove scrolling X and Y
+                if (parent is ScrollView scrollView)
+                {
+                    rect.X -= scrollView.ScrollX;
+                    rect.Y -= scrollView.ScrollY;
+                }
+                // TODO - When a ListView or a CollectionView is used we don't have a ScrollX or Scroll Y values ....
+
+                rect.X += parent.X;
+                rect.Y += parent.Y;
+
+                parent = (VisualElement)parent.Parent;
+            }
+
+
+            return rect;
+        }
+
+#endregion VISUAL ELEMENT
+
 #region PLATFORM / DEVICE RELATED
 
         public static Boolean IsDesktopPlatform()
