@@ -1,4 +1,5 @@
-﻿using MultiPlatformApplication.Helpers;
+﻿using MultiPlatformApplication.Events;
+using MultiPlatformApplication.Helpers;
 using MultiPlatformApplication.Models;
 using MultiPlatformApplication.ViewModels;
 using Rainbow;
@@ -28,7 +29,7 @@ namespace MultiPlatformApplication.Controls
         public event EventHandler<EventArgs> UpdateParentLayout; // To ask parent to update the layout when the size of this UI component has changed
 
         public event EventHandler<BooleanEventArgs> UserIsTyping;
-        public event EventHandler<EventArgs> MessageUrgencyClicked;
+        public event EventHandler<RectEventArgs> MessageUrgencyClicked;
 
         public event EventHandler<EventArgs> MessageToSend;
 
@@ -255,7 +256,12 @@ namespace MultiPlatformApplication.Controls
 
         private void MessageInputUrgencyCommand(object obj)
         {
-            MessageUrgencyClicked?.Raise(this, null);
+            if (obj is VisualElement visualElement)
+            {
+                Rect rect = Helper.GetRelativePosition(visualElement, typeof(RelativeLayout));
+
+                MessageUrgencyClicked?.Raise(this, new RectEventArgs(rect));
+            }
         }
 
         private void MessageInputValidationCommand(object obj)
