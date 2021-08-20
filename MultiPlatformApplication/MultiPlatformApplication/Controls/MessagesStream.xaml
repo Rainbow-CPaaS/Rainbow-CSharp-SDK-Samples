@@ -108,7 +108,7 @@
                                        Margin="0"
                                        Padding="0"/>
 
-            <!-- Context Menu Message Urgency -->
+            <!-- Context Menu: Message Urgency -->
             <Grid x:Name="ContextMenuMessageUrgency"
                   Margin="0"
                   Padding="2"
@@ -128,8 +128,8 @@
                        Padding="0"
                        HasShadow="False"
                        CornerRadius="1"
-                       BorderColor="#999999"
-                       BackgroundColor="White"
+                       BorderColor="{StaticResource ColorConversationStreamMessageOtherUserFont}"
+                       BackgroundColor="{StaticResource ColorConversationStreamMessageOtherUserBackGround}"
                        HeightRequest="228"
                        WidthRequest="280" >
 
@@ -203,6 +203,88 @@
                 </Frame>
             </Grid>
 
+
+            <!-- Context Menu: Action-->
+            <Grid  x:Name="ContextMenuAction"
+               Margin="0"
+               Padding="2"
+               IsVisible="False"
+               effects:ContextMenu.Enabled="True"
+               effects:ContextMenu.OnTop="False"
+               effects:ContextMenu.OnLeft="False">
+
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <Frame Margin="0"
+                   Padding="0"
+                   HasShadow="False"
+                   CornerRadius="1"
+                   BorderColor="{StaticResource ColorConversationStreamMessageOtherUserFont}"
+                   BackgroundColor="{StaticResource ColorConversationStreamMessageOtherUserBackGround}"
+                   HeightRequest="220"
+                   WidthRequest="180" >
+
+                    <ListView x:Name="ContextMenuActionListView" 
+                          Margin="6"
+                          BindingContext="{Binding ActionOptions}"
+                          ItemsSource="{Binding Items}"
+                          BackgroundColor="Transparent"
+                          SeparatorVisibility="None"
+                          RowHeight="28"
+                          VerticalScrollBarVisibility="Never">
+
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <ViewCell>
+                                    <Grid Margin="0"
+                                          Padding="4,0"
+                                          ColumnSpacing="4"
+                                          RowSpacing="0"
+                                          VerticalOptions="Center"
+                                          IsVisible="{Binding IsVisible}"
+                                          effects:Background.Enabled="{Binding IsSelected}"
+                                          effects:Background.Color="LightGray">
+                                        
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="28"/>
+                                        </Grid.RowDefinitions>
+                                        
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="28"/>
+                                            <ColumnDefinition Width="140"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <Image x:Name="Image"
+                                               Margin="0,2,0,0"
+                                               HeightRequest="20"
+                                               WidthRequest="20"
+                                               VerticalOptions="Center"
+                                               HorizontalOptions="Center"
+                                               Source="{Binding ImageSourceId, Converter={StaticResource IdToImageSourceConverter}}"/>
+                                        
+                                        <Label Grid.Row="0"
+                                               Grid.Column="1"
+                                               Margin="0"
+                                               Padding="0" 
+                                               Text="{Binding Title}" 
+                                               FontSize="{StaticResource FontSizeSmall}" 
+                                               TextColor="{Binding TextColor}"
+                                               VerticalOptions="Center"/>
+
+                                    </Grid>
+                                </ViewCell>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+
+                    </ListView>
+                </Frame>
+            </Grid>
 
         </RelativeLayout>
 

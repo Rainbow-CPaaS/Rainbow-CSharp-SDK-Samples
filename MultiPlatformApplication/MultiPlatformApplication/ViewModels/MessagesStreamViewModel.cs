@@ -30,9 +30,14 @@ namespace MultiPlatformApplication.ViewModels
 
         private View rootView;
         private MessageInput messageInput;
+
         private ListView contextMenuMessageUrgencyListView;
-        private ContentView contentViewPlatformSpecific;
         private View contextMenuMessageUrgency;
+
+        private ListView contextMenuActionListView;
+        private View contextMenuAction;
+
+        private ContentView contentViewPlatformSpecific;
         private RefreshView refreshView;
         private StackLayout stackLayout;
         private ScrollView scrollView;
@@ -57,6 +62,8 @@ namespace MultiPlatformApplication.ViewModels
         public DynamicStreamModel DynamicStream { get; private set; } = new DynamicStreamModel();
 
         public ContextMenuModel MessageUrgency { get; private set; } = new ContextMenuModel();
+
+        public ContextMenuModel ActionOptions { get; private set; } = new ContextMenuModel();
 
 #endregion BINDINGS used in XAML
 
@@ -83,16 +90,23 @@ namespace MultiPlatformApplication.ViewModels
                 messageInput.UpdateParentLayout += MessageInput_UpdateParentLayout;
             }
 
+            // Context Menu: Message Urgency 
             contextMenuMessageUrgencyListView = rootView.FindByName<ListView>("ContextMenuMessageUrgencyListView");
             if(contextMenuMessageUrgencyListView != null)
-            contextMenuMessageUrgencyListView.ItemSelected += ContextMenuMessageUrgencyListView_ItemSelected;
-
-            contentViewPlatformSpecific = rootView.FindByName<ContentView>("ContentViewPlatformSpecific");
+                contextMenuMessageUrgencyListView.ItemSelected += ContextMenuMessageUrgencyListView_ItemSelected;
 
             contextMenuMessageUrgency = rootView.FindByName<Grid>("ContextMenuMessageUrgency");
             contextMenuMessageUrgency.BindingContext = this;
 
+            // Context Menu: Action
+            contextMenuActionListView = rootView.FindByName<ListView>("ContextMenuActionListView");
+            if (contextMenuActionListView != null)
+                contextMenuActionListView.ItemSelected += ContextMenuActionListView_ItemSelected;
 
+            contextMenuAction = rootView.FindByName<Grid>("ContextMenuAction");
+            contextMenuAction.BindingContext = this;
+
+            contentViewPlatformSpecific = rootView.FindByName<ContentView>("ContentViewPlatformSpecific");
             if (contentViewPlatformSpecific == null)
                 return;
             // Set Binding Context
@@ -120,7 +134,7 @@ namespace MultiPlatformApplication.ViewModels
             DynamicStream.AskMoreItemsCommand = new RelayCommand<object>(new Action<object>(AskMoreMessagesCommand));
         }
 
-        private void MessageInput_UpdateParentLayout(object sender, EventArgs e)
+         private void MessageInput_UpdateParentLayout(object sender, EventArgs e)
         {
             StoreScrollingPosition();
             DynamicStream.CodeAskingToScroll = true;
@@ -138,8 +152,8 @@ namespace MultiPlatformApplication.ViewModels
 
                 InitializeSdkObjectsAndEvents();
 
+                // Set Message Urgency model and default selection
                 SetMessageUrgencyModel();
-                // Set default selection
                 SetMessageUrgencySelectedItem(3);
 
                 Task task = new Task(() =>
@@ -328,52 +342,6 @@ namespace MultiPlatformApplication.ViewModels
             element.BindingContext = message;
 
             return element;
-        }
-
-        private void MessagesStreamViewModel_ActionMenuToDisplay(object sender, EventArgs e)
-        {
-            if( (sender != null) && (sender is ContentView))
-            {
-                // For test purpose message urgency menu
-                Device.BeginInvokeOnMainThread(() =>
-                {
-                   if (e is RectEventArgs rectEventArgs)
-                   {
-                       DisplayMessageUrgencyContextMenu(rectEventArgs.Rect);
-                   }
-                });
-                return;
-
-                //ContentView element = (ContentView)sender;
-                //MessageElementModel message = (MessageElementModel)element.BindingContext;
-
-                //// Actions possible: (to display in this order)
-                ////      - Edit       => Context: Last message of current user
-                ////      - Download  => Context: File Attachment
-                ////      - Reply     => Context: Always
-                ////      - Forward   => Context: Always
-                ////      - Copy      => Context: Body.Content not null
-                ////      - Delete    => Context: Last message of current user OR File Attachment
-                ////      - Save      => Context: File Attachment + Other User
-
-
-                //if (message != null)
-                //{
-                //    //bool isCurrentUser = false;
-                //    //bool lastMessageOfCurrentUser = false;
-                //    //bool withFileAttachment = false;
-                //    //bool withBodyContent = false;
-
-                //    // TODO: To facilitate tests - need to me removed
-                //    //Device.BeginInvokeOnMainThread(() =>
-                //    //{
-                //    //    DisplayMessageUrgencyContextMenu();
-                //    //});
-
-
-                //}
-
-            }
         }
 
         private void AddToModelRbMessages(List<Rainbow.Model.Message> rbMessagesList, bool atTheEnd = false, String fileAction = "")
@@ -880,6 +848,171 @@ namespace MultiPlatformApplication.ViewModels
         }
 
 #endregion SCROLLING STUFF
+
+#region ACTION CONTEXT MENU STUFF
+
+        private void HideActionContextMenu()
+        {
+            contextMenuAction.IsVisible = false;
+		}
+
+		private void DisplayActionContextMenu(Rect rect)
+        {
+            ContextMenu.SetRelativeToRect(contextMenuAction, rect);
+            contextMenuAction.IsVisible = true;
+		}
+
+        private void ContextMenuActionListView_ItemSelected(object sender, SelectedItemChangedEventArgs e)
+        {
+            // Store index
+            int index = e.SelectedItemIndex;
+
+            if (index != -1)
+            {
+                // Unselect
+                ((ListView)sender).SelectedItem = null;
+                HideActionContextMenu();
+
+                if (index < ActionOptions.Items.Count)
+                {
+                    String action = ActionOptions.Items[index].Id;
+
+                    // TODO - perform action
+                }
+            }
+        }
+
+        private void SetActionOptionsModel(Boolean isCurrentUser, Boolean withFileAttachment, Boolean withBodyContent, Boolean isLastMessageOfCurrentUser)
+        {
+            ActionOptions.Clear();
+
+            Color color;
+            String colorHex;
+            String imageSourceId;
+
+
+            color = Helper.GetResourceDictionaryById<Color>("ColorConversationStreamMessageOtherUserFont");
+            colorHex = color.ToHex();
+
+            // Edit action
+            if (isLastMessageOfCurrentUser)
+            {
+                imageSourceId = "Font_PencilAlt|" + colorHex;
+                ActionOptions.Add(new ContextMenuItemModel() { Id = "edit", ImageSourceId = imageSourceId, Title = Helper.SdkWrapper.GetLabel("edit") });
+            }
+
+            // Download action
+            if (withFileAttachment)
+            {
+                imageSourceId = "Font_FileDownload|" + colorHex;
+                ActionOptions.Add(new ContextMenuItemModel() { Id = "download", ImageSourceId = imageSourceId, Title = Helper.SdkWrapper.GetLabel("download") });
+            }
+
+            imageSourceId = "Font_Reply|" + colorHex;
+            ActionOptions.Add(new ContextMenuItemModel() { Id = "reply", ImageSourceId = imageSourceId, Title = Helper.SdkWrapper.GetLabel("replyToMessage") });
+
+            imageSourceId = "Font_ArrowRight|" + colorHex;
+            ActionOptions.Add(new ContextMenuItemModel() { Id = "forward", ImageSourceId = imageSourceId, Title = Helper.SdkWrapper.GetLabel("forwardMessage") });
+
+            // Copy action
+            if (withBodyContent)
+            {
+                imageSourceId = "Font_Copy|" + colorHex;
+                ActionOptions.Add(new ContextMenuItemModel() { Id = "copy", ImageSourceId = imageSourceId, Title = Helper.SdkWrapper.GetLabel("copy") });
+            }
+
+            // Delete action
+            if (isLastMessageOfCurrentUser || (withFileAttachment && isCurrentUser))
+            {
+                imageSourceId = "Font_TrashAlt|" + colorHex;
+                ActionOptions.Add(new ContextMenuItemModel() { Id = "delete", ImageSourceId = imageSourceId, Title = Helper.SdkWrapper.GetLabel("delete") });
+            }
+
+            // Save action
+            if (withFileAttachment && (!isCurrentUser))
+            {
+                imageSourceId = "Font_CloudDownloadAlt|" + colorHex;
+                ActionOptions.Add(new ContextMenuItemModel() { Id = "save", ImageSourceId = imageSourceId, Title = Helper.SdkWrapper.GetLabel("save") });
+            }
+
+        }
+
+        private void MessagesStreamViewModel_ActionMenuToDisplay(object sender, EventArgs e)
+        {
+            if ((sender != null) && (sender is ContentView element))
+            {
+                MessageElementModel message = (MessageElementModel)element.BindingContext;
+
+                if (message == null)
+                    return;
+
+                // Actions possible: (to display in this order)
+                //      - Edit      => Context: Last message of current user
+                //      - Download  => Context: File Attachment
+                //      - Reply     => Context: Always
+                //      - Forward   => Context: Always
+                //      - Copy      => Context: Body.Content not null
+                //      - Delete    => Context: Last message of current user OR File Attachment
+                //      - Save      => Context: File Attachment + Other User
+
+
+                bool isCurrentUser = false;
+                bool withFileAttachment = false;
+                bool withBodyContent = false;
+                bool isLastMessageOfCurrentUser = false; // TODO -
+
+                isCurrentUser = message.Peer.Jid == currentContactJid;
+                withFileAttachment = message?.Content?.Attachment != null;
+                withBodyContent = message?.Content?.Body?.Length > 0;
+
+                SetActionOptionsModel(isCurrentUser, withFileAttachment, withBodyContent, isLastMessageOfCurrentUser);
+
+                // For test purpose message urgency menu
+                Device.BeginInvokeOnMainThread(() =>
+                {
+                    if (e is RectEventArgs rectEventArgs)
+                    {
+                        // Specify correct height
+                        contextMenuAction.HeightRequest = (28 * ActionOptions.Items.Count) + 12;
+
+                        DisplayActionContextMenu(rectEventArgs.Rect);
+                    }
+                });
+                return;
+
+                //ContentView element = (ContentView)sender;
+                //MessageElementModel message = (MessageElementModel)element.BindingContext;
+
+                //// Actions possible: (to display in this order)
+                ////      - Edit       => Context: Last message of current user
+                ////      - Download  => Context: File Attachment
+                ////      - Reply     => Context: Always
+                ////      - Forward   => Context: Always
+                ////      - Copy      => Context: Body.Content not null
+                ////      - Delete    => Context: Last message of current user OR File Attachment
+                ////      - Save      => Context: File Attachment + Other User
+
+
+                //if (message != null)
+                //{
+                //    //bool isCurrentUser = false;
+                //    //bool lastMessageOfCurrentUser = false;
+                //    //bool withFileAttachment = false;
+                //    //bool withBodyContent = false;
+
+                //    // TODO: To facilitate tests - need to me removed
+                //    //Device.BeginInvokeOnMainThread(() =>
+                //    //{
+                //    //    DisplayMessageUrgencyContextMenu();
+                //    //});
+
+
+                //}
+
+            }
+        }
+
+#endregion ACTION CONTEXT MENU STUFF
 
 #region MESSAGE URGENCY CONTEXT MENU STUFF
 
