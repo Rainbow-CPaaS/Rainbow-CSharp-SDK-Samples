@@ -1,7 +1,8 @@
-﻿using System;
+﻿using MultiPlatformApplication.Effects;
+using System;
 using Xamarin.Forms;
 
-namespace MultiPlatformApplication.Effects
+namespace MultiPlatformApplication.Events
 {
     public class TouchActionEventArgs : EventArgs
     {

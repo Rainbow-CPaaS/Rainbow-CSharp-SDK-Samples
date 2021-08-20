@@ -1,4 +1,5 @@
 ﻿using MultiPlatformApplication.Effects;
+using MultiPlatformApplication.Events;
 using System;
 using System.Linq;
 using Windows.UI.Input;

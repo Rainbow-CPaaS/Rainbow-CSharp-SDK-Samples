@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MultiPlatformApplication.Events;
+using System;
 using Xamarin.Forms;
 
 namespace MultiPlatformApplication.Effects
