@@ -25,7 +25,7 @@ namespace MultiPlatformApplication.Controls
 
 		private void MessageContent_ButtonActionUsed(object sender, EventArgs e)
 		{
-			ActionMenuToDisplay?.Raise(this, null);
+			ActionMenuToDisplay?.Raise(sender, e);
 		}
 	}
 }

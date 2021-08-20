@@ -1,4 +1,5 @@
 ﻿using MultiPlatformApplication.Effects;
+using MultiPlatformApplication.Events;
 using MultiPlatformApplication.Helpers;
 using MultiPlatformApplication.Models;
 using Rainbow;
@@ -21,7 +22,8 @@ namespace MultiPlatformApplication.Controls
 
         // Event raised when we want to display an Action menu related to a message
         // To propose actions like: Edit, Dwl, Reply, Fwd, Save, Copy, Delete
-        public event EventHandler<EventArgs> ActionMenuToDisplay;
+        // Rect provided is the position relative to the frits parent as "Relativelayout"
+        public event EventHandler<RectEventArgs> ActionMenuToDisplay;
 
         private MessageElementModel message = null;
 
@@ -45,7 +47,6 @@ namespace MultiPlatformApplication.Controls
         private CancelableDelay cancelableDelayToAskActionMenuDisplay = null;
         private int delayBeforeActionMenuDisplay = 500; // in ms - default value in iOS
         private bool longPressStarted = false;
-
 
         public MessageContent()
         {
@@ -73,7 +74,6 @@ namespace MultiPlatformApplication.Controls
 
             longPressStarted = false;
         }
-
 
         private void TouchEffect_TouchAction(object sender, TouchActionEventArgs e)
         {
@@ -107,7 +107,9 @@ namespace MultiPlatformApplication.Controls
                         cancelableDelayToAskActionMenuDisplay.Cancel();
                         cancelableDelayToAskActionMenuDisplay = null;
                     }
-                    cancelableDelayToAskActionMenuDisplay = CancelableDelay.StartAfter(delayBeforeActionMenuDisplay, () => ActionMenuToDisplay.Raise(this, null));
+                    
+                    // Here e.Location get the press Location relatively to the MessageContext UI Component
+                    cancelableDelayToAskActionMenuDisplay = CancelableDelay.StartAfter(delayBeforeActionMenuDisplay, () => NeedToDisplayActionMenu(sender, e.Location) );
                     break;
             }
         }
@@ -141,9 +143,30 @@ namespace MultiPlatformApplication.Controls
             BtnAction.Command = new RelayCommand<object>(new Action<object>(BtnActionCommand));
         }
 
+        private void NeedToDisplayActionMenu(object sender, Point location = default)
+        {
+            if (sender is VisualElement visualElement)
+            {
+                Rect rect = Helper.GetRelativePosition(visualElement, typeof(RelativeLayout));
+
+                // If sender is not a CustomButtom it means that a long press has bee used
+                // We simulate the finger size by a square of 24x24
+                // And we need to take care of the location too
+                if (!(sender is CustomButton))
+                {
+                    rect.Width = 24;
+                    rect.Height = 24;
+
+                    rect.X += location.X;
+                    rect.Y += location.Y;
+                }
+                ActionMenuToDisplay.Raise(this, new RectEventArgs(rect));
+            }
+        }
+
         private void BtnActionCommand(object obj)
         {
-            ActionMenuToDisplay.Raise(this, null);
+            NeedToDisplayActionMenu(obj);
         }
 
         private void MouseOverCommand(object obj)

@@ -1,4 +1,6 @@
 ﻿using MultiPlatformApplication.Controls;
+using MultiPlatformApplication.Effects;
+using MultiPlatformApplication.Events;
 using MultiPlatformApplication.Helpers;
 using MultiPlatformApplication.Models;
 using MultiPlatformApplication.Services;
@@ -332,36 +334,45 @@ namespace MultiPlatformApplication.ViewModels
         {
             if( (sender != null) && (sender is ContentView))
             {
-                ContentView element = (ContentView)sender;
-                MessageElementModel message = (MessageElementModel)element.BindingContext;
-
-                // Actions possible: (to display in this order)
-                //      - Edit       => Context: Last message of current user
-                //      - Download  => Context: File Attachment
-                //      - Reply     => Context: Always
-                //      - Forward   => Context: Always
-                //      - Copy      => Context: Body.Content not null
-                //      - Delete    => Context: Last message of current user OR File Attachment
-                //      - Save      => Context: File Attachment + Other User
-
-
-                if (message != null)
-                {
-                    bool isCurrentUser = false;
-                    bool lastMessageOfCurrentUser = false;
-                    bool withFileAttachment = false;
-                    bool withBodyContent = false;
-                    
-                }
-
-                // TODO: To facilitate tests - need to me removed
+                // For test purpose message urgency menu
                 Device.BeginInvokeOnMainThread(() =>
                 {
-                    DisplayMessageUrgencyContextMenu();
+                   if (e is RectEventArgs rectEventArgs)
+                   {
+                       DisplayMessageUrgencyContextMenu(rectEventArgs.Rect);
+                   }
                 });
+                return;
 
-                
-                // TODO - display action menu
+                //ContentView element = (ContentView)sender;
+                //MessageElementModel message = (MessageElementModel)element.BindingContext;
+
+                //// Actions possible: (to display in this order)
+                ////      - Edit       => Context: Last message of current user
+                ////      - Download  => Context: File Attachment
+                ////      - Reply     => Context: Always
+                ////      - Forward   => Context: Always
+                ////      - Copy      => Context: Body.Content not null
+                ////      - Delete    => Context: Last message of current user OR File Attachment
+                ////      - Save      => Context: File Attachment + Other User
+
+
+                //if (message != null)
+                //{
+                //    //bool isCurrentUser = false;
+                //    //bool lastMessageOfCurrentUser = false;
+                //    //bool withFileAttachment = false;
+                //    //bool withBodyContent = false;
+
+                //    // TODO: To facilitate tests - need to me removed
+                //    //Device.BeginInvokeOnMainThread(() =>
+                //    //{
+                //    //    DisplayMessageUrgencyContextMenu();
+                //    //});
+
+
+                //}
+
             }
         }
 
@@ -771,12 +782,12 @@ namespace MultiPlatformApplication.ViewModels
             Helper.SdkWrapper.SendIsTypingInConversationById(conversationId, e.Value );
         }
 
-        private void MessageInput_MessageUrgencyClicked(object sender, EventArgs e)
+        private void MessageInput_MessageUrgencyClicked(object sender, RectEventArgs e)
         {
             Device.BeginInvokeOnMainThread(() =>
             {
                 SetMessageUrgencyModel();
-                DisplayMessageUrgencyContextMenu();
+                DisplayMessageUrgencyContextMenu(e.Rect);
             });
         }
 
@@ -877,9 +888,11 @@ namespace MultiPlatformApplication.ViewModels
 			contextMenuMessageUrgency.IsVisible = false;
 		}
 
-		private void DisplayMessageUrgencyContextMenu()
+		private void DisplayMessageUrgencyContextMenu(Rect rect)
         {
-			contextMenuMessageUrgency.IsVisible = true;
+            ContextMenu.SetRelativeToRect(contextMenuMessageUrgency, rect);
+
+            contextMenuMessageUrgency.IsVisible = true;
 		}
 
         private String GetMessageUrgencySelection()

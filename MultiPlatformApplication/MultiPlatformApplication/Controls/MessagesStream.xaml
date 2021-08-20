@@ -113,9 +113,8 @@
                   Margin="0"
                   Padding="2"
                   effects:ContextMenu.Enabled="True"
-                  effects:ContextMenu.LinkedTo="MessageInput"
-                  RelativeLayout.YConstraint="{ConstraintExpression Type=RelativeToParent, Property=Height, Constant=-270}"
-                  RelativeLayout.XConstraint="{ConstraintExpression Type=RelativeToParent, Property=X, Constant=40}">
+                  effects:ContextMenu.OnTop="True"
+                  effects:ContextMenu.OnLeft="False">
 
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
