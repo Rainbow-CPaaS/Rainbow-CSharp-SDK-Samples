@@ -1,4 +1,5 @@
-﻿using MultiPlatformApplication.Helpers;
+﻿using MultiPlatformApplication.Controls;
+using MultiPlatformApplication.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -183,9 +184,12 @@ namespace MultiPlatformApplication.Models
 
         private void ItemCommand(object obj)
         {
-            if ( (obj != null) && (obj is String) )
-                SetItemSelected((String)obj);
+            if (obj is CustomButton customButton)
+            {
 
+                if (customButton?.BindingContext is MenuItemModel menuItemModel)
+                    SetItemSelected(menuItemModel.Id);
+            }
 
             if (Command != null && Command.CanExecute(obj))
                 Command.Execute(obj);

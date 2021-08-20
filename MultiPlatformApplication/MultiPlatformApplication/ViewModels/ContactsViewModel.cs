@@ -14,6 +14,7 @@ using Rainbow.Model;
 
 using NLog;
 using MultiPlatformApplication.Effects;
+using MultiPlatformApplication.Controls;
 
 namespace MultiPlatformApplication.ViewModels
 {
@@ -305,24 +306,30 @@ namespace MultiPlatformApplication.ViewModels
 
         void MenuCommand(object obj)
         {
-            if(obj is String)
+            String selectedId = null;
+            Rect rect = new Rect();
+
+            if (obj is CustomButton customButton)
             {
-                string id = obj as String;
-                switch(id)
-                {
-                    case "orderby":
-                        contextMenuOrderBy.IsVisible = true;
-                        break;
-
-                    case "filter":
-                        contextMenuFilter.IsVisible = true;
-                        break;
-                }
-                
-                
+                rect = Helper.GetRelativePosition(customButton, typeof(RelativeLayout));
+                if (customButton.BindingContext is MenuItemModel menuItemModel)
+                    selectedId = menuItemModel.Id;
             }
-            Menu.SetItemSelected(-1);
 
+            switch(selectedId)
+            {
+                case "orderby":
+                    ContextMenu.SetRelativeToRect(contextMenuOrderBy, rect);
+                    contextMenuOrderBy.IsVisible = true;
+                    break;
+
+                case "filter":
+                    ContextMenu.SetRelativeToRect(contextMenuFilter, rect);
+                    contextMenuFilter.IsVisible = true;
+                    break;
+            }
+                
+            Menu.SetItemSelected(-1);
         }
 
         public async void SelectedContactCommand(Object obj)

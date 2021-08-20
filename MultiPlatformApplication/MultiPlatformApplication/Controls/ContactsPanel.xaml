@@ -70,8 +70,10 @@
                Padding="2"
                IsVisible="False"
                effects:ContextMenu.Enabled="True"
-               RelativeLayout.YConstraint="{ConstraintExpression Type=RelativeToView, ElementName=MenuControl, Property=Height}"
-               RelativeLayout.XConstraint="{ConstraintExpression Type=RelativeToView, ElementName=MenuControl, Property=X, Constant=2}" >
+               effects:ContextMenu.OnTop="False"
+               effects:ContextMenu.OnLeft="False">
+                <!--RelativeLayout.YConstraint="{ConstraintExpression Type=RelativeToView, ElementName=MenuControl, Property=Height}"
+               RelativeLayout.XConstraint="{ConstraintExpression Type=RelativeToView, ElementName=MenuControl, Property=X, Constant=2}" >-->
 
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
@@ -140,8 +142,10 @@
                Padding="2"
                IsVisible="False"
                effects:ContextMenu.Enabled="True"
-               RelativeLayout.YConstraint="{ConstraintExpression Type=RelativeToView, ElementName=MenuControl, Property=Height}"
-               RelativeLayout.XConstraint="{ConstraintExpression Type=RelativeToView, ElementName=MenuControl, Property=X, Constant=80}" >
+               effects:ContextMenu.OnTop="False"
+               effects:ContextMenu.OnLeft="False">
+               <!--RelativeLayout.YConstraint="{ConstraintExpression Type=RelativeToView, ElementName=MenuControl, Property=Height}"
+               RelativeLayout.XConstraint="{ConstraintExpression Type=RelativeToView, ElementName=MenuControl, Property=X, Constant=80}" >-->
 
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />

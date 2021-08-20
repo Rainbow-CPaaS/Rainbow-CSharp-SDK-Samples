@@ -41,8 +41,7 @@
                                                BackgroundColorOnSelected="{Binding BackgroundColorOnSelected}" 
                                                BackgroundColorOnMouseOver="{Binding BackgroundColorOnMouseOver}" 
                                                IsSelected="{Binding IsSelected}" 
-                                               Command="{Binding Command}" 
-                                               CommandParameter="{Binding Id}" />
+                                               Command="{Binding Command}"/>
                     </DataTemplate>
                 </BindableLayout.ItemTemplate>
                 

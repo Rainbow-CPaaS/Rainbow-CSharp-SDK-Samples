@@ -63,20 +63,19 @@ namespace MultiPlatformApplication.ViewModels
                 Menu.AddItem(new MenuItemModel() { Id = "calls", Label = Helper.SdkWrapper.GetLabel("tab-calllogs-title"), ImageSourceId = "Font_Clock|#FFFFFF" });
 
                 // Select "conversations" as selected item
+                currentMenuIdSelected = "conversations";
                 Menu.SetItemSelected("conversations");
             }
-            else
-            {
-                // We need to inform the current content view that we are in "Initialize" step
-                DisplayMenu(currentMenuIdSelected);
-            }
+
+            // We need to inform the current content view that we are in "Initialize" step
+            DisplayMenu(currentMenuIdSelected);
         }
-        #endregion PUBLIC METHODS
+
+#endregion PUBLIC METHODS
 
 
         private void DisplayMenu(String id)
         {
-
             View view;
             switch (id)
             {
@@ -113,13 +112,12 @@ namespace MultiPlatformApplication.ViewModels
 
         private void MenuCommand(object obj)
         {
-            if(obj is String)
+            if (obj is CustomButton customButton)
             {
-                String id = (String)obj;
-                if(id != currentMenuIdSelected)
+                if (customButton.BindingContext is MenuItemModel menuItemModel)
                 {
-                    currentMenuIdSelected = id;
-                    DisplayMenu(id);
+                    currentMenuIdSelected = menuItemModel.Id;
+                    DisplayMenu(currentMenuIdSelected);
                 }
             }
         }
