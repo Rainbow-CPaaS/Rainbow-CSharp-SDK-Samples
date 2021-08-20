@@ -8,7 +8,7 @@ using Xamarin.Forms;
 using Xamarin.Forms.Platform.Android;
 
 using MultiPlatformApplication.Effects;
-
+using MultiPlatformApplication.Events;
 
 [assembly: ExportEffect(typeof(MultiPlatformApplication.Droid.PlatformEffect.DroidTouchEffect), nameof(MultiPlatformApplication.Effects.TouchEffect))]
 
