@@ -64,7 +64,7 @@
                 <!-- /!\ RelativeLayout.HeightConstraint is defined in code behind -->
         </ListView>
 
-
+        <!-- Context Menu: Order by-->
         <Grid  x:Name="ContextMenuOrderBy"
                Margin="0"
                Padding="2"
@@ -72,8 +72,6 @@
                effects:ContextMenu.Enabled="True"
                effects:ContextMenu.OnTop="False"
                effects:ContextMenu.OnLeft="False">
-                <!--RelativeLayout.YConstraint="{ConstraintExpression Type=RelativeToView, ElementName=MenuControl, Property=Height}"
-               RelativeLayout.XConstraint="{ConstraintExpression Type=RelativeToView, ElementName=MenuControl, Property=X, Constant=2}" >-->
 
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
@@ -137,6 +135,7 @@
         </Grid>
 
 
+        <!-- Context Menu: Filter-->
         <Grid  x:Name="ContextMenuFilter"
                Margin="0"
                Padding="2"
@@ -144,8 +143,6 @@
                effects:ContextMenu.Enabled="True"
                effects:ContextMenu.OnTop="False"
                effects:ContextMenu.OnLeft="False">
-               <!--RelativeLayout.YConstraint="{ConstraintExpression Type=RelativeToView, ElementName=MenuControl, Property=Height}"
-               RelativeLayout.XConstraint="{ConstraintExpression Type=RelativeToView, ElementName=MenuControl, Property=X, Constant=80}" >-->
 
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
