@@ -42,6 +42,8 @@ namespace MultiPlatformApplication.ViewModels
         private StackLayout stackLayout;
         private ScrollView scrollView;
 
+        private String lastMessageIdOfCurrentUser;
+
         private String conversationId = null;
         private String currentContactId;
         private String currentContactJid;
@@ -504,6 +506,10 @@ namespace MultiPlatformApplication.ViewModels
                         if (message?.Content?.Attachment?.Action == "upload")
                             filesDescriptorIdListUploading.Add(message.Content.Attachment.Id);
 
+                        // Store Message Id of the las message sent by current user
+                        if ((message.Peer.Jid == currentContactJid) && (indexInsert == MessagesList.Count))
+                            lastMessageIdOfCurrentUser = message.Id;
+
                         element = GetContentViewAccordingMessage(message);
 
                         stackLayout?.Children.Insert(indexInsert,element);
@@ -956,14 +962,10 @@ namespace MultiPlatformApplication.ViewModels
                 //      - Save      => Context: File Attachment + Other User
 
 
-                bool isCurrentUser = false;
-                bool withFileAttachment = false;
-                bool withBodyContent = false;
-                bool isLastMessageOfCurrentUser = false; // TODO -
-
-                isCurrentUser = message.Peer.Jid == currentContactJid;
-                withFileAttachment = message?.Content?.Attachment != null;
-                withBodyContent = message?.Content?.Body?.Length > 0;
+                bool isCurrentUser = message.Peer.Jid == currentContactJid;
+                bool withFileAttachment = message?.Content?.Attachment != null;
+                bool withBodyContent = message?.Content?.Body?.Length > 0;
+                bool isLastMessageOfCurrentUser = message.Id == lastMessageIdOfCurrentUser;
 
                 SetActionOptionsModel(isCurrentUser, withFileAttachment, withBodyContent, isLastMessageOfCurrentUser);
 
