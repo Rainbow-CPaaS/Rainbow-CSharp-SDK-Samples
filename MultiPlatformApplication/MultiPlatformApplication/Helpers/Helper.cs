@@ -120,9 +120,9 @@ namespace MultiPlatformApplication.Helpers
             if (nowInUTC.Day == dtInUTC.Day)
                 result = dtLocalTime.ToString("H:mm");
             else if (nowInUTC.Year == dtInUTC.Year)
-                result = dtLocalTime.ToString("dd MMM H:mm");
+                result = dtLocalTime.ToString("dd MMMM H:mm");
             else
-                result = dtLocalTime.ToString("dd MMM yy H:mm");
+                result = dtLocalTime.ToString("dd MMMM yy H:mm");
 
             return result;
         }
