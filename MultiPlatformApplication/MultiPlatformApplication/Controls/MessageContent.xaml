@@ -32,8 +32,7 @@
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
-                <!-- TO ENSURE TO HAVE A MINIMAL WIDTH -->
-                <BoxView x:Name="BowViewForMinimalWidth" Grid.Row="0" Grid.Column="0" BackgroundColor="Transparent" WidthRequest="120" HeightRequest="1"/>
+                
 
                 <!-- HeaderGrid: to display Urgency / Forward-->
                 <Grid x:Name="ContentGrid"
@@ -55,6 +54,10 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
+
+
+                    <!-- TO ENSURE TO HAVE A MINIMAL WIDTH -->
+                    <BoxView x:Name="BowViewForMinimalWidth" Grid.Row="2" Grid.Column="0" BackgroundColor="Transparent" WidthRequest="120" HeightRequest="1"/>
 
                 </Grid>
                 
