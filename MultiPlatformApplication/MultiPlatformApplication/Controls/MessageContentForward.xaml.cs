@@ -64,8 +64,8 @@ namespace MultiPlatformApplication.Controls
             Label.Opacity = 0.5;
             Label.TextColor = Helper.GetResourceDictionaryById<Color>(colorName);
 
-            Image.HeightRequest = 16;
-            Image.WidthRequest = 16;
+            Image.HeightRequest = 20;
+            Image.WidthRequest = 20;
             Image.Source = Helper.GetImageSourceFromFont("Font_ArrowRight|" + colorName);
             Image.Margin = new Thickness(0, 0, 0, -5);
             Image.Opacity = 0.5;
