@@ -41,6 +41,14 @@ namespace MultiPlatformApplication.Controls
                 message = (MessageElementModel)BindingContext;
                 if ( (message != null) && (message.Reply != null) && !String.IsNullOrEmpty(message.ConversationId) )
                 {
+                    String backgroundColorKey;
+                    if (message.Peer.Id == Helper.SdkWrapper.GetCurrentContactId())
+                        backgroundColorKey = "ColorConversationStreamMessageCurrentUserBackGround";
+                    else
+                        backgroundColorKey = "ColorConversationStreamMessageOtherUserBackGround";
+                    BackgroundColor = Helper.GetResourceDictionaryById<Color>(backgroundColorKey);
+
+
                     Helper.SdkWrapper.PeerAdded += SdkWrapper_PeerAdded;
                     Helper.SdkWrapper.PeerInfoChanged += SdkWrapper_PeerInfoChanged;
 
