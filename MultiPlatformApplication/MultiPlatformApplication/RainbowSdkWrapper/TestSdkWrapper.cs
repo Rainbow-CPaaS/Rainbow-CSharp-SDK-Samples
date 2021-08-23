@@ -67,6 +67,77 @@ namespace MultiPlatformApplication
 
 #region PUBLIC API
 
+
+    #region WRAPPER - APPLICATION
+
+        public override String GetUserLoginFromCache()
+        {
+            // TODO
+            return "Using offline mode";
+        }
+
+        public override String GetUserPasswordFromCache()
+        {
+            // TODO
+            return "Fake pwd";
+        }
+
+        public override String ConnectionState()
+        {
+            return connectionState;
+        }
+
+        public override void Login(string login, string password, Action<SdkResult<Boolean>> callback = null)
+        {
+            connectionState = Rainbow.Model.ConnectionState.Connecting;
+            OnConnectionStateChanged(this, new Rainbow.Events.ConnectionStateEventArgs(connectionState));
+
+            Task task = new Task(() =>
+            {
+                // Retrieve data - currentContact
+                currentContact = DataStorage.RetrieveCurrentContact();
+
+                // Retrieve data - contacts
+                List<Rainbow.Model.Contact> contacts = DataStorage.RetrieveContacts();
+                contactsById = contacts.ToDictionary(contact => contact.Id, contact => contact);
+                contactsIdByJid = contacts.ToDictionary(contact => contact.Jid_im, contact => contact.Id);
+                contacts.Clear();
+
+                // Retrieve data - Presences and Aggregated Presences
+                presencesByBasicJid = DataStorage.RetrievePresences();
+                aggregatePresencesByBasicJid = DataStorage.RetrieveAggregatedPresences();
+
+                // Retrieve data - bubbles
+                List<Rainbow.Model.Bubble> bubbles = DataStorage.RetrieveBubbles();
+                bubblesById = bubbles.ToDictionary(bubble => bubble.Id, bubble => bubble);
+                bubblesIdByJid = bubbles.ToDictionary(bubble => bubble.Jid, bubble => bubble.Id);
+                bubbles.Clear();
+
+                // Retrieve data - conversations
+                List<Rainbow.Model.Conversation> conversations = DataStorage.RetrieveConversations();
+                conversationsById = conversations.ToDictionary(conversation => conversation.Id, conversation => conversation);
+                conversationsIdByJid = conversations.ToDictionary(conversation => conversation.Jid_im, conversation => conversation.Id);
+                conversations.Clear();
+
+                // Retrieve data - FilesDescriptor
+                filesDescriptorById = DataStorage.RetrieveFilesDescriptor();
+                conversationIdByFilesDescriptorId = DataStorage.RetrieveConversationsByFilesDescriptor();
+
+                connectionState = Rainbow.Model.ConnectionState.Connected;
+                OnConnectionStateChanged(this, new Rainbow.Events.ConnectionStateEventArgs(connectionState));
+                OnInitializationPerformed(this, null);
+            });
+            task.Start();
+        }
+
+        public override void Logout(Action<SdkResult<Boolean>> callback = null)
+        {
+            connectionState = Rainbow.Model.ConnectionState.Disconnected;
+            OnConnectionStateChanged(this, new Rainbow.Events.ConnectionStateEventArgs(connectionState));
+        }
+
+    #endregion WRAPPER - APPLICATION
+
     #region WRAPPER - FILES
 
         public override int MaxThumbnailWidth { get; set; }
@@ -232,7 +303,6 @@ namespace MultiPlatformApplication
         {
             return RbAvatars.GetUnknwonBubbleAvatarFilePath();
         }
-
 
     #endregion WRAPPER - AVATARS
 
@@ -449,75 +519,7 @@ namespace MultiPlatformApplication
 
     #endregion WRAPPER - CONTACTS
 
-    #region WRAPPER - APPLICATION
 
-        public override String GetUserLoginFromCache()
-        {
-            // TODO
-            return "Using offline mode";
-        }
-
-        public override String GetUserPasswordFromCache()
-        {
-            // TODO
-            return "Fake pwd";
-        }
-
-        public override String ConnectionState()
-        {
-            return connectionState;
-        }
-
-        public override void Login(string login, string password, Action<SdkResult<Boolean>> callback = null)
-        {
-            connectionState = Rainbow.Model.ConnectionState.Connecting;
-            OnConnectionStateChanged(this, new Rainbow.Events.ConnectionStateEventArgs(connectionState));
-
-            Task task = new Task(() =>
-            {
-                // Retrieve data - currentContact
-                currentContact = DataStorage.RetrieveCurrentContact();
-
-                // Retrieve data - contacts
-                List<Rainbow.Model.Contact> contacts = DataStorage.RetrieveContacts();
-                contactsById = contacts.ToDictionary(contact => contact.Id, contact => contact);
-                contactsIdByJid = contacts.ToDictionary(contact => contact.Jid_im, contact => contact.Id);
-                contacts.Clear();
-
-                // Retrieve data - Presences and Aggregated Presences
-                presencesByBasicJid = DataStorage.RetrievePresences();
-                aggregatePresencesByBasicJid = DataStorage.RetrieveAggregatedPresences();
-
-                // Retrieve data - bubbles
-                List<Rainbow.Model.Bubble> bubbles = DataStorage.RetrieveBubbles();
-                bubblesById = bubbles.ToDictionary(bubble => bubble.Id, bubble => bubble);
-                bubblesIdByJid = bubbles.ToDictionary(bubble => bubble.Jid, bubble => bubble.Id);
-                bubbles.Clear();
-
-                // Retrieve data - conversations
-                List<Rainbow.Model.Conversation> conversations = DataStorage.RetrieveConversations();
-                conversationsById = conversations.ToDictionary(conversation => conversation.Id, conversation => conversation);
-                conversationsIdByJid = conversations.ToDictionary(conversation => conversation.Jid_im, conversation => conversation.Id);
-                conversations.Clear();
-
-                // Retrieve data - FilesDescriptor
-                filesDescriptorById = DataStorage.RetrieveFilesDescriptor();
-                conversationIdByFilesDescriptorId = DataStorage.RetrieveConversationsByFilesDescriptor();
-
-                connectionState = Rainbow.Model.ConnectionState.Connected;
-                OnConnectionStateChanged(this, new Rainbow.Events.ConnectionStateEventArgs(connectionState));
-                OnInitializationPerformed(this, null);
-            });
-            task.Start();
-        }
-
-        public override void Logout(Action<SdkResult<Boolean>> callback = null)
-        {
-            connectionState = Rainbow.Model.ConnectionState.Disconnected;
-            OnConnectionStateChanged(this, new Rainbow.Events.ConnectionStateEventArgs(connectionState));
-        }
-
-    #endregion WRAPPER - APPLICATION
 
 #endregion PUBLIC API
     }

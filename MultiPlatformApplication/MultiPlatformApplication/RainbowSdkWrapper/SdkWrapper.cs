@@ -204,6 +204,19 @@ namespace MultiPlatformApplication
 
 #region PUBLIC API
 
+    #region STATIC METHODS
+        public static String GetColorFromDisplayName(String displayName)
+        {
+            return Rainbow.Common.Avatars.GetColorFromDisplayName(displayName);
+        }
+
+        // NOT NECESSARY TO HAVE THIS VIRTUAL
+        public static String GetDarkerColorFromDisplayName(String displayName)
+        {
+            return Rainbow.Common.Avatars.GetDarkerColorFromDisplayName(displayName);
+        }
+
+    #endregion STATIC METHODS
 
     #region LANGUAGES SERVICE
 
@@ -234,22 +247,7 @@ namespace MultiPlatformApplication
             return label;
         }
 
-
     #endregion LANGUAGES SERVICE
-
-    #region STATIC METHODS
-        public static String GetColorFromDisplayName(String displayName)
-        {
-            return Rainbow.Common.Avatars.GetColorFromDisplayName(displayName);
-        }
-
-        // NOT NECESSARY TO HAVE THIS VIRTUAL
-        public static String GetDarkerColorFromDisplayName(String displayName)
-        {
-            return Rainbow.Common.Avatars.GetDarkerColorFromDisplayName(displayName);
-        }
-
-    #endregion STATIC METHODS
 
     #region WRAPPER - APPLICATION
 
@@ -273,12 +271,40 @@ namespace MultiPlatformApplication
             return 2000;
         }
 
+        virtual public String GetUserLoginFromCache()
+        {
+            return null;
+        }
+
+        virtual public String GetUserPasswordFromCache()
+        {
+            return null;
+        }
+
+        virtual public String ConnectionState()
+        {
+            return null;
+        }
+
+        virtual public void Login(string login, string password, Action<SdkResult<Boolean>> callback = null)
+        {
+        }
+
+        virtual public void Logout(Action<SdkResult<Boolean>> callback = null)
+        {
+        }
+
     #endregion WRAPPER - APPLICATION
 
     #region WRAPPER - FILESTORAGE
 
         virtual public void CreateFileDescriptor(String fileName, long fileSize, String peerId, String peerType, Action<SdkResult<FileDescriptor>> callback)
         {
+        }
+
+        virtual public void RemoveFileDescriptor(String fileId, Action<SdkResult<Boolean>> callback)
+        {
+
         }
 
         virtual public void UploadFile(Stream fileStream, String peerId, String peerType, FileDescriptor fileDescriptor, Action<SdkResult<Boolean>> callbackResult)
@@ -350,6 +376,11 @@ namespace MultiPlatformApplication
     #endregion WRAPPER - AVATARS
 
     #region WRAPPER - INSTANT MESSAGING
+
+        virtual public void DeleteMessage(String conversationId, String messageID, Action<SdkResult<Message>> callback = null)
+        {
+
+        }
 
         virtual public Rainbow.Model.Message GetOneMessageFromConversationIdFromCache(String conversationId, String messageId)
         {
@@ -475,33 +506,6 @@ namespace MultiPlatformApplication
         }
 
     #endregion WRAPPER - CONTACTS
-
-    #region WRAPPER - APPLICATION
-
-        virtual public String GetUserLoginFromCache()
-        {
-            return null;
-        }
-
-        virtual public String GetUserPasswordFromCache()
-        {
-            return null;
-        }
-
-        virtual public String ConnectionState()
-        {
-            return null;
-        }
-
-        virtual public void Login(string login, string password, Action<SdkResult<Boolean>> callback = null)
-        {
-        }
-
-        virtual public void Logout(Action<SdkResult<Boolean>> callback = null)
-        {
-        }
-
-    #endregion WRAPPER - APPLICATION
 
 #endregion PUBLIC API
     }

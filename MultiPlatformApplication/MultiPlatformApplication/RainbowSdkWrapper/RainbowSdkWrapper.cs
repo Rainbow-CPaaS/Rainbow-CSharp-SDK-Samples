@@ -184,7 +184,6 @@ namespace MultiPlatformApplication
 
     #region WRAPPER - APPLICATION
 
-
         override public Restrictions.SDKMessageStorageMode GetMessageStorageMode()
         {
             return RbApplication.Restrictions.MessageStorageMode;
@@ -205,6 +204,32 @@ namespace MultiPlatformApplication
             return RbApplication.GetTimeout();
         }
 
+        public override String GetUserLoginFromCache()
+        {
+            return RbApplication.GetUserLoginFromCache();
+        }
+
+        public override String GetUserPasswordFromCache()
+        {
+            return RbApplication.GetUserPasswordFromCache(); ;
+        }
+
+        public override String ConnectionState()
+        {
+            return RbApplication.ConnectionState(); ;
+        }
+
+        public override void Login(string login, string password, Action<SdkResult<Boolean>> callback = null)
+        {
+            RbApplication.Login(login, password, callback);
+        }
+
+        public override void Logout(Action<SdkResult<Boolean>> callback = null)
+        {
+            RbApplication.Logout(callback);
+        }
+
+
     #endregion WRAPPER - APPLICATION
 
 
@@ -213,6 +238,11 @@ namespace MultiPlatformApplication
         public override void CreateFileDescriptor(String fileName, long fileSize, String peerId, String peerType, Action<SdkResult<FileDescriptor>> callback)
         {
             RbFileStorage.CreateFileDescriptor(fileName, fileSize, peerId, peerType, callback);
+        }
+
+        public override void RemoveFileDescriptor(String fileId, Action<SdkResult<Boolean>> callback)
+        {
+            RbFileStorage.RemoveFileDescriptor(fileId, callback);
         }
 
         override public void UploadFile(Stream fileStream, String peerId, String peerType, FileDescriptor fileDescriptor, Action<SdkResult<Boolean>> callbackResult)
@@ -295,6 +325,11 @@ namespace MultiPlatformApplication
     #endregion WRAPPER - AVATARS
 
     #region WRAPPER - INSTANT MESSAGING
+
+        public override void DeleteMessage(String conversationId, String messageID, Action<SdkResult<Message>> callback = null)
+        {
+            RbInstantMessaging.DeleteMessage(conversationId, messageID, callback);
+        }
 
         public override Rainbow.Model.Message GetOneMessageFromConversationIdFromCache(String conversationId, String messageId)
         {
@@ -461,35 +496,6 @@ namespace MultiPlatformApplication
         }
 
     #endregion WRAPPER - CONTACTS
-
-    #region WRAPPER - APPLICATION
-
-        public override String GetUserLoginFromCache()
-        {
-            return RbApplication.GetUserLoginFromCache();
-        }
-
-        public override String GetUserPasswordFromCache()
-        {
-            return RbApplication.GetUserPasswordFromCache(); ;
-        }
-
-        public override String ConnectionState()
-        {
-            return RbApplication.ConnectionState(); ;
-        }
-
-        public override void Login(string login, string password, Action<SdkResult<Boolean>> callback = null)
-        {
-            RbApplication.Login(login, password, callback);
-        }
-
-        public override void Logout(Action<SdkResult<Boolean>> callback = null)
-        {
-            RbApplication.Logout(callback);
-        }
-
-    #endregion WRAPPER - APPLICATION
 
 #endregion PUBLIC API
 
