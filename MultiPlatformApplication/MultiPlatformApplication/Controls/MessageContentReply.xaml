@@ -4,13 +4,13 @@
              xmlns:effects="clr-namespace:MultiPlatformApplication.Effects"
              x:Class="MultiPlatformApplication.Controls.MessageContentReply"
              Margin="0"
-             Padding="0">
+             Padding="6,6,6,0">
     <ContentView.Content>
         <Frame  x:Name="Frame"
                 CornerRadius="0"
                 HasShadow="False"
                 Margin="0"
-                Padding="6,6,6,0">
+                Padding="0">
 
             <Grid x:Name="Grid"
                   Margin="0"
@@ -39,7 +39,6 @@
                          Grid.ColumnSpan="2"
                          BackgroundColor="Transparent"
                          WidthRequest="120" HeightRequest="1"/>
-
 
                 <BoxView x:Name="BoxView"
                          Grid.Row="0"
@@ -70,6 +69,7 @@
                        TextColor="{StaticResource ColorConversationStreamReplyOtherUserFont}"/>
                         <!-- /!\ it's not possible to have selectable and truncated text in same time -->
 
+                <!-- Image used to display Thumbnail or Icon based on file extension -->
                 <Image x:Name="Image"
                        Margin="3"
                        Grid.Row="0"

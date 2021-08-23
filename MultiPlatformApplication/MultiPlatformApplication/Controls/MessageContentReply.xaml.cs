@@ -22,8 +22,12 @@ namespace MultiPlatformApplication.Controls
 
         private MessageElementModel message;
 
+        private Boolean initEventsDone = false;
+
         private String peerJid = null;
         private String attachmentId = null;
+
+        private Boolean usedAsInput = false;
 
         public MessageContentReply()
         {
@@ -32,26 +36,47 @@ namespace MultiPlatformApplication.Controls
             BowViewForMinimalWidth.MinimumWidthRequest = MessageContent.MINIMAL_MESSAGE_WIDTH;
 
             this.BindingContextChanged += MessageContentReply_BindingContextChanged;
+        }
 
+        public void SetUsageMode(Boolean usedAsInput)
+        {
+            if (!this.usedAsInput)
+                this.usedAsInput = usedAsInput;
+        }
+
+        private void InitEvents()
+        {
+            if (!initEventsDone)
+            {
+                initEventsDone = true;
+                Helper.SdkWrapper.PeerAdded += SdkWrapper_PeerAdded;
+                Helper.SdkWrapper.PeerInfoChanged += SdkWrapper_PeerInfoChanged;
+            }
         }
 
         private void MessageContentReply_BindingContextChanged(object sender, EventArgs e)
         {
-            if ( (BindingContext != null) && (message == null) )
+            if (BindingContext != null)
             {
-                message = (MessageElementModel)BindingContext;
-                if ( (message != null) && (message.Reply != null) && !String.IsNullOrEmpty(message.ConversationId) )
+                try
+                {
+                    message = (MessageElementModel)BindingContext;
+                }
+                catch { }
+
+                if ((message != null) && !String.IsNullOrEmpty(message.ConversationId))
                 {
                     String backgroundColorKey;
-                    if (message.Peer.Id == Helper.SdkWrapper.GetCurrentContactId())
-                        backgroundColorKey = "ColorConversationStreamMessageCurrentUserBackGround";
+                    if ( (message.Peer.Id != Helper.SdkWrapper.GetCurrentContactId()) || usedAsInput)
+                        backgroundColorKey = "ColorConversationStreamMessageOtherUserBackGround"; 
                     else
-                        backgroundColorKey = "ColorConversationStreamMessageOtherUserBackGround";
+                        backgroundColorKey = "ColorConversationStreamMessageCurrentUserBackGround";
                     BackgroundColor = Helper.GetResourceDictionaryById<Color>(backgroundColorKey);
 
+                    // By default there is no Image visible
+                    Image.IsVisible = true;
 
-                    Helper.SdkWrapper.PeerAdded += SdkWrapper_PeerAdded;
-                    Helper.SdkWrapper.PeerInfoChanged += SdkWrapper_PeerInfoChanged;
+                    InitEvents();
 
                     // We need to get Name and text of the replied message ...
                     Rainbow.Model.Message rbRepliedMessage = Helper.SdkWrapper.GetOneMessageFromConversationIdFromCache(message.ConversationId, message.Reply.Id);
@@ -122,6 +147,9 @@ namespace MultiPlatformApplication.Controls
 
         private void SetReplyPartOfMessage(Rainbow.Model.Message rbRepliedMessage)
         {
+            if (message == null)
+                return;
+
             if (message.Reply == null)
                 return;
 
