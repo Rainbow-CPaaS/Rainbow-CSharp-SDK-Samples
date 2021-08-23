@@ -395,6 +395,11 @@ namespace MultiPlatformApplication
         {
         }
 
+        virtual public void ReplyToMessage(String conversationId, String messageID, String replyMessage, Action<SdkResult<Message>> callback = null)
+        {
+
+        }
+
         virtual public bool SendMessage(Conversation conversation, ref Message message)
         {
             return true;
