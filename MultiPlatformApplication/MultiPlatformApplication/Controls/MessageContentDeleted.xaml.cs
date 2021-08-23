@@ -52,17 +52,23 @@ namespace MultiPlatformApplication.Controls
         {
             String label;
             String colorName;
+            String backgroundColorKey;
 
             if (peerJid == Helper.SdkWrapper.GetCurrentContactJid())
             {
                 label = Helper.SdkWrapper.GetLabel("messageSentDeleted");
                 colorName = "ColorConversationStreamMessageCurrentUserFont";
+                backgroundColorKey = "ColorConversationStreamMessageCurrentUserBackGround";
+
             }
             else
             {
                 label = Helper.SdkWrapper.GetLabel("messageReceivedDeleted");
                 colorName = "ColorConversationStreamMessageOtherUserFont";
+                backgroundColorKey = "ColorConversationStreamMessageOtherUserBackGround";
             }
+
+            BackgroundColor = Helper.GetResourceDictionaryById<Color>(backgroundColorKey);
 
             Label.TextType = TextType.Html;
             Label.Text = "<i>" + label + "</i>";
