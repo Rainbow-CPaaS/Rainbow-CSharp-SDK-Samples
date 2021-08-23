@@ -6,6 +6,7 @@ using MultiPlatformApplication.Models;
 using MultiPlatformApplication.Services;
 using NLog;
 using Rainbow;
+using Rainbow.Events;
 using Rainbow.Model;
 using System;
 using System.Collections.Generic;
@@ -141,6 +142,7 @@ namespace MultiPlatformApplication.ViewModels
         {
             StoreScrollingPosition();
             DynamicStream.CodeAskingToScroll = true;
+            ((Layout)messageInput).ForceLayout();
             ((Layout)messageInput.Parent).ForceLayout();
 
             // We need to wait a little before to scroll on correct position
@@ -694,7 +696,7 @@ namespace MultiPlatformApplication.ViewModels
 
 #region MESSAGE INPUT STUFF
 
-        private async void MessageInput_MessageToSend(object sender, EventArgs e)
+        private async void MessageInput_MessageToSend(object sender, StringEventArgs e)
         {
             // Get urgency
             UrgencyType urgencyType = (UrgencyType)Enum.Parse(typeof(UrgencyType), GetMessageUrgencySelection(), true);
@@ -716,42 +718,58 @@ namespace MultiPlatformApplication.ViewModels
             if ( (!String.IsNullOrEmpty(text)) || (attachments?.Count > 0))
                 SetMessageUrgencySelectedItem(3);
 
-            // Send text message
-            if (!String.IsNullOrEmpty(text))
-                Helper.SdkWrapper.SendMessageToConversationId(conversationId, text, urgencyType);
-
-            // Send File message using FilesUpload service
-            if (attachments?.Count > 0)
+            // Do we have a replyId ?
+            if (String.IsNullOrEmpty(e.Value))
             {
-                List<FileUploadModel> filesUploadList = new List<FileUploadModel>();
-                FileUploadModel fileUpload;
+                // Send text message
+                if (!String.IsNullOrEmpty(text))
+                    Helper.SdkWrapper.SendMessageToConversationId(conversationId, text, urgencyType);
 
-                foreach (FileResult attachment in attachments)
+                // Send File message using FilesUpload service
+                if (attachments?.Count > 0)
                 {
-                    try
+                    List<FileUploadModel> filesUploadList = new List<FileUploadModel>();
+                    FileUploadModel fileUpload;
+
+                    foreach (FileResult attachment in attachments)
                     {
-                        fileUpload = new FileUploadModel();
+                        try
+                        {
+                            fileUpload = new FileUploadModel();
 
-                        fileUpload.PeerId = rbConversation.PeerId;
-                        fileUpload.PeerType = rbConversation.Type;
-                        fileUpload.Urgency = urgencyType;
+                            fileUpload.PeerId = rbConversation.PeerId;
+                            fileUpload.PeerType = rbConversation.Type;
+                            fileUpload.Urgency = urgencyType;
 
-                        // /!\ Can we store a lot of Stream objects ???
+                            // /!\ Can we store a lot of Stream objects ???
 
-                        fileUpload.Stream = await attachment.OpenReadAsync();
-                        fileUpload.FileFullPath = attachment.FullPath;
-                        fileUpload.FileName = attachment.FileName;
-                        fileUpload.FileSize = fileUpload.Stream.Length;
+                            fileUpload.Stream = await attachment.OpenReadAsync();
+                            fileUpload.FileFullPath = attachment.FullPath;
+                            fileUpload.FileName = attachment.FileName;
+                            fileUpload.FileSize = fileUpload.Stream.Length;
 
-                        filesUploadList.Add(fileUpload);
+                            filesUploadList.Add(fileUpload);
+                        }
+                        catch
+                        {
+                            log.Warn("[MessageInput_MessageToSend] Cannot create stream object for this file:[{0}]", attachment.FullPath);
+                        }
                     }
-                    catch
-                    {
-                        log.Warn("[MessageInput_MessageToSend] Cannot create stream object for this file:[{0}]", attachment.FullPath);
-                    }
+                    if (filesUploadList.Count > 0)
+                        FilesUpload.AddFiles(filesUploadList);
                 }
-                if(filesUploadList.Count > 0)
-                    FilesUpload.AddFiles(filesUploadList);
+            }
+            else
+            {
+                // Send text message
+                if (!String.IsNullOrEmpty(text))
+                {
+                    Helper.SdkWrapper.ReplyToMessage(conversationId, e.Value, text, callback =>
+                    {
+                        // TODO - manage error
+                    });
+                }  
+
             }
         }
 
@@ -903,6 +921,19 @@ namespace MultiPlatformApplication.ViewModels
                             break;
 
                         case "reply":
+                            MessageElementModel messageElementModel = new MessageElementModel();
+                            messageElementModel.Id = "newReply";
+                            messageElementModel.ConversationId = rbConversation.Id;
+                            messageElementModel.ConversationType = rbConversation.Type;
+                            messageElementModel.Reply = new MessageReplyModel();
+                            messageElementModel.Reply.Id = actionDoneOnMessage.Id;
+                            messageElementModel.Reply.Peer = actionDoneOnMessage.Peer;
+
+                            messageElementModel.Reply.Content = new MessageContentModel();
+                            messageElementModel.Reply.Content.Body = actionDoneOnMessage.Content?.Body;
+                            messageElementModel.Reply.Content.Attachment = actionDoneOnMessage.Content?.Attachment;
+
+                            messageInput.SetReplyMessage(messageElementModel);
                             break;
 
                         case "forward":
@@ -1167,6 +1198,9 @@ namespace MultiPlatformApplication.ViewModels
             if(e.ConversationId == conversationId)
             {
                 if (String.IsNullOrEmpty(e.ContactJid))
+                    return;
+
+                if (e.ContactJid == currentContactJid)
                     return;
 
                 bool updateDone = false;

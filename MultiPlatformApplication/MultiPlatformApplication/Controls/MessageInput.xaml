@@ -29,6 +29,45 @@
             <controls:MessageInputAttachments x:Name="MessageInputAttachments" />
 
 
+            <!-- TO DISPLAY REPLY PART WHEN CURRENT USER WANTS TO REPLY TO A MESSAGE-->
+            <StackLayout x:Name="MessageContentReplyStackLayout"
+                         Margin="0"
+                         Padding="6,6,6,6"
+                         Spacing="0"
+                         Orientation="Horizontal"
+                         HorizontalOptions="FillAndExpand"
+                         VerticalOptions="Start"
+                         BackgroundColor="{StaticResource ColorEntryBackground}"
+                         IsVisible="false">
+
+                <StackLayout Margin="0"
+                             Padding="0"
+                             Spacing="0"
+                             Orientation="Horizontal"
+                             HorizontalOptions="FillAndExpand"
+                             VerticalOptions="Start"
+                             BackgroundColor="{StaticResource ColorConversationStreamReplyOtherUserBackGround}">
+                    
+                    <controls:MessageContentReply x:Name="MessageContentReply"
+                                              Padding="0"
+                                              HorizontalOptions="FillAndExpand"/>
+
+                    <!-- Image used to close(hide) the reply part when current user is replying to a message -->
+                    <controls:CustomButton x:Name="MessageContentReplyButton"
+                                           CornerRadius="2"
+                                           Padding="0,2,0,0"
+                                           HeightRequest="24"
+                                           WidthRequest="24"
+                                           ImageSize="20"
+                                           BackgroundColor="Transparent"
+                                           BackgroundColorOnMouseOver="{StaticResource ColorEntryPlaceHolder}"
+                                           ImageSourceId="Font_Times|ColorAttachmentText"
+                                           VerticalOptions="Start"
+                                           HorizontalOptions="Center"/>
+                </StackLayout>
+            </StackLayout>
+            
+            
             <!-- EMOJI BUTTON - URGENCY SELECTOR - EDITOR - SEND MESSAGE BUTTON - ATTACH FILE BUTTON -->
             <Frame Margin=" 0"
                    Padding="0"

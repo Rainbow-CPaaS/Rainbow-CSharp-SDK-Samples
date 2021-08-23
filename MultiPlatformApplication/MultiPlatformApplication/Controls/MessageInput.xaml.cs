@@ -26,12 +26,14 @@ namespace MultiPlatformApplication.Controls
 
         Animation userTypingAnimation;
 
+        String replyToMessageId = null;
+
         public event EventHandler<EventArgs> UpdateParentLayout; // To ask parent to update the layout when the size of this UI component has changed
 
         public event EventHandler<BooleanEventArgs> UserIsTyping;
         public event EventHandler<RectEventArgs> MessageUrgencyClicked;
 
-        public event EventHandler<EventArgs> MessageToSend;
+        public event EventHandler<StringEventArgs> MessageToSend;
 
 #region BINDINGS used in XAML
         public MessageInputModel Message { get; private set; } = new MessageInputModel();
@@ -52,6 +54,9 @@ namespace MultiPlatformApplication.Controls
             MessageInputAttachments.UpdateParentLayout += MessageInputAttachments_UpdateParentLayout;
             
             ButtonTyping.PropertyChanged += ButtonTyping_PropertyChanged;
+
+            MessageContentReplyButton.Command = new RelayCommand<object>(new Action<object>(MessageContentReplyButtonCommand));
+            MessageContentReplyStackLayout.PropertyChanged += MessageContentReplyStackLayout_PropertyChanged;
 
             EntryMessage.Placeholder = Helper.SdkWrapper.GetLabel("enterTextHere");
             EntryMessage.PropertyChanged += EntryMessage_PropertyChanged;
@@ -88,56 +93,12 @@ namespace MultiPlatformApplication.Controls
             MessageInputAttachments.Clear();
         }
 
-        private void MessageInputAttachments_UpdateParentLayout(object sender, EventArgs e)
-        {
-            // Need to force the layout of the parent ...
-            UpdateParentLayout?.Raise(this, null);
-        }
-
-        private void ButtonTyping_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
-        {
-            if(e.PropertyName == "IsVisible")
-            {
-                // Need to force the layout of the parent ...
-                UpdateParentLayout?.Raise(this, null);
-                //((Layout)this.Parent)?.ForceLayout();
-            }
-        }
-
-        private void SdkWrapper_PeerUpdated(object sender, PeerEventArgs e)
-        {
-            if(peerJidTyping?.Count > 0)
-            {
-                if (peerJidTyping.Contains(e.Peer.Jid))
-                    UpdateUsersTyping(peerJidTyping);
-            }
-        }
-
-        private void StartUserTypingAnimationAnimation()
-        {
-            if (!ButtonTyping.IsVisible)
-            {
-                ButtonTyping.IsVisible = true;
-                userTypingAnimation.Commit(this, "UserTypingAnimation", length: 4000, repeat: () => true);
-            }
-        }
-
-        private void StopUserTypingAnimationAnimation()
-        {
-            if (ButtonTyping.IsVisible)
-            {
-                this.AbortAnimation("UserTypingAnimation");
-                ButtonTyping.IsVisible = false;
-                LabelTyping.Text = " ";
-            }
-        }
-
         public void UpdateUsersTyping(List<String> peerJidTyping)
         {
             Boolean start = false;
             String label = " ";
 
-            if ((peerJidTyping == null) || (peerJidTyping?.Count == 0) )
+            if ((peerJidTyping == null) || (peerJidTyping?.Count == 0))
             {
                 this.peerJidTyping.Clear();
             }
@@ -154,7 +115,7 @@ namespace MultiPlatformApplication.Controls
                 {
 
                     displayName = Helper.GetContactDisplayName(jid);
-                    if(!String.IsNullOrEmpty(displayName))
+                    if (!String.IsNullOrEmpty(displayName))
                     {
                         nbAccount++;
 
@@ -164,7 +125,7 @@ namespace MultiPlatformApplication.Controls
                             displayNameList += ", " + displayName;
                     }
                 }
-                
+
                 if (nbAccount > 0)
                 {
                     if (nbAccount == 1)
@@ -176,7 +137,7 @@ namespace MultiPlatformApplication.Controls
                     label = "<b>" + displayNameList + "</b> " + label;
                     start = true;
                 }
-           }
+            }
 
             // Update UI using correct thread
             Device.BeginInvokeOnMainThread(() =>
@@ -184,41 +145,11 @@ namespace MultiPlatformApplication.Controls
                 LabelTyping.Text = label;
 
                 if (start)
-                    StartUserTypingAnimationAnimation();
+                    StartUserTypingAnimation();
                 else
-                    StopUserTypingAnimationAnimation();
+                    StopUserTypingAnimation();
             });
 
-        }
-
-        private void EntryMessage_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
-        {
-            if(e.PropertyName == "Height")
-            {
-                // Need to force the layout of the parent ...
-                UpdateParentLayout?.Raise(this, null);
-                //((Layout)this.Parent).ForceLayout();
-            }
-        }
-
-        private void EntryMessage_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            if (e.NewTextValue?.Length > 0)
-            {
-                if (!userIsTyping)
-                {
-                    userIsTyping = true;
-                    UserIsTyping?.Raise(this, new BooleanEventArgs(true));
-                }
-            }
-            else
-            {
-                if (userIsTyping)
-                {
-                    userIsTyping = false;
-                    UserIsTyping?.Raise(this, new BooleanEventArgs(false));
-                }
-            }
         }
 
         public void SetUrgencySelection(String urgencyTypeString)
@@ -249,6 +180,107 @@ namespace MultiPlatformApplication.Controls
             //((Layout)this.Parent).ForceLayout();
         }
 
+        public void SetReplyMessage(MessageElementModel messageElementModel)
+        {
+            Device.BeginInvokeOnMainThread(() =>
+            {
+                // We can't add attachments
+                ButtonAttachment.IsVisible = false;
+
+                replyToMessageId = messageElementModel?.Reply?.Id;
+
+                MessageContentReply.SetUsageMode(true);
+                MessageContentReply.BindingContext = messageElementModel;
+
+                MessageContentReplyStackLayout.IsVisible = true;
+
+                // Need to force the layout of the parent ...
+                UpdateParentLayout?.Raise(this, null);
+            });
+        }
+
+        private void MessageInputAttachments_UpdateParentLayout(object sender, EventArgs e)
+        {
+            // Need to force the layout of the parent ...
+            UpdateParentLayout?.Raise(this, null);
+        }
+
+        private void MessageContentReplyStackLayout_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if ( (e.PropertyName == "IsVisible") || (e.PropertyName == "Height") )
+            {
+                // Need to force the layout of the parent ...
+                UpdateParentLayout?.Raise(this, null);
+            }
+        }
+
+        private void ButtonTyping_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if(e.PropertyName == "IsVisible")
+            {
+                // Need to force the layout of the parent ...
+                UpdateParentLayout?.Raise(this, null);
+            }
+        }
+
+        private void SdkWrapper_PeerUpdated(object sender, PeerEventArgs e)
+        {
+            if(peerJidTyping?.Count > 0)
+            {
+                if (peerJidTyping.Contains(e.Peer.Jid))
+                    UpdateUsersTyping(peerJidTyping);
+            }
+        }
+
+        private void StartUserTypingAnimation()
+        {
+            if (!ButtonTyping.IsVisible)
+            {
+                ButtonTyping.IsVisible = true;
+                userTypingAnimation.Commit(this, "UserTypingAnimation", length: 4000, repeat: () => true);
+            }
+        }
+
+        private void StopUserTypingAnimation()
+        {
+            if (ButtonTyping.IsVisible)
+            {
+                this.AbortAnimation("UserTypingAnimation");
+                ButtonTyping.IsVisible = false;
+                LabelTyping.Text = " ";
+            }
+        }
+        
+        private void EntryMessage_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if(e.PropertyName == "Height")
+            {
+                // Need to force the layout of the parent ...
+                UpdateParentLayout?.Raise(this, null);
+                //((Layout)this.Parent).ForceLayout();
+            }
+        }
+
+        private void EntryMessage_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (e.NewTextValue?.Length > 0)
+            {
+                if (!userIsTyping)
+                {
+                    userIsTyping = true;
+                    UserIsTyping?.Raise(this, new BooleanEventArgs(true));
+                }
+            }
+            else
+            {
+                if (userIsTyping)
+                {
+                    userIsTyping = false;
+                    UserIsTyping?.Raise(this, new BooleanEventArgs(false));
+                }
+            }
+        }
+
         private void MessageInputAttachmentCommand(object obj)
         {
             MessageInputAttachments.PickFiles();
@@ -271,7 +303,28 @@ namespace MultiPlatformApplication.Controls
 
         private void MessageInputSendCommand(object obj)
         {
-            MessageToSend?.Raise(this, null);
+            MessageToSend?.Raise(this, new StringEventArgs(replyToMessageId));
+            
+            // Simulate that we close Reply part
+            MessageContentReplyButtonCommand(null);
         }
+
+        private void MessageContentReplyButtonCommand(object obj)
+        {
+            Device.BeginInvokeOnMainThread(() =>
+            {
+                // Clear value
+                replyToMessageId = null;
+
+                // Attachments are now available
+                ButtonAttachment.IsVisible = true;
+
+                MessageContentReplyStackLayout.IsVisible = false;
+
+                // Need to force the layout of the parent ...
+                UpdateParentLayout?.Raise(this, null);
+            });
+        }
+
     }
 }
