@@ -43,6 +43,7 @@ namespace MultiPlatformApplication.ViewModels
         private ScrollView scrollView;
 
         private String lastMessageIdOfCurrentUser;
+        private MessageElementModel actionDoneOnMessage;
 
         private String conversationId = null;
         private String currentContactId;
@@ -659,6 +660,9 @@ namespace MultiPlatformApplication.ViewModels
                         {
                             message.Content.Type = "deletedMessage";
                             message.Content.Body = "";
+
+                            // In this case we don't display "modified"
+                            message.DateDisplayed = Helper.HumanizeDateTime(rbMessage.Date);
                         }
                     }
 
@@ -868,7 +872,7 @@ namespace MultiPlatformApplication.ViewModels
             contextMenuAction.IsVisible = true;
 		}
 
-        private void ContextMenuActionListView_ItemSelected(object sender, SelectedItemChangedEventArgs e)
+        private async void ContextMenuActionListView_ItemSelected(object sender, SelectedItemChangedEventArgs e)
         {
             // Store index
             int index = e.SelectedItemIndex;
@@ -879,23 +883,78 @@ namespace MultiPlatformApplication.ViewModels
                 ((ListView)sender).SelectedItem = null;
                 HideActionContextMenu();
 
+                // Check if we have a valid message
+                if (actionDoneOnMessage == null)
+                    return;
+
+                GetMessageContext(actionDoneOnMessage, out Boolean isCurrentUser, out Boolean withFileAttachment, out Boolean withBodyContent, out Boolean isLastMessageOfCurrentUser);
+
                 if (index < ActionOptions.Items.Count)
                 {
                     String action = ActionOptions.Items[index].Id;
 
                     // TODO - perform action
+                    switch (action)
+                    {
+                        case "edit":
+                            break;
+
+                        case "download":
+                            break;
+
+                        case "reply":
+                            break;
+
+                        case "forward":
+                            break;
+
+                        case "copy":
+                            String text = actionDoneOnMessage?.Content?.Body;
+                            if (!String.IsNullOrEmpty(text))
+                                await Clipboard.SetTextAsync(text);
+                            break;
+
+                        case "delete":
+                            if(withFileAttachment)
+                            {
+                                Helper.SdkWrapper.RemoveFileDescriptor(actionDoneOnMessage.Content.Attachment.Id, callback =>
+                                {
+                                    // TODO - manage error
+                                });
+                            }
+                            else
+                            {
+                                Helper.SdkWrapper.DeleteMessage(conversationId, actionDoneOnMessage.Id, callback =>
+                                {
+                                    // TODO - manage error
+                                });
+                            }
+                            break;
+
+                        case "save":
+                            break;
+                    }
+                    
                 }
             }
         }
 
         private void SetActionOptionsModel(Boolean isCurrentUser, Boolean withFileAttachment, Boolean withBodyContent, Boolean isLastMessageOfCurrentUser)
         {
+            // Actions possible: (to display in this order)
+            //      - Edit      => Context: Last message of current user
+            //      - Download  => Context: File Attachment
+            //      - Reply     => Context: Always
+            //      - Forward   => Context: Always
+            //      - Copy      => Context: Body.Content not null
+            //      - Delete    => Context: Last message of current user OR ( File Attachment + Current user)
+            //      - Save      => Context: File Attachment + Other User
+
             ActionOptions.Clear();
 
             Color color;
             String colorHex;
             String imageSourceId;
-
 
             color = Helper.GetResourceDictionaryById<Color>("ColorConversationStreamMessageOtherUserFont");
             colorHex = color.ToHex();
@@ -914,9 +973,11 @@ namespace MultiPlatformApplication.ViewModels
                 ActionOptions.Add(new ContextMenuItemModel() { Id = "download", ImageSourceId = imageSourceId, Title = Helper.SdkWrapper.GetLabel("download") });
             }
 
+            // Reply action
             imageSourceId = "Font_Reply|" + colorHex;
             ActionOptions.Add(new ContextMenuItemModel() { Id = "reply", ImageSourceId = imageSourceId, Title = Helper.SdkWrapper.GetLabel("replyToMessage") });
 
+            // Forward action
             imageSourceId = "Font_ArrowRight|" + colorHex;
             ActionOptions.Add(new ContextMenuItemModel() { Id = "forward", ImageSourceId = imageSourceId, Title = Helper.SdkWrapper.GetLabel("forwardMessage") });
 
@@ -940,32 +1001,26 @@ namespace MultiPlatformApplication.ViewModels
                 imageSourceId = "Font_CloudDownloadAlt|" + colorHex;
                 ActionOptions.Add(new ContextMenuItemModel() { Id = "save", ImageSourceId = imageSourceId, Title = Helper.SdkWrapper.GetLabel("save") });
             }
+        }
 
+        private void GetMessageContext(MessageElementModel messageElementModel, out Boolean isCurrentUser, out Boolean withFileAttachment, out Boolean withBodyContent, out Boolean isLastMessageOfCurrentUser)
+        {
+            isCurrentUser = messageElementModel?.Peer?.Jid == currentContactJid;
+            withFileAttachment = messageElementModel?.Content?.Attachment != null;
+            withBodyContent = messageElementModel?.Content?.Body?.Length > 0;
+            isLastMessageOfCurrentUser = messageElementModel?.Id == lastMessageIdOfCurrentUser;
         }
 
         private void MessagesStreamViewModel_ActionMenuToDisplay(object sender, EventArgs e)
         {
             if ((sender != null) && (sender is ContentView element))
             {
-                MessageElementModel message = (MessageElementModel)element.BindingContext;
+                actionDoneOnMessage = (MessageElementModel)element.BindingContext;
 
-                if (message == null)
+                if (actionDoneOnMessage == null)
                     return;
 
-                // Actions possible: (to display in this order)
-                //      - Edit      => Context: Last message of current user
-                //      - Download  => Context: File Attachment
-                //      - Reply     => Context: Always
-                //      - Forward   => Context: Always
-                //      - Copy      => Context: Body.Content not null
-                //      - Delete    => Context: Last message of current user OR File Attachment
-                //      - Save      => Context: File Attachment + Other User
-
-
-                bool isCurrentUser = message.Peer.Jid == currentContactJid;
-                bool withFileAttachment = message?.Content?.Attachment != null;
-                bool withBodyContent = message?.Content?.Body?.Length > 0;
-                bool isLastMessageOfCurrentUser = message.Id == lastMessageIdOfCurrentUser;
+                GetMessageContext(actionDoneOnMessage, out Boolean isCurrentUser, out Boolean withFileAttachment, out Boolean withBodyContent, out Boolean isLastMessageOfCurrentUser);
 
                 SetActionOptionsModel(isCurrentUser, withFileAttachment, withBodyContent, isLastMessageOfCurrentUser);
 
@@ -981,36 +1036,6 @@ namespace MultiPlatformApplication.ViewModels
                     }
                 });
                 return;
-
-                //ContentView element = (ContentView)sender;
-                //MessageElementModel message = (MessageElementModel)element.BindingContext;
-
-                //// Actions possible: (to display in this order)
-                ////      - Edit       => Context: Last message of current user
-                ////      - Download  => Context: File Attachment
-                ////      - Reply     => Context: Always
-                ////      - Forward   => Context: Always
-                ////      - Copy      => Context: Body.Content not null
-                ////      - Delete    => Context: Last message of current user OR File Attachment
-                ////      - Save      => Context: File Attachment + Other User
-
-
-                //if (message != null)
-                //{
-                //    //bool isCurrentUser = false;
-                //    //bool lastMessageOfCurrentUser = false;
-                //    //bool withFileAttachment = false;
-                //    //bool withBodyContent = false;
-
-                //    // TODO: To facilitate tests - need to me removed
-                //    //Device.BeginInvokeOnMainThread(() =>
-                //    //{
-                //    //    DisplayMessageUrgencyContextMenu();
-                //    //});
-
-
-                //}
-
             }
         }
 
