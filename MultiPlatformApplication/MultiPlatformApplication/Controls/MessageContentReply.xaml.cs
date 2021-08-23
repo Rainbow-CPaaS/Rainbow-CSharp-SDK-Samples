@@ -18,6 +18,7 @@ namespace MultiPlatformApplication.Controls
     public partial class MessageContentReply : ContentView
     {
         private static readonly Logger log = LogConfigurator.GetLogger(typeof(MessageContentReply));
+        private static readonly int MAX_IMAGE_SIZE = 60;
 
         private MessageElementModel message;
 
@@ -154,6 +155,8 @@ namespace MultiPlatformApplication.Controls
 
                         // Ask more info about this file
                         Helper.SdkWrapper.AskFileDescriptorDownload(message.ConversationId, attachmentId);
+
+                        DisplayAttachment(rbRepliedMessage.FileAttachment.Name);
                     }
                 }
                 else
@@ -174,6 +177,18 @@ namespace MultiPlatformApplication.Controls
             }
             else
                 UpdateDisplay();
+        }
+
+        private void DisplayAttachment(String fileName)
+        {
+            Device.BeginInvokeOnMainThread(() =>
+            {
+                String imageSourceId = Helper.GetFileSourceIdFromFileName(fileName);
+                Image.HeightRequest = MAX_IMAGE_SIZE;
+                Image.WidthRequest = MAX_IMAGE_SIZE;
+                Image.Source = Helper.GetImageSourceFromFont(imageSourceId);
+                Image.IsVisible = true;
+            });
         }
 
         private void SdkWrapper_ThumbnailAvailable(object sender, Rainbow.Events.IdEventArgs e)
@@ -199,8 +214,8 @@ namespace MultiPlatformApplication.Controls
                     double density = Helper.GetDensity();
 
                     // Avoid to have a thumbnail too big
-                    float scaleWidth = (float)(60 * density) / (float)size.Width;
-                    float scaleHeight = (float)(60 * density) / (float)size.Height;
+                    float scaleWidth = (float)(MAX_IMAGE_SIZE * density) / (float)size.Width;
+                    float scaleHeight = (float)(MAX_IMAGE_SIZE * density) / (float)size.Height;
                     float scale = Math.Min(scaleHeight, scaleWidth);
 
                     // Don't increase size of the thumbnail 
@@ -217,6 +232,9 @@ namespace MultiPlatformApplication.Controls
                         Image.WidthRequest = (int)Math.Round(w / density);
                         Image.Source = ImageSource.FromFile(filePath);
                         Image.IsVisible = true;
+
+                        //if we have a thumbnail, we don't display the file name
+                        LabelBody.Text = "";
                     });
                 }
             }

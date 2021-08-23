@@ -71,6 +71,7 @@
                         <!-- /!\ it's not possible to have selectable and truncated text in same time -->
 
                 <Image x:Name="Image"
+                       Margin="3"
                        Grid.Row="0"
                        Grid.RowSpan="2"
                        Grid.Column="2"
