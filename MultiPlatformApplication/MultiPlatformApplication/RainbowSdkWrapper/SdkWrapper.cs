@@ -53,9 +53,28 @@ namespace MultiPlatformApplication
         public event EventHandler<ConnectionStateEventArgs> ConnectionStateChanged;
         public event EventHandler<EventArgs> InitializationPerformed;
 
+        // UI purpose
+        public event EventHandler<IdEventArgs> StartMessageEdition; // Ask to start the edition of the message using its Id
+        public event EventHandler<StringListEventArgs> StopMessageEdition; // Ask to stop the edition of the message using its Id and the new message (if any)
+
+
 #endregion PUBLIC EVENT
 
 #region TO RAISE EVENT
+
+    #region UI PURPOSE
+
+        public void OnStartMessageEdition(object sender, IdEventArgs args)
+        {
+            StartMessageEdition.Raise(sender, args);
+        }
+
+        public void OnStopMessageEdition(object sender, StringListEventArgs args)
+        {
+            StopMessageEdition.Raise(sender, args);
+        }
+
+    #endregion UI PURPOSE
 
     #region FILE STORAGE SERVICE
 
@@ -392,6 +411,10 @@ namespace MultiPlatformApplication
         }
 
         virtual public void GetMessagesFromConversationId(string conversationId, int nbMessages, Action<SdkResult<List<Message>>> callback)
+        {
+        }
+
+        virtual public void EditMessage(String conversationId, String messageID, String newMessage, Action<SdkResult<Message>> callback = null)
         {
         }
 

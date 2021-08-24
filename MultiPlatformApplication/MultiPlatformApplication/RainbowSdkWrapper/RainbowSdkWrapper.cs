@@ -361,11 +361,15 @@ namespace MultiPlatformApplication
             
         }
 
+        public override void EditMessage(String conversationId, String messageID, String newMessage, Action<SdkResult<Message>> callback = null)
+        {
+            RbInstantMessaging.EditMessage(conversationId, messageID, newMessage, callback);
+        }
+
         public override void ReplyToMessage(String conversationId, String messageID, String replyMessage, Action<SdkResult<Message>> callback = null)
         {
             RbInstantMessaging.ReplyToMessage(conversationId, messageID, replyMessage, callback);
         }
-
 
         override public bool SendMessage(Conversation conversation, ref Message message)
         {
