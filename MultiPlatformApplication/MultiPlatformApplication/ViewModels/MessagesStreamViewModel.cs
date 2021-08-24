@@ -509,9 +509,16 @@ namespace MultiPlatformApplication.ViewModels
                         if (message?.Content?.Attachment?.Action == "upload")
                             filesDescriptorIdListUploading.Add(message.Content.Attachment.Id);
 
-                        // Store Message Id of the las message sent by current user
+                        // Store Message Id of the last message sent by current user
                         if ((message.Peer.Jid == currentContactJid) && (indexInsert == MessagesList.Count))
-                            lastMessageIdOfCurrentUser = message.Id;
+                        {
+                            // it's the last message but EDIT action is possible only if we have a valid content
+                            if (message?.Content?.Body?.Length > 0)
+                            {
+                                if (!(message.Content.Body.StartsWith("/code", StringComparison.InvariantCultureIgnoreCase) || message.Content.Body.StartsWith("/img", StringComparison.InvariantCultureIgnoreCase)))
+                                    lastMessageIdOfCurrentUser = message.Id;
+                            }
+                        }
 
                         element = GetContentViewAccordingMessage(message);
 
@@ -998,19 +1005,21 @@ namespace MultiPlatformApplication.ViewModels
             }
 
             // Download action
-            if (withFileAttachment)
-            {
-                imageSourceId = "Font_FileDownload|" + colorHex;
-                ActionOptions.Add(new ContextMenuItemModel() { Id = "download", ImageSourceId = imageSourceId, Title = Helper.SdkWrapper.GetLabel("download") });
-            }
+            // TODO - Implement Download action
+            //if (withFileAttachment)
+            //{
+            //    imageSourceId = "Font_FileDownload|" + colorHex;
+            //    ActionOptions.Add(new ContextMenuItemModel() { Id = "download", ImageSourceId = imageSourceId, Title = Helper.SdkWrapper.GetLabel("download") });
+            //}
 
             // Reply action
             imageSourceId = "Font_Reply|" + colorHex;
             ActionOptions.Add(new ContextMenuItemModel() { Id = "reply", ImageSourceId = imageSourceId, Title = Helper.SdkWrapper.GetLabel("replyToMessage") });
 
             // Forward action
-            imageSourceId = "Font_ArrowRight|" + colorHex;
-            ActionOptions.Add(new ContextMenuItemModel() { Id = "forward", ImageSourceId = imageSourceId, Title = Helper.SdkWrapper.GetLabel("forwardMessage") });
+            // TODO - Implement Forward action
+            //imageSourceId = "Font_ArrowRight|" + colorHex;
+            //ActionOptions.Add(new ContextMenuItemModel() { Id = "forward", ImageSourceId = imageSourceId, Title = Helper.SdkWrapper.GetLabel("forwardMessage") });
 
             // Copy action
             if (withBodyContent)
@@ -1027,11 +1036,12 @@ namespace MultiPlatformApplication.ViewModels
             }
 
             // Save action
-            if (withFileAttachment && (!isCurrentUser))
-            {
-                imageSourceId = "Font_CloudDownloadAlt|" + colorHex;
-                ActionOptions.Add(new ContextMenuItemModel() { Id = "save", ImageSourceId = imageSourceId, Title = Helper.SdkWrapper.GetLabel("save") });
-            }
+            // TODO - Implement Save action
+            //if (withFileAttachment && (!isCurrentUser))
+            //{
+            //    imageSourceId = "Font_CloudDownloadAlt|" + colorHex;
+            //    ActionOptions.Add(new ContextMenuItemModel() { Id = "save", ImageSourceId = imageSourceId, Title = Helper.SdkWrapper.GetLabel("save") });
+            //}
         }
 
         private void GetMessageContext(MessageElementModel messageElementModel, out Boolean isCurrentUser, out Boolean withFileAttachment, out Boolean withBodyContent, out Boolean isLastMessageOfCurrentUser)
@@ -1277,7 +1287,6 @@ namespace MultiPlatformApplication.ViewModels
                 }
             }
         }
-
 
         private void FilesUpload_UploadNotPerformed(object sender, Rainbow.Events.StringListEventArgs e)
         {
