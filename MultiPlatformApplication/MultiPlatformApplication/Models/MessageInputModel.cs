@@ -18,6 +18,6 @@ namespace MultiPlatformApplication.Models
 
         public ICommand ValidationCommand { get; set; }
 
-        public String ValidationKeyModifier { get; set; }
+        public String BreakLineModifier { get; set; }
     }
 }

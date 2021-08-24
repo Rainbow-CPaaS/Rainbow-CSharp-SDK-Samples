@@ -45,7 +45,7 @@ namespace MultiPlatformApplication.Controls
             Message.UrgencyCommand = new RelayCommand<object>(new Action<object>(MessageInputUrgencyCommand));
             Message.SendCommand = new RelayCommand<object>(new Action<object>(MessageInputSendCommand));
 
-            Message.ValidationKeyModifier = "shift";
+            Message.BreakLineModifier = "shift";
             Message.ValidationCommand = new RelayCommand<object>(new Action<object>(MessageInputValidationCommand));
 
             InitializeComponent();

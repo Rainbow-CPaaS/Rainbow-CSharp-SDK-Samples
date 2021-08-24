@@ -21,7 +21,7 @@ namespace MultiPlatformApplication.UWP.PlatformEffect
     {
         TextBox textBox = null;
         
-        String validateKeyModifier;
+        String breakLineModifier;
         ICommand validationCommand;
 
         protected override void OnAttached()
@@ -33,9 +33,9 @@ namespace MultiPlatformApplication.UWP.PlatformEffect
                 validationCommand = MultiPlatformApplication.Effects.Entry.GetValidationCommand(Element);
                 if (validationCommand != null)
                 {
-                    validateKeyModifier = MultiPlatformApplication.Effects.Entry.GetValidationKeyModifier(Element);
-                    if (validateKeyModifier == null)
-                        validateKeyModifier = "";
+                    breakLineModifier = MultiPlatformApplication.Effects.Entry.GetBreakLineModifier(Element);
+                    if (breakLineModifier == null)
+                        breakLineModifier = "";
                     textBox.KeyUp += TextBox_KeyUp;
                 }
 
@@ -64,25 +64,29 @@ namespace MultiPlatformApplication.UWP.PlatformEffect
 
         private void TextBox_KeyUp(object sender, Windows.UI.Xaml.Input.KeyRoutedEventArgs e)
         {
-
+            // Checkt if "Enter" key has been pressed
             if(e.OriginalKey == VirtualKey.Enter)
             {
-                bool validate = false;
-                if((validateKeyModifier == "shift") && IsShifKeyPressed())
+                bool shiftPressed = false;
+                bool ctrlPressed = false;
+                bool altPressed = false;
+                bool validate = true;
+
+                if ( (breakLineModifier == "shift") && (shiftPressed = IsShifKeyPressed()) )
                 {
-                    validate = true;
+                    validate = false;
                 }
-                else if((validateKeyModifier == "control") && IsCtrlKeyPressed())
+                else if ( (breakLineModifier == "control") && (ctrlPressed = IsCtrlKeyPressed()) )
                 {
-                    validate = true;
+                    validate = false;
                 }
-                else if((validateKeyModifier == "alt") && IsAltKeyPressed())
+                else if ( (breakLineModifier == "alt") && (altPressed = IsAltKeyPressed()) )
                 {
-                    validate = true;
+                    validate = false;
                 }
-                else if(validateKeyModifier == "")
+                else if ( (breakLineModifier == "") && !(shiftPressed || ctrlPressed || altPressed))
                 {
-                    validate = true;
+                    validate = false;
                 }
 
                 if (validate)

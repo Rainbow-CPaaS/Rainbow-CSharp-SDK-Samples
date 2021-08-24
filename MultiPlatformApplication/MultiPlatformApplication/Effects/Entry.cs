@@ -43,24 +43,24 @@ namespace MultiPlatformApplication.Effects
 
 #endregion ValidationCommand Property
 
-#region  ValidationKeyModifier Property
+#region  BreakLineModifier Property
 
-        public static readonly BindableProperty ValidationKeyModifierProperty = BindableProperty.Create("ValidationKeyModifier", typeof(String), typeof(Entry), null, propertyChanged: OnValidationKeyModifierChanged);
+        public static readonly BindableProperty BreakLineModifierProperty = BindableProperty.Create("BreakLineModifier", typeof(String), typeof(Entry), null, propertyChanged: OnBreakLineModifierChanged);
 
-        public static String GetValidationKeyModifier(BindableObject view)
+        public static String GetBreakLineModifier(BindableObject view)
         {
-            String value = (String)view.GetValue(ValidationKeyModifierProperty);
+            String value = (String)view.GetValue(BreakLineModifierProperty);
             if(value!= null)
                 return value.ToLower();
             return null;
         }
 
-        public static void SetValidationKeyModifier(BindableObject view, String value)
+        public static void SetBreakLineModifier(BindableObject view, String value)
         {
-            view.SetValue(ValidationKeyModifierProperty, value);
+            view.SetValue(BreakLineModifierProperty, value);
         }
 
-        static void OnValidationKeyModifierChanged(BindableObject bindable, object oldValue, object newValue)
+        static void OnBreakLineModifierChanged(BindableObject bindable, object oldValue, object newValue)
         {
             // Usefull only in desktop context
             if (!Helper.IsDesktopPlatform())
@@ -70,12 +70,12 @@ namespace MultiPlatformApplication.Effects
             if (view == null)
                 return;
 
-            String ValidationKeyModifier = (String)newValue;
-            if (ValidationKeyModifier != null)
+            String BreakLineModifier = (String)newValue;
+            if (BreakLineModifier != null)
                 Helper.AddEffect(view, new ControlEntryEffect());
         }
 
-#endregion  ValidationKeyModifier Property
+#endregion  BreakLineModifier Property
 
 
 #region  NoBorder Property

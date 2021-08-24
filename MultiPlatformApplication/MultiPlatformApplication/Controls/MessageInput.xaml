@@ -142,7 +142,7 @@
                                        FontSize="{StaticResource FontSizeSmall}"/>
 
                             <controls:EditorExpandableWithMaxLines x:Name="EntryMessage"
-                                                                   ValidationKeyModifier="{Binding Message.ValidationKeyModifier}"
+                                                                   BreakLineModifier ="{Binding Message.BreakLineModifier}"
                                                                    ValidationCommand="{Binding Message.ValidationCommand}"
                                                                    MaxLines="5"
                                                                    VerticalOptions="Center"/>

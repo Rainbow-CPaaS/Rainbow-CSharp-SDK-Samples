@@ -52,43 +52,41 @@ namespace MultiPlatformApplication.Controls
 
 #endregion ValidationCommandProperty Property
 
+#region BreakLineModifier Property
 
-#region ValidationKeyModifier Property
-
-        public static readonly BindableProperty ValidationKeyModifierProperty =
-            BindableProperty.Create(nameof(ValidationKeyModifier),
+        public static readonly BindableProperty BreakLineModifierProperty =
+            BindableProperty.Create(nameof(BreakLineModifier),
             typeof(String),
             typeof(EditorExpandableWithMaxLines),
             defaultValue: "",
             defaultBindingMode: BindingMode.OneWay,
-            propertyChanged: ValidationKeyModifierProperyChanged);
+            propertyChanged: BreakLineModifierProperyChanged);
 
-        private static void ValidationKeyModifierProperyChanged(BindableObject bindable, object oldValue, object newValue)
+        private static void BreakLineModifierProperyChanged(BindableObject bindable, object oldValue, object newValue)
         {
             if( (bindable != null) && (newValue != null) )
             {
                 EditorExpandableWithMaxLines editorExpandableWithMaxLines = (EditorExpandableWithMaxLines)bindable;
-                MultiPlatformApplication.Effects.Entry.SetValidationKeyModifier(editorExpandableWithMaxLines.Editor, (string)newValue);
+                MultiPlatformApplication.Effects.Entry.SetBreakLineModifier(editorExpandableWithMaxLines.Editor, (string)newValue);
             }
         }
 
-        public String ValidationKeyModifier
+        public String BreakLineModifier
         {
             get
             {
-                var obj = base.GetValue(ValidationKeyModifierProperty);
+                var obj = base.GetValue(BreakLineModifierProperty);
                 if (obj is String)
                     return (String)obj;
                 return null;
             }
             set
             {
-                base.SetValue(ValidationKeyModifierProperty, value);
+                base.SetValue(BreakLineModifierProperty, value);
             }
         }
 
-#endregion ValidationKeyModifier Property
-
+#endregion BreakLineModifier Property
 
 #region Text Property
 
@@ -153,7 +151,6 @@ namespace MultiPlatformApplication.Controls
         }
 
 #endregion Placeholder Property
-
 
 #region MaxLines Property
 
