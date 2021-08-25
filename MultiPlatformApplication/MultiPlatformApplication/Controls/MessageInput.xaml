@@ -20,7 +20,7 @@
               Padding="0"
               HorizontalOptions="Fill"
               VerticalOptions="Start"
-              BackgroundColor="AntiqueWhite">
+              BackgroundColor="Transparent">
 
             <Grid.RowDefinitions>
                 <!-- FILES ATTACHMENT DISPLAY -->
