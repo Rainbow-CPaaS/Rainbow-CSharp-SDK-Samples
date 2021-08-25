@@ -12,8 +12,9 @@
                      Padding="0" 
                      Spacing="0">
             <Grid RowSpacing="0"
+                  Margin="8,0"
                   ColumnSpacing="2" 
-                  Padding="0" 
+                  Padding="0"
                   HorizontalOptions="End">
                 <Grid.ColumnDefinitions>
                     <!-- SPACE -->
@@ -47,8 +48,7 @@
                              Padding="0"
                              Orientation="Horizontal"
                              VerticalOptions="Center"
-                             HorizontalOptions="End"
-                             >
+                             HorizontalOptions="End">
                     
                     <Label VerticalOptions="Center" 
                            FontSize="{StaticResource FontSizeMicro}"

@@ -12,6 +12,7 @@
                      Padding="0" 
                      Spacing="0">
             <Grid RowSpacing="0" 
+                  Margin="8,0"
                   ColumnSpacing="2" 
                   Padding="0" 
                   HorizontalOptions="End">
