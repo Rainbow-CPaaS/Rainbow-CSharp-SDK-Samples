@@ -110,6 +110,9 @@ namespace MultiPlatformApplication.ViewModels
             contextMenuAction = rootView.FindByName<Grid>("ContextMenuAction");
             contextMenuAction.BindingContext = this;
 
+            // Need to know if message edition is stopped/finished
+            Helper.SdkWrapper.StopMessageEdition += SdkWrapper_StopMessageEdition;
+
             contentViewPlatformSpecific = rootView.FindByName<ContentView>("ContentViewPlatformSpecific");
             if (contentViewPlatformSpecific == null)
                 return;
@@ -138,7 +141,7 @@ namespace MultiPlatformApplication.ViewModels
             DynamicStream.AskMoreItemsCommand = new RelayCommand<object>(new Action<object>(AskMoreMessagesCommand));
         }
 
-         private void MessageInput_UpdateParentLayout(object sender, EventArgs e)
+        private void MessageInput_UpdateParentLayout(object sender, EventArgs e)
         {
             StoreScrollingPosition();
             DynamicStream.CodeAskingToScroll = true;
@@ -922,6 +925,7 @@ namespace MultiPlatformApplication.ViewModels
                     switch (action)
                     {
                         case "edit":
+                            Helper.SdkWrapper.OnStartMessageEdition(this, new IdEventArgs(actionDoneOnMessage?.Id));
                             break;
 
                         case "download":
@@ -1079,6 +1083,23 @@ namespace MultiPlatformApplication.ViewModels
                 return;
             }
         }
+
+        private void SdkWrapper_StopMessageEdition(object sender, StringListEventArgs e)
+        {
+            if ( (e?.Values?.Count > 0) && (actionDoneOnMessage != null)  && (e?.Values[0] == actionDoneOnMessage.Id) )
+            {
+                // Do we have a message ?
+                if(e.Values.Count > 1)
+                {
+                    String newText = e.Values[1];
+                    Helper.SdkWrapper.EditMessage(conversationId, actionDoneOnMessage.Id, newText, callback =>
+                    { 
+                        // TODO - manage error
+                    });
+                }
+            }
+        }
+
 
 #endregion ACTION CONTEXT MENU STUFF
 

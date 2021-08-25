@@ -1,5 +1,6 @@
 ﻿using MultiPlatformApplication.Helpers;
 using MultiPlatformApplication.Models;
+using Rainbow.Events;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,6 +16,9 @@ namespace MultiPlatformApplication.Controls
     public partial class MessageContentBody : ContentView
     {
         private MessageElementModel message = null;
+        
+        private bool inEditMode = false;
+        private EditorExpandableWithMaxLines editor;
 
         public MessageContentBody()
         {
@@ -36,6 +40,9 @@ namespace MultiPlatformApplication.Controls
                     {
                         colorKey = "ColorConversationStreamMessageCurrentUserFont";
                         backgroundColorKey = "ColorConversationStreamMessageCurrentUserBackGround";
+
+                        // We need to check if this message will be edited or not
+                        Helper.SdkWrapper.StartMessageEdition += SdkWrapper_StartMessageEdition;
                     }
                     else
                     {
@@ -47,6 +54,78 @@ namespace MultiPlatformApplication.Controls
                     BackgroundColor = Helper.GetResourceDictionaryById<Color>(backgroundColorKey);
                 }
             }
+        }
+
+        private void SdkWrapper_StartMessageEdition(object sender, Rainbow.Events.IdEventArgs e)
+        {
+            if(e.Id == message?.Id)
+                AddEditionUI();
+        }
+
+        private void CreateEditorComponent()
+        {
+            editor = new EditorExpandableWithMaxLines();
+            editor.BackgroundColor = Helper.GetResourceDictionaryById<Color>("ColorEntryBackground");
+            editor.VerticalOptions = new LayoutOptions(LayoutAlignment.Center, false);
+            editor.MaxLines = 5;
+            editor.BreakLineModifier = "shift";
+            editor.ValidationCommand = new RelayCommand<object>(new Action<object>(EditorValidationCommand));
+        }
+
+        private void AddEditionUI()
+        {
+            if (editor == null)
+            {
+                Device.BeginInvokeOnMainThread(() =>
+                {
+                    CreateEditorComponent();
+
+                    // Hide current label
+                    Label.IsVisible = false;
+
+                    // Set default text of the editor
+                    editor.Text = Label.Text;
+
+                    // Add it to the stack layout
+                    StackLayout.Children.Add(editor);
+
+                    editor.SetFocus();
+                });
+            }
+        }
+
+        private void RemoveEditionUI()
+        {
+            if (editor != null)
+            {
+                Device.BeginInvokeOnMainThread(() =>
+                {
+                    // Remove editor from stack layout
+                    StackLayout.Children.Remove(editor);
+
+                    // Set to null
+                    editor = null;
+
+                    // Display label instead
+                    Label.IsVisible = true;
+                });
+            }
+        }
+
+        private void EditorValidationCommand(object obj)
+        {
+            List<String> info = new List<string>();
+            info.Add(message?.Id);
+
+            String newText = editor.GetEditorText().Trim();
+            String oldTExt = Label.Text;
+
+            if(!newText.Equals(oldTExt))
+                info.Add(newText);
+
+            Helper.SdkWrapper.OnStopMessageEdition(this, new StringListEventArgs(info));
+
+            RemoveEditionUI();
         }
     }
 }
