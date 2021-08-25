@@ -184,8 +184,9 @@ namespace MultiPlatformApplication.Controls
 
 #endregion MaxLines Property
 
-        double heigthOneLine = 0;
-        double heigthTwoLines = 0;
+        double heightOneLine = 32;
+        double heightTwoLines = 45;
+        double maxHeight;
 
         public EditorExpandableWithMaxLines()
         {
@@ -210,24 +211,32 @@ namespace MultiPlatformApplication.Controls
             Editor.Focus();
         }
 
-        private void Editor_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        private void CheckHeight()
         {
-            if(e.PropertyName == "Height")
-            {
-                if (heigthOneLine == 0)
-                {
-                    int countLines = CountLines();
-                    if ((countLines == 1) && (Editor.Height != -1))
-                        heigthOneLine = Editor.Height;
-                }
+            double maxH = GetMaxHeight();
+            int countLines = CountLines();
 
-                if (heigthTwoLines == 0)
-                {
-                    int countLines = CountLines();
-                    if ((countLines == 2) && (Editor.Height != -1))
-                        heigthTwoLines = Editor.Height;
-                }
+            if ( (Editor.Height > maxH) || (countLines >= MaxLines))
+            {
+                // Set HeightRequest to scrollview
+                if (ScrollView.HeightRequest == -1)
+                    ScrollView.HeightRequest = maxH;
             }
+            else
+            {
+                // Remove HeightRequest to scrollview
+                if (ScrollView.HeightRequest != -1)
+                    ScrollView.HeightRequest = -1;
+            }
+        }
+
+        private double GetMaxHeight()
+        {
+            if(maxHeight == 0)
+            {
+                maxHeight = heightOneLine + (heightTwoLines - heightOneLine) * (MaxLines - 1);
+            }
+            return maxHeight;
         }
 
         private int CountLines()
@@ -247,27 +256,15 @@ namespace MultiPlatformApplication.Controls
 
         private void Editor_TextChanged(object sender, TextChangedEventArgs e)
         {
-            int countLines = CountLines();
-
-            if (countLines >= MaxLines)
-            {
-                // Set HeightRequest to scrollview
-                if (ScrollView.HeightRequest == -1)
-                {
-                    if( (heigthOneLine != 0) && (heigthTwoLines != 0) )
-                        ScrollView.HeightRequest = heigthOneLine + (heigthTwoLines - heigthOneLine) * (MaxLines - 1);
-                    else
-                        ScrollView.HeightRequest = 80; // Need a backup value ... 
-                }
-            }
-            else
-            {
-                // Remove HeightRequest to scrollview
-                if (ScrollView.HeightRequest != -1)
-                    ScrollView.HeightRequest = -1;
-            }
+            CheckHeight();
 
             TextChanged?.Raise(sender, e);
+        }
+
+        private void Editor_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == "Height")
+                CheckHeight();
         }
     }
 }

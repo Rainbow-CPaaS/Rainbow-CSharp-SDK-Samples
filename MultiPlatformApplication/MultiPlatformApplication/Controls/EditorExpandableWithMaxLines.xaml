@@ -7,7 +7,7 @@
              Margin="0"
              Padding="0"
              VerticalOptions="Center"
-             HorizontalOptions="FillAndExpand"
+             HorizontalOptions="Fill"
              BackgroundColor="Transparent">
   <ContentView.Content>
         <ScrollView x:Name="ScrollView"
@@ -15,10 +15,10 @@
                     IsClippedToBounds="True"
                     Margin="0"
                     Padding="0"
-                    WidthRequest="{Binding Source={x:Reference ContentView}, Path=Width}"
+                    HorizontalOptions="Fill"
                     HorizontalScrollBarVisibility="Never"
                     VerticalScrollBarVisibility="Always">
-
+            
             <Editor x:Name="Editor"
                     effects:Entry.NoBorder="True"
                     AutoSize="TextChanges"
