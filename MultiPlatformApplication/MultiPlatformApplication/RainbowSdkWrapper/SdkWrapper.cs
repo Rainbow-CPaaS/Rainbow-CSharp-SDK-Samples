@@ -56,7 +56,7 @@ namespace MultiPlatformApplication
         // UI purpose
         public event EventHandler<IdEventArgs> StartMessageEdition; // Ask to start the edition of the message using its Id
         public event EventHandler<StringListEventArgs> StopMessageEdition; // Ask to stop the edition of the message using its Id and the new message (if any)
-
+        public event EventHandler<IdEventArgs> StartFileDownload; // Ask to start file download using File Descriptor Id
 
 #endregion PUBLIC EVENT
 
@@ -72,6 +72,11 @@ namespace MultiPlatformApplication
         public void OnStopMessageEdition(object sender, StringListEventArgs args)
         {
             StopMessageEdition.Raise(sender, args);
+        }
+
+        public void OnStartFileDownload(object sender, IdEventArgs args)
+        {
+            StartFileDownload.Raise(sender, args);
         }
 
     #endregion UI PURPOSE
@@ -109,7 +114,6 @@ namespace MultiPlatformApplication
 
     #endregion FILE POOL SERVICE
 
-
     #region AVATARS SERVICE
 
         internal void OnPeerAvatarUpdated(object sender, PeerEventArgs args)
@@ -118,7 +122,6 @@ namespace MultiPlatformApplication
         }
 
     #endregion AVATARS SERVICE
-
 
     #region APPLICATION SERVICE
 
@@ -134,7 +137,6 @@ namespace MultiPlatformApplication
 
     #endregion APPLICATION SERVICE
 
-
     #region BUBBLES SERVICE
 
         internal void OnBubbleInfoUpdated(object sender, BubbleInfoEventArgs args)
@@ -143,7 +145,6 @@ namespace MultiPlatformApplication
         }
 
     #endregion BUBBLES SERVICE
-
 
     #region CONVERSATIONS SERVICE
 
@@ -163,7 +164,6 @@ namespace MultiPlatformApplication
         }
 
     #endregion CONVERSATIONS SERVICE
-
 
     #region CONTACTS SERVICE
 
@@ -188,7 +188,6 @@ namespace MultiPlatformApplication
         }
 
     #endregion CONTACTS SERVICE
-
 
     #region INSTANT MESSAGING SERVICE
 
@@ -332,6 +331,16 @@ namespace MultiPlatformApplication
 
         virtual public void DownloadFile(String fileId, String destinationFolder, String destinationFileName, Action<SdkResult<Boolean>> callback)
         {
+        }
+
+        virtual public FileDescriptor GetFileDescriptorFromCache(String fileId)
+        {
+            return null;
+        }
+
+        virtual public String GetFolderPathForFilesStorage()
+        {
+            return "./";
         }
 
 

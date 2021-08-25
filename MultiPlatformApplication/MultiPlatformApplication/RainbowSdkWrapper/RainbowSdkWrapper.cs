@@ -229,7 +229,6 @@ namespace MultiPlatformApplication
             RbApplication.Logout(callback);
         }
 
-
     #endregion WRAPPER - APPLICATION
 
 
@@ -253,6 +252,11 @@ namespace MultiPlatformApplication
         override public void DownloadFile(String fileId, String destinationFolder, String destinationFileName, Action<SdkResult<Boolean>> callback)
         {
             RbFileStorage.DownloadFile(fileId, destinationFolder, destinationFileName, callback);
+        }
+
+        override public FileDescriptor GetFileDescriptorFromCache(String fileId)
+        {
+            return RbFileStorage.GetFileDescriptorFromCache(fileId);
         }
 
     #endregion WRAPPER - FILESTORAGE
@@ -294,6 +298,11 @@ namespace MultiPlatformApplication
         public override String GetConversationIdByFileDescriptorId(String fileDescriptorId)
         {
             return RbFiles.GetConversationIdByFileDescriptorId(fileDescriptorId);
+        }
+
+        override public String GetFolderPathForFilesStorage()
+        {
+            return RbFiles.GetFolderPathForFilesStorage();
         }
 
     #endregion WRAPPER - FILES
