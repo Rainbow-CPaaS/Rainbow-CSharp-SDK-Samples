@@ -15,45 +15,80 @@
 
 
     <ContentView.Content>
-      
+
         <!-- DEFINE VIEW TO SEND NEW MESSAGE -->
-        <StackLayout Margin="10,2,10,2"
-                     Padding="0"
-                     Spacing="0"
-                     Orientation="Vertical"
-                     HorizontalOptions="FillAndExpand"
-                     VerticalOptions="Start"
-                     BackgroundColor="Transparent">
+        <Grid Margin="10,2,10,2"
+              Padding="0"
+              HorizontalOptions="Fill"
+              VerticalOptions="Start"
+              BackgroundColor="AntiqueWhite">
+
+            <Grid.RowDefinitions>
+                <!-- FILES ATTACHMENT DISPLAY -->
+                <RowDefinition Height="Auto"/>
+                <!-- TO DISPLAY REPLY PART WHEN CURRENT USER WANTS TO REPLY TO A MESSAGE-->
+                <RowDefinition Height="Auto"/>
+                <!-- EMOJI BUTTON - URGENCY SELECTOR - EDITOR - SEND MESSAGE BUTTON - ATTACH FILE BUTTON -->
+                <RowDefinition Height="Auto"/>
+                <!-- USERS ARE TYPING -->
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            
 
             <!-- FILES ATTACHMENT DISPLAY -->
-            <controls:MessageInputAttachments x:Name="MessageInputAttachments" />
+            <controls:MessageInputAttachments x:Name="MessageInputAttachments"
+                                              Grid.Row="0"
+                                              Grid.Column="0"/>
 
 
             <!-- TO DISPLAY REPLY PART WHEN CURRENT USER WANTS TO REPLY TO A MESSAGE-->
             <StackLayout x:Name="MessageContentReplyStackLayout"
+                         Grid.Row="1"
+                         Grid.Column="0"
                          Margin="0"
                          Padding="6,6,6,6"
                          Spacing="0"
                          Orientation="Horizontal"
-                         HorizontalOptions="FillAndExpand"
+                         HorizontalOptions="Fill"
                          VerticalOptions="Start"
                          BackgroundColor="{StaticResource ColorEntryBackground}"
                          IsVisible="false">
 
-                <StackLayout Margin="0"
-                             Padding="0"
-                             Spacing="0"
-                             Orientation="Horizontal"
-                             HorizontalOptions="FillAndExpand"
-                             VerticalOptions="Start"
-                             BackgroundColor="{StaticResource ColorConversationStreamReplyOtherUserBackGround}">
-                    
-                    <controls:MessageContentReply x:Name="MessageContentReply"
-                                              Padding="0"
-                                              HorizontalOptions="FillAndExpand"/>
+                <Grid Margin="0"
+                      Padding="0"
+                      HorizontalOptions="Fill"
+                      VerticalOptions="Start"
+                      BackgroundColor="{StaticResource ColorConversationStreamReplyOtherUserBackGround}">
+
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackLayout Grid.Column="0"
+                                 Margin="0"
+                                 Padding="0"
+                                 Spacing="0"
+                                 Orientation="Vertical"
+                                 HorizontalOptions="Fill"
+                                 VerticalOptions="Start">
+
+                        <controls:MessageContentReply x:Name="MessageContentReply"
+                                                  Padding="0"
+                                                  HorizontalOptions="Fill"/>
+                    </StackLayout>
 
                     <!-- Image used to close(hide) the reply part when current user is replying to a message -->
                     <controls:CustomButton x:Name="MessageContentReplyButton"
+                                           Grid.Column="1"
                                            CornerRadius="2"
                                            Padding="0,2,0,0"
                                            HeightRequest="24"
@@ -63,28 +98,48 @@
                                            BackgroundColorOnMouseOver="{StaticResource ColorEntryPlaceHolder}"
                                            ImageSourceId="Font_Times|ColorAttachmentText"
                                            VerticalOptions="Start"
-                                           HorizontalOptions="Center"/>
-                </StackLayout>
+                                           HorizontalOptions="End"/>
+                </Grid>
+            <!--</StackLayout>-->
             </StackLayout>
             
             
             <!-- EMOJI BUTTON - URGENCY SELECTOR - EDITOR - SEND MESSAGE BUTTON - ATTACH FILE BUTTON -->
-            <Frame Margin=" 0"
+            <Frame Grid.Row="2"
+                   Grid.Column="0"
+                   Margin=" 0"
                    Padding="0"
                    CornerRadius="2"
                    BackgroundColor="{StaticResource ColorEntryBackground}"
                    HasShadow="False"
-                   HorizontalOptions="FillAndExpand"
-                   VerticalOptions="FillAndExpand">
+                   HorizontalOptions="Fill"
+                   VerticalOptions="Fill">
 
-                <StackLayout Margin="3, 0"
-                             Padding="0"
-                             Spacing="2"
-                             Orientation="Horizontal"
-                             HorizontalOptions="FillAndExpand"
-                             VerticalOptions="Start">
+
+                <Grid Margin="3, 0"
+                      Padding="0"
+                      RowSpacing="0"
+                      ColumnSpacing="0"
+                      HorizontalOptions="Fill"
+                      VerticalOptions="Start">
+
+
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
 
                     <controls:CustomButton x:Name="ButtonEmoji"
+                                           Grid.Column="0"
                                            effects:EmojiSelector.EntryName="EntryMessage.Editor"
                                            CornerRadius="2"
                                            Padding="0,2,0,0"
@@ -96,7 +151,8 @@
                                            ImageSourceId="Font_Laugh|ColorButtonForeground"
                                            VerticalOptions="Center"/>
 
-                    <Frame WidthRequest="2"
+                    <Frame Grid.Column="1"
+                           WidthRequest="2"
                            Padding="0"
                            Margin="1,4"
                            HasShadow="False"
@@ -105,6 +161,7 @@
                            IsVisible="{Binding Source={x:Reference ButtonEmoji}, Path=IsVisible}"/>
 
                     <controls:CustomButton x:Name="ButtonUrgency"
+                                           Grid.Column="2"
                                            CornerRadius="2"
                                            ImageSize="20"
                                            HeightRequest="24"
@@ -117,6 +174,7 @@
                                            Command="{Binding Message.UrgencyCommand}"/>
 
                     <Frame x:Name="FrameUrgency"
+                           Grid.Column="3"
                            HasShadow="False"
                            Padding="0"
                            Margin="0"
@@ -130,7 +188,8 @@
                                      Spacing="0"
                                      Orientation="Vertical"
                                      VerticalOptions="Center"
-                                     BackgroundColor="Transparent">
+                                     BackgroundColor="Transparent"
+                                     HorizontalOptions="FillAndExpand">
 
                             <Label x:Name="LabelUrgency"
                                        IsVisible="{Binding Source={x:Reference LabelUrgency}, Path=Text, Converter={StaticResource TextToBooleanConverter }}"
@@ -140,16 +199,21 @@
                                        HorizontalOptions="Start"
                                        FontAttributes="Bold" 
                                        FontSize="{StaticResource FontSizeSmall}"/>
+                            <StackLayout Orientation="Vertical"
+                                         HorizontalOptions="Fill">
 
-                            <controls:EditorExpandableWithMaxLines x:Name="EntryMessage"
+                                <controls:EditorExpandableWithMaxLines x:Name="EntryMessage"
                                                                    BreakLineModifier ="{Binding Message.BreakLineModifier}"
                                                                    ValidationCommand="{Binding Message.ValidationCommand}"
                                                                    MaxLines="5"
+                                                                   HorizontalOptions="FillAndExpand"
                                                                    VerticalOptions="Center"/>
+                            </StackLayout>
                         </StackLayout>
                     </Frame>
 
                     <controls:CustomButton x:Name="ButtonSend"
+                                           Grid.Column="4"
                                            CornerRadius="2"
                                            Padding="0,2,0,0"
                                            HeightRequest="24"
@@ -161,7 +225,8 @@
                                            VerticalOptions="Center"
                                            Command="{Binding Message.SendCommand}"/>
 
-                    <Frame WidthRequest="2"
+                    <Frame Grid.Column="5"
+                           WidthRequest="2"
                            Padding="0"
                            Margin="1,4"
                            HasShadow="False"
@@ -169,6 +234,7 @@
                            BackgroundColor="{StaticResource ColorButtonMouseOver}"/>
 
                     <controls:CustomButton x:Name="ButtonAttachment"
+                                           Grid.Column="6"
                                            CornerRadius="2"
                                            Padding="0,2,0,0"
                                            HeightRequest="24"
@@ -179,12 +245,13 @@
                                            ImageSourceId="Font_PaperClip|ColorButtonForeground"
                                            VerticalOptions="Center"
                                            Command="{Binding Message.AttachmentCommand}"/>
-
-                </StackLayout>
+                </Grid>
             </Frame>
 
             <!-- USERS ARE TYPING -->
-            <StackLayout Orientation="Horizontal"
+            <StackLayout Grid.Row="3"
+                         Grid.Column="0"
+                         Orientation="Horizontal"
                          Margin="5,0,5,0"
                          Padding="0"
                          Spacing="2"
@@ -212,7 +279,8 @@
                        />
             </StackLayout>
 
-        </StackLayout>
-        
+
+        </Grid>
+
     </ContentView.Content>
 </ContentView>
