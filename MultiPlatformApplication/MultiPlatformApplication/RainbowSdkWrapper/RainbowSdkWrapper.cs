@@ -250,6 +250,11 @@ namespace MultiPlatformApplication
             RbFileStorage.UploadFile(fileStream, peerId, peerType, fileDescriptor, callbackResult);
         }
 
+        override public void DownloadFile(String fileId, String destinationFolder, String destinationFileName, Action<SdkResult<Boolean>> callback)
+        {
+            RbFileStorage.DownloadFile(fileId, destinationFolder, destinationFileName, callback);
+        }
+
     #endregion WRAPPER - FILESTORAGE
 
 

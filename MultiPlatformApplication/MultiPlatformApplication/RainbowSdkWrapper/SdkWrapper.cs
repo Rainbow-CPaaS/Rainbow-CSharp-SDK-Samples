@@ -330,6 +330,11 @@ namespace MultiPlatformApplication
         {
         }
 
+        virtual public void DownloadFile(String fileId, String destinationFolder, String destinationFileName, Action<SdkResult<Boolean>> callback)
+        {
+        }
+
+
     #endregion WRAPPER - FILESTORAGE
 
     #region WRAPPER - FILES
