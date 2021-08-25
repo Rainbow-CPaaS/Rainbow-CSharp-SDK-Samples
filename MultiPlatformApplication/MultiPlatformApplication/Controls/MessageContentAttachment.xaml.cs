@@ -1,8 +1,10 @@
-﻿using MultiPlatformApplication.Helpers;
+﻿using MultiPlatformApplication.Effects;
+using MultiPlatformApplication.Helpers;
 using MultiPlatformApplication.Models;
 using NLog;
 using Rainbow;
 using Rainbow.Common;
+using Rainbow.Events;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,6 +32,17 @@ namespace MultiPlatformApplication.Controls
         String attachmentAction;
 
         double uploadProgress = 0;
+        double downloadProgress = 0;
+
+        Boolean uploadState = false;
+        Boolean downloadState = false;
+        Boolean thumbnailUsed = false;
+
+        MouseOverAndOutModel mouseCommands;
+        TapGestureRecognizer tapGestureRecognizer;
+
+        ImageSource imageSource;
+        ImageSource imageSourceOnOver;
 
         public MessageContentAttachment()
         {
@@ -40,7 +53,7 @@ namespace MultiPlatformApplication.Controls
 
         private void MessageContentAttachment_BindingContextChanged(object sender, EventArgs e)
         {
-            if ( BindingContext != null )
+            if (BindingContext != null)
             {
                 MessageElementModel message = (MessageElementModel)BindingContext;
                 if (message != null)
@@ -74,8 +87,8 @@ namespace MultiPlatformApplication.Controls
                 if (attachmentAction?.Equals("upload", StringComparison.InvariantCultureIgnoreCase) == true)
                 {
                     Helper.SdkWrapper.FileUploadUpdated += SdkWrapper_FileUploadUpdated;
-                    DisplayUpload();
-
+                    uploadState = true;
+                    DisplayProgress(uploadProgress);
                 }
                 else if (Helper.SdkWrapper.IsThumbnailFileAvailable(conversationId, attachmentId, attachmentName))
                 {
@@ -87,39 +100,20 @@ namespace MultiPlatformApplication.Controls
                 }
                 else
                 {
+                    Helper.SdkWrapper.FileDownloadUpdated += SdkWrapper_FileDownloadUpdated;
                     DisplayAttachment();
                 }
-
-
-                // TODO - manage download progress
-                //if (attachmentAction?.Equals("download", StringComparison.InvariantCultureIgnoreCase) == true)
-                //{
-                //    // TODO
-                //    Helper.SdkWrapper.FileUploadUpdated += SdkWrapper_FileUploadUpdated;
-                //    DisplayDownload();
-                //}
             }
         }
 
-        private void DisplayUpload()
+         private void DisplayProgress(double progress)
         {
             // The display is nearly the same than a basic attachment - only the spinner is vislble
-            
+
             DisplayAttachment();
 
-            Spinner.Progress = uploadProgress;
+            Spinner.Progress = progress;
             Spinner.IsVisible = true;
-        }
-
-        private void UpdateDisplayUpload()
-        {
-            Device.BeginInvokeOnMainThread(() =>
-            {
-                if (uploadProgress >= 100)
-                    Spinner.IsVisible = false;
-                else if (uploadProgress > Spinner.Progress)
-                    Spinner.Progress = uploadProgress;
-            });
         }
 
         private void DisplayAttachment()
@@ -147,15 +141,22 @@ namespace MultiPlatformApplication.Controls
             Label.Opacity = 1;
 
             String imageSourceId = Helper.GetFileSourceIdFromFileName(attachmentName);
+            imageSource = Helper.GetImageSourceFromFont(imageSourceId);
+
             Image.HeightRequest = 30;
             Image.WidthRequest = 30;
-            Image.Source = Helper.GetImageSourceFromFont(imageSourceId);
+            Image.Source = imageSource;
             Image.Margin = new Thickness(0);
             Image.Opacity = 1;
+
+            thumbnailUsed = false;
+            AddMouseOverAndOutEffects();
         }
 
         private void DisplayDeletedFile()
         {
+            thumbnailUsed = false;
+
             String label;
             String colorName;
 
@@ -192,12 +193,13 @@ namespace MultiPlatformApplication.Controls
         private void DisplayThumbnail()
         {
             string filePath = Helper.SdkWrapper.GetThumbnailFullFilePath(attachmentId);
+
             try
             {
+                Frame.BackgroundColor = Color.Transparent;
+
                 // No Spinner visible
                 Spinner.IsVisible = false;
-
-                Frame.BackgroundColor = Color.Transparent;
 
                 log.Debug("[DisplayThumbnail] FileId:[{0}] - Use filePath:[{1}]", attachmentId, filePath);
                 System.Drawing.Size size = ImageTools.GetImageSize(filePath);
@@ -218,23 +220,63 @@ namespace MultiPlatformApplication.Controls
                     int w = (int)(size.Width * scale);
                     int h = (int)(size.Height * scale);
 
+                    imageSource = ImageSource.FromFile(filePath);
+
                     Image.HeightRequest = (int)Math.Round(h / density);
                     Image.WidthRequest = (int)Math.Round(w / density);
-                    Image.Source = ImageSource.FromFile(filePath);
+                    Image.Source = imageSource;
                     Image.Opacity = 1;
 
                     // To center horizontally Imge if its size is small
-                    if(Image.WidthRequest < MessageContent.MINIMAL_MESSAGE_WIDTH)
+                    if (Image.WidthRequest < MessageContent.MINIMAL_MESSAGE_WIDTH)
                     {
                         double m = (double)((MessageContent.MINIMAL_MESSAGE_WIDTH - Image.WidthRequest) / 2);
-                        Image.Margin = new Thickness(m,0);
+                        Image.Margin = new Thickness(m, 0);
                     }
 
                     Label.IsVisible = false;
                 }
+
+                thumbnailUsed = true;
+                AddMouseOverAndOutEffects();
             }
             catch { }
         }
+
+        private void UpdateDisplayDownload()
+        {
+            Device.BeginInvokeOnMainThread(() =>
+            {
+                if (downloadProgress >= 100)
+                {
+                    downloadState = false;
+                    Spinner.IsVisible = false;
+                    Spinner.Progress = 0;
+                }
+                else if (downloadProgress > Spinner.Progress)
+                {
+                    Spinner.IsVisible = true;
+                    Spinner.Progress = downloadProgress;
+                }
+            });
+        }
+
+        private void UpdateDisplayUpload()
+        {
+            Device.BeginInvokeOnMainThread(() =>
+            {
+                if (uploadProgress >= 100)
+                {
+                    uploadState = false;
+                    Spinner.IsVisible = false;
+                    Spinner.Progress = 0;
+                }
+                else if (uploadProgress > Spinner.Progress)
+                    Spinner.Progress = uploadProgress;
+            });
+        }
+
+#region EVENTS FROM SDK WRAPPER
 
         private void SdkWrapper_ThumbnailAvailable(object sender, Rainbow.Events.IdEventArgs e)
         {
@@ -260,7 +302,7 @@ namespace MultiPlatformApplication.Controls
 
         private void SdkWrapper_FileUploadUpdated(object sender, Rainbow.Events.FileUploadEventArgs e)
         {
-            if(attachmentId == e.FileDescriptor.Id)
+            if (attachmentId == e.FileDescriptor.Id)
             {
                 if (e.InProgress)
                 {
@@ -270,8 +312,8 @@ namespace MultiPlatformApplication.Controls
                         uploadProgress = ((e.SizeUploaded / size) * 100);
                         UpdateDisplayUpload();
                     }
-                } 
-                else if(e.Completed)
+                }
+                else if (e.Completed)
                 {
                     // Upload finished
                     uploadProgress = 100;
@@ -279,9 +321,120 @@ namespace MultiPlatformApplication.Controls
                 }
                 else
                 {
-                    // Error occurred
+                    // TODO - Error occurred
                 }
             }
         }
+
+        private void SdkWrapper_FileDownloadUpdated(object sender, Rainbow.Events.FileDownloadEventArgs e)
+        {
+            if (attachmentId == e.FileId)
+            {
+                downloadState = true;
+
+                if (e.InProgress)
+                {
+                    if (e.FileSize> 0)
+                    {
+                        double size = e.FileSize;
+                        downloadProgress = ((e.SizeDownloaded/ size) * 100);
+                        UpdateDisplayDownload();
+                    }
+                }
+                else if (e.Completed)
+                {
+                    // Upload finished
+                    downloadProgress = 100;
+                    UpdateDisplayDownload();
+                }
+                else
+                {
+                    // TODO - Error occurred
+                }
+            }
+        }
+
+#endregion EVENTS FROM SDK WRAPPER
+
+        #region MOUSE RELATED: OVER - OUT - TAPPED/CLICKED
+        private void AddMouseOverAndOutEffects()
+        {
+            bool removeEffects = true;
+            if (Helper.IsDesktopPlatform())
+            {
+                if (!thumbnailUsed)
+                {
+                    // If there is no upload and no  download in progress, we want to offer download action 
+                    if ((!uploadState) && (!downloadState))
+                    {
+                        removeEffects = false;
+
+                        // Create Image used when "mouse over"
+                        imageSourceOnOver = Helper.GetImageSourceFromFont("Font_FileDownload|" + Label.TextColor.ToHex());
+
+                        // Create Mouse Commands if necessary
+                        if (mouseCommands == null)
+                        {
+                            mouseCommands = new MouseOverAndOutModel();
+                            mouseCommands.MouseOverCommand = new RelayCommand<object>(new Action<object>(MouseOverCommand));
+                            mouseCommands.MouseOutCommand = new RelayCommand<object>(new Action<object>(MouseOutCommand));
+                        }
+
+                        //Add mouse over / out effects
+                        MouseOverEffect.SetCommand(Image, mouseCommands.MouseOverCommand);
+                        MouseOutEffect.SetCommand(Image, mouseCommands.MouseOutCommand);
+
+                        // Create/Add Tap Gesture Recognizer if necessary
+                        if (tapGestureRecognizer == null)
+                        {
+                            tapGestureRecognizer = new TapGestureRecognizer();
+                            tapGestureRecognizer.Tapped += TapGestureRecognizer_Tapped;
+                            Image.GestureRecognizers.Add(tapGestureRecognizer);
+                        }
+                    }
+                    else
+                    {
+                        // Remove Image used when "mouse over"
+                        imageSourceOnOver = null;
+                    }
+                }
+
+                if (removeEffects)
+                {
+                    Helper.RemoveEffect(Image, typeof(MouseOverEffect));
+                    Helper.RemoveEffect(Image, typeof(MouseOutEffect));
+                }
+            }
+        }
+
+        private void MouseOverCommand(object obj)
+        {
+            if ((!uploadState) && (!downloadState) && (!thumbnailUsed))
+            {
+                Image.Source = imageSourceOnOver;
+            }
+        }
+
+        private void MouseOutCommand(object obj)
+        {
+            if ((!uploadState) && (!downloadState) && (!thumbnailUsed))
+            {
+                Image.Source = imageSource;
+            }
+        }
+
+        private void TapGestureRecognizer_Tapped(object sender, EventArgs e)
+        {
+            if ((!uploadState) && (!downloadState) && (!thumbnailUsed))
+            {
+                // Set to default display
+                MouseOutCommand(null);
+
+                // Start download
+                Helper.SdkWrapper.OnStartFileDownload(this, new IdEventArgs(attachmentId));
+            }
+        }
+
+#endregion MOUSE RELATED: OVER - OUT - TAPPED/CLICKED
     }
 }

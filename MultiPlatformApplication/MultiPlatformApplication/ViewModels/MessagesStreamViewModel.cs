@@ -112,6 +112,9 @@ namespace MultiPlatformApplication.ViewModels
 
             // Need to know if message edition is stopped/finished
             Helper.SdkWrapper.StopMessageEdition += SdkWrapper_StopMessageEdition;
+            
+            // Need to know if we need to start file download
+            Helper.SdkWrapper.StartFileDownload += SdkWrapper_StartFileDownload;
 
             contentViewPlatformSpecific = rootView.FindByName<ContentView>("ContentViewPlatformSpecific");
             if (contentViewPlatformSpecific == null)
@@ -929,6 +932,7 @@ namespace MultiPlatformApplication.ViewModels
                             break;
 
                         case "download":
+                            StartFileDownload(actionDoneOnMessage?.Content?.Attachment?.Id);
                             break;
 
                         case "reply":
@@ -1009,12 +1013,11 @@ namespace MultiPlatformApplication.ViewModels
             }
 
             // Download action
-            // TODO - Implement Download action
-            //if (withFileAttachment)
-            //{
-            //    imageSourceId = "Font_FileDownload|" + colorHex;
-            //    ActionOptions.Add(new ContextMenuItemModel() { Id = "download", ImageSourceId = imageSourceId, Title = Helper.SdkWrapper.GetLabel("download") });
-            //}
+            if (withFileAttachment)
+            {
+                imageSourceId = "Font_FileDownload|" + colorHex;
+                ActionOptions.Add(new ContextMenuItemModel() { Id = "download", ImageSourceId = imageSourceId, Title = Helper.SdkWrapper.GetLabel("download") });
+            }
 
             // Reply action
             imageSourceId = "Font_Reply|" + colorHex;
@@ -1084,6 +1087,31 @@ namespace MultiPlatformApplication.ViewModels
             }
         }
 
+        private void StartFileDownload(String fileDescriptorId)
+        {
+            if(fileDescriptorId != null)
+            {
+                FileDescriptor fileDescriptor = Helper.SdkWrapper.GetFileDescriptorFromCache(fileDescriptorId);
+
+                if(fileDescriptor != null)
+                {
+                    // TODO - A specific folder (choose by end user) should be use instead on this one
+                    String dstFolder = Helper.SdkWrapper.GetFolderPathForFilesStorage();
+
+                    // TODO - enhance the way to deal with files downloaded several times
+                    // For the momet we delete the previous one
+                    String fileFullPath = Path.Combine(dstFolder, fileDescriptor.Name);
+                    if (File.Exists(fileFullPath))
+                        File.Delete(fileFullPath);
+
+                    Helper.SdkWrapper.DownloadFile(fileDescriptor.Id, dstFolder, fileDescriptor.Name, callback =>
+                    {
+                        // TODO - Manage error
+                    });
+                }
+            }
+        }
+
         private void SdkWrapper_StopMessageEdition(object sender, StringListEventArgs e)
         {
             if ( (e?.Values?.Count > 0) && (actionDoneOnMessage != null)  && (e?.Values[0] == actionDoneOnMessage.Id) )
@@ -1098,6 +1126,11 @@ namespace MultiPlatformApplication.ViewModels
                     });
                 }
             }
+        }
+
+        private void SdkWrapper_StartFileDownload(object sender, IdEventArgs e)
+        {
+            StartFileDownload(e.Id);
         }
 
 
