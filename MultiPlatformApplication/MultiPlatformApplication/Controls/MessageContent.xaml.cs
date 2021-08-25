@@ -149,7 +149,7 @@ namespace MultiPlatformApplication.Controls
             {
                 Rect rect = Helper.GetRelativePosition(visualElement, typeof(RelativeLayout));
 
-                // If sender is not a CustomButtom it means that a long press has bee used
+                // If sender is not a CustomButtom it means that a long press has been used
                 // We simulate the finger size by a square of 24x24
                 // And we need to take care of the location too
                 if (!(sender is CustomButton))
