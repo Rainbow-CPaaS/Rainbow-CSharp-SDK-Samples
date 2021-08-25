@@ -259,6 +259,11 @@ namespace MultiPlatformApplication
             return RbFileStorage.GetFileDescriptorFromCache(fileId);
         }
 
+        override public void CopyFileToPersonalStorage(String fileId, Action<SdkResult<FileDescriptor>> callback)
+        {
+            RbFileStorage.CopyFileToPersonalStorage(fileId, callback);
+        }
+
     #endregion WRAPPER - FILESTORAGE
 
 

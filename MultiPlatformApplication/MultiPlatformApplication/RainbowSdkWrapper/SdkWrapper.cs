@@ -343,6 +343,9 @@ namespace MultiPlatformApplication
             return "./";
         }
 
+        virtual public void CopyFileToPersonalStorage(String fileId, Action<SdkResult<FileDescriptor>> callback)
+        {
+        }
 
     #endregion WRAPPER - FILESTORAGE
 
