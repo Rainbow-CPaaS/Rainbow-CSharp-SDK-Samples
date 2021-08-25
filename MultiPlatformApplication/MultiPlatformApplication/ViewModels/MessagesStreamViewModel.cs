@@ -978,6 +978,10 @@ namespace MultiPlatformApplication.ViewModels
                             break;
 
                         case "save":
+                            Helper.SdkWrapper.CopyFileToPersonalStorage(actionDoneOnMessage.Id, callback =>
+                            {
+                                // TODO - manage error
+                            });
                             break;
                     }
                     
@@ -1043,12 +1047,11 @@ namespace MultiPlatformApplication.ViewModels
             }
 
             // Save action
-            // TODO - Implement Save action
-            //if (withFileAttachment && (!isCurrentUser))
-            //{
-            //    imageSourceId = "Font_CloudDownloadAlt|" + colorHex;
-            //    ActionOptions.Add(new ContextMenuItemModel() { Id = "save", ImageSourceId = imageSourceId, Title = Helper.SdkWrapper.GetLabel("save") });
-            //}
+            if (withFileAttachment && (!isCurrentUser))
+            {
+                imageSourceId = "Font_CloudDownloadAlt|" + colorHex;
+                ActionOptions.Add(new ContextMenuItemModel() { Id = "save", ImageSourceId = imageSourceId, Title = Helper.SdkWrapper.GetLabel("save") });
+            }
         }
 
         private void GetMessageContext(MessageElementModel messageElementModel, out Boolean isCurrentUser, out Boolean withFileAttachment, out Boolean withBodyContent, out Boolean isLastMessageOfCurrentUser)
