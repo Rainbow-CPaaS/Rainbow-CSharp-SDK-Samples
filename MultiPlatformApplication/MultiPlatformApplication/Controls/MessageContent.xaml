@@ -32,9 +32,6 @@
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
-                
-
-                <!-- HeaderGrid: to display Urgency / Forward-->
                 <Grid x:Name="ContentGrid"
                       Grid.Row="0" 
                       Grid.Column="0"
