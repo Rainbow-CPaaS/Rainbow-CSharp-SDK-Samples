@@ -8,19 +8,34 @@
              Padding="6">
     
     <ContentView.Content>
-        <Label x:Name="Label" 
-               HorizontalOptions="Start" 
-               FontSize="{StaticResource FontSizeSmall}" 
-               VerticalOptions="Center" 
-               Text="{Binding Content.Body}"
-               effects:SelectableLabelEffect.Enabled="True">
-            <Label.Margin>
+
+        <!-- NEED TO USE GRID TO HAVE Label ON MULTILINES -->
+        <Grid  x:Name="StackLayout"
+               Padding="0">
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <Grid.Margin>
                 <OnPlatform x:TypeArguments="Thickness">
                     <On Platform="UWP, WPF, macOs" Value="0,0,24,0" /> <!-- NEED TO ADD SPACE FOR "BtnAction" IN THESE PLATFORMS-->
                     <On Platform="Default" Value="0,0,0,0" />
                 </OnPlatform>
-            </Label.Margin>
-        </Label>
+            </Grid.Margin>
+            
+            <Label x:Name="Label" 
+                   HorizontalOptions="Start" 
+                   FontSize="{StaticResource FontSizeSmall}" 
+                   VerticalOptions="Center" 
+                   Text="{Binding Content.Body}"
+                   effects:SelectableLabelEffect.Enabled="True">
+            </Label>
+        </Grid>
     </ContentView.Content>
     
 </ContentView>
