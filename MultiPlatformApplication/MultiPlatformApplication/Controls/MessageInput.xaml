@@ -13,7 +13,6 @@
         <converters:TextToBooleanConverter x:Key="TextToBooleanConverter" />
     </ContentView.Resources>
 
-
     <ContentView.Content>
 
         <!-- DEFINE VIEW TO SEND NEW MESSAGE -->
@@ -38,21 +37,18 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
             
-
             <!-- FILES ATTACHMENT DISPLAY -->
             <controls:MessageInputAttachments x:Name="MessageInputAttachments"
                                               Grid.Row="0"
                                               Grid.Column="0"/>
 
-
             <!-- TO DISPLAY REPLY PART WHEN CURRENT USER WANTS TO REPLY TO A MESSAGE-->
-            <StackLayout x:Name="MessageContentReplyStackLayout"
+            <Frame x:Name="MessageContentReplyElement"
                          Grid.Row="1"
                          Grid.Column="0"
                          Margin="0"
                          Padding="6,6,6,6"
-                         Spacing="0"
-                         Orientation="Horizontal"
+                         CornerRadius="0"
                          HorizontalOptions="Fill"
                          VerticalOptions="Start"
                          BackgroundColor="{StaticResource ColorEntryBackground}"
@@ -82,8 +78,8 @@
                                  VerticalOptions="Start">
 
                         <controls:MessageContentReply x:Name="MessageContentReply"
-                                                  Padding="0"
-                                                  HorizontalOptions="Fill"/>
+                                                      Padding="0"
+                                                      HorizontalOptions="Fill"/>
                     </StackLayout>
 
                     <!-- Image used to close(hide) the reply part when current user is replying to a message -->
@@ -100,9 +96,7 @@
                                            VerticalOptions="Start"
                                            HorizontalOptions="End"/>
                 </Grid>
-            <!--</StackLayout>-->
-            </StackLayout>
-            
+            </Frame>
             
             <!-- EMOJI BUTTON - URGENCY SELECTOR - EDITOR - SEND MESSAGE BUTTON - ATTACH FILE BUTTON -->
             <Frame Grid.Row="2"
@@ -278,7 +272,6 @@
                        VerticalOptions="Center"
                        />
             </StackLayout>
-
 
         </Grid>
 

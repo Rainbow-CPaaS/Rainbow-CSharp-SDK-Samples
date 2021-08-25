@@ -56,7 +56,7 @@ namespace MultiPlatformApplication.Controls
             ButtonTyping.PropertyChanged += ButtonTyping_PropertyChanged;
 
             MessageContentReplyButton.Command = new RelayCommand<object>(new Action<object>(MessageContentReplyButtonCommand));
-            MessageContentReplyStackLayout.PropertyChanged += MessageContentReplyStackLayout_PropertyChanged;
+            MessageContentReplyElement.PropertyChanged += MessageContentReplyElement_PropertyChanged;
 
             EntryMessage.Placeholder = Helper.SdkWrapper.GetLabel("enterTextHere");
             EntryMessage.PropertyChanged += EntryMessage_PropertyChanged;
@@ -192,7 +192,7 @@ namespace MultiPlatformApplication.Controls
                 MessageContentReply.SetUsageMode(true);
                 MessageContentReply.BindingContext = messageElementModel;
 
-                MessageContentReplyStackLayout.IsVisible = true;
+                MessageContentReplyElement.IsVisible = true;
 
                 // Need to force the layout of the parent ...
                 UpdateParentLayout?.Raise(this, null);
@@ -205,7 +205,7 @@ namespace MultiPlatformApplication.Controls
             UpdateParentLayout?.Raise(this, null);
         }
 
-        private void MessageContentReplyStackLayout_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        private void MessageContentReplyElement_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             if ( (e.PropertyName == "IsVisible") || (e.PropertyName == "Height") )
             {
@@ -319,7 +319,7 @@ namespace MultiPlatformApplication.Controls
                 // Attachments are now available
                 ButtonAttachment.IsVisible = true;
 
-                MessageContentReplyStackLayout.IsVisible = false;
+                MessageContentReplyElement.IsVisible = false;
 
                 // Need to force the layout of the parent ...
                 UpdateParentLayout?.Raise(this, null);
