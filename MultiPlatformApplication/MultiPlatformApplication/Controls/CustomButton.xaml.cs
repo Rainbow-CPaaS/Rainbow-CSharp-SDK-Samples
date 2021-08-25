@@ -525,8 +525,6 @@ namespace MultiPlatformApplication.Controls
 
 #region CommandProperty
 
-        TapGestureRecognizer tapGestureRecognizer = new TapGestureRecognizer();
-
         public static readonly BindableProperty CommandProperty =
             BindableProperty.Create(nameof(Command), typeof(ICommand), typeof(CustomButton), null);
 
@@ -546,15 +544,7 @@ namespace MultiPlatformApplication.Controls
             typeof(object),
             typeof(CustomButton),
             defaultValue: null,
-            defaultBindingMode: BindingMode.OneWay,
-            propertyChanged: CommandParameterPropertyChanged);
-
-        private static void CommandParameterPropertyChanged(BindableObject bindable, object oldValue, object newValue)
-        {
-            var control = (CustomButton)bindable;
-            if (newValue is object)
-                control.tapGestureRecognizer.CommandParameter = newValue;
-        }
+            defaultBindingMode: BindingMode.OneWay);
 
         public object CommandParameter
         {
@@ -571,7 +561,7 @@ namespace MultiPlatformApplication.Controls
             }
         }
 
-        #endregion CommandParameterProperty
+#endregion CommandParameterProperty
 
         // Define commands used for  Mouse Over / Mouse Out purpose
         private MouseOverAndOutModel mouseCommands { get; set; }
