@@ -243,9 +243,12 @@ namespace MultiPlatformApplication.Controls
             Editor.Text = str;
         }
 
-        public void SetFocus()
+        public void SetFocus(bool focus = true)
         {
-            Editor.Focus();
+            if(focus)
+                Editor.Focus();
+            else
+                Editor.Unfocus();
         }
 
         private void CheckHeight()
