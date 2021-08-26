@@ -193,18 +193,22 @@ namespace MultiPlatformApplication.Droid.PlatformEffect
 
         void FireEvent(DroidTouchEffect touchEffect, int id, TouchActionType actionType, Point pointerLocation, bool isInContact)
         {
-            // Get the method to call for firing events
-            Action<Element, TouchActionEventArgs> onTouchAction = touchEffect.libTouchEffect.OnTouchAction;
+            try
+            {
+                // Get the method to call for firing events
+                Action<Element, TouchActionEventArgs> onTouchAction = touchEffect.libTouchEffect.OnTouchAction;
 
-            // Get the location of the pointer within the view
-            touchEffect.view.GetLocationOnScreen(twoIntArray);
-            double x = pointerLocation.X - twoIntArray[0];
-            double y = pointerLocation.Y - twoIntArray[1];
-            Point point = new Point(fromPixels(x), fromPixels(y));
+                // Get the location of the pointer within the view
+                touchEffect.view.GetLocationOnScreen(twoIntArray);
+                double x = pointerLocation.X - twoIntArray[0];
+                double y = pointerLocation.Y - twoIntArray[1];
+                Point point = new Point(fromPixels(x), fromPixels(y));
 
-            // Call the method
-            onTouchAction(touchEffect.formsElement,
-                new TouchActionEventArgs(id, actionType, point, isInContact));
+                // Call the method
+                onTouchAction(touchEffect.formsElement,
+                    new TouchActionEventArgs(id, actionType, point, isInContact));
+            }
+            catch { }
         }
     }
 }
