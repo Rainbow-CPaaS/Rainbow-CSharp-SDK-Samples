@@ -94,6 +94,26 @@ namespace MultiPlatformApplication.Controls
             editor.BreakLineModifier = "shift";
             editor.ValidationCommand = new RelayCommand<object>(new Action<object>(EditorValidationCommand));
             editor.MinimumWidth = MessageContent.MINIMAL_MESSAGE_WIDTH * 2;
+
+            editor.PropertyChanged += Editor_PropertyChanged;
+        }
+
+        private void Editor_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            // To ensure to give focus to the editor we have to wait a litle after the Renderer has been set
+            //  - OK on UWP (Debug mode)
+            //  - OK on Android Emulator
+            if (e.PropertyName == "Renderer")
+            {
+                Device.StartTimer(new TimeSpan(0, 0, 0, 0, 200), () =>
+                {
+                    Device.BeginInvokeOnMainThread(() =>
+                    {
+                        editor.SetFocus(true);
+                    });
+                    return false;
+                });
+            }
         }
 
         private void AddEditionUI()
@@ -115,7 +135,6 @@ namespace MultiPlatformApplication.Controls
                         // Add it to the stack layout
                         MainGrid.Children.Add(editor);
 
-                        editor.SetFocus(true);
                     });
                 }
             }
@@ -129,6 +148,7 @@ namespace MultiPlatformApplication.Controls
                 {
                     Device.BeginInvokeOnMainThread(() =>
                     {
+                        editor.PropertyChanged -= Editor_PropertyChanged;
 
                         // To close keyboard in Android / iOS
                         editor.SetFocus(false);
