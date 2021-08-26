@@ -39,7 +39,9 @@ namespace MultiPlatformApplication.Controls
         private int BtnPosition = -1; // To know where to add BtnAction in the Grid OR the cancel edit button
 
         // Define elements related to message edition: add a btn to easily cancel edition
+        private Grid MessageEditionGrid = null;
         private CustomButton BtnCancelEdition = null;
+        private CustomButton BtnSendEdition = null;
         private Boolean needCancelEditionButton = false; // To know if we need the CancelEdition UI Component
 
         // Define elements related to BtnAction UI Components
@@ -247,44 +249,86 @@ namespace MultiPlatformApplication.Controls
 
 #region MESSAGE EDITON RELATED
 
-        private void CreateCancelEditionButton()
+        private CustomButton CreateDefaultEditionButton()
         {
-            if(BtnCancelEdition == null)
+            CustomButton result;
+
+            result = new CustomButton();
+            result.HorizontalOptions = new LayoutOptions(LayoutAlignment.Center, false);
+            result.VerticalOptions = new LayoutOptions(LayoutAlignment.Center, false);
+
+            result.CornerRadius = 2;
+            result.Padding = new Thickness(2, 2, 0, 0);
+            result.Margin = new Thickness(1, 2, 2, 2);
+
+            result.HeightRequest = 22;
+            result.WidthRequest = 22;
+            result.ImageSize = 20;
+
+            result.BackgroundColor = backgroundColor;
+            result.BackgroundColorOnMouseOver = interpolateColor;
+
+            return result;
+        }
+
+        private void CreateMessageEditionGrid()
+        {
+            if(MessageEditionGrid == null)
             {
-                BtnCancelEdition = new CustomButton();
-                BtnCancelEdition.HorizontalOptions = new LayoutOptions(LayoutAlignment.End, false);
-                BtnCancelEdition.VerticalOptions = new LayoutOptions(LayoutAlignment.Start, false);
+                // We need to change width of the second column on desktop platform...
+                if (Helper.IsDesktopPlatform())
+                    ContentGrid.ColumnDefinitions[1].Width = 52;
 
-                BtnCancelEdition.CornerRadius = 2;
-                BtnCancelEdition.Padding = new Thickness(2, 2, 0, 0);
-                BtnCancelEdition.Margin = new Thickness(1, 2, 2, 2);
+                MessageEditionGrid = new Grid { Margin = 0, Padding = 0, ColumnSpacing = 4, WidthRequest = 52 };
 
-                BtnCancelEdition.HeightRequest = 22;
-                BtnCancelEdition.WidthRequest = 22;
-                BtnCancelEdition.ImageSize = 20;
+                MessageEditionGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = 24 });
+                MessageEditionGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = 24 });
 
+                BtnCancelEdition = CreateDefaultEditionButton();
                 BtnCancelEdition.Command = new RelayCommand<object>(new Action<object>(BtnCancelEditionCommand));
-
                 BtnCancelEdition.ImageSourceId = "Font_Times|" + color.ToHex();
-                BtnCancelEdition.BackgroundColor = backgroundColor;
-                BtnCancelEdition.BackgroundColorOnMouseOver = interpolateColor;
+                
 
-                ContentGrid.Children.Add(BtnCancelEdition, 1, BtnPosition);
+                BtnSendEdition = CreateDefaultEditionButton();
+                BtnSendEdition.Command = new RelayCommand<object>(new Action<object>(BtnSendEditionCommand));
+                BtnSendEdition.ImageSourceId = "Font_PaperPlane|" + color.ToHex();
+
+                MessageEditionGrid.Children.Add(BtnSendEdition, 0, 0);
+                MessageEditionGrid.Children.Add(BtnCancelEdition, 1, 0);
+
+                //ContentGrid.Children.Add(BtnCancelEdition, 1, BtnPosition);
+                ContentGrid.Children.Add(MessageEditionGrid, 1, BtnPosition);
             }
         }
 
-        private void RemoveCancelEditionButton()
+        private void RemoveMessageEditionGrid()
         {
-            if (BtnCancelEdition != null)
+            if (MessageEditionGrid != null)
             {
-                ContentGrid.Children.Remove(BtnCancelEdition);
+                // We need to change width of the second column on desktop platform...
+                if (Helper.IsDesktopPlatform())
+                    ContentGrid.ColumnDefinitions[1].Width = 24;
+
+                ContentGrid.Children.Remove(MessageEditionGrid);
+
+                MessageEditionGrid.Children.Remove(BtnCancelEdition);
+                MessageEditionGrid.Children.Remove(BtnSendEdition);
+
                 BtnCancelEdition = null;
+                BtnSendEdition = null;
+
+                MessageEditionGrid = null;
             }
         }
 
         private void BtnCancelEditionCommand(object obj)
         {
             Helper.SdkWrapper.OnStopMessageEdition(this, new Rainbow.Events.StringListEventArgs(new List<string> { message?.Id }));
+        }
+
+        private void BtnSendEditionCommand(object obj)
+        {
+            Helper.SdkWrapper.OnSendMessageEdition(this, new Rainbow.Events.IdEventArgs( message?.Id) );
         }
 
         private void SdkWrapper_StopMessageEdition(object sender, Rainbow.Events.StringListEventArgs e)
@@ -295,7 +339,7 @@ namespace MultiPlatformApplication.Controls
                 {
                     needCancelEditionButton = false;
 
-                    RemoveCancelEditionButton();
+                    RemoveMessageEditionGrid();
                 
                     if(BtnAction != null)
                         BtnAction.IsVisible = true;
@@ -313,7 +357,7 @@ namespace MultiPlatformApplication.Controls
                 Device.BeginInvokeOnMainThread(() =>
                 {
 
-                    CreateCancelEditionButton();
+                    CreateMessageEditionGrid();
 
                     if (BtnAction != null)
                         BtnAction.IsVisible = false;

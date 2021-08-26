@@ -49,8 +49,11 @@ namespace MultiPlatformApplication.Controls
                         // We need to check if this message will be edited or not
                         Helper.SdkWrapper.StartMessageEdition += SdkWrapper_StartMessageEdition;
 
-                        // We need to check if we haveto stop message edition
+                        // We need to check if we have to stop message edition
                         Helper.SdkWrapper.StopMessageEdition += SdkWrapper_StopMessageEdition;
+
+                        // We need to check if we have to send message edition
+                        Helper.SdkWrapper.SendMessageEdition += SdkWrapper_SendMessageEdition; ;
                     }
                     else
                     {
@@ -62,6 +65,12 @@ namespace MultiPlatformApplication.Controls
                     BackgroundColor = Helper.GetResourceDictionaryById<Color>(backgroundColorKey);
                 }
             }
+        }
+
+        private void SdkWrapper_SendMessageEdition(object sender, IdEventArgs e)
+        {
+            if (e.Id == message?.Id)
+                EditorValidationCommand(null);
         }
 
         private void SdkWrapper_StartMessageEdition(object sender, Rainbow.Events.IdEventArgs e)
@@ -104,7 +113,7 @@ namespace MultiPlatformApplication.Controls
                     // Add it to the stack layout
                     MainGrid.Children.Add(editor);
                     
-                    editor.SetFocus();
+                    editor.SetFocus(true);
                 });
             }
         }
@@ -115,6 +124,9 @@ namespace MultiPlatformApplication.Controls
             {
                 Device.BeginInvokeOnMainThread(() =>
                 {
+                    // To close keyboard in Android / iOS
+                    editor.SetFocus(false);
+
                     // Remove editor from stack layout
                     MainGrid.Children.Remove(editor);
 
