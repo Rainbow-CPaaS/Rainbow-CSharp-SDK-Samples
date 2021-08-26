@@ -16,8 +16,8 @@ namespace MultiPlatformApplication.Controls
     [XamlCompilation(XamlCompilationOptions.Compile)]
     public partial class MessageContentBody : ContentView
     {
+        Object lockEditor = new Object();
         private MessageElementModel message = null;
-        
         private EditorExpandableWithMaxLines editor;
 
         public MessageContentBody()
@@ -98,44 +98,51 @@ namespace MultiPlatformApplication.Controls
 
         private void AddEditionUI()
         {
-            if (editor == null)
+            lock (lockEditor)
             {
-                Device.BeginInvokeOnMainThread(() =>
+                if (editor == null)
                 {
-                    CreateEditorComponent();
+                    Device.BeginInvokeOnMainThread(() =>
+                    {
+                        CreateEditorComponent();
 
-                    // Hide current label
-                    Label.IsVisible = false;
+                        // Hide current label
+                        Label.IsVisible = false;
 
-                    // Set default text of the editor
-                    editor.Text = Label.Text;
+                        // Set default text of the editor
+                        editor.Text = Label.Text;
 
-                    // Add it to the stack layout
-                    MainGrid.Children.Add(editor);
-                    
-                    editor.SetFocus(true);
-                });
+                        // Add it to the stack layout
+                        MainGrid.Children.Add(editor);
+
+                        editor.SetFocus(true);
+                    });
+                }
             }
         }
 
         private void RemoveEditionUI()
         {
-            if (editor != null)
+            lock (lockEditor)
             {
-                Device.BeginInvokeOnMainThread(() =>
+                if (editor != null)
                 {
-                    // To close keyboard in Android / iOS
-                    editor.SetFocus(false);
+                    Device.BeginInvokeOnMainThread(() =>
+                    {
 
-                    // Remove editor from stack layout
-                    MainGrid.Children.Remove(editor);
+                        // To close keyboard in Android / iOS
+                        editor.SetFocus(false);
 
-                    // Set to null
-                    editor = null;
+                        // Remove editor from stack layout
+                        MainGrid.Children.Remove(editor);
 
-                    // Display label instead
-                    Label.IsVisible = true;
-                });
+                        // Set to null
+                        editor = null;
+
+                        // Display label instead
+                        Label.IsVisible = true;
+                    });
+                }
             }
         }
 
