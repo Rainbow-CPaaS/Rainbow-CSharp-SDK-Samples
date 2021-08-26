@@ -184,6 +184,43 @@ namespace MultiPlatformApplication.Controls
 
 #endregion MaxLines Property
 
+#region MinimumWidth Property
+
+        public static readonly BindableProperty MinimumWidthProperty =
+            BindableProperty.Create(nameof(MinimumWidth),
+            typeof(double),
+            typeof(EditorExpandableWithMaxLines),
+            defaultValue: (double)-1,
+            defaultBindingMode: BindingMode.OneWay,
+            propertyChanged: MinimumWidthChanged);
+
+        private static void MinimumWidthChanged(BindableObject bindable, object oldValue, object newValue)
+        {
+            if ((bindable != null) && (newValue != null))
+            {
+                EditorExpandableWithMaxLines editorExpandableWithMaxLines = (EditorExpandableWithMaxLines)bindable;
+                MultiPlatformApplication.Effects.Entry.SetMinimumWidth(editorExpandableWithMaxLines.Editor, (double)newValue);
+            }
+        }
+
+        public double MinimumWidth
+        {
+            get
+            {
+                var obj = base.GetValue(MinimumWidthProperty);
+                if (obj is int)
+                    return (int)obj;
+                return 5;
+            }
+            set
+            {
+                base.SetValue(MinimumWidthProperty, value);
+            }
+        }
+
+#endregion MinimumWidth Property
+
+
         double heightOneLine = 32;
         double heightTwoLines = 45;
         double maxHeight;

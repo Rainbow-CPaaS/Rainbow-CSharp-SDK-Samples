@@ -77,7 +77,6 @@ namespace MultiPlatformApplication.Effects
 
 #endregion  BreakLineModifier Property
 
-
 #region  NoBorder Property
 
         // No border implementation: (Android, iOs, UWP)
@@ -111,7 +110,6 @@ namespace MultiPlatformApplication.Effects
 
 #endregion  NoBorder Property
 
-
 #region  NoTintColored Property
 
         public static readonly BindableProperty NoTintColoredProperty = BindableProperty.Create("NoTintColored", typeof(Boolean), typeof(Entry), false, propertyChanged: OnNoTintColoredChanged);
@@ -138,7 +136,35 @@ namespace MultiPlatformApplication.Effects
                 Helper.AddEffect(view, new ControlEntryEffect());
         }
 
-#endregion  NoTintColored Property
+        #endregion  NoTintColored Property
+
+#region  MinimumWidth Property
+
+        public static readonly BindableProperty MinimumWidthProperty = BindableProperty.Create("MinimumWidth", typeof(double), typeof(Entry), (double)-1, propertyChanged: OnMinimumWidthChanged);
+
+        public static double GetMinimumWidth(BindableObject view)
+        {
+            return (double)view.GetValue(MinimumWidthProperty);
+        }
+
+        public static void SetMinimumWidth(BindableObject view, double value)
+        {
+            view.SetValue(MinimumWidthProperty, value);
+        }
+
+        static void OnMinimumWidthChanged(BindableObject bindable, object oldValue, object newValue)
+        {
+            var view = bindable as View;
+            if (view == null)
+                return;
+
+            Double MinimumWidth = (double)newValue;
+            if (MinimumWidth != -1)
+                Helper.AddEffect(view, new ControlEntryEffect());
+        }
+
+#endregion  MinimumWidth Property
+
 
         class ControlEntryEffect : RoutingEffect
         {
