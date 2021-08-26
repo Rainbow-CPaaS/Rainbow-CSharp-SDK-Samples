@@ -21,13 +21,6 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <Grid.Margin>
-                <OnPlatform x:TypeArguments="Thickness">
-                    <On Platform="UWP, WPF, macOs" Value="0,0,24,0" /> <!-- NEED TO ADD SPACE FOR "BtnAction" IN THESE PLATFORMS-->
-                    <On Platform="Default" Value="0,0,0,0" />
-                </OnPlatform>
-            </Grid.Margin>
-
             <Label x:Name="Label" 
                    HorizontalOptions="Start" 
                    FontSize="{StaticResource FontSizeSmall}" 
