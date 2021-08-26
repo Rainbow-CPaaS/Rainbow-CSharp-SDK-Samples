@@ -10,7 +10,7 @@
     <ContentView.Content>
 
         <!-- NEED TO USE GRID TO HAVE Label ON MULTILINES -->
-        <Grid  x:Name="StackLayout"
+        <Grid  x:Name="MainGrid"
                Padding="0">
 
             <Grid.RowDefinitions>
@@ -27,13 +27,12 @@
                     <On Platform="Default" Value="0,0,0,0" />
                 </OnPlatform>
             </Grid.Margin>
-            
+
             <Label x:Name="Label" 
                    HorizontalOptions="Start" 
                    FontSize="{StaticResource FontSizeSmall}" 
                    VerticalOptions="Center" 
-                   Text="{Binding Content.Body}"
-                   effects:SelectableLabelEffect.Enabled="True">
+                   Text="{Binding Content.Body}">
             </Label>
         </Grid>
     </ContentView.Content>

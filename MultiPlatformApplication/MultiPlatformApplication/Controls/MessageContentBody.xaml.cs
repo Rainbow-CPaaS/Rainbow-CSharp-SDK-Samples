@@ -1,4 +1,5 @@
-﻿using MultiPlatformApplication.Helpers;
+﻿using MultiPlatformApplication.Effects;
+using MultiPlatformApplication.Helpers;
 using MultiPlatformApplication.Models;
 using Rainbow.Events;
 using System;
@@ -17,12 +18,16 @@ namespace MultiPlatformApplication.Controls
     {
         private MessageElementModel message = null;
         
-        private bool inEditMode = false;
         private EditorExpandableWithMaxLines editor;
 
         public MessageContentBody()
         {
             InitializeComponent();
+
+            // On Desktop platform, Label can be selected
+            if (Helper.IsDesktopPlatform())
+                SelectableLabelEffect.SetEnabled(Label, true);
+
             this.BindingContextChanged += MessageContentBody_BindingContextChanged;
         }
 
@@ -70,6 +75,7 @@ namespace MultiPlatformApplication.Controls
             editor.MaxLines = 5;
             editor.BreakLineModifier = "shift";
             editor.ValidationCommand = new RelayCommand<object>(new Action<object>(EditorValidationCommand));
+            editor.MinimumWidth = MessageContent.MINIMAL_MESSAGE_WIDTH * 2;
         }
 
         private void AddEditionUI()
@@ -87,8 +93,8 @@ namespace MultiPlatformApplication.Controls
                     editor.Text = Label.Text;
 
                     // Add it to the stack layout
-                    StackLayout.Children.Add(editor);
-
+                    MainGrid.Children.Add(editor);
+                    
                     editor.SetFocus();
                 });
             }
@@ -101,7 +107,7 @@ namespace MultiPlatformApplication.Controls
                 Device.BeginInvokeOnMainThread(() =>
                 {
                     // Remove editor from stack layout
-                    StackLayout.Children.Remove(editor);
+                    MainGrid.Children.Remove(editor);
 
                     // Set to null
                     editor = null;
