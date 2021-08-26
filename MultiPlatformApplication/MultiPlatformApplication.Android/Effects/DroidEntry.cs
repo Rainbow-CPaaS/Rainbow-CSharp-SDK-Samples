@@ -34,6 +34,11 @@ namespace MultiPlatformApplication.Droid.PlatformEffect
 
                 if (MultiPlatformApplication.Effects.Entry.GetNoTintColored(Element))
                     NoTintColored();
+
+
+                // If the EditText has by default a text, we set the caret to the end
+                if (editText.Text?.Length > 0)
+                    editText.SetSelection(editText.Text.Length);
             }
         }
 
@@ -45,11 +50,11 @@ namespace MultiPlatformApplication.Droid.PlatformEffect
         private void NoBorder()
         {
             editText.Background = null;
-            editText.SetPadding(0, 0, 0, 0);
 
-            var lp = new MarginLayoutParams(editText.LayoutParameters);
-            lp.SetMargins(0, 0, 0, 0);
-            editText.LayoutParameters = lp;
+            //editText.SetPadding(0, 0, 0, 0);
+            //var lp = new MarginLayoutParams(editText.LayoutParameters);
+            //lp.SetMargins(0, 0, 0, 0);
+            //editText.LayoutParameters = lp;
 
 
         }

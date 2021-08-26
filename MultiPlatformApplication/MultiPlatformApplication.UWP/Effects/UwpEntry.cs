@@ -20,7 +20,7 @@ namespace MultiPlatformApplication.UWP.PlatformEffect
     public class UwpEntry : Xamarin.Forms.Platform.UWP.PlatformEffect
     {
         TextBox textBox = null;
-        
+
         String breakLineModifier;
         ICommand validationCommand;
 
@@ -45,6 +45,10 @@ namespace MultiPlatformApplication.UWP.PlatformEffect
 
                 if (MultiPlatformApplication.Effects.Entry.GetNoBorder(Element))
                     NoBorder();
+
+                // If the textbox has by default a text, we set the caret to the end
+                if (textBox.Text?.Length > 0)
+                    textBox.SelectionStart = textBox.Text.Length;
             }
         }
 
@@ -104,7 +108,7 @@ namespace MultiPlatformApplication.UWP.PlatformEffect
 
         protected override void OnDetached()
         {
-            if(textBox != null)
+            if (textBox != null)
             {
                 textBox.KeyUp -= TextBox_KeyUp;
             }
