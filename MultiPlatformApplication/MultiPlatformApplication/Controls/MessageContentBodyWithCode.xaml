@@ -15,8 +15,7 @@
             <Label x:Name="Label" 
                    HorizontalOptions="Start" 
                    FontSize="{StaticResource FontSizeSmall}" 
-                   VerticalOptions="Center" 
-                   effects:SelectableLabelEffect.Enabled="True">
+                   VerticalOptions="Center">
                 <Label.Margin>
                     <OnPlatform x:TypeArguments="Thickness">
                         <On Platform="UWP, WPF, macOs" Value="0,0,24,0" /> <!-- NEED TO ADD SPACE FOR "BtnAction" IN THESE PLATFORMS-->
