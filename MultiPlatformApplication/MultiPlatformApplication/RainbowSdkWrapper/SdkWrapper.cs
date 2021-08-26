@@ -54,6 +54,7 @@ namespace MultiPlatformApplication
         public event EventHandler<EventArgs> InitializationPerformed;
 
         // UI purpose
+        public event EventHandler<IdEventArgs> SendMessageEdition; // Ask to send the edition of the message using its Id
         public event EventHandler<IdEventArgs> StartMessageEdition; // Ask to start the edition of the message using its Id
         public event EventHandler<StringListEventArgs> StopMessageEdition; // Ask to stop the edition of the message using its Id and the new message (if any)
         public event EventHandler<IdEventArgs> StartFileDownload; // Ask to start file download using File Descriptor Id
@@ -63,6 +64,11 @@ namespace MultiPlatformApplication
 #region TO RAISE EVENT
 
     #region UI PURPOSE
+
+        public void OnSendMessageEdition(object sender, IdEventArgs args)
+        {
+            SendMessageEdition.Raise(sender, args);
+        }
 
         public void OnStartMessageEdition(object sender, IdEventArgs args)
         {
