@@ -36,17 +36,26 @@ namespace MultiPlatformApplication.Controls
         private MessageContentDeleted messageContentDeleted = null;
         private MessageContentForward messageContentForward = null;
 
-        // Define elements related to BtnAction UI Components
-        private CustomButton BtnAction = null; // BtnAction UI Component
-        private Boolean needActionButton = false; // To know if we need the BtnAction UI Component
-        private int BtnActionIndex = -1; // To know where to add BtnAction in the Grid
-        private MouseOverAndOutModel mouseCommands { get; set; } // Commands used to manage Mouse Out / Over  - Useful only we the BtnAction is needed
+        private int BtnPosition = -1; // To know where to add BtnAction in the Grid OR the cancel edit button
 
+        // Define elements related to message edition: add a btn to easily cancel edition
+        private CustomButton BtnCancelEdition = null;
+        private Boolean needCancelEditionButton = false; // To know if we need the CancelEdition UI Component
+
+        // Define elements related to BtnAction UI Components
+        private CustomButton BtnAction = null; 
+        private Boolean needActionButton = false; // To know if we need the BtnAction UI Component
+        private MouseOverAndOutModel btnActionMouseCommands { get; set; } // Commands used to manage Mouse Out / Over on BtnAction - if used/needed
 
         // Define elements used in Long Press scenario to display eventually an Action Menu
         private CancelableDelay cancelableDelayToAskActionMenuDisplay = null;
         private int delayBeforeActionMenuDisplay = 500; // in ms - default value in iOS
         private bool longPressStarted = false;
+
+
+        Color color;
+        Color backgroundColor;
+        Color interpolateColor;
 
         public MessageContent()
         {
@@ -54,17 +63,268 @@ namespace MultiPlatformApplication.Controls
 
             BowViewForMinimalWidth.WidthRequest = MINIMAL_MESSAGE_WIDTH;
 
+            // We need another column to display:
+            //      - Action button (Destop only with mouse over / out management)
+            //      - Cancel message edition button
+
+            ColumnDefinition columnDefinition = new ColumnDefinition();
+
             if (Helper.IsDesktopPlatform())
             {
+                columnDefinition.Width = 24; // Need a fix size : Action button OR Cancel message edition button
+
                 // Add Mouse Out/Over management only for desktop platforms
                 needActionButton = true;
             }
             else
             {
+                columnDefinition.Width = GridLength.Auto; // Necessary only for Cancel message edition button
+
                 // Add touch effects for others platforms
                 AddTouchEffect();
             }
+
+            ContentGrid.ColumnDefinitions.Add(columnDefinition);
         }
+
+        private void NeedToDisplayActionMenu(object sender, Point location = default)
+        {
+            if (sender is VisualElement visualElement)
+            {
+                Rect rect = Helper.GetRelativePosition(visualElement, typeof(RelativeLayout));
+
+                // If sender is not a CustomButtom it means that a long press has been used
+                // We simulate the finger size by a square of 24x24
+                // And we need to take care of the location too
+                if (!(sender is CustomButton))
+                {
+                    rect.Width = 24;
+                    rect.Height = 24;
+
+                    rect.X += location.X;
+                    rect.Y += location.Y;
+                }
+                ActionMenuToDisplay.Raise(this, new RectEventArgs(rect));
+            }
+        }
+
+        protected override void OnBindingContextChanged()
+        {
+            if ((BindingContext != null) && (message == null))
+            {
+                message = (MessageElementModel)BindingContext;
+                if (message != null)
+                {
+
+                    // Add Urgency element ?
+                    if (message.Content.Urgency != UrgencyType.Std)
+                    {
+                        if (messageContentUrgency == null)
+                        {
+                            messageContentUrgency = new MessageContentUrgency();
+                            messageContentUrgency.BindingContext = message;
+                            ContentGrid.Children.Add(messageContentUrgency, 0, 0);
+                            Grid.SetColumnSpan(messageContentUrgency, 2);
+                        }
+                    }
+
+                    // Add forward header
+                    if (message.IsForwarded)
+                    {
+                        if (messageContentForward == null)
+                        {
+                            messageContentForward = new MessageContentForward();
+                            messageContentForward.BindingContext = message;
+                            ContentGrid.Children.Add(messageContentForward, 0, 0);
+                            Grid.SetColumnSpan(messageContentForward, 2);
+                        }
+                    }
+
+                    // Add Reply element ?
+                    if (message.Reply != null)
+                    {
+                        if (messageContentReply == null)
+                        {
+                            messageContentReply = new MessageContentReply();
+                            messageContentReply.BindingContext = message;
+                            ContentGrid.Children.Add(messageContentReply, 0, 1);
+                            Grid.SetColumnSpan(messageContentReply, 2);
+                        }
+                    }
+
+                    // Add Body element ?
+                    if (!String.IsNullOrEmpty(message.Content?.Body))
+                    {
+                        if (message.Content.Body.StartsWith("/img", StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            if (messageContentBodyWithImg == null)
+                            {
+                                messageContentBodyWithImg = new MessageContentBodyWithImg();
+                                messageContentBodyWithImg.BindingContext = message;
+                                ContentGrid.Children.Add(messageContentBodyWithImg, 0, 2);
+                            }
+                        }
+                        else if (message.Content.Body.StartsWith("/code", StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            if (messageContentBodyWithCode == null)
+                            {
+                                messageContentBodyWithCode = new MessageContentBodyWithCode();
+                                messageContentBodyWithCode.BindingContext = message;
+                                ContentGrid.Children.Add(messageContentBodyWithCode, 0, 2);
+                            }
+                        }
+                        else if (messageContentBody == null)
+                        {
+                            messageContentBody = new MessageContentBody();
+                            messageContentBody.BindingContext = message;
+                            ContentGrid.Children.Add(messageContentBody, 0, 2);
+                        }
+
+                        BtnPosition = 2;
+
+                    }
+                    else if (message.Content.Type == "deletedMessage")
+                    {
+                        // We don't need action button in this case
+                        needActionButton = false;
+
+                        // Create MessageContentDeleted
+                        messageContentDeleted = new MessageContentDeleted();
+                        messageContentDeleted.BindingContext = message;
+                        ContentGrid.Children.Add(messageContentDeleted, 0, 2);
+                        Grid.SetColumnSpan(messageContentDeleted, 2);
+                    }
+
+                    // Add Attachment element ?
+                    if (message.Content.Attachment != null)
+                    {
+                        if (messageContentAttachment == null)
+                        {
+                            messageContentAttachment = new MessageContentAttachment();
+                            messageContentAttachment.BindingContext = message;
+                            ContentGrid.Children.Add(messageContentAttachment, 0, 3);
+
+                            if (BtnPosition == -1)
+                                BtnPosition = 3;
+                            else
+                                Grid.SetColumnSpan(messageContentAttachment, 2);
+                        }
+                    }
+
+                    // Are we managing a msg of the current user ?
+                    if (message.Peer.Id == Helper.SdkWrapper.GetCurrentContactId())
+                    {
+                        color = Helper.GetResourceDictionaryById<Color>("ColorConversationStreamMessageCurrentUserFont");
+                        backgroundColor = Helper.GetResourceDictionaryById<Color>("ColorConversationStreamMessageCurrentUserBackGround");
+
+                        Helper.SdkWrapper.StartMessageEdition += SdkWrapper_StartMessageEdition;
+                        Helper.SdkWrapper.StopMessageEdition += SdkWrapper_StopMessageEdition;
+                    }
+                    else
+                    {
+                        color = Helper.GetResourceDictionaryById<Color>("ColorConversationStreamMessageOtherUserFont");
+                        backgroundColor = Helper.GetResourceDictionaryById<Color>("ColorConversationStreamMessageOtherUserBackGround");
+                    }
+                    interpolateColor = ColorInterpolator.InterpolateBetween(color, backgroundColor, 0.5); 
+
+                    
+                    Frame.BackgroundColor = backgroundColor;
+
+                    // Add Btn Action in the correct place
+                    if (needActionButton && (BtnPosition != -1))
+                    {
+                        CreateBtnAction();
+
+                        BtnAction.ImageSourceId = null;
+                        BtnAction.BackgroundColor = backgroundColor;
+                        BtnAction.BackgroundColorOnMouseOver = interpolateColor;
+
+                        ContentGrid.Children.Add(BtnAction, 1, BtnPosition);
+                    }
+                }
+            }
+        }
+
+#region MESSAGE EDITON RELATED
+
+        private void CreateCancelEditionButton()
+        {
+            if(BtnCancelEdition == null)
+            {
+                BtnCancelEdition = new CustomButton();
+                BtnCancelEdition.HorizontalOptions = new LayoutOptions(LayoutAlignment.End, false);
+                BtnCancelEdition.VerticalOptions = new LayoutOptions(LayoutAlignment.Start, false);
+
+                BtnCancelEdition.CornerRadius = 2;
+                BtnCancelEdition.Padding = new Thickness(2, 2, 0, 0);
+                BtnCancelEdition.Margin = new Thickness(1, 2, 2, 2);
+
+                BtnCancelEdition.HeightRequest = 22;
+                BtnCancelEdition.WidthRequest = 22;
+                BtnCancelEdition.ImageSize = 20;
+
+                BtnCancelEdition.Command = new RelayCommand<object>(new Action<object>(BtnCancelEditionCommand));
+
+                BtnCancelEdition.ImageSourceId = "Font_Times|" + color.ToHex();
+                BtnCancelEdition.BackgroundColor = backgroundColor;
+                BtnCancelEdition.BackgroundColorOnMouseOver = interpolateColor;
+
+                ContentGrid.Children.Add(BtnCancelEdition, 1, BtnPosition);
+            }
+        }
+
+        private void RemoveCancelEditionButton()
+        {
+            if (BtnCancelEdition != null)
+            {
+                ContentGrid.Children.Remove(BtnCancelEdition);
+                BtnCancelEdition = null;
+            }
+        }
+
+        private void BtnCancelEditionCommand(object obj)
+        {
+            Helper.SdkWrapper.OnStopMessageEdition(this, new Rainbow.Events.StringListEventArgs(new List<string> { message?.Id }));
+        }
+
+        private void SdkWrapper_StopMessageEdition(object sender, Rainbow.Events.StringListEventArgs e)
+        {
+            if ((e.Values?.Count > 0) && (e.Values[0] == message?.Id))
+            {
+                Device.BeginInvokeOnMainThread(() =>
+                {
+                    needCancelEditionButton = false;
+
+                    RemoveCancelEditionButton();
+                
+                    if(BtnAction != null)
+                        BtnAction.IsVisible = true;
+    
+                });
+            }
+        }
+
+        private void SdkWrapper_StartMessageEdition(object sender, Rainbow.Events.IdEventArgs e)
+        {
+            if(e.Id == message?.Id)
+            {
+                needCancelEditionButton = true;
+
+                Device.BeginInvokeOnMainThread(() =>
+                {
+
+                    CreateCancelEditionButton();
+
+                    if (BtnAction != null)
+                        BtnAction.IsVisible = false;
+                });
+            }
+        }
+
+#endregion MESSAGE EDITON RELATED
+
+
+#region TOUCH EFECT RELATED
 
         private void AddTouchEffect()
         {
@@ -114,13 +374,16 @@ namespace MultiPlatformApplication.Controls
             }
         }
 
+#endregion TOUCH EFECT RELATED
+
+
+#region BUTTON ACTION RELATED
+
         private void CreateBtnAction()
         {
             BtnAction = new CustomButton();
             BtnAction.HorizontalOptions = new LayoutOptions(LayoutAlignment.End, false);
             BtnAction.VerticalOptions = new LayoutOptions(LayoutAlignment.Start, false);
-
-            BtnAction.IsVisible = false;
 
             BtnAction.CornerRadius = 2;
             BtnAction.Padding = new Thickness(2,2,0,0);
@@ -130,37 +393,34 @@ namespace MultiPlatformApplication.Controls
             BtnAction.WidthRequest = 22;
             BtnAction.ImageSize = 20;
 
-            mouseCommands = new MouseOverAndOutModel();
-            mouseCommands.MouseOverCommand = new RelayCommand<object>(new Action<object>(MouseOverCommand));
-            mouseCommands.MouseOutCommand = new RelayCommand<object>(new Action<object>(MouseOutCommand));
+            btnActionMouseCommands = new MouseOverAndOutModel();
+            btnActionMouseCommands.MouseOverCommand = new RelayCommand<object>(new Action<object>(BtnActionMouseOverCommand));
+            btnActionMouseCommands.MouseOutCommand = new RelayCommand<object>(new Action<object>(BtnActionMouseOutCommand));
 
             //Add mouse over effect
-            MouseOverEffect.SetCommand(RootGrid, mouseCommands.MouseOverCommand);
+            MouseOverEffect.SetCommand(RootGrid, btnActionMouseCommands.MouseOverCommand);
 
             //Add mouse out effect
-            MouseOutEffect.SetCommand(RootGrid, mouseCommands.MouseOutCommand);
+            MouseOutEffect.SetCommand(RootGrid, btnActionMouseCommands.MouseOutCommand);
 
             BtnAction.Command = new RelayCommand<object>(new Action<object>(BtnActionCommand));
         }
 
-        private void NeedToDisplayActionMenu(object sender, Point location = default)
+        private void BtnActionMouseOverCommand(object obj)
         {
-            if (sender is VisualElement visualElement)
+            if (needActionButton && !needCancelEditionButton)
             {
-                Rect rect = Helper.GetRelativePosition(visualElement, typeof(RelativeLayout));
+                // TODO - need to change 
+                BtnAction.ImageSourceId = "Font_EllipsisV|" + color.ToHex();
+                
+            }
+        }
 
-                // If sender is not a CustomButtom it means that a long press has been used
-                // We simulate the finger size by a square of 24x24
-                // And we need to take care of the location too
-                if (!(sender is CustomButton))
-                {
-                    rect.Width = 24;
-                    rect.Height = 24;
-
-                    rect.X += location.X;
-                    rect.Y += location.Y;
-                }
-                ActionMenuToDisplay.Raise(this, new RectEventArgs(rect));
+        private void BtnActionMouseOutCommand(object obj)
+        {
+            if (needActionButton && !needCancelEditionButton)
+            {
+                BtnAction.ImageSourceId = null;
             }
         }
 
@@ -169,152 +429,7 @@ namespace MultiPlatformApplication.Controls
             NeedToDisplayActionMenu(obj);
         }
 
-        private void MouseOverCommand(object obj)
-        {
-            if (needActionButton)
-            {
-                BtnAction.IsVisible = true;
-            }
-        }
+#endregion BUTTON ACTION RELATED
 
-        private void MouseOutCommand(object obj)
-        {
-            if (needActionButton)
-            {
-                BtnAction.IsVisible = false;
-            }
-        }
-
-        protected override void OnBindingContextChanged()
-        {
-            if ((BindingContext != null) && (message == null))
-            {
-                message = (MessageElementModel)BindingContext;
-                if (message != null)
-                {
-                    Color color;
-                    Color backgroundColor;
-
-                    // Add Urgency element ?
-                    if (message.Content.Urgency != UrgencyType.Std)
-                    {
-                        if (messageContentUrgency == null)
-                        {
-                            messageContentUrgency = new MessageContentUrgency();
-                            messageContentUrgency.BindingContext = message;
-                            ContentGrid.Children.Add(messageContentUrgency, 0, 0);
-
-                            // Need to define here the BackgroundColor of the HeaderGrid to ensure to have correct display if the message body is short
-                            Helper.GetUrgencyInfo(message.Content.Urgency.ToString(), out backgroundColor, out color, out String title, out String label, out String imageSourceId);
-                            ContentGrid.BackgroundColor = backgroundColor;
-                        }
-                    }
-
-                    // Add forward header
-                    if (message.IsForwarded)
-                    {
-                        if (messageContentForward == null)
-                        {
-                            messageContentForward = new MessageContentForward();
-                            messageContentForward.BindingContext = message;
-                            ContentGrid.Children.Add(messageContentForward, 0, 0);
-                        }
-                    }
-
-                    // Add Reply element ?
-                    if (message.Reply != null)
-                    {
-                        if (messageContentReply == null)
-                        {
-                            messageContentReply = new MessageContentReply();
-                            messageContentReply.BindingContext = message;
-                            ContentGrid.Children.Add(messageContentReply, 0, 1);
-                        }
-                    }
-
-                    // Add Body element ?
-                    if (!String.IsNullOrEmpty(message.Content?.Body))
-                    {
-                        if (message.Content.Body.StartsWith("/img", StringComparison.InvariantCultureIgnoreCase))
-                        {
-                            if (messageContentBodyWithImg == null)
-                            {
-                                messageContentBodyWithImg = new MessageContentBodyWithImg();
-                                messageContentBodyWithImg.BindingContext = message;
-                                ContentGrid.Children.Add(messageContentBodyWithImg, 0, 2);
-                            }
-                        }
-                        else if (message.Content.Body.StartsWith("/code", StringComparison.InvariantCultureIgnoreCase))
-                        {
-                            if (messageContentBodyWithCode == null)
-                            {
-                                messageContentBodyWithCode = new MessageContentBodyWithCode();
-                                messageContentBodyWithCode.BindingContext = message;
-                                ContentGrid.Children.Add(messageContentBodyWithCode, 0, 2);
-                            }
-                        }
-                        else if (messageContentBody == null)
-                        {
-                            messageContentBody = new MessageContentBody();
-                            messageContentBody.BindingContext = message;
-                            ContentGrid.Children.Add(messageContentBody, 0, 2);
-                        }
-
-                        BtnActionIndex = 2;
-
-                    }
-                    else if (message.Content.Type == "deletedMessage")
-                    {
-                        // We don't need action button in this case
-                        needActionButton = false;
-
-                        // Create MessageContentDeleted
-                        messageContentDeleted = new MessageContentDeleted();
-                        messageContentDeleted.BindingContext = message;
-                        ContentGrid.Children.Add(messageContentDeleted, 0, 2);
-                    }
-
-                    // Add Attachment element ?
-                    if (message.Content.Attachment != null)
-                    {
-                        if (messageContentAttachment == null)
-                        {
-                            messageContentAttachment = new MessageContentAttachment();
-                            messageContentAttachment.BindingContext = message;
-                            ContentGrid.Children.Add(messageContentAttachment, 0, 3);
-
-                            if (BtnActionIndex == -1)
-                                BtnActionIndex = 3;
-                        }
-                    }
-
-                    // Set background color
-                    if (message.Peer.Id == Helper.SdkWrapper.GetCurrentContactId())
-                    {
-                        color = Helper.GetResourceDictionaryById<Color>("ColorConversationStreamMessageCurrentUserFont");
-                        backgroundColor = Helper.GetResourceDictionaryById<Color>("ColorConversationStreamMessageCurrentUserBackGround");
-                    }
-                    else
-                    {
-                        color = Helper.GetResourceDictionaryById<Color>("ColorConversationStreamMessageOtherUserFont");
-                        backgroundColor = Helper.GetResourceDictionaryById<Color>("ColorConversationStreamMessageOtherUserBackGround");
-                    }
-
-                    Frame.BackgroundColor = backgroundColor;
-
-                    // Add Btn Action in the correct place
-                    if (needActionButton && (BtnActionIndex != -1))
-                    {
-                        CreateBtnAction();
-
-                        BtnAction.ImageSourceId = "Font_EllipsisV|" + color.ToHex();
-                        BtnAction.BackgroundColor = backgroundColor;
-                        BtnAction.BackgroundColorOnMouseOver = ColorInterpolator.InterpolateBetween(color, backgroundColor, 0.5);
-
-                        ContentGrid.Children.Add(BtnAction, 0, BtnActionIndex);
-                    }
-                }
-            }
-        }
     }
 }
