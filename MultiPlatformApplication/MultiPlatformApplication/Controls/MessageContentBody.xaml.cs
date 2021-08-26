@@ -48,6 +48,9 @@ namespace MultiPlatformApplication.Controls
 
                         // We need to check if this message will be edited or not
                         Helper.SdkWrapper.StartMessageEdition += SdkWrapper_StartMessageEdition;
+
+                        // We need to check if we haveto stop message edition
+                        Helper.SdkWrapper.StopMessageEdition += SdkWrapper_StopMessageEdition;
                     }
                     else
                     {
@@ -65,6 +68,12 @@ namespace MultiPlatformApplication.Controls
         {
             if(e.Id == message?.Id)
                 AddEditionUI();
+        }
+
+        private void SdkWrapper_StopMessageEdition(object sender, StringListEventArgs e)
+        {
+            if ( (e.Values?.Count > 0) && (e.Values[0] == message?.Id) )
+                RemoveEditionUI();
         }
 
         private void CreateEditorComponent()
@@ -130,8 +139,6 @@ namespace MultiPlatformApplication.Controls
                 info.Add(newText);
 
             Helper.SdkWrapper.OnStopMessageEdition(this, new StringListEventArgs(info));
-
-            RemoveEditionUI();
         }
     }
 }
