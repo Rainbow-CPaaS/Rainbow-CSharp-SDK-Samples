@@ -978,7 +978,7 @@ namespace MultiPlatformApplication.ViewModels
                             break;
 
                         case "save":
-                            Helper.SdkWrapper.CopyFileToPersonalStorage(actionDoneOnMessage.Id, callback =>
+                            Helper.SdkWrapper.CopyFileToPersonalStorage(actionDoneOnMessage?.Content?.Attachment?.Id, callback =>
                             {
                                 // TODO - manage error
                             });
