@@ -18,6 +18,8 @@
         <!-- DEFINE VIEW TO SEND NEW MESSAGE -->
         <Grid Margin="10,2,10,2"
               Padding="0"
+              RowSpacing="0"
+              ColumnSpacing="0"
               HorizontalOptions="Fill"
               VerticalOptions="Start"
               BackgroundColor="Transparent">
@@ -47,15 +49,17 @@
                          Grid.Row="1"
                          Grid.Column="0"
                          Margin="0"
-                         Padding="6,6,6,6"
+                         Padding="0"
                          CornerRadius="0"
                          HorizontalOptions="Fill"
                          VerticalOptions="Start"
                          BackgroundColor="{StaticResource ColorEntryBackground}"
                          IsVisible="false">
 
-                <Grid Margin="0"
+                <Grid Margin="6,6,6,0"
                       Padding="0"
+                      RowSpacing="0"
+                      ColumnSpacing="0"
                       HorizontalOptions="Fill"
                       VerticalOptions="Start"
                       BackgroundColor="{StaticResource ColorConversationStreamReplyOtherUserBackGround}">
@@ -66,7 +70,7 @@
 
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="36"/>
                     </Grid.ColumnDefinitions>
 
                     <StackLayout Grid.Column="0"
@@ -86,15 +90,16 @@
                     <controls:CustomButton x:Name="MessageContentReplyButton"
                                            Grid.Column="1"
                                            CornerRadius="2"
-                                           Padding="0,2,0,0"
+                                           Margin="0,0,0,0"
+                                           Padding="2,2,0,0"
                                            HeightRequest="24"
                                            WidthRequest="24"
                                            ImageSize="20"
                                            BackgroundColor="Transparent"
                                            BackgroundColorOnMouseOver="{StaticResource ColorEntryPlaceHolder}"
                                            ImageSourceId="Font_Times|ColorAttachmentText"
-                                           VerticalOptions="Start"
-                                           HorizontalOptions="End"/>
+                                           VerticalOptions="Center"
+                                           HorizontalOptions="Center"/>
                 </Grid>
             </Frame>
             
