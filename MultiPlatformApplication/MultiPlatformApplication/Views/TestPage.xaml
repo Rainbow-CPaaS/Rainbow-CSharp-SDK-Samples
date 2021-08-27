@@ -51,31 +51,6 @@
                                 </PathGeometry.Figures>
                             </PathGeometry>-->
                     </Image.Clip>
-
-                    <!--<Image.Clip>
-                        --><!--<EllipseGeometry 
-                        Center="75,75"
-                        RadiusX="75"
-                        RadiusY="75"/>--><!--
-                        <PathGeometry>
-                            <PathGeometry.Figures>
-                                <PathFigureCollection>
-                                    <PathFigure StartPoint="100,100">
-                                        <PathFigure.Segments>
-                                            <PathSegmentCollection>
-                                                <ArcSegment Size="100,100"
-                                                            RotationAngle="45"
-                                                            IsLargeArc="True"
-                                                            SweepDirection="CounterClockwise"
-                                                            Point="150,150" />
-                                            </PathSegmentCollection>
-                                        </PathFigure.Segments>
-                                    </PathFigure>
-                                </PathFigureCollection>
-                            </PathGeometry.Figures>
-                        </PathGeometry>
-
-                    </Image.Clip>-->
                 </Image>
             </StackLayout>
 
@@ -148,14 +123,17 @@
             </StackLayout>
 
             <Label Text="Hello World - selectable"
-                   
+                   HorizontalOptions="Center"
                    effects:SelectableLabelEffect.Enabled="True"/>
 
-            <controls:MessageInput HorizontalOptions="FillAndExpand"
+            <controls:MessageInput 
                                    IsEnabled="True"/>
 
-            <controls:EditorExpandableWithMaxLines IsEnabled="True" />
-
+            <StackLayout Orientation="Vertical"
+                         HorizontalOptions="Center">
+            <controls:EditorExpandableWithMaxLines IsEnabled="True" BackgroundColor="#00FF00"/>
+            </StackLayout>
+            
             <StackLayout Orientation="Horizontal">
                 <controls:CircularProgressBar WidthRequest="30" HeightRequest="30" Easing="True" Progress="40" Color="#FF0000"/>
 
@@ -221,7 +199,7 @@
             <!--<Image Source="{extensions:ImageResource Id=rainbow_splash_logo.png}" 
                    WidthRequest="150" HeightRequest="150"/>-->
 
-            <Image Source="https://devblogs.microsoft.com/xamarin/wp-content/uploads/sites/44/2019/03/Screen-Shot-2017-01-03-at-3.35.53-PM-150x150.png" 
+            <!--<Image Source="https://devblogs.microsoft.com/xamarin/wp-content/uploads/sites/44/2019/03/Screen-Shot-2017-01-03-at-3.35.53-PM-150x150.png" 
                    WidthRequest="150" HeightRequest="150">
                 <Image.Clip>
                     <EllipseGeometry 
@@ -229,7 +207,7 @@
                         RadiusX="75"
                         RadiusY="75"/>
                 </Image.Clip>
-            </Image>
+            </Image>-->
 
 
             <!--<RectangleGeometry Rect="10,10,80,80" />-->
@@ -239,6 +217,7 @@
         <Grid  x:Name="ContextMenuMessageUrgency"
                Margin="0"
                Padding="2"
+               IsVisible="False"
                effects:ContextMenu.Enabled="True"
                effects:ContextMenu.OnLeft="False"
                effects:ContextMenu.OnTop="False">

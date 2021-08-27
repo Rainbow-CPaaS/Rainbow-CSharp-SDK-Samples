@@ -129,12 +129,7 @@ namespace MultiPlatformApplication.Effects
                 return;
 
             if (GetEnabled(bindable))
-            {
-                //view.StyleId = "ContextMenu";
-                view.IsVisible = false;
-
                 Helper.AddEffect(view, new ControlContextMenuEffect());
-            }
             else
                 Helper.RemoveEffect(view, typeof(ControlContextMenuEffect));
         }

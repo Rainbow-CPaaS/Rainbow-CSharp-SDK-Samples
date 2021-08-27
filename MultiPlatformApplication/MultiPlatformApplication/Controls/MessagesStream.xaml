@@ -112,6 +112,7 @@
             <Grid x:Name="ContextMenuMessageUrgency"
                   Margin="0"
                   Padding="2"
+                  IsVisible="False"
                   effects:ContextMenu.Enabled="True"
                   effects:ContextMenu.OnTop="True"
                   effects:ContextMenu.OnLeft="False">
