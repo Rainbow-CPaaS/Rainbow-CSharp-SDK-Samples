@@ -110,7 +110,10 @@ namespace MultiPlatformApplication.UWP.PlatformEffect
         {
             if (textBox != null)
             {
-                textBox.KeyUp -= TextBox_KeyUp;
+                if (validationCommand != null)
+                    textBox.KeyUp -= TextBox_KeyUp;
+
+                validationCommand = null;
             }
         }
 

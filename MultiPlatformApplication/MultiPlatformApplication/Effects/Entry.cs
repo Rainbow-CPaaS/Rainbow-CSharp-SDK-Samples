@@ -136,7 +136,7 @@ namespace MultiPlatformApplication.Effects
                 Helper.AddEffect(view, new ControlEntryEffect());
         }
 
-        #endregion  NoTintColored Property
+#endregion  NoTintColored Property
 
 #region  MinimumWidth Property
 

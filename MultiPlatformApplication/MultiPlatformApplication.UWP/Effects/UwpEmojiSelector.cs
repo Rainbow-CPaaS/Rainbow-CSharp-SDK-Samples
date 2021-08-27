@@ -47,6 +47,14 @@ namespace MultiPlatformApplication.UWP.PlatformEffect
             else if (Container != null)
                 Container.PointerReleased -= PointerReleased;
 
+            if(entry != null)
+            {
+                entry.Focused -= Entry_Focused;
+                entry.Unfocused -= Entry_Unfocused;
+
+                entry = null;
+            }
+
             visualElement = null;
             inputInjector = null;
 

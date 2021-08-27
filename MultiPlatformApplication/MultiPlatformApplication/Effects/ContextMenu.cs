@@ -48,7 +48,7 @@ namespace MultiPlatformApplication.Effects
             view.SetValue(LinkedToProperty, value);
         }
 
-        static void OnLinkedToChanged(BindableObject bindable, object oldValue, object newValue)
+        private static void OnLinkedToChanged(BindableObject bindable, object oldValue, object newValue)
         {
             CheckEffect(bindable);
         }
@@ -71,7 +71,7 @@ namespace MultiPlatformApplication.Effects
             view.SetValue(RelativeToRectProperty, value);
         }
 
-        static void OnRelativeToRectChanged(BindableObject bindable, object oldValue, object newValue)
+        private static void OnRelativeToRectChanged(BindableObject bindable, object oldValue, object newValue)
         {
             CheckEffect(bindable);
         }
@@ -93,7 +93,7 @@ namespace MultiPlatformApplication.Effects
             view.SetValue(OnLeftProperty, value);
         }
 
-        static void OnOnLeftChanged(BindableObject bindable, object oldValue, object newValue)
+        private static void OnOnLeftChanged(BindableObject bindable, object oldValue, object newValue)
         {
             CheckEffect(bindable);
         }
@@ -246,7 +246,7 @@ namespace MultiPlatformApplication.Effects
                 return null;
 
 
-            View result = relativeLayout.Children.FirstOrDefault<View>((v) => (v.StyleId == "ContextMenuBackground"));
+            View result = relativeLayout.Children.FirstOrDefault<View>((v) => v.StyleId == "ContextMenuBackground");
             Frame contextMenuBackground;
 
             if (result == null)
@@ -271,36 +271,6 @@ namespace MultiPlatformApplication.Effects
                 contextMenuBackground = (Frame)result;
             }
             return contextMenuBackground;
-        }
-
-        private static Rectangle GetRectValue(Element contextMenu, VisualElement linkedToElement)
-        {
-            Rectangle rect = new Rectangle();
-
-            if (linkedToElement != null)
-            {
-                rect.Width = linkedToElement.Width;
-                rect.Height = linkedToElement.Height;
-
-                rect.X = linkedToElement.X;
-                rect.Y = linkedToElement.Y;
-
-                var parent = (VisualElement)linkedToElement.Parent;
-                while (parent != null)
-                {
-                    rect.X += parent.X;
-                    rect.Y += parent.Y;
-                    if (parent.Parent == contextMenu.Parent)
-                        break;
-
-                    if (!(parent.Parent is VisualElement))
-                        break;
-
-                    parent = (VisualElement)parent.Parent;
-                }
-            }
-
-            return rect;
         }
 
         class ControlContextMenuEffect : RoutingEffect

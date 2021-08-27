@@ -22,7 +22,7 @@ namespace MultiPlatformApplication.Effects
             view.SetValue(ColorProperty, value);
         }
 
-        static void OnColorChanged(BindableObject bindable, object oldValue, object newValue)
+        private static void OnColorChanged(BindableObject bindable, object oldValue, object newValue)
         {
             SetBackgroundColor(bindable);
         }
@@ -44,14 +44,14 @@ namespace MultiPlatformApplication.Effects
             view.SetValue(EnabledProperty, value);
         }
 
-        static void OnEnabledChanged(BindableObject bindable, object oldValue, object newValue)
+        private static void OnEnabledChanged(BindableObject bindable, object oldValue, object newValue)
         {
             SetBackgroundColor(bindable);
         }
 
 #endregion  Enabled Property
 
-        public static void SetBackgroundColor(BindableObject bindable)
+        private static void SetBackgroundColor(BindableObject bindable)
         {
             var view = bindable as View;
             if (view == null)
