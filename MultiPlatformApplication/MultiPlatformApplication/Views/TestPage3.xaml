@@ -1,0 +1,167 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:converters="clr-namespace:MultiPlatformApplication.Converters;assembly=MultiPlatformApplication" 
+             xmlns:controls="clr-namespace:MultiPlatformApplication.Controls"
+             xmlns:effects="clr-namespace:MultiPlatformApplication.Effects"
+             xmlns:extensions="clr-namespace:MultiPlatformApplication.Extensions"
+             x:Class="MultiPlatformApplication.Views.TestPage3"
+             NavigationPage.HasNavigationBar="False"
+             BackgroundColor="{StaticResource ColorConversationStreamMainBackground}">
+    
+    <ContentPage.Content>
+        <RelativeLayout Margin="0"
+                        Padding="0"
+                        HorizontalOptions="Fill"
+                        VerticalOptions="Fill">
+
+            <Grid  x:Name="MainGridTestPage3"
+                   RelativeLayout.XConstraint="{ConstraintExpression Type=RelativeToParent, Property=X, Constant=50}"
+                   RelativeLayout.YConstraint="{ConstraintExpression Type=RelativeToParent, Property=Y, Constant=50}"
+                   RelativeLayout.WidthConstraint="{ConstraintExpression Type=RelativeToParent, Property=Width, Constant=-100}"
+                   RelativeLayout.HeightConstraint="{ConstraintExpression Type=RelativeToParent, Property=Height, Constant=-100}"
+                   BackgroundColor="Chartreuse">
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <controls:CustomButton  x:Name="Logo"
+                                        ImageSourceId="rainbow_splash_logo.png"
+                                        Grid.Column="0"
+                                        Grid.Row="0"
+                                        HeightRequest="150"
+                                        WidthRequest="150"/>
+
+                <!--<Image x:Name="Logo"
+                       Grid.Column="0"
+                       Grid.Row="0"
+                       HorizontalOptions="Center"
+                       VerticalOptions="Center"
+                       Source="{extensions:ImageResource Id=rainbow_splash_logo.png}" 
+                       HeightRequest="150" 
+                       WidthRequest="150"/>-->
+
+                <Grid Grid.Column="0"
+                      Grid.Row="1">
+
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <controls:CustomButton  x:Name="CustomButton1"
+                                            Grid.Column="0"
+                                            Grid.Row="0"
+                                            Text="Custom button 1"
+                                            CornerRadius="4"
+                                            HeightRequest="30"
+                                            WidthRequest="200"
+                                            FontSize="{StaticResource FontSizeSmall}"
+                                            FontAttributes="Bold"
+                                            TextColor="White"
+                                            BackgroundColor="{StaticResource ColorMain}"
+                                            BackgroundColorOnMouseOver="{StaticResource ColorMainOnOver}"/>
+
+                    <controls:CustomButton  x:Name="CustomButton2"
+                                            Grid.Column="0"
+                                            Grid.Row="1"
+                                            Text="Custom button 2"
+                                            CornerRadius="4"
+                                            HeightRequest="30"
+                                            WidthRequest="200"
+                                            FontSize="{StaticResource FontSizeSmall}"
+                                            FontAttributes="Bold"
+                                            TextColor="White"
+                                            BackgroundColor="{StaticResource ColorMain}"
+                                            BackgroundColorOnMouseOver="{StaticResource ColorMainOnOver}"/>
+
+                    <controls:CustomButton  x:Name="InformationButton1"
+                                            Grid.Column="0"
+                                            Grid.Row="2"
+                                            Text="Information button 1"
+                                            CornerRadius="4"
+                                            HeightRequest="30"
+                                            WidthRequest="200"
+                                            FontSize="{StaticResource FontSizeSmall}"
+                                            FontAttributes="Bold"
+                                            TextColor="White"
+                                            BackgroundColor="{StaticResource ColorMain}"
+                                            BackgroundColorOnMouseOver="{StaticResource ColorMainOnOver}"/>
+
+                    <controls:CustomButton  x:Name="InformationButton2"
+                                            Grid.Column="0"
+                                            Grid.Row="3"
+                                            Text="Information button 2"
+                                            CornerRadius="4"
+                                            HeightRequest="30"
+                                            WidthRequest="200"
+                                            FontSize="{StaticResource FontSizeSmall}"
+                                            FontAttributes="Bold"
+                                            TextColor="White"
+                                            BackgroundColor="{StaticResource ColorMain}"
+                                            BackgroundColorOnMouseOver="{StaticResource ColorMainOnOver}"/>
+
+
+                </Grid>
+            </Grid>
+
+            <Frame x:Name="ContextMenu1"
+                   Margin="0"
+                   Padding="0"
+                   IsVisible="False"
+                   
+                   effects:Popup.Type="ContextMenu"
+                   
+                   HeightRequest="250"
+                   WidthRequest="100"
+                   BackgroundColor="Aquamarine"/>
+
+
+            <Frame x:Name="ContextMenu2"
+                   Margin="0"
+                   Padding="0"
+                   IsVisible="False"
+                   
+                   effects:Popup.Type="ContextMenu"
+
+                   HeightRequest="250"
+                   WidthRequest="400"
+                   BackgroundColor="DarkSalmon"/>
+
+            <Frame x:Name="Information1"
+                   Margin="0"
+                   Padding="0"
+                   IsVisible="False"
+                   
+                   effects:Popup.Type="Information"
+
+                   HeightRequest="125"
+                   WidthRequest="400"
+                   BackgroundColor="DarkKhaki"/>
+
+            <Frame x:Name="Information2"
+                   Margin="0"
+                   Padding="0"
+                   IsVisible="False"
+                   
+                   effects:Popup.Type="Information"
+
+                   HeightRequest="125"
+                   WidthRequest="400"
+                   BackgroundColor="DarkSeaGreen"/>
+        </RelativeLayout>
+    </ContentPage.Content>
+</ContentPage>
