@@ -683,19 +683,23 @@ namespace MultiPlatformApplication.Controls
 
         private void TouchEffect_TouchAction(object sender, TouchActionEventArgs e)
         {
-            if(e.Type == TouchActionType.Pressed)
+            if (IsEnabled)
             {
-                pressLocation = e.Location;
+                if (e.Type == TouchActionType.Pressed)
+                {
+                    pressLocation = e.Location;
 
-                // If there is no parameter set, we provide the current CustomButton
-                var param = CommandParameter;
-                if (param == null)
-                    param = this;
+                    // If there is no parameter set, we provide the current CustomButton
+                    var param = CommandParameter;
+                    if (param == null)
+                        param = this;
 
-                if (Command != null && Command.CanExecute(param))
-                    Command.Execute(param);
-            };
+                    if (Command != null && Command.CanExecute(param))
+                        Command.Execute(param);
+                };
+            }
         }
+        
         public Point GetPressLocation()
         {
             return pressLocation;
@@ -720,12 +724,10 @@ namespace MultiPlatformApplication.Controls
             {
                 SetBackGroundColor(this);
             }
-            else if (e.PropertyName == "BackgroundColor")
+            else if (e.PropertyName == "Renderer")
             {
-                if ((!IsSelected) && (!isMouseOver))
-                {
-                    originalBackgroundColor = Color.FromHex(BackgroundColor.ToHex());
-                }
+                originalBackgroundColor = Color.FromHex(BackgroundColor.ToHex());
+                SetBackGroundColor(this);
             }
         }
 
