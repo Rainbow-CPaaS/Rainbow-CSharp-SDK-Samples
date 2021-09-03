@@ -899,7 +899,7 @@ namespace MultiPlatformApplication.ViewModels
 
 		private void DisplayActionContextMenu(Rect rect)
         {
-            ContextMenu.SetRelativeToRect(contextMenuAction, rect);
+            Effects.ContextMenu.SetRelativeToRect(contextMenuAction, rect);
             contextMenuAction.IsVisible = true;
 		}
 
@@ -1148,7 +1148,7 @@ namespace MultiPlatformApplication.ViewModels
 
 		private void DisplayMessageUrgencyContextMenu(Rect rect)
         {
-            ContextMenu.SetRelativeToRect(contextMenuMessageUrgency, rect);
+            Effects.ContextMenu.SetRelativeToRect(contextMenuMessageUrgency, rect);
 
             contextMenuMessageUrgency.IsVisible = true;
 		}

@@ -96,8 +96,8 @@ namespace MultiPlatformApplication.ViewModels
             }
             else
             {
-                ContextMenu.Hide(contextMenuOrderBy);
-                ContextMenu.Hide(contextMenuFilter);
+                Effects.ContextMenu.Hide(contextMenuOrderBy);
+                Effects.ContextMenu.Hide(contextMenuFilter);
             }
         }
 
@@ -319,12 +319,12 @@ namespace MultiPlatformApplication.ViewModels
             switch(selectedId)
             {
                 case "orderby":
-                    ContextMenu.SetRelativeToRect(contextMenuOrderBy, rect);
+                    Effects.ContextMenu.SetRelativeToRect(contextMenuOrderBy, rect);
                     contextMenuOrderBy.IsVisible = true;
                     break;
 
                 case "filter":
-                    ContextMenu.SetRelativeToRect(contextMenuFilter, rect);
+                    Effects.ContextMenu.SetRelativeToRect(contextMenuFilter, rect);
                     contextMenuFilter.IsVisible = true;
                     break;
             }
