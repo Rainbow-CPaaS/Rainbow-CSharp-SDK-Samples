@@ -39,7 +39,7 @@ namespace MultiPlatformApplication.Controls
 
             AttachmentsListView.ItemSelected += AttachmentsListView_ItemSelected;
 
-            // We prevent MouseOver effect on ListView. "SelecionMode" must also be set to "None"
+            // We prevent MouseOver effect on ListView. "SelectionMode" must also be set to "None"
             AttachmentsListView.On<Windows>().SetSelectionMode(Xamarin.Forms.PlatformConfiguration.WindowsSpecific.ListViewSelectionMode.Inaccessible);
 
             SelectionCommand = new RelayCommand<object>(new Action<object>(SelectionCommandExecute));
