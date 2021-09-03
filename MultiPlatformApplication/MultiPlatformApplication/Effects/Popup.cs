@@ -80,6 +80,9 @@ namespace MultiPlatformApplication.Effects
         {
             Device.BeginInvokeOnMainThread(() =>
             {
+                if (popupAutomationId == contextMenuDisplayed)
+                    contextMenuDisplayed = null;
+
                 HideInternal(popupAutomationId);
             });
         }
@@ -101,7 +104,6 @@ namespace MultiPlatformApplication.Effects
             if(view != null)
                 contentPage.RemoveViewAsPopup(view);
         }
-
 
         public static void Show(String popupAutomationId, String linkedToAutomationId)
         {
