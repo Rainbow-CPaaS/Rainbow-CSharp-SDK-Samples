@@ -1,4 +1,5 @@
 ﻿using MultiPlatformApplication.Helpers;
+using Rainbow;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -10,6 +11,8 @@ namespace MultiPlatformApplication.Models
     public class ContextMenuModel : ObservableObject
     {
         private ObservableCollection<ContextMenuItemModel > items;
+
+        public event EventHandler<EventArgs> ItemVisibilityChanged;
 
         public ObservableCollection<ContextMenuItemModel > Items
         {
@@ -24,12 +27,28 @@ namespace MultiPlatformApplication.Models
 
         public void Clear()
         {
-            Items.Clear();
+            if (Items != null)
+            {
+                foreach (var item in Items)
+                    item.PropertyChanged -= Item_PropertyChanged;
+
+                Items.Clear();
+            }
         }
 
         public void Add(ContextMenuItemModel  item)
         {
-            Items.Add(item);
+            if (item != null)
+            {
+                Items.Add(item);
+                item.PropertyChanged += Item_PropertyChanged;
+            }
+        }
+
+        private void Item_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if(e.PropertyName == "IsVisible")
+                ItemVisibilityChanged.Raise(this, null);
         }
     }
 
@@ -40,7 +59,8 @@ namespace MultiPlatformApplication.Models
         public String title;
         public String description;
         public Color textColor;
-        public bool isSelected;
+        public bool isSelected = false;
+        public bool isVisible = true;
 
         public String Id
         {
@@ -117,6 +137,19 @@ namespace MultiPlatformApplication.Models
             set
             {
                 SetProperty(ref isSelected, value);
+            }
+        }
+
+        public bool IsVisible
+        {
+            get
+            {
+                return isVisible;
+            }
+
+            set
+            {
+                SetProperty(ref isVisible, value);
             }
         }
 
