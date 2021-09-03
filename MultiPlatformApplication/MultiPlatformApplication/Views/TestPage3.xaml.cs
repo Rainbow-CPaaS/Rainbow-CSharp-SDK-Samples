@@ -139,7 +139,7 @@ namespace MultiPlatformApplication.Views
                     imageSourceId = "Font_CloudDownloadAlt|" + colorHex;
                     contextMenuModel.Add(new ContextMenuItemModel() { Id = "save", ImageSourceId = imageSourceId, Title = Helper.SdkWrapper.GetLabel("save") });
 
-                    dynamicContextMenu = new Controls.ContextMenu { AutomationId = "DynamicContextMenu", WidthRequest = 180 };
+                    dynamicContextMenu = new Controls.ContextMenu { AutomationId = "DynamicContextMenu", WidthRequest = 180, StoreSelection = false };
                     dynamicContextMenu.BindingContext = contextMenuModel;
                 }
                 else if (dynamicContextMenuCounter % 3 == 0)
