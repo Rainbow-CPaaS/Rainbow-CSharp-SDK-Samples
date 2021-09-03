@@ -89,8 +89,14 @@ namespace MultiPlatformApplication.Effects
 
         public static void Add(MultiPlatformApplication.Controls.CtrlContentPage contentPage, View view, PopupType type)
         {
-            contentPage.AddViewAsPopupInternal(view);
-            SetType(view, type);
+            if (contentPage == null)
+                contentPage = GetCurrentContentPage();
+
+            if (contentPage != null)
+            {
+                contentPage.AddViewAsPopupInternal(view);
+                SetType(view, type);
+            }
         }
 
         public static void Remove(MultiPlatformApplication.Controls.CtrlContentPage contentPage, View view)
@@ -238,9 +244,8 @@ namespace MultiPlatformApplication.Effects
         private static MultiPlatformApplication.Controls.CtrlContentPage GetCurrentContentPage()
         {
             // Get current page
-            Page page = Application.Current.MainPage;
-            if ((page != null) && (page is NavigationPage navigationPage))
-                page = navigationPage.CurrentPage;
+            NavigationPage navigationPage = ((App)Xamarin.Forms.Application.Current).NavigationService.CurrentNavigationPage;
+            Page page = navigationPage.CurrentPage;
 
             if ((page != null) && (page is MultiPlatformApplication.Controls.CtrlContentPage contentPage))
                     return contentPage;
