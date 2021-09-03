@@ -3,6 +3,7 @@ using MultiPlatformApplication.Models;
 using NLog;
 using Rainbow;
 using Rainbow.Common;
+using Rainbow.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -98,8 +99,12 @@ namespace MultiPlatformApplication.Controls
             {
                 if (callback.Result.Success)
                 {
-                    log.Debug("[AskMessageInfo] Id:[{0}] - Reply.Id:[{1}] - Content:[2}]", message.Id, message.Reply.Id, callback.Data.Content);
-                    SetReplyPartOfMessage(callback.Data);
+                    Rainbow.Model.Message rbMessage = callback.Data;
+                    if (rbMessage != null)
+                    {
+                        log.Debug("[AskMessageInfo] Id:[{0}] - Reply.Id:[{1}] - Content:[2}]", message.Id, message.Reply.Id, rbMessage.Content);
+                        SetReplyPartOfMessage(rbMessage);
+                    }
                 }
             });
 
