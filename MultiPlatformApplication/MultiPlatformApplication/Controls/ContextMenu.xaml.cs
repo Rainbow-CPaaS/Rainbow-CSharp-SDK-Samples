@@ -18,11 +18,12 @@ namespace MultiPlatformApplication.Controls
 
         Boolean iconUsed = false;
         Boolean descriptionUsed = false;
+        String selectedItemId = null;
 
 #region CommandProperty
 
         public static readonly BindableProperty CommandProperty =
-            BindableProperty.Create(nameof(Command), typeof(ICommand), typeof(CustomButton), null);
+            BindableProperty.Create(nameof(Command), typeof(ICommand), typeof(ContextMenu), null);
 
         public ICommand Command
         {
@@ -31,6 +32,27 @@ namespace MultiPlatformApplication.Controls
         }
 
 #endregion CommandProperty
+
+
+#region StoreSelectionProperty
+
+        public static readonly BindableProperty StoreSelectionProperty =
+            BindableProperty.Create(nameof(StoreSelection), typeof(Boolean), typeof(ContextMenu), true);
+
+        public Boolean StoreSelection
+        {
+            get { return (Boolean)GetValue(StoreSelectionProperty); }
+            set { SetValue(StoreSelectionProperty, value); }
+        }
+
+#endregion StoreSelectionProperty
+
+        public String GetSelectedItemId()
+        {
+            if (StoreSelection)
+                return selectedItemId;
+            return null;
+        }
 
         public ContextMenu()
         {
@@ -103,7 +125,11 @@ namespace MultiPlatformApplication.Controls
                     descriptionUsed = true;
 
                 if (item.IsVisible)
+                {
                     contextMenuModelUsed.Add(item);
+                    if (item.IsSelected)
+                        selectedItemId = item.Id;
+                }
             }
 
             // Set correct DataTemplate
@@ -156,19 +182,37 @@ namespace MultiPlatformApplication.Controls
             SetHeigthAccordingModel();
         }
 
+        private void SetSelectedItem(ContextMenuModel contextMenuModel, String selectedId)
+        {
+            if(contextMenuModel?.Items?.Count > 0)
+            {
+                foreach(var item in contextMenuModel.Items)
+                    item.IsSelected = (item.Id == selectedId);
+            }
+        }
+
         private void ListView_ItemSelected(object sender, SelectedItemChangedEventArgs e)
         {
             if (e.SelectedItemIndex != -1)
             {
-                String param = null;
-                if(contextMenuModelUsed?.Items.Count > e.SelectedItemIndex)
-                    param = contextMenuModelUsed.Items[e.SelectedItemIndex].Id;
-
-                if (Command != null && Command.CanExecute(param))
-                    Command.Execute(param);
-
-                // Reset selection
+                // Reset selection of the UI component
                 ListView.SelectedItem = null;
+
+                selectedItemId = null;
+                if(contextMenuModelUsed?.Items.Count > e.SelectedItemIndex)
+                    selectedItemId = contextMenuModelUsed.Items[e.SelectedItemIndex].Id;
+
+                // Set selection in each models
+                if (StoreSelection)
+                {
+                    SetSelectedItem(contextMenuModelUsed, selectedItemId);
+                    SetSelectedItem(originalContextMenuModel, selectedItemId);
+                }
+
+                if (Command != null && Command.CanExecute(selectedItemId))
+                    Command.Execute(selectedItemId);
+
+                
             }
         }
     }
