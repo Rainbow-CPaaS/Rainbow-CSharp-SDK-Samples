@@ -19,7 +19,7 @@ using MultiPlatformApplication.Controls;
 namespace MultiPlatformApplication.ViewModels
 {
     [XamlCompilation(XamlCompilationOptions.Compile)]
-    public class ContactsViewModel: ObservableObject
+    public class ContactsViewModel : ObservableObject
     {
         private static readonly Logger log = LogConfigurator.GetLogger(typeof(ContactsViewModel));
 
@@ -27,9 +27,9 @@ namespace MultiPlatformApplication.ViewModels
 
         private Boolean firstInitialization = true;
 
-        View rootView;
-        View contextMenuOrderBy;
-        View contextMenuFilter;
+
+        Controls.ContextMenu OrderByContextMenu;
+        Controls.ContextMenu FilterContextMenu;
 
         List<ContactModel> contactsList;
         List<ContactModel> originalContactsList;
@@ -40,16 +40,12 @@ namespace MultiPlatformApplication.ViewModels
 
 #region BINDINGS used by XAML
 
-
         public Boolean IsBusy {
             get { return isBusy; }
             set { SetProperty(ref isBusy, value); }
         }
 
         public ObservableRangeCollection<ContactModel> Contacts { get; private set; } = new ObservableRangeCollection<ContactModel>();
-
-        public ContextMenuModel OrderByOptions { get; private set; } = new ContextMenuModel();
-        public ContextMenuModel FilterOptions { get; private set; } = new ContextMenuModel();
 
         public MenuItemListModel Menu { get; set; } = new MenuItemListModel();
 
@@ -59,14 +55,6 @@ namespace MultiPlatformApplication.ViewModels
         {
             // Get Xamarin Application
             XamarinApplication = (App)Xamarin.Forms.Application.Current;
-        }
-
-        public void SetRootView(View view)
-        {
-            rootView = view;
-
-            contextMenuOrderBy = rootView.FindByName<Grid>("ContextMenuOrderBy");
-            contextMenuFilter = rootView.FindByName<Grid>("ContextMenuFilter");
         }
 
         public void Initialize()
@@ -84,21 +72,48 @@ namespace MultiPlatformApplication.ViewModels
                 Menu.AddItem(new MenuItemModel() { Id = "orderby", Label = Helper.SdkWrapper.GetLabel("firstnameOrder"), ImageSourceId = "Font_SortAlphaDown|#FFFFFF" });
                 Menu.AddItem(new MenuItemModel() { Id = "filter", Label = Helper.SdkWrapper.GetLabel("allFilter"), ImageSourceId = "Font_Filter|#FFFFFF" });
 
+                CreateOrderByContexMenu();
 
-                UpdateLabelsForOrderBy();
-                SetSelectedItemOnContextMenu(OrderByOptions, OrderByOptions.Items[0].Id);
-
-                UpdateLabelsForFilter();
-                SetSelectedItemOnContextMenu(FilterOptions, FilterOptions.Items[0].Id);
+                CreateFilterContexMenu();
 
                 // Update display Sorting/Grouping on First Name
                 UpdateContactsListDisplay("firstname", "all");
             }
             else
             {
-                Effects.ContextMenu.Hide(contextMenuOrderBy);
-                Effects.ContextMenu.Hide(contextMenuFilter);
+                //Effects.ContextMenu.Hide(contextMenuOrderBy);
+                //Effects.ContextMenu.Hide(contextMenuFilter);
             }
+        }
+
+        private void CreateOrderByContexMenu()
+        {
+            var contextMenuModel = new ContextMenuModel();
+            contextMenuModel.Add(new ContextMenuItemModel() { Id = "firstname", Title = Helper.SdkWrapper.GetLabel("firstnameOrder"), IsSelected = true });
+            contextMenuModel.Add(new ContextMenuItemModel() { Id = "lastname", Title = Helper.SdkWrapper.GetLabel("lastnameOrder") });
+            contextMenuModel.Add(new ContextMenuItemModel() { Id = "company", Title = Helper.SdkWrapper.GetLabel("companyOrder") });
+
+            OrderByContextMenu = new Controls.ContextMenu { AutomationId = "OrderByContextMenu", WidthRequest = 140 };
+            OrderByContextMenu.BindingContext = contextMenuModel;
+
+            OrderByContextMenu.Command = new RelayCommand<object>(new Action<object>(OrderByContextMenuCommand));
+
+            Popup.Add(null, OrderByContextMenu, PopupType.ContextMenu);
+        }
+
+        private void CreateFilterContexMenu()
+        {
+            var contextMenuModel = new ContextMenuModel();
+            contextMenuModel.Add(new ContextMenuItemModel() { Id = "all", Title = Helper.SdkWrapper.GetLabel("allFilter"), IsSelected = true });
+            contextMenuModel.Add(new ContextMenuItemModel() { Id = "online", Title = Helper.SdkWrapper.GetLabel("onlineFilter") });
+            contextMenuModel.Add(new ContextMenuItemModel() { Id = "offline", Title = Helper.SdkWrapper.GetLabel("offlineFilter") });
+
+            FilterContextMenu = new Controls.ContextMenu { AutomationId = "FilterContextMenu", WidthRequest = 140 };
+            FilterContextMenu.BindingContext = contextMenuModel;
+
+            FilterContextMenu.Command = new RelayCommand<object>(new Action<object>(FilterContextMenuCommand));
+
+            Popup.Add(null, FilterContextMenu, PopupType.ContextMenu);
         }
 
         private void UpdateContactsListDisplay(String orderBy = "firstname", String filter = "all")
@@ -273,22 +288,6 @@ namespace MultiPlatformApplication.ViewModels
             Menu.Items[1].Label = labelMenuFilter;
         }
 
-        private void UpdateLabelsForOrderBy()
-        {
-            OrderByOptions.Clear();
-            OrderByOptions.Add(new ContextMenuItemModel() { Id = "firstname", Title = Helper.SdkWrapper.GetLabel("firstnameOrder") });
-            OrderByOptions.Add(new ContextMenuItemModel() { Id = "lastname", Title = Helper.SdkWrapper.GetLabel("lastnameOrder") });
-            OrderByOptions.Add(new ContextMenuItemModel() { Id = "company", Title = Helper.SdkWrapper.GetLabel("companyOrder") });
-        }
-
-        private void UpdateLabelsForFilter()
-        {
-            FilterOptions.Clear();
-            FilterOptions.Add(new ContextMenuItemModel() { Id = "all", Title = Helper.SdkWrapper.GetLabel("allFilter") });
-            FilterOptions.Add(new ContextMenuItemModel() { Id = "online", Title = Helper.SdkWrapper.GetLabel("onlineFilter") });
-            FilterOptions.Add(new ContextMenuItemModel() { Id = "offline", Title = Helper.SdkWrapper.GetLabel("offlineFilter") });
-        }
-
         private void SetSelectedItemOnContextMenu(ContextMenuModel contextMenuModel, String selectedId)
         {
             if (String.IsNullOrEmpty(selectedId))
@@ -311,24 +310,22 @@ namespace MultiPlatformApplication.ViewModels
 
             if (obj is CustomButton customButton)
             {
-                rect = Helper.GetRelativePosition(customButton, typeof(RelativeLayout));
+                rect = Popup.GetRectOfView(customButton);
                 if (customButton.BindingContext is MenuItemModel menuItemModel)
                     selectedId = menuItemModel.Id;
             }
 
-            switch(selectedId)
+            switch (selectedId)
             {
                 case "orderby":
-                    Effects.ContextMenu.SetRelativeToRect(contextMenuOrderBy, rect);
-                    contextMenuOrderBy.IsVisible = true;
+                    Popup.Show("OrderByContextMenu", rect);
                     break;
 
                 case "filter":
-                    Effects.ContextMenu.SetRelativeToRect(contextMenuFilter, rect);
-                    contextMenuFilter.IsVisible = true;
+                    Popup.Show("FilterContextMenu", rect);
                     break;
             }
-                
+
             Menu.SetItemSelected(-1);
         }
 
@@ -342,7 +339,7 @@ namespace MultiPlatformApplication.ViewModels
                     if (String.IsNullOrEmpty(contact.GroupName))
                     {
                         Conversation conversation = Helper.SdkWrapper.GetOrCreateConversationFromUserId(contact.Peer.Id);
-                        if(conversation != null)
+                        if (conversation != null)
                         {
                             XamarinApplication.CurrentConversationId = conversation.Id;
                             await XamarinApplication.NavigationService.NavigateModalAsync("ConversationStreamPage", conversation.Id);
@@ -351,32 +348,22 @@ namespace MultiPlatformApplication.ViewModels
                         {
                             // TODO
                         }
-                        
+
                     }
                 }
             }
         }
 
-        public void SelectedOrderByCommand(Object obj)
+        private void OrderByContextMenuCommand(object obj)
         {
-            if (obj is ContextMenuItemModel)
-            {
-                ContextMenuItemModel item = obj as ContextMenuItemModel;
-                SetSelectedItemOnContextMenu(OrderByOptions, item.Id);
-                contextMenuOrderBy.IsVisible = false;
-                UpdateContactsListDisplay(item.Id, currentFilter);
-            }
+            if(obj is String id)
+                UpdateContactsListDisplay(id, currentFilter);
         }
 
-        public void SelectedFilterCommand(Object obj)
+        public void FilterContextMenuCommand(Object obj)
         {
-            if (obj is ContextMenuItemModel)
-            {
-                ContextMenuItemModel item = obj as ContextMenuItemModel;
-                SetSelectedItemOnContextMenu(FilterOptions, item.Id);
-                contextMenuFilter.IsVisible = false;
-                UpdateContactsListDisplay(currentOrderBy, item.Id);
-            }
+            if (obj is String id)
+                UpdateContactsListDisplay(currentOrderBy, id);
         }
 
 

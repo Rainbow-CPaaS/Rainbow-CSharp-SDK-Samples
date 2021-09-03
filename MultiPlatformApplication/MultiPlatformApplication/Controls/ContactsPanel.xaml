@@ -27,186 +27,54 @@
 
     <ContentView.Content>
         
-    <RelativeLayout x:Name="RootLayout" 
-                    Margin="0"
-                    Padding="0"
-                    VerticalOptions="StartAndExpand">
+        <Grid Margin="0"
+              Padding="0"
+              RowSpacing="0"
+              ColumnSpacing="0"
+              HorizontalOptions="Fill"
+              VerticalOptions="Fill">
 
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
 
-        <controls:MenuControl x:Name="MenuControl"
-                              BackgroundColor="{StaticResource ColorMain}"
-                              BindingContext="{Binding Menu}"
-                              Orientation="Horizontal"
-                              HorizontalOptions="FillAndExpand"
-                              VerticalOptions="Start"
-                              RelativeLayout.WidthConstraint="{ConstraintExpression Type=RelativeToParent, Property=Width}"
-                              />
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
 
+            <controls:MenuControl x:Name="MenuControl"
+                                  Grid.Column="0"
+                                  Grid.Row="0"
+                                  BackgroundColor="{StaticResource ColorMain}"
+                                  BindingContext="{Binding Menu}"
+                                  Orientation="Horizontal"
+                                  HorizontalOptions="FillAndExpand"
+                                  VerticalOptions="Start"
+                                  RelativeLayout.WidthConstraint="{ConstraintExpression Type=RelativeToParent, Property=Width}"/>
 
-        <ListView x:Name="ContactsListView"
-                  Margin="5,0"
-                  HasUnevenRows="True"
-                  
-                  VerticalOptions="Start"
-              
-                  IsPullToRefreshEnabled="false"
-                  IsRefreshing="false"
-
-                  ItemsSource="{Binding Contacts}"
-                  ItemTemplate="{StaticResource ContactSelector}"
+            <ListView x:Name="ContactsListView"
+                      Grid.Column="0"
+                      Grid.Row="1"
                       
-                  SelectionMode="Single"
-                  SeparatorVisibility="None"
-                  
-                  RelativeLayout.YConstraint="{ConstraintExpression Type=RelativeToView, ElementName=MenuControl, Property=Height}" 
-                  RelativeLayout.WidthConstraint="{ConstraintExpression Type=RelativeToParent, Property=Width}"                  
-                  >
-                <!-- /!\ RelativeLayout.HeightConstraint is defined in code behind -->
-        </ListView>
-
-        <!-- Context Menu: Order by-->
-        <Grid  x:Name="ContextMenuOrderBy"
-               Margin="0"
-               Padding="2"
-               IsVisible="False"
-               effects:ContextMenu.Enabled="True"
-               effects:ContextMenu.OnTop="False"
-               effects:ContextMenu.OnLeft="False">
-
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-            </Grid.RowDefinitions>
-
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
-
-            <Frame Margin="0"
-                   Padding="0"
-                   HasShadow="False"
-                   CornerRadius="1"
-                   BorderColor="#999999"
-                   BackgroundColor="White"
-                   HeightRequest="96"
-                   WidthRequest="150" >
-
-                <ListView x:Name="ContextMenuOrderByListView" 
-                          Margin="6"
-                          BindingContext="{Binding OrderByOptions}"
-                          ItemsSource="{Binding Items}"
-                          BackgroundColor="Transparent"
-                          SeparatorVisibility="None"
-                          RowHeight="28"
-                          VerticalScrollBarVisibility="Never">
-
-                    <ListView.ItemTemplate>
-                        <DataTemplate>
-                            <ViewCell>
-                                <Grid Margin="0"
-                                      Padding="4,0"
-                                      ColumnSpacing="4"
-                                      RowSpacing="0"
-                                      VerticalOptions="Center"
-                                      effects:Background.Enabled="{Binding IsSelected}"
-                                      effects:Background.Color="LightGray"
-                                      >
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="28"/>
-                                    </Grid.RowDefinitions>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="140"/>
-                                    </Grid.ColumnDefinitions>
-
-                                    <Label Margin="0"
-                                           Padding="0" 
-                                           Text="{Binding Title}" 
-                                           FontSize="{StaticResource FontSizeSmall}" 
-                                           TextColor="{Binding TextColor}"
-                                           VerticalOptions="Center"
-                                           />
-
-                                </Grid>
-                            </ViewCell>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-
-                </ListView>
-            </Frame>
-        </Grid>
-
-
-        <!-- Context Menu: Filter-->
-        <Grid  x:Name="ContextMenuFilter"
-               Margin="0"
-               Padding="2"
-               IsVisible="False"
-               effects:ContextMenu.Enabled="True"
-               effects:ContextMenu.OnTop="False"
-               effects:ContextMenu.OnLeft="False">
-
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-            </Grid.RowDefinitions>
-
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
-
-            <Frame Margin="0"
-                   Padding="0"
-                   HasShadow="False"
-                   CornerRadius="1"
-                   BorderColor="#999999"
-                   BackgroundColor="White"
-                   HeightRequest="96"
-                   WidthRequest="150" >
-
-                <ListView x:Name="ContextMenuFilterListView" 
-                          Margin="6"
-                          BindingContext="{Binding FilterOptions}"
-                          ItemsSource="{Binding Items}"
-                          BackgroundColor="Transparent"
-                          SeparatorVisibility="None"
-                          RowHeight="28"
-                          VerticalScrollBarVisibility="Never">
-
-                    <ListView.ItemTemplate>
-                        <DataTemplate>
-                            <ViewCell>
-                                <Grid Margin="0"
-                                      Padding="4,0"
-                                      ColumnSpacing="4"
-                                      RowSpacing="0"
-                                      VerticalOptions="Center"
-                                      effects:Background.Enabled="{Binding IsSelected}"
-                                      effects:Background.Color="LightGray"
-                                      >
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="28"/>
-                                    </Grid.RowDefinitions>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="140"/>
-                                    </Grid.ColumnDefinitions>
-
-                                    <Label Margin="0"
-                                           Padding="0" 
-                                           Text="{Binding Title}" 
-                                           FontSize="{StaticResource FontSizeSmall}" 
-                                           TextColor="{Binding TextColor}"
-                                           VerticalOptions="Center"/>
-
-                                </Grid>
-                            </ViewCell>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-
-                </ListView>
-            </Frame>
+                      Margin="5,0"
+                      HasUnevenRows="True"
+                      
+                      VerticalOptions="Start"
+                      
+                      IsPullToRefreshEnabled="false"
+                      IsRefreshing="false"
+                      
+                      ItemsSource="{Binding Contacts}"
+                      ItemTemplate="{StaticResource ContactSelector}"
+                      
+                      SelectionMode="Single"
+                      SeparatorVisibility="None"/>
         </Grid>
 
 
         <!-- DEFINE Activity indicator -->
-        <ActivityIndicator Color="{StaticResource ColorMain}"
+        <!--<ActivityIndicator Color="{StaticResource ColorMain}"
                            WidthRequest="80"
                            HeightRequest="80"
                            IsRunning="{Binding IsBusy}"
@@ -214,8 +82,8 @@
                            HorizontalOptions="Center"
                            VerticalOptions="Center"
                            RelativeLayout.WidthConstraint="{ConstraintExpression Type=RelativeToParent, Property=Width}"
-                           RelativeLayout.HeightConstraint="{ConstraintExpression Type=RelativeToParent, Property=Height}"/>
+                           RelativeLayout.HeightConstraint="{ConstraintExpression Type=RelativeToParent, Property=Height}"/>-->
         
-    </RelativeLayout>
+    <!--</RelativeLayout>-->
     </ContentView.Content>
 </ContentView>
