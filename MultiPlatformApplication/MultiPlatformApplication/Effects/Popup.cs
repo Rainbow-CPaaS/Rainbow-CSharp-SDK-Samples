@@ -42,10 +42,20 @@ namespace MultiPlatformApplication.Effects
 
 #region PUBLIC API
 
-        public static View GetView(String viewName)
+        public static View GetView(String automationId, ContentPage contentPage = null)
         {
-            ContentPage contentPage = GetCurrentContentPage();
-            return contentPage?.FindByName<View>(viewName);
+            if(contentPage == null)
+                contentPage = GetCurrentContentPage();
+
+            if(contentPage != null)
+            {
+                if (contentPage.Content.AutomationId == automationId)
+                    return contentPage.Content;
+
+                if (contentPage.Content is Layout layout)
+                    return GetChildView(layout, automationId);
+            }
+            return null;
         }
 
         public static Rect GetRectOfView(View view)
@@ -57,49 +67,68 @@ namespace MultiPlatformApplication.Effects
             return GetRectOfView(contentPage, view);
         }
 
-        public static Rect GetRectOfView(String viewName)
+        public static Rect GetRectOfView(String automationId)
         {
             ContentPage contentPage = GetCurrentContentPage();
-            View view = contentPage?.FindByName<View>(viewName);
+            View view = GetView(automationId, contentPage);
             if (view != null)
                 return GetRectOfView(contentPage, view);
             return new Rect();
         }
 
-        public static void Hide(String popupName)
+        public static void Hide(String popupAutomationId)
         {
             Device.BeginInvokeOnMainThread(() =>
             {
-                HideInternal(popupName);
+                HideInternal(popupAutomationId);
             });
         }
 
-        public static void Show(String popupName, String linkedToElementName)
+        public static void Add(MultiPlatformApplication.Controls.CtrlContentPage contentPage, View view, PopupType type)
         {
-            Show(popupName, linkedToElementName, -1);
+            contentPage.AddViewAsPopupInternal(view);
+            SetType(view, type);
         }
 
-        public static void Show(String popupName, String linkedToElementName, int delay)
+        public static void Remove(MultiPlatformApplication.Controls.CtrlContentPage contentPage, View view)
         {
-            Show(popupName, linkedToElementName, LayoutAlignment.Start, false, LayoutAlignment.End, true, new Point(), delay);
+            contentPage.RemoveViewAsPopup(view);
         }
 
-        public static void Show(String popupName, Rect rect)
+        public static void Remove(MultiPlatformApplication.Controls.CtrlContentPage contentPage, String automationId)
         {
-            Show(popupName, rect, -1);
+            View view = GetView(automationId, contentPage);
+            if(view != null)
+                contentPage.RemoveViewAsPopup(view);
         }
 
-        public static void Show(String popupName, Rect rect, int delay)
+
+        public static void Show(String popupAutomationId, String linkedToAutomationId)
         {
-            Show(popupName, rect, LayoutAlignment.Start, false, LayoutAlignment.End, true, new Point(), delay);
+            Show(popupAutomationId, linkedToAutomationId, -1);
         }
 
-        public static void Show(String popupName, String linkedToElementName, LayoutAlignment horizontalLayoutAlignment = LayoutAlignment.Start, Boolean outsideRectHorizontally = false, LayoutAlignment verticalLayoutAlignment = LayoutAlignment.End, Boolean outsideRectVertically = true, Point translation = default, int delay = -1)
+        public static void Show(String popupAutomationId, String linkedToAutomationId, int delay)
+        {
+            Show(popupAutomationId, linkedToAutomationId, LayoutAlignment.Start, false, LayoutAlignment.End, true, new Point(), delay);
+        }
+
+        public static void Show(String popupAutomationId, Rect rect)
+        {
+            Show(popupAutomationId, rect, -1);
+        }
+
+        public static void Show(String popupAutomationId, Rect rect, int delay)
+        {
+            Show(popupAutomationId, rect, LayoutAlignment.Start, false, LayoutAlignment.End, true, new Point(), delay);
+        }
+
+        public static void Show(String popupAutomationId, String linkedToAutomationId, LayoutAlignment horizontalLayoutAlignment = LayoutAlignment.Start, Boolean outsideRectHorizontally = false, LayoutAlignment verticalLayoutAlignment = LayoutAlignment.End, Boolean outsideRectVertically = true, Point translation = default, int delay = -1)
         {
             PopupAction popupAction = new PopupAction
             {
-                PopupName = popupName,
-                LinkedToElementName = linkedToElementName,
+                PopupAutomationId = popupAutomationId,
+                LinkedToElementName = linkedToAutomationId,
                 Rect = new Rect(),
                 OutsideRectHorizontally = outsideRectHorizontally,
                 OutsideRectVertically = outsideRectVertically,
@@ -111,11 +140,11 @@ namespace MultiPlatformApplication.Effects
             PrepareToShow(popupAction);
         }
 
-        public static void Show(String popupName, Rect rect, LayoutAlignment horizontalLayoutAlignment = LayoutAlignment.Start, Boolean outsideRectHorizontally = false, LayoutAlignment verticalLayoutAlignment = LayoutAlignment.End, Boolean outsideRectVertically = true, Point translation = default, int delay = -1)
+        public static void Show(String popupAutomationId, Rect rect, LayoutAlignment horizontalLayoutAlignment = LayoutAlignment.Start, Boolean outsideRectHorizontally = false, LayoutAlignment verticalLayoutAlignment = LayoutAlignment.End, Boolean outsideRectVertically = true, Point translation = default, int delay = -1)
         {
             PopupAction popupAction = new PopupAction
             {
-                PopupName = popupName,
+                PopupAutomationId = popupAutomationId,
                 LinkedToElementName = null,
                 Rect = rect,
                 OutsideRectHorizontally = outsideRectHorizontally,
@@ -136,7 +165,7 @@ namespace MultiPlatformApplication.Effects
             HideCurrentContextMenu();
 
             ContentPage contentPage = GetCurrentContentPage();
-            View view = contentPage?.FindByName<View>(newPopupAction.PopupName);
+            View view = GetView(newPopupAction.PopupAutomationId, contentPage);
             if (view != null)
             {
                 // Check if this popup is known
@@ -150,7 +179,7 @@ namespace MultiPlatformApplication.Effects
                 if (newPopupAction.PopupType == PopupType.ContextMenu)
                 {
                     // If we ask to show the context menu currently displayed, we hide it instead
-                    if (currentContextMenuDisplayed == newPopupAction.PopupName)
+                    if (currentContextMenuDisplayed == newPopupAction.PopupAutomationId)
                     {
                         HideCurrentContextMenu();
                         return;
@@ -177,19 +206,41 @@ namespace MultiPlatformApplication.Effects
             return result;
         }
 
-        private static Rect GetRectOfView(ContentPage contentPage, String viewName)
+        private static Rect GetRectOfView(ContentPage contentPage, String automationId)
         {
-            return GetRectOfView(contentPage, contentPage?.FindByName<View>(viewName));
+            return GetRectOfView(contentPage, GetView(automationId, contentPage));
         }
 
-        private static ContentPage GetCurrentContentPage()
+        private static View GetChildView(Layout layout, String automationId)
+        {
+            View result = null;
+            if (layout != null)
+            {
+                var childrens = layout.Children;
+                foreach (View child in childrens)
+                {
+                    if (child.AutomationId == automationId)
+                        return child;
+
+                    if (child is Layout childLayout)
+                    {
+                        result = GetChildView(childLayout, automationId);
+                        if (result != null)
+                            return result;
+                    }
+                }
+            }
+            return null;
+        }
+
+        private static MultiPlatformApplication.Controls.CtrlContentPage GetCurrentContentPage()
         {
             // Get current page
             Page page = Application.Current.MainPage;
             if ((page != null) && (page is NavigationPage navigationPage))
                 page = navigationPage.CurrentPage;
 
-            if ((page != null) && (page is ContentPage contentPage))
+            if ((page != null) && (page is MultiPlatformApplication.Controls.CtrlContentPage contentPage))
                     return contentPage;
             
             return null;
@@ -312,10 +363,10 @@ namespace MultiPlatformApplication.Effects
             PopupAction newPopupAction = Popup.popupAction;
 
             // Get ContentPage
-            ContentPage contentPage = GetCurrentContentPage();
+            MultiPlatformApplication.Controls.CtrlContentPage contentPage = GetCurrentContentPage();
 
             // Get the View of the popup
-            View view = contentPage?.FindByName<View>(newPopupAction.PopupName);
+            View view = GetView(newPopupAction.PopupAutomationId, contentPage);
             if(view != null)
             {
                 // Get Rect of the linked element (if any)
@@ -354,7 +405,7 @@ namespace MultiPlatformApplication.Effects
                         HideInternal(contextMenuDisplayed);
 
                         // Store new context menu
-                        contextMenuDisplayed = newPopupAction.PopupName;
+                        contextMenuDisplayed = newPopupAction.PopupAutomationId;
                     }
                     else // We display an Information popup. Do we have to hide it after a delay ?
                     {
@@ -362,7 +413,7 @@ namespace MultiPlatformApplication.Effects
                         {
                             Device.StartTimer( TimeSpan.FromMilliseconds(newPopupAction.Delay), () =>
                             {
-                                HideInternal(newPopupAction.PopupName); return false;
+                                HideInternal(newPopupAction.PopupAutomationId); return false;
                             });
                         }
                     }
@@ -370,9 +421,14 @@ namespace MultiPlatformApplication.Effects
                     // Set X and Y Constraints
                     RelativeLayout.SetXConstraint(view, Constraint.RelativeToParent((rl) => X));
                     RelativeLayout.SetYConstraint(view, Constraint.RelativeToParent((rl) => Y));
+                    //RelativeLayout.SetWidthConstraint(view, Constraint.Constant(view.Width));
+                    //RelativeLayout.SetHeightConstraint(view, Constraint.Constant(view.Height));
 
                     // Show popup
                     view.IsVisible = true;
+                    contentPage.GetRelativeLayout().RaiseChild(view);
+                    
+                    
                 });
             }
             // Set action to null
@@ -385,19 +441,17 @@ namespace MultiPlatformApplication.Effects
             if (view == null)
                 return;
 
-            if (!(view.Parent is RelativeLayout relativeLayout))
-                throw new ArgumentException($"Popup element must have a RelativeLayout as parent");
+            //if (!(view.Parent is RelativeLayout relativeLayout))
+            //    throw new ArgumentException($"Popup element must have a RelativeLayout as parent");
 
-            if ( !(relativeLayout.Parent is ContentPage))
-                throw new ArgumentException($"Popup element must have a RelativeLayout then a ContentPage as parent");
+            //if ( !(relativeLayout.Parent is ContentPage))
+            //    throw new ArgumentException($"Popup element must have a RelativeLayout then a ContentPage as parent");
 
             // Store its Popup type (by Id)
             String id = view.Id.ToString();
             if (popupList.ContainsKey(id))
                 popupList.Remove(id);
             popupList.Add(id, GetType(view));
-
-
         }
 
         private static Boolean AddTapGestureToContentPage(ContentPage contentPage)
@@ -431,13 +485,13 @@ namespace MultiPlatformApplication.Effects
             return false;
         }
 
-        private static void HideInternal(String popupName)
+        private static void HideInternal(String popupAutomationId)
         {
-            if (String.IsNullOrEmpty(popupName))
+            if (String.IsNullOrEmpty(popupAutomationId))
                 return;
 
             ContentPage contentPage = GetCurrentContentPage();
-            View view = contentPage?.FindByName<View>(popupName);
+            View view = GetView(popupAutomationId, contentPage);
             if (view != null)
                 view.IsVisible = false;
         }
@@ -468,7 +522,7 @@ namespace MultiPlatformApplication.Effects
 
         private class PopupAction
         {
-            public String PopupName;
+            public String PopupAutomationId;
             public String LinkedToElementName;
 
             public PopupType PopupType = PopupType.Unknown;
