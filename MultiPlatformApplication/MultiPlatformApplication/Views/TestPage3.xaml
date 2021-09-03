@@ -48,6 +48,7 @@
                         <RowDefinition Height="*"/>
                         <RowDefinition Height="*"/>
                         <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
 
                     <controls:CustomButton  x:Name="CustomButton1"
@@ -120,12 +121,27 @@
                                             BackgroundColor="{StaticResource ColorMain}"
                                             BackgroundColorOnMouseOver="{StaticResource ColorMainOnOver}"/>
 
-                <controls:CustomButton  x:Name="DisplayPopupButton"
+                    <controls:CustomButton  x:Name="DisplayPopupButton"
                                             AutomationId="DisplayPopupButton"
-                                        IsEnabled="False"
+                                            IsEnabled="False"
                                             Grid.Column="0"
                                             Grid.Row="5"
                                             Text="Display Popup added"
+                                            CornerRadius="4"
+                                            HeightRequest="30"
+                                            WidthRequest="200"
+                                            FontSize="{StaticResource FontSizeSmall}"
+                                            FontAttributes="Bold"
+                                            TextColor="White"
+                                            BackgroundColor="{StaticResource ColorMain}"
+                                            BackgroundColorOnMouseOver="{StaticResource ColorMainOnOver}"/>
+
+                    <controls:CustomButton  x:Name="UpdatePopupModelButton"
+                                            AutomationId="UpdatePopupModelButton"
+                                            IsEnabled="False"
+                                            Grid.Column="0"
+                                            Grid.Row="6"
+                                            Text="Update Popup Model"
                                             CornerRadius="4"
                                             HeightRequest="30"
                                             WidthRequest="200"

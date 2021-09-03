@@ -1,0 +1,196 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<ContentView xmlns="http://xamarin.com/schemas/2014/forms" 
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:converters="clr-namespace:MultiPlatformApplication.Converters;assembly=MultiPlatformApplication" 
+             xmlns:effects="clr-namespace:MultiPlatformApplication.Effects"
+             x:Class="MultiPlatformApplication.Controls.ContextMenu"
+             Margin="0"
+             Padding="0"
+             BackgroundColor="Transparent"
+             WidthRequest="150">
+    
+    <ContentView.Resources>
+        <converters:IdToImageSourceConverter x:Key="IdToImageSourceConverter" />
+        <converters:TextToBooleanConverter x:Key="TextToBooleanConverter" />
+
+        <DataTemplate x:Key="ContextMenuWithoutIconDataTemplate"
+                      x:Name="ContextMenuWithoutIconDataTemplate">
+            <ViewCell>
+                <Grid Margin="0"
+                      Padding="8,0"
+                      ColumnSpacing="4"
+                      RowSpacing="0"
+                      VerticalOptions="Center"
+                      HorizontalOptions="Fill"
+                      effects:Background.Enabled="{Binding IsSelected}"
+                      effects:Background.Color="LightGray">
+
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="28"/>
+                    </Grid.RowDefinitions>
+
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Label Margin="0"
+                           Padding="0" 
+                           Text="{Binding Title}" 
+                           FontSize="{StaticResource FontSizeSmall}" 
+                           TextColor="{Binding TextColor}"
+                           VerticalOptions="Center"/>
+                </Grid>
+            </ViewCell>
+
+        </DataTemplate>
+
+        <DataTemplate x:Key="ContextMenuWithIconDataTemplate"
+                      x:Name="ContextMenuWithIconDataTemplate">
+            <ViewCell>
+                <Grid Margin="0"
+                      Padding="8,0"
+                      ColumnSpacing="4"
+                      RowSpacing="0"
+                      VerticalOptions="Center"
+                      HorizontalOptions="Fill"
+                      effects:Background.Enabled="{Binding IsSelected}"
+                      effects:Background.Color="LightGray">
+                    
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="28"/>
+                    </Grid.RowDefinitions>
+                    
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="28"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    
+                    <Image Grid.Row="0"
+                           Grid.Column="0"
+                           Margin="0,2,0,0"
+                           HeightRequest="20"
+                           WidthRequest="20"
+                           VerticalOptions="Center"
+                           HorizontalOptions="Center"
+                           Source="{Binding ImageSourceId, Converter={StaticResource IdToImageSourceConverter}}"/>
+                    
+                    <Label Grid.Row="0"
+                           Grid.Column="1"
+                           Margin="0"
+                           Padding="0" 
+                           Text="{Binding Title}" 
+                           FontSize="{StaticResource FontSizeSmall}" 
+                           TextColor="{Binding TextColor}"
+                           VerticalOptions="Center"/>
+                    </Grid>
+                </ViewCell>
+            </DataTemplate>
+
+        <DataTemplate x:Key="ContextMenuWithDescriptionDataTemplate"
+                      x:Name="ContextMenuWithDescriptionDataTemplate">
+            <ViewCell>
+                <Grid Margin="0"
+                      Padding="8,0"
+                      ColumnSpacing="4"
+                      RowSpacing="0"
+                      VerticalOptions="Center"
+                      HorizontalOptions="Fill"
+                      effects:Background.Enabled="{Binding IsSelected}"
+                      effects:Background.Color="LightGray">
+
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="54"/>
+                    </Grid.RowDefinitions>
+
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="28"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Image Grid.Row="0"
+                           Grid.Column="0"
+                           Margin="0,2,0,0"
+                           HeightRequest="20"
+                           WidthRequest="20"
+                           VerticalOptions="Center"
+                           HorizontalOptions="Start"
+                           Source="{Binding ImageSourceId, Converter={StaticResource IdToImageSourceConverter}}"/>
+
+                    <Grid Grid.Row="0"
+                          Grid.Column="1"
+                          Margin="0"
+                          Padding="0,0"
+                          ColumnSpacing="0"
+                          RowSpacing="0"
+                          VerticalOptions="Center"
+                          HorizontalOptions="Fill">
+                        
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Label Grid.Column="0"
+                               Grid.Row="0"
+                               Margin="0"
+                               Padding="0" 
+                               Text="{Binding Title}" 
+                               FontAttributes="Bold" 
+                               FontSize="{StaticResource FontSizeSmall}" 
+                               TextColor="{Binding TextColor}"/>
+
+                        <Label Grid.Column="0"
+                               Grid.Row="1"
+                               Margin="0"
+                               Padding="0"
+                               Text="{Binding Description}"
+                               FontSize="{StaticResource FontSizeMicro}" 
+                               TextColor="{Binding TextColor}"
+                               IsVisible="{Binding Description, Converter={StaticResource TextToBooleanConverter }}"/>
+                    </Grid>
+                </Grid>
+            </ViewCell>
+        </DataTemplate>
+
+    </ContentView.Resources>
+    
+    
+    <ContentView.Content>
+        <Grid  Margin="0"
+               Padding="2"
+               HorizontalOptions="Fill">
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <Frame Margin="0"
+                   Padding="0"
+                   HasShadow="False"
+                   CornerRadius="1"
+                   BorderColor="{StaticResource ColorConversationStreamMessageOtherUserFont}"
+                   BackgroundColor="{StaticResource ColorConversationStreamMessageOtherUserBackGround}"
+                   HorizontalOptions="Fill">
+
+                <ListView x:Name="ListView" 
+                          Margin="0"
+                          ItemsSource="{Binding Items}"
+                          BackgroundColor="Transparent"
+                          SeparatorVisibility="None"
+                          RowHeight="28"
+                          HorizontalOptions="Fill"
+                          VerticalScrollBarVisibility="Never">
+                </ListView>
+            </Frame>
+        </Grid>
+
+    </ContentView.Content>
+</ContentView>
