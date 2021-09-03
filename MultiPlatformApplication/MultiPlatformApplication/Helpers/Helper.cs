@@ -415,25 +415,25 @@ namespace MultiPlatformApplication.Helpers
 
 #region VISUAL ELEMENT
 
-        public static Rect GetRelativePosition(VisualElement child, Type ancestorType)
+        public static Rect GetRelativePosition(VisualElement element, Type parentType)
         {
             Rect rect = new Rect();
 
-            if (child == null)
+            if (element == null)
                 return rect;
 
             // STore default values
-            rect.Width = child.Width;
-            rect.Height = child.Height;
-            rect.X += child.X;
-            rect.Y += child.Y;
+            rect.Width = element.Width;
+            rect.Height = element.Height;
+            rect.X += element.X;
+            rect.Y += element.Y;
 
-            // Now we loop on all parents of the child until we reach the parent of the Parent 
+            // Now we loop on all parents of the element until we reach the parent of the Parent 
 
-            VisualElement parent = (VisualElement)child.Parent;
+            VisualElement parent = (VisualElement)element.Parent;
             while (parent != null)
             {
-                if (parent.GetType() == ancestorType)
+                if (parent.GetType() == parentType)
                     break;
 
                 // Need to remove scrolling X and Y
@@ -454,38 +454,38 @@ namespace MultiPlatformApplication.Helpers
             return rect;
         }
 
-        public static Rect GetRelativePosition(VisualElement child, VisualElement ancestor)
+        public static Rect GetRelativePosition(VisualElement element, VisualElement parent)
         {
             Rect rect = new Rect();
 
-            if ((child == null) || (ancestor == null) || (ancestor.Parent == null) )
+            if ((element == null) || (parent == null) || (parent.Parent == null) )
                 return rect;
 
-            // STore default values
-            rect.Width = child.Width;
-            rect.Height = child.Height;
-            rect.X += child.X;
-            rect.Y += child.Y;
+            // Store default values
+            rect.Width = element.Width;
+            rect.Height = element.Height;
+            rect.X += element.X;
+            rect.Y += element.Y;
 
-            // Now we loop on all parents of the child until we reach the parent of the Parent 
-            VisualElement parent = (VisualElement)child.Parent;
-            while (parent != null)
+            // Now we loop on all parents of the element until we reach the Parent specified in parameter
+            VisualElement _parent = (VisualElement)element.Parent;
+            while (_parent != null)
             {
-                if (parent == ancestor.Parent)
+                if (_parent == parent)
                     break;
 
                 // Need to remove scrolling X and Y
-                if (parent is ScrollView scrollView)
+                if (_parent is ScrollView scrollView)
                 {
                     rect.X -= scrollView.ScrollX;
                     rect.Y -= scrollView.ScrollY;
                 }
                 // TODO - When a ListView or a CollectionView is used we don't have a ScrollX or Scroll Y values ....
 
-                rect.X += parent.X;
-                rect.Y += parent.Y;
+                rect.X += _parent.X;
+                rect.Y += _parent.Y;
 
-                parent = (VisualElement)parent.Parent;
+                _parent = (VisualElement)_parent.Parent;
             }
 
 
