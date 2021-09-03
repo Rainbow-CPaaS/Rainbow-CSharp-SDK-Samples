@@ -1,4 +1,6 @@
-﻿using MultiPlatformApplication.Helpers;
+﻿using MultiPlatformApplication.Controls;
+using MultiPlatformApplication.Effects;
+using MultiPlatformApplication.Helpers;
 using MultiPlatformApplication.Models;
 using MultiPlatformApplication.ViewModels;
 using Rainbow.Model;
@@ -16,11 +18,9 @@ using Xamarin.Forms.Xaml;
 namespace MultiPlatformApplication.Views
 {
 	[XamlCompilation(XamlCompilationOptions.Compile)]
-	public partial class TestPage : ContentPage
+	public partial class TestPage : CtrlContentPage
 	{
 		private LoginViewModel vm;
-
-		TapGestureRecognizer tapGestureRecognizer;
 
 		public ContextMenuModel MessageUrgency { get; private set; } = new ContextMenuModel();
 
@@ -28,9 +28,7 @@ namespace MultiPlatformApplication.Views
 		{
 			InitializeComponent();
 
-			tapGestureRecognizer = new TapGestureRecognizer();
-            tapGestureRecognizer.Tapped += TapGestureRecognizer_Tapped;
-			ImageLogo.GestureRecognizers.Add(tapGestureRecognizer);
+			ImageLogo.Command = new RelayCommand<object>(new Action<object>(ImageLogoCommand));
 
 			// Set selected item
 			SetMessageUrgencyModel();
@@ -94,26 +92,29 @@ namespace MultiPlatformApplication.Views
 
         private void ListView_ItemSelected(object sender, SelectedItemChangedEventArgs e)
         {
-			SetMessageUrgencySelectedItem(e.SelectedItemIndex);
-			ListView.SelectedItem = null;
-			
-			HideContextMenu();
+			if (e.SelectedItemIndex != -1)
+			{
+				SetMessageUrgencySelectedItem(e.SelectedItemIndex);
+				ListView.SelectedItem = null;
+
+				HideContextMenu();
+			}
         }
 
         private void HideContextMenu()
         {
-			ContextMenuMessageUrgency.IsVisible = false;
+			Popup.Hide("ContextMenuMessageUrgency");
 		}
 
-		private void DisplayContextMenu()
-        {
-			ContextMenuMessageUrgency.IsVisible = true;
+		private void ShowContextMenu()
+		{
+			Popup.Show("ContextMenuMessageUrgency", "ImageLogo");
 		}
 
-	
-		private void TapGestureRecognizer_Tapped(object sender, EventArgs e)
+
+		private void ImageLogoCommand(object obj)
         {
-			DisplayContextMenu();
+			ShowContextMenu();
 		}
 
         protected override void OnAppearing()

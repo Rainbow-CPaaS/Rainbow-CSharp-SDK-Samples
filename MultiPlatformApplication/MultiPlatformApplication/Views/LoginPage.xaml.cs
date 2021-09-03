@@ -10,13 +10,14 @@ using Rainbow;
 using Rainbow.Events;
 using Rainbow.Model;
 
+using MultiPlatformApplication.Controls;
 using MultiPlatformApplication.Helpers;
 using MultiPlatformApplication.ViewModels;
 
 namespace MultiPlatformApplication.Views
 {
     [XamlCompilation(XamlCompilationOptions.Compile)]
-	public partial class LoginPage : ContentPage
+	public partial class LoginPage : CtrlContentPage
     {
         private LoginViewModel vm;
 

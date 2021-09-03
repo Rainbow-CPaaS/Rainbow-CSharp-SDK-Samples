@@ -9,6 +9,7 @@ using Xamarin.Forms.Xaml;
 
 using Rainbow;
 
+using MultiPlatformApplication.Controls;
 using MultiPlatformApplication.Models;
 using MultiPlatformApplication.ViewModels;
 
@@ -18,7 +19,7 @@ using NLog;
 namespace MultiPlatformApplication.Views
 {
     [XamlCompilation(XamlCompilationOptions.Compile)]
-    public partial class ConversationStreamPage : ContentPage
+    public partial class ConversationStreamPage : CtrlContentPage
     {
         private static readonly Logger log = LogConfigurator.GetLogger(typeof(ConversationStreamPage));
 

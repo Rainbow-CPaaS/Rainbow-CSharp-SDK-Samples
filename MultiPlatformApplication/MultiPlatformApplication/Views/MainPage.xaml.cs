@@ -1,4 +1,5 @@
-﻿using MultiPlatformApplication.ViewModels;
+﻿using MultiPlatformApplication.Controls;
+using MultiPlatformApplication.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,7 +12,7 @@ using Xamarin.Forms.Xaml;
 namespace MultiPlatformApplication.Views
 {
     [XamlCompilation(XamlCompilationOptions.Compile)]
-    public partial class MainPage : ContentPage
+    public partial class MainPage : CtrlContentPage
     {
         private MainPageViewModel vm;
 

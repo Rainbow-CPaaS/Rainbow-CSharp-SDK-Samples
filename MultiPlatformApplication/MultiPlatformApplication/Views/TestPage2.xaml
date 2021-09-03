@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
-<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+<controls:CtrlContentPage xmlns="http://xamarin.com/schemas/2014/forms"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:controls="clr-namespace:MultiPlatformApplication.Controls"
              xmlns:converters="clr-namespace:MultiPlatformApplication.Converters;assembly=MultiPlatformApplication" 
@@ -8,18 +8,11 @@
              BackgroundColor="#0000FF"
              >
 
-    <ContentPage.Padding>
-        <OnPlatform x:TypeArguments="Thickness">
-            <On Platform="iOS" Value="0,20,0,0"/>
-        </OnPlatform>
-    </ContentPage.Padding>
-
-
     <ContentPage.Resources>
         <converters:TextToBooleanConverter x:Key="TextToBooleanConverter" />
     </ContentPage.Resources>
 
-    <ContentPage.Content>
+    <controls:CtrlContentPage.CtrlContent>
 
 
         <StackLayout Padding="0" 
@@ -128,5 +121,5 @@
                 </Grid>
             </RelativeLayout>
         </StackLayout>
-    </ContentPage.Content>
-</ContentPage>
+    </controls:CtrlContentPage.CtrlContent>
+</controls:CtrlContentPage>

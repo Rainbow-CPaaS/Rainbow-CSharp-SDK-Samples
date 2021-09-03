@@ -1,4 +1,6 @@
-﻿using System;
+﻿using MultiPlatformApplication.Controls;
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,7 +12,7 @@ using Xamarin.Forms.Xaml;
 namespace MultiPlatformApplication.Views
 {
     [XamlCompilation(XamlCompilationOptions.Compile)]
-    public partial class TestPage2 : ContentPage
+    public partial class TestPage2 : CtrlContentPage
     {
         public TestPage2()
         {

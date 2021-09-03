@@ -1,13 +1,12 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
-<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+<controls:CtrlContentPage xmlns="http://xamarin.com/schemas/2014/forms"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:local="clr-namespace:MultiPlatformApplication"
              xmlns:controls="clr-namespace:MultiPlatformApplication.Controls"
              xmlns:converters="clr-namespace:MultiPlatformApplication.Converters;assembly=MultiPlatformApplication" 
              xmlns:dataTemplate="clr-namespace:MultiPlatformApplication.Views.DataTemplates" 
              xmlns:windows="clr-namespace:Xamarin.Forms.PlatformConfiguration.WindowsSpecific;assembly=Xamarin.Forms.Core"
-             x:Class="MultiPlatformApplication.Views.MainPage"
-            >
+             x:Class="MultiPlatformApplication.Views.MainPage"            >
 
     <ContentPage.Resources>
         <converters:ReverseBooleanConverter x:Key="ReverseBooleanConverter" />
@@ -20,13 +19,8 @@
         </ResourceDictionary>
     </ContentPage.Resources>
 
-    <ContentPage.Padding>
-        <OnPlatform x:TypeArguments="Thickness">
-            <On Platform="iOS" Value="0,20,0,0"/>
-        </OnPlatform>
-    </ContentPage.Padding>
-
-    <Grid x:Name="GridMainContent"  
+    <controls:CtrlContentPage.CtrlContent>
+        <Grid x:Name="GridMainContent"  
           Margin="0"
           Padding="0"
           ColumnSpacing="0"
@@ -54,4 +48,6 @@
                               />
 
     </Grid>
-</ContentPage>
+    </controls:CtrlContentPage.CtrlContent>
+
+</controls:CtrlContentPage>

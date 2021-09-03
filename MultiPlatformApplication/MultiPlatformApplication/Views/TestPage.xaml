@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
-<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+<controls:CtrlContentPage xmlns="http://xamarin.com/schemas/2014/forms"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:converters="clr-namespace:MultiPlatformApplication.Converters;assembly=MultiPlatformApplication" 
              xmlns:controls="clr-namespace:MultiPlatformApplication.Controls"
@@ -9,23 +9,13 @@
              NavigationPage.HasNavigationBar="False"
              BackgroundColor="{StaticResource ColorConversationStreamMainBackground}">
 
-    <ContentPage.Padding>
-        <OnPlatform x:TypeArguments="Thickness">
-            <On Platform="iOS" Value="0,20,0,0"/>
-        </OnPlatform>
-    </ContentPage.Padding>
-
     <ContentPage.Resources>
         <converters:ReverseBooleanConverter x:Key="ReverseBooleanConverter" />
         <converters:IdToImageSourceConverter x:Key="IdToImageSourceConverter" />
         <converters:TextToBooleanConverter x:Key="TextToBooleanConverter" />
     </ContentPage.Resources>
 
-    <RelativeLayout x:Name="MyRelativeLayout" Margin="0" 
-                    Padding="0"
-                    HorizontalOptions="FillAndExpand"
-                    VerticalOptions="FillAndExpand">
-    
+    <controls:CtrlContentPage.CtrlContent>
 
         <StackLayout x:Name="MainStackLayout"                      
                      RelativeLayout.WidthConstraint="{ConstraintExpression Type=RelativeToParent, Property=Width}"
@@ -35,24 +25,15 @@
                      VerticalOptions="StartAndExpand" 
                      HorizontalOptions="Center">
 
-            <StackLayout Orientation="Horizontal" HorizontalOptions="Center" VerticalOptions="Start" Padding="0, 0, 0, 0">
-                <Image x:Name="ImageLogo" Source="{extensions:ImageResource Id=rainbow_splash_logo.png}" WidthRequest="200" HeightRequest="200">
-                    <Image.Clip>
-                        <PathGeometry Figures="M8 148 L156 148 L132 12 Z"/>
-                        <!--<PathGeometry>
-                                <PathGeometry.Figures>
-                                    <PathFigure StartPoint="70,60" IsClosed="true">
-                                        <ArcSegment Point="40,80" Size="20,20" IsLargeArc="True" />
-                                        <ArcSegment Point="70,100" Size="20,20" IsLargeArc="True" />
-                                        <LineSegment Point="160,100" />
-                                        <ArcSegment Point="190,80" Size="20,20" IsLargeArc="True" />
-                                        <ArcSegment Point="160,60" Size="20,20" IsLargeArc="True" />
-                                    </PathFigure>
-                                </PathGeometry.Figures>
-                            </PathGeometry>-->
-                    </Image.Clip>
-                </Image>
-            </StackLayout>
+
+            <controls:CustomButton  x:Name="ImageLogo"
+                                    AutomationId="ImageLogo"
+                                    HorizontalOptions="Center" 
+                                    VerticalOptions="Start"
+                                    ImageSourceId="rainbow_splash_logo.png"
+                                    HeightRequest="200"
+                                    WidthRequest="200"
+                                    ImageSize="200"/>
 
             <Entry  x:Name="Login"
                     Margin="40,0"
@@ -213,14 +194,17 @@
             <!--<RectangleGeometry Rect="10,10,80,80" />-->
 
         </StackLayout>
-        
-        <Grid  x:Name="ContextMenuMessageUrgency"
-               Margin="0"
-               Padding="2"
-               IsVisible="False"
-               effects:ContextMenu.Enabled="True"
-               effects:ContextMenu.OnLeft="False"
-               effects:ContextMenu.OnTop="False">
+            
+    </controls:CtrlContentPage.CtrlContent>
+
+    <controls:CtrlContentPage.Popups>
+        <RelativeLayout>
+            <Grid  x:Name="ContextMenuMessageUrgency"
+                   AutomationId="ContextMenuMessageUrgency"
+                   Margin="0"
+                   Padding="2"
+                   IsVisible="False"
+                   effects:Popup.Type="ContextMenu">
             
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
@@ -306,6 +290,7 @@
                 </ListView>
             </Frame>
         </Grid>
-
-    </RelativeLayout>
-</ContentPage>
+        </RelativeLayout>
+    </controls:CtrlContentPage.Popups>
+        
+</controls:CtrlContentPage>
