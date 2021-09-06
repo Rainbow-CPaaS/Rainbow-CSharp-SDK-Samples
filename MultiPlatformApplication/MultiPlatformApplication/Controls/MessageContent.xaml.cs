@@ -91,9 +91,10 @@ namespace MultiPlatformApplication.Controls
 
         private void NeedToDisplayActionMenu(object sender, Point location = default)
         {
-            if (sender is VisualElement visualElement)
+            if (sender is View view)
             {
-                Rect rect = Helper.GetRelativePosition(visualElement, typeof(RelativeLayout));
+                //Rect rect = Helper.GetRelativePosition(visualElement, typeof(RelativeLayout));
+                Rect rect = Popup.GetRectOfView(view);
 
                 // If sender is not a CustomButtom it means that a long press has been used
                 // We simulate the finger size by a square of 24x24

@@ -1,4 +1,5 @@
-﻿using MultiPlatformApplication.Events;
+﻿using MultiPlatformApplication.Effects;
+using MultiPlatformApplication.Events;
 using MultiPlatformApplication.Helpers;
 using MultiPlatformApplication.Models;
 using MultiPlatformApplication.ViewModels;
@@ -239,10 +240,9 @@ namespace MultiPlatformApplication.Controls
 
         private void MessageInputUrgencyCommand(object obj)
         {
-            if (obj is VisualElement visualElement)
+            if (obj is View view)
             {
-                Rect rect = Helper.GetRelativePosition(visualElement, typeof(RelativeLayout));
-
+                Rect rect = Popup.GetRectOfView(view);
                 MessageUrgencyClicked?.Raise(this, new RectEventArgs(rect));
             }
         }

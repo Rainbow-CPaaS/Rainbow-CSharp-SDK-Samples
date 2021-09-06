@@ -50,8 +50,7 @@
                                   BindingContext="{Binding Menu}"
                                   Orientation="Horizontal"
                                   HorizontalOptions="FillAndExpand"
-                                  VerticalOptions="Start"
-                                  RelativeLayout.WidthConstraint="{ConstraintExpression Type=RelativeToParent, Property=Width}"/>
+                                  VerticalOptions="Start"/>
 
             <ListView x:Name="ContactsListView"
                       Grid.Column="0"
