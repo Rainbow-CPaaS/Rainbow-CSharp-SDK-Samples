@@ -20,16 +20,28 @@
     </ContentView.Resources>
 
     <ContentView.Content>
-        <RelativeLayout Margin="0" 
-                        Padding="0"
-                        HorizontalOptions="Fill"
-                        VerticalOptions="Fill">
+        <Grid Margin="0"
+              Padding="0"
+              RowSpacing="0"
+              ColumnSpacing="0"
+              HorizontalOptions="Fill"
+              VerticalOptions="Fill">
 
-                <!-- NEED DIFFERENT DISPLAY ACCORDING PLATFORM - START -->
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- NEED DIFFERENT DISPLAY ACCORDING PLATFORM - START -->
                 <ContentView x:Name="ContentViewPlatformSpecific"
                              Grid.Column="0"
                              Grid.Row="0"
                              VerticalOptions="Fill">
+                    
                     <OnPlatform x:TypeArguments="View">
                         <On Platform="UWP, WPF, macOs">
                             <!-- THERE IS A BUG (at least on UWP) WITH ScrollView INSIDE A RefreshView: Text Selection in child elements is not possible once we scroll a little ... -->
@@ -107,187 +119,6 @@
                                        Grid.Row="1"
                                        Margin="0"
                                        Padding="0"/>
-
-            <!-- Context Menu: Message Urgency -->
-            <Grid x:Name="ContextMenuMessageUrgency"
-                  Margin="0"
-                  Padding="2"
-                  IsVisible="False"
-                  effects:ContextMenu.Enabled="True"
-                  effects:ContextMenu.OnTop="True"
-                  effects:ContextMenu.OnLeft="False">
-
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-
-                <Frame Margin="0"
-                       Padding="0"
-                       HasShadow="False"
-                       CornerRadius="1"
-                       BorderColor="{StaticResource ColorConversationStreamMessageOtherUserFont}"
-                       BackgroundColor="{StaticResource ColorConversationStreamMessageOtherUserBackGround}"
-                       HeightRequest="228"
-                       WidthRequest="280" >
-
-                    <ListView x:Name="ContextMenuMessageUrgencyListView"
-                              Margin="6"
-                              BindingContext="{Binding MessageUrgency}"
-                              ItemsSource="{Binding Items}"
-                              BackgroundColor="Transparent"
-                              SeparatorVisibility="None"
-                              RowHeight="54"
-                              VerticalScrollBarVisibility="Never">
-
-                        <ListView.ItemTemplate>
-                            <DataTemplate>
-                                <ViewCell>
-                                    <Grid Margin="0"
-                                          Padding="4,0"
-                                          ColumnSpacing="4"
-                                          RowSpacing="0"
-                                          VerticalOptions="Center"
-                                          effects:Background.Enabled="{Binding IsSelected}"
-                                          effects:Background.Color="LightGray">
-                                        
-                                        <Grid.RowDefinitions>
-                                            <RowDefinition Height="54"/>
-                                        </Grid.RowDefinitions>
-                                        
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="28"/>
-                                            <ColumnDefinition Width="230"/>
-                                        </Grid.ColumnDefinitions>
-
-                                        <Image Grid.Column="0"
-                                               Grid.Row="0"
-                                               Margin="0"
-                                               Source="{Binding ImageSourceId, Converter={StaticResource IdToImageSourceConverter}}"
-                                               HorizontalOptions="Center"
-                                               VerticalOptions="Center"
-                                               WidthRequest="20"
-                                               HeightRequest="20"/>
-
-                                        <StackLayout Grid.Column="1"
-                                                     Grid.Row="0"
-                                                     Margin="0"
-                                                     Padding="0"
-                                                     Spacing="0"
-                                                     Orientation="Vertical"
-                                                     VerticalOptions="Center">
-                                            
-                                            <Label Margin="0"
-                                                   Padding="0" 
-                                                   Text="{Binding Title}" 
-                                                   FontAttributes="Bold" 
-                                                   FontSize="{StaticResource FontSizeSmall}" 
-                                                   TextColor="{Binding TextColor}"/>
-
-                                            <Label Margin="0"
-                                                   Padding="0"
-                                                   Text="{Binding Description}"
-                                                   FontSize="{StaticResource FontSizeMicro}" 
-                                                   TextColor="{Binding TextColor}"
-                                                   IsVisible="{Binding Description, Converter={StaticResource TextToBooleanConverter }}"/>
-                                            
-                                        </StackLayout>
-
-                                    </Grid>
-                                </ViewCell>
-                            </DataTemplate>
-                        </ListView.ItemTemplate>
-                    </ListView>
-                </Frame>
-            </Grid>
-
-
-            <!-- Context Menu: Action-->
-            <Grid  x:Name="ContextMenuAction"
-               Margin="0"
-               Padding="2"
-               IsVisible="False"
-               effects:ContextMenu.Enabled="True"
-               effects:ContextMenu.OnTop="False"
-               effects:ContextMenu.OnLeft="False">
-
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-
-                <Frame Margin="0"
-                   Padding="0"
-                   HasShadow="False"
-                   CornerRadius="1"
-                   BorderColor="{StaticResource ColorConversationStreamMessageOtherUserFont}"
-                   BackgroundColor="{StaticResource ColorConversationStreamMessageOtherUserBackGround}"
-                   HeightRequest="220"
-                   WidthRequest="180" >
-
-                    <ListView x:Name="ContextMenuActionListView" 
-                          Margin="6"
-                          BindingContext="{Binding ActionOptions}"
-                          ItemsSource="{Binding Items}"
-                          BackgroundColor="Transparent"
-                          SeparatorVisibility="None"
-                          RowHeight="28"
-                          VerticalScrollBarVisibility="Never">
-
-                        <ListView.ItemTemplate>
-                            <DataTemplate>
-                                <ViewCell>
-                                    <Grid Margin="0"
-                                          Padding="4,0"
-                                          ColumnSpacing="4"
-                                          RowSpacing="0"
-                                          VerticalOptions="Center"
-                                          IsVisible="{Binding IsVisible}"
-                                          effects:Background.Enabled="{Binding IsSelected}"
-                                          effects:Background.Color="LightGray">
-                                        
-                                        <Grid.RowDefinitions>
-                                            <RowDefinition Height="28"/>
-                                        </Grid.RowDefinitions>
-                                        
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="28"/>
-                                            <ColumnDefinition Width="140"/>
-                                        </Grid.ColumnDefinitions>
-
-                                        <Image x:Name="Image"
-                                               Margin="0,2,0,0"
-                                               HeightRequest="20"
-                                               WidthRequest="20"
-                                               VerticalOptions="Center"
-                                               HorizontalOptions="Center"
-                                               Source="{Binding ImageSourceId, Converter={StaticResource IdToImageSourceConverter}}"/>
-                                        
-                                        <Label Grid.Row="0"
-                                               Grid.Column="1"
-                                               Margin="0"
-                                               Padding="0" 
-                                               Text="{Binding Title}" 
-                                               FontSize="{StaticResource FontSizeSmall}" 
-                                               TextColor="{Binding TextColor}"
-                                               VerticalOptions="Center"/>
-
-                                    </Grid>
-                                </ViewCell>
-                            </DataTemplate>
-                        </ListView.ItemTemplate>
-
-                    </ListView>
-                </Frame>
-            </Grid>
-
-        </RelativeLayout>
-
+        </Grid>
     </ContentView.Content>
 </ContentView>
