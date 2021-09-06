@@ -439,8 +439,6 @@ namespace MultiPlatformApplication.Effects
                     // Set X and Y Constraints
                     RelativeLayout.SetXConstraint(view, Constraint.RelativeToParent((rl) => X));
                     RelativeLayout.SetYConstraint(view, Constraint.RelativeToParent((rl) => Y));
-                    //RelativeLayout.SetWidthConstraint(view, Constraint.Constant(view.Width));
-                    //RelativeLayout.SetHeightConstraint(view, Constraint.Constant(view.Height));
 
                     // Show popup
                     view.IsVisible = true;
