@@ -63,7 +63,6 @@
     <PackageReference Include="Xamarin.Essentials" Version="1.6.1" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Effects\DroidContextMenu.cs" />
     <Compile Include="Effects\DroidEntry.cs" />
     <Compile Include="Effects\DroidSelectableLabelEffect.cs" />
     <Compile Include="Effects\DroidTouchEffect.cs" />

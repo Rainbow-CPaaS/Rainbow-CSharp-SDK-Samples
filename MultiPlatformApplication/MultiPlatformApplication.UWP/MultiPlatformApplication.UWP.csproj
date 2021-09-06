@@ -98,7 +98,6 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Effects\UwpContextMenu.cs" />
     <Compile Include="Effects\UwpEmojiSelector.cs" />
     <Compile Include="Effects\UwpEntry.cs" />
     <Compile Include="Effects\UwpMouseOutEffect.cs" />
