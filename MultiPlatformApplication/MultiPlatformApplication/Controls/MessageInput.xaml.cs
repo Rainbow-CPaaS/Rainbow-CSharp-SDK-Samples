@@ -28,8 +28,6 @@ namespace MultiPlatformApplication.Controls
 
         String replyToMessageId = null;
 
-        public event EventHandler<EventArgs> UpdateParentLayout; // To ask parent to update the layout when the size of this UI component has changed
-
         public event EventHandler<BooleanEventArgs> UserIsTyping;
         public event EventHandler<RectEventArgs> MessageUrgencyClicked;
 
@@ -51,15 +49,9 @@ namespace MultiPlatformApplication.Controls
             InitializeComponent();
             BindingContext = this;
 
-            MessageInputAttachments.UpdateParentLayout += MessageInputAttachments_UpdateParentLayout;
-            
-            ButtonTyping.PropertyChanged += ButtonTyping_PropertyChanged;
-
             MessageContentReplyButton.Command = new RelayCommand<object>(new Action<object>(MessageContentReplyButtonCommand));
-            MessageContentReplyElement.PropertyChanged += MessageContentReplyElement_PropertyChanged;
 
             EntryMessage.Placeholder = Helper.SdkWrapper.GetLabel("enterTextHere");
-            EntryMessage.PropertyChanged += EntryMessage_PropertyChanged;
             EntryMessage.TextChanged += EntryMessage_TextChanged;
 
             var opacityToZero = new Animation((d) => { ButtonTyping.Opacity = d; }, 0.6, 0.4, Easing.Linear);
@@ -174,10 +166,6 @@ namespace MultiPlatformApplication.Controls
             FrameUrgency.BackgroundColor = backgroundColor;
 
             EntryMessage.SetFocus();
-
-            // Need to force the layout of the parent ...
-            UpdateParentLayout?.Raise(this, null);
-            //((Layout)this.Parent).ForceLayout();
         }
 
         public void SetReplyMessage(MessageElementModel messageElementModel)
@@ -193,34 +181,7 @@ namespace MultiPlatformApplication.Controls
                 MessageContentReply.BindingContext = messageElementModel;
 
                 MessageContentReplyElement.IsVisible = true;
-
-                // Need to force the layout of the parent ...
-                UpdateParentLayout?.Raise(this, null);
             });
-        }
-
-        private void MessageInputAttachments_UpdateParentLayout(object sender, EventArgs e)
-        {
-            // Need to force the layout of the parent ...
-            UpdateParentLayout?.Raise(this, null);
-        }
-
-        private void MessageContentReplyElement_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
-        {
-            if ( (e.PropertyName == "IsVisible") || (e.PropertyName == "Height") )
-            {
-                // Need to force the layout of the parent ...
-                UpdateParentLayout?.Raise(this, null);
-            }
-        }
-
-        private void ButtonTyping_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
-        {
-            if(e.PropertyName == "IsVisible")
-            {
-                // Need to force the layout of the parent ...
-                UpdateParentLayout?.Raise(this, null);
-            }
         }
 
         private void SdkWrapper_PeerUpdated(object sender, PeerEventArgs e)
@@ -251,16 +212,6 @@ namespace MultiPlatformApplication.Controls
             }
         }
         
-        private void EntryMessage_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
-        {
-            if(e.PropertyName == "Height")
-            {
-                // Need to force the layout of the parent ...
-                UpdateParentLayout?.Raise(this, null);
-                //((Layout)this.Parent).ForceLayout();
-            }
-        }
-
         private void EntryMessage_TextChanged(object sender, TextChangedEventArgs e)
         {
             if (e.NewTextValue?.Length > 0)
@@ -320,9 +271,6 @@ namespace MultiPlatformApplication.Controls
                 ButtonAttachment.IsVisible = true;
 
                 MessageContentReplyElement.IsVisible = false;
-
-                // Need to force the layout of the parent ...
-                UpdateParentLayout?.Raise(this, null);
             });
         }
 

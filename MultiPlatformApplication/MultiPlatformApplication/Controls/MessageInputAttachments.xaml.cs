@@ -19,8 +19,6 @@ namespace MultiPlatformApplication.Controls
     {
         List<FileResult> filesResultAttached = new List<FileResult>();
 
-        public event EventHandler<EventArgs> UpdateParentLayout; // To ask parent to update the layout when the size of this UI component has changed
-
         RelayCommand<object> SelectionCommand;
 
 #region BINDINGS used in XAML
@@ -34,8 +32,6 @@ namespace MultiPlatformApplication.Controls
             InitializeComponent();
 
             this.BindingContextChanged += MessageInputAttachments_BindingContextChanged;
-
-            Frame.PropertyChanged += Frame_PropertyChanged; // Need to update the layout when the height is Changed
 
             AttachmentsListView.ItemSelected += AttachmentsListView_ItemSelected;
 
@@ -58,14 +54,6 @@ namespace MultiPlatformApplication.Controls
             filesResultAttached.Clear();
 
             UpdateFrameSize();
-        }
-
-        private void Frame_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName == "IsVisible")
-                UpdateParentLayout.Raise(this, null);
-            else if (e.PropertyName == "Height")
-                UpdateParentLayout.Raise(this, null);
         }
 
         private void SelectionCommandExecute(object obj)
