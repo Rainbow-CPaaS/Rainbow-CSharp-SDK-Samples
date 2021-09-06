@@ -13,7 +13,7 @@ namespace MultiPlatformApplication.Effects
         private static String contentPageId = null; // Store current content page id
         private static TapGestureRecognizer contentPageTapGestureRecognizer = null; // Tap gesture on content page
 
-        private static String contextMenuDisplayed = null; // Only one context menu in same time in all the app. We store its name
+        private static PopupAction previousContextMenuActionDisplayed = null; // Only one context menu in same time in all the app. We store te action used to display it
 
         private static PopupAction popupAction; // Store "Action" (i.e. details) used to display the Popup
 
@@ -80,10 +80,19 @@ namespace MultiPlatformApplication.Effects
         {
             Device.BeginInvokeOnMainThread(() =>
             {
-                if (popupAutomationId == contextMenuDisplayed)
-                    contextMenuDisplayed = null;
+                if (popupAutomationId == previousContextMenuActionDisplayed?.PopupAutomationId)
+                    previousContextMenuActionDisplayed = null;
 
                 HideInternal(popupAutomationId);
+            });
+        }
+
+        public static void HideCurrentContextMenu()
+        {
+            Device.BeginInvokeOnMainThread(() =>
+            {
+                HideInternal(previousContextMenuActionDisplayed?.PopupAutomationId);
+                previousContextMenuActionDisplayed = null;
             });
         }
 
@@ -169,7 +178,7 @@ namespace MultiPlatformApplication.Effects
 
         private static void PrepareToShow(PopupAction newPopupAction)
         {
-            String currentContextMenuDisplayed = contextMenuDisplayed;
+            PopupAction currentContextMenuDisplayed = previousContextMenuActionDisplayed;
             HideCurrentContextMenu();
 
             ContentPage contentPage = GetCurrentContentPage();
@@ -187,10 +196,12 @@ namespace MultiPlatformApplication.Effects
                 if (newPopupAction.PopupType == PopupType.ContextMenu)
                 {
                     // If we ask to show the context menu currently displayed, we hide it instead
-                    if (currentContextMenuDisplayed == newPopupAction.PopupAutomationId)
+                    if (currentContextMenuDisplayed?.PopupAutomationId == newPopupAction.PopupAutomationId)
                     {
-                        HideCurrentContextMenu();
-                        return;
+                        // We also need to check if it's the same place or not linked to the same element
+                        if ( ( (currentContextMenuDisplayed.LinkedToElementName == newPopupAction.LinkedToElementName) && (!String.IsNullOrEmpty(newPopupAction.LinkedToElementName)) )
+                            || ( (currentContextMenuDisplayed.Rect == newPopupAction.Rect)  && (!newPopupAction.Rect.IsEmpty) ) )
+                            return;
                     }
                 }
 
@@ -409,10 +420,10 @@ namespace MultiPlatformApplication.Effects
                     if (newPopupAction.PopupType == PopupType.ContextMenu)
                     {
                         // Hide previous context menu - if any (only can be display in same time
-                        HideInternal(contextMenuDisplayed);
+                        HideInternal(previousContextMenuActionDisplayed?.PopupAutomationId);
 
-                        // Store new context menu
-                        contextMenuDisplayed = newPopupAction.PopupAutomationId;
+                        // Store context menu
+                        previousContextMenuActionDisplayed = newPopupAction;
                     }
                     else // We display an Information popup. Do we have to hide it after a delay ?
                     {
@@ -501,15 +512,6 @@ namespace MultiPlatformApplication.Effects
             View view = GetView(popupAutomationId, contentPage);
             if (view != null)
                 view.IsVisible = false;
-        }
-
-        private static void HideCurrentContextMenu()
-        {
-            Device.BeginInvokeOnMainThread(() =>
-            {
-                HideInternal(contextMenuDisplayed);
-                contextMenuDisplayed = null;
-            });
         }
 
         private static void ContentPageTapCommand(object obj)
