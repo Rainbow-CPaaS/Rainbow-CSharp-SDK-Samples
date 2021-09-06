@@ -38,8 +38,6 @@ namespace MultiPlatformApplication.Views
             vm2 = new ConversationStreamViewModel();
 
             BindingContext = vm2;
-
-            //BtnIMSend.Clicked += BtnIMSend_Clicked;
         }
 
         protected override void OnAppearing()
@@ -77,33 +75,6 @@ namespace MultiPlatformApplication.Views
         {
             DisposeBindingContext();
         }
-
-
-
-#region EVENTS FIRED ON THIS CONTENT PAGE
-
-        private void EntryIm_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            if (e.NewTextValue != e.OldTextValue)
-            {
-                if (String.IsNullOrEmpty(e.NewTextValue))
-                    vm2.SetIsTyping(false);
-                else
-                    vm2.SetIsTyping(e.NewTextValue.Length > 0);
-            }
-        }
-
-        private void BtnIMSend_Clicked(object sender, EventArgs e)
-        {
-            //if (String.IsNullOrEmpty(EntryIM.Text))
-            //    return;
-
-            //vm2.SendMessage(EntryIM.Text);
-            //EntryIM.Text = "";
-        }
-
-#endregion EVENTS FIRED ON THIS CONTENT PAGE
-
 
 
     }
