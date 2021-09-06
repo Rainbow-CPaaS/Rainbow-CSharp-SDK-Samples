@@ -47,11 +47,30 @@ namespace MultiPlatformApplication.Controls
 
 #endregion StoreSelectionProperty
 
+        public ContextMenuItemModel GetSelectedItem()
+        {
+            if (StoreSelection)
+                return contextMenuModelUsed?.GetSelectedItem();
+
+            return null;
+        }
+
         public String GetSelectedItemId()
         {
             if (StoreSelection)
-                return selectedItemId;
+                return contextMenuModelUsed?.GetSelectedItemId();
+
             return null;
+        }
+
+        public void SetSelectedItemId(String selectedItemId)
+        {
+            // Set selection in each models
+            if (StoreSelection)
+            {
+                contextMenuModelUsed?.SetSelectedItem(selectedItemId);
+                originalContextMenuModel?.SetSelectedItem(selectedItemId);
+            }
         }
 
         public ContextMenu()
@@ -182,15 +201,6 @@ namespace MultiPlatformApplication.Controls
             SetHeigthAccordingModel();
         }
 
-        private void SetSelectedItem(ContextMenuModel contextMenuModel, String selectedId)
-        {
-            if(contextMenuModel?.Items?.Count > 0)
-            {
-                foreach(var item in contextMenuModel.Items)
-                    item.IsSelected = (item.Id == selectedId);
-            }
-        }
-
         private void ListView_ItemSelected(object sender, SelectedItemChangedEventArgs e)
         {
             if (e.SelectedItemIndex != -1)
@@ -202,17 +212,11 @@ namespace MultiPlatformApplication.Controls
                 if(contextMenuModelUsed?.Items.Count > e.SelectedItemIndex)
                     selectedItemId = contextMenuModelUsed.Items[e.SelectedItemIndex].Id;
 
-                // Set selection in each models
-                if (StoreSelection)
-                {
-                    SetSelectedItem(contextMenuModelUsed, selectedItemId);
-                    SetSelectedItem(originalContextMenuModel, selectedItemId);
-                }
+                // Set selection 
+                SetSelectedItemId(selectedItemId);
 
                 if (Command != null && Command.CanExecute(selectedItemId))
                     Command.Execute(selectedItemId);
-
-                
             }
         }
     }

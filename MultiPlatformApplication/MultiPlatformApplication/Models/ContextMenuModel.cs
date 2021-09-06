@@ -25,6 +25,36 @@ namespace MultiPlatformApplication.Models
             Items = new ObservableCollection<ContextMenuItemModel >();
         }
 
+        internal String GetSelectedItemId()
+        {
+            ContextMenuItemModel item = GetSelectedItem();
+            if(item != null)
+                return item.id;
+            return null;
+        }
+
+        internal ContextMenuItemModel GetSelectedItem()
+        {
+            if (Items != null)
+            {
+                foreach (var item in Items)
+                {
+                    if (item.IsSelected)
+                        return item;
+                }
+            }
+            return null;
+        }
+
+        internal void SetSelectedItem(String itemId)
+        {
+            if (Items != null)
+            {
+                foreach (var item in Items)
+                    item.IsSelected = item.Id == itemId;
+            }
+        }
+
         public void Clear()
         {
             if (Items != null)
