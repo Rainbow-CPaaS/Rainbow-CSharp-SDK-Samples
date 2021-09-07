@@ -1045,19 +1045,23 @@ namespace MultiPlatformApplication.ViewModels
         private void MessagesStreamViewModel_ActionMenuToDisplay(object sender, EventArgs e)
         {
             if ((sender != null) && (sender is ContentView element))
-            { 
-                actionDoneOnMessage = (MessageElementModel)element.BindingContext;
-                if (actionDoneOnMessage == null)
-                    return;
-            
-                if (e is RectEventArgs rectEventArgs)
+            {
+                // We need now to be on Main UI Thread (to manage well long press)
+                Device.BeginInvokeOnMainThread(() => //
                 {
-                    GetMessageContext(actionDoneOnMessage, out Boolean isCurrentUser, out Boolean withFileAttachment, out Boolean withBodyContent, out Boolean isLastMessageOfCurrentUser);
+                   actionDoneOnMessage = (MessageElementModel)element.BindingContext;
+                   if (actionDoneOnMessage == null)
+                       return;
 
-                    SetActionOptionsModel(isCurrentUser, withFileAttachment, withBodyContent, isLastMessageOfCurrentUser);
+                   if (e is RectEventArgs rectEventArgs)
+                   {
+                       GetMessageContext(actionDoneOnMessage, out Boolean isCurrentUser, out Boolean withFileAttachment, out Boolean withBodyContent, out Boolean isLastMessageOfCurrentUser);
 
-                    DisplayActionContextMenu(rectEventArgs.Rect);
-                }
+                       SetActionOptionsModel(isCurrentUser, withFileAttachment, withBodyContent, isLastMessageOfCurrentUser);
+
+                       DisplayActionContextMenu(rectEventArgs.Rect);
+                   }
+                });
             }
         }
 
