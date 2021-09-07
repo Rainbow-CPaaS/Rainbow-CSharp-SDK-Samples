@@ -72,7 +72,7 @@ namespace MultiPlatformApplication.ViewModels
                     return;
 
                 XamarinApplication.CurrentConversationId = conversationId;
-                await XamarinApplication.NavigationService.NavigateModalAsync("ConversationStreamPage", conversationId);
+                await XamarinApplication.NavigationService.NavigateAsync("ConversationStreamPage", conversationId);
 
             }
         }

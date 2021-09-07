@@ -342,7 +342,7 @@ namespace MultiPlatformApplication.ViewModels
                         if (conversation != null)
                         {
                             XamarinApplication.CurrentConversationId = conversation.Id;
-                            await XamarinApplication.NavigationService.NavigateModalAsync("ConversationStreamPage", conversation.Id);
+                            await XamarinApplication.NavigationService.NavigateAsync("ConversationStreamPage", conversation.Id);
                         }
                         else
                         {
