@@ -687,6 +687,8 @@ namespace MultiPlatformApplication.Controls
             {
                 if (e.Type == TouchActionType.Pressed)
                 {
+                    Popup.HideCurrentContextMenu();
+
                     pressLocation = e.Location;
 
                     // If there is no parameter set, we provide the current CustomButton
