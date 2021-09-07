@@ -183,7 +183,7 @@
                    HorizontalOptions="Fill">
 
                 <ListView x:Name="ListView" 
-                          Margin="0"
+                          Margin="2"
                           ItemsSource="{Binding Items}"
                           BackgroundColor="Transparent"
                           SeparatorVisibility="None"

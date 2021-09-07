@@ -1,4 +1,5 @@
-﻿using MultiPlatformApplication.Helpers;
+﻿using MultiPlatformApplication.Effects;
+using MultiPlatformApplication.Helpers;
 using MultiPlatformApplication.Models;
 using System;
 using System.Collections.Generic;
@@ -198,7 +199,7 @@ namespace MultiPlatformApplication.Controls
 
             // On Android (at least) we need to do this
             if(!Helper.IsDesktopPlatform())
-                HeightRequest = ListView.HeightRequest + (2+1) * 2; // Add Grid margin + corner radius
+                HeightRequest = ListView.HeightRequest + (2+1+2) * 2; // Add Grid margin + corner radius + listView margin
         }
 
         private void OriginalContextMenuModel_Items_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
@@ -222,6 +223,8 @@ namespace MultiPlatformApplication.Controls
 
                 if (Command != null && Command.CanExecute(selectedItemId))
                     Command.Execute(selectedItemId);
+
+                Popup.HideCurrentContextMenu();
             }
         }
     }
