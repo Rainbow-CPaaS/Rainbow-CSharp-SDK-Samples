@@ -211,9 +211,6 @@ namespace MultiPlatformApplication.Effects
                 // Add Tap gesture on content page - if necessary
                 AddTapGestureToContentPage(contentPage);
 
-                // On Desktop platform (at least in UWP) there is event propagation so we don't need to call directly ContentPageTapCommand
-                if (!Helper.IsDesktopPlatform())
-                    ContentPageTapCommand(null);
             }
         }
 
