@@ -1,4 +1,7 @@
-﻿using MultiPlatformApplication.ViewModels;
+﻿using MultiPlatformApplication.Effects;
+using MultiPlatformApplication.Events;
+using MultiPlatformApplication.Helpers;
+using MultiPlatformApplication.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,6 +23,7 @@ namespace MultiPlatformApplication.Controls
             InitializeComponent();
 
             ContactsListView.ItemSelected += ContactsListView_ItemSelected;
+            Popup.AutoHideForView(ContactsListView);
 
             vm = new ContactsViewModel();
 
@@ -28,10 +32,15 @@ namespace MultiPlatformApplication.Controls
 
         private void ContactsListView_ItemSelected(object sender, SelectedItemChangedEventArgs e)
         {
-            vm?.SelectedContactCommand(e.SelectedItem);
+            if (e.SelectedItemIndex != -1)
+            {
+                Popup.HideCurrentContextMenu();
 
-            // Reset selection
-            ((ListView)sender).SelectedItem = null;
+                vm?.SelectedContactCommand(e.SelectedItem);
+
+                // Reset selection
+                ((ListView)sender).SelectedItem = null;
+            }
         }
 
         public void Initialize()
