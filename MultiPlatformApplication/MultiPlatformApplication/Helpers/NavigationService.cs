@@ -8,13 +8,11 @@ using Xamarin.Forms;
 
 namespace MultiPlatformApplication.Helpers
 {
-    // BASED ON https://mallibone.com/post/a-simple-navigation-service-for-xamarinforms
+    // TOTALLY REBASED - ORIGINAL: https://mallibone.com/post/a-simple-navigation-service-for-xamarinforms
     public class NavigationService
     {
         private readonly object _sync = new object();
         private readonly Dictionary<string, Type> _pagesByKey = new Dictionary<string, Type>();
-        private readonly Stack<NavigationPage> _navigationPageStack = new Stack<NavigationPage>();
-        public NavigationPage CurrentNavigationPage => _navigationPageStack.Peek();
 
         public void Configure(string pageKey, Type pageType)
         {
@@ -31,27 +29,19 @@ namespace MultiPlatformApplication.Helpers
             }
         }
 
-        public Page SetRootPage(string rootPageKey)
-        {
-            var rootPage = GetPage(rootPageKey);
-            _navigationPageStack.Clear();
-            var mainPage = new NavigationPage(rootPage);
-            _navigationPageStack.Push(mainPage);
-            return mainPage;
-        }
-
         public string CurrentPageKey
         {
             get
             {
                 lock (_sync)
                 {
-                    if (CurrentNavigationPage?.CurrentPage == null)
-                    {
-                        return null;
-                    }
+                    // TODO - manage modal stack
 
-                    var pageType = CurrentNavigationPage.CurrentPage.GetType();
+                    Page page = App.Current.MainPage.Navigation?.NavigationStack?.LastOrDefault();
+                    if (page == null)
+                        return null;
+
+                    var pageType = page.GetType();
 
                     return _pagesByKey.ContainsValue(pageType)
                         ? _pagesByKey.First(p => p.Value == pageType).Key
@@ -60,23 +50,40 @@ namespace MultiPlatformApplication.Helpers
             }
         }
 
-        public async Task GoBack()
+        public Page CurrentPage
         {
-            var navigationStack = CurrentNavigationPage.Navigation;
-            if (navigationStack.NavigationStack.Count > 1)
+            get
             {
-                await CurrentNavigationPage.PopAsync();
-                return;
-            }
+                lock (_sync)
+                {
+                    // TODO - manage modal stack
+                    Page page = App.Current.MainPage.Navigation?.NavigationStack?.LastOrDefault();
 
-            if (_navigationPageStack.Count > 1)
-            {
-                _navigationPageStack.Pop();
-                await CurrentNavigationPage.Navigation.PopModalAsync();
-                return;
+                    return page;
+                    
+                }
             }
+        }
 
-            await CurrentNavigationPage.PopAsync();
+        public async Task ReplaceCurrentPageAsync(string pageKey, bool animated = true)
+        {
+            await ReplaceCurrentPageAsync(pageKey, null, animated);
+        }
+
+        public async Task ReplaceCurrentPageAsync(string pageKey, object parameter, bool animated = true)
+        {
+            Page page = GetPage(pageKey);
+            Page currentPage = CurrentPage;
+
+            App.Current.MainPage.Navigation.InsertPageBefore(page, currentPage);
+
+            await GoBack(animated);
+        }
+
+        public async Task GoBack(bool animated = true)
+        {
+            // TODO - manage Modal Page
+            await App.Current.MainPage.Navigation.PopAsync(animated);
         }
 
         public async Task NavigateModalAsync(string pageKey, bool animated = true)
@@ -87,10 +94,7 @@ namespace MultiPlatformApplication.Helpers
         public async Task NavigateModalAsync(string pageKey, object parameter, bool animated = true)
         {
             var page = GetPage(pageKey, parameter);
-            NavigationPage.SetHasNavigationBar(page, false);
-            var modalNavigationPage = new NavigationPage(page);
-            await CurrentNavigationPage.Navigation.PushModalAsync(modalNavigationPage, animated);
-            _navigationPageStack.Push(modalNavigationPage);
+            await App.Current.MainPage.Navigation.PushModalAsync(page);
         }
 
         public async Task NavigateAsync(string pageKey, bool animated = true)
@@ -101,12 +105,11 @@ namespace MultiPlatformApplication.Helpers
         public async Task NavigateAsync(string pageKey, object parameter, bool animated = true)
         {
             var page = GetPage(pageKey, parameter);
-            await CurrentNavigationPage.Navigation.PushAsync(page, animated);
+            await App.Current.MainPage.Navigation.PushAsync(page);
         }
 
-        private Page GetPage(string pageKey, object parameter = null)
+        public Page GetPage(string pageKey, object parameter = null)
         {
-
             lock (_sync)
             {
                 if (!_pagesByKey.ContainsKey(pageKey))
@@ -154,6 +157,10 @@ namespace MultiPlatformApplication.Helpers
                 }
 
                 var page = constructor.Invoke(parameters) as Page;
+
+                NavigationPage.SetHasNavigationBar(page, false);
+                NavigationPage.SetHasBackButton(page, false);
+
                 return page;
             }
         }

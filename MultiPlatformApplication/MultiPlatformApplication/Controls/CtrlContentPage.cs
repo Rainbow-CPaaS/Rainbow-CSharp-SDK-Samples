@@ -70,9 +70,6 @@ namespace MultiPlatformApplication.Controls
 
         public CtrlContentPage()
         {
-            // Remove navigation bar
-            NavigationPage.SetHasNavigationBar(this, false);
-            
             // Define grid taking all space with 1 column and 1 row.
             RainbowContentPageGrid = new Grid { Margin = 0, Padding = 0, ColumnSpacing =0, RowSpacing = 0 };
             RainbowContentPageGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Star });

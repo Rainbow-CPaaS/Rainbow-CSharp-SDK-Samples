@@ -12,6 +12,7 @@ using Rainbow.Model;
 using MultiPlatformApplication.Models;
 using MultiPlatformApplication.Helpers;
 using MultiPlatformApplication.Views;
+using System.Linq;
 
 namespace MultiPlatformApplication.ViewModels
 {
@@ -101,7 +102,7 @@ namespace MultiPlatformApplication.ViewModels
         {
             Device.BeginInvokeOnMainThread(async () =>
             {
-                await XamarinApplication.NavigationService.NavigateAsync("MainPage");
+                await XamarinApplication.NavigationService.ReplaceCurrentPageAsync("MainPage");
             });
         }
 

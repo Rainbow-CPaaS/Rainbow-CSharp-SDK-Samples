@@ -271,8 +271,7 @@ namespace MultiPlatformApplication.Effects
         private static MultiPlatformApplication.Controls.CtrlContentPage GetCurrentContentPage()
         {
             // Get current page
-            NavigationPage navigationPage = ((App)Xamarin.Forms.Application.Current).NavigationService.CurrentNavigationPage;
-            Page page = navigationPage.CurrentPage;
+            Page page = ((App)Xamarin.Forms.Application.Current).NavigationService.CurrentPage;
 
             if ((page != null) && (page is MultiPlatformApplication.Controls.CtrlContentPage contentPage))
                     return contentPage;
