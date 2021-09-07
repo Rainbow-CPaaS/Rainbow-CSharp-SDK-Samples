@@ -36,10 +36,14 @@ namespace MultiPlatformApplication.Controls
             {
                 Popup.HideCurrentContextMenu();
 
-                vm?.SelectedContactCommand(e.SelectedItem);
-
                 // Reset selection
                 ((ListView)sender).SelectedItem = null;
+
+                Device.StartTimer(TimeSpan.FromMilliseconds(200), () =>
+                {
+                    vm?.SelectedContactCommand(e.SelectedItem);
+                    return false;
+                });
             }
         }
 
