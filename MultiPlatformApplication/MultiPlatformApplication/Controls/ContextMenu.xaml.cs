@@ -1,4 +1,5 @@
-﻿using MultiPlatformApplication.Models;
+﻿using MultiPlatformApplication.Helpers;
+using MultiPlatformApplication.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -194,6 +195,10 @@ namespace MultiPlatformApplication.Controls
             }
             else
                 ListView.HeightRequest = 0;
+
+            // On Android (at least) we need to do this
+            if(!Helper.IsDesktopPlatform())
+                HeightRequest = ListView.HeightRequest + (2+1) * 2; // Add Grid margin + corner radius
         }
 
         private void OriginalContextMenuModel_Items_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
