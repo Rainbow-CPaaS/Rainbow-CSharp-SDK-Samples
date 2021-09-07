@@ -1,4 +1,5 @@
-﻿using MultiPlatformApplication.Helpers;
+﻿using MultiPlatformApplication.Events;
+using MultiPlatformApplication.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -74,6 +75,21 @@ namespace MultiPlatformApplication.Effects
             if (view != null)
                 return GetRectOfView(contentPage, view);
             return new Rect();
+        }
+
+        private static void TouchEffect_TouchAction(object sender, TouchActionEventArgs e)
+        {
+            if (e.Type == TouchActionType.Pressed)
+            {
+                HideCurrentContextMenu();
+            };
+        }
+
+        public static void AutoHideForView(View view)
+        {
+            TouchEffect touchEffect = new TouchEffect();
+            touchEffect.TouchAction += TouchEffect_TouchAction;
+            Helper.AddEffect(view, touchEffect);
         }
 
         public static void Hide(String popupAutomationId)
@@ -211,6 +227,9 @@ namespace MultiPlatformApplication.Effects
                 // Add Tap gesture on content page - if necessary
                 AddTapGestureToContentPage(contentPage);
 
+                // On Desktop platform (at least in UWP) there is event propagation so we don't need to call directly ContentPageTapCommand
+                if (!Helper.IsDesktopPlatform())
+                    ContentPageTapCommand(null);
             }
         }
 
@@ -265,6 +284,11 @@ namespace MultiPlatformApplication.Effects
         {
             double X = 0;
 
+            double viewWidth = view.WidthRequest;
+            if(viewWidth == -1)
+                viewWidth = view.Width;
+
+
             // Do we want the popup outside or inside
             if (outsideRect)
             {
@@ -272,7 +296,7 @@ namespace MultiPlatformApplication.Effects
                 {
                     case LayoutAlignment.Start:
                     case LayoutAlignment.Fill:
-                        X = rect.X - view.WidthRequest;
+                        X = rect.X - viewWidth;
                         break;
 
                     case LayoutAlignment.End:
@@ -280,17 +304,19 @@ namespace MultiPlatformApplication.Effects
                         break;
 
                     case LayoutAlignment.Center:
-                        X = popupAction.Rect.X + (popupAction.Rect.Width - view.WidthRequest) / 2;
+                        X = popupAction.Rect.X + (popupAction.Rect.Width - viewWidth) / 2;
                         break;
                 }
                 X += translateX;
 
                 // Sanity check
-                if (X + view.WidthRequest + MINIMAL_MARGIN > contentPage.Width)
+                if (X + viewWidth + MINIMAL_MARGIN > contentPage.Width)
                 {
                     if (layoutAlignment != LayoutAlignment.End)
                         X = GetXPosition(contentPage, view, LayoutAlignment.End, rect, outsideRect, translateX);
                 }
+
+               
 
             }
             else // We want the popup inside
@@ -303,14 +329,20 @@ namespace MultiPlatformApplication.Effects
                         break;
 
                     case LayoutAlignment.End:
-                        X = rect.X + rect.Width - view.WidthRequest;
+                        X = rect.X + rect.Width - viewWidth;
                         break;
 
                     case LayoutAlignment.Center:
-                        X = popupAction.Rect.X + (popupAction.Rect.Width - view.WidthRequest) / 2;
+                        X = popupAction.Rect.X + (popupAction.Rect.Width - viewWidth) / 2;
                         break;
                 }
             }
+
+            // Final Sanity check on X
+            if (X + viewWidth + MINIMAL_MARGIN > contentPage.Width)
+                X = contentPage.Width - viewWidth - MINIMAL_MARGIN;
+            if (X < MINIMAL_MARGIN)
+                X = MINIMAL_MARGIN;
 
             return X;
         }
@@ -319,6 +351,10 @@ namespace MultiPlatformApplication.Effects
         {
             double Y = 0;
 
+            double viewHeight = view.HeightRequest;
+            if (viewHeight == -1)
+                viewHeight = view.Height;
+
             // Do we want the popup outside or inside
             if (outsideRect)
             {
@@ -326,7 +362,7 @@ namespace MultiPlatformApplication.Effects
                 {
                     case LayoutAlignment.Start:
                     case LayoutAlignment.Fill:
-                        Y = rect.Y - view.HeightRequest;
+                        Y = rect.Y - viewHeight;
                         break;
 
                     case LayoutAlignment.End:
@@ -334,14 +370,14 @@ namespace MultiPlatformApplication.Effects
                         break;
 
                     case LayoutAlignment.Center:
-                        Y = rect.Y + (rect.Height - view.HeightRequest) / 2;
+                        Y = rect.Y + (rect.Height - viewHeight) / 2;
                         break;
                 }
 
                 Y += translateY;
 
                 // Sanity check
-                if (Y + view.HeightRequest + MINIMAL_MARGIN > contentPage.Height)
+                if (Y + viewHeight + MINIMAL_MARGIN > contentPage.Height)
                 {
                     if (layoutAlignment == LayoutAlignment.End)
                         Y = GetYPosition(contentPage, view, LayoutAlignment.Start, rect, outsideRect, translateY);
@@ -357,14 +393,20 @@ namespace MultiPlatformApplication.Effects
                         break;
 
                     case LayoutAlignment.End:
-                        Y = rect.Y + rect.Height - view.HeightRequest;
+                        Y = rect.Y + rect.Height - viewHeight;
                         break;
 
                     case LayoutAlignment.Center:
-                        Y = rect.Y + (rect.Height - view.HeightRequest) / 2;
+                        Y = rect.Y + (rect.Height - viewHeight) / 2;
                         break;
                 }
             }
+
+            // Fianl Sanity check on Y
+            if (Y + viewHeight + MINIMAL_MARGIN > contentPage.Height)
+                Y = contentPage.Height - viewHeight - MINIMAL_MARGIN;
+            if (Y < MINIMAL_MARGIN)
+                Y = MINIMAL_MARGIN;
 
             return Y;
         }
@@ -398,17 +440,9 @@ namespace MultiPlatformApplication.Effects
                 X = GetXPosition(contentPage, view, newPopupAction.HorizontalLayoutAlignment, newPopupAction.Rect, newPopupAction.OutsideRectHorizontally, popupAction.Translation.X);
                 Y = GetYPosition(contentPage, view, newPopupAction.VerticalLayoutAlignment, newPopupAction.Rect, newPopupAction.OutsideRectVertically, popupAction.Translation.Y);
 
-                // Sanity check on X
-                if (X + view.WidthRequest + MINIMAL_MARGIN > contentPage.Width)
-                    X = contentPage.Width - view.WidthRequest - MINIMAL_MARGIN;
-                if (X < MINIMAL_MARGIN)
-                    X = MINIMAL_MARGIN;
+                
 
-                // Sanity check on Y
-                if (Y + view.HeightRequest + MINIMAL_MARGIN > contentPage.Height)
-                    Y = contentPage.Height - view.HeightRequest - MINIMAL_MARGIN;
-                if (Y < MINIMAL_MARGIN)
-                    Y = MINIMAL_MARGIN;
+                
 
                 // Now set 
                 Device.BeginInvokeOnMainThread(() =>
