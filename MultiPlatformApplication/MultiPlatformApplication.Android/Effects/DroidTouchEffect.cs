@@ -68,8 +68,9 @@ namespace MultiPlatformApplication.Droid.PlatformEffect
             Android.Views.View senderView = sender as Android.Views.View;
             MotionEvent motionEvent = args.Event;
 
-            // Don't set as Handled to allow event propagation to child
-            args.Handled = false;
+            // Don't set as Handled to allow event propagation to child for ListView (ItemsView<Cell>) and  CarouselView, CollectionView (ItemsView)
+            if ( (Element is ItemsView<Cell>) || (Element is ItemsView) )
+                args.Handled = false;
 
             // Get the pointer index
             int pointerIndex = motionEvent.ActionIndex;
