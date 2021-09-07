@@ -275,7 +275,7 @@ namespace MultiPlatformApplication.Effects
                 {
                     case LayoutAlignment.Start:
                     case LayoutAlignment.Fill:
-                        X = rect.X - view.Width;
+                        X = rect.X - view.WidthRequest;
                         break;
 
                     case LayoutAlignment.End:
@@ -283,13 +283,13 @@ namespace MultiPlatformApplication.Effects
                         break;
 
                     case LayoutAlignment.Center:
-                        X = popupAction.Rect.X + (popupAction.Rect.Width - view.Width) / 2;
+                        X = popupAction.Rect.X + (popupAction.Rect.Width - view.WidthRequest) / 2;
                         break;
                 }
                 X += translateX;
 
                 // Sanity check
-                if (X + view.Width + MINIMAL_MARGIN > contentPage.Width)
+                if (X + view.WidthRequest + MINIMAL_MARGIN > contentPage.Width)
                 {
                     if (layoutAlignment != LayoutAlignment.End)
                         X = GetXPosition(contentPage, view, LayoutAlignment.End, rect, outsideRect, translateX);
@@ -306,11 +306,11 @@ namespace MultiPlatformApplication.Effects
                         break;
 
                     case LayoutAlignment.End:
-                        X = rect.X + rect.Width - view.Width;
+                        X = rect.X + rect.Width - view.WidthRequest;
                         break;
 
                     case LayoutAlignment.Center:
-                        X = popupAction.Rect.X + (popupAction.Rect.Width - view.Width) / 2;
+                        X = popupAction.Rect.X + (popupAction.Rect.Width - view.WidthRequest) / 2;
                         break;
                 }
             }
@@ -329,7 +329,7 @@ namespace MultiPlatformApplication.Effects
                 {
                     case LayoutAlignment.Start:
                     case LayoutAlignment.Fill:
-                        Y = rect.Y - view.Height;
+                        Y = rect.Y - view.HeightRequest;
                         break;
 
                     case LayoutAlignment.End:
@@ -337,14 +337,14 @@ namespace MultiPlatformApplication.Effects
                         break;
 
                     case LayoutAlignment.Center:
-                        Y = rect.Y + (rect.Height - view.Height) / 2;
+                        Y = rect.Y + (rect.Height - view.HeightRequest) / 2;
                         break;
                 }
 
                 Y += translateY;
 
                 // Sanity check
-                if (Y + view.Height + MINIMAL_MARGIN > contentPage.Height)
+                if (Y + view.HeightRequest + MINIMAL_MARGIN > contentPage.Height)
                 {
                     if (layoutAlignment == LayoutAlignment.End)
                         Y = GetYPosition(contentPage, view, LayoutAlignment.Start, rect, outsideRect, translateY);
@@ -360,11 +360,11 @@ namespace MultiPlatformApplication.Effects
                         break;
 
                     case LayoutAlignment.End:
-                        Y = rect.Y + rect.Height - view.Height;
+                        Y = rect.Y + rect.Height - view.HeightRequest;
                         break;
 
                     case LayoutAlignment.Center:
-                        Y = rect.Y + (rect.Height - view.Height) / 2;
+                        Y = rect.Y + (rect.Height - view.HeightRequest) / 2;
                         break;
                 }
             }
@@ -402,14 +402,14 @@ namespace MultiPlatformApplication.Effects
                 Y = GetYPosition(contentPage, view, newPopupAction.VerticalLayoutAlignment, newPopupAction.Rect, newPopupAction.OutsideRectVertically, popupAction.Translation.Y);
 
                 // Sanity check on X
-                if (X + view.Width + MINIMAL_MARGIN > contentPage.Width)
-                    X = contentPage.Width - view.Width - MINIMAL_MARGIN;
+                if (X + view.WidthRequest + MINIMAL_MARGIN > contentPage.Width)
+                    X = contentPage.Width - view.WidthRequest - MINIMAL_MARGIN;
                 if (X < MINIMAL_MARGIN)
                     X = MINIMAL_MARGIN;
 
                 // Sanity check on Y
-                if (Y + view.Height + MINIMAL_MARGIN > contentPage.Height)
-                    Y = contentPage.Height - view.Height - MINIMAL_MARGIN;
+                if (Y + view.HeightRequest + MINIMAL_MARGIN > contentPage.Height)
+                    Y = contentPage.Height - view.HeightRequest - MINIMAL_MARGIN;
                 if (Y < MINIMAL_MARGIN)
                     Y = MINIMAL_MARGIN;
 
@@ -439,6 +439,7 @@ namespace MultiPlatformApplication.Effects
                     // Set X and Y Constraints
                     RelativeLayout.SetXConstraint(view, Constraint.RelativeToParent((rl) => X));
                     RelativeLayout.SetYConstraint(view, Constraint.RelativeToParent((rl) => Y));
+                    
 
                     // Show popup
                     view.IsVisible = true;
