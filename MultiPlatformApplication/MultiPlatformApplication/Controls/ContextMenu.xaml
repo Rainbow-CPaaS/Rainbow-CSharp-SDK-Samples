@@ -162,6 +162,8 @@
     <ContentView.Content>
         <Grid  Margin="0"
                Padding="2"
+               RowSpacing="0"
+               ColumnSpacing="0"
                HorizontalOptions="Fill">
 
             <Grid.RowDefinitions>
