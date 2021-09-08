@@ -211,6 +211,8 @@ namespace MultiPlatformApplication.Controls
         {
             if (e.SelectedItemIndex != -1)
             {
+                Popup.HideCurrentContextMenu();
+
                 // Reset selection of the UI component
                 ListView.SelectedItem = null;
 
@@ -222,9 +224,10 @@ namespace MultiPlatformApplication.Controls
                 SetSelectedItemId(selectedItemId);
 
                 if (Command != null && Command.CanExecute(selectedItemId))
+                {
+                    Helper.HapticFeedbackClick();
                     Command.Execute(selectedItemId);
-
-                Popup.HideCurrentContextMenu();
+                }
             }
         }
     }

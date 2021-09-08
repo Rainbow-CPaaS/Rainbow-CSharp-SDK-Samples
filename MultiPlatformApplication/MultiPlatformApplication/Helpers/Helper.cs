@@ -494,6 +494,44 @@ namespace MultiPlatformApplication.Helpers
 
 #endregion VISUAL ELEMENT
 
+#region HAPTIC FEEDBACK
+
+        public static void HapticFeedbackClick()
+        {
+            try
+            {
+                // Perform click feedback
+                HapticFeedback.Perform(HapticFeedbackType.Click);
+            }
+            catch (FeatureNotSupportedException ex)
+            {
+                // Feature not supported on device
+            }
+            catch (Exception ex)
+            {
+                // Other error has occurred.
+            }
+        }
+
+        public static void HapticFeedbackLongPress()
+        {
+            try
+            {
+                // Perform click feedback
+                HapticFeedback.Perform(HapticFeedbackType.LongPress);
+            }
+            catch (FeatureNotSupportedException ex)
+            {
+                // Feature not supported on device
+            }
+            catch (Exception ex)
+            {
+                // Other error has occurred.
+            }
+        }
+
+#endregion HAPTIC FEEDBACK
+
 #region PLATFORM / DEVICE RELATED
 
         public static Boolean IsDesktopPlatform()
@@ -1216,6 +1254,7 @@ namespace MultiPlatformApplication.Helpers
             { "SignInAlt", "\uf2f6" },
             { "SignOutAlt", "\uf2f5" },
             { "SortAlphaDown", "\uf15d" },
+            { "Spinner", "\uf110" },
             { "Star", "\uf005" },
             { "Store", "\uf54e" },
             { "Times", "\uf00d" },

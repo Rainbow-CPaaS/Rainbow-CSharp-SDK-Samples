@@ -94,17 +94,15 @@ namespace MultiPlatformApplication.Views
         {
 			if (e.SelectedItemIndex != -1)
 			{
-				SetMessageUrgencySelectedItem(e.SelectedItemIndex);
+				Popup.HideCurrentContextMenu();
+				
 				ListView.SelectedItem = null;
 
-				HideContextMenu();
+				Helper.HapticFeedbackClick();
+
+				SetMessageUrgencySelectedItem(e.SelectedItemIndex);
 			}
         }
-
-        private void HideContextMenu()
-        {
-			Popup.Hide("ContextMenuMessageUrgency");
-		}
 
 		private void ShowContextMenu()
 		{

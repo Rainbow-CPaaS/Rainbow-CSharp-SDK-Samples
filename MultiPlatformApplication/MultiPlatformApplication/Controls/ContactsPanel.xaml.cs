@@ -39,6 +39,8 @@ namespace MultiPlatformApplication.Controls
                 // Reset selection
                 ((ListView)sender).SelectedItem = null;
 
+                Helper.HapticFeedbackClick();
+
                 Device.StartTimer(TimeSpan.FromMilliseconds(200), () =>
                 {
                     vm?.SelectedContactCommand(e.SelectedItem);

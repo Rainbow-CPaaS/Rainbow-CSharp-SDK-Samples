@@ -106,7 +106,12 @@ namespace MultiPlatformApplication.Controls
 
                     rect.X += location.X;
                     rect.Y += location.Y;
+
+                    Helper.HapticFeedbackLongPress();
                 }
+                else
+                    Helper.HapticFeedbackClick();
+
                 ActionMenuToDisplay.Raise(this, new RectEventArgs(rect));
             }
         }

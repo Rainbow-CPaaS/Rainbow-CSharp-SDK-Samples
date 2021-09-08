@@ -1,4 +1,5 @@
 ﻿using MultiPlatformApplication.Effects;
+using MultiPlatformApplication.Helpers;
 using MultiPlatformApplication.ViewModels;
 using System;
 using System.Collections.Generic;
@@ -36,10 +37,18 @@ namespace MultiPlatformApplication.Controls
 
         private void ConversationsListView_ItemSelected(object sender, SelectedItemChangedEventArgs e)
         {
-            vm.SelectedConversationCommand(e.SelectedItem);
+            if (e.SelectedItemIndex != -1)
+            {
+                Popup.HideCurrentContextMenu();
 
-            //Reset selection
-            ((Xamarin.Forms.ListView)sender).SelectedItem = null;
+                //Reset selection
+                ((Xamarin.Forms.ListView)sender).SelectedItem = null;
+
+                Helper.HapticFeedbackClick();
+
+                vm.SelectedConversationCommand(e.SelectedItem);
+               
+            }
         }
 
         public void Initialize()
