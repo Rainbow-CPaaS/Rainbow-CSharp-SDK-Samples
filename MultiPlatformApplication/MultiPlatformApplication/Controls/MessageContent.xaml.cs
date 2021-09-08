@@ -50,10 +50,10 @@ namespace MultiPlatformApplication.Controls
         private MouseOverAndOutModel btnActionMouseCommands { get; set; } // Commands used to manage Mouse Out / Over on BtnAction - if used/needed
 
         // Define elements used in Long Press scenario to display eventually an Action Menu
-        private CancelableDelay cancelableDelayToAskActionMenuDisplay = null;
-        private int delayBeforeActionMenuDisplay = 500; // in ms - default value in iOS
+        private CancelableDelay cancelableDelayForLongPress = null;
+        private int delayForLongPress = 500; // in ms - default value in iOS
         private bool longPressStarted = false;
-
+        private Point longPressInitialLocation;
 
         Color color;
         Color backgroundColor;
@@ -387,36 +387,48 @@ namespace MultiPlatformApplication.Controls
                         || (e.MouseButton == TouchMouseButton.Right))
                 return;
 
+            Boolean cancelLongPress = false;
+            Boolean startLongPress = false;
+
             switch (e.Type)
             {
                 case TouchActionType.Cancelled:
                 case TouchActionType.Entered:
                 case TouchActionType.Exited:
-                case TouchActionType.Moved:
                 case TouchActionType.Released:
-                    if (longPressStarted)
-                    {
-                        longPressStarted = false;
-                        if (cancelableDelayToAskActionMenuDisplay != null)
-                        {
-                            cancelableDelayToAskActionMenuDisplay.Cancel();
-                            cancelableDelayToAskActionMenuDisplay = null;
-                        }
-                    }
+                    if(longPressStarted)
+                        cancelLongPress = true;
+                    break;
+
+                case TouchActionType.Moved:
+                    if(longPressStarted)
+                        cancelLongPress = (Math.Abs(e.Location.X - longPressInitialLocation.X) > 15)
+                                            || (Math.Abs(e.Location.Y - longPressInitialLocation.Y) > 15);
                     break;
 
                 case TouchActionType.Pressed:
-                    longPressStarted = true;
-                    if (cancelableDelayToAskActionMenuDisplay != null)
-                    {
-                        cancelableDelayToAskActionMenuDisplay.Cancel();
-                        cancelableDelayToAskActionMenuDisplay = null;
-                    }
-                    
-                    // Here e.Location get the press Location relatively to the MessageContext UI Component
-                    cancelableDelayToAskActionMenuDisplay = CancelableDelay.StartAfter(delayBeforeActionMenuDisplay, () => NeedToDisplayActionMenu(sender, e.Location) );
+                    cancelLongPress = true;
+                    startLongPress = true;
                     break;
             }
+
+            if(cancelLongPress)
+            {
+                longPressStarted = false;
+                if (cancelableDelayForLongPress != null)
+                {
+                    cancelableDelayForLongPress.Cancel();
+                    cancelableDelayForLongPress = null;
+                }
+            }
+
+            if(startLongPress)
+            {
+                longPressStarted = true;
+                longPressInitialLocation = e.Location; // Here e.Location get the press Location relatively to the MessageContext UI Component
+                cancelableDelayForLongPress = CancelableDelay.StartAfter(delayForLongPress, () => NeedToDisplayActionMenu(sender, longPressInitialLocation));
+            }
+
         }
 
 #endregion TOUCH EFECT RELATED
