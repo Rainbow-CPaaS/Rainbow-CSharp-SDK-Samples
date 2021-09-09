@@ -14,7 +14,7 @@ namespace MultiPlatformApplication.Models
 
         public String ConversationId { get; set; } // Needed to manage attachment
 
-        public DateTime Date { get; set; } // Necessary ?
+        public DateTime Date { get; set; }
 
         public String DateDisplayed { get; set; }
 
@@ -26,6 +26,8 @@ namespace MultiPlatformApplication.Models
 
         public String ReplaceId { get; set; }
 
+        public Boolean NeedReceipt { get; set; } // To know if we have to display the read receipt
+         
         public String Receipt { get; set; }
 
         public CallLogAttachment CallLogAttachment { get; set; }

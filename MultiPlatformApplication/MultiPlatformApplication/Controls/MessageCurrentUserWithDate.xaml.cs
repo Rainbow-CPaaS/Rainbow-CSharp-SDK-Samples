@@ -21,7 +21,8 @@ namespace MultiPlatformApplication.Controls
         String conversationId;
         String receipt;
         String receiptReceived;
-        Boolean receiptManaged = false;
+        Boolean displayReceipt = false;
+        Boolean receiptEventManaged = false;
 
 		public MessageCurrentUserWithDate ()
 		{
@@ -44,13 +45,14 @@ namespace MultiPlatformApplication.Controls
                 MessageElementModel message = (MessageElementModel)BindingContext;
                 if ((message != null) && (message.ConversationType == Rainbow.Model.Conversation.ConversationType.User))
                 {
-                    if(!receiptManaged)
+                    if(!receiptEventManaged)
                     {
-                        receiptManaged = true;
+                        receiptEventManaged = true;
 
                         messageId = message.Id;
                         conversationId = message.ConversationId;
                         receipt = message.Receipt;
+                        displayReceipt = message.NeedReceipt; // Do we have to display receipt ?
 
                         UpdateDisplay();
 
@@ -88,7 +90,7 @@ namespace MultiPlatformApplication.Controls
                 {
                     receipt = receiptReceived;
                     Receipt.Source = Helper.GetImageSourceFromIdOrFilePath(imageSourceId);
-                    Receipt.IsVisible = true;
+                    Receipt.IsVisible = displayReceipt;
                 }
             });
         }

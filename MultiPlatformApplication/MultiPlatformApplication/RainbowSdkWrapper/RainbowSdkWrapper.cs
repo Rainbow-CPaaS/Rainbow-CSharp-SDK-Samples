@@ -75,7 +75,7 @@ namespace MultiPlatformApplication
             InitFilePool();
         }
 
-    #region EVENTS FROM SDK
+#region EVENTS FROM SDK
 
         private void FilePool_ThumbnailAvailable(object sender, Rainbow.Events.IdEventArgs e)
         {
@@ -187,6 +187,11 @@ namespace MultiPlatformApplication
         override public Restrictions.SDKMessageStorageMode GetMessageStorageMode()
         {
             return RbApplication.Restrictions.MessageStorageMode;
+        }
+
+        override public Boolean IsCapabilityAvailable(String capability)
+        {
+            return RbApplication.IsCapabilityAvailable(capability);
         }
 
         public override Boolean IsInitialized()

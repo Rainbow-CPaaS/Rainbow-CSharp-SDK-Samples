@@ -32,6 +32,11 @@ namespace MultiPlatformApplication.ViewModels
         private View rootView;
         private MessageInput messageInput;
 
+        private Boolean capabilityFileSharing;
+        private Boolean capabilityFileStorage;
+        private Boolean capabilityMessageUrgencyReception;
+        private Boolean capabilityReadReceipt;
+        private Boolean capabilityMessageUrgencySending;
 
         ContextMenuModel ContextMenuModelMessageAction = new ContextMenuModel();
         Controls.ContextMenu ContextMenuMessageAction = null;
@@ -70,6 +75,12 @@ namespace MultiPlatformApplication.ViewModels
         public MessagesStreamViewModel(View rootView)
         {
             this.rootView = rootView;
+
+            capabilityFileSharing = Helper.SdkWrapper.IsCapabilityAvailable(Rainbow.Model.Contact.Capability.FileSharing);
+            capabilityFileStorage = Helper.SdkWrapper.IsCapabilityAvailable(Rainbow.Model.Contact.Capability.FileStorage);
+            capabilityMessageUrgencyReception = Helper.SdkWrapper.IsCapabilityAvailable(Rainbow.Model.Contact.Capability.MessageUrgencyReception);
+            capabilityReadReceipt = Helper.SdkWrapper.IsCapabilityAvailable(Rainbow.Model.Contact.Capability.ReadReceipt);
+            capabilityMessageUrgencySending = Helper.SdkWrapper.IsCapabilityAvailable(Rainbow.Model.Contact.Capability.MessageUrgencySending);
 
             // Need to deal with filesUpload
             FilesUpload = FilesUpload.Instance;
@@ -614,6 +625,7 @@ namespace MultiPlatformApplication.ViewModels
 
                 // Receipt
                 message.Receipt = rbMessage.Receipt.ToString();
+                message.NeedReceipt = capabilityReadReceipt;
 
                 // Is-it an "Event message" ?
                 if (!String.IsNullOrEmpty(rbMessage.BubbleEvent))
@@ -629,7 +641,12 @@ namespace MultiPlatformApplication.ViewModels
                 }
                 else
                 {
-                    message.Content.Urgency = rbMessage.Urgency;
+                    // Display Emergency message s Std message if user has not the right to see them
+                     
+                    if ( (rbMessage.Urgency == UrgencyType.High) && (!capabilityMessageUrgencyReception) )
+                        message.Content.Urgency = UrgencyType.Std;
+                    else
+                        message.Content.Urgency = rbMessage.Urgency;
 
                     if (!String.IsNullOrEmpty(rbMessage.Content))
                     {
@@ -1017,24 +1034,23 @@ namespace MultiPlatformApplication.ViewModels
             //      - Edit      => Context: Last message of current user
             //      - Download  => Context: File Attachment
             //      - Reply     => Context: Always
-            //      - Forward   => Context: Always
+            //      - Forward   => Context: For message only Always, With file needs Capability.FileSharing
             //      - Copy      => Context: Body.Content not null
-            //      - Delete    => Context: Last message of current user OR ( File Attachment + Current user)
-            //      - Save      => Context: File Attachment + Other User
+            //      - Delete    => Context: Last message of current user OR (File Attachment + Current user + Capability.FileStorage)
+            //      - Save      => Context: File Attachment + Other User + Capability.FileSharing
 
             ChangeMessageActionVisibility("edit", isLastMessageOfCurrentUser);
 
             ChangeMessageActionVisibility("download", withFileAttachment);
 
-            // Forward action
-            // TODO - Implement Forward action
-            ChangeMessageActionVisibility("forward", false);
+            //ChangeMessageActionVisibility("forward", (withFileAttachment && fileSharing) || (!withFileAttachment));
+            ChangeMessageActionVisibility("forward", false); // => // TODO - Implement Forward action
 
             ChangeMessageActionVisibility("copy", withBodyContent);
 
-            ChangeMessageActionVisibility("delete", (isLastMessageOfCurrentUser || (withFileAttachment && isCurrentUser)));
+            ChangeMessageActionVisibility("delete", (isLastMessageOfCurrentUser || (withFileAttachment && isCurrentUser && capabilityFileStorage)));
 
-            ChangeMessageActionVisibility("save", (withFileAttachment && (!isCurrentUser)));
+            ChangeMessageActionVisibility("save", (capabilityFileSharing && withFileAttachment && (!isCurrentUser)));
         }
 
         private void GetMessageContext(MessageElementModel messageElementModel, out Boolean isCurrentUser, out Boolean withFileAttachment, out Boolean withBodyContent, out Boolean isLastMessageOfCurrentUser)
@@ -1135,7 +1151,7 @@ namespace MultiPlatformApplication.ViewModels
 
             urgencyType = UrgencyType.High.ToString();
             Helper.GetUrgencyInfo(urgencyType, out backgroundColor, out color, out title, out label, out imageSourceId);
-            ContextMenuModel = new ContextMenuItemModel() { Id = urgencyType, ImageSourceId = imageSourceId, Title = title, Description = label, TextColor = color };
+            ContextMenuModel = new ContextMenuItemModel() { Id = urgencyType, ImageSourceId = imageSourceId, Title = title, Description = label, TextColor = color, isVisible = capabilityMessageUrgencySending };
             ContextMenuModelUrgency.Add(ContextMenuModel);
 
             urgencyType = UrgencyType.Middle.ToString();

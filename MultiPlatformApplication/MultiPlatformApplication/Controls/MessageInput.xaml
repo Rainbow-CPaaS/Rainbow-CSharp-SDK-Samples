@@ -224,7 +224,8 @@
                                            VerticalOptions="Center"
                                            Command="{Binding Message.SendCommand}"/>
 
-                    <Frame Grid.Column="5"
+                    <Frame x:Name="FrameBeforeButtonAttachment"
+                           Grid.Column="5"
                            WidthRequest="2"
                            Padding="0"
                            Margin="1,4"

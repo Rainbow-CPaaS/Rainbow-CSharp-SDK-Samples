@@ -280,6 +280,11 @@ namespace MultiPlatformApplication
             return Restrictions.SDKMessageStorageMode.Store;
         }
 
+        virtual public Boolean IsCapabilityAvailable(String capability)
+        {
+            return true;
+        }
+
         virtual public Boolean IsInitialized()
         {
             return true;

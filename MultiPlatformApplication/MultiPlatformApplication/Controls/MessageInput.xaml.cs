@@ -23,6 +23,7 @@ namespace MultiPlatformApplication.Controls
     public partial class MessageInput : ContentView
     {
         Boolean userIsTyping = false;
+        Boolean capabilityFileSharing = false;
         List<String> peerJidTyping = new List<string>();
 
         Animation userTypingAnimation;
@@ -40,15 +41,22 @@ namespace MultiPlatformApplication.Controls
 
         public MessageInput()
         {
+            InitializeComponent();
+            BindingContext = this;
+
+            // Check if user can send file
+            capabilityFileSharing = Helper.SdkWrapper.IsCapabilityAvailable(Rainbow.Model.Contact.Capability.FileSharing);
+            
+            FrameBeforeButtonAttachment.IsVisible = capabilityFileSharing;
+            ButtonAttachment.IsVisible = capabilityFileSharing;
+            
+
             Message.AttachmentCommand = new RelayCommand<object>(new Action<object>(MessageInputAttachmentCommand));
             Message.UrgencyCommand = new RelayCommand<object>(new Action<object>(MessageInputUrgencyCommand));
             Message.SendCommand = new RelayCommand<object>(new Action<object>(MessageInputSendCommand));
 
             Message.BreakLineModifier = "shift";
             Message.ValidationCommand = new RelayCommand<object>(new Action<object>(MessageInputValidationCommand));
-
-            InitializeComponent();
-            BindingContext = this;
 
             MessageContentReplyButton.Command = new RelayCommand<object>(new Action<object>(MessageContentReplyButtonCommand));
 
@@ -174,6 +182,7 @@ namespace MultiPlatformApplication.Controls
             Device.BeginInvokeOnMainThread(() =>
             {
                 // We can't add attachments
+                FrameBeforeButtonAttachment.IsVisible = false;
                 ButtonAttachment.IsVisible = false;
 
                 replyToMessageId = messageElementModel?.Reply?.Id;
@@ -268,7 +277,8 @@ namespace MultiPlatformApplication.Controls
                 replyToMessageId = null;
 
                 // Attachments are now available
-                ButtonAttachment.IsVisible = true;
+                FrameBeforeButtonAttachment.IsVisible = capabilityFileSharing;
+                ButtonAttachment.IsVisible = capabilityFileSharing;
 
                 MessageContentReplyElement.IsVisible = false;
             });
