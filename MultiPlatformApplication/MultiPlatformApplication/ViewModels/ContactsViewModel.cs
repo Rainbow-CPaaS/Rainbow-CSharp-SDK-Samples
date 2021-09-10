@@ -141,6 +141,8 @@ namespace MultiPlatformApplication.ViewModels
                 return;
 
             Contacts.Clear();
+            
+            Popup.ShowDefaultActivityIndicator();
             IsBusy = true;
 
             UpdateMenuDisplay();
@@ -235,6 +237,7 @@ namespace MultiPlatformApplication.ViewModels
                         Contacts.AddRange(item.ToList(), System.Collections.Specialized.NotifyCollectionChangedAction.Add);
                     }
 
+                    Popup.HideDefaultActivityIndicator();
                     IsBusy = false;
                 });
 
