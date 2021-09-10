@@ -711,19 +711,18 @@ namespace MultiPlatformApplication.Effects
                     RelativeLayout.SetWidthConstraint(view, Constraint.RelativeToParent((rl) => { return rl.Width; }));
                     RelativeLayout.SetHeightConstraint(view, Constraint.RelativeToParent((rl) => { return rl.Height; }));
 
-
                     // Show popup
                     view.IsVisible = true;
                     contentPage.GetRelativeLayout().RaiseChild(view);
 
-                    //RelativeLayout.SetWidthConstraint(view, Constraint.RelativeToView( view, (rl, v) => { return rl.Width; }));
-                    //RelativeLayout.SetHeightConstraint(view, Constraint.RelativeToView(view, (rl, v) => { return rl.Height; }));
                 }
                 else
                 {
                     // TODO
                 }
 
+                // Set action to null
+                popupAction = null;
             }
             else
             {
