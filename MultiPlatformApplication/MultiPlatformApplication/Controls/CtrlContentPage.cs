@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MultiPlatformApplication.Effects;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -87,6 +88,14 @@ namespace MultiPlatformApplication.Controls
             // Avoid overwriting the iOS status bar: https://docs.microsoft.com/en-us/xamarin/xamarin-forms/xaml/xaml-basics/essential-xaml-syntax
             if (Device.RuntimePlatform == Device.iOS)
                 Padding = new Thickness(0, 20, 0, 0);
+
+            this.SizeChanged += CtrlContentPage_SizeChanged;
+        }
+
+        private void CtrlContentPage_SizeChanged(object sender, EventArgs e)
+        {
+            Popup.HideCurrentContextMenu();
+            Popup.UpdateActivityIndicators();
         }
 
         internal void RemoveViewAsPopup(View view)
