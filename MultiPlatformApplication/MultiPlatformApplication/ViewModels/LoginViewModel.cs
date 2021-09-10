@@ -1,5 +1,4 @@
 ﻿using System;
-using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,10 +8,9 @@ using Xamarin.Forms.Xaml;
 
 using Rainbow.Model;
 
-using MultiPlatformApplication.Models;
+using MultiPlatformApplication.Effects;
 using MultiPlatformApplication.Helpers;
-using MultiPlatformApplication.Views;
-using System.Linq;
+using MultiPlatformApplication.Models;
 
 namespace MultiPlatformApplication.ViewModels
 {
@@ -55,11 +53,15 @@ namespace MultiPlatformApplication.ViewModels
                     case ConnectionState.Connecting:
                         LoginModel.Connect = LoginModel.Connect = Helper.SdkWrapper.GetLabel("connecting");
                         LoginModel.IsBusy = true;
+
+                        Popup.ShowDefaultActivityIndicator();
                         break;
 
                     case ConnectionState.Disconnected:
                         LoginModel.Connect = LoginModel.Connect = Helper.SdkWrapper.GetLabel("connect");
                         LoginModel.IsBusy = false;
+
+                        Popup.HideDefaultActivityIndicator();
                         break;
                 }
 
@@ -72,9 +74,7 @@ namespace MultiPlatformApplication.ViewModels
         {
             Task task = new Task(() =>
             {
-
                 // Get all conversations and all bubbles in parallel
-
                 ManualResetEvent manualEventBubbles = new ManualResetEvent(false);
                 ManualResetEvent manualEventConversations = new ManualResetEvent(false);
 
@@ -93,7 +93,6 @@ namespace MultiPlatformApplication.ViewModels
 
                 // Display conversations pages
                 ShowMainPage();
-
             });
             task.Start();
         }
@@ -102,6 +101,10 @@ namespace MultiPlatformApplication.ViewModels
         {
             Device.BeginInvokeOnMainThread(async () =>
             {
+                Popup.HideDefaultActivityIndicator();
+                LoginModel.Connect = LoginModel.Connect = Helper.SdkWrapper.GetLabel("connect");
+                LoginModel.IsBusy = false;
+
                 await XamarinApplication.NavigationService.ReplaceCurrentPageAsync("MainPage");
             });
         }
@@ -110,10 +113,15 @@ namespace MultiPlatformApplication.ViewModels
         {
             if (Helper.SdkWrapper.ConnectionState() == ConnectionState.Disconnected)
             {
-                Helper.SdkWrapper.Login(LoginModel.Login, LoginModel.Password, callback =>
+                Popup.ShowDefaultActivityIndicator();
+                Task task = new Task(() =>
                 {
-                    //TODO - manage error
+                    Helper.SdkWrapper.Login(LoginModel.Login, LoginModel.Password, callback =>
+                    {
+                        //TODO - manage error
+                    });
                 });
+                task.Start();
             }
             else
                 Helper.SdkWrapper.Logout();

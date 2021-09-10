@@ -67,7 +67,6 @@ namespace MultiPlatformApplication.Controls
         }
 #endregion TO DEFINE THE CONTENT OF THIS PAGE
 
-
         public CtrlContentPage()
         {
             // Define grid taking all space with 1 column and 1 row.
@@ -90,14 +89,6 @@ namespace MultiPlatformApplication.Controls
                 Padding = new Thickness(0, 20, 0, 0);
         }
 
-        internal void AddViewAsPopup(View view)
-        {
-            Device.BeginInvokeOnMainThread(() =>
-            {
-                AddViewAsPopupInternal(view);
-            });
-        }
-
         internal void RemoveViewAsPopup(View view)
         {
             Device.BeginInvokeOnMainThread(() =>
@@ -111,22 +102,71 @@ namespace MultiPlatformApplication.Controls
             return RainbowContentRelativeLayout;
         }
 
-        internal void AddViewAsPopupInternal(View view)
+        internal Boolean PopupExists(string automationId)
         {
-            if (view != null)
+            if (RainbowContentRelativeLayout.Children.Count > 1)
             {
-                // Ensure to have this view not visible by default
-                view.IsVisible = false;
+                var childrens = RainbowContentRelativeLayout.Children;
 
-                // Add the view in the Relative Layout
-                RainbowContentRelativeLayout.Children.Add(view, Constraint.Constant(0), Constraint.Constant(0));
+                foreach (View child in childrens)
+                {
+                    if (child.AutomationId == automationId)
+                        return true;
+                }
             }
+            return false;
         }
 
-        private void RemoveViewAsPopupInternal(View view)
+        internal View GetPopup(string automationId)
         {
-            if ( (view != null) && (view != RainbowContentPageGrid) )
-                RainbowContentRelativeLayout.Children.Remove(view);
+            if (RainbowContentRelativeLayout.Children.Count > 1)
+            {
+                var childrens = RainbowContentRelativeLayout.Children;
+
+                foreach (View child in childrens)
+                {
+                    if (child.AutomationId == automationId)
+                        return child;
+                }
+            }
+            return null;
+        }
+
+        internal Boolean AddViewAsPopupInternal(View view)
+        {
+            Boolean result = false;
+            if (view != null)
+            {
+                try
+                {
+                    // Ensure to have this view not visible by default
+                    view.IsVisible = false;
+
+                    // Add the view in the Relative Layout
+                    RainbowContentRelativeLayout.Children.Add(view, Constraint.Constant(0), Constraint.Constant(0));
+
+                    result = true;
+                }
+                catch { }
+            }
+            return result;
+        }
+
+        internal Boolean RemoveViewAsPopupInternal(View view)
+        {
+            Boolean result = false;
+            try
+            {
+                if ((view != null) && (view != RainbowContentPageGrid))
+                {
+                    RainbowContentRelativeLayout.Children.Remove(view);
+
+                    result = true;
+                }
+            }
+            catch { }
+
+            return result;
         }
 
         protected override void OnAppearing()

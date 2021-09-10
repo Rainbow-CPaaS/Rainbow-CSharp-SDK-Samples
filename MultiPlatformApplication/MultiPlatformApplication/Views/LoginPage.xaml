@@ -55,12 +55,6 @@
                                 BackgroundColorOnMouseOver="{StaticResource ColorMainOnOver}"
                                 Command="{Binding LoginModel.ButtonConnectCommand}"
                                 IsEnabled="{Binding LoginModel.IsBusy, Converter={StaticResource ReverseBooleanConverter}}"/>
-
-        <ActivityIndicator Color="{StaticResource ColorMain}"
-                           WidthRequest="80"
-                           HeightRequest="80"
-                           IsRunning="{Binding LoginModel.IsBusy}"
-                           IsVisible="{Binding LoginModel.IsBusy}" />
     </StackLayout>
     </controls:CtrlContentPage.CtrlContent>
     
