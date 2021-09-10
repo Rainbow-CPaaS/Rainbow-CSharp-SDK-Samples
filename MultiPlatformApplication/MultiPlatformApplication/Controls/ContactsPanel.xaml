@@ -71,18 +71,5 @@
                       SeparatorVisibility="None"/>
         </Grid>
 
-
-        <!-- DEFINE Activity indicator -->
-        <!--<ActivityIndicator Color="{StaticResource ColorMain}"
-                           WidthRequest="80"
-                           HeightRequest="80"
-                           IsRunning="{Binding IsBusy}"
-                           IsVisible="{Binding IsBusy}" 
-                           HorizontalOptions="Center"
-                           VerticalOptions="Center"
-                           RelativeLayout.WidthConstraint="{ConstraintExpression Type=RelativeToParent, Property=Width}"
-                           RelativeLayout.HeightConstraint="{ConstraintExpression Type=RelativeToParent, Property=Height}"/>-->
-        
-    <!--</RelativeLayout>-->
     </ContentView.Content>
 </ContentView>
