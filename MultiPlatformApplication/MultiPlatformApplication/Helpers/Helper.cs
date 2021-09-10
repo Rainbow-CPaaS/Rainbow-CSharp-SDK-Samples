@@ -689,7 +689,14 @@ namespace MultiPlatformApplication.Helpers
             return filePath;
         }
 
-        static internal ImageSource GetImageSourceFromFont(String id)
+        public static String GetGlyph(String name)
+        {
+            if (iconsFont.ContainsKey(name))
+                return iconsFont[name];
+            return null;
+        }
+
+        internal static ImageSource GetImageSourceFromFont(String id)
         {
 
             String name;
