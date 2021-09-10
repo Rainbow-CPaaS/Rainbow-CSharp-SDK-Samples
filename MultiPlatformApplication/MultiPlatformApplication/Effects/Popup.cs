@@ -107,12 +107,12 @@ namespace MultiPlatformApplication.Effects
             HideInternal(previousContextMenuActionDisplayed?.PopupAutomationId);
         }
 
-        public static void SetDefaultBasicActivityActivator(Color obfuscationColor, double squareSize, float squareCornerRadius, Color squareBackgroundColor, double indicatorSize, Color indicatorColor, Boolean useDeviceActivityIndicator)
+        public static void SetDefaultBasicActivityActivator(Color obfuscationColor, double squareSize, float squareCornerRadius, double squareCornerSize, Color squareCornerColor, Color squareBackgroundColor, double indicatorSize, Color indicatorColor, Boolean useDeviceActivityIndicator)
         {
             // NECESSARY TO BE ON MAIN THREAD
             if (!MainThread.IsMainThread)
             {
-                MainThread.BeginInvokeOnMainThread(() => SetDefaultBasicActivityActivator(obfuscationColor, squareSize, squareCornerRadius, squareBackgroundColor, indicatorSize, indicatorColor, useDeviceActivityIndicator));
+                MainThread.BeginInvokeOnMainThread(() => SetDefaultBasicActivityActivator(obfuscationColor, squareSize, squareCornerRadius, squareCornerSize, squareCornerColor, squareBackgroundColor, indicatorSize, indicatorColor, useDeviceActivityIndicator));
                 return;
             }
 
@@ -123,7 +123,7 @@ namespace MultiPlatformApplication.Effects
                 View popupView = contentPage?.GetPopup(DEFAULT_ACTIVITY_INDICATOR_AUTOMATION_ID);
                 if (popupView == null)
                 {
-                    AddBasicActivityActivator(contentPage, DEFAULT_ACTIVITY_INDICATOR_AUTOMATION_ID, obfuscationColor, squareSize, squareCornerRadius, squareBackgroundColor, indicatorSize, indicatorColor, useDeviceActivityIndicator);
+                    AddBasicActivityActivator(contentPage, DEFAULT_ACTIVITY_INDICATOR_AUTOMATION_ID, obfuscationColor, squareSize, squareCornerRadius, squareCornerSize, squareCornerColor, squareBackgroundColor, indicatorSize, indicatorColor, useDeviceActivityIndicator);
                 }
                 else
                 {
@@ -131,30 +131,38 @@ namespace MultiPlatformApplication.Effects
                     {
                         popupView.BackgroundColor = obfuscationColor;
 
-                        if (contentView.Content is Frame frame)
+                        if (contentView.Content is Frame frame1)
                         {
-                            frame.HeightRequest = squareSize;
-                            frame.WidthRequest = squareSize;
-                            frame.CornerRadius = squareCornerRadius;
-                            frame.BackgroundColor = squareBackgroundColor;
+                            frame1.HeightRequest = squareSize;
+                            frame1.WidthRequest = squareSize;
+                            frame1.CornerRadius = squareCornerRadius;
+                            frame1.BackgroundColor = squareCornerColor;
 
-                            // Recreate Content
-                            frame.Content = CreateActivityIndicatorContent(indicatorSize, indicatorColor, useDeviceActivityIndicator);
+                            if (frame1.Content is Frame frame2)
+                            {
+                                frame2.HeightRequest = squareSize;
+                                frame2.WidthRequest = squareSize;
+                                frame2.CornerRadius = squareCornerRadius;
+                                frame2.BackgroundColor = squareBackgroundColor;
 
-                            if (useDeviceActivityIndicator)
-                                frame.Content.SetBinding(ActivityIndicator.IsRunningProperty, new Binding("IsVisible", source: frame));
+                                // Recreate Content
+                                frame2.Content = CreateActivityIndicatorContent(indicatorSize, indicatorColor, useDeviceActivityIndicator);
+
+                                if (useDeviceActivityIndicator)
+                                    frame2.Content.SetBinding(ActivityIndicator.IsRunningProperty, new Binding("IsVisible", source: popupView));
+                            }
                         }
                     }
                 }
             }
         }
 
-        public static void AddBasicActivityActivator(MultiPlatformApplication.Controls.CtrlContentPage contentPage, String automationId, Color obfuscationColor, double squareSize, float squareCornerRadius, Color squareBackgroundColor, double indicatorSize, Color indicatorColor, Boolean useDeviceActivityIndicator)
+        public static void AddBasicActivityActivator(MultiPlatformApplication.Controls.CtrlContentPage contentPage, String automationId, Color obfuscationColor, double squareSize, float squareCornerRadius, double squareCornerSize, Color squareCornerColor, Color squareBackgroundColor, double indicatorSize, Color indicatorColor, Boolean useDeviceActivityIndicator)
         {
             // NECESSARY TO BE ON MAIN THREAD
             if (!MainThread.IsMainThread)
             {
-                MainThread.BeginInvokeOnMainThread(() => AddBasicActivityActivator(contentPage, automationId, obfuscationColor, squareSize, squareCornerRadius, squareBackgroundColor, indicatorSize, indicatorColor, useDeviceActivityIndicator));
+                MainThread.BeginInvokeOnMainThread(() => AddBasicActivityActivator(contentPage, automationId, obfuscationColor, squareSize, squareCornerRadius, squareCornerSize, squareCornerColor, squareBackgroundColor, indicatorSize, indicatorColor, useDeviceActivityIndicator));
                 return;
             }
 
@@ -178,9 +186,28 @@ namespace MultiPlatformApplication.Effects
             };
 
             // Create Frame which contains the activity indicator
-            Frame frame = new Frame
+            Frame frame1 = new Frame
             {
                 Margin = 0,
+                Padding = 0,
+
+                WidthRequest = squareSize,
+                HeightRequest = squareSize,
+
+                CornerRadius = squareCornerRadius,
+                BackgroundColor = squareCornerColor,
+
+                HorizontalOptions = LayoutOptions.Center,
+                VerticalOptions = LayoutOptions.Center
+            };
+
+            // Set frame content
+            contentView.Content = frame1;
+
+            // Create Frame which contains the activity indicator
+            Frame frame2 = new Frame
+            {
+                Margin = new Thickness(squareCornerSize),
                 Padding = 0,
 
                 WidthRequest = squareSize,
@@ -193,18 +220,16 @@ namespace MultiPlatformApplication.Effects
                 VerticalOptions = LayoutOptions.Center
             };
 
-            // Set frame content
-            contentView.Content = frame;
-
+            frame1.Content = frame2;
 
             // Create activity indicator
             View activityIndicator = CreateActivityIndicatorContent(indicatorSize, indicatorColor, useDeviceActivityIndicator);
 
             if(useDeviceActivityIndicator)
-                activityIndicator.SetBinding(ActivityIndicator.IsRunningProperty, new Binding("IsVisible", source: frame));
+                activityIndicator.SetBinding(ActivityIndicator.IsRunningProperty, new Binding("IsVisible", source: contentView));
 
             // Set the activityIndicator as content of the frame
-            frame.Content = activityIndicator;
+            frame2.Content = activityIndicator;
 
             contentPage.AddViewAsPopupInternal(contentView);
             SetType(contentView, PopupType.ActivityIndicator);
@@ -281,13 +306,13 @@ namespace MultiPlatformApplication.Effects
             {
                 Color backColor = Helper.GetResourceDictionaryById<Color>("ColorEntryBackground");
                 Color color = Helper.GetResourceDictionaryById<Color>("ColorMain");
+                Color borderColor = Helper.GetResourceDictionaryById<Color>("ColorEntryPlaceHolder");
                 
-                Color obfuscationColor = Helper.GetResourceDictionaryById<Color>("ColorEntryPlaceHolder");
-                String colorHex = obfuscationColor.ToHex();
+                String colorHex = borderColor.ToHex();
                 colorHex = "#7F" + colorHex.Substring(3);
-                obfuscationColor = Color.FromHex(colorHex);
+                Color obfuscationColor = Color.FromHex(colorHex);
 
-                Popup.SetDefaultBasicActivityActivator(obfuscationColor, 150, 10, backColor, 100, color, true);
+                Popup.SetDefaultBasicActivityActivator(obfuscationColor, 80, 10, 1, borderColor, backColor, 50, color, true);
             }
 
             Show(DEFAULT_ACTIVITY_INDICATOR_AUTOMATION_ID, linkedToAutomationId, LayoutAlignment.Center, false, LayoutAlignment.Center, false, new Point(), -1);
