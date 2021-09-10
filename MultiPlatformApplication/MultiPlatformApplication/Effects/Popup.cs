@@ -21,6 +21,8 @@ namespace MultiPlatformApplication.Effects
 
         private static Dictionary<String, PopupType> popupList = new Dictionary<string, PopupType>(); // Store by Id popup type
 
+        private static Dictionary<String, PopupAction> activityIndicatorList = new Dictionary<string, PopupAction>(); // Store by AutomationID PopuÂction on ActivityIndicator
+
         public static String DEFAULT_ACTIVITY_INDICATOR_AUTOMATION_ID = "RainbowDefaultActivityIndicatorAutomationId";
 
 #region Type Property
@@ -140,8 +142,8 @@ namespace MultiPlatformApplication.Effects
 
                             if (frame1.Content is Frame frame2)
                             {
-                                frame2.HeightRequest = squareSize;
-                                frame2.WidthRequest = squareSize;
+                                frame2.WidthRequest = squareSize - squareCornerSize;
+                                frame2.HeightRequest = squareSize - squareCornerSize;
                                 frame2.CornerRadius = squareCornerRadius;
                                 frame2.BackgroundColor = squareBackgroundColor;
 
@@ -207,11 +209,11 @@ namespace MultiPlatformApplication.Effects
             // Create Frame which contains the activity indicator
             Frame frame2 = new Frame
             {
-                Margin = new Thickness(squareCornerSize),
+                Margin = 0,
                 Padding = 0,
 
-                WidthRequest = squareSize,
-                HeightRequest = squareSize,
+                WidthRequest = squareSize - squareCornerSize,
+                HeightRequest = squareSize - squareCornerSize,
 
                 CornerRadius = squareCornerRadius,
                 BackgroundColor = squareBackgroundColor,
@@ -233,6 +235,29 @@ namespace MultiPlatformApplication.Effects
 
             contentPage.AddViewAsPopupInternal(contentView);
             SetType(contentView, PopupType.ActivityIndicator);
+        }
+
+        public static void AddBasicActivityActivatorUsingDefaultSettings(MultiPlatformApplication.Controls.CtrlContentPage contentPage, String automationId)
+        {
+            // NECESSARY TO BE ON MAIN THREAD
+            if (!MainThread.IsMainThread)
+            {
+                MainThread.BeginInvokeOnMainThread(() => AddBasicActivityActivatorUsingDefaultSettings(contentPage, automationId));
+                return;
+            }
+
+            Color backColor = Helper.GetResourceDictionaryById<Color>("ColorEntryBackground");
+            Color color = Helper.GetResourceDictionaryById<Color>("ColorMain");
+            Color borderColor = Helper.GetResourceDictionaryById<Color>("ColorEntryPlaceHolder");
+
+            String colorHex = borderColor.ToHex();
+            colorHex = "#7F" + colorHex.Substring(3);
+            Color obfuscationColor = Color.FromHex(colorHex);
+
+            if (automationId == DEFAULT_ACTIVITY_INDICATOR_AUTOMATION_ID)
+                SetDefaultBasicActivityActivator(obfuscationColor, 80, 10, 2, borderColor, backColor, 50, color, true);
+            else
+                AddBasicActivityActivator(contentPage, automationId, obfuscationColor, 80, 10, 2, borderColor, backColor, 50, color, true);
         }
 
         public static void Add(MultiPlatformApplication.Controls.CtrlContentPage contentPage, View view, PopupType type)
@@ -303,17 +328,7 @@ namespace MultiPlatformApplication.Effects
             MultiPlatformApplication.Controls.CtrlContentPage contentPage = GetCurrentContentPage();
 
             if (contentPage?.PopupExists(DEFAULT_ACTIVITY_INDICATOR_AUTOMATION_ID) != true)
-            {
-                Color backColor = Helper.GetResourceDictionaryById<Color>("ColorEntryBackground");
-                Color color = Helper.GetResourceDictionaryById<Color>("ColorMain");
-                Color borderColor = Helper.GetResourceDictionaryById<Color>("ColorEntryPlaceHolder");
-                
-                String colorHex = borderColor.ToHex();
-                colorHex = "#7F" + colorHex.Substring(3);
-                Color obfuscationColor = Color.FromHex(colorHex);
-
-                Popup.SetDefaultBasicActivityActivator(obfuscationColor, 80, 10, 1, borderColor, backColor, 50, color, true);
-            }
+                AddBasicActivityActivatorUsingDefaultSettings(null, DEFAULT_ACTIVITY_INDICATOR_AUTOMATION_ID);
 
             Show(DEFAULT_ACTIVITY_INDICATOR_AUTOMATION_ID, linkedToAutomationId, LayoutAlignment.Center, false, LayoutAlignment.Center, false, new Point(), -1);
         }
@@ -354,7 +369,7 @@ namespace MultiPlatformApplication.Effects
             PopupAction popupAction = new PopupAction
             {
                 PopupAutomationId = popupAutomationId,
-                LinkedToElementName = linkedToAutomationId,
+                LinkedToAutomationId = linkedToAutomationId,
                 Rect = new Rect(),
                 OutsideRectHorizontally = outsideRectHorizontally,
                 OutsideRectVertically = outsideRectVertically,
@@ -372,7 +387,7 @@ namespace MultiPlatformApplication.Effects
             PopupAction popupAction = new PopupAction
             {
                 PopupAutomationId = popupAutomationId,
-                LinkedToElementName = null,
+                LinkedToAutomationId = null,
                 Rect = rect,
                 OutsideRectHorizontally = outsideRectHorizontally,
                 OutsideRectVertically = outsideRectVertically,
@@ -464,7 +479,7 @@ namespace MultiPlatformApplication.Effects
                     if (currentContextMenuDisplayed?.PopupAutomationId == newPopupAction.PopupAutomationId)
                     {
                         // We also need to check if it's the same place or not linked to the same element
-                        if (((currentContextMenuDisplayed.LinkedToElementName == newPopupAction.LinkedToElementName) && (!String.IsNullOrEmpty(newPopupAction.LinkedToElementName)))
+                        if (((currentContextMenuDisplayed.LinkedToAutomationId == newPopupAction.LinkedToAutomationId) && (!String.IsNullOrEmpty(newPopupAction.LinkedToAutomationId)))
                             || ((currentContextMenuDisplayed.Rect == newPopupAction.Rect) && (!newPopupAction.Rect.IsEmpty)))
                         {
                             TimeSpan duration = newPopupAction.Date - currentContextMenuDisplayed.Date;
@@ -666,35 +681,38 @@ namespace MultiPlatformApplication.Effects
             return Y;
         }
 
-        private static void ProcessPositionAndShowPopup()
+        internal static void UpdateActivityIndicators()
         {
-            if (popupAction == null)
+            if(activityIndicatorList.Count > 0)
+            {
+                foreach (PopupAction popupAction in activityIndicatorList.Values)
+                    ProcessPositionAndShowPopup(popupAction);
+            }
+        }
+
+        private static void ProcessPositionAndShowPopup(PopupAction newPopupAction)
+        {
+            if (newPopupAction == null)
                 return;
 
             // NECESSARY TO BE ON MAIN THREAD
             if (!MainThread.IsMainThread)
             {
-                MainThread.BeginInvokeOnMainThread(() => ProcessPositionAndShowPopup());
+                MainThread.BeginInvokeOnMainThread(() => ProcessPositionAndShowPopup(newPopupAction));
                 return;
             }
-
-            // Store the context menu currently displayed
-            PopupAction newPopupAction = Popup.popupAction;
 
             // Get ContentPage
             MultiPlatformApplication.Controls.CtrlContentPage contentPage = GetCurrentContentPage();
+
             // Get the View of the popup
             View view = GetView(newPopupAction.PopupAutomationId, contentPage);
             if (view == null)
-            {
-                // Set action to null
-                popupAction = null;
                 return;
-            }
 
             // Get Rect of the linked element (if any)
-            if (!String.IsNullOrEmpty(newPopupAction.LinkedToElementName))
-                newPopupAction.Rect = GetRectOfView(contentPage, newPopupAction.LinkedToElementName);
+            if (!String.IsNullOrEmpty(newPopupAction.LinkedToAutomationId))
+                newPopupAction.Rect = GetRectOfView(contentPage, newPopupAction.LinkedToAutomationId);
 
             // If no Rect is defined, we use the Content Page Bounds
             if (newPopupAction.Rect.IsEmpty)
@@ -702,27 +720,37 @@ namespace MultiPlatformApplication.Effects
 
             if (popupAction.PopupType == PopupType.ActivityIndicator)
             {
-                if (String.IsNullOrEmpty(newPopupAction.LinkedToElementName))
+                if (String.IsNullOrEmpty(newPopupAction.LinkedToAutomationId))
                 {
                     // Set X and Y Constraints
                     RelativeLayout.SetXConstraint(view, Constraint.Constant(0));
                     RelativeLayout.SetYConstraint(view, Constraint.Constant(0));
 
+                    // Set Width and HeightConstraints
                     RelativeLayout.SetWidthConstraint(view, Constraint.RelativeToParent((rl) => { return rl.Width; }));
                     RelativeLayout.SetHeightConstraint(view, Constraint.RelativeToParent((rl) => { return rl.Height; }));
-
-                    // Show popup
-                    view.IsVisible = true;
-                    contentPage.GetRelativeLayout().RaiseChild(view);
-
                 }
                 else
                 {
-                    // TODO
+                    Rect rect = GetRectOfView(newPopupAction.LinkedToAutomationId);
+
+                    // Set X and Y Constraints
+                    RelativeLayout.SetXConstraint(view, Constraint.Constant(rect.X));
+                    RelativeLayout.SetYConstraint(view, Constraint.Constant(rect.Y));
+
+                    // Set Width and HeightConstraints
+                    RelativeLayout.SetWidthConstraint(view, Constraint.Constant(rect.Width));
+                    RelativeLayout.SetHeightConstraint(view, Constraint.Constant(rect.Height));
+
+                    // Add to the list of Activity Indicator
+                    if (!activityIndicatorList.ContainsKey(popupAction.PopupAutomationId))
+                        activityIndicatorList.Add(popupAction.PopupAutomationId, popupAction);
                 }
 
-                // Set action to null
-                popupAction = null;
+                // Show popup
+                view.IsVisible = true;
+                contentPage.GetRelativeLayout().RaiseChild(view);
+
             }
             else
             {
@@ -756,13 +784,9 @@ namespace MultiPlatformApplication.Effects
                 RelativeLayout.SetXConstraint(view, Constraint.RelativeToParent((rl) => X));
                 RelativeLayout.SetYConstraint(view, Constraint.RelativeToParent((rl) => Y));
 
-
                 // Show popup
                 view.IsVisible = true;
                 contentPage.GetRelativeLayout().RaiseChild(view);
-
-                // Set action to null
-                popupAction = null;
             }
         }
 
@@ -828,6 +852,11 @@ namespace MultiPlatformApplication.Effects
                 return;
             }
 
+            // If we add a known activity indicator, remove it from the list
+            if (activityIndicatorList.ContainsKey(popupAutomationId))
+                activityIndicatorList.Remove(popupAutomationId);
+
+
             ContentPage contentPage = GetCurrentContentPage();
             View view = GetView(popupAutomationId, contentPage);
 
@@ -852,7 +881,10 @@ namespace MultiPlatformApplication.Effects
             if (popupAction == null)
                 HideCurrentContextMenu();
             else
-                ProcessPositionAndShowPopup();
+            {
+                ProcessPositionAndShowPopup(popupAction);
+                popupAction = null;
+            }
         }
 
         private enum PopupActionType
@@ -865,7 +897,7 @@ namespace MultiPlatformApplication.Effects
         private class PopupAction
         {
             public String PopupAutomationId;
-            public String LinkedToElementName;
+            public String LinkedToAutomationId;
 
             public PopupType PopupType = PopupType.Unknown;
 
