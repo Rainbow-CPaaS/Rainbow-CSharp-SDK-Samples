@@ -15,7 +15,10 @@ namespace MultiPlatformApplication.Models
         string m_connect;
         Boolean m_isBusy;
         string m_login;
+        string m_loginLabel;
         string m_password;
+        string m_passwordLabel;
+        Boolean m_askingLogin;
 
         RelayCommand<object> m_buttonConnectCommand;
 
@@ -31,10 +34,28 @@ namespace MultiPlatformApplication.Models
             set { SetProperty(ref m_isBusy, value); }
         }
 
+        public Boolean AskingLogin
+        {
+            get { return m_askingLogin; }
+            set { SetProperty(ref m_askingLogin, value); }
+        }
+
+        public String LoginLabel
+        {
+            get { return m_loginLabel; }
+            set { SetProperty(ref m_loginLabel, value); }
+        }
+
         public String Login
         {
             get { return m_login; }
             set { SetProperty(ref m_login, value); }
+        }
+
+        public String PasswordLabel
+        {
+            get { return m_passwordLabel; }
+            set { SetProperty(ref m_passwordLabel, value); }
         }
 
         public String Password

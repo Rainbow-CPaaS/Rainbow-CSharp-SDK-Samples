@@ -13,48 +13,68 @@
     </ContentPage.Resources>
 
     <controls:CtrlContentPage.CtrlContent>
+        
         <StackLayout x:Name="MainStackLayout" 
                  Orientation="Vertical"
                  VerticalOptions="StartAndExpand" 
                  HorizontalOptions="Center">
             
-        <StackLayout Orientation="Horizontal" HorizontalOptions="Center" VerticalOptions="Start" Padding="0, 30, 0, 30">
-            <Image Source="{extensions:ImageResource Id=rainbow_splash_logo.png}" WidthRequest="150" HeightRequest="150"/>
-        </StackLayout>
+            <StackLayout Orientation="Horizontal"
+                         HorizontalOptions="Center" 
+                         VerticalOptions="Start" 
+                         Padding="0, 30, 0, 30">
+                <Image Margin="0"
+                       WidthRequest="150" 
+                       HeightRequest="150"
+                       Source="{extensions:ImageResource Id=rainbow_splash_logo.png}" />
+            </StackLayout>
 
-        <Entry
-                Margin="40,0"
-                FontSize="{StaticResource FontSizeMedium}"
-                WidthRequest="300"
-                HorizontalOptions="Center" 
-                Placeholder="{StaticResource Label_loginEmail}"
-                PlaceholderColor="LightGray"
-                Text="{Binding LoginModel.Login}"
-                IsEnabled="{Binding LoginModel.IsBusy, Converter={StaticResource ReverseBooleanConverter}}" />
+            <Label Margin="20,20,20,10"
+                   Text="{Binding LoginModel.LoginLabel}"
+                   TextColor="{StaticResource ColorEntryText}"
+                   FontSize="{StaticResource FontSizeSmall}"/>
 
-        <Entry
-                Margin="40,40"
-                TextColor="Black"
-                FontSize="{StaticResource FontSizeMedium}"
-                IsPassword="True"
-                WidthRequest="300"
-                HorizontalOptions="CenterAndExpand"
-                Placeholder="{StaticResource Label_password}"
-                PlaceholderColor="Gray"
-                Text="{Binding LoginModel.Password}"
-                IsEnabled="{Binding LoginModel.IsBusy, Converter={StaticResource ReverseBooleanConverter}}" />
+            <Entry  x:Name="EntryLogin"
+                    Margin="0,0,0,10"
+                    FontSize="{StaticResource FontSizeMedium}"
+                    WidthRequest="300"
+                    HorizontalOptions="Center" 
+                    Placeholder="{StaticResource Label_identifier}"
+                    PlaceholderColor="{StaticResource ColorEntryPlaceHolder}"
+                    Text="{Binding LoginModel.Login}"
+                    TextColor="{StaticResource ColorEntryText}"
+                    IsEnabled="{Binding LoginModel.IsBusy, Converter={StaticResource ReverseBooleanConverter}}"/>
 
-        <controls:CustomButton Text="{Binding LoginModel.Connect}"
-                                CornerRadius="4"
-                                HeightRequest="30"
-                                WidthRequest="200"
-                                FontSize="{StaticResource FontSizeSmall}"
-                                FontAttributes="Bold"
-                                TextColor="White"
-                                BackgroundColor="{StaticResource ColorMain}"
-                                BackgroundColorOnMouseOver="{StaticResource ColorMainOnOver}"
-                                Command="{Binding LoginModel.ButtonConnectCommand}"
-                                IsEnabled="{Binding LoginModel.IsBusy, Converter={StaticResource ReverseBooleanConverter}}"/>
+            <Label  Margin="0,20,0,10"
+                   HorizontalTextAlignment="Center"
+                   Text="{Binding LoginModel.PasswordLabel}"
+                   TextColor="{StaticResource ColorEntryText}"
+                   FontSize="{StaticResource FontSizeSmall}"
+                   IsVisible="{Binding LoginModel.AskingLogin, Converter={StaticResource ReverseBooleanConverter}}" />
+
+            <Entry  Margin="20,0,20,10"
+                   TextColor="Black"
+                   FontSize="{StaticResource FontSizeMedium}"
+                   IsPassword="True"
+                   WidthRequest="300"
+                   HorizontalOptions="CenterAndExpand"
+                   Placeholder="{StaticResource Label_password}"
+                   PlaceholderColor="Gray"
+                   Text="{Binding LoginModel.Password}"
+                   IsEnabled="{Binding LoginModel.IsBusy, Converter={StaticResource ReverseBooleanConverter}}" 
+                   IsVisible="{Binding LoginModel.AskingLogin, Converter={StaticResource ReverseBooleanConverter}}" />
+
+            <controls:CustomButton Margin="0,20"
+                                   Text="{Binding LoginModel.Connect}"
+                                   CornerRadius="4"
+                                   HeightRequest="30"
+                                   WidthRequest="200"
+                                   FontSize="{StaticResource FontSizeSmall}"
+                                   FontAttributes="Bold"
+                                   TextColor="White"
+                                   BackgroundColor="{StaticResource ColorMain}"
+                                   BackgroundColorOnMouseOver="{StaticResource ColorMainOnOver}"
+                                   Command="{Binding LoginModel.ButtonConnectCommand}"/>
     </StackLayout>
     </controls:CtrlContentPage.CtrlContent>
     

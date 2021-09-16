@@ -1,8 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Xamarin.Essentials;
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 
@@ -37,37 +40,69 @@ namespace MultiPlatformApplication.ViewModels
         public void Initialize()
         {
             LoginModel.IsBusy = false;
-            LoginModel.Connect = Helper.SdkWrapper.GetLabel("connect");
+            LoginModel.Connect = Helper.SdkWrapper.GetLabel("continue");
+
+            LoginModel.AskingLogin = true;
+
+            LoginModel.LoginLabel = Helper.SdkWrapper.GetLabel("enterAuthID");
+            LoginModel.PasswordLabel = Helper.SdkWrapper.GetLabel("enterAuthPwd");
 
             LoginModel.Login = Helper.SdkWrapper.GetUserLoginFromCache();
             LoginModel.Password = Helper.SdkWrapper.GetUserPasswordFromCache();
         }
 
+        public void LoginFieldFocused()
+        {
+            LoginModel.AskingLogin = true;
+            LoginModel.Connect = Helper.SdkWrapper.GetLabel("continue");
+        }
+
+        private void SetToBusy(bool busy)
+        {
+            if (!MainThread.IsMainThread)
+            {
+                MainThread.BeginInvokeOnMainThread(() => SetToBusy(busy));
+                return;
+            }
+
+            if (busy)
+            {
+                if(LoginModel.AskingLogin)
+                    LoginModel.Connect = Helper.SdkWrapper.GetLabel("continue");
+                else
+                    LoginModel.Connect = Helper.SdkWrapper.GetLabel("connecting");
+                LoginModel.IsBusy = true;
+
+                Popup.ShowDefaultActivityIndicator();
+            }
+            else
+            {
+                if (LoginModel.AskingLogin)
+                    LoginModel.Connect = Helper.SdkWrapper.GetLabel("continue");
+                else
+                    LoginModel.Connect = Helper.SdkWrapper.GetLabel("connect");
+                LoginModel.IsBusy = false;
+
+                Popup.HideDefaultActivityIndicator();
+            }
+
+            // Update button display
+            LoginModel.ButtonConnectCommand.RaiseCanExecuteChanged();
+        }
+
         private void RbApplication_ConnectionStateChanged(object sender, Rainbow.Events.ConnectionStateEventArgs e)
         {
-            Device.BeginInvokeOnMainThread(() =>
+            switch (e.State)
             {
-                switch (e.State)
-                {
-                    case ConnectionState.Connected:
-                    case ConnectionState.Connecting:
-                        LoginModel.Connect = LoginModel.Connect = Helper.SdkWrapper.GetLabel("connecting");
-                        LoginModel.IsBusy = true;
+                case ConnectionState.Connected:
+                case ConnectionState.Connecting:
+                    SetToBusy(true);
+                    break;
 
-                        Popup.ShowDefaultActivityIndicator();
-                        break;
-
-                    case ConnectionState.Disconnected:
-                        LoginModel.Connect = LoginModel.Connect = Helper.SdkWrapper.GetLabel("connect");
-                        LoginModel.IsBusy = false;
-
-                        Popup.HideDefaultActivityIndicator();
-                        break;
-                }
-
-                // Update button display
-                LoginModel.ButtonConnectCommand.RaiseCanExecuteChanged();
-            });
+                case ConnectionState.Disconnected:
+                    SetToBusy(false);
+                    break;
+            }
         }
 
         private void RbApplication_InitializationPerformed(object sender, EventArgs e)
@@ -91,37 +126,126 @@ namespace MultiPlatformApplication.ViewModels
                 // Wait all manual events before to continue
                 WaitHandle.WaitAll(new WaitHandle[] { manualEventBubbles, manualEventConversations }, 5000);
 
+                // No more in busy state
+                SetToBusy(false);
+
                 // Display conversations pages
                 ShowMainPage();
             });
             task.Start();
         }
 
-        void ShowMainPage()
+        async void ShowMainPage()
         {
-            Device.BeginInvokeOnMainThread(async () =>
+            if (!MainThread.IsMainThread)
             {
-                Popup.HideDefaultActivityIndicator();
-                LoginModel.Connect = LoginModel.Connect = Helper.SdkWrapper.GetLabel("connect");
-                LoginModel.IsBusy = false;
+                MainThread.BeginInvokeOnMainThread(() => ShowMainPage());
+                return;
+            }
 
-                await XamarinApplication.NavigationService.ReplaceCurrentPageAsync("MainPage");
-            });
+            
+            await XamarinApplication.NavigationService.ReplaceCurrentPageAsync("MainPage");
         }
 
-        public void ButtonConnectCommand(object obj)
+
+        private void AskPassword()
+        {
+            if(!MainThread.IsMainThread)
+            {
+                MainThread.BeginInvokeOnMainThread(() => AskPassword());
+                return;
+            }
+
+            SetToBusy(false);
+
+            LoginModel.Connect = Helper.SdkWrapper.GetLabel("connect");
+
+            LoginModel.AskingLogin = false;
+        }
+
+        private void StepAskingLogin()
+        {
+            SetToBusy(true);
+
+            Task task = new Task(() =>
+            {
+                Helper.SdkWrapper.GetAuthenticationSSOUrls(LoginModel.Login, callback =>
+                {
+                    if (callback.Result.Success)
+                    {
+                        List<AuthenticationSSOUrl> urls = callback.Data;
+
+                        // Do we have at least one URL ?
+                        if ( (urls == null) || (urls?.Count == 0) )
+                        {
+                            AskPassword();
+                            return;
+                        }
+
+                        // If we have several URLs, the first one different of RAINBOW is taken into account
+                        AuthenticationSSOUrl authUrl = urls.FirstOrDefault(x => (x.Type.ToUpper() != "RAINBOW"));
+
+                        // Do we have found one ?
+                        if(authUrl == null)
+                        {
+                            AskPassword();
+                            return;
+                        }
+
+                        // So we start SSO
+                        Uri uri = new Uri(authUrl.LoginUrl);
+                        Uri redirectUri = new Uri("rainbow://callback/");
+
+                        Device.BeginInvokeOnMainThread(async () =>
+                        {
+                            try
+                            {
+                                var authResult = await WebAuthenticator.AuthenticateAsync(uri, redirectUri);
+
+                                if (authResult.Properties.ContainsKey("tkn"))
+                                {
+                                    String token = authResult.Properties["tkn"];
+                                    Helper.SdkWrapper.LoginWithToken(token, callbackLoginToken =>
+                                    {
+                                        if(!callbackLoginToken.Result.Success)
+                                            SetToBusy(false);
+                                    });
+                                }
+                                else
+                                    SetToBusy(false);
+                            }
+                            catch (Exception exc)
+                            {
+                                // ERROR OCCURS
+                                SetToBusy(false);
+                            }
+                        });
+                    }
+                    else
+                    {
+                        SetToBusy(false);
+                    }
+
+                });
+            });
+            task.Start();
+        }
+
+        private void StepAskingPassword()
+        {
+
+        }
+
+        private void ButtonConnectCommand(object obj)
         {
             if (Helper.SdkWrapper.ConnectionState() == ConnectionState.Disconnected)
             {
-                Popup.ShowDefaultActivityIndicator();
-                Task task = new Task(() =>
-                {
-                    Helper.SdkWrapper.Login(LoginModel.Login, LoginModel.Password, callback =>
-                    {
-                        //TODO - manage error
-                    });
-                });
-                task.Start();
+                if (LoginModel.AskingLogin)
+                    StepAskingLogin();
+                else
+                    StepAskingPassword();
+
+                
             }
             else
                 Helper.SdkWrapper.Logout();

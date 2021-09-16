@@ -27,6 +27,14 @@ namespace MultiPlatformApplication.Views
             
             vm = new LoginViewModel();
             BindingContext = vm;
+
+            EntryLogin.Focused += EntryLogin_Focused;
+        }
+
+        private void EntryLogin_Focused(object sender, FocusEventArgs e)
+        {
+            if (e.IsFocused)
+                vm.LoginFieldFocused();
         }
 
         protected override void OnAppearing()
