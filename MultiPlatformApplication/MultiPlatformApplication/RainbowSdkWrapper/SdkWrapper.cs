@@ -290,6 +290,9 @@ namespace MultiPlatformApplication
             return true;
         }
 
+        virtual public void GetAuthenticationSSOUrls(String login, Action<SdkResult<List<AuthenticationSSOUrl>>> callback)
+        { }
+
         virtual public String GetResourceId()
         {
             return "";
@@ -316,6 +319,10 @@ namespace MultiPlatformApplication
         }
 
         virtual public void Login(string login, string password, Action<SdkResult<Boolean>> callback = null)
+        {
+        }
+
+        public virtual void LoginWithToken(string token, Action<SdkResult<Boolean>> callback = null)
         {
         }
 

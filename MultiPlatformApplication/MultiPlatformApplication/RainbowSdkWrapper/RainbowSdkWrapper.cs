@@ -199,6 +199,11 @@ namespace MultiPlatformApplication
             return RbApplication.IsInitialized();
         }
 
+        override public void GetAuthenticationSSOUrls(String login, Action<SdkResult<List<AuthenticationSSOUrl>>> callback)
+        {
+            RbApplication.GetAuthenticationSSOUrls(login, callback);
+        }
+        
         public override String GetResourceId()
         {
             return RbApplication.GetResourceId();
@@ -227,6 +232,11 @@ namespace MultiPlatformApplication
         public override void Login(string login, string password, Action<SdkResult<Boolean>> callback = null)
         {
             RbApplication.Login(login, password, callback);
+        }
+
+        public override void LoginWithToken(string token, Action<SdkResult<Boolean>> callback = null)
+        {
+            RbApplication.LoginWithToken(token, callback);
         }
 
         public override void Logout(Action<SdkResult<Boolean>> callback = null)
