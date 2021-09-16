@@ -194,7 +194,7 @@ namespace MultiPlatformApplication.ViewModels
 
                         // So we start SSO
                         Uri uri = new Uri(authUrl.LoginUrl);
-                        Uri redirectUri = new Uri("rainbow://callback/");
+                        Uri redirectUri = new Uri("rainbow://callback/"); // /!\  This callback must be set on the property "SsoAuthenticationRedirectUrl" on the RB Application used by this SDK
 
                         Device.BeginInvokeOnMainThread(async () =>
                         {
@@ -202,9 +202,12 @@ namespace MultiPlatformApplication.ViewModels
                             {
                                 var authResult = await WebAuthenticator.AuthenticateAsync(uri, redirectUri);
 
+                                // We take the JWT tkn from Rainbow server (if any)
                                 if (authResult.Properties.ContainsKey("tkn"))
                                 {
                                     String token = authResult.Properties["tkn"];
+
+                                    // Now start login with this token
                                     Helper.SdkWrapper.LoginWithToken(token, callbackLoginToken =>
                                     {
                                         if(!callbackLoginToken.Result.Success)
