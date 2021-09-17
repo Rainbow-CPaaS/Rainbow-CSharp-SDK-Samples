@@ -147,7 +147,6 @@ namespace MultiPlatformApplication.ViewModels
             await XamarinApplication.NavigationService.ReplaceCurrentPageAsync("MainPage");
         }
 
-
         private void AskPassword()
         {
             if(!MainThread.IsMainThread)
@@ -217,9 +216,9 @@ namespace MultiPlatformApplication.ViewModels
                                 else
                                     SetToBusy(false);
                             }
-                            catch (Exception exc)
+                            catch
                             {
-                                // ERROR OCCURS
+                                // ERROR OCCURS or USER CANCELLED
                                 SetToBusy(false);
                             }
                         });
@@ -236,7 +235,19 @@ namespace MultiPlatformApplication.ViewModels
 
         private void StepAskingPassword()
         {
+            SetToBusy(true);
 
+            Task task = new Task(() =>
+            {
+                // Now start login with login / pwd
+                Helper.SdkWrapper.Login(LoginModel.Login, LoginModel.Password, callbackLogin =>
+                {
+                    if (!callbackLogin.Result.Success)
+                        SetToBusy(false);
+                });
+                
+            });
+            task.Start();
         }
 
         private void ButtonConnectCommand(object obj)

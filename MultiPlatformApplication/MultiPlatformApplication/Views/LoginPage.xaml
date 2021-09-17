@@ -30,6 +30,7 @@
             </StackLayout>
 
             <Label Margin="20,20,20,10"
+                   HorizontalTextAlignment="Center"
                    Text="{Binding LoginModel.LoginLabel}"
                    TextColor="{StaticResource ColorEntryText}"
                    FontSize="{StaticResource FontSizeSmall}"/>
