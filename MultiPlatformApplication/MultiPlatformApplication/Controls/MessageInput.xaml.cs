@@ -41,6 +41,14 @@ namespace MultiPlatformApplication.Controls
 
         public MessageInput()
         {
+            // /!\ Message object must be defined FIRST !!!
+            Message.AttachmentCommand = new RelayCommand<object>(new Action<object>(MessageInputAttachmentCommand));
+            Message.UrgencyCommand = new RelayCommand<object>(new Action<object>(MessageInputUrgencyCommand));
+            Message.SendCommand = new RelayCommand<object>(new Action<object>(MessageInputSendCommand));
+
+            Message.BreakLineModifier = "shift";
+            Message.ValidationCommand = new RelayCommand<object>(new Action<object>(MessageInputValidationCommand));
+
             InitializeComponent();
             BindingContext = this;
 
@@ -49,15 +57,7 @@ namespace MultiPlatformApplication.Controls
             
             FrameBeforeButtonAttachment.IsVisible = capabilityFileSharing;
             ButtonAttachment.IsVisible = capabilityFileSharing;
-            
-
-            Message.AttachmentCommand = new RelayCommand<object>(new Action<object>(MessageInputAttachmentCommand));
-            Message.UrgencyCommand = new RelayCommand<object>(new Action<object>(MessageInputUrgencyCommand));
-            Message.SendCommand = new RelayCommand<object>(new Action<object>(MessageInputSendCommand));
-
-            Message.BreakLineModifier = "shift";
-            Message.ValidationCommand = new RelayCommand<object>(new Action<object>(MessageInputValidationCommand));
-
+           
             MessageContentReplyButton.Command = new RelayCommand<object>(new Action<object>(MessageContentReplyButtonCommand));
 
             EntryMessage.Placeholder = Helper.SdkWrapper.GetLabel("enterTextHere");
