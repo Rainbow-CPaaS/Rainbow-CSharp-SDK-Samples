@@ -13,7 +13,6 @@ using System.Text;
 using System.Threading.Tasks;
 
 using Xamarin.Essentials;
-
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 
@@ -57,7 +56,7 @@ namespace MultiPlatformApplication.Controls
             
             FrameBeforeButtonAttachment.IsVisible = capabilityFileSharing;
             ButtonAttachment.IsVisible = capabilityFileSharing;
-           
+
             MessageContentReplyButton.Command = new RelayCommand<object>(new Action<object>(MessageContentReplyButtonCommand));
 
             EntryMessage.Placeholder = Helper.SdkWrapper.GetLabel("enterTextHere");
@@ -96,6 +95,13 @@ namespace MultiPlatformApplication.Controls
 
         public void UpdateUsersTyping(List<String> peerJidTyping)
         {
+            // Ensure to be on Main UI Thread
+            if (!MainThread.IsMainThread)
+            {
+                MainThread.BeginInvokeOnMainThread(() => UpdateUsersTyping(peerJidTyping));
+                return;
+            }
+
             Boolean start = false;
             String label = " ";
 
@@ -140,17 +146,12 @@ namespace MultiPlatformApplication.Controls
                 }
             }
 
-            // Update UI using correct thread
-            Device.BeginInvokeOnMainThread(() =>
-            {
-                LabelTyping.Text = label;
+            LabelTyping.Text = label;
 
-                if (start)
-                    StartUserTypingAnimation();
-                else
-                    StopUserTypingAnimation();
-            });
-
+            if (start)
+                StartUserTypingAnimation();
+            else
+                StopUserTypingAnimation();
         }
 
         public void SetUrgencySelection(String urgencyTypeString)
@@ -179,19 +180,23 @@ namespace MultiPlatformApplication.Controls
 
         public void SetReplyMessage(MessageElementModel messageElementModel)
         {
-            Device.BeginInvokeOnMainThread(() =>
+            // Ensure to be on Main UI Thread
+            if (!MainThread.IsMainThread)
             {
-                // We can't add attachments
-                FrameBeforeButtonAttachment.IsVisible = false;
-                ButtonAttachment.IsVisible = false;
+                MainThread.BeginInvokeOnMainThread(() => SetReplyMessage(messageElementModel));
+                return;
+            }
 
-                replyToMessageId = messageElementModel?.Reply?.Id;
+            // We can't add attachments
+            FrameBeforeButtonAttachment.IsVisible = false;
+            ButtonAttachment.IsVisible = false;
 
-                MessageContentReply.SetUsageMode(true);
-                MessageContentReply.BindingContext = messageElementModel;
+            replyToMessageId = messageElementModel?.Reply?.Id;
 
-                MessageContentReplyElement.IsVisible = true;
-            });
+            MessageContentReply.SetUsageMode(true);
+            MessageContentReply.BindingContext = messageElementModel;
+
+            MessageContentReplyElement.IsVisible = true;
         }
 
         private void SdkWrapper_PeerUpdated(object sender, PeerEventArgs e)
@@ -271,17 +276,21 @@ namespace MultiPlatformApplication.Controls
 
         private void MessageContentReplyButtonCommand(object obj)
         {
-            Device.BeginInvokeOnMainThread(() =>
+            // Ensure to be on Main UI Thread
+            if (!MainThread.IsMainThread)
             {
-                // Clear value
-                replyToMessageId = null;
+                MainThread.BeginInvokeOnMainThread(() => MessageContentReplyButtonCommand(obj));
+                return;
+            }
 
-                // Attachments are now available
-                FrameBeforeButtonAttachment.IsVisible = capabilityFileSharing;
-                ButtonAttachment.IsVisible = capabilityFileSharing;
+            // Clear value
+            replyToMessageId = null;
 
-                MessageContentReplyElement.IsVisible = false;
-            });
+            // Attachments are now available
+            FrameBeforeButtonAttachment.IsVisible = capabilityFileSharing;
+            ButtonAttachment.IsVisible = capabilityFileSharing;
+
+            MessageContentReplyElement.IsVisible = false;
         }
 
     }

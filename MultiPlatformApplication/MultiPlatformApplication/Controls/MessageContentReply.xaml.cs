@@ -9,7 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+using Xamarin.Essentials;
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 
@@ -140,14 +140,18 @@ namespace MultiPlatformApplication.Controls
 
         private void UpdateDisplay()
         {
-            Device.BeginInvokeOnMainThread(() =>
+            // Ensure to be on Main UI Thread
+            if (!MainThread.IsMainThread)
             {
-                if (message?.Reply?.Peer?.Jid == Helper.SdkWrapper.GetCurrentContactJid())
-                    LabelDisplayName.Text = Helper.SdkWrapper.GetLabel("me");
-                else
-                    LabelDisplayName.Text = message?.Reply?.Peer?.DisplayName;
-                LabelBody.Text = message?.Reply?.Content?.Body;
-            });
+                MainThread.BeginInvokeOnMainThread(() => UpdateDisplay());
+                return;
+            }
+
+            if (message?.Reply?.Peer?.Jid == Helper.SdkWrapper.GetCurrentContactJid())
+                LabelDisplayName.Text = Helper.SdkWrapper.GetLabel("me");
+            else
+                LabelDisplayName.Text = message?.Reply?.Peer?.DisplayName;
+            LabelBody.Text = message?.Reply?.Content?.Body;
         }
 
         private void SetReplyPartOfMessage(Rainbow.Model.Message rbRepliedMessage)
@@ -214,29 +218,35 @@ namespace MultiPlatformApplication.Controls
 
         private void DisplayAttachment(String fileName)
         {
-            Device.BeginInvokeOnMainThread(() =>
+            // Ensure to be on Main UI Thread
+            if (!MainThread.IsMainThread)
             {
-                String imageSourceId = Helper.GetFileSourceIdFromFileName(fileName);
-                Image.HeightRequest = MAX_IMAGE_SIZE;
-                Image.WidthRequest = MAX_IMAGE_SIZE;
-                Image.Source = Helper.GetImageSourceFromFont(imageSourceId);
-                Image.IsVisible = true;
-            });
+                MainThread.BeginInvokeOnMainThread(() => DisplayAttachment(fileName));
+                return;
+            }
+
+            String imageSourceId = Helper.GetFileSourceIdFromFileName(fileName);
+            Image.HeightRequest = MAX_IMAGE_SIZE;
+            Image.WidthRequest = MAX_IMAGE_SIZE;
+            Image.Source = Helper.GetImageSourceFromFont(imageSourceId);
+            Image.IsVisible = true;
         }
 
         private void SdkWrapper_ThumbnailAvailable(object sender, Rainbow.Events.IdEventArgs e)
         {
-            if (attachmentId == e.Id)
-            {
-                Device.BeginInvokeOnMainThread(() =>
-                {
-                    UpdateThumbnailDisplay();
-                });
-            }
+             if (attachmentId == e.Id)
+                UpdateThumbnailDisplay();
         }
 
         private void UpdateThumbnailDisplay()
         {
+            // Ensure to be on Main UI Thread
+            if (!MainThread.IsMainThread)
+            {
+                MainThread.BeginInvokeOnMainThread(() => UpdateThumbnailDisplay());
+                return;
+            }
+
             string filePath = Helper.SdkWrapper.GetThumbnailFullFilePath(attachmentId);
             try
             {
@@ -259,16 +269,13 @@ namespace MultiPlatformApplication.Controls
                     int w = (int)(size.Width * scale);
                     int h = (int)(size.Height * scale);
 
-                    Device.BeginInvokeOnMainThread(() =>
-                    {
-                        Image.HeightRequest = (int)Math.Round(h / density);
-                        Image.WidthRequest = (int)Math.Round(w / density);
-                        Image.Source = ImageSource.FromFile(filePath);
-                        Image.IsVisible = true;
+                    Image.HeightRequest = (int)Math.Round(h / density);
+                    Image.WidthRequest = (int)Math.Round(w / density);
+                    Image.Source = ImageSource.FromFile(filePath);
+                    Image.IsVisible = true;
 
-                        //if we have a thumbnail, we don't display the file name
-                        LabelBody.Text = "";
-                    });
+                    //if we have a thumbnail, we don't display the file name
+                    LabelBody.Text = "";
                 }
             }
             catch { }

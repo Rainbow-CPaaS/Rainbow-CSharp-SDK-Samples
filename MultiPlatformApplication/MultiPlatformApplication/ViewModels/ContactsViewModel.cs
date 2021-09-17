@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Xamarin.Forms;
 using System.Threading;
 using System.Threading.Tasks;
+
+using Xamarin.Essentials;
+using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 
 using MultiPlatformApplication.Helpers;
@@ -12,9 +14,11 @@ using MultiPlatformApplication.Models;
 using Rainbow;
 using Rainbow.Model;
 
-using NLog;
 using MultiPlatformApplication.Effects;
 using MultiPlatformApplication.Controls;
+
+using NLog;
+
 
 namespace MultiPlatformApplication.ViewModels
 {
@@ -156,12 +160,12 @@ namespace MultiPlatformApplication.ViewModels
                 //if ( (originalContactsList == null) || (originalContactsList.Count == 0) )
                 {
                     // Get contacts from cache
-                    List<Contact> rbContacts = Helper.SdkWrapper.GetAllContactsFromCache();
+                    List<Rainbow.Model.Contact> rbContacts = Helper.SdkWrapper.GetAllContactsFromCache();
 
                     String currentContactId = Helper.SdkWrapper.GetCurrentContactId();
 
                     originalContactsList = new List<ContactModel>();
-                    foreach (Contact contact in rbContacts)
+                    foreach (Rainbow.Model.Contact contact in rbContacts)
                     {
                         if( ! ( (contact.IsTerminated) || (contact.Id == currentContactId) ) )
                             originalContactsList.Add(new ContactModel(contact));
@@ -229,7 +233,7 @@ namespace MultiPlatformApplication.ViewModels
                         break;
                 }
 
-                Device.BeginInvokeOnMainThread(() =>
+                MainThread.BeginInvokeOnMainThread(() =>
                 {
                     foreach (var item in groupedContacts)
                     {

@@ -10,6 +10,7 @@ using MultiPlatformApplication.Helpers;
 using MultiPlatformApplication.Models;
 
 using Rainbow.Model;
+using Xamarin.Essentials;
 
 namespace MultiPlatformApplication.Controls
 {
@@ -75,19 +76,23 @@ namespace MultiPlatformApplication.Controls
 
         private void UpdateDisplay()
         {
+            // Ensure to be on Main UI Thread
+            if (!MainThread.IsMainThread)
+            {
+                MainThread.BeginInvokeOnMainThread(() => UpdateDisplay());
+                return;
+            }
+
             if (String.IsNullOrEmpty(peerJid))
                 return;
 
-            Contact contact = Helper.SdkWrapper.GetContactFromContactJid(peerJid);
+            Rainbow.Model.Contact contact = Helper.SdkWrapper.GetContactFromContactJid(peerJid);
             if (contact != null)
             {
-                Device.BeginInvokeOnMainThread(() =>
-                {
-                    if(isCallLogEvent)
-                        Label.Text = Helper.GetCallLogEventMessageBody(callLogAttachment);
-                    else
-                        Label.Text = Helper.GetBubbleEventMessageBody(contact, body);
-                });
+                if(isCallLogEvent)
+                    Label.Text = Helper.GetCallLogEventMessageBody(callLogAttachment);
+                else
+                    Label.Text = Helper.GetBubbleEventMessageBody(contact, body);
             }
         }
 

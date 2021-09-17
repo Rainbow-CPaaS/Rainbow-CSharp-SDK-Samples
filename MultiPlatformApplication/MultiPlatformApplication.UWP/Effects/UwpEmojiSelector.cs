@@ -8,6 +8,7 @@ using Windows.System;
 using Windows.UI.Input.Preview.Injection;
 using Windows.UI.ViewManagement.Core;
 using Windows.UI.Xaml.Controls;
+using Xamarin.Essentials;
 using Xamarin.Forms;
 using Xamarin.Forms.Platform.UWP;
 
@@ -79,18 +80,12 @@ namespace MultiPlatformApplication.UWP.PlatformEffect
             if (entry.IsFocused)
             {
                 needUnfocus = true;
-                Device.BeginInvokeOnMainThread(() =>
-                {
-                    entry.Unfocus();
-                });
+                MainThread.BeginInvokeOnMainThread(() => entry.Unfocus());
             }
             else
             {
                 needEmojiSelectorDisplay = true;
-                Device.BeginInvokeOnMainThread(() =>
-                {
-                    entry.Focus();
-                });
+                MainThread.BeginInvokeOnMainThread(() => entry.Focus());
             }
         }
 
@@ -99,10 +94,7 @@ namespace MultiPlatformApplication.UWP.PlatformEffect
             if(needUnfocus)
             {
                 needEmojiSelectorDisplay = true;
-                Device.BeginInvokeOnMainThread(() =>
-                {
-                    entry.Focus();
-                });
+                MainThread.BeginInvokeOnMainThread(() => entry.Focus());
             }
             else
             {
@@ -120,60 +112,64 @@ namespace MultiPlatformApplication.UWP.PlatformEffect
 
         private void DisplayEmojiSelector()
         {
-            Device.BeginInvokeOnMainThread(() =>
+            // Ensure to be on Main UI Thread
+            if (!MainThread.IsMainThread)
             {
-                if (inputInjector == null)
-                {
-                    try
-                    {
-                        inputInjector = InputInjector.TryCreate();
-                    }
-                    catch
-                    {
-                        // Nothing to do
-                    }
-                }
+                MainThread.BeginInvokeOnMainThread(() => DisplayEmojiSelector());
+                return;
+            }
 
-                // If we cannot create InputInjector, we display Emoji Selector in a different way
-                if (inputInjector == null)
+            if (inputInjector == null)
+            {
+                try
                 {
-                    CoreInputView.GetForCurrentView().TryShow(CoreInputViewKind.Emoji);
-                    return;
+                    inputInjector = InputInjector.TryCreate();
                 }
+                catch
+                {
+                    // Nothing to do
+                }
+            }
 
-                // If necessary create first input keyboard info
-                if (leftWindowsDown == null)
-                {
-                    leftWindowsDown = new InjectedInputKeyboardInfo();
-                    leftWindowsDown.VirtualKey = (ushort)(VirtualKey.LeftWindows);
-                    leftWindowsDown.KeyOptions = InjectedInputKeyOptions.None;
-                }
+            // If we cannot create InputInjector, we display Emoji Selector in a different way
+            if (inputInjector == null)
+            {
+                CoreInputView.GetForCurrentView().TryShow(CoreInputViewKind.Emoji);
+                return;
+            }
 
-                if (leftWindowsUp == null)
-                {
-                    leftWindowsUp = new InjectedInputKeyboardInfo();
-                    leftWindowsUp.VirtualKey = (ushort)(VirtualKey.LeftWindows);
-                    leftWindowsUp.KeyOptions = InjectedInputKeyOptions.KeyUp;
-                }
+            // If necessary create first input keyboard info
+            if (leftWindowsDown == null)
+            {
+                leftWindowsDown = new InjectedInputKeyboardInfo();
+                leftWindowsDown.VirtualKey = (ushort)(VirtualKey.LeftWindows);
+                leftWindowsDown.KeyOptions = InjectedInputKeyOptions.None;
+            }
 
-                if (periodDown == null)
-                {
-                    periodDown = new InjectedInputKeyboardInfo();
-                    periodDown.VirtualKey = 0xBE;
-                    periodDown.KeyOptions = InjectedInputKeyOptions.None;
-                }
+            if (leftWindowsUp == null)
+            {
+                leftWindowsUp = new InjectedInputKeyboardInfo();
+                leftWindowsUp.VirtualKey = (ushort)(VirtualKey.LeftWindows);
+                leftWindowsUp.KeyOptions = InjectedInputKeyOptions.KeyUp;
+            }
 
-                if (periodUp == null)
-                {
-                    periodUp = new InjectedInputKeyboardInfo();
-                    periodUp.VirtualKey = 0xBE;
-                    periodUp.KeyOptions = InjectedInputKeyOptions.KeyUp;
-                }
+            if (periodDown == null)
+            {
+                periodDown = new InjectedInputKeyboardInfo();
+                periodDown.VirtualKey = 0xBE;
+                periodDown.KeyOptions = InjectedInputKeyOptions.None;
+            }
+
+            if (periodUp == null)
+            {
+                periodUp = new InjectedInputKeyboardInfo();
+                periodUp.VirtualKey = 0xBE;
+                periodUp.KeyOptions = InjectedInputKeyOptions.KeyUp;
+            }
                 
 
-                // Send keyboard inputs
-                inputInjector.InjectKeyboardInput(new[] { leftWindowsDown, periodDown, periodUp, leftWindowsUp });
-            });
+            // Send keyboard inputs
+            inputInjector.InjectKeyboardInput(new[] { leftWindowsDown, periodDown, periodUp, leftWindowsUp });
         }
     }
 }

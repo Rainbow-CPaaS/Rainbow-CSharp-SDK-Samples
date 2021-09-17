@@ -9,7 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+using Xamarin.Essentials;
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 
@@ -339,35 +339,41 @@ namespace MultiPlatformApplication.Controls
 
         private void SdkWrapper_StopMessageEdition(object sender, Rainbow.Events.StringListEventArgs e)
         {
+            // Ensure to be on Main UI Thread
+            if (!MainThread.IsMainThread)
+            {
+                MainThread.BeginInvokeOnMainThread(() => SdkWrapper_StopMessageEdition(sender, e));
+                return;
+            }
+
             if ((e.Values?.Count > 0) && (e.Values[0] == message?.Id))
             {
-                Device.BeginInvokeOnMainThread(() =>
-                {
-                    needCancelEditionButton = false;
+                needCancelEditionButton = false;
 
-                    RemoveMessageEditionGrid();
+                RemoveMessageEditionGrid();
                 
-                    if(BtnAction != null)
-                        BtnAction.IsVisible = true;
-    
-                });
+                if(BtnAction != null)
+                    BtnAction.IsVisible = true;
             }
         }
 
         private void SdkWrapper_StartMessageEdition(object sender, Rainbow.Events.IdEventArgs e)
         {
-            if(e.Id == message?.Id)
+            // Ensure to be on Main UI Thread
+            if (!MainThread.IsMainThread)
+            {
+                MainThread.BeginInvokeOnMainThread(() => SdkWrapper_StartMessageEdition(sender, e));
+                return;
+            }
+
+            if (e.Id == message?.Id)
             {
                 needCancelEditionButton = true;
 
-                Device.BeginInvokeOnMainThread(() =>
-                {
+                CreateMessageEditionGrid();
 
-                    CreateMessageEditionGrid();
-
-                    if (BtnAction != null)
-                        BtnAction.IsVisible = false;
-                });
+                if (BtnAction != null)
+                    BtnAction.IsVisible = false;
             }
         }
 

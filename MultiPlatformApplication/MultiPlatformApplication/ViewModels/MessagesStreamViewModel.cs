@@ -202,7 +202,7 @@ namespace MultiPlatformApplication.ViewModels
             {
                 if (callback.Result.Success)
                 {
-                    Device.BeginInvokeOnMainThread(() =>
+                    MainThread.BeginInvokeOnMainThread(() =>
                     {
                         if (callback.Data.Count == 0)
                         {
@@ -254,7 +254,7 @@ namespace MultiPlatformApplication.ViewModels
                 ContentView element = GetContentViewAccordingMessage(message);
 
                 // Now update the display list: remove older message and add the new one
-                Device.BeginInvokeOnMainThread(() =>
+                MainThread.BeginInvokeOnMainThread(() =>
                 {
                     StoreScrollingPosition();
                     DynamicStream.CodeAskingToScroll = true;
@@ -392,7 +392,7 @@ namespace MultiPlatformApplication.ViewModels
                 }
             }
 
-            Device.BeginInvokeOnMainThread(() =>
+            MainThread.BeginInvokeOnMainThread(() =>
             {
                 ContentView element;
                 lock (lockObservableMessagesList)
@@ -781,10 +781,14 @@ namespace MultiPlatformApplication.ViewModels
 
         private void MessageInput_MessageUrgencyClicked(object sender, RectEventArgs e)
         {
-            Device.BeginInvokeOnMainThread(() =>
+            // Ensure to be on Main UI Thread
+            if (!MainThread.IsMainThread)
             {
-                DisplayMessageUrgencyContextMenu(e.Rect);
-            });
+                MainThread.BeginInvokeOnMainThread(() => MessageInput_MessageUrgencyClicked(sender, e));
+                return;
+            }
+
+            DisplayMessageUrgencyContextMenu(e.Rect);
         }
 
         private void MessageInput_SizeChanged(object sender, EventArgs e)
@@ -831,7 +835,7 @@ namespace MultiPlatformApplication.ViewModels
             Task task = new Task(() =>
             {
                 Thread.Sleep(100);
-                Device.BeginInvokeOnMainThread(() =>
+                MainThread.BeginInvokeOnMainThread(() =>
                 {
                     ScrollToCorrectPosition();
                 });
@@ -1063,24 +1067,27 @@ namespace MultiPlatformApplication.ViewModels
 
         private void MessagesStreamViewModel_ActionMenuToDisplay(object sender, EventArgs e)
         {
+            // Ensure to be on Main UI Thread
+            if (!MainThread.IsMainThread)
+            {
+                MainThread.BeginInvokeOnMainThread(() => MessagesStreamViewModel_ActionMenuToDisplay(sender, e));
+                return;
+            }
+
             if ((sender != null) && (sender is ContentView element))
             {
-                // We need now to be on Main UI Thread (to manage well long press)
-                Device.BeginInvokeOnMainThread(() => //
+                actionDoneOnMessage = (MessageElementModel)element.BindingContext;
+                if (actionDoneOnMessage == null)
+                    return;
+
+                if (e is RectEventArgs rectEventArgs)
                 {
-                   actionDoneOnMessage = (MessageElementModel)element.BindingContext;
-                   if (actionDoneOnMessage == null)
-                       return;
+                    GetMessageContext(actionDoneOnMessage, out Boolean isCurrentUser, out Boolean withFileAttachment, out Boolean withBodyContent, out Boolean isLastMessageOfCurrentUser);
 
-                   if (e is RectEventArgs rectEventArgs)
-                   {
-                       GetMessageContext(actionDoneOnMessage, out Boolean isCurrentUser, out Boolean withFileAttachment, out Boolean withBodyContent, out Boolean isLastMessageOfCurrentUser);
+                    SetActionOptionsModel(isCurrentUser, withFileAttachment, withBodyContent, isLastMessageOfCurrentUser);
 
-                       SetActionOptionsModel(isCurrentUser, withFileAttachment, withBodyContent, isLastMessageOfCurrentUser);
-
-                       DisplayActionContextMenu(rectEventArgs.Rect);
-                   }
-                });
+                    DisplayActionContextMenu(rectEventArgs.Rect);
+                }
             }
         }
 

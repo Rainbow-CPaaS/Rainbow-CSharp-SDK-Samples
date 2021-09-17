@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+using Xamarin.Essentials;
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 
@@ -107,10 +107,7 @@ namespace MultiPlatformApplication.Controls
             {
                 Device.StartTimer(new TimeSpan(0, 0, 0, 0, 200), () =>
                 {
-                    Device.BeginInvokeOnMainThread(() =>
-                    {
-                        editor.SetFocus(true);
-                    });
+                    MainThread.BeginInvokeOnMainThread(() => editor.SetFocus(true));
                     return false;
                 });
             }
@@ -118,50 +115,57 @@ namespace MultiPlatformApplication.Controls
 
         private void AddEditionUI()
         {
+            // Ensure to be on Main UI Thread
+            if (!MainThread.IsMainThread)
+            {
+                MainThread.BeginInvokeOnMainThread(() => AddEditionUI());
+                return;
+            }
+
             lock (lockEditor)
             {
                 if (editor == null)
                 {
-                    Device.BeginInvokeOnMainThread(() =>
-                    {
-                        CreateEditorComponent();
+                    CreateEditorComponent();
 
-                        // Hide current label
-                        Label.IsVisible = false;
+                    // Hide current label
+                    Label.IsVisible = false;
 
-                        // Set default text of the editor
-                        editor.Text = Label.Text;
+                    // Set default text of the editor
+                    editor.Text = Label.Text;
 
-                        // Add it to the stack layout
-                        MainGrid.Children.Add(editor);
-
-                    });
+                    // Add it to the stack layout
+                    MainGrid.Children.Add(editor);
                 }
             }
         }
 
         private void RemoveEditionUI()
         {
+            // Ensure to be on Main UI Thread
+            if (!MainThread.IsMainThread)
+            {
+                MainThread.BeginInvokeOnMainThread(() => RemoveEditionUI());
+                return;
+            }
+
             lock (lockEditor)
             {
                 if (editor != null)
                 {
-                    Device.BeginInvokeOnMainThread(() =>
-                    {
-                        editor.PropertyChanged -= Editor_PropertyChanged;
+                    editor.PropertyChanged -= Editor_PropertyChanged;
 
-                        // To close keyboard in Android / iOS
-                        editor.SetFocus(false);
+                    // To close keyboard in Android / iOS
+                    editor.SetFocus(false);
 
-                        // Remove editor from stack layout
-                        MainGrid.Children.Remove(editor);
+                    // Remove editor from stack layout
+                    MainGrid.Children.Remove(editor);
 
-                        // Set to null
-                        editor = null;
+                    // Set to null
+                    editor = null;
 
-                        // Display label instead
-                        Label.IsVisible = true;
-                    });
+                    // Display label instead
+                    Label.IsVisible = true;
                 }
             }
         }

@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+using Xamarin.Essentials;
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 
@@ -245,59 +245,71 @@ namespace MultiPlatformApplication.Controls
 
         private void UpdateDisplayDownload()
         {
-            Device.BeginInvokeOnMainThread(() =>
+            // Ensure to be on Main UI Thread
+            if (!MainThread.IsMainThread)
             {
-                if (downloadProgress >= 100)
-                {
-                    downloadState = false;
-                    Spinner.IsVisible = false;
-                    Spinner.Progress = 0;
-                }
-                else if (downloadProgress > Spinner.Progress)
-                {
-                    Spinner.IsVisible = true;
-                    Spinner.Progress = downloadProgress;
-                }
-            });
+                MainThread.BeginInvokeOnMainThread(() => UpdateDisplayDownload());
+                return;
+            }
+
+            if (downloadProgress >= 100)
+            {
+                downloadState = false;
+                Spinner.IsVisible = false;
+                Spinner.Progress = 0;
+            }
+            else if (downloadProgress > Spinner.Progress)
+            {
+                Spinner.IsVisible = true;
+                Spinner.Progress = downloadProgress;
+            }
         }
 
         private void UpdateDisplayUpload()
         {
-            Device.BeginInvokeOnMainThread(() =>
+            // Ensure to be on Main UI Thread
+            if (!MainThread.IsMainThread)
             {
-                if (uploadProgress >= 100)
-                {
-                    uploadState = false;
-                    Spinner.IsVisible = false;
-                    Spinner.Progress = 0;
-                }
-                else if (uploadProgress > Spinner.Progress)
-                    Spinner.Progress = uploadProgress;
-            });
+                MainThread.BeginInvokeOnMainThread(() => UpdateDisplayUpload());
+                return;
+            }
+
+            if (uploadProgress >= 100)
+            {
+                uploadState = false;
+                Spinner.IsVisible = false;
+                Spinner.Progress = 0;
+            }
+            else if (uploadProgress > Spinner.Progress)
+                Spinner.Progress = uploadProgress;
         }
 
 #region EVENTS FROM SDK WRAPPER
 
         private void SdkWrapper_ThumbnailAvailable(object sender, Rainbow.Events.IdEventArgs e)
         {
-            if (attachmentId == e.Id)
+            // Ensure to be on Main UI Thread
+            if (!MainThread.IsMainThread)
             {
-                Device.BeginInvokeOnMainThread(() =>
-                {
-                    DisplayThumbnail();
-                });
+                MainThread.BeginInvokeOnMainThread(() => SdkWrapper_ThumbnailAvailable(sender, e));
+                return;
             }
+
+            if (attachmentId == e.Id)
+                DisplayThumbnail();
         }
 
         private void SdkWrapper_FileDescriptorNotAvailable(object sender, Rainbow.Events.IdEventArgs e)
         {
-            if (attachmentId == e.Id)
+            // Ensure to be on Main UI Thread
+            if (!MainThread.IsMainThread)
             {
-                Device.BeginInvokeOnMainThread(() =>
-                {
-                    DisplayDeletedFile();
-                });
+                MainThread.BeginInvokeOnMainThread(() => SdkWrapper_FileDescriptorNotAvailable(sender, e));
+                return;
             }
+
+            if (attachmentId == e.Id)
+                DisplayDeletedFile();
         }
 
         private void SdkWrapper_FileUploadUpdated(object sender, Rainbow.Events.FileUploadEventArgs e)

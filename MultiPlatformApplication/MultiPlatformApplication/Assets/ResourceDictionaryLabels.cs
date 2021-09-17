@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Xamarin.Essentials;
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 
@@ -26,10 +27,14 @@ namespace MultiPlatformApplication.Assets
 
         private void Languages_LanguageChanged(object sender, EventArgs e)
         {
-            Device.BeginInvokeOnMainThread(() =>
+            // Ensure to be on Main UI Thread
+            if (!MainThread.IsMainThread)
             {
-                UpdateLabels();
-            });
+                MainThread.BeginInvokeOnMainThread(() => UpdateLabels());
+                return;
+            }
+
+            UpdateLabels();
         }
 
         private void UpdateLabels()

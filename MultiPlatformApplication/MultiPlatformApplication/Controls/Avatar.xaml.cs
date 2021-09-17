@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using Xamarin.Essentials;
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 
@@ -13,6 +14,7 @@ using MultiPlatformApplication.Helpers;
 using MultiPlatformApplication.Models;
 using NLog;
 using Rainbow;
+
 
 namespace MultiPlatformApplication.Controls
 {
@@ -81,27 +83,35 @@ namespace MultiPlatformApplication.Controls
 
         private void UpdateAvatarImageSource(String filePath)
         {
-            Device.BeginInvokeOnMainThread(() =>
+            // Ensure to be on Main UI Thread
+            if (!MainThread.IsMainThread)
             {
-                Image.Source = ImageSource.FromFile(filePath);
-            });
+                MainThread.BeginInvokeOnMainThread(() => UpdateAvatarImageSource(filePath));
+                return;
+            }
+
+            Image.Source = ImageSource.FromFile(filePath);
         }
 
         private void UpdatePresenceImageSource(String resource)
         {
-            Device.BeginInvokeOnMainThread(() =>
+            // Ensure to be on Main UI Thread
+            if (!MainThread.IsMainThread)
             {
-                if (resource == null)
-                {
-                    ImagePresence.Source = null;
-                    FrameForPesence.IsVisible = false;
-                }
-                else
-                {
-                    ImagePresence.Source = ImageSource.FromResource(resource, typeof(Helper).Assembly);
-                    FrameForPesence.IsVisible = true;
-                }
-            });
+                MainThread.BeginInvokeOnMainThread(() => UpdatePresenceImageSource(resource));
+                return;
+            }
+
+            if (resource == null)
+            {
+                ImagePresence.Source = null;
+                FrameForPesence.IsVisible = false;
+            }
+            else
+            {
+                ImagePresence.Source = ImageSource.FromResource(resource, typeof(Helper).Assembly);
+                FrameForPesence.IsVisible = true;
+            }
         }
 
         private void UpdateAvatarImageDisplay()

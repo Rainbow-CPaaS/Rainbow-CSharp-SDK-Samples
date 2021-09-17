@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
+using Xamarin.Essentials;
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 
@@ -176,6 +177,14 @@ namespace MultiPlatformApplication.ViewModels
 
         private void UpdateRBConversationToModel(Rainbow.Model.Conversation rbConversation)
         {
+            // Ensure to be on Main UI Thread
+            if (!MainThread.IsMainThread)
+            {
+                MainThread.BeginInvokeOnMainThread(() => UpdateRBConversationToModel(rbConversation));
+                return;
+            }
+
+
             log.Debug("[UpdateRBConversationToModel] - IN");
             if (rbConversation != null)
             {
@@ -263,17 +272,18 @@ namespace MultiPlatformApplication.ViewModels
                 DynamicList.Items.Remove(conversation);
         }
 
-        private Boolean UpdateConversationNameByPeerId(string peerId, String name)
+        private void UpdateConversationNameByPeerId(string peerId, String name)
         {
-            Boolean result = false;
+            // Ensure to be on Main UI Thread
+            if (!MainThread.IsMainThread)
+            {
+                MainThread.BeginInvokeOnMainThread(() => UpdateConversationNameByPeerId(peerId, name));
+                return;
+            }
 
             ConversationModel conversation = GetConversationByPeerId(peerId);
             if (conversation != null)
-            {
-                result = true;
                 conversation.Peer.DisplayName = name;
-            }
-            return result;
         }
 
         /// <summary>
@@ -407,67 +417,53 @@ namespace MultiPlatformApplication.ViewModels
 
         private void RbBubbles_BubbleInfoUpdated(object sender, Rainbow.Events.BubbleInfoEventArgs e)
         {
-            Device.BeginInvokeOnMainThread(() =>
-           {
-               UpdateConversationNameByPeerId(e.BubbleId, e.Name);
-           });
+            UpdateConversationNameByPeerId(e.BubbleId, e.Name);
         }
 
         private void RbContacts_PeerAdded(object sender, Rainbow.Events.PeerEventArgs e)
         {
             Rainbow.Model.Contact contact = Helper.SdkWrapper.GetContactFromContactJid(e.Peer.Jid);
             if (contact != null)
-            {
-                Device.BeginInvokeOnMainThread(() =>
-               {
-                   UpdateConversationNameByPeerId(contact.Id, Rainbow.Util.GetContactDisplayName(contact));
-               });
-            }
+                UpdateConversationNameByPeerId(contact.Id, Rainbow.Util.GetContactDisplayName(contact));
         }
 
         private void RbContacts_PeerInfoChanged(object sender, Rainbow.Events.PeerEventArgs e)
         {
             Rainbow.Model.Contact contact = Helper.SdkWrapper.GetContactFromContactJid(e.Peer.Jid);
             if (contact != null)
-            {
-                Device.BeginInvokeOnMainThread(() =>
-               {
-                   UpdateConversationNameByPeerId(contact.Id, Rainbow.Util.GetContactDisplayName(contact));
-               });
-            }
+                UpdateConversationNameByPeerId(contact.Id, Rainbow.Util.GetContactDisplayName(contact));
         }
 
         private void RbConversations_ConversationUpdated(object sender, Rainbow.Events.ConversationEventArgs e)
         {
             if (e.Conversation != null)
-            {
-                Device.BeginInvokeOnMainThread(() =>
-               {
-                   UpdateRBConversationToModel(e.Conversation);
-               });
-            }
+                UpdateRBConversationToModel(e.Conversation);
         }
 
         private void RbConversations_ConversationRemoved(object sender, Rainbow.Events.ConversationEventArgs e)
         {
-            if (e.Conversation != null)
+            // Ensure to be on Main UI Thread
+            if (!MainThread.IsMainThread)
             {
-                Device.BeginInvokeOnMainThread(() =>
-               {
-                   RemoveRbConversationFromModel(e.Conversation.Id);
-               });
+                MainThread.BeginInvokeOnMainThread(() => RbConversations_ConversationRemoved(sender, e));
+                return;
             }
+
+            if (e.Conversation != null)
+                RemoveRbConversationFromModel(e.Conversation.Id);
         }
 
         private void RbConversations_ConversationCreated(object sender, Rainbow.Events.ConversationEventArgs e)
         {
-            if (e.Conversation != null)
+            // Ensure to be on Main UI Thread
+            if (!MainThread.IsMainThread)
             {
-                Device.BeginInvokeOnMainThread(() =>
-               {
-                   AddRBConversationToModel(e.Conversation);
-               });
+                MainThread.BeginInvokeOnMainThread(() => RbConversations_ConversationCreated(sender, e));
+                return;
             }
+
+            if (e.Conversation != null)
+                AddRBConversationToModel(e.Conversation);
         }
 
 #endregion EVENTS FIRED BY RAINBOW SDK

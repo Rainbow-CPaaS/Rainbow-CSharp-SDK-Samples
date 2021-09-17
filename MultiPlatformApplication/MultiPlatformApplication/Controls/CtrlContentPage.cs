@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Xamarin.Essentials;
 using Xamarin.Forms;
 
 namespace MultiPlatformApplication.Controls
@@ -100,10 +101,14 @@ namespace MultiPlatformApplication.Controls
 
         internal void RemoveViewAsPopup(View view)
         {
-            Device.BeginInvokeOnMainThread(() =>
+            // Ensure to be on Main UI Thread
+            if (!MainThread.IsMainThread)
             {
-                RemoveViewAsPopupInternal(view);
-            });
+                MainThread.BeginInvokeOnMainThread(() => RemoveViewAsPopup(view));
+                return;
+            }
+
+            RemoveViewAsPopupInternal(view);
         }
 
         internal RelativeLayout GetRelativeLayout()

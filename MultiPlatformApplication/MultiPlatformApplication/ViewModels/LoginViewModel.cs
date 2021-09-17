@@ -195,7 +195,7 @@ namespace MultiPlatformApplication.ViewModels
                         Uri uri = new Uri(authUrl.LoginUrl);
                         Uri redirectUri = new Uri("rainbow://callback/"); // /!\  This callback must be set on the property "SsoAuthenticationRedirectUrl" on the RB Application used by this SDK
 
-                        Device.BeginInvokeOnMainThread(async () =>
+                        MainThread.BeginInvokeOnMainThread(async () =>
                         {
                             try
                             {

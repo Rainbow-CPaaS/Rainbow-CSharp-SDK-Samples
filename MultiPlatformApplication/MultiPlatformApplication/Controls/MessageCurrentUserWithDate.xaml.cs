@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+using Xamarin.Essentials;
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 
@@ -83,16 +83,20 @@ namespace MultiPlatformApplication.Controls
 
         private void UpdateDisplay()
         {
-            Device.BeginInvokeOnMainThread(() =>
+            // Ensure to be on Main UI Thread
+            if (!MainThread.IsMainThread)
             {
-                String imageSourceId = Helper.GetReceiptSourceIdFromReceiptType(receipt, receiptReceived);
-                if (imageSourceId != null)
-                {
-                    receipt = receiptReceived;
-                    Receipt.Source = Helper.GetImageSourceFromIdOrFilePath(imageSourceId);
-                    Receipt.IsVisible = displayReceipt;
-                }
-            });
+                MainThread.BeginInvokeOnMainThread(() => UpdateDisplay());
+                return;
+            }
+
+            String imageSourceId = Helper.GetReceiptSourceIdFromReceiptType(receipt, receiptReceived);
+            if (imageSourceId != null)
+            {
+                receipt = receiptReceived;
+                Receipt.Source = Helper.GetImageSourceFromIdOrFilePath(imageSourceId);
+                Receipt.IsVisible = displayReceipt;
+            }
         }
     }
 }

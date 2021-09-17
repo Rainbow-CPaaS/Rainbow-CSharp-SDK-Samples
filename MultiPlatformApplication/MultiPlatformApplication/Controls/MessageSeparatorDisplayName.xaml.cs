@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+using Xamarin.Essentials;
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 
@@ -64,7 +64,7 @@ namespace MultiPlatformApplication.Controls
             if (String.IsNullOrEmpty(peer?.Jid))
                 return;
 
-            Contact contact = Helper.SdkWrapper.GetContactFromContactJid(peer?.Jid);
+            Rainbow.Model.Contact contact = Helper.SdkWrapper.GetContactFromContactJid(peer?.Jid);
             if (contact != null)
             {
                 displayName = contact.DisplayName;
@@ -74,10 +74,14 @@ namespace MultiPlatformApplication.Controls
 
         private void UpdateDisplay()
         {
-            Device.BeginInvokeOnMainThread(() =>
+            // Ensure to be on Main UI Thread
+            if (!MainThread.IsMainThread)
             {
-                Label.Text = displayName;
-            });
+                MainThread.BeginInvokeOnMainThread(() => UpdateDisplay());
+                return;
+            }
+
+            Label.Text = displayName;
         }
 
          private void SdkWrapper_PeerInfoChanged(object sender, Rainbow.Events.PeerEventArgs e)
