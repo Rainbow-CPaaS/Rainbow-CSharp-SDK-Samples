@@ -34,5 +34,19 @@
     <string>MultiPlatformApplication</string>
     <key>XSAppIconAssets</key>
     <string>Assets.xcassets/AppIcon.appiconset</string>
+
+    <key>CFBundleURLTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleURLName</key>
+            <string>rainbow</string>
+            <key>CFBundleURLSchemes</key>
+            <array>
+                <string>rainbow</string>
+            </array>
+            <key>CFBundleTypeRole</key>
+            <string>Editor</string>
+        </dict>
+    </array>
 </dict>
 </plist>
