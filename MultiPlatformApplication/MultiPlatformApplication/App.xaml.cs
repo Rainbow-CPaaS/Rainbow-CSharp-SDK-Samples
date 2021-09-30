@@ -85,55 +85,54 @@ namespace MultiPlatformApplication
 
             //NavigationService.Configure("TestPage", typeof(MultiPlatformApplication.Views.TestPage));
             //NavigationService.Configure("TestPage2", typeof(MultiPlatformApplication.Views.TestPage2));
-            //var mainPage = NavigationService.SetRootPage("TestPage");
+            //NavigationService.Configure("TestPage3", typeof(MultiPlatformApplication.Views.TestPage3));
 
-            var mainPage = NavigationService.SetRootPage("LoginPage");
-
-            MainPage = mainPage;
+            MainPage = new NavigationPage( NavigationService.GetPage("LoginPage") );
         }
 
-
         public void ChangeTheme(String themeName)
-        {
-            Device.BeginInvokeOnMainThread(() =>
+        {            
+            // Ensure to be on Main UI Thread
+            if(!MainThread.IsMainThread)
             {
-                try
+                MainThread.BeginInvokeOnMainThread(() => ChangeTheme(themeName) );
+                return;
+            }
+            try
+            {
+                if (String.IsNullOrEmpty(themeName))
+                    return;
+
+                String validThemeName = themeName.ToLower();
+                if (validThemeName == CurrentThemeName)
+                    return;
+
+                ResourceDictionary resourceDictionary = null;
+                switch (validThemeName)
                 {
-                    if (String.IsNullOrEmpty(themeName))
-                        return;
+                    case "light":
+                        resourceDictionary = new ThemeLight();
+                        break;
 
-                    String validThemeName = themeName.ToLower();
-                    if (validThemeName == CurrentThemeName)
-                        return;
+                    case "dark":
+                        resourceDictionary = new ThemeDark();
+                        break;
 
-                    ResourceDictionary resourceDictionary = null;
-                    switch (validThemeName)
-                    {
-                        case "light":
-                            resourceDictionary = new ThemeLight();
-                            break;
+                    default:
+                        validThemeName = "light";
+                        resourceDictionary = new ThemeLight();
+                        break;
 
-                        case "dark":
-                            resourceDictionary = new ThemeDark();
-                            break;
-
-                        default:
-                            validThemeName = "light";
-                            resourceDictionary = new ThemeLight();
-                            break;
-
-                    }
-
-                    // Clear and set new theme
-                    ThemeDictionary.Clear();
-                    ThemeDictionary.Add(resourceDictionary);
-
-                    // Store specified theme name
-                    CurrentThemeName = validThemeName;
                 }
-                catch { }
 
-            });
+                // Clear and set new theme
+                ThemeDictionary.Clear();
+                ThemeDictionary.Add(resourceDictionary);
+
+                // Store specified theme name
+                CurrentThemeName = validThemeName;
+            }
+            catch { }
         }
 
         private void InitLogs(String folder)
