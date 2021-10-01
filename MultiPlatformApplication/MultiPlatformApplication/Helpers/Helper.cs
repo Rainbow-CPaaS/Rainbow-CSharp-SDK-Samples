@@ -786,15 +786,34 @@ namespace MultiPlatformApplication.Helpers
             if (dictionary == null)
                 dictionary = App.Current.Resources;
 
-
-            if (dictionary?.ContainsKey(dictionaryId) == true)
+            
+            if (dictionary.ContainsKey(dictionaryId) || dictionary.Count > 0)
             {
-                var obj = dictionary[dictionaryId];
-                if (obj is T)
+                try
                 {
-                    found = true;
-                    result = (T)obj;
+                    var obj = dictionary[dictionaryId];
+                    if (obj is T)
+                    {
+                        found = true;
+                        result = (T)obj;
+                    }
+                    else
+                    {
+                        if (obj is Xamarin.Forms.OnPlatform<T> onPlatform)
+                        {
+                            foreach (On on in onPlatform.Platforms)
+                            {
+                                if (on.Platform.Contains(Device.RuntimePlatform))
+                                {
+                                    found = true;
+                                    result =  (T) Convert.ChangeType(on.Value, typeof(T));
+                                    break;
+                                }
+                            }
+                        }
+                    }
                 }
+                catch { }
             }
 
             if (!found)
