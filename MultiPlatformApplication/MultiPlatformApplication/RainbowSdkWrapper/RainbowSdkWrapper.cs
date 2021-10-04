@@ -37,6 +37,15 @@ namespace MultiPlatformApplication
             RbApplication.SetApplicationInfo(ApplicationInfo.APP_ID, ApplicationInfo.APP_SECRET_KEY);
             RbApplication.SetHostInfo(ApplicationInfo.HOST_NAME);
 
+            // Set Mobile application
+            RbApplication.Restrictions.MobileApplication = !Helper.IsDesktopPlatform();
+
+            // Use Stream Management
+            RbApplication.Restrictions.StreamManagement = true;
+
+            // Use Auto Reconnection
+            RbApplication.Restrictions.AutoReconnection = true;
+
             RbBubbles = RbApplication.GetBubbles();
             RbContacts = RbApplication.GetContacts();
             RbConversations = RbApplication.GetConversations();
