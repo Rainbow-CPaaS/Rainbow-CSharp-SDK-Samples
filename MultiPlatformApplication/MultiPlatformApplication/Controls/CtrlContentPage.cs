@@ -10,6 +10,9 @@ namespace MultiPlatformApplication.Controls
 {
     public class CtrlContentPage : Xamarin.Forms.ContentPage
     {
+        private Boolean popupDeconnectionCreated = false;
+        private Boolean displayDisconnection;
+
         private RelativeLayout RainbowContentRelativeLayout;
         private Grid RainbowContentPageGrid;
 
@@ -19,7 +22,7 @@ namespace MultiPlatformApplication.Controls
             set
             {
                 // If we have already views used as popup, removed them
-                // NIOTE: We have at least RainbowContentRelativeLayout s children
+                // NOTE: We have at least RainbowContentRelativeLayout as children
                 if (RainbowContentRelativeLayout.Children.Count > 1)
                 {
                     var childrens = RainbowContentRelativeLayout.Children;
@@ -69,6 +72,29 @@ namespace MultiPlatformApplication.Controls
         }
 #endregion TO DEFINE THE CONTENT OF THIS PAGE
 
+        public Boolean DisplayDisconnection {
+            get
+            {
+                return displayDisconnection;
+            }
+            set
+            {
+                if(displayDisconnection != value)
+                {
+                    if(value)
+                    {
+
+                    }
+                    else
+                    {
+
+                    }
+
+                    displayDisconnection = value;
+                }
+            }
+        }
+
         public CtrlContentPage()
         {
             // Define grid taking all space with 1 column and 1 row.
@@ -80,7 +106,7 @@ namespace MultiPlatformApplication.Controls
             RainbowContentRelativeLayout = new RelativeLayout { Margin = 0, Padding = 0, HorizontalOptions = LayoutOptions.Fill, VerticalOptions = LayoutOptions.Fill };
             RainbowContentRelativeLayout.BackgroundColor = Color.Transparent; // Color.DarkGreen;
 
-            // Grid is added to teh relative layout with constraint to tak all available space
+            // Grid is added to the relative layout with constraint to tak all available space
             RainbowContentRelativeLayout.Children.Add(RainbowContentPageGrid, Constraint.Constant(0), Constraint.Constant(0), Constraint.RelativeToParent((rl) => rl.Width), Constraint.RelativeToParent((rl) => rl.Height));
 
             // Set content to this relative layout

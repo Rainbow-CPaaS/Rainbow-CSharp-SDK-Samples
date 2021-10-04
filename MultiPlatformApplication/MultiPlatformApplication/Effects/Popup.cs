@@ -10,6 +10,10 @@ namespace MultiPlatformApplication.Effects
 {
     public class Popup
     {
+        public static String DEFAULT_ACTIVITY_INDICATOR_AUTOMATION_ID = "RainbowDefaultActivityIndicatorAutomationId";
+
+        public static String DEFAULT_DISCONNECTION_INFORMATION_AUTOMATION_ID = "RainbowDefaultDisconnexionInformationAutomationId";
+
         private static int MINIMAL_MARGIN = 2;
 
         private static String contentPageId = null; // Store current content page id
@@ -23,7 +27,7 @@ namespace MultiPlatformApplication.Effects
 
         private static Dictionary<String, PopupAction> activityIndicatorList = new Dictionary<string, PopupAction>(); // Store by AutomationID PopuÂction on ActivityIndicator
 
-        public static String DEFAULT_ACTIVITY_INDICATOR_AUTOMATION_ID = "RainbowDefaultActivityIndicatorAutomationId";
+        
 
 #region Type Property
 
@@ -109,6 +113,31 @@ namespace MultiPlatformApplication.Effects
             HideInternal(previousContextMenuActionDisplayed?.PopupAutomationId);
         }
 
+    #region ACTIVITY INDICATOR RELATED
+
+        public static void ShowDefaultActivityIndicator(String linkedToAutomationId = null)
+        {
+            // NECESSARY TO BE ON MAIN THREAD
+            if (!MainThread.IsMainThread)
+            {
+                MainThread.BeginInvokeOnMainThread(() => ShowDefaultActivityIndicator(linkedToAutomationId));
+                return;
+            }
+
+            MultiPlatformApplication.Controls.CtrlContentPage contentPage = GetCurrentContentPage();
+
+            if (contentPage?.PopupExists(DEFAULT_ACTIVITY_INDICATOR_AUTOMATION_ID) != true)
+                AddBasicActivityActivatorUsingDefaultSettings(null, DEFAULT_ACTIVITY_INDICATOR_AUTOMATION_ID);
+
+            Show(DEFAULT_ACTIVITY_INDICATOR_AUTOMATION_ID, linkedToAutomationId, LayoutAlignment.Center, false, LayoutAlignment.Center, false, new Point(), -1);
+        }
+
+        public static void ShowActivityIndicator(String popupAutomationId, String linkedToAutomationId)
+        {
+            // NOT NECESSARY TO BE ON MAIN THREAD
+            Show(popupAutomationId, linkedToAutomationId, LayoutAlignment.Center, false, LayoutAlignment.Center, false, new Point(), -1);
+        }
+
         public static void SetDefaultBasicActivityActivator(Color obfuscationColor, double squareSize, float squareCornerRadius, double squareCornerSize, Color squareCornerColor, Color squareBackgroundColor, double indicatorSize, Color indicatorColor, Boolean useDeviceActivityIndicator)
         {
             // NECESSARY TO BE ON MAIN THREAD
@@ -192,6 +221,7 @@ namespace MultiPlatformApplication.Effects
             {
                 Margin = 0,
                 Padding = 0,
+                HasShadow = false,
 
                 WidthRequest = squareSize,
                 HeightRequest = squareSize,
@@ -211,6 +241,7 @@ namespace MultiPlatformApplication.Effects
             {
                 Margin = 0,
                 Padding = 0,
+                HasShadow = false,
 
                 WidthRequest = squareSize - squareCornerSize,
                 HeightRequest = squareSize - squareCornerSize,
@@ -260,6 +291,239 @@ namespace MultiPlatformApplication.Effects
                 AddBasicActivityActivator(contentPage, automationId, obfuscationColor, 80, 10, 2, borderColor, backColor, 50, color, true);
         }
 
+        public static void HideDefaultActivityIndicator()
+        {
+            // NOT NECESSARY TO BE ON MAIN THREAD
+            Hide(DEFAULT_ACTIVITY_INDICATOR_AUTOMATION_ID);
+        }
+
+    #endregion ACTIVITY INDICATOR RELATED
+
+    #region DISCONNEXION INFORMATION RELATED
+
+        public static void ShowDefaultDisconnectionInformation(String linkedToAutomationId = null)
+        {
+            // NECESSARY TO BE ON MAIN THREAD
+            if (!MainThread.IsMainThread)
+            {
+                MainThread.BeginInvokeOnMainThread(() => ShowDefaultDisconnectionInformation(linkedToAutomationId));
+                return;
+            }
+
+            MultiPlatformApplication.Controls.CtrlContentPage contentPage = GetCurrentContentPage();
+
+            String id = DEFAULT_DISCONNECTION_INFORMATION_AUTOMATION_ID;
+            if (contentPage?.PopupExists(id) != true)
+                AddBasicDisconnexionInformationUsingDefaultSettings(null, id);
+
+            Show(id, linkedToAutomationId, LayoutAlignment.Center, false, LayoutAlignment.Center, false, new Point(), -1);
+        }
+
+        public static void ShowDisconnectionInformation(String popupAutomationId, String linkedToAutomationId)
+        {
+            // NOT NECESSARY TO BE ON MAIN THREAD
+            Show(popupAutomationId, linkedToAutomationId, LayoutAlignment.Center, false, LayoutAlignment.Center, false, new Point(), -1);
+        }
+
+        public static void SetDefaultBasicDisconnexionInformation(Color obfuscationColor, double squareSize, float squareCornerRadius, double squareCornerSize, Color squareCornerColor, Color squareBackgroundColor, double indicatorSize, Color indicatorColor, Boolean useDeviceActivityIndicator)
+        {
+            // NECESSARY TO BE ON MAIN THREAD
+            if (!MainThread.IsMainThread)
+            {
+                MainThread.BeginInvokeOnMainThread(() => SetDefaultBasicDisconnexionInformation(obfuscationColor, squareSize, squareCornerRadius, squareCornerSize, squareCornerColor, squareBackgroundColor, indicatorSize, indicatorColor, useDeviceActivityIndicator));
+                return;
+            }
+
+            MultiPlatformApplication.Controls.CtrlContentPage contentPage = GetCurrentContentPage();
+
+            if (contentPage != null)
+            {
+                View popupView = contentPage?.GetPopup(DEFAULT_DISCONNECTION_INFORMATION_AUTOMATION_ID);
+                if (popupView == null)
+                {
+                    AddBasicDisconnexionInformation(contentPage, DEFAULT_DISCONNECTION_INFORMATION_AUTOMATION_ID, obfuscationColor, squareSize, squareCornerRadius, squareCornerSize, squareCornerColor, squareBackgroundColor, indicatorSize, indicatorColor, useDeviceActivityIndicator);
+                }
+                else
+                {
+                    if (popupView is ContentView contentView)
+                    {
+                        popupView.BackgroundColor = obfuscationColor;
+
+                        if (contentView.Content is Frame frame1)
+                        {
+                            frame1.HeightRequest = squareSize;
+                            frame1.WidthRequest = squareSize;
+                            frame1.CornerRadius = squareCornerRadius;
+                            frame1.BackgroundColor = squareCornerColor;
+
+                            if (frame1.Content is Frame frame2)
+                            {
+                                frame2.WidthRequest = squareSize - squareCornerSize;
+                                frame2.HeightRequest = squareSize - squareCornerSize;
+                                frame2.CornerRadius = squareCornerRadius;
+                                frame2.BackgroundColor = squareBackgroundColor;
+
+                                // Recreate Content
+                                frame2.Content = CreateActivityIndicatorContent(indicatorSize, indicatorColor, useDeviceActivityIndicator);
+
+                                if (useDeviceActivityIndicator)
+                                    frame2.Content.SetBinding(ActivityIndicator.IsRunningProperty, new Binding("IsVisible", source: popupView));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        public static void AddBasicDisconnexionInformation(MultiPlatformApplication.Controls.CtrlContentPage contentPage, String automationId, Color obfuscationColor, double width, float cornerRadius, double cornerSize, Color squareCornerColor, Color squareBackgroundColor, double indicatorSize, Color indicatorColor, Boolean useDeviceActivityIndicator)
+        {
+            // NECESSARY TO BE ON MAIN THREAD
+            if (!MainThread.IsMainThread)
+            {
+                MainThread.BeginInvokeOnMainThread(() => AddBasicActivityActivator(contentPage, automationId, obfuscationColor, width, cornerRadius, cornerSize, squareCornerColor, squareBackgroundColor, indicatorSize, indicatorColor, useDeviceActivityIndicator));
+                return;
+            }
+
+            if (contentPage == null)
+                contentPage = GetCurrentContentPage();
+
+            if (contentPage?.PopupExists(automationId) == true)
+                return;
+
+            if (String.IsNullOrEmpty(automationId))
+                return;
+
+            ContentView contentView = new ContentView
+            {
+                AutomationId = automationId,
+                IsVisible = false,
+
+                Margin = 0,
+                Padding = 0,
+                BackgroundColor = obfuscationColor
+            };
+
+
+
+            // Create Frame which contains the activity indicator
+            Frame frame1 = new Frame
+            {
+                Margin = 0,
+                Padding = 0,
+                HasShadow = false,
+
+                WidthRequest = width,
+                HeightRequest = indicatorSize + cornerSize,
+
+                CornerRadius = cornerRadius,
+                BackgroundColor = squareCornerColor,
+
+                HorizontalOptions = LayoutOptions.Center,
+                VerticalOptions = LayoutOptions.Center
+            };
+
+            // Set frame1 as the content of the contentView
+            contentView.Content = frame1;
+
+            // Create Frame which contains the label and the activity indicator
+            Frame frame2 = new Frame
+            {
+                Margin = 0,
+                Padding = 0,
+                HasShadow = false,
+
+                WidthRequest = width - cornerSize,
+                HeightRequest = indicatorSize,
+
+                CornerRadius = cornerRadius,
+                BackgroundColor = squareBackgroundColor,
+
+                HorizontalOptions = LayoutOptions.Center,
+                VerticalOptions = LayoutOptions.Center
+            };
+            // Set frame2 as the content of the frame1
+            frame1.Content = frame2;
+
+            StackLayout stackLayout = new StackLayout
+            {
+                Margin = 0,
+                Padding = 0,
+                Orientation = StackOrientation.Horizontal,
+                VerticalOptions = LayoutOptions.Center,
+                HorizontalOptions = LayoutOptions.Center
+            };
+
+            frame2.Content = stackLayout;
+
+            Color backColor = Helper.GetResourceDictionaryById<Color>("ColorEntryBackground");
+            Color color = Helper.GetResourceDictionaryById<Color>("ColorMain");
+            Color borderColor = Helper.GetResourceDictionaryById<Color>("ColorEntryPlaceHolder");
+
+            Label label = new Label
+            {
+                Margin = new Thickness(0, 0, 20, 0),
+                Padding = 0,
+
+                Text = Helper.SdkWrapper.GetLabel("noNetwork").Replace("<br/>", "\r\n"),
+                TextColor = indicatorColor,
+
+                MaxLines = 2,
+
+                FontSize = Helper.GetResourceDictionaryById<double>("FontSizeMicro"),
+                FontAttributes = FontAttributes.None,
+
+                VerticalTextAlignment = TextAlignment.Center,
+                HorizontalTextAlignment = TextAlignment.Center,
+
+                VerticalOptions = LayoutOptions.Center,
+                HorizontalOptions = LayoutOptions.Center,
+            };
+            stackLayout.Children.Add(label);
+
+            // Create activity indicator
+            View activityIndicator = CreateActivityIndicatorContent(indicatorSize, indicatorColor, useDeviceActivityIndicator);
+
+            if (useDeviceActivityIndicator)
+                activityIndicator.SetBinding(ActivityIndicator.IsRunningProperty, new Binding("IsVisible", source: contentView));
+
+            // Set the activityIndicator as content of the frame
+            stackLayout.Children.Add(activityIndicator);
+
+            contentPage.AddViewAsPopupInternal(contentView);
+            SetType(contentView, PopupType.Information);
+        }
+
+        public static void AddBasicDisconnexionInformationUsingDefaultSettings(MultiPlatformApplication.Controls.CtrlContentPage contentPage, String automationId)
+        {
+            // NECESSARY TO BE ON MAIN THREAD
+            if (!MainThread.IsMainThread)
+            {
+                MainThread.BeginInvokeOnMainThread(() => AddBasicDisconnexionInformationUsingDefaultSettings(contentPage, automationId));
+                return;
+            }
+
+            Color backColor = Color.Black;
+            Color color = Color.White;
+            Color borderColor = Color.White;
+
+            String colorHex = Helper.GetResourceDictionaryById<Color>("ColorMainOnOver").ToHex();
+            colorHex = "#7F" + colorHex.Substring(3);
+            Color obfuscationColor = Color.FromHex(colorHex);
+
+            if (automationId == DEFAULT_DISCONNECTION_INFORMATION_AUTOMATION_ID)
+                SetDefaultBasicDisconnexionInformation(obfuscationColor, 300, 10, 2, borderColor, backColor, 50, color, true);
+            else
+                AddBasicDisconnexionInformation(contentPage, automationId, obfuscationColor, 360, 10, 2, borderColor, backColor, 50, color, true);
+        }
+
+        public static void HideDefaultBasicDisconnexionInformation()
+        {
+            // NOT NECESSARY TO BE ON MAIN THREAD
+            Hide(DEFAULT_DISCONNECTION_INFORMATION_AUTOMATION_ID);
+        }
+
+    #endregion DISCONNEXION INFORMATION RELATED
+
         public static void Add(MultiPlatformApplication.Controls.CtrlContentPage contentPage, View view, PopupType type)
         {
             // NECESSARY TO BE ON MAIN THREAD
@@ -308,35 +572,6 @@ namespace MultiPlatformApplication.Effects
             View view = GetView(automationId, contentPage);
             if(view != null)
                 contentPage.RemoveViewAsPopupInternal(view);
-        }
-
-        public static void HideDefaultActivityIndicator()
-        {
-            // NOT NECESSARY TO BE ON MAIN THREAD
-            Hide(DEFAULT_ACTIVITY_INDICATOR_AUTOMATION_ID);
-        }
-
-        public static void ShowDefaultActivityIndicator(String linkedToAutomationId = null)
-        {
-            // NECESSARY TO BE ON MAIN THREAD
-            if (!MainThread.IsMainThread)
-            {
-                MainThread.BeginInvokeOnMainThread(() => ShowDefaultActivityIndicator(linkedToAutomationId));
-                return;
-            }
-
-            MultiPlatformApplication.Controls.CtrlContentPage contentPage = GetCurrentContentPage();
-
-            if (contentPage?.PopupExists(DEFAULT_ACTIVITY_INDICATOR_AUTOMATION_ID) != true)
-                AddBasicActivityActivatorUsingDefaultSettings(null, DEFAULT_ACTIVITY_INDICATOR_AUTOMATION_ID);
-
-            Show(DEFAULT_ACTIVITY_INDICATOR_AUTOMATION_ID, linkedToAutomationId, LayoutAlignment.Center, false, LayoutAlignment.Center, false, new Point(), -1);
-        }
-
-        public static void ShowActivityIndicator(String popupAutomationId, String linkedToAutomationId)
-        {
-            // NOT NECESSARY TO BE ON MAIN THREAD
-            Show(popupAutomationId, linkedToAutomationId, LayoutAlignment.Center, false, LayoutAlignment.Center, false, new Point(), -1);
         }
 
         public static void Show(String popupAutomationId, String linkedToAutomationId)
@@ -460,7 +695,7 @@ namespace MultiPlatformApplication.Effects
                 if (!popupList.ContainsKey(id))
                     return;
 
-                if (newPopupAction.PopupType == PopupType.ActivityIndicator)
+                if (newPopupAction.PopupType != PopupType.ContextMenu)
                 {
                     // Store the popup action
                     popupAction = newPopupAction;
@@ -718,7 +953,7 @@ namespace MultiPlatformApplication.Effects
             if (newPopupAction.Rect.IsEmpty)
                 newPopupAction.Rect = contentPage.Bounds;
 
-            if (popupAction.PopupType == PopupType.ActivityIndicator)
+            if (popupAction.PopupType != PopupType.ContextMenu)
             {
                 if (String.IsNullOrEmpty(newPopupAction.LinkedToAutomationId))
                 {
@@ -747,10 +982,21 @@ namespace MultiPlatformApplication.Effects
                         activityIndicatorList.Add(popupAction.PopupAutomationId, popupAction);
                 }
 
+                if(popupAction.PopupType == PopupType.Information)
+                {
+                    // We display an Information popup. Do we have to hide it after a delay ?
+                    if (newPopupAction.Delay > 0)
+                    {
+                        Device.StartTimer(TimeSpan.FromMilliseconds(newPopupAction.Delay), () =>
+                        {
+                            HideInternal(newPopupAction.PopupAutomationId); return false;
+                        });
+                    }
+                }
+
                 // Show popup
                 view.IsVisible = true;
                 contentPage.GetRelativeLayout().RaiseChild(view);
-
             }
             else
             {
@@ -763,21 +1009,11 @@ namespace MultiPlatformApplication.Effects
                 // Are we dealing with a Context Menu ?
                 if (newPopupAction.PopupType == PopupType.ContextMenu)
                 {
-                    // Hide previous context menu - if any (only can be display in same time
+                    // Hide previous context menu - if any (only one can be display in same time)
                     HideInternal(previousContextMenuActionDisplayed?.PopupAutomationId);
 
                     // Store context menu
                     previousContextMenuActionDisplayed = newPopupAction;
-                }
-                else // We display an Information popup. Do we have to hide it after a delay ?
-                {
-                    if (newPopupAction.Delay > 0)
-                    {
-                        Device.StartTimer(TimeSpan.FromMilliseconds(newPopupAction.Delay), () =>
-                        {
-                            HideInternal(newPopupAction.PopupAutomationId); return false;
-                        });
-                    }
                 }
 
                 // Set X and Y Constraints
