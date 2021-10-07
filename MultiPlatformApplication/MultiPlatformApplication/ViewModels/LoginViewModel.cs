@@ -164,6 +164,13 @@ namespace MultiPlatformApplication.ViewModels
 
         private void StepAskingLogin()
         {
+            // Check if we want to use SSO
+            if(!ApplicationInfo.USE_SSO)
+            {
+                AskPassword();
+                return;
+            }
+
             SetToBusy(true);
 
             Task task = new Task(() =>
@@ -185,7 +192,7 @@ namespace MultiPlatformApplication.ViewModels
                         AuthenticationSSOUrl authUrl = urls.FirstOrDefault(x => (x.Type.ToUpper() != "RAINBOW"));
 
                         // Do we have found one ?
-                        if(authUrl == null)
+                        if (authUrl == null) 
                         {
                             AskPassword();
                             return;
