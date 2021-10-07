@@ -27,7 +27,6 @@ namespace MultiPlatformApplication.Effects
 
         private static Dictionary<String, PopupAction> activityIndicatorList = new Dictionary<string, PopupAction>(); // Store by AutomationID PopuÂction on ActivityIndicator
 
-        
 
 #region Type Property
 
@@ -690,6 +689,9 @@ namespace MultiPlatformApplication.Effects
             View view = GetView(newPopupAction.PopupAutomationId, contentPage);
             if (view != null)
             {
+                // Get PopupType
+                newPopupAction.PopupType = GetType(view);
+
                 // Check if this popup is known
                 String id = view.Id.ToString();
                 if (!popupList.ContainsKey(id))
