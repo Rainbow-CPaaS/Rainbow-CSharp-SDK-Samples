@@ -716,7 +716,7 @@ namespace MultiPlatformApplication.ViewModels
             {
                 String std = UrgencyType.Std.ToString();
                 messageInput?.SetUrgencySelection(std);
-                ContextMenuUrgency.SetSelectedItemId(std);
+                ContextMenuUrgency?.SetSelectedItemId(std);
             }
 
             // Do we have a replyId ?
@@ -1196,7 +1196,7 @@ namespace MultiPlatformApplication.ViewModels
         {
             UrgencyType result = UrgencyType.Std;
 
-            String id = ContextMenuUrgency.GetSelectedItemId();
+            String id = ContextMenuUrgency?.GetSelectedItemId();
             if (!String.IsNullOrEmpty(id))
             {
                 if (Enum.TryParse<UrgencyType>(id, out UrgencyType parse))
