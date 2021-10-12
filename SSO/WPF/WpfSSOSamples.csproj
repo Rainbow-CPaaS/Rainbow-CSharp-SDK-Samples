@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Resources\icon_32x32.png" />
+    <None Remove="Resources\NLogConfiguration.xml" />
+    <None Remove="Resources\splash_logo.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.37" />
+    <PackageReference Include="Rainbow.CSharp.SDK" Version="2.5.1-sts" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Resources\icon_32x32.png" />
+    <Resource Include="Resources\NLogConfiguration.xml" />
+    <Resource Include="Resources\splash_logo.png" />
+  </ItemGroup>
+  
+</Project>
