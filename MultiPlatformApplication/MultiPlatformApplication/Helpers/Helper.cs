@@ -222,11 +222,11 @@ namespace MultiPlatformApplication.Helpers
                 conversation.Id = rbConversation.Id;
 
                 conversation.Peer.Id = rbConversation.PeerId;
+                conversation.Peer.Jid = rbConversation.Jid_im;
                 conversation.Peer.Type = rbConversation.Type;
 
                 if (rbConversation.Type == Rainbow.Model.Conversation.ConversationType.Room)
                 {
-                    conversation.Peer.Jid = rbConversation.Jid_im;
                     conversation.Peer.DisplayName= rbConversation.Name;
                     conversation.Topic = rbConversation.Topic;
 
@@ -237,7 +237,6 @@ namespace MultiPlatformApplication.Helpers
                     Rainbow.Model.Contact contact = SdkWrapper.GetContactFromContactId(rbConversation.PeerId);
                     if (contact != null)
                     {
-                        conversation.Peer.Jid = contact.Jid_im;
                         conversation.Peer.DisplayName= Rainbow.Util.GetContactDisplayName(contact);
                         conversation.Peer.DisplayPresence = true;
                         conversation.Topic = "";
