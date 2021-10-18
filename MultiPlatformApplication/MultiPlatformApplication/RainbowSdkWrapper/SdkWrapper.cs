@@ -52,6 +52,7 @@ namespace MultiPlatformApplication
         // From "Application" Service
         public event EventHandler<ConnectionStateEventArgs> ConnectionStateChanged;
         public event EventHandler<EventArgs> InitializationPerformed;
+        public event EventHandler<EventArgs> DataCleared;
 
         // UI purpose
         public event EventHandler<IdEventArgs> SendMessageEdition; // Ask to send the edition of the message using its Id
@@ -139,6 +140,11 @@ namespace MultiPlatformApplication
         internal void OnInitializationPerformed(object sender, EventArgs args)
         {
             InitializationPerformed.Raise(sender, args);
+        }
+
+        internal void OnDataCleared(object sender, EventArgs args)
+        {
+            DataCleared.Raise(sender, args);
         }
 
     #endregion APPLICATION SERVICE
@@ -234,7 +240,6 @@ namespace MultiPlatformApplication
             return Rainbow.Common.Avatars.GetColorFromDisplayName(displayName);
         }
 
-        // NOT NECESSARY TO HAVE THIS VIRTUAL
         public static String GetDarkerColorFromDisplayName(String displayName)
         {
             return Rainbow.Common.Avatars.GetDarkerColorFromDisplayName(displayName);

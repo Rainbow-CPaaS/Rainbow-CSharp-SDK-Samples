@@ -79,6 +79,7 @@ namespace MultiPlatformApplication
             // Manage "Application" service events
             RbApplication.ConnectionStateChanged += RbApplication_ConnectionStateChanged;
             RbApplication.InitializationPerformed += RbApplication_InitializationPerformed;
+            RbApplication.DataCleared += RbApplication_DataCleared;
 
             InitAvatarPool();
             InitFilePool();
@@ -114,6 +115,11 @@ namespace MultiPlatformApplication
         private void RbApplication_ConnectionStateChanged(object sender, Rainbow.Events.ConnectionStateEventArgs e)
         {
             OnConnectionStateChanged(sender, e);
+        }
+
+        private void RbApplication_DataCleared(object sender, EventArgs e)
+        {
+            OnDataCleared(sender, e);
         }
 
         private void RbBubbles_BubbleInfoUpdated(object sender, Rainbow.Events.BubbleInfoEventArgs e)
@@ -189,7 +195,6 @@ namespace MultiPlatformApplication
 #endregion EVENTS FROM SDK
 
 #region PUBLIC API
-
 
     #region WRAPPER - APPLICATION
 
