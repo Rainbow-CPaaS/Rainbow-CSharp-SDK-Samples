@@ -92,6 +92,10 @@ namespace MultiPlatformApplication.ViewModels
 
         private void RbApplication_ConnectionStateChanged(object sender, Rainbow.Events.ConnectionStateEventArgs e)
         {
+            // Is the current page the login page ?
+            if (XamarinApplication.NavigationService.CurrentPageKey != "LoginPage")
+                return;
+
             switch (e.State)
             {
                 case ConnectionState.Connected:
@@ -107,6 +111,10 @@ namespace MultiPlatformApplication.ViewModels
 
         private void RbApplication_InitializationPerformed(object sender, EventArgs e)
         {
+            // Is the current page the login page ?
+            if (XamarinApplication.NavigationService.CurrentPageKey != "LoginPage")
+                return;
+
             Task task = new Task(() =>
             {
                 // Get all conversations and all bubbles in parallel
