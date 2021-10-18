@@ -1,4 +1,5 @@
 ﻿using MultiPlatformApplication.Effects;
+using MultiPlatformApplication.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,8 +11,9 @@ namespace MultiPlatformApplication.Controls
 {
     public class CtrlContentPage : Xamarin.Forms.ContentPage
     {
-        private Boolean popupDeconnectionCreated = false;
+        private Boolean popupDisconnectionCreated = false;
         private Boolean displayDisconnection;
+        private Rainbow.CancelableDelay cancelableDelay = null;
 
         private RelativeLayout RainbowContentRelativeLayout;
         private Grid RainbowContentPageGrid;
@@ -45,11 +47,14 @@ namespace MultiPlatformApplication.Controls
                 }
             }
         }
+
 #endregion TO DEFINE POPUPS FOR THIS PAGE
 
 
 #region TO DEFINE THE CONTENT OF THIS PAGE
+        
         private View _ctrlContent = null;
+        
         public View CtrlContent
         {
             get
@@ -70,6 +75,7 @@ namespace MultiPlatformApplication.Controls
                 RainbowContentPageGrid.Children.Add(_ctrlContent, 0, 0);
             }
         }
+
 #endregion TO DEFINE THE CONTENT OF THIS PAGE
 
         public Boolean DisplayDisconnection {
@@ -79,21 +85,35 @@ namespace MultiPlatformApplication.Controls
             }
             set
             {
-                if(displayDisconnection != value)
+                displayDisconnection = value;
+            }
+        }
+
+        private void SdkWrapper_ConnectionStateChanged(object sender, Rainbow.Events.ConnectionStateEventArgs e)
+        {
+            if(displayDisconnection)
+            {
+                if (e.State == Rainbow.Model.ConnectionState.Connected)
                 {
-                    if(value)
-                    {
-
-                    }
+                    if (cancelableDelay?.IsRunning() == true)
+                        cancelableDelay.PostPone();
                     else
-                    {
-
-                    }
-
-                    displayDisconnection = value;
+                        cancelableDelay = Rainbow.CancelableDelay.StartAfter(300, () => HideDisconnectionInformation());
+                }
+                else
+                {
+                    cancelableDelay?.Cancel();
+                    Popup.ShowDefaultDisconnectionInformation();
                 }
             }
         }
+
+        private void HideDisconnectionInformation()
+        {
+            if (Helper.SdkWrapper.ConnectionState() == Rainbow.Model.ConnectionState.Connected)
+                Popup.HideDefaultBasicDisconnexionInformation();
+        }
+
 
         public CtrlContentPage()
         {
@@ -117,6 +137,8 @@ namespace MultiPlatformApplication.Controls
                 Padding = new Thickness(0, 20, 0, 0);
 
             this.SizeChanged += CtrlContentPage_SizeChanged;
+
+            Helper.SdkWrapper.ConnectionStateChanged += SdkWrapper_ConnectionStateChanged;
         }
 
         private void CtrlContentPage_SizeChanged(object sender, EventArgs e)

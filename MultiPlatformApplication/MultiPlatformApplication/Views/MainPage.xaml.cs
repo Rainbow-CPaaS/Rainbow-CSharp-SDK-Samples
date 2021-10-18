@@ -20,6 +20,8 @@ namespace MultiPlatformApplication.Views
         {
             InitializeComponent();
 
+            DisplayDisconnection = true;
+
             // Create / Init ViewModel
             vm = new MainPageViewModel(this);
 

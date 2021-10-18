@@ -31,6 +31,8 @@ namespace MultiPlatformApplication.Views
         {
             InitializeComponent();
 
+            DisplayDisconnection = true;
+
             this.conversationId = conversationId;
 
             MessagesStream.BindingContext = conversationId;
