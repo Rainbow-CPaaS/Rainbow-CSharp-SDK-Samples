@@ -272,20 +272,6 @@ namespace MultiPlatformApplication.ViewModels
                 DynamicList.Items.Remove(conversation);
         }
 
-        private void UpdateConversationNameByPeerId(string peerId, String name)
-        {
-            // Ensure to be on Main UI Thread
-            if (!MainThread.IsMainThread)
-            {
-                MainThread.BeginInvokeOnMainThread(() => UpdateConversationNameByPeerId(peerId, name));
-                return;
-            }
-
-            ConversationModel conversation = GetConversationByPeerId(peerId);
-            if (conversation != null)
-                conversation.Peer.DisplayName = name;
-        }
-
         /// <summary>
         /// Add one Conversation Model in the ViewModel
         /// </summary>
@@ -329,23 +315,6 @@ namespace MultiPlatformApplication.ViewModels
                 foreach (ConversationModel conversation in DynamicList.Items)
                 {
                     if (conversation.Id == id)
-                    {
-                        conversationFound = conversation;
-                        break;
-                    }
-                }
-            }
-            return conversationFound;
-        }
-
-        private ConversationModel GetConversationByPeerId(String peerId)
-        {
-            ConversationModel conversationFound = null;
-            lock (lockObservableConversations)
-            {
-                foreach (ConversationModel conversation in DynamicList.Items)
-                {
-                    if (conversation.Peer.Id == peerId)
                     {
                         conversationFound = conversation;
                         break;
@@ -417,21 +386,23 @@ namespace MultiPlatformApplication.ViewModels
 
         private void RbBubbles_BubbleInfoUpdated(object sender, Rainbow.Events.BubbleInfoEventArgs e)
         {
-            UpdateConversationNameByPeerId(e.BubbleId, e.Name);
+            var conversation = Helper.SdkWrapper.GetOrCreateConversationFromBubbleId(e.BubbleId);
+            if (conversation != null)
+                UpdateRBConversationToModel(conversation);
         }
 
         private void RbContacts_PeerAdded(object sender, Rainbow.Events.PeerEventArgs e)
         {
-            Rainbow.Model.Contact contact = Helper.SdkWrapper.GetContactFromContactJid(e.Peer.Jid);
-            if (contact != null)
-                UpdateConversationNameByPeerId(contact.Id, Rainbow.Util.GetContactDisplayName(contact));
+            var conversation = Helper.SdkWrapper.GetConversationByPeerIdFromCache(e.Peer.Id);
+            if (conversation != null)
+                UpdateRBConversationToModel(conversation);
         }
 
         private void RbContacts_PeerInfoChanged(object sender, Rainbow.Events.PeerEventArgs e)
         {
-            Rainbow.Model.Contact contact = Helper.SdkWrapper.GetContactFromContactJid(e.Peer.Jid);
-            if (contact != null)
-                UpdateConversationNameByPeerId(contact.Id, Rainbow.Util.GetContactDisplayName(contact));
+            var conversation = Helper.SdkWrapper.GetConversationByPeerIdFromCache(e.Peer.Id);
+            if (conversation != null)
+                UpdateRBConversationToModel(conversation);
         }
 
         private void RbConversations_ConversationUpdated(object sender, Rainbow.Events.ConversationEventArgs e)
