@@ -258,6 +258,8 @@ namespace MultiPlatformApplication.Helpers
 
                 conversation.LastMessage = rbConversation.LastMessageText;
                 conversation.LastMessageDateTime = rbConversation.LastMessageDate;
+                if (conversation.LastMessageDateTime == DateTime.MinValue)
+                    conversation.LastMessageDateTime = rbConversation.CreationDate;
             }
             return conversation;
         }
