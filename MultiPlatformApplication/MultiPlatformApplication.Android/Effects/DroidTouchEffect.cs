@@ -181,12 +181,24 @@ namespace MultiPlatformApplication.Droid.PlatformEffect
                 }
             }
 
-            if (touchEffectHit != idToEffectDictionary[id])
+            if (idToEffectDictionary.ContainsKey(id))
             {
-                if (idToEffectDictionary[id] != null)
+                if (touchEffectHit != idToEffectDictionary[id])
                 {
-                    FireEvent(idToEffectDictionary[id], id, TouchActionType.Exited, pointerLocation, true);
+                    if (idToEffectDictionary[id] != null)
+                    {
+                        FireEvent(idToEffectDictionary[id], id, TouchActionType.Exited, pointerLocation, true);
+                    }
+
+                    if (touchEffectHit != null)
+                    {
+                        FireEvent(touchEffectHit, id, TouchActionType.Entered, pointerLocation, true);
+                    }
+                    idToEffectDictionary[id] = touchEffectHit;
                 }
+            }
+            else
+            {
                 if (touchEffectHit != null)
                 {
                     FireEvent(touchEffectHit, id, TouchActionType.Entered, pointerLocation, true);
