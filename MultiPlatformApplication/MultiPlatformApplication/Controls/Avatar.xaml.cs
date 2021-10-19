@@ -27,6 +27,8 @@ namespace MultiPlatformApplication.Controls
         Boolean manageAvatarDisplay = false;
         Boolean managePresenceDisplay = false;
 
+        CancelableDelay TaskCheckCacheWithJid = null;
+
         public Avatar()
         {
             InitializeComponent();
@@ -46,6 +48,7 @@ namespace MultiPlatformApplication.Controls
                 }
             }
         }
+        
         private void ManageAvatarDisplay()
         {
             if (!manageAvatarDisplay)
@@ -114,10 +117,47 @@ namespace MultiPlatformApplication.Controls
             }
         }
 
+
+        private void CheckCacheWithJid()
+        {
+            if (peer.Type == Rainbow.Model.Conversation.ConversationType.User)
+            {
+                var contact = Helper.SdkWrapper.GetContactFromContactJid(peer.Jid);
+                if (contact != null)
+                {
+                    peer.Id = contact.Id;
+                    UpdateAvatarImageDisplay();
+                    return;
+                }
+            }
+            else if (peer.Type == Rainbow.Model.Conversation.ConversationType.Room)
+            {
+                var bubble = Helper.SdkWrapper.GetBubbleByJidFromCache(peer.Jid);
+                if (bubble != null)
+                {
+                    peer.Id = bubble.Id;
+                    UpdateAvatarImageDisplay();
+                    return;
+                }
+            }
+            else
+                return;
+
+            if (TaskCheckCacheWithJid == null)
+                TaskCheckCacheWithJid = CancelableDelay.StartAfter(300, () => CheckCacheWithJid());
+            else
+                TaskCheckCacheWithJid.PostPone();
+        }
+
         private void UpdateAvatarImageDisplay()
         {
             if (String.IsNullOrEmpty(peer.Id))
+            {
+                // Event PeerAdded could have been raised too soon. It's why we can have a PeerId null.
+                // So we have to check the cache
+                CheckCacheWithJid();
                 return;
+            }
 
             if (peer.Type == Rainbow.Model.Conversation.ConversationType.User)
             {

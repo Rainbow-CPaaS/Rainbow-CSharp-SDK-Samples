@@ -16,10 +16,10 @@ namespace MultiPlatformApplication.Controls
 	[XamlCompilation(XamlCompilationOptions.Compile)]
 	public partial class MessageSeparatorDisplayName : ContentView
 	{
+        CancelableDelay TaskCheckCacheWithJid = null;
+
         PeerModel peer;
         Boolean manageDisplay = false;
-
-        String displayName;
 
         public MessageSeparatorDisplayName ()
 		{
@@ -28,52 +28,64 @@ namespace MultiPlatformApplication.Controls
             this.BindingContextChanged += MessageSeparatorDisplayName_BindingContextChanged;
 		}
 
+        private void MessageSeparatorDisplayName_BindingContextChanged(object sender, EventArgs e)
+        {
+            if (BindingContext != null)
+            {
+                MessageElementModel message = (MessageElementModel)BindingContext;
+                if ( message?.Peer?.Jid != null )
+                {
+                    peer = message.Peer;
+                    ManageDisplay();
+                }
+            }
+        }
+
         private void ManageDisplay()
         {
             if (!manageDisplay)
             {
-                if (peer?.Type == Rainbow.Model.Conversation.ConversationType.User)
+                if (peer.Type == Rainbow.Model.Conversation.ConversationType.User)
                 {
                     manageDisplay = true;
 
                     Helper.SdkWrapper.PeerInfoChanged += SdkWrapper_PeerInfoChanged;
                     Helper.SdkWrapper.PeerAdded += SdkWrapper_PeerInfoChanged;
 
-                    CheckPeerId();
+                    UpdateDisplay();
                 }
             }
         }
 
-        private void MessageSeparatorDisplayName_BindingContextChanged(object sender, EventArgs e)
-        {
-            if (BindingContext != null)
-            {
-                MessageElementModel message = (MessageElementModel)BindingContext;
-                if ( (message != null) && (message.Peer != null) )
-                {
-                    peer = message.Peer;
-                    displayName = peer.DisplayName;
-                    ManageDisplay();
-                    
-                }
-            }
-        }
 
-        private void CheckPeerId()
-        {
-            if (String.IsNullOrEmpty(peer?.Jid))
-                return;
 
-            Rainbow.Model.Contact contact = Helper.SdkWrapper.GetContactFromContactJid(peer?.Jid);
+        private void CheckCacheWithJid()
+        {
+            var contact = Helper.SdkWrapper.GetContactFromContactJid(peer.Jid);
             if (contact != null)
             {
-                displayName = contact.DisplayName;
+                peer.Id = contact.Id;
                 UpdateDisplay();
+                return;
             }
+
+            if (TaskCheckCacheWithJid == null)
+                TaskCheckCacheWithJid = CancelableDelay.StartAfter(300, () => CheckCacheWithJid());
+            else
+                TaskCheckCacheWithJid.PostPone();
         }
+
 
         private void UpdateDisplay()
         {
+            if (String.IsNullOrEmpty(peer.Id))
+            {
+                // Event PeerAdded could have been raised too soon. It's why we can have a PeerId null.
+                // So we have to check the cache
+                CheckCacheWithJid();
+                return;
+            }
+
             // Ensure to be on Main UI Thread
             if (!MainThread.IsMainThread)
             {
@@ -81,17 +93,14 @@ namespace MultiPlatformApplication.Controls
                 return;
             }
 
+            String displayName = Helper.GetContactDisplayName(peer.Jid);
             Label.Text = displayName;
         }
 
          private void SdkWrapper_PeerInfoChanged(object sender, Rainbow.Events.PeerEventArgs e)
         {
-            if (e.Peer.Jid == peer?.Jid)
-            {
-                peer.Id = e.Peer.Id;
-                displayName = e.Peer.DisplayName;
+            if (e.Peer.Jid == peer.Jid)
                 UpdateDisplay();
-            }
         }
 
     }
