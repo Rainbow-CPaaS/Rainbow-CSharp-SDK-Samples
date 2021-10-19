@@ -514,6 +514,11 @@ namespace MultiPlatformApplication
             });
         }
 
+        override public Bubble GetBubbleByJidFromCache(string bubbleJid)
+        {
+            return RbBubbles.GetBubbleByJidFromCache(bubbleJid);
+        }
+
     #endregion WRAPPER - BUBBLES
 
     #region WRAPPER - CONTACTS

@@ -535,9 +535,14 @@ namespace MultiPlatformApplication
         {
         }
 
+        virtual public Bubble GetBubbleByJidFromCache(string bubbleJid)
+        {
+            return null;
+        }
+
     #endregion WRAPPER - BUBBLES
 
-    #region WRAPPER - CONTACTS
+        #region WRAPPER - CONTACTS
 
         virtual public String GetCurrentContactId()
         {
