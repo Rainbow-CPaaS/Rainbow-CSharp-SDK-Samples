@@ -183,13 +183,18 @@ namespace MultiPlatformApplication.ViewModels
                 }
                 else
                 {
+                    Boolean loadmoreMsg = true;
+
                     // Get messages from cache
                     List<Rainbow.Model.Message> rbMessagesList = Helper.SdkWrapper.GetAllMessagesFromConversationIdFromCache(conversationId);
                     if (rbMessagesList?.Count > 0)
                     {
                         AddToModelRbMessages(rbMessagesList);
+                        if (rbMessagesList.Count >= NB_MESSAGE_LOADED_BY_ROW)
+                            loadmoreMsg = false;
                     }
-                    else
+
+                    if (loadmoreMsg)
                         LoadMoreMessages();
                 }
             });
