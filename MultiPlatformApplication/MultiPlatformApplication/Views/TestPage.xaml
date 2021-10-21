@@ -90,8 +90,7 @@
                         PlaceholderColor="LightGray"
                         Text="{Binding LoginModel.Login}"
                         IsEnabled="{Binding LoginModel.IsBusy, Converter={StaticResource ReverseBooleanConverter}}"
-                        effects:Entry.NoBorder="True"
-                        effects:Entry.NoTintColored="True"/>
+                        effects:Entry.NoBorder="True"/>
 
                 <Frame BorderColor="Blue"
                        HasShadow="False"

@@ -85,14 +85,14 @@ namespace MultiPlatformApplication.Effects
         //      
         //      https://github.com/xamarin/XamarinCommunityToolkit/tree/main/src/CommunityToolkit/Xamarin.CommunityToolkit/Effects/RemoveBorder
 
-        public static readonly BindableProperty NoBorderProperty = BindableProperty.Create("NoBorder", typeof(Boolean), typeof(Entry), false, propertyChanged: OnNoBorderChanged);
+        public static readonly BindableProperty NoBorderProperty = BindableProperty.Create("NoBorder", typeof(Boolean ?), typeof(Entry), null, propertyChanged: OnNoBorderChanged);
 
-        public static Boolean GetNoBorder(BindableObject view)
+        public static Boolean ? GetNoBorder(BindableObject view)
         {
-            return (Boolean)view.GetValue(NoBorderProperty);
+            return (Boolean ?)view.GetValue(NoBorderProperty);
         }
 
-        public static void SetNoBorder(BindableObject view, Boolean value)
+        public static void SetNoBorder(BindableObject view, Boolean ? value)
         {
             view.SetValue(NoBorderProperty, value);
         }
@@ -103,8 +103,8 @@ namespace MultiPlatformApplication.Effects
             if (view == null)
                 return;
 
-            Boolean NoBorder = (Boolean)newValue;
-            if (NoBorder)
+            Boolean ? NoBorder = (Boolean ?)newValue;
+            if (NoBorder != null)
                 Helper.AddEffect(view, new ControlEntryEffect());
         }
 

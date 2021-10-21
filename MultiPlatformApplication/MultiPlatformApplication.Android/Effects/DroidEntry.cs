@@ -1,13 +1,6 @@
 ﻿using Android.Content.Res;
-using Android.OS;
-using Android.Runtime;
-using Android.Views;
 using Android.Widget;
-using MultiPlatformApplication.Effects;
-using System;
-using System.ComponentModel;
 using Xamarin.Forms;
-using static Android.Views.ViewGroup;
 
 [assembly: ExportEffect(typeof(MultiPlatformApplication.Droid.PlatformEffect.DroidEntry), nameof(MultiPlatformApplication.Effects.Entry))]
 namespace MultiPlatformApplication.Droid.PlatformEffect
@@ -29,11 +22,10 @@ namespace MultiPlatformApplication.Droid.PlatformEffect
                 if (minWidth != -1)
                     editText.SetMinWidth((int)minWidth);
 
-                if (MultiPlatformApplication.Effects.Entry.GetNoBorder(Element))
+                if (MultiPlatformApplication.Effects.Entry.GetNoBorder(Element) == true)
                     NoBorder();
 
-                if (MultiPlatformApplication.Effects.Entry.GetNoTintColored(Element))
-                    NoTintColored();
+                SetTintColor();
 
 
                 // If the EditText has by default a text, we set the caret to the end
@@ -42,6 +34,16 @@ namespace MultiPlatformApplication.Droid.PlatformEffect
             }
         }
 
+        private void SetTintColor()
+        {
+            var color = Helpers.Helper.GetResourceDictionaryById<Xamarin.Forms.Color>("ColorMain");
+            if (color != null)
+            {
+                Android.Graphics.Color c = Android.Graphics.Color.ParseColor(color.ToHex());
+                editText.BackgroundTintList = ColorStateList.ValueOf(c);
+                editText.ForegroundTintList = ColorStateList.ValueOf(c);
+            }
+        }
 
         protected override void OnDetached()
         {
@@ -50,32 +52,6 @@ namespace MultiPlatformApplication.Droid.PlatformEffect
         private void NoBorder()
         {
             editText.Background = null;
-
-            //editText.SetPadding(0, 0, 0, 0);
-            //var lp = new MarginLayoutParams(editText.LayoutParameters);
-            //lp.SetMargins(0, 0, 0, 0);
-            //editText.LayoutParameters = lp;
-
-
-        }
-
-        private void NoTintColored()
-        {
-            // Change cursor color in entry
-            // https://social.msdn.microsoft.com/Forums/en-US/d975148a-1ce0-4fbe-9928-18cb2b0368fa/change-cursor-color-in-entry?forum=xamarinforms
-
-            try
-            {
-                //editText.SetTextCursorDrawable(0);
-
-                IntPtr IntPtrtextViewClass = JNIEnv.FindClass(typeof(TextView));
-                IntPtr mCursorDrawableResProperty = JNIEnv.GetFieldID(IntPtrtextViewClass, "mCursorDrawableRes", "I");
-                JNIEnv.SetField(Control.Handle, mCursorDrawableResProperty, 0);
-            }
-            catch
-            {
-
-            }
         }
 
     }

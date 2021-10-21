@@ -44,7 +44,8 @@
                     PlaceholderColor="{StaticResource ColorEntryPlaceHolder}"
                     Text="{Binding LoginModel.Login}"
                     TextColor="{StaticResource ColorEntryText}"
-                    IsEnabled="{Binding LoginModel.IsBusy, Converter={StaticResource ReverseBooleanConverter}}"/>
+                    IsEnabled="{Binding LoginModel.IsBusy, Converter={StaticResource ReverseBooleanConverter}}"
+                    effects:Entry.NoBorder="False"/>
 
             <Label  Margin="0,20,0,10"
                    HorizontalTextAlignment="Center"
@@ -54,16 +55,17 @@
                    IsVisible="{Binding LoginModel.AskingLogin, Converter={StaticResource ReverseBooleanConverter}}" />
 
             <Entry  Margin="20,0,20,10"
-                   TextColor="Black"
-                   FontSize="{StaticResource FontSizeMedium}"
-                   IsPassword="True"
-                   WidthRequest="300"
-                   HorizontalOptions="CenterAndExpand"
-                   Placeholder="{StaticResource Label_password}"
-                   PlaceholderColor="Gray"
-                   Text="{Binding LoginModel.Password}"
-                   IsEnabled="{Binding LoginModel.IsBusy, Converter={StaticResource ReverseBooleanConverter}}" 
-                   IsVisible="{Binding LoginModel.AskingLogin, Converter={StaticResource ReverseBooleanConverter}}" />
+                    TextColor="Black"
+                    FontSize="{StaticResource FontSizeMedium}"
+                    IsPassword="True"
+                    WidthRequest="300"
+                    HorizontalOptions="CenterAndExpand"
+                    Placeholder="{StaticResource Label_password}"
+                    PlaceholderColor="Gray"
+                    Text="{Binding LoginModel.Password}"
+                    IsEnabled="{Binding LoginModel.IsBusy, Converter={StaticResource ReverseBooleanConverter}}" 
+                    IsVisible="{Binding LoginModel.AskingLogin, Converter={StaticResource ReverseBooleanConverter}}"
+                    effects:Entry.NoBorder="False"/>
 
             <controls:CustomButton Margin="0,20"
                                    Text="{Binding LoginModel.Connect}"

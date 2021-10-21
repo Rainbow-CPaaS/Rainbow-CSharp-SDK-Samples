@@ -43,7 +43,7 @@ namespace MultiPlatformApplication.UWP.PlatformEffect
                     textBox.KeyUp += TextBox_KeyUp;
                 }
 
-                if (MultiPlatformApplication.Effects.Entry.GetNoBorder(Element))
+                if (MultiPlatformApplication.Effects.Entry.GetNoBorder(Element) == true)
                     NoBorder();
 
                 // If the textbox has by default a text, we set the caret to the end
