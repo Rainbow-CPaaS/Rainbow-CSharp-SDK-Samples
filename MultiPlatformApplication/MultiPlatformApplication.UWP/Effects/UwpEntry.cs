@@ -99,9 +99,8 @@ namespace MultiPlatformApplication.UWP.PlatformEffect
 
                 if (validate)
                 {
-                    var command = MultiPlatformApplication.Effects.Entry.GetValidationCommand(Element);
-                    if (command != null && command.CanExecute(Element))
-                        command.Execute(Element);
+                    if (validationCommand != null && validationCommand.CanExecute(Element))
+                        validationCommand.Execute(Element);
                 }
             }
         }

@@ -15,7 +15,6 @@ namespace MultiPlatformApplication.Effects
 
         public static readonly BindableProperty ValidationCommandProperty = BindableProperty.Create("ValidationCommand", typeof(ICommand), typeof(Entry), null, propertyChanged: OnValidationCommandChanged);
 
-
         public static ICommand GetValidationCommand(BindableObject view)
         {
             return (ICommand)view.GetValue(ValidationCommandProperty);
@@ -110,34 +109,6 @@ namespace MultiPlatformApplication.Effects
 
 #endregion  NoBorder Property
 
-#region  NoTintColored Property
-
-        public static readonly BindableProperty NoTintColoredProperty = BindableProperty.Create("NoTintColored", typeof(Boolean), typeof(Entry), false, propertyChanged: OnNoTintColoredChanged);
-
-        public static Boolean GetNoTintColored(BindableObject view)
-        {
-            return (Boolean)view.GetValue(NoTintColoredProperty);
-        }
-
-        public static void SetNoTintColored(BindableObject view, Boolean value)
-        {
-            view.SetValue(NoTintColoredProperty, value);
-        }
-
-        static void OnNoTintColoredChanged(BindableObject bindable, object oldValue, object newValue)
-        {
-            var view = bindable as View;
-            if (view == null)
-                return;
-
-
-            Boolean NoTintColored = (Boolean)newValue;
-            if (NoTintColored)
-                Helper.AddEffect(view, new ControlEntryEffect());
-        }
-
-#endregion  NoTintColored Property
-
 #region  MinimumWidth Property
 
         public static readonly BindableProperty MinimumWidthProperty = BindableProperty.Create("MinimumWidth", typeof(double), typeof(Entry), (double)-1, propertyChanged: OnMinimumWidthChanged);
@@ -164,7 +135,6 @@ namespace MultiPlatformApplication.Effects
         }
 
 #endregion  MinimumWidth Property
-
 
         class ControlEntryEffect : RoutingEffect
         {
