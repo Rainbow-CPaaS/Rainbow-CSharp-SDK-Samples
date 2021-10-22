@@ -144,12 +144,25 @@ namespace MultiPlatformApplication.IOs.PlatformEffect
                     recognizerHit = viewDictionary[view];
                 }
             }
-            if (recognizerHit != idToTouchDictionary[id])
+
+            if (idToTouchDictionary.ContainsKey(id))
             {
-                if (idToTouchDictionary[id] != null)
+                if (recognizerHit != idToTouchDictionary[id])
                 {
-                    FireEvent(idToTouchDictionary[id], id, TouchActionType.Exited, touch, true);
+                    if (idToTouchDictionary[id] != null)
+                    {
+                        FireEvent(idToTouchDictionary[id], id, TouchActionType.Exited, touch, true);
+                    }
+
+                    if (recognizerHit != null)
+                    {
+                        FireEvent(recognizerHit, id, TouchActionType.Entered, touch, true);
+                    }
+                    idToTouchDictionary[id] = recognizerHit;
                 }
+            }
+            else
+            {
                 if (recognizerHit != null)
                 {
                     FireEvent(recognizerHit, id, TouchActionType.Entered, touch, true);
