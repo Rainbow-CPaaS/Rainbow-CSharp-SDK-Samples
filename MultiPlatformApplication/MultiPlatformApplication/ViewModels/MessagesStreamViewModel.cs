@@ -127,9 +127,6 @@ namespace MultiPlatformApplication.ViewModels
                 stackLayout = contentViewPlatformSpecific.FindByName<StackLayout>("StackLayoutDesktop");
             }
 
-            if (stackLayout != null)
-                Popup.AutoHideForView(stackLayout);
-
             scrollView.Scrolled += ScrollView_Scrolled;
             scrollView.Content.SizeChanged += ScrollContent_SizeChanged;
 
