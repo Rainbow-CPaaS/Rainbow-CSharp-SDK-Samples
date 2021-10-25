@@ -91,15 +91,6 @@ namespace MultiPlatformApplication.Effects
             return new Rect();
         }
 
-        public static void AutoHideForView(View view)
-        {
-            // NOT NECESSARY TO BE ON MAIN THREAD
-
-            TouchEffect touchEffect = new TouchEffect();
-            touchEffect.TouchAction += TouchEffect_TouchAction;
-            Helper.AddEffect(view, touchEffect);
-        }
-
         public static void Hide(String popupAutomationId)
         {
             // NOT NECESSARY TO BE ON MAIN THREAD
@@ -628,8 +619,7 @@ namespace MultiPlatformApplication.Effects
                 HorizontalLayoutAlignment = horizontalLayoutAlignment,
                 VerticalLayoutAlignment = verticalLayoutAlignment,
                 Translation = translation,
-                Delay = delay,
-                Date = DateTime.UtcNow
+                Delay = delay
             };
             PrepareToShow(popupAction);
         }
@@ -691,6 +681,7 @@ namespace MultiPlatformApplication.Effects
             {
                 // Get PopupType
                 newPopupAction.PopupType = GetType(view);
+                newPopupAction.Date = DateTime.UtcNow;
 
                 // Check if this popup is known
                 String id = view.Id.ToString();
@@ -737,6 +728,7 @@ namespace MultiPlatformApplication.Effects
                     // On Desktop platform (at least in UWP) there is event propagation so we don't need to call directly ContentPageTapCommand
                     if (!Helper.IsDesktopPlatform())
                         ContentPageTapCommand(null);
+
                 }
             }
         }
@@ -1095,17 +1087,31 @@ namespace MultiPlatformApplication.Effects
                 activityIndicatorList.Remove(popupAutomationId);
 
 
-            ContentPage contentPage = GetCurrentContentPage();
+            MultiPlatformApplication.Controls.CtrlContentPage contentPage = GetCurrentContentPage();
             View view = GetView(popupAutomationId, contentPage);
 
             if (view != null)
             {
                 if (view.IsVisible)
                 {
-                    if (popupAutomationId == previousContextMenuActionDisplayed?.PopupAutomationId)
-                        previousContextMenuActionDisplayed.Date = DateTime.UtcNow;
+                    Boolean needToHide = true;
 
-                    view.IsVisible = false;
+                    if (popupAutomationId == previousContextMenuActionDisplayed?.PopupAutomationId)
+                    {
+                        if (previousContextMenuActionDisplayed.Date != DateTime.MinValue)
+                        {
+                            TimeSpan duration = DateTime.UtcNow - previousContextMenuActionDisplayed.Date;
+                            needToHide = (duration.TotalMilliseconds > 100);
+                        }
+                        else
+                            needToHide = false;
+                    }
+
+                    if (needToHide)
+                    {
+                        view.IsVisible = false;
+                        //contentPage.GetRelativeLayout().LowerChild(view);
+                    }
                 }
                 else
                 {
