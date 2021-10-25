@@ -416,6 +416,13 @@ namespace MultiPlatformApplication.Helpers
 
 #region VISUAL ELEMENT
 
+        public static Thickness GetDefaultPadding()
+        {
+            if (Device.RuntimePlatform == Device.iOS)
+                return new Thickness(0, 20, 0, 0);
+            return new Thickness(0, 20, 0, 0);
+        }
+
         public static Rect GetRelativePosition(VisualElement element, Type parentType)
         {
             Rect rect = new Rect();
@@ -448,9 +455,15 @@ namespace MultiPlatformApplication.Helpers
                 rect.X += parent.X;
                 rect.Y += parent.Y;
 
-                parent = (VisualElement)parent.Parent;
+                if (parent.Parent is VisualElement v)
+                    parent = v;
+                else
+                    break;
             }
 
+            Thickness thickness = GetDefaultPadding();
+            rect.Y -= thickness.Top;
+            rect.X -= thickness.Left;
 
             return rect;
         }
@@ -486,9 +499,15 @@ namespace MultiPlatformApplication.Helpers
                 rect.X += _parent.X;
                 rect.Y += _parent.Y;
 
-                _parent = (VisualElement)_parent.Parent;
+                if (_parent.Parent is VisualElement v)
+                    _parent = v;
+                else
+                    break;
             }
 
+            Thickness thickness = GetDefaultPadding();
+            rect.Y -= thickness.Top;
+            rect.X -= thickness.Left;
 
             return rect;
         }

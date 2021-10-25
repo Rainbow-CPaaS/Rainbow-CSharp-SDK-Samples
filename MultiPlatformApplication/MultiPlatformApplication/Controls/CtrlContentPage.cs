@@ -134,7 +134,7 @@ namespace MultiPlatformApplication.Controls
 
             // Avoid overwriting the iOS status bar: https://docs.microsoft.com/en-us/xamarin/xamarin-forms/xaml/xaml-basics/essential-xaml-syntax
             if (Device.RuntimePlatform == Device.iOS)
-                Padding = new Thickness(0, 20, 0, 0);
+                Padding = Helper.GetDefaultPadding();
 
             this.SizeChanged += CtrlContentPage_SizeChanged;
 
