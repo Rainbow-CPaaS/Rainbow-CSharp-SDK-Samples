@@ -24,7 +24,6 @@ namespace MultiPlatformApplication.Controls
             InitializeComponent();
 
             ConversationsListView.ItemSelected += ConversationsListView_ItemSelected;
-            Popup.AutoHideForView(ConversationsListView);
 
             // We prevent MouseOver effect on ListView. "SelecionMode" must also be set to "None"
             ConversationsListView.On<Windows>().SetSelectionMode(Xamarin.Forms.PlatformConfiguration.WindowsSpecific.ListViewSelectionMode.Inaccessible);

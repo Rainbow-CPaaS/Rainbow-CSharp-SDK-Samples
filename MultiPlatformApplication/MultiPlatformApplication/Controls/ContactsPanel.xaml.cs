@@ -23,7 +23,6 @@ namespace MultiPlatformApplication.Controls
             InitializeComponent();
 
             ContactsListView.ItemSelected += ContactsListView_ItemSelected;
-            Popup.AutoHideForView(ContactsListView);
 
             vm = new ContactsViewModel();
 
