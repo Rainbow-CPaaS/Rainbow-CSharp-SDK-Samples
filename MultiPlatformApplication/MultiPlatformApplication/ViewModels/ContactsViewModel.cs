@@ -100,7 +100,7 @@ namespace MultiPlatformApplication.ViewModels
             OrderByContextMenu = new Controls.ContextMenu { AutomationId = "OrderByContextMenu", WidthRequest = 140 };
             OrderByContextMenu.BindingContext = contextMenuModel;
 
-            OrderByContextMenu.Command = new RelayCommand<object>(new Action<object>(OrderByContextMenuCommand));
+            OrderByContextMenu.Command = new RelayCommand<object>(OrderByContextMenuCommand);
 
             Popup.Add(null, OrderByContextMenu, PopupType.ContextMenu);
         }
@@ -115,7 +115,7 @@ namespace MultiPlatformApplication.ViewModels
             FilterContextMenu = new Controls.ContextMenu { AutomationId = "FilterContextMenu", WidthRequest = 140 };
             FilterContextMenu.BindingContext = contextMenuModel;
 
-            FilterContextMenu.Command = new RelayCommand<object>(new Action<object>(FilterContextMenuCommand));
+            FilterContextMenu.Command = new RelayCommand<object>(FilterContextMenuCommand);
 
             Popup.Add(null, FilterContextMenu, PopupType.ContextMenu);
         }
@@ -325,11 +325,11 @@ namespace MultiPlatformApplication.ViewModels
             switch (selectedId)
             {
                 case "orderby":
-                    Popup.Show("OrderByContextMenu", rect);
+                    Popup.Show(OrderByContextMenu.AutomationId, rect);
                     break;
 
                 case "filter":
-                    Popup.Show("FilterContextMenu", rect);
+                    Popup.Show(FilterContextMenu.AutomationId, rect);
                     break;
             }
 
@@ -361,7 +361,7 @@ namespace MultiPlatformApplication.ViewModels
             }
         }
 
-        private void OrderByContextMenuCommand(object obj)
+        public void OrderByContextMenuCommand(object obj)
         {
             if(obj is String id)
                 UpdateContactsListDisplay(id, currentFilter);
