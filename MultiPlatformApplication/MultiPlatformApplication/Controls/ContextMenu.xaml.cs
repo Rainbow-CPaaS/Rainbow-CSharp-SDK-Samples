@@ -22,6 +22,8 @@ namespace MultiPlatformApplication.Controls
         Boolean descriptionUsed = false;
         String selectedItemId = null;
 
+        ICommand SelectionCommand;
+
 #region CommandProperty
 
         public static readonly BindableProperty CommandProperty =
@@ -79,7 +81,7 @@ namespace MultiPlatformApplication.Controls
         {
             InitializeComponent();
 
-            ListView.ItemSelected += ListView_ItemSelected;
+            SelectionCommand = new RelayCommand<object>(SelectionCommandAction);
         }
 
         ~ContextMenu()
@@ -90,8 +92,6 @@ namespace MultiPlatformApplication.Controls
                 if (originalContextMenuModel.Items != null)
                     originalContextMenuModel.Items.CollectionChanged -= OriginalContextMenuModel_Items_CollectionChanged;
             }
-
-            ListView.ItemSelected -= ListView_ItemSelected;
 
             ListView.BindingContext = null;
             ListView.ItemTemplate = null;
@@ -167,6 +167,9 @@ namespace MultiPlatformApplication.Controls
                     ListView.ItemTemplate = ContextMenuWithoutIconDataTemplate;
             }
 
+            // Set selection Command
+            contextMenuModelUsed.Command = SelectionCommand;
+
             // Set the binding context
             ListView.BindingContext = contextMenuModelUsed;
 
@@ -207,18 +210,16 @@ namespace MultiPlatformApplication.Controls
             SetHeigthAccordingModel();
         }
 
-        private void ListView_ItemSelected(object sender, SelectedItemChangedEventArgs e)
+        public void SelectionCommandAction(object obj)
         {
-            if (e.SelectedItemIndex != -1)
+            if(obj is String id)
             {
                 Popup.HideCurrentContextMenu();
 
                 // Reset selection of the UI component
                 ListView.SelectedItem = null;
 
-                selectedItemId = null;
-                if(contextMenuModelUsed?.Items.Count > e.SelectedItemIndex)
-                    selectedItemId = contextMenuModelUsed.Items[e.SelectedItemIndex].Id;
+                selectedItemId = id;
 
                 // Set selection 
                 SetSelectedItemId(selectedItemId);

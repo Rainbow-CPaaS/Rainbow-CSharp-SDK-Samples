@@ -1,18 +1,20 @@
 ﻿using MultiPlatformApplication.Helpers;
 using Rainbow;
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Text;
+using System.Windows.Input;
 using Xamarin.Forms;
 
 namespace MultiPlatformApplication.Models
 {
     public class ContextMenuModel : ObservableObject
     {
+        internal ICommand Command;
+        internal ICommand CommandSelection;
         private ObservableCollection<ContextMenuItemModel > items;
 
         public event EventHandler<EventArgs> ItemVisibilityChanged;
+
 
         public ObservableCollection<ContextMenuItemModel > Items
         {
@@ -23,6 +25,19 @@ namespace MultiPlatformApplication.Models
         public ContextMenuModel()
         {
             Items = new ObservableCollection<ContextMenuItemModel >();
+            CommandSelection = new RelayCommand<object>(CommandSelectionAction);
+        }
+
+        private void CommandSelectionAction(object obj)
+        {
+            if (obj is View view)
+            {
+                if (view.BindingContext is ContextMenuItemModel model)
+                {
+                    if (Command?.CanExecute(model.Id) == true)
+                        Command.Execute(model.Id);
+                }
+            }
         }
 
         internal String GetSelectedItemId()
@@ -70,6 +85,7 @@ namespace MultiPlatformApplication.Models
         {
             if (item != null)
             {
+                item.Command = CommandSelection;
                 Items.Add(item);
                 item.PropertyChanged += Item_PropertyChanged;
             }
@@ -91,6 +107,8 @@ namespace MultiPlatformApplication.Models
         public Color textColor;
         public bool isSelected = false;
         public bool isVisible = true;
+
+        public ICommand command;
 
         public String Id
         {
@@ -180,6 +198,20 @@ namespace MultiPlatformApplication.Models
             set
             {
                 SetProperty(ref isVisible, value);
+            }
+        }
+
+        //  /!\ Must be PUBLIC !!!
+        public ICommand Command
+        {
+            get
+            {
+                return command;
+            }
+
+            set
+            {
+                SetProperty(ref command, value);
             }
         }
 

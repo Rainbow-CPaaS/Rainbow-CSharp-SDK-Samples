@@ -23,7 +23,8 @@
                       VerticalOptions="Center"
                       HorizontalOptions="Fill"
                       effects:Background.Enabled="{Binding IsSelected}"
-                      effects:Background.Color="LightGray">
+                      effects:Background.Color="LightGray"
+                      effects:TouchEffect.Command="{Binding Command}">
 
                     <Grid.RowDefinitions>
                         <RowDefinition Height="28"/>
@@ -54,7 +55,8 @@
                       VerticalOptions="Center"
                       HorizontalOptions="Fill"
                       effects:Background.Enabled="{Binding IsSelected}"
-                      effects:Background.Color="LightGray">
+                      effects:Background.Color="LightGray"
+                      effects:TouchEffect.Command="{Binding Command}">
                     
                     <Grid.RowDefinitions>
                         <RowDefinition Height="28"/>
@@ -96,7 +98,8 @@
                       VerticalOptions="Center"
                       HorizontalOptions="Fill"
                       effects:Background.Enabled="{Binding IsSelected}"
-                      effects:Background.Color="LightGray">
+                      effects:Background.Color="LightGray"
+                      effects:TouchEffect.Command="{Binding Command}">
 
                     <Grid.RowDefinitions>
                         <RowDefinition Height="54"/>
