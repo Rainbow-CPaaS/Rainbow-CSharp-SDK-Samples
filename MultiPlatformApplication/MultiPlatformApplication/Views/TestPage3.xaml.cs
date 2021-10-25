@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+using System.Windows.Input;
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 
@@ -22,11 +22,15 @@ namespace MultiPlatformApplication.Views
         Boolean newPopupAdded = false;
 
         ContextMenuModel contextMenuModel;
-        View dynamicContextMenu = null;
+        ContextMenu dynamicContextMenu = null;
+
+        public ICommand ContextMenuCommand;
 
         public TestPage3()
         {
             InitializeComponent();
+
+            ContextMenuCommand = new RelayCommand<object>(ContextMenuCommandSelection);
 
             CustomButton1.Command = new RelayCommand<object>(new Action<object>(CustomButton1Command));
             CustomButton2.Command = new RelayCommand<object>(new Action<object>(CustomButton2Command));
@@ -44,6 +48,14 @@ namespace MultiPlatformApplication.Views
         private void LogoCommand(object obj)
         {
             Popup.Show("ContextMenu1", null, LayoutAlignment.Center, false,  LayoutAlignment.Start, false, new Point(0,10));
+        }
+
+        public void ContextMenuCommandSelection(object obj)
+        {
+            if(obj is String id)
+            {
+                // id selected for the cotext menu
+            }
         }
 
         private void CustomButton1Command(object obj)
@@ -185,6 +197,8 @@ namespace MultiPlatformApplication.Views
 
                 if (dynamicContextMenu != null)
                 {
+                    dynamicContextMenu.Command = ContextMenuCommand;
+
                     Popup.Add(this, dynamicContextMenu, PopupType.ContextMenu);
                     newPopupAdded = !newPopupAdded;
                 }
