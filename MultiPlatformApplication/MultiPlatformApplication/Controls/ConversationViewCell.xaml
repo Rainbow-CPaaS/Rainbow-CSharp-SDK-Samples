@@ -1,0 +1,96 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<ViewCell xmlns="http://xamarin.com/schemas/2014/forms" 
+          xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+          xmlns:controls="clr-namespace:MultiPlatformApplication.Controls"
+          xmlns:converters="clr-namespace:MultiPlatformApplication.Converters;assembly=MultiPlatformApplication" 
+          x:Class="MultiPlatformApplication.Controls.ConversationViewCell">
+    
+    <Grid ColumnSpacing="0" RowSpacing="0" Padding="0" Margin="0">
+        <Grid.Resources>
+            <converters:TextToBooleanConverter x:Key="TextToBooleanConverter" />
+            <converters:IntToBooleanConverter x:Key="IntToBooleanConverter" />
+        </Grid.Resources>
+
+        <!--GRID COLUMN / ROW DEFINITION-->
+        <Grid.ColumnDefinitions>
+            <!--Col 0: Conversation Avatar-->
+            <ColumnDefinition Width="48"/>
+
+            <!--Col 1: Let space with the avatar-->
+            <ColumnDefinition Width="10"/>
+
+            <!--Col 2: Conversation cell-->
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!--AVATAR - IMG + PRESENCE-->
+        <controls:Avatar Grid.Row="0"
+                             Grid.Column="0"
+                             WidthRequest="40"
+                             HeightRequest="40"
+                             VerticalOptions="Center"
+                             HorizontalOptions="Center"
+                             BindingContext="{Binding Peer}"/>
+
+
+        <!--MSG UNREAD-->
+        <Frame Grid.Row="0"
+                   Grid.Column="0"
+                   BackgroundColor="Red"
+                   HeightRequest="20"
+                   WidthRequest="20"
+                   CornerRadius="20"
+                   VerticalOptions="Start"
+                   HorizontalOptions="End"
+                   IsClippedToBounds="False"
+                   HasShadow="False"
+                   Margin="0"
+                   Padding="0"
+                   IsVisible="{Binding NbMsgUnread, Converter={StaticResource IntToBooleanConverter}}">
+
+            <Label VerticalOptions="Center"
+                       HorizontalOptions="Center"
+                       FontSize="{StaticResource FontSizeMicro}"
+                       TextColor="White"
+                       Text="{Binding NbMsgUnread}"/>
+        </Frame>
+
+
+        <!--LAST BUBBLE MSG:  (Buble Name or Contact Name) / Date / Last Message-->
+
+        <Frame Grid.Row="0" Grid.Column="2"
+                   CornerRadius="0" 
+                   BackgroundColor="#00000000"
+                   VerticalOptions="Center"
+                   HorizontalOptions="FillAndExpand"
+                   HasShadow="False"
+                   IsClippedToBounds="False"
+                   Margin="0"
+                   Padding="0"
+                   HeightRequest="48">
+
+            <StackLayout Spacing="0" Padding="10,0,10,0"  Margin="0" Orientation="Vertical" VerticalOptions="Center">
+
+                <!--USE A GRID TO AVOID TRUNCATED DATE-->
+                <Grid RowSpacing="0" ColumnSpacing="0" Padding="0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <Label Grid.Row="0" Grid.Column="0" HorizontalOptions="StartAndExpand" TextColor="Black" FontSize="{StaticResource FontSizeMedium}" MaxLines="1" LineBreakMode="TailTruncation" VerticalOptions="Start" Text="{Binding Peer.DisplayName}"/>
+                    <Label Grid.Row="0" Grid.Column="1" HorizontalOptions="EndAndExpand" TextColor="Gray" FontSize="{StaticResource FontSizeMicro}" MaxLines="1" VerticalOptions="Center" Text="{Binding MessageTimeDisplay}"/>
+                </Grid>
+
+                <Label TextColor="Gray" FontSize="{StaticResource FontSizeSmall}" MaxLines="1" LineBreakMode="TailTruncation" IsVisible="{Binding LastMessage, Converter={StaticResource TextToBooleanConverter}}" Text="{Binding LastMessage}"/>
+            </StackLayout>
+        </Frame>
+    </Grid>
+</ViewCell>

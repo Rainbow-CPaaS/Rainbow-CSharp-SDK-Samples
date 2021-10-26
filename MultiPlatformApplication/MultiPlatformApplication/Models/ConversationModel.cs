@@ -8,6 +8,7 @@ using Rainbow;
 
 using NLog;
 using MultiPlatformApplication.Helpers;
+using System.Windows.Input;
 
 namespace MultiPlatformApplication.Models
 {
@@ -23,6 +24,8 @@ namespace MultiPlatformApplication.Models
         Int64 nbMsgUnread;
         DateTime lastMessageDateTime;
         String messageTimeDisplay;
+
+        ICommand selectionCommand;
 
         public string Id
         {
@@ -69,6 +72,12 @@ namespace MultiPlatformApplication.Models
         {
             get { return messageTimeDisplay; }
             set { SetProperty(ref messageTimeDisplay, value); }
+        }
+
+        public ICommand SelectionCommand
+        {
+            get { return selectionCommand; }
+            set { SetProperty(ref selectionCommand, value); }
         }
 
         public ConversationModel()

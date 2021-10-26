@@ -1,0 +1,57 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ViewCell xmlns="http://xamarin.com/schemas/2014/forms"
+          xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+          xmlns:controls="clr-namespace:MultiPlatformApplication.Controls"
+          xmlns:converters="clr-namespace:MultiPlatformApplication.Converters;assembly=MultiPlatformApplication" 
+          x:Class="MultiPlatformApplication.Controls.ContactViewCellItem">
+    
+    <Grid ColumnSpacing="0" RowSpacing="0" Padding="10, 0" Margin="0">
+        <Grid.Resources>
+            <converters:TextToBooleanConverter x:Key="TextToBooleanConverter" />
+        </Grid.Resources>
+
+        <!--GRID COLUMN / ROW DEFINITION-->
+        <Grid.ColumnDefinitions>
+            <!--Col 0: Avatar-->
+            <ColumnDefinition Width="48"/>
+
+            <!--Col 1: Let space with the avatar-->
+            <ColumnDefinition Width="10"/>
+
+            <!--Col 2: Contact detail-->
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!--AVATAR - IMG + PRESENCE-->
+        <controls:Avatar Grid.Row="0"
+                                 Grid.Column="0"
+                                 WidthRequest="40"
+                                 HeightRequest="40"
+                                 VerticalOptions="Center"
+                                 HorizontalOptions="Center"
+                                 BindingContext="{Binding Peer}"/>
+
+
+        <Frame Grid.Row="0" Grid.Column="2"
+                       CornerRadius="0" 
+                       BackgroundColor="#00000000"
+                       VerticalOptions="Center"
+                       HorizontalOptions="FillAndExpand"
+                       IsClippedToBounds="False"
+                       HasShadow="False"
+                       Margin="0"
+                       Padding="0"
+                       HeightRequest="48">
+
+            <StackLayout Spacing="0" Padding="10,0,10,0"  Margin="0" Orientation="Vertical" VerticalOptions="Center">
+                <Label HorizontalOptions="StartAndExpand" TextColor="Black" FontSize="{StaticResource FontSizeMedium}" MaxLines="1" LineBreakMode="TailTruncation" VerticalOptions="Start" Text="{Binding Peer.DisplayName}"/>
+                <Label HorizontalOptions="StartAndExpand" TextColor="Gray" FontSize="{StaticResource FontSizeSmall}" MaxLines="1" LineBreakMode="TailTruncation" IsVisible="{Binding Detail, Converter={StaticResource TextToBooleanConverter}}" Text="{Binding Detail}"/>
+            </StackLayout>
+        </Frame>
+
+    </Grid>
+</ViewCell>

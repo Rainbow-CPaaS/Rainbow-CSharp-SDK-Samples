@@ -22,30 +22,9 @@ namespace MultiPlatformApplication.Controls
         {
             InitializeComponent();
 
-            ContactsListView.ItemSelected += ContactsListView_ItemSelected;
-
             vm = new ContactsViewModel();
 
             BindingContext = vm;
-        }
-
-        private void ContactsListView_ItemSelected(object sender, SelectedItemChangedEventArgs e)
-        {
-            if (e.SelectedItemIndex != -1)
-            {
-                Popup.HideCurrentContextMenu();
-
-                // Reset selection
-                ((ListView)sender).SelectedItem = null;
-
-                Helper.HapticFeedbackClick();
-
-                Device.StartTimer(TimeSpan.FromMilliseconds(200), () =>
-                {
-                    vm?.SelectedContactCommand(e.SelectedItem);
-                    return false;
-                });
-            }
         }
 
         public void Initialize()

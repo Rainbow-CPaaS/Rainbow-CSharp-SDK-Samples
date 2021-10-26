@@ -18,7 +18,7 @@ using MultiPlatformApplication.Effects;
 using MultiPlatformApplication.Controls;
 
 using NLog;
-
+using System.Windows.Input;
 
 namespace MultiPlatformApplication.ViewModels
 {
@@ -49,6 +49,9 @@ namespace MultiPlatformApplication.ViewModels
             set { SetProperty(ref isBusy, value); }
         }
 
+
+        public ICommand SelectionContactCommand { get; private set; } 
+
         public ObservableRangeCollection<ContactModel> Contacts { get; private set; } = new ObservableRangeCollection<ContactModel>();
 
         public MenuItemListModel Menu { get; set; } = new MenuItemListModel();
@@ -59,6 +62,8 @@ namespace MultiPlatformApplication.ViewModels
         {
             // Get Xamarin Application
             XamarinApplication = (App)Xamarin.Forms.Application.Current;
+
+            SelectionContactCommand = new RelayCommand<object>(SelectionContactCommandAction);
         }
 
         public void Initialize()
@@ -167,8 +172,12 @@ namespace MultiPlatformApplication.ViewModels
                     originalContactsList = new List<ContactModel>();
                     foreach (Rainbow.Model.Contact contact in rbContacts)
                     {
-                        if( ! ( (contact.IsTerminated) || (contact.Id == currentContactId) ) )
-                            originalContactsList.Add(new ContactModel(contact));
+                        if (!((contact.IsTerminated) || (contact.Id == currentContactId)))
+                        {
+                            ContactModel contactModel = new ContactModel(contact);
+                            contactModel.SelectionCommand = SelectionContactCommand;
+                            originalContactsList.Add(contactModel);
+                        }
                     }
                 }
 
@@ -237,7 +246,10 @@ namespace MultiPlatformApplication.ViewModels
                 {
                     foreach (var item in groupedContacts)
                     {
+                        // Add "Contact Group" View Cell
                         Contacts.Add(new ContactModel(item.Key));
+
+                        // Add list of contacts
                         Contacts.AddRange(item.ToList(), System.Collections.Specialized.NotifyCollectionChangedAction.Add);
                     }
 
@@ -336,7 +348,7 @@ namespace MultiPlatformApplication.ViewModels
             Menu.SetItemSelected(-1);
         }
 
-        public async void SelectedContactCommand(Object obj)
+        public async void SelectionContactCommandAction(Object obj)
         {
             if (obj is ContactModel)
             {
@@ -355,7 +367,6 @@ namespace MultiPlatformApplication.ViewModels
                         {
                             // TODO
                         }
-
                     }
                 }
             }

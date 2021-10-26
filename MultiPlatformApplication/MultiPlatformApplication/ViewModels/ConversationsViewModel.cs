@@ -1,18 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
 
 using Xamarin.Essentials;
-using Xamarin.Forms;
+
 using Xamarin.Forms.Xaml;
 
 using Rainbow;
-using Rainbow.Model;
 
 using MultiPlatformApplication.Helpers;
 using MultiPlatformApplication.Models;
-using MultiPlatformApplication.Views;
 
 using NLog;
 
@@ -45,6 +41,7 @@ namespace MultiPlatformApplication.ViewModels
 
         public ConversationsViewModel()
         {
+            DynamicList.SelectedItemCommand = new RelayCommand<object>(SelectedConversationCommand);
         }
 
         public void Initialize()
@@ -125,6 +122,8 @@ namespace MultiPlatformApplication.ViewModels
                 newConversation = Helper.GetConversationFromRBConversation(rbConversation);
                 if (newConversation != null)
                 {
+                    newConversation.SelectionCommand = DynamicList.SelectedItemCommand;
+
                     // /!\ We must not start Avatar dwl here. We must only do it once they are stored in "Conversations" collection
                     var nb = conversationList.Count;
                     if (nb == 0)
@@ -171,7 +170,10 @@ namespace MultiPlatformApplication.ViewModels
                 ConversationModel newConversation;
                 newConversation = Helper.GetConversationFromRBConversation(rbConversation);
                 if (newConversation != null)
+                {
+                    newConversation.SelectionCommand = DynamicList.SelectedItemCommand;
                     AddConversationToModel(newConversation);
+                }
             }
         }
 
@@ -190,6 +192,8 @@ namespace MultiPlatformApplication.ViewModels
             {
                 // Now add it to the model
                 ConversationModel newConversation = Helper.GetConversationFromRBConversation(rbConversation);
+                newConversation.SelectionCommand = DynamicList.SelectedItemCommand;
+
                 ConversationModel oldConversation = GetConversationById(newConversation.Id);
 
                 if (oldConversation == null)

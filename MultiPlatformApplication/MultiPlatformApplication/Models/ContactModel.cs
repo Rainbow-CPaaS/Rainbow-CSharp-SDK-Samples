@@ -3,6 +3,7 @@ using Rainbow.Model;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Windows.Input;
 
 namespace MultiPlatformApplication.Models
 {
@@ -17,6 +18,8 @@ namespace MultiPlatformApplication.Models
         public String FirstNameForSort { get; set; }
         public String LastNameForSort { get; set; }
         public String CompanyForSort { get; set; }
+
+        public ICommand SelectionCommand { get; set; }
 
         public ContactModel(String groupdDisplayName)
         {

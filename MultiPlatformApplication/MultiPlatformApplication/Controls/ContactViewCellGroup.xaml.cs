@@ -7,12 +7,12 @@ using System.Threading.Tasks;
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 
-namespace MultiPlatformApplication.Views.DataTemplates
+namespace MultiPlatformApplication.Controls
 {
     [XamlCompilation(XamlCompilationOptions.Compile)]
-    public partial class Contact : ResourceDictionary
+    public partial class ContactViewCellGroup : ViewCell
     {
-        public Contact()
+        public ContactViewCellGroup()
         {
             InitializeComponent();
         }

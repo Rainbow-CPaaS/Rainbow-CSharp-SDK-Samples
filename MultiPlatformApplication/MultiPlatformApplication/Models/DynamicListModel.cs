@@ -24,6 +24,8 @@ namespace MultiPlatformApplication.Models
         Boolean noMoreItemsAvaialble;
         ICommand askMoreItemsCommand;
 
+        ICommand selectedItemCommand;
+
         /// <summary>
         /// Are we asking to more items in the list view (acessing a server for example) ?
         /// </summary>
@@ -50,6 +52,15 @@ namespace MultiPlatformApplication.Models
         {
             get { return askMoreItemsCommand; }
             set { SetProperty(ref askMoreItemsCommand, value); }
+        }
+
+        /// <summary>
+        /// Command used when an item has been selected
+        /// </summary>
+        public ICommand SelectedItemCommand
+        {
+            get { return selectedItemCommand; }
+            set { SetProperty(ref selectedItemCommand, value); }
         }
 
         /// <summary>
