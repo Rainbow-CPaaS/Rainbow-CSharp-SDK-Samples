@@ -3,10 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:controls="clr-namespace:MultiPlatformApplication.Controls"
              xmlns:converters="clr-namespace:MultiPlatformApplication.Converters;assembly=MultiPlatformApplication" 
-             xmlns:effects="clr-namespace:MultiPlatformApplication.Effects;assembly=MultiPlatformApplication" 
-             xmlns:dataTemplate="clr-namespace:MultiPlatformApplication.Views.DataTemplates" 
-             x:Class="MultiPlatformApplication.Views.ConversationStreamPage"
-             >
+             x:Class="MultiPlatformApplication.Views.ConversationStreamPage">
     
     <ContentPage.Resources>
         <converters:TextToBooleanConverter x:Key="TextToBooleanConverter" />
