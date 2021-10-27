@@ -41,6 +41,7 @@ namespace MultiPlatformApplication.Controls
                     wasPressed = false;
                     break;
                 case TouchActionType.Pressed:
+                    Popup.HideCurrentContextMenu();
                     wasPressed = true;
                     break;
                 case TouchActionType.Released:
