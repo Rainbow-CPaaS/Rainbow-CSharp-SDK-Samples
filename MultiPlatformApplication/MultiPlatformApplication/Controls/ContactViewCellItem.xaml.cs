@@ -46,7 +46,7 @@ namespace MultiPlatformApplication.Controls
                     if (wasPressed)
                     {
                         wasPressed = false;
-                        if (BindingContext is ConversationModel model)
+                        if (BindingContext is ContactModel model)
                         {
                             if ((model.SelectionCommand != null) && model.SelectionCommand.CanExecute(BindingContext))
                                 model.SelectionCommand.Execute(BindingContext);
