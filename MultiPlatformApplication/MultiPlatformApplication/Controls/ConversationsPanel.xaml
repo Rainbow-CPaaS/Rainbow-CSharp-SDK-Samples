@@ -24,7 +24,9 @@
                   ItemsSource="{Binding DynamicList.Items}"
                       
                   SelectionMode="None"
-                  SeparatorVisibility="None">
+                  SeparatorVisibility="None"
+                  
+                  Scrolled="ConversationsListView_Scrolled">
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <controls:ConversationViewCell/>
