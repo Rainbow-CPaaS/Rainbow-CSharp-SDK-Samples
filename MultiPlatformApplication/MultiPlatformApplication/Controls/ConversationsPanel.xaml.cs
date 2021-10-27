@@ -37,5 +37,9 @@ namespace MultiPlatformApplication.Controls
             vm.Initialize();
         }
 
+        private void ConversationsListView_Scrolled(object sender, ScrolledEventArgs e)
+        {
+            Popup.HideCurrentContextMenu();
+        }
     }
 }

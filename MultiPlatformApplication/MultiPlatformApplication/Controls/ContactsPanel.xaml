@@ -50,7 +50,8 @@
                       ItemsSource="{Binding Contacts}"
                       
                       SelectionMode="None"
-                      SeparatorVisibility="None">
+                      SeparatorVisibility="None"
+                      Scrolled="ContactsListView_Scrolled">
                 
                 <ListView.ItemTemplate>
                     <controls:ContactViewCellDataTemplateSelector/>

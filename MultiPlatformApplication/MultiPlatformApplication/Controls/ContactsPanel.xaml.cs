@@ -31,5 +31,10 @@ namespace MultiPlatformApplication.Controls
         {
             vm.Initialize();
         }
+
+        private void ContactsListView_Scrolled(object sender, ScrolledEventArgs e)
+        {
+            Popup.HideCurrentContextMenu();
+        }
     }
 }
