@@ -33,6 +33,8 @@ namespace MultiPlatformApplication.Helpers
         private static String DataStorageFolderName = "DataStorage";
         private static String ImageStorageFolderName = "ImageStorage";
 
+        public static int DELAY_FOR_LONG_PRESS = 500; // In ms
+
         public static SdkWrapper SdkWrapper { get; set; }
 
         static Helper()

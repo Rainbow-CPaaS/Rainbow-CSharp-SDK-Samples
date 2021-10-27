@@ -51,7 +51,6 @@ namespace MultiPlatformApplication.Controls
 
         // Define elements used in Long Press scenario to display eventually an Action Menu
         private CancelableDelay cancelableDelayForLongPress = null;
-        private int delayForLongPress = 500; // in ms - default value in iOS
         private bool longPressStarted = false;
         private Point longPressInitialLocation;
 
@@ -437,7 +436,7 @@ namespace MultiPlatformApplication.Controls
             {
                 longPressStarted = true;
                 longPressInitialLocation = e.Location; // Here e.Location get the press Location relatively to the MessageContext UI Component
-                cancelableDelayForLongPress = CancelableDelay.StartAfter(delayForLongPress, () => NeedToDisplayActionMenu(sender, longPressInitialLocation));
+                cancelableDelayForLongPress = CancelableDelay.StartAfter(Helper.DELAY_FOR_LONG_PRESS, () => NeedToDisplayActionMenu(sender, longPressInitialLocation));
             }
 
         }

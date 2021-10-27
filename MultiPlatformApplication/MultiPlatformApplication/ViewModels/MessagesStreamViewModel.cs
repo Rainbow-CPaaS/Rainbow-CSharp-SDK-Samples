@@ -47,7 +47,9 @@ namespace MultiPlatformApplication.ViewModels
         private ContentView contentViewPlatformSpecific;
         private RefreshView refreshView;
         private StackLayout stackLayout;
+        
         private ScrollView scrollView;
+        private DateTime dateTimeLastScrolled;
 
         private String lastMessageIdOfCurrentUser;
         private MessageElementModel actionDoneOnMessage;
@@ -169,6 +171,7 @@ namespace MultiPlatformApplication.ViewModels
  
         private void AskMoreMessagesCommand(object obj)
         {
+            Popup.HideCurrentContextMenu();
             DynamicStream.AskingMoreItems = true;
 
             Task task = new Task(() =>
@@ -866,6 +869,8 @@ namespace MultiPlatformApplication.ViewModels
 
         private void ScrollView_Scrolled(object sender, ScrolledEventArgs e)
         {
+            dateTimeLastScrolled = DateTime.UtcNow;
+
             // If we scroll we hide any context menu
             Popup.HideCurrentContextMenu();
 
@@ -1069,6 +1074,14 @@ namespace MultiPlatformApplication.ViewModels
 
         private void MessagesStreamViewModel_ActionMenuToDisplay(object sender, EventArgs e)
         {
+            // We will display Action menu if we are not aksing more items
+            if (DynamicStream.AskingMoreItems)
+                return;
+
+            // We will display Action menu if we haven't scroll to recently the list
+            if (DateTime.UtcNow.Subtract(dateTimeLastScrolled).TotalMilliseconds < Helper.DELAY_FOR_LONG_PRESS)
+                return;
+
             // Ensure to be on Main UI Thread
             if (!MainThread.IsMainThread)
             {
