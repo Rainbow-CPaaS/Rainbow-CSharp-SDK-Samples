@@ -678,7 +678,7 @@ namespace MultiPlatformApplication.Controls
         {
             TouchEffect touchEffect = new TouchEffect();
             touchEffect.TouchAction += TouchEffect_TouchAction;
-            Helper.AddEffect(ContentView, touchEffect);
+            Helper.AddEffect(this, touchEffect);
         }
 
         private void TouchEffect_TouchAction(object sender, TouchActionEventArgs e)
