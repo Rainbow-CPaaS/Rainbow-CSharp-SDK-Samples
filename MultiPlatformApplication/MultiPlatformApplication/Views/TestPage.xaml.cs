@@ -98,7 +98,7 @@ namespace MultiPlatformApplication.Views
 				
 				ListView.SelectedItem = null;
 
-				Helper.HapticFeedbackClick();
+				Helper.HapticFeedbackLongPress();
 
 				SetMessageUrgencySelectedItem(e.SelectedItemIndex);
 			}

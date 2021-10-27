@@ -226,7 +226,7 @@ namespace MultiPlatformApplication.Controls
 
                 if (Command != null && Command.CanExecute(selectedItemId))
                 {
-                    Helper.HapticFeedbackClick();
+                    Helper.HapticFeedbackLongPress();
                     Command.Execute(selectedItemId);
                 }
             }

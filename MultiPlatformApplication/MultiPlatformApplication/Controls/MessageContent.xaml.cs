@@ -104,12 +104,8 @@ namespace MultiPlatformApplication.Controls
                     rect.Height = 24;
 
                     rect.X += location.X;
-                    rect.Y += location.Y;
-
-                    Helper.HapticFeedbackLongPress();
+                    rect.Y += location.Y;                    
                 }
-                else
-                    Helper.HapticFeedbackClick();
 
                 ActionMenuToDisplay.Raise(this, new RectEventArgs(rect));
             }

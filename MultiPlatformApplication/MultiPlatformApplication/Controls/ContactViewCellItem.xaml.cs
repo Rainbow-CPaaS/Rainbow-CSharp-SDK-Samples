@@ -50,7 +50,10 @@ namespace MultiPlatformApplication.Controls
                         if (BindingContext is ContactModel model)
                         {
                             if ((model.SelectionCommand != null) && model.SelectionCommand.CanExecute(BindingContext))
+                            {
+                                Helper.HapticFeedbackLongPress();
                                 model.SelectionCommand.Execute(BindingContext);
+                            }
                         }
                     }
                     break;

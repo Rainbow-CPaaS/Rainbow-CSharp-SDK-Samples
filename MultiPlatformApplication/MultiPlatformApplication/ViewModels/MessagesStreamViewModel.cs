@@ -1097,6 +1097,9 @@ namespace MultiPlatformApplication.ViewModels
 
                 if (e is RectEventArgs rectEventArgs)
                 {
+                    // Add Haptic Feedback Long Press
+                    Helper.HapticFeedbackLongPress();
+
                     GetMessageContext(actionDoneOnMessage, out Boolean isCurrentUser, out Boolean withFileAttachment, out Boolean withBodyContent, out Boolean isLastMessageOfCurrentUser);
 
                     SetActionOptionsModel(isCurrentUser, withFileAttachment, withBodyContent, isLastMessageOfCurrentUser);
