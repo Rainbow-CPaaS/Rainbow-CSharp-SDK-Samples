@@ -15,6 +15,7 @@ namespace MultiPlatformApplication.Controls
     [XamlCompilation(XamlCompilationOptions.Compile)]
     public partial class ContactViewCellItem : ViewCell
     {
+        Boolean wasPressed;
 
         public ContactViewCellItem()
         {
@@ -31,13 +32,27 @@ namespace MultiPlatformApplication.Controls
 
         private void TouchEffect_TouchAction(object sender, Events.TouchActionEventArgs e)
         {
-            if (e.Type == TouchActionType.Pressed)
+            switch (e.Type)
             {
-                if (BindingContext is ContactModel model)
-                {
-                    if ((model.SelectionCommand != null) && model.SelectionCommand.CanExecute(BindingContext))
-                        model.SelectionCommand.Execute(BindingContext);
-                }
+                case TouchActionType.Entered:
+                case TouchActionType.Exited:
+                case TouchActionType.Cancelled:
+                    wasPressed = false;
+                    break;
+                case TouchActionType.Pressed:
+                    wasPressed = true;
+                    break;
+                case TouchActionType.Released:
+                    if (wasPressed)
+                    {
+                        wasPressed = false;
+                        if (BindingContext is ConversationModel model)
+                        {
+                            if ((model.SelectionCommand != null) && model.SelectionCommand.CanExecute(BindingContext))
+                                model.SelectionCommand.Execute(BindingContext);
+                        }
+                    }
+                    break;
             }
         }
     }
