@@ -307,19 +307,6 @@ namespace MultiPlatformApplication.ViewModels
             Menu.Items[1].Label = labelMenuFilter;
         }
 
-        private void SetSelectedItemOnContextMenu(ContextMenuModel contextMenuModel, String selectedId)
-        {
-            if (String.IsNullOrEmpty(selectedId))
-                return;
-
-            if (contextMenuModel?.Items?.Count > 0)
-            {
-                for (int i = 0; i < contextMenuModel.Items.Count; i++)
-                    contextMenuModel.Items[i].IsSelected = (contextMenuModel.Items[i].Id == selectedId);
-            }
-        }
-
-
 #region MANAGE COMMANDS
 
         void MenuCommand(object obj)
