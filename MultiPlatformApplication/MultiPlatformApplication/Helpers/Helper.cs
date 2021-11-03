@@ -805,6 +805,17 @@ namespace MultiPlatformApplication.Helpers
             return result;
         }
 
+
+#endregion AVATAR - IMAGE SOURCE    
+
+
+#region RESOURCES - Get access to resources of this assembly
+        
+        internal static readonly String NamespaceResources = "MultiPlatformApplication.Resources";
+
+        private static Boolean resourcesInit = false;
+        private static List<String> resources = null;
+
         // Get image source using Id from merged resource dictionaries
         private static T GetResourceDictionaryById<T>(string dictionaryId, ref Boolean found, ResourceDictionary dictionary = null) //where T : class
         {
@@ -813,7 +824,7 @@ namespace MultiPlatformApplication.Helpers
             if (dictionary == null)
                 dictionary = App.Current.Resources;
 
-            
+
             if (dictionary.ContainsKey(dictionaryId) || dictionary.Count > 0)
             {
                 try
@@ -833,7 +844,7 @@ namespace MultiPlatformApplication.Helpers
                                 if (on.Platform.Contains(Device.RuntimePlatform))
                                 {
                                     found = true;
-                                    result =  (T) Convert.ChangeType(on.Value, typeof(T));
+                                    result = (T)Convert.ChangeType(on.Value, typeof(T));
                                     break;
                                 }
                             }
@@ -869,15 +880,6 @@ namespace MultiPlatformApplication.Helpers
             return GetResourceDictionaryById<T>(dictionaryId, ref found, dictionary);
         }
 
-#endregion AVATAR - IMAGE SOURCE    
-
-
-#region RESOURCES - Get access to resources of this assembly
-        
-        internal static readonly String NamespaceResources = "MultiPlatformApplication.Resources";
-
-        private static Boolean resourcesInit = false;
-        private static List<String> resources = null;
 
         // Get the list of all resources embedded in this package based on the folder path provided (if any)
         static internal List<String> GetEmbeddedResourcesList(String folderPath = "", String extension = null)
