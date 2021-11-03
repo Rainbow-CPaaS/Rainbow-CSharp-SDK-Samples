@@ -8,7 +8,7 @@ using Xamarin.Forms;
 
 namespace MultiPlatformApplication.Effects
 {
-    public class Entry
+    public class EntryEffect : RoutingEffect
     {
 
 #region  ValidationCommand Property
@@ -37,7 +37,7 @@ namespace MultiPlatformApplication.Effects
 
             ICommand command = (ICommand)newValue;
             if (command != null)
-                Helper.AddEffect(view, new ControlEntryEffect());
+                Helper.AddEffect(view, new EntryEffect());
         }
 
 #endregion ValidationCommand Property
@@ -71,7 +71,7 @@ namespace MultiPlatformApplication.Effects
 
             String BreakLineModifier = (String)newValue;
             if (BreakLineModifier != null)
-                Helper.AddEffect(view, new ControlEntryEffect());
+                Helper.AddEffect(view, new EntryEffect());
         }
 
 #endregion  BreakLineModifier Property
@@ -104,7 +104,7 @@ namespace MultiPlatformApplication.Effects
 
             Boolean ? NoBorder = (Boolean ?)newValue;
             if (NoBorder != null)
-                Helper.AddEffect(view, new ControlEntryEffect());
+                Helper.AddEffect(view, new EntryEffect());
         }
 
 #endregion  NoBorder Property
@@ -131,17 +131,20 @@ namespace MultiPlatformApplication.Effects
 
             Double MinimumWidth = (double)newValue;
             if (MinimumWidth != -1)
-                Helper.AddEffect(view, new ControlEntryEffect());
+                Helper.AddEffect(view, new EntryEffect());
         }
 
-#endregion  MinimumWidth Property
+        #endregion  MinimumWidth Property
 
-        class ControlEntryEffect : RoutingEffect
+        public event EventHandler<Rect> KeyboardRectChanged;
+
+        public void OnKeyboardRectChanged(Rect rect)
         {
-            public ControlEntryEffect() : base($"MultiPlatformApplication.CrossEffects.{nameof(Entry)}")
-            {
+            KeyboardRectChanged?.Invoke(this, rect);
+        }
 
-            }
+        public EntryEffect() : base("MultiPlatformApplication.CrossEffects.EntryEffect")
+        {
         }
     }
 }

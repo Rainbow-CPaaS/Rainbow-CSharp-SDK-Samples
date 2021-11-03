@@ -45,7 +45,7 @@
                     Text="{Binding LoginModel.Login}"
                     TextColor="{StaticResource ColorEntryText}"
                     IsEnabled="{Binding LoginModel.IsBusy, Converter={StaticResource ReverseBooleanConverter}}"
-                    effects:Entry.NoBorder="False"/>
+                    effects:EntryEffect.NoBorder="False"/>
 
             <Label  Margin="0,20,0,10"
                    HorizontalTextAlignment="Center"
@@ -65,7 +65,7 @@
                     Text="{Binding LoginModel.Password}"
                     IsEnabled="{Binding LoginModel.IsBusy, Converter={StaticResource ReverseBooleanConverter}}" 
                     IsVisible="{Binding LoginModel.AskingLogin, Converter={StaticResource ReverseBooleanConverter}}"
-                    effects:Entry.NoBorder="False"/>
+                    effects:EntryEffect.NoBorder="False"/>
 
             <controls:CustomButton Margin="0,20"
                                    Text="{Binding LoginModel.Connect}"
