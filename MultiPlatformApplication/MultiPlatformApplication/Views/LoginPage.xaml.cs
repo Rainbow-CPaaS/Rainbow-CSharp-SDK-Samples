@@ -39,8 +39,8 @@ namespace MultiPlatformApplication.Views
 
         protected override void OnAppearing()
         {
-            vm.Initialize();
             base.OnAppearing();
+            vm.Initialize();
         }
 
     }
