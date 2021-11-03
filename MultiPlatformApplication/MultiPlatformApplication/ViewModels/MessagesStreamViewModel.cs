@@ -800,7 +800,7 @@ namespace MultiPlatformApplication.ViewModels
         {
             double deltaYFromBottom = scrollView.Content.Height - (scrollView.Height + scrollView.ScrollY);
 
-            if(deltaYFromBottom < 100)
+            //if(deltaYFromBottom < 100)
                 scrollView.ScrollToAsync(0, scrollView.Content.Height - scrollView.Height, false);
         }
 

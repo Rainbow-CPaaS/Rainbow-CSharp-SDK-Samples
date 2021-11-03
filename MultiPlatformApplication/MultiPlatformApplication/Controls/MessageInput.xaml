@@ -14,7 +14,6 @@
     </ContentView.Resources>
 
     <ContentView.Content>
-
         <!-- DEFINE VIEW TO SEND NEW MESSAGE -->
         <Grid Margin="10,2,10,2"
               Padding="0"
@@ -32,6 +31,8 @@
                 <!-- EMOJI BUTTON - URGENCY SELECTOR - EDITOR - SEND MESSAGE BUTTON - ATTACH FILE BUTTON -->
                 <RowDefinition Height="Auto"/>
                 <!-- USERS ARE TYPING -->
+                <RowDefinition Height="Auto"/>
+                <!-- SPACE FOR KEYBOARD DISPLAY -->
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
@@ -113,7 +114,6 @@
                    HasShadow="False"
                    HorizontalOptions="Fill"
                    VerticalOptions="Fill">
-
 
                 <Grid Margin="3, 0"
                       Padding="0"
@@ -198,16 +198,14 @@
                                        HorizontalOptions="Start"
                                        FontAttributes="Bold" 
                                        FontSize="{StaticResource FontSizeSmall}"/>
-                            <StackLayout Orientation="Vertical"
-                                         HorizontalOptions="Fill">
 
-                                <controls:EditorExpandableWithMaxLines x:Name="EntryMessage"
+                            <controls:EditorExpandableWithMaxLines x:Name="EntryMessage"
                                                                    BreakLineModifier ="{Binding Message.BreakLineModifier}"
                                                                    ValidationCommand="{Binding Message.ValidationCommand}"
                                                                    MaxLines="5"
                                                                    HorizontalOptions="FillAndExpand"
                                                                    VerticalOptions="Center"/>
-                            </StackLayout>
+                                    
                         </StackLayout>
                     </Frame>
 
@@ -247,6 +245,7 @@
                                            Command="{Binding Message.AttachmentCommand}"/>
                 </Grid>
             </Frame>
+                
 
             <!-- USERS ARE TYPING -->
             <StackLayout Grid.Row="3"
@@ -279,7 +278,14 @@
                        />
             </StackLayout>
 
-        </Grid>
+            <BoxView x:Name="BoxView"
+                     Margin="0"
+                     BackgroundColor="Transparent"
+                     Grid.Row="4"
+                     Grid.Column="0"
+                     HeightRequest="0"
+                     HorizontalOptions="Fill"/>
 
+        </Grid>
     </ContentView.Content>
 </ContentView>

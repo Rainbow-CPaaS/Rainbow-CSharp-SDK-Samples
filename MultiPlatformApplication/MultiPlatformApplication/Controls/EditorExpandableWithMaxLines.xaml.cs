@@ -1,4 +1,5 @@
-﻿using MultiPlatformApplication.Helpers;
+﻿using MultiPlatformApplication.Effects;
+using MultiPlatformApplication.Helpers;
 using Rainbow;
 using System;
 using System.Collections.Generic;
@@ -16,6 +17,7 @@ namespace MultiPlatformApplication.Controls
     {
         public event EventHandler<TextChangedEventArgs> TextChanged;
         public event EventHandler<FocusEventArgs> HasFocus;
+        public event EventHandler<Rect> KeyboardRectChanged;
 
 #region ValidationCommand Property
 
@@ -33,7 +35,7 @@ namespace MultiPlatformApplication.Controls
             {
                 EditorExpandableWithMaxLines editorExpandableWithMaxLines = (EditorExpandableWithMaxLines)bindable;
                 if(editorExpandableWithMaxLines.Editor != null)
-                    MultiPlatformApplication.Effects.Entry.SetValidationCommand(editorExpandableWithMaxLines.Editor, (ICommand)newValue);
+                    MultiPlatformApplication.Effects.EntryEffect.SetValidationCommand(editorExpandableWithMaxLines.Editor, (ICommand)newValue);
             }
         }
 
@@ -70,7 +72,7 @@ namespace MultiPlatformApplication.Controls
             {
                 EditorExpandableWithMaxLines editorExpandableWithMaxLines = (EditorExpandableWithMaxLines)bindable;
                 if (editorExpandableWithMaxLines.Editor != null)
-                    MultiPlatformApplication.Effects.Entry.SetBreakLineModifier(editorExpandableWithMaxLines.Editor, (string)newValue);
+                    MultiPlatformApplication.Effects.EntryEffect.SetBreakLineModifier(editorExpandableWithMaxLines.Editor, (string)newValue);
             }
         }
 
@@ -208,7 +210,7 @@ namespace MultiPlatformApplication.Controls
             {
                 EditorExpandableWithMaxLines editorExpandableWithMaxLines = (EditorExpandableWithMaxLines)bindable;
                 if(editorExpandableWithMaxLines.Editor != null)
-                    MultiPlatformApplication.Effects.Entry.SetMinimumWidth(editorExpandableWithMaxLines.Editor, (double)newValue);
+                    MultiPlatformApplication.Effects.EntryEffect.SetMinimumWidth(editorExpandableWithMaxLines.Editor, (double)newValue);
             }
         }
 
@@ -292,9 +294,19 @@ namespace MultiPlatformApplication.Controls
                 HorizontalOptions = new LayoutOptions(LayoutAlignment.Fill, false),
                 VerticalOptions = new LayoutOptions(LayoutAlignment.Center, false)
             };
+
+
+            EntryEffect entryEffect = new EntryEffect();
+            entryEffect.KeyboardRectChanged += EntryEffect_KeyboardRectChanged;
+            Helper.AddEffect(editor, entryEffect);
+            
             return editor;
         }
 
+        private void EntryEffect_KeyboardRectChanged(object sender, Rect e)
+        {
+            KeyboardRectChanged?.Invoke(this, e);
+        }
 
         private void Editor_Unfocused(object sender, FocusEventArgs e)
         {

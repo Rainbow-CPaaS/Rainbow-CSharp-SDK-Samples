@@ -61,6 +61,7 @@ namespace MultiPlatformApplication.Controls
 
             EntryMessage.Placeholder = Helper.SdkWrapper.GetLabel("enterTextHere");
             EntryMessage.TextChanged += EntryMessage_TextChanged;
+            EntryMessage.KeyboardRectChanged += EntryMessage_KeyboardRectChanged;
 
             var opacityToZero = new Animation((d) => { ButtonTyping.Opacity = d; }, 0.6, 0.4, Easing.Linear);
             var opacityToOne = new Animation((d) => { ButtonTyping.Opacity = d; }, 0.4, 0.6, Easing.Linear);
@@ -226,7 +227,12 @@ namespace MultiPlatformApplication.Controls
                 LabelTyping.Text = " ";
             }
         }
-        
+
+        private void EntryMessage_KeyboardRectChanged(object sender, Rect e)
+        {
+            BoxView.HeightRequest = e.Height;
+        }
+
         private void EntryMessage_TextChanged(object sender, TextChangedEventArgs e)
         {
             if (e.NewTextValue?.Length > 0)

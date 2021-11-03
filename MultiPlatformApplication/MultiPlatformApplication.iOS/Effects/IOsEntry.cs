@@ -1,18 +1,24 @@
-﻿using UIKit;
+﻿using System.Linq;
+using Foundation;
+using UIKit;
 using Xamarin.Forms;
 
-[assembly: ExportEffect(typeof(MultiPlatformApplication.IOs.PlatformEffect.IOsEntry), nameof(MultiPlatformApplication.Effects.Entry))]
+[assembly: ExportEffect(typeof(MultiPlatformApplication.IOs.PlatformEffect.IOsEntry), nameof(MultiPlatformApplication.Effects.EntryEffect))]
 namespace MultiPlatformApplication.IOs.PlatformEffect
 {
     public class IOsEntry : Xamarin.Forms.Platform.iOS.PlatformEffect
     {
+        private NSObject _keyboardUp, _keyboardDown;
+
+
         UITextField editText = null;
         UITextView editView = null;
-        
+
+        MultiPlatformApplication.Effects.EntryEffect entryEffect;
 
         protected override void OnAttached()
         {
-            double minWidth = MultiPlatformApplication.Effects.Entry.GetMinimumWidth(Element);
+            double minWidth = MultiPlatformApplication.Effects.EntryEffect.GetMinimumWidth(Element);
 
 
             if (Control != null)
@@ -43,9 +49,15 @@ namespace MultiPlatformApplication.IOs.PlatformEffect
                         editText.WidthAnchor.ConstraintLessThanOrEqualTo((System.nfloat)minWidth);
                 }
 
+                if ((editView != null) || (editText != null))
+                {
+                    entryEffect = (MultiPlatformApplication.Effects.EntryEffect)Element.Effects.FirstOrDefault(e => e is MultiPlatformApplication.Effects.EntryEffect);
 
-                if (MultiPlatformApplication.Effects.Entry.GetNoBorder(Element) == true)
-                    NoBorder();
+                    if (MultiPlatformApplication.Effects.EntryEffect.GetNoBorder(Element) == true)
+                        NoBorder();
+
+                    RegisterKeyboardObserver();
+                }
             }
 
                 //SetTintColor();
@@ -70,7 +82,50 @@ namespace MultiPlatformApplication.IOs.PlatformEffect
 
         protected override void OnDetached()
         {
+            RemoveKeyboardObserver();
         }
+
+        public void RegisterKeyboardObserver()
+        {
+            if (_keyboardUp == null && _keyboardDown == null)
+            {
+                _keyboardUp = NSNotificationCenter
+                    .DefaultCenter
+                    .AddObserver(UIKeyboard.WillShowNotification, KeyboardUpNotification);
+                _keyboardDown = NSNotificationCenter
+                    .DefaultCenter
+                    .AddObserver(UIKeyboard.WillHideNotification, KeyboardDownNotification);
+            }
+        }
+
+        private void KeyboardUpNotification(NSNotification notification)
+        {
+            var keyboardFrame = UIKeyboard.BoundsFromNotification(notification);
+            entryEffect.OnKeyboardRectChanged(new Rect(keyboardFrame.X, keyboardFrame.Y, keyboardFrame.Width, keyboardFrame.Height));
+        }
+
+        private void KeyboardDownNotification(NSNotification notification)
+        {
+            entryEffect.OnKeyboardRectChanged(new Rect(0, 0, 0, 0));
+        }
+
+        private void RemoveKeyboardObserver()
+        {
+            if (_keyboardUp != null)
+            {
+                NSNotificationCenter.DefaultCenter.RemoveObserver(_keyboardUp);
+                _keyboardUp.Dispose();
+                _keyboardUp = null;
+            }
+
+            if (_keyboardDown != null)
+            {
+                NSNotificationCenter.DefaultCenter.RemoveObserver(_keyboardDown);
+                _keyboardDown.Dispose();
+                _keyboardDown = null;
+            }
+        }
+
 
         private void NoBorder()
         {
