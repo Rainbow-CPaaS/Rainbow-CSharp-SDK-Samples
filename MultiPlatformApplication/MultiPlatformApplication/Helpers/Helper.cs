@@ -569,6 +569,11 @@ namespace MultiPlatformApplication.Helpers
                         || (Device.RuntimePlatform == Device.WPF);
         }
 
+        public static Boolean IsiOS()
+        {
+            return (Device.RuntimePlatform == Device.iOS);
+        }
+
 #endregion PLATFORM / DEVICE RELATED
 
 
