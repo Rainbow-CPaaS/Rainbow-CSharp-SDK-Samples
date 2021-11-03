@@ -15,6 +15,7 @@ namespace MultiPlatformApplication.Controls
     public partial class EditorExpandableWithMaxLines : ContentView
     {
         public event EventHandler<TextChangedEventArgs> TextChanged;
+        public event EventHandler<FocusEventArgs> HasFocus;
 
 #region ValidationCommand Property
 
@@ -31,7 +32,8 @@ namespace MultiPlatformApplication.Controls
             if( (bindable != null) && (newValue != null) )
             {
                 EditorExpandableWithMaxLines editorExpandableWithMaxLines = (EditorExpandableWithMaxLines)bindable;
-                MultiPlatformApplication.Effects.Entry.SetValidationCommand(editorExpandableWithMaxLines.Editor, (ICommand)newValue);
+                if(editorExpandableWithMaxLines.Editor != null)
+                    MultiPlatformApplication.Effects.Entry.SetValidationCommand(editorExpandableWithMaxLines.Editor, (ICommand)newValue);
             }
         }
 
@@ -67,7 +69,8 @@ namespace MultiPlatformApplication.Controls
             if( (bindable != null) && (newValue != null) )
             {
                 EditorExpandableWithMaxLines editorExpandableWithMaxLines = (EditorExpandableWithMaxLines)bindable;
-                MultiPlatformApplication.Effects.Entry.SetBreakLineModifier(editorExpandableWithMaxLines.Editor, (string)newValue);
+                if (editorExpandableWithMaxLines.Editor != null)
+                    MultiPlatformApplication.Effects.Entry.SetBreakLineModifier(editorExpandableWithMaxLines.Editor, (string)newValue);
             }
         }
 
@@ -100,7 +103,9 @@ namespace MultiPlatformApplication.Controls
 
         private static void TextProperyChanged(BindableObject bindable, object oldValue, object newValue)
         {
-            ((EditorExpandableWithMaxLines)bindable).Editor.Text = (String)newValue;
+            EditorExpandableWithMaxLines editorExpandableWithMaxLines = (EditorExpandableWithMaxLines)bindable;
+            if (editorExpandableWithMaxLines.Editor != null)
+                editorExpandableWithMaxLines.Editor.Text = (String)newValue;
         }
 
         public String Text
@@ -132,7 +137,9 @@ namespace MultiPlatformApplication.Controls
 
         private static void PlaceholderChanged(BindableObject bindable, object oldValue, object newValue)
         {
-            ((EditorExpandableWithMaxLines)bindable).Editor.Placeholder = (String)newValue;
+            EditorExpandableWithMaxLines editorExpandableWithMaxLines = (EditorExpandableWithMaxLines)bindable;
+            if (editorExpandableWithMaxLines.Editor != null)
+                editorExpandableWithMaxLines.Editor.Placeholder = (String)newValue;
         }
 
         public String Placeholder
@@ -164,7 +171,8 @@ namespace MultiPlatformApplication.Controls
 
         private static void MaxLinesChanged(BindableObject bindable, object oldValue, object newValue)
         {
-            ((EditorExpandableWithMaxLines)bindable).MaxLines = (int)newValue;
+            EditorExpandableWithMaxLines editorExpandableWithMaxLines = (EditorExpandableWithMaxLines)bindable;
+            editorExpandableWithMaxLines.MaxLines = (int)newValue;
         }
 
         public int MaxLines
@@ -199,7 +207,8 @@ namespace MultiPlatformApplication.Controls
             if ((bindable != null) && (newValue != null))
             {
                 EditorExpandableWithMaxLines editorExpandableWithMaxLines = (EditorExpandableWithMaxLines)bindable;
-                MultiPlatformApplication.Effects.Entry.SetMinimumWidth(editorExpandableWithMaxLines.Editor, (double)newValue);
+                if(editorExpandableWithMaxLines.Editor != null)
+                    MultiPlatformApplication.Effects.Entry.SetMinimumWidth(editorExpandableWithMaxLines.Editor, (double)newValue);
             }
         }
 
@@ -224,13 +233,77 @@ namespace MultiPlatformApplication.Controls
         double heightOneLine = 32;
         double heightTwoLines = 45;
         double maxHeight;
+        Editor Editor;
+        ScrollView ScrollView;
 
         public EditorExpandableWithMaxLines()
         {
             InitializeComponent();
 
-            Editor.PropertyChanged += Editor_PropertyChanged;
-            Editor.TextChanged += Editor_TextChanged;
+            Editor = CreateEditor();
+
+            if (Helper.IsiOS())
+            {
+                ScrollView = null;
+                Grid.Children.Add(Editor);
+            }
+            else
+            {
+                ScrollView = CreateScrollView();
+                ScrollView.Content = Editor;
+                Grid.Children.Add(ScrollView);
+            }
+
+            if (Editor != null)
+            {
+                Editor.TextChanged += Editor_TextChanged;
+                Editor.Focused += Editor_Focused;
+                Editor.Unfocused += Editor_Unfocused;
+            }
+            
+        }
+
+        private ScrollView CreateScrollView()
+        {
+            ScrollView scrollView = new ScrollView()
+            {
+                BackgroundColor = Color.Transparent,
+                IsClippedToBounds = true,
+                Margin = new Thickness(0),
+                Padding = new Thickness(0),
+                HorizontalOptions = new LayoutOptions(LayoutAlignment.Fill, false),
+                HorizontalScrollBarVisibility = ScrollBarVisibility.Never,
+                VerticalScrollBarVisibility = ScrollBarVisibility.Always
+            };
+            return scrollView;
+        }
+
+        private Editor CreateEditor()
+        {
+            Editor editor = new Editor()
+            {
+                Margin = new Thickness(0),
+                AutoSize = EditorAutoSizeOption.TextChanges,
+                FontSize = Helper.GetResourceDictionaryById<double>("FontSizeSmall"),
+                BackgroundColor = Helper.GetResourceDictionaryById<Color>("ColorEntryBackground"),
+                TextColor = Helper.GetResourceDictionaryById<Color>("ColorEntryText"),
+                Placeholder = Helper.SdkWrapper.GetLabel("enterTextHere"),
+                PlaceholderColor = Helper.GetResourceDictionaryById<Color>("ColorEntryPlaceHolder"),
+                HorizontalOptions = new LayoutOptions(LayoutAlignment.Fill, false),
+                VerticalOptions = new LayoutOptions(LayoutAlignment.Center, false)
+            };
+            return editor;
+        }
+
+
+        private void Editor_Unfocused(object sender, FocusEventArgs e)
+        {
+            HasFocus.Raise(this, new FocusEventArgs(this, false));
+        }
+
+        private void Editor_Focused(object sender, FocusEventArgs e)
+        {
+            HasFocus.Raise(this, new FocusEventArgs(this, true));
         }
 
         public String GetEditorText()
@@ -240,33 +313,37 @@ namespace MultiPlatformApplication.Controls
 
         public void SetEditorText(String str)
         {
-            Editor.Text = str;
+            if(Editor != null)
+                Editor.Text = str;
         }
 
         public void SetFocus(bool focus = true)
         {
             if(focus)
-                Editor.Focus();
+                Editor?.Focus();
             else
-                Editor.Unfocus();
+                Editor?.Unfocus();
         }
 
         private void CheckHeight()
         {
-            double maxH = GetMaxHeight();
-            int countLines = CountLines();
+            if ( (ScrollView != null) && (Editor != null) )
+            {
+                double maxH = GetMaxHeight();
+                int countLines = CountLines();
 
-            if ( (Editor.Height > maxH) || (countLines >= MaxLines))
-            {
-                // Set HeightRequest to scrollview
-                if (ScrollView.HeightRequest == -1)
-                    ScrollView.HeightRequest = maxH;
-            }
-            else
-            {
-                // Remove HeightRequest to scrollview
-                if (ScrollView.HeightRequest != -1)
-                    ScrollView.HeightRequest = -1;
+                if ((Editor.Height > maxH) || (countLines >= MaxLines))
+                {
+                    // Set HeightRequest to scrollview
+                    if (ScrollView.HeightRequest == -1)
+                        ScrollView.HeightRequest = maxH;
+                }
+                else
+                {
+                    // Remove HeightRequest to scrollview
+                    if (ScrollView.HeightRequest != -1)
+                        ScrollView.HeightRequest = -1;
+                }
             }
         }
 
@@ -283,7 +360,7 @@ namespace MultiPlatformApplication.Controls
         {
             int countLines = 0;
 
-            if (Editor.Text != null)
+            if ( (Editor != null) && (Editor.Text != null) )
             {
                 if (Helper.IsWindowsPlatform())
                     countLines = Editor.Text.Count(f => f == '\r');

@@ -5,31 +5,25 @@
              xmlns:effects="clr-namespace:MultiPlatformApplication.Effects"             
              x:Name="ContentView"
              Margin="0"
-             Padding="0"
              VerticalOptions="Center"
              HorizontalOptions="Fill"
              BackgroundColor="Transparent">
-  <ContentView.Content>
-        <ScrollView x:Name="ScrollView"
-                    BackgroundColor="Transparent"
-                    IsClippedToBounds="True"
-                    Margin="0"
-                    Padding="0"
-                    HorizontalOptions="Fill"
-                    HorizontalScrollBarVisibility="Never"
-                    VerticalScrollBarVisibility="Always">
-            
-            <Editor x:Name="Editor"
-                    effects:Entry.NoBorder="True"
-                    AutoSize="TextChanges"
-                    Margin="0"
-                    FontSize="{StaticResource FontSizeSmall}" 
-                    BackgroundColor="{StaticResource ColorEntryBackground}"
-                    TextColor="{StaticResource ColorEntryText}"
-                    Placeholder="Enter your text here ..." 
-                    PlaceholderColor="{StaticResource ColorEntryPlaceHolder}"
-                    HorizontalOptions="Fill"
-                    VerticalOptions="Center"/>
-        </ScrollView>
+<ContentView.Content>
+    <Grid x:Name="Grid"
+          Margin="0"
+          Padding="0"
+          RowSpacing="0"
+          ColumnSpacing="0"
+          HorizontalOptions="Fill"
+          VerticalOptions="Fill">
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+        </Grid>
     </ContentView.Content>
 </ContentView>
