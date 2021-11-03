@@ -36,8 +36,8 @@ namespace MultiPlatformApplication.Views
 
 
         protected override void OnDisappearing()
-        {
-            base.OnAppearing();
+        {   
+            base.OnDisappearing();
         }
     }
 }
