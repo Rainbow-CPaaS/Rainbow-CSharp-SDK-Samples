@@ -12,7 +12,6 @@ namespace MultiPlatformApplication.IOs.PlatformEffect
 
         protected override void OnAttached()
         {
-            return;
             double minWidth = MultiPlatformApplication.Effects.Entry.GetMinimumWidth(Element);
 
 
