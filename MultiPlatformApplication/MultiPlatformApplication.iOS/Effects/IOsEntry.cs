@@ -7,46 +7,66 @@ namespace MultiPlatformApplication.IOs.PlatformEffect
     public class IOsEntry : Xamarin.Forms.Platform.iOS.PlatformEffect
     {
         UITextField editText = null;
-
+        UITextView editView = null;
         
 
         protected override void OnAttached()
         {
+            return;
+            double minWidth = MultiPlatformApplication.Effects.Entry.GetMinimumWidth(Element);
 
-            if ((Control != null) && (Control is UITextField))
+
+            if (Control != null)
             {
-                editText = (UITextField)Control;
+                if(Control is UITextView view)
+                {
+                    editView = view;
+
+                    // If the EditText has by default a text, we set the caret to the end
+                    if (editView.Text?.Length > 0)
+                        editView.SelectedTextRange = editView.GetTextRange(editView.EndOfDocument, editView.EndOfDocument);
+
+                    // Set minimum width
+                    if (minWidth != -1)
+                        editView.WidthAnchor.ConstraintLessThanOrEqualTo( (System.nfloat) minWidth);
+                }
+                else if (Control is UITextField field)
+                {
+                    editText  = field;
+
+                    // If the EditText has by default a text, we set the caret to the end
+                    if (editText.Text?.Length > 0)
+                        editText.SelectedTextRange = editText.GetTextRange(editText.EndOfDocument, editText.EndOfDocument);
 
 
-                //double minWidth = MultiPlatformApplication.Effects.Entry.GetMinimumWidth(Element);
-                //if (minWidth != -1)
-                //    editText.SetMinWidth((int)minWidth);
+                    // Set minimum width
+                    if (minWidth != -1)
+                        editText.WidthAnchor.ConstraintLessThanOrEqualTo((System.nfloat)minWidth);
+                }
 
-                //if (MultiPlatformApplication.Effects.Entry.GetNoBorder(Element) == true)
-                //    NoBorder();
+
+                if (MultiPlatformApplication.Effects.Entry.GetNoBorder(Element) == true)
+                    NoBorder();
+            }
 
                 //SetTintColor();
-
-
-                // If the EditText has by default a text, we set the caret to the end
-                /*
-                if (editText.Text?.Length > 0)
-                    editText.SetSelection(editText.Text.Length);
-                    */
-            }
         }
 
         private void SetTintColor()
         {
-            /*
+            
             var color = Helpers.Helper.GetResourceDictionaryById<Xamarin.Forms.Color>("ColorMain");
             if (color != null)
             {
+                //editText.tint
+
+                /*
                 Android.Graphics.Color c = Android.Graphics.Color.ParseColor(color.ToHex());
                 editText.BackgroundTintList = ColorStateList.ValueOf(c);
                 editText.ForegroundTintList = ColorStateList.ValueOf(c);
+                */
             }
-            */
+            
         }
 
         protected override void OnDetached()
@@ -55,8 +75,15 @@ namespace MultiPlatformApplication.IOs.PlatformEffect
 
         private void NoBorder()
         {
-            editText.Layer.BorderWidth = 0;
-            editText.BorderStyle = UITextBorderStyle.None;
+            if (editText != null)
+            {
+                editText.Layer.BorderWidth = 0;
+                editText.BorderStyle = UITextBorderStyle.None;
+            }
+            else if(editView != null)
+            {
+                editView.Layer.BorderWidth = 0;
+            }
         }
 
     }
