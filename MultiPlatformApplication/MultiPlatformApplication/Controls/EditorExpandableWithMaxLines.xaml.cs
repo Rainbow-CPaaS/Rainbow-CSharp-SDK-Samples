@@ -299,6 +299,7 @@ namespace MultiPlatformApplication.Controls
             EntryEffect entryEffect = new EntryEffect();
             entryEffect.KeyboardRectChanged += EntryEffect_KeyboardRectChanged;
             Helper.AddEffect(editor, entryEffect);
+            EntryEffect.SetNoBorder(editor, true);
             
             return editor;
         }
