@@ -173,7 +173,7 @@ namespace MultiPlatformApplication.ViewModels
         private void StepAskingLogin()
         {
             // Check if we want to use SSO
-            if(!ApplicationInfo.USE_SSO)
+            if( (!ApplicationInfo.USE_SSO) || ApplicationInfo.UseTestEnvironment ) 
             {
                 AskPassword();
                 return;
