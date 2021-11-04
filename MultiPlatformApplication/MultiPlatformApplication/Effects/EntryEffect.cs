@@ -109,33 +109,6 @@ namespace MultiPlatformApplication.Effects
 
 #endregion  NoBorder Property
 
-#region  MinimumWidth Property
-
-        public static readonly BindableProperty MinimumWidthProperty = BindableProperty.Create("MinimumWidth", typeof(double), typeof(Entry), (double)-1, propertyChanged: OnMinimumWidthChanged);
-
-        public static double GetMinimumWidth(BindableObject view)
-        {
-            return (double)view.GetValue(MinimumWidthProperty);
-        }
-
-        public static void SetMinimumWidth(BindableObject view, double value)
-        {
-            view.SetValue(MinimumWidthProperty, value);
-        }
-
-        static void OnMinimumWidthChanged(BindableObject bindable, object oldValue, object newValue)
-        {
-            var view = bindable as View;
-            if (view == null)
-                return;
-
-            Double MinimumWidth = (double)newValue;
-            if (MinimumWidth != -1)
-                Helper.AddEffect(view, new EntryEffect());
-        }
-
-        #endregion  MinimumWidth Property
-
         public event EventHandler<Rect> KeyboardRectChanged;
 
         public void OnKeyboardRectChanged(Rect rect)

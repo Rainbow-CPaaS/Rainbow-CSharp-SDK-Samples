@@ -18,10 +18,6 @@ namespace MultiPlatformApplication.Droid.PlatformEffect
             {
                 editText = (EditText)Control;
 
-                double minWidth = MultiPlatformApplication.Effects.EntryEffect.GetMinimumWidth(Element);
-                if (minWidth != -1)
-                    editText.SetMinWidth((int)minWidth);
-
                 if (MultiPlatformApplication.Effects.EntryEffect.GetNoBorder(Element) == true)
                     NoBorder();
 

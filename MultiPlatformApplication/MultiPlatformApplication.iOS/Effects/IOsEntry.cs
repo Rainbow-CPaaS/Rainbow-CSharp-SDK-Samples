@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using CoreGraphics;
 using Foundation;
 using UIKit;
 using Xamarin.Forms;
@@ -10,7 +11,10 @@ namespace MultiPlatformApplication.IOs.PlatformEffect
     {
         private NSObject _keyboardUp, _keyboardDown;
 
+        Editor editor = null;
+        int maxLines = 5;
 
+        System.nfloat maxHeight;
         UITextField editText = null;
         UITextView editView = null;
 
@@ -18,8 +22,8 @@ namespace MultiPlatformApplication.IOs.PlatformEffect
 
         protected override void OnAttached()
         {
-            double minWidth = MultiPlatformApplication.Effects.EntryEffect.GetMinimumWidth(Element);
-
+            if (Element is Editor edit)
+                editor = edit;
 
             if (Control != null)
             {
@@ -31,9 +35,12 @@ namespace MultiPlatformApplication.IOs.PlatformEffect
                     if (editView.Text?.Length > 0)
                         editView.SelectedTextRange = editView.GetTextRange(editView.EndOfDocument, editView.EndOfDocument);
 
-                    // Set minimum width
-                    if (minWidth != -1)
-                        editView.WidthAnchor.ConstraintLessThanOrEqualTo( (System.nfloat) minWidth);
+                    if (maxLines > 0)
+                    {
+                        maxHeight = editView.Font.LineHeight * maxLines;
+                        editView.Changed += EditView_Changed;
+                    }
+                    
                 }
                 else if (Control is UITextField field)
                 {
@@ -42,11 +49,6 @@ namespace MultiPlatformApplication.IOs.PlatformEffect
                     // If the EditText has by default a text, we set the caret to the end
                     if (editText.Text?.Length > 0)
                         editText.SelectedTextRange = editText.GetTextRange(editText.EndOfDocument, editText.EndOfDocument);
-
-
-                    // Set minimum width
-                    if (minWidth != -1)
-                        editText.WidthAnchor.ConstraintLessThanOrEqualTo((System.nfloat)minWidth);
                 }
 
                 if ((editView != null) || (editText != null))
@@ -61,6 +63,20 @@ namespace MultiPlatformApplication.IOs.PlatformEffect
             }
 
                 //SetTintColor();
+        }
+
+        private void EditView_Changed(object sender, System.EventArgs e)
+        {
+            if (editView.ContentSize.Height > maxHeight)
+            {
+                editor.AutoSize = EditorAutoSizeOption.Disabled;
+                editView.ScrollEnabled = true;
+            }
+            else
+            {
+                editor.AutoSize = EditorAutoSizeOption.TextChanges;
+                editView.ScrollEnabled = false;
+            }
         }
 
         private void SetTintColor()
