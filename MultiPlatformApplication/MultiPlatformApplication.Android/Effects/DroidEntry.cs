@@ -2,7 +2,7 @@
 using Android.Widget;
 using Xamarin.Forms;
 
-[assembly: ExportEffect(typeof(MultiPlatformApplication.Droid.PlatformEffect.DroidEntry), nameof(MultiPlatformApplication.Effects.Entry))]
+[assembly: ExportEffect(typeof(MultiPlatformApplication.Droid.PlatformEffect.DroidEntry), nameof(MultiPlatformApplication.Effects.EntryEffect))]
 namespace MultiPlatformApplication.Droid.PlatformEffect
 {
     // Based on: https://stackoverflow.com/questions/53095961/how-to-remove-the-border-from-a-entry-control-with-xamarin-forms
@@ -18,11 +18,11 @@ namespace MultiPlatformApplication.Droid.PlatformEffect
             {
                 editText = (EditText)Control;
 
-                double minWidth = MultiPlatformApplication.Effects.Entry.GetMinimumWidth(Element);
+                double minWidth = MultiPlatformApplication.Effects.EntryEffect.GetMinimumWidth(Element);
                 if (minWidth != -1)
                     editText.SetMinWidth((int)minWidth);
 
-                if (MultiPlatformApplication.Effects.Entry.GetNoBorder(Element) == true)
+                if (MultiPlatformApplication.Effects.EntryEffect.GetNoBorder(Element) == true)
                     NoBorder();
 
                 SetTintColor();

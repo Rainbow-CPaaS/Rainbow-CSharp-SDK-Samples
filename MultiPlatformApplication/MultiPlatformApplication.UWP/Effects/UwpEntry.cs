@@ -13,7 +13,7 @@ using Windows.UI.Xaml.Controls;
 using Xamarin.Forms;
 using Xamarin.Forms.Platform.UWP;
 
-[assembly: ExportEffect(typeof(MultiPlatformApplication.UWP.PlatformEffect.UwpEntry), nameof(MultiPlatformApplication.Effects.Entry))]
+[assembly: ExportEffect(typeof(MultiPlatformApplication.UWP.PlatformEffect.UwpEntry), nameof(MultiPlatformApplication.Effects.EntryEffect))]
 namespace MultiPlatformApplication.UWP.PlatformEffect
 {
     // Based on: https://stackoverflow.com/questions/53095961/how-to-remove-the-border-from-a-entry-control-with-xamarin-forms
@@ -30,20 +30,20 @@ namespace MultiPlatformApplication.UWP.PlatformEffect
             {
                 textBox = (TextBox)Control;
 
-                double minWidth = MultiPlatformApplication.Effects.Entry.GetMinimumWidth(Element);
+                double minWidth = MultiPlatformApplication.Effects.EntryEffect.GetMinimumWidth(Element);
                 if(minWidth != -1)
                     textBox.MinWidth = minWidth;
 
-                validationCommand = MultiPlatformApplication.Effects.Entry.GetValidationCommand(Element);
+                validationCommand = MultiPlatformApplication.Effects.EntryEffect.GetValidationCommand(Element);
                 if (validationCommand != null)
                 {
-                    breakLineModifier = MultiPlatformApplication.Effects.Entry.GetBreakLineModifier(Element);
+                    breakLineModifier = MultiPlatformApplication.Effects.EntryEffect.GetBreakLineModifier(Element);
                     if (breakLineModifier == null)
                         breakLineModifier = "";
                     textBox.KeyUp += TextBox_KeyUp;
                 }
 
-                if (MultiPlatformApplication.Effects.Entry.GetNoBorder(Element) == true)
+                if (MultiPlatformApplication.Effects.EntryEffect.GetNoBorder(Element) == true)
                     NoBorder();
 
                 // If the textbox has by default a text, we set the caret to the end
