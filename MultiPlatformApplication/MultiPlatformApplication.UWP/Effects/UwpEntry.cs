@@ -30,10 +30,6 @@ namespace MultiPlatformApplication.UWP.PlatformEffect
             {
                 textBox = (TextBox)Control;
 
-                double minWidth = MultiPlatformApplication.Effects.EntryEffect.GetMinimumWidth(Element);
-                if(minWidth != -1)
-                    textBox.MinWidth = minWidth;
-
                 validationCommand = MultiPlatformApplication.Effects.EntryEffect.GetValidationCommand(Element);
                 if (validationCommand != null)
                 {
