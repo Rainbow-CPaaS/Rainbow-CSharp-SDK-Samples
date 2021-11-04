@@ -98,13 +98,11 @@ namespace MultiPlatformApplication.ViewModels
             {
                 messageInput.MessageUrgencyClicked += MessageInput_MessageUrgencyClicked;
                 messageInput.MessageToSend += MessageInput_MessageToSend;
+                messageInput.MessageToEdit += MessageInput_MessageToEdit;
                 messageInput.UserIsTyping += MessageInput_UserIsTyping;
                 messageInput.SizeChanged += MessageInput_SizeChanged;
             }
 
-            // Need to know if message edition is stopped/finished
-            Helper.SdkWrapper.StopMessageEdition += SdkWrapper_StopMessageEdition;
-            
             // Need to know if we need to start file download
             Helper.SdkWrapper.StartFileDownload += SdkWrapper_StartFileDownload;
 
@@ -696,6 +694,12 @@ namespace MultiPlatformApplication.ViewModels
             return message;
         }
 
+
+        private MessageElementModel GetMessageById(String id)
+        {
+            return MessagesList.FirstOrDefault(e => e.Id == id);
+        }
+
 #region MESSAGE INPUT STUFF
 
         private async void MessageInput_MessageToSend(object sender, StringEventArgs e)
@@ -720,7 +724,7 @@ namespace MultiPlatformApplication.ViewModels
             if ((!String.IsNullOrEmpty(text)) || (attachments?.Count > 0))
             {
                 String std = UrgencyType.Std.ToString();
-                messageInput?.SetUrgencySelection(std);
+                messageInput?.SetUrgencySelection(std, false);
                 ContextMenuUrgency?.SetSelectedItemId(std);
             }
 
@@ -778,6 +782,28 @@ namespace MultiPlatformApplication.ViewModels
 
             }
         }
+
+        private void MessageInput_MessageToEdit(object sender, StringEventArgs e)
+        {
+            MessageInput messageInput = (MessageInput)sender;
+
+            // Manage message as TEXT
+            String newText = messageInput.GetMessageContent();
+            if (!String.IsNullOrEmpty(newText))
+                newText = newText.Trim();
+
+            String messageId = messageInput.GetEditMessageId();
+
+
+            messageInput.StopEditionMode();
+
+            // ASk server to edit message
+            Helper.SdkWrapper.EditMessage(conversationId, messageId, newText, callback =>
+            {
+                // TODO - manage error
+            });
+        }
+
 
         private void MessageInput_UserIsTyping(object sender, Rainbow.Events.BooleanEventArgs e)
         {
@@ -963,10 +989,8 @@ namespace MultiPlatformApplication.ViewModels
 
         public async void ContextMenuMessageActionCommand(Object obj)
         {
-            if (obj is String id)
+            if (obj is String action)
             {
-                String action = id;
-
                 // Check if we have a valid message
                 if (actionDoneOnMessage == null)
                     return;
@@ -977,7 +1001,9 @@ namespace MultiPlatformApplication.ViewModels
                 switch (action)
                 {
                     case "edit":
-                        Helper.SdkWrapper.OnStartMessageEdition(this, new IdEventArgs(actionDoneOnMessage?.Id));
+                        var message = GetMessageById(actionDoneOnMessage?.Id);
+                        if(message != null)
+                            messageInput?.StartEditionMode(message.Id, message.Content.Body);
                         break;
 
                     case "download":
@@ -1134,22 +1160,6 @@ namespace MultiPlatformApplication.ViewModels
             }
         }
 
-        private void SdkWrapper_StopMessageEdition(object sender, StringListEventArgs e)
-        {
-            if ( (e?.Values?.Count > 0) && (actionDoneOnMessage != null)  && (e?.Values[0] == actionDoneOnMessage.Id) )
-            {
-                // Do we have a message ?
-                if(e.Values.Count > 1)
-                {
-                    String newText = e.Values[1];
-                    Helper.SdkWrapper.EditMessage(conversationId, actionDoneOnMessage.Id, newText, callback =>
-                    { 
-                        // TODO - manage error
-                    });
-                }
-            }
-        }
-
         private void SdkWrapper_StartFileDownload(object sender, IdEventArgs e)
         {
             StartFileDownload(e.Id);
@@ -1226,7 +1236,7 @@ namespace MultiPlatformApplication.ViewModels
         private void ContextMenuUrgencyCommand(Object obj)
         {
             if(obj is String id)
-                messageInput?.SetUrgencySelection(id);
+                messageInput?.SetUrgencySelection(id, true);
         }
 
 #endregion MESSAGE URGENCY CONTEXT MENU STUFF

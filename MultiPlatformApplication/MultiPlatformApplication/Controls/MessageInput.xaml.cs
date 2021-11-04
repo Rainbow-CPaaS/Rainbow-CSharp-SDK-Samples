@@ -21,6 +21,7 @@ namespace MultiPlatformApplication.Controls
     [XamlCompilation(XamlCompilationOptions.Compile)]
     public partial class MessageInput : ContentView
     {
+        String editMessageId = null;
         Boolean userIsTyping = false;
         Boolean capabilityFileSharing = false;
         List<String> peerJidTyping = new List<string>();
@@ -31,10 +32,10 @@ namespace MultiPlatformApplication.Controls
 
         public event EventHandler<BooleanEventArgs> UserIsTyping;
         public event EventHandler<RectEventArgs> MessageUrgencyClicked;
-
         public event EventHandler<StringEventArgs> MessageToSend;
+        public event EventHandler<StringEventArgs> MessageToEdit;
 
-#region BINDINGS used in XAML
+        #region BINDINGS used in XAML
         public MessageInputModel Message { get; private set; } = new MessageInputModel();
 #endregion BINDINGS used in XAML
 
@@ -155,28 +156,83 @@ namespace MultiPlatformApplication.Controls
                 StopUserTypingAnimation();
         }
 
-        public void SetUrgencySelection(String urgencyTypeString)
+        public String GetEditMessageId()
         {
-            Helper.GetUrgencyInfo(urgencyTypeString, out Color backgroundColor, out Color color, out String title, out String label, out String imageSourceId);
+            return editMessageId;
+        }
+
+        public void StopEditionMode()
+        {
+            // Remove message Id
+            editMessageId = null;
+
+            ButtonUrgency.IsVisible = true;
+
+            // Attachments are now available
+            FrameBeforeButtonAttachment.IsVisible = capabilityFileSharing;
+            ButtonAttachment.IsVisible = capabilityFileSharing;
+            ButtonAttachment.ImageSourceId = "Font_PaperClip|ColorButtonForeground";
+
+            Color backgroundColor = Helper.GetResourceDictionaryById<Color>("ColorConversationStreamMessageOtherUserBackGround");
+            Color textColor = Helper.GetResourceDictionaryById<Color>("ColorConversationStreamMessageOtherUserFont");
+            String text = "";
+
+            EntryMessage.SetEditorText("");
+
+            SetContext(text, textColor, backgroundColor, false);
+        }
+
+        public void StartEditionMode(String messageId, String messageBody)
+        {
+            // Store message Id
+            editMessageId = messageId;
+
+            ButtonUrgency.IsVisible = false;
+            // Attachment is used to stop edition mode
+            FrameBeforeButtonAttachment.IsVisible = true;
+            ButtonAttachment.IsVisible = true;
+            ButtonAttachment.ImageSourceId = "Font_Times|ColorButtonForeground";
+
+            Color backgroundColor = Helper.GetResourceDictionaryById<Color>("ColorConversationStreamMessageCurrentUserBackGround"); ;
+            Color textColor = Helper.GetResourceDictionaryById<Color>("ColorConversationStreamMessageCurrentUserFont");
+            String text = Helper.SdkWrapper.GetLabel("edit");
+
+            EntryMessage.SetEditorText(messageBody);
+
+            SetContext(text, textColor, backgroundColor, true);
+        }
+
+        public void SetUrgencySelection(String urgencyTypeString, Boolean setFocus)
+        {
+            Color backgroundColor;
+            Color textColor;
+            String text;
 
             if (urgencyTypeString == UrgencyType.Std.ToString())
-                label = "";
-
-            if (String.IsNullOrEmpty(label))
             {
-                StackLayoutUrgency.Padding = new Thickness(0);
-                color = Helper.GetResourceDictionaryById<Color>("ColorConversationStreamMessageOtherUserFont");
+                textColor = Helper.GetResourceDictionaryById<Color>("ColorConversationStreamMessageOtherUserFont");
                 backgroundColor = Helper.GetResourceDictionaryById<Color>("ColorConversationStreamMessageOtherUserBackGround");
-                title = "";
+                text = "";
             }
+            else
+                Helper.GetUrgencyInfo(urgencyTypeString, out backgroundColor, out textColor, out text, out String label, out String imageSourceId);
+
+            SetContext(text, textColor, backgroundColor, setFocus);
+        }
+
+        private void SetContext(String text, Color textColor, Color backgroundColor, Boolean setFocus)
+        {
+            if (String.IsNullOrEmpty(text))
+                StackLayoutUrgency.Padding = new Thickness(0);
             else
                 StackLayoutUrgency.Padding = new Thickness(2);
 
-            LabelUrgency.Text = title;
-            LabelUrgency.TextColor = color;
+            LabelUrgency.Text = text;
+            LabelUrgency.TextColor = textColor;
             FrameUrgency.BackgroundColor = backgroundColor;
 
-            EntryMessage.SetFocus();
+            if(setFocus)
+                EntryMessage.SetFocus();
         }
 
         public void SetReplyMessage(MessageElementModel messageElementModel)
@@ -255,7 +311,10 @@ namespace MultiPlatformApplication.Controls
 
         private void MessageInputAttachmentCommand(object obj)
         {
-            MessageInputAttachments.PickFiles();
+            if(String.IsNullOrEmpty(editMessageId))
+                MessageInputAttachments.PickFiles();
+            else
+                StopEditionMode();
         }
 
         private void MessageInputUrgencyCommand(object obj)
@@ -274,10 +333,18 @@ namespace MultiPlatformApplication.Controls
 
         private void MessageInputSendCommand(object obj)
         {
-            MessageToSend?.Raise(this, new StringEventArgs(replyToMessageId));
-            
-            // Simulate that we close Reply part
-            MessageContentReplyButtonCommand(null);
+            if (String.IsNullOrEmpty(editMessageId))
+            {
+                MessageToSend?.Raise(this, new StringEventArgs(replyToMessageId));
+
+                // Simulate that we close Reply part
+                MessageContentReplyButtonCommand(null);
+            }
+            else
+            {
+                MessageToEdit?.Raise(this, new StringEventArgs(editMessageId));
+                StopEditionMode();
+            }
         }
 
         private void MessageContentReplyButtonCommand(object obj)
