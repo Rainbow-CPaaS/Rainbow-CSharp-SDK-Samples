@@ -61,81 +61,81 @@ Use tag like **MutliPlatformApplication_VX.Y** to use a stable version.
 
 <table>
   <tr>
-    <td colspan=3><b><center>Recent conversations</center></b></td>
-  </tr>
-  <tr>
     <td><b><center>Android</center></b></td>
     <td><b><center>iOS</center></b></td>
     <td><b><center>UWP</center></b></td>
   </tr>
   <tr>
-    <td><img src="./images/MessageStream-CSharp-Android.png"</td>
-    <td><img src="./images/iOS/V0.1_Recent_conversations.jpg"</td>
-    <td><img src="./images/UWP/V0.1_Recent_conversations.jpg"</td>
+    <td colspan=3><b><center>Recent conversations</center></b></td>
   </tr>
   <tr>
-    <td colspan=3><br></td>
+    <td><img src="./images/Android/V0.1_Recent_conversations.jpg" width="750"></td>
+    <td><img src="./images/iOS/V0.1_Recent_conversations.jpg"</td>
+    <td><img src="./images/UWP/V0.1_Recent_conversations.jpg" width="750"></td>
   </tr>
   <tr>
     <td colspan=3><b><center>Contacts list - Sorted by first name</center></b></td>
   </tr>
   <tr>
-    <td><b><center>Android</center></b></td>
-    <td><b><center>iOS</center></b></td>
-    <td><b><center>UWP</center></b></td>
-  </tr>
-  <tr>
-    <td><img src="./images/Android/V0.1_Contact_lists-Sorted_by_first_name.jpg"</td>
-    <td><img src="./images/iOS/V0.1_Contact_lists-Sorted_by_first_name.jpg"</td>
-    <td><img src="./images/UWP/V0.1_Contact_lists-Sorted_by_first_name.jpg"</td>
-  </tr>
-  <tr>
-    <td colspan=3><br></td>
+    <td><img src="./images/Android/V0.1_Contact_lists-Sorted_by_first_name.jpg" width="750"></td>
+    <td><img src="./images/iOS/V0.1_Contact_lists-Sorted_by_first_name.jpg" width="750"></td>
+    <td><img src="./images/UWP/V0.1_Contact_lists-Sorted_by_first_name.jpg" width="750"></td>
   </tr>
   <tr>
     <td colspan=3><b><center>Contacts list - Sorted by company</center></b></td>
   </tr>
   <tr>
-    <td><b><center>Android</center></b></td>
-    <td><b><center>iOS</center></b></td>
-    <td><b><center>UWP</center></b></td>
-  </tr>
-  <tr>
-    <td><img src="./images/Android/V0.1_Contact_lists-Sorted_by_company.jpg"</td>
-    <td><img src="./images/iOS/V0.1_Contact_lists-Sorted_by_company.jpg"</td>
-    <td><img src="./images/UWP/V0.1_Contact_lists-Sorted_by_company.jpg"</td>
-  </tr>
-  <tr>
-    <td colspan=3><br></td>
+    <td><img src="./images/Android/V0.1_Contact_lists-Sorted_by_company.jpg" width="750"></td>
+    <td><img src="./images/iOS/V0.1_Contact_lists-Sorted_by_company.jpg" width="750"></td>
+    <td><img src="./images/UWP/V0.1_Contact_lists-Sorted_by_company.jpg" width="750"></td>
   </tr>
   <tr>
     <td colspan=3><b><center>Contacts list - Menu to sort display</center></b></td>
   </tr>
   <tr>
-    <td><b><center>Android</center></b></td>
-    <td><b><center>iOS</center></b></td>
-    <td><b><center>UWP</center></b></td>
-  </tr>
-  <tr>
-    <td><img src="./images/Android/V0.1_Contact_lists-Menu_to_sort_display.jpg"</td>
-    <td><img src="./images/iOS/V0.1_Contact_lists-Menu_to_sort_display.jpg"</td>
-    <td><img src="./images/UWP/V0.1_Contact_lists-Menu_to_sort_display.jpg"</td>
-  </tr>
-    <tr>
-    <td colspan=3><br></td>
+    <td><img src="./images/Android/V0.1_Contact_lists-Menu_to_sort_display.jpg" width="750"></td>
+    <td><img src="./images/iOS/V0.1_Contact_lists-Menu_to_sort_display.jpg" width="750"></td>
+    <td><img src="./images/UWP/V0.1_Contact_lists-Menu_to_sort_display.jpg" width="750"></td>
   </tr>
   <tr>
     <td colspan=3><b><center>Message stream</center></b></td>
   </tr>
   <tr>
-    <td><b><center>Android</center></b></td>
-    <td><b><center>iOS</center></b></td>
-    <td><b><center>UWP</center></b></td>
+    <td><img src="./images/Android/V0.1_Message_stream.jpg" width="750"></td>
+    <td><img src="./images/iOS/V0.1_Message_stream.jpg" width="750"></td>
+    <td><img src="./images/UWP/V0.1_Message_stream.jpg" width="750"></td>
   </tr>
   <tr>
-    <td><img src="./images/Android/V0.1_Message_stream.jpg"</td>
-    <td><img src="./images/iOS/V0.1_Message_stream.jpg"</td>
-    <td><img src="./images/UWP/V0.1_Message_stream.jpg"</td>
+    <td colspan=3><b><center>Message stream - Action Menu</center></b></td>
+  </tr>
+  <tr>
+    <td><img src="./images/Android/V0.1_Message_stream-Action_menu.jpg" width="750"></td>
+    <td><img src="./images/iOS/V0.1_Message_stream-Action_menu.jpg" width="750"></td>
+    <td><img src="./images/UWP/V0.1_Message_stream-Action_menu.jpg" width="750"></td>
+  </tr>
+  <tr>
+    <td colspan=3><b><center>Message stream - Replying to message</center></b></td>
+  </tr>
+  <tr>
+    <td><img src="./images/Android/V0.1_Message_stream-Replying_to_message.jpg" width="750"></td>
+    <td><img src="./images/iOS/V0.1_Message_stream-Replying_to_message.jpg" width="750"></td>
+    <td><img src="./images/UWP/V0.1_Message_stream-Replying_to_message.jpg" width="750"></td>
+  </tr>
+  <tr>
+    <td colspan=3><b><center>Message stream - Urgency selectione</center></b></td>
+  </tr>
+  <tr>
+    <td><img src="./images/Android/V0.1_Message_stream-Urgency_selection.jpg" width="750"></td>
+    <td><img src="./images/iOS/V0.1_Message_stream-Urgency_selection.jpg" width="750"></td>
+    <td><img src="./images/UWP/V0.1_Message_stream-Urgency_selection.jpg" width="750"></td>
+  </tr>
+  <tr>
+    <td colspan=3><b><center>Message stream - Typing important message</center></b></td>
+  </tr>
+  <tr>
+    <td><img src="./images/Android/V0.1_Message_stream-Typing_important_message.jpg" width="750"></td>
+    <td><img src="./images/iOS/V0.1_Message_stream-Typing_important_message.jpg" width="750"></td>
+    <td><img src="./images/UWP/V0.1_Message_stream-Typing_important_message.jpg" width="750"></td>
   </tr>
 </table>
 
@@ -150,7 +150,7 @@ Use tag like **MutliPlatformApplication_VX.Y** to use a stable version.
     - Android Simulator (Debug and Relase mode):
         - Pixel 2 (Android 9 - API 28)
     - Real device (Debug and Relase mode):
-        - Redmi Nota 9S (Android 11 - API 30)
+        - Redmi Note 9S (Android 11 - API 30)
 - **iPhone:**
     - iPhone Simulator (Debug and Relase mode):
         - Iphone 8 (iOS 15)
