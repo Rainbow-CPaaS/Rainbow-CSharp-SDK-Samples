@@ -1,33 +1,163 @@
 ![Rainbow](../logo_rainbow.png)
 
  
-# Multiplatform Sample
+# Multiplatform application - Advanced sample
 ---
 
-This sample targets  targets **iOS**, **Android** but also **UWP** and **WPF** (experimental for this one)
+This sample targets **iOS**, **Android** and **UWP** (**WPF** also but more experimental for this one due to Microsoft restrictions)
 
 Nearly 98% of the code is common to all this platform. 
 
-MVVM architecture is used to create this sample as much as possible 
+MVVM architecture is used to create this sample as much as possible
 
-Features available for the moment:
+Use tag like **MutliPlatformApplication_VX.Y** to use a stable version. 
 
-- Conversations list:
-    - Avatar of the Bubble ir provided or avatars members 
-    - Nb unread messages indicator 
-    - Presence level indicator (for peer to peer conversation)
-    - Last message receivef or sent
+# Features
+---
+
+- **Login**:
+    - Use SSO (Open Id or SAML) if availeble for the current user
     
-- Conversation stream
-    - Display list of messages received / sent
-    - Display files thumbnail when they are available
-    - Allow to send message 
-        - with or without Emoji
-        - with or without Files 
-        - with urgency mode selection
+- **Avatars**:
+    - Automatic download of Avatars (Users and Bubbles)
+    - Create automatically a bubble avatar if not specified using members of the bubble (up to 4 avatars members)
+    - Take into account update of any avatars
     
-Elements implemented but not demonstrable 
-- Themes: display is based on a selected theme
+- **Recent conversations**:
+    - Display list of recent conversations sorted by date
+    - The list is updatde using last message received
+    - A click or tap on a conversation will display the message streaam of the conversation
+     
+- **Contacts List**:
+    - Display the list of contacts of the current user with their presence level
+    - List can sorted by first name, last name or company and filtered by online, offline or any presence level
+    
+- **Messages stream on a conversation**:
+    - **Display**:
+        - Event info: Conference started / stopped, Used added / removed in a Bubble
+        - Separator to differentiate whether messages are from the same day or not
+        - Receipt information: Sent, Received, Read
+        - Forwarded, replied, deleted or normal message
+        - Support snippet display
+        - Urgency display (Emergency, Important, Infomration, Standard)
+        - Support animated GIF (stop / start)
+        - Image (thumbnail)
+
+    - **Actions possible**:
+        - Send message
+        - File(s) in attachment
+        - Urgency selection (Emergency, Important, Infomration, Standard)
+        - Edit message
+        - Download / Save file
+        - Reply to message
+        - Copy message 
+        - Delete message
+        
+- Multi-languages:
+    - The UI doesn't permit yet to change it on the fly (using **EN** language by dafault) but it can be changed easily using **Helper.SdkWrapper.SetLanguageId** method. 
+
+# Screenshots
+--- 
+
+<table>
+  <tr>
+    <td colspan=3><b><center>Recent conversations</center></b></td>
+  </tr>
+  <tr>
+    <td><b><center>Android</center></b></td>
+    <td><b><center>iOS</center></b></td>
+    <td><b><center>UWP</center></b></td>
+  </tr>
+  <tr>
+    <td><img src="./images/MessageStream-CSharp-Android.png"</td>
+    <td><img src="./images/iOS/V0.1_Recent_conversations.jpg"</td>
+    <td><img src="./images/UWP/V0.1_Recent_conversations.jpg"</td>
+  </tr>
+  <tr>
+    <td colspan=3><br></td>
+  </tr>
+  <tr>
+    <td colspan=3><b><center>Contacts list - Sorted by first name</center></b></td>
+  </tr>
+  <tr>
+    <td><b><center>Android</center></b></td>
+    <td><b><center>iOS</center></b></td>
+    <td><b><center>UWP</center></b></td>
+  </tr>
+  <tr>
+    <td><img src="./images/Android/V0.1_Contact_lists-Sorted_by_first_name.jpg"</td>
+    <td><img src="./images/iOS/V0.1_Contact_lists-Sorted_by_first_name.jpg"</td>
+    <td><img src="./images/UWP/V0.1_Contact_lists-Sorted_by_first_name.jpg"</td>
+  </tr>
+  <tr>
+    <td colspan=3><br></td>
+  </tr>
+  <tr>
+    <td colspan=3><b><center>Contacts list - Sorted by company</center></b></td>
+  </tr>
+  <tr>
+    <td><b><center>Android</center></b></td>
+    <td><b><center>iOS</center></b></td>
+    <td><b><center>UWP</center></b></td>
+  </tr>
+  <tr>
+    <td><img src="./images/Android/V0.1_Contact_lists-Sorted_by_company.jpg"</td>
+    <td><img src="./images/iOS/V0.1_Contact_lists-Sorted_by_company.jpg"</td>
+    <td><img src="./images/UWP/V0.1_Contact_lists-Sorted_by_company.jpg"</td>
+  </tr>
+  <tr>
+    <td colspan=3><br></td>
+  </tr>
+  <tr>
+    <td colspan=3><b><center>Contacts list - Menu to sort display</center></b></td>
+  </tr>
+  <tr>
+    <td><b><center>Android</center></b></td>
+    <td><b><center>iOS</center></b></td>
+    <td><b><center>UWP</center></b></td>
+  </tr>
+  <tr>
+    <td><img src="./images/Android/V0.1_Contact_lists-Menu_to_sort_display.jpg"</td>
+    <td><img src="./images/iOS/V0.1_Contact_lists-Menu_to_sort_display.jpg"</td>
+    <td><img src="./images/UWP/V0.1_Contact_lists-Menu_to_sort_display.jpg"</td>
+  </tr>
+    <tr>
+    <td colspan=3><br></td>
+  </tr>
+  <tr>
+    <td colspan=3><b><center>Message stream</center></b></td>
+  </tr>
+  <tr>
+    <td><b><center>Android</center></b></td>
+    <td><b><center>iOS</center></b></td>
+    <td><b><center>UWP</center></b></td>
+  </tr>
+  <tr>
+    <td><img src="./images/Android/V0.1_Message_stream.jpg"</td>
+    <td><img src="./images/iOS/V0.1_Message_stream.jpg"</td>
+    <td><img src="./images/UWP/V0.1_Message_stream.jpg"</td>
+  </tr>
+</table>
+
+
+# Tested platform
+---    
+
+- **Windows 10:**
+    - UWP Platform (Windows 10) (Debug and Relase mode)
+ 
+- **Android:**
+    - Android Simulator (Debug and Relase mode):
+        - Pixel 2 (Android 9 - API 28)
+    - Real device (Debug and Relase mode):
+        - Redmi Nota 9S (Android 11 - API 30)
+- **iPhone:**
+    - iPhone Simulator (Debug and Relase mode):
+        - Iphone 8 (iOS 15)
+    - Real Device (Debug and Relase mode):
+        - iPhone 8 (iOS 15)  
+
+
 
 # Mandatory information
 ---
@@ -43,7 +173,9 @@ To use this sample you must provide correct information in file **MultiPlatformA
 In file **MultiPlatformApplication/ApplicationInfo.cs**, 2 variables can be helpfull if you want to debug/develop this sample:
 - **DataStorageUsed**:
 
-Data received from server are stored locally. It's not at all a good way in production. But necessary when using **UseTestEnvironment**
+Data received from server are stored locally. It's not at all a good way in production (not encrypted). But necessary when using **UseTestEnvironment**
+
+At terms, once encrypted, it will the base to create offline usage if there is no more network connection.
 
 - **UseTestEnvironment**
 
@@ -52,15 +184,3 @@ It uses data previously stored locally to use the application without the needs 
 Very useful to add new functionnalities, test/update code with real data without any connection.   
  
 
-# Screenshots
---- 
-
-## Conversation stream
-
-Screenshsots to demonstrate differences between Rainbow Offical Web / Desktop CLient, SDK C# on Windows (UWP) and SDK C# on Android emulator 
-
-![On Web / Desktop client](./images/MessageStream-WebClient.png)
-
-![SDK C# - UWP](./images/MessageStream-CSharp-UWP.png)
-
-![SDK C# - Android](./images/MessageStream-CSharp-Android.png)
