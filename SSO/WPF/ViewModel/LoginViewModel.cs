@@ -10,7 +10,6 @@ using Rainbow.Model;
 using WpfSSOSamples.Helpers;
 using WpfSSOSamples.Model;
 
-using NLog;
 using System.Windows;
 using System.Threading.Tasks;
 using System.Collections.Generic;
@@ -23,7 +22,6 @@ namespace WpfSSOSamples.ViewModel
 {
     public class LoginViewModel : ObservableObject
     {
-        private static readonly Logger log = LogConfigurator.GetLogger(typeof(LoginViewModel));
         App CurrentApplication = (App)System.Windows.Application.Current;
 
         public LoginModel Model { get; private set; } // Need to be public - Used as Binding from XAML

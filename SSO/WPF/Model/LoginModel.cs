@@ -1,13 +1,7 @@
 using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 using WpfSSOSamples.Helpers;
 
-using Rainbow;
-using Rainbow.Model;
-
-using NLog;
 using System.Windows;
 
 namespace WpfSSOSamples.Model

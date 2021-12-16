@@ -4,18 +4,11 @@ using System.Globalization;
 using System.Windows.Media.Imaging;
 using System.Windows.Resources;
 
-using Rainbow;
-using Rainbow.Model;
-
-using NLog;
-
 
 namespace WpfSSOSamples.Helpers
 {
     public static class Helper
     {
-        private static readonly Logger log = LogConfigurator.GetLogger(typeof(Helper));
-
         public static String GetTempFolder()
         {
             return System.Environment.GetFolderPath(System.Environment.SpecialFolder.ApplicationData);
