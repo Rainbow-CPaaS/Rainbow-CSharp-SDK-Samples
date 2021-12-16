@@ -14,14 +14,14 @@ using Rainbow.Model;
 
 using MultiPlatformApplication.Models;
 
-using NLog;
+using Microsoft.Extensions.Logging;
 
 
 namespace MultiPlatformApplication.Helpers
 {
     public static class Helper
     {
-        private static readonly Logger log = LogConfigurator.GetLogger(typeof(Helper));
+        private static readonly ILogger log = Rainbow.LogFactory.CreateLogger("Helper");
 
         private static double density = 0;
 
@@ -245,14 +245,14 @@ namespace MultiPlatformApplication.Helpers
                     }
                     else
                     {
-                        //log.Debug("[GetConversationFromRBConversation] - unknown contact - contactId:[{0}]", rbConversation.PeerId);
+                        //log.LogDebug("[GetConversationFromRBConversation] - unknown contact - contactId:[{0}]", rbConversation.PeerId);
                         SdkWrapper.GetContactFromContactIdFromServer(rbConversation.PeerId, null);
                     }
                 }
                 else
                 {
                     //TODO ( bot case)
-                    //log.Debug("[GetConversationFromRBConversation] Conversation from model not created - Id:[{0}]", rbConversation.Id);
+                    //log.LogDebug("[GetConversationFromRBConversation] Conversation from model not created - Id:[{0}]", rbConversation.Id);
                     return null;
                 }
 
@@ -672,11 +672,11 @@ namespace MultiPlatformApplication.Helpers
                 try
                 {
                     filePath = SdkWrapper.GetBubbleAvatarPath(bubbleId);
-                    log.Debug("[GetBubbleAvatarFilePath] Bubble Avatar - Id:[{0}] - FilePath:[{1}]", bubbleId, filePath);
+                    log.LogDebug("[GetBubbleAvatarFilePath] Bubble Avatar - Id:[{0}] - FilePath:[{1}]", bubbleId, filePath);
                 }
                 catch (Exception exc)
                 {
-                    log.Warn("[GetBubbleAvatarImageSource] bubbleId:[{0}] - exception occurs to create avatar:[{1}]", bubbleId, Rainbow.Util.SerializeException(exc));
+                    log.LogWarning("[GetBubbleAvatarImageSource] bubbleId:[{0}] - exception occurs to create avatar:[{1}]", bubbleId, Rainbow.Util.SerializeException(exc));
                     filePath = SdkWrapper.GetUnknwonBubbleAvatarFilePath();
                 }
 
@@ -692,11 +692,11 @@ namespace MultiPlatformApplication.Helpers
                 try
                 {
                     filePath = SdkWrapper.GetContactAvatarPath(contactId);
-                    log.Debug("[GetContactAvatarImageSource] contactId:[{0}] - filePath:[{1}]", contactId, filePath);
+                    log.LogDebug("[GetContactAvatarImageSource] contactId:[{0}] - filePath:[{1}]", contactId, filePath);
                 }
                 catch (Exception exc)
                 {
-                    log.Warn("[GetContactAvatarImageSource] contactId:[{0}] - exception occurs to create avatar:[{1}]", contactId, Rainbow.Util.SerializeException(exc));
+                    log.LogWarning("[GetContactAvatarImageSource] contactId:[{0}] - exception occurs to create avatar:[{1}]", contactId, Rainbow.Util.SerializeException(exc));
                     filePath = SdkWrapper.GetUnknwonContactAvatarFilePath();
                 }
             }
@@ -966,7 +966,7 @@ namespace MultiPlatformApplication.Helpers
                 // Go to the beginning of the new Memory Stream
                 ms.Position = 0;
 
-                log.Debug("[GetStreamFromEmbeddedResource] Stream obtainer:[{0}]", resourceName);
+                log.LogDebug("[GetStreamFromEmbeddedResource] Stream obtainer:[{0}]", resourceName);
             }
             streamResourceInfo.Dispose();
 
@@ -997,7 +997,7 @@ namespace MultiPlatformApplication.Helpers
                 }
             }
 
-            log.Debug("[GetEmbededResourceFullPath] resourceName:[{0}] - result:[{1}]", resourceName, result);
+            log.LogDebug("[GetEmbededResourceFullPath] resourceName:[{0}] - result:[{1}]", resourceName, result);
 
             return result;
         }

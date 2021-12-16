@@ -10,7 +10,7 @@ using Rainbow;
 using MultiPlatformApplication.Helpers;
 using MultiPlatformApplication.Models;
 
-using NLog;
+using Microsoft.Extensions.Logging;
 
 
 namespace MultiPlatformApplication.ViewModels
@@ -18,7 +18,7 @@ namespace MultiPlatformApplication.ViewModels
     [XamlCompilation(XamlCompilationOptions.Compile)]
     public class ConversationsViewModel : ConversationModel
     {
-        private static readonly Logger log = LogConfigurator.GetLogger(typeof(ConversationsViewModel));
+        private static readonly ILogger log = Rainbow.LogFactory.CreateLogger<ConversationsViewModel>();
 
         private App XamarinApplication;
         
@@ -151,7 +151,7 @@ namespace MultiPlatformApplication.ViewModels
                 DynamicList.ReplaceRange(conversationList);
             }
 
-            log.Debug("[ResetModelWithRbConversations] nb RBConversations:[{0}] - nb conversationList:[{1}] - nb Conversations:[{2}]", rbConversations?.Count, conversationList.Count, DynamicList.Items.Count);
+            log.LogDebug("[ResetModelWithRbConversations] nb RBConversations:[{0}] - nb conversationList:[{1}] - nb Conversations:[{2}]", rbConversations?.Count, conversationList.Count, DynamicList.Items.Count);
 
             // Check if we need to update the view due to DateTime purpose
             //if (conversationList.Count > 0)
@@ -187,7 +187,7 @@ namespace MultiPlatformApplication.ViewModels
             }
 
 
-            log.Debug("[UpdateRBConversationToModel] - IN");
+            log.LogDebug("[UpdateRBConversationToModel] - IN");
             if (rbConversation != null)
             {
                 // Now add it to the model
@@ -250,10 +250,10 @@ namespace MultiPlatformApplication.ViewModels
                                 if (oldIndex != newIndex)
                                     DynamicList.Items.Move(oldIndex, newIndex);
 
-                                log.Debug("[UpdateRBConversationToModel] MOVED - oldIndex:[{0}] - newIndex:[{1}] - nb:[{2}] - TopDate:[{3}] - LastMessageDateTime:[{4}]", oldIndex, newIndex, nb, DynamicList.Items[0].LastMessageDateTime.ToString("o"), oldConversation.LastMessageDateTime.ToString("o"));
+                                log.LogDebug("[UpdateRBConversationToModel] MOVED - oldIndex:[{0}] - newIndex:[{1}] - nb:[{2}] - TopDate:[{3}] - LastMessageDateTime:[{4}]", oldIndex, newIndex, nb, DynamicList.Items[0].LastMessageDateTime.ToString("o"), oldConversation.LastMessageDateTime.ToString("o"));
                             }
                             else
-                                log.Debug("[UpdateRBConversationToModel] NOT MOVED - oldIndex:[{0}] - nb:[{1}] - TopDate:[{2}] - LastMessageDateTime:[{3}]", oldIndex, nb, DynamicList.Items[0].LastMessageDateTime.ToString("o"), oldConversation.LastMessageDateTime.ToString("o"));
+                                log.LogDebug("[UpdateRBConversationToModel] NOT MOVED - oldIndex:[{0}] - nb:[{1}] - TopDate:[{2}] - LastMessageDateTime:[{3}]", oldIndex, nb, DynamicList.Items[0].LastMessageDateTime.ToString("o"), oldConversation.LastMessageDateTime.ToString("o"));
                         }
                     }
 
@@ -261,7 +261,7 @@ namespace MultiPlatformApplication.ViewModels
                     CheckIfUpdateModelForDateTimePurpose(newConversation.LastMessageDateTime);
                 }
             }
-            log.Debug("[UpdateRBConversationToModel] - OUT");
+            log.LogDebug("[UpdateRBConversationToModel] - OUT");
         }
 
         /// <summary>
@@ -341,13 +341,13 @@ namespace MultiPlatformApplication.ViewModels
                 // If there is not already a delay in progress, we ask a new one
                 if (delayUpdateForDateTimePurpose == null)
                 {
-                    log.Debug("[CheckIfUpdateModelForDateTimePurpose] - Start Delay:[{0}] - DateTime:[{1}] - CASE MORE RECENT", delay, dt.ToString("o"));
+                    log.LogDebug("[CheckIfUpdateModelForDateTimePurpose] - Start Delay:[{0}] - DateTime:[{1}] - CASE MORE RECENT", delay, dt.ToString("o"));
                     delayUpdateForDateTimePurpose = CancelableDelay.StartAfter(delay * 1000, () => UpdateModelForDateTimePurpose());
                 }
                 // There is already a delay running. So we need to cancel it and update display now
                 else
                 {
-                    log.Debug("[CheckIfUpdateModelForDateTimePurpose] - Stop current delay and ask update now - DateTime:[{0}]", dt.ToString("o"));
+                    log.LogDebug("[CheckIfUpdateModelForDateTimePurpose] - Stop current delay and ask update now - DateTime:[{0}]", dt.ToString("o"));
 
                     // We stop the current "update delay"
                     delayUpdateForDateTimePurpose.Cancel();
@@ -363,7 +363,7 @@ namespace MultiPlatformApplication.ViewModels
                 // If there is not already a delay in progress, we ask a new one
                 if ((delayUpdateForDateTimePurpose == null) || (!delayUpdateForDateTimePurpose.IsRunning()))
                 {
-                    log.Debug("[CheckIfUpdateModelForDateTimePurpose] - Start Delay:[{0}] - DateTime:[{1}] - CASE OLDER", delay, dt.ToString("o"));
+                    log.LogDebug("[CheckIfUpdateModelForDateTimePurpose] - Start Delay:[{0}] - DateTime:[{1}] - CASE OLDER", delay, dt.ToString("o"));
                     delayUpdateForDateTimePurpose = CancelableDelay.StartAfter(delay * 1000, () => UpdateModelForDateTimePurpose());
                 }
             }
@@ -371,7 +371,7 @@ namespace MultiPlatformApplication.ViewModels
 
         private void UpdateModelForDateTimePurpose()
         {
-            log.Debug("[UpdateModelForDateTimePurpose] - IN");
+            log.LogDebug("[UpdateModelForDateTimePurpose] - IN");
             lock (lockObservableConversations)
             {
                 foreach (ConversationModel conversation in DynamicList.Items)
@@ -380,7 +380,7 @@ namespace MultiPlatformApplication.ViewModels
 
             // We ask the next update 
             CheckIfUpdateModelForDateTimePurpose(mostRecentDateTimeMessage);
-            log.Debug("[UpdateModelForDateTimePurpose] - OUT");
+            log.LogDebug("[UpdateModelForDateTimePurpose] - OUT");
         }
 
 #endregion PRIVATE METHODS

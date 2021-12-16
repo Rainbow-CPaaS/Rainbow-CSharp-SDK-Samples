@@ -1,7 +1,7 @@
 ﻿using MultiPlatformApplication.Effects;
 using MultiPlatformApplication.Helpers;
 using MultiPlatformApplication.Models;
-using NLog;
+using Microsoft.Extensions.Logging;
 using Rainbow;
 using Rainbow.Common;
 using Rainbow.Events;
@@ -19,7 +19,7 @@ namespace MultiPlatformApplication.Controls
     [XamlCompilation(XamlCompilationOptions.Compile)]
     public partial class MessageContentAttachment : ContentView
     {
-        private static readonly Logger log = LogConfigurator.GetLogger(typeof(MessageContentAttachment));
+        private static readonly ILogger log = Rainbow.LogFactory.CreateLogger<MessageContentAttachment>();
 
         Boolean manageDisplay = false;
 
@@ -201,7 +201,7 @@ namespace MultiPlatformApplication.Controls
                 // No Spinner visible
                 Spinner.IsVisible = false;
 
-                log.Debug("[DisplayThumbnail] FileId:[{0}] - Use filePath:[{1}]", attachmentId, filePath);
+                log.LogDebug("[DisplayThumbnail] FileId:[{0}] - Use filePath:[{1}]", attachmentId, filePath);
                 System.Drawing.Size size = ImageTools.GetImageSize(filePath);
                 if ((size.Width > 0) && (size.Height > 0))
                 {

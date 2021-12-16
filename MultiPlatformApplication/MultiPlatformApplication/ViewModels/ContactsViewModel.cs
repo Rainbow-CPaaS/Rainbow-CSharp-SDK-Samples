@@ -17,7 +17,7 @@ using Rainbow.Model;
 using MultiPlatformApplication.Effects;
 using MultiPlatformApplication.Controls;
 
-using NLog;
+using Microsoft.Extensions.Logging;
 using System.Windows.Input;
 
 namespace MultiPlatformApplication.ViewModels
@@ -25,7 +25,7 @@ namespace MultiPlatformApplication.ViewModels
     [XamlCompilation(XamlCompilationOptions.Compile)]
     public class ContactsViewModel : ObservableObject
     {
-        private static readonly Logger log = LogConfigurator.GetLogger(typeof(ContactsViewModel));
+        private static readonly ILogger log = Rainbow.LogFactory.CreateLogger<ContactsViewModel>();
 
         private App XamarinApplication;
 

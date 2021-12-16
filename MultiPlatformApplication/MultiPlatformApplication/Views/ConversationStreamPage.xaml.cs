@@ -13,7 +13,7 @@ using MultiPlatformApplication.Controls;
 using MultiPlatformApplication.Models;
 using MultiPlatformApplication.ViewModels;
 
-using NLog;
+using Microsoft.Extensions.Logging;
 
 
 namespace MultiPlatformApplication.Views
@@ -21,7 +21,7 @@ namespace MultiPlatformApplication.Views
     [XamlCompilation(XamlCompilationOptions.Compile)]
     public partial class ConversationStreamPage : CtrlContentPage
     {
-        private static readonly Logger log = LogConfigurator.GetLogger(typeof(ConversationStreamPage));
+        private static readonly ILogger log = Rainbow.LogFactory.CreateLogger<ConversationStreamPage>();
 
         private ConversationStreamViewModel vm2;
 

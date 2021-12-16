@@ -7,14 +7,14 @@ using Newtonsoft.Json;
 
 using Rainbow;
 
-using NLog;
+using Microsoft.Extensions.Logging;
 using Rainbow.Model;
 
 namespace MultiPlatformApplication.Helpers
 {
     static public class DataStorage
     {
-        private static readonly Logger log = LogConfigurator.GetLogger(typeof(DataStorage));
+        private static readonly ILogger log = Rainbow.LogFactory.CreateLogger("DataStorage");
 
         private static String ConversationsStorageName = "ConversationsList.json";
         private static String CurrentContactStorageName = "CurrentContact.json";
@@ -46,7 +46,7 @@ namespace MultiPlatformApplication.Helpers
             }
             catch(Exception exc)
             {
-                log.Error("[CreateDataStorageFolder] Cannot create DataStorage folder - Exception:[{0}]", Rainbow.Util.SerializeException(exc));
+                log.LogError("[CreateDataStorageFolder] Cannot create DataStorage folder - Exception:[{0}]", Rainbow.Util.SerializeException(exc));
             }
             return FolderCreated;
         }
@@ -65,7 +65,7 @@ namespace MultiPlatformApplication.Helpers
             }
             catch (Exception e)
             {
-                log.Warn("[StoreConversations] Cannot store conversations - Error[{0}]", Rainbow.Util.SerializeException(e));
+                log.LogWarning("[StoreConversations] Cannot store conversations - Error[{0}]", Rainbow.Util.SerializeException(e));
             }
         }
 
@@ -93,7 +93,7 @@ namespace MultiPlatformApplication.Helpers
             }
             catch (Exception e)
             {
-                log.Warn("[RetrieveConversations] Error[{0}]", Rainbow.Util.SerializeException(e));
+                log.LogWarning("[RetrieveConversations] Error[{0}]", Rainbow.Util.SerializeException(e));
             }
 
             return result;
@@ -113,7 +113,7 @@ namespace MultiPlatformApplication.Helpers
             }
             catch (Exception e)
             {
-                log.Warn("[StoreBubbles] Cannot store conversations - Error[{0}]", Rainbow.Util.SerializeException(e));
+                log.LogWarning("[StoreBubbles] Cannot store conversations - Error[{0}]", Rainbow.Util.SerializeException(e));
             }
         }
 
@@ -141,7 +141,7 @@ namespace MultiPlatformApplication.Helpers
             }
             catch (Exception e)
             {
-                log.Warn("[RetrieveBubbles] Error[{0}]", Rainbow.Util.SerializeException(e));
+                log.LogWarning("[RetrieveBubbles] Error[{0}]", Rainbow.Util.SerializeException(e));
             }
 
             return result;
@@ -161,7 +161,7 @@ namespace MultiPlatformApplication.Helpers
             }
             catch (Exception e)
             {
-                log.Warn("[StoreContacts] Cannot store conversations - Error[{0}]", Rainbow.Util.SerializeException(e));
+                log.LogWarning("[StoreContacts] Cannot store conversations - Error[{0}]", Rainbow.Util.SerializeException(e));
             }
         }
 
@@ -189,7 +189,7 @@ namespace MultiPlatformApplication.Helpers
             }
             catch (Exception e)
             {
-                log.Warn("[RetrieveBubbles] Error[{0}]", Rainbow.Util.SerializeException(e));
+                log.LogWarning("[RetrieveBubbles] Error[{0}]", Rainbow.Util.SerializeException(e));
             }
 
             return result;
@@ -209,7 +209,7 @@ namespace MultiPlatformApplication.Helpers
             }
             catch (Exception e)
             {
-                log.Warn("[StoreCurrentContact] Cannot store current contact - Error[{0}]", Rainbow.Util.SerializeException(e));
+                log.LogWarning("[StoreCurrentContact] Cannot store current contact - Error[{0}]", Rainbow.Util.SerializeException(e));
             }
         }
 
@@ -237,7 +237,7 @@ namespace MultiPlatformApplication.Helpers
             }
             catch (Exception e)
             {
-                log.Warn("[RetrieveBubbles] Error[{0}]", Rainbow.Util.SerializeException(e));
+                log.LogWarning("[RetrieveBubbles] Error[{0}]", Rainbow.Util.SerializeException(e));
             }
 
             return result;
@@ -259,7 +259,7 @@ namespace MultiPlatformApplication.Helpers
             }
             catch (Exception e)
             {
-                log.Warn("[StoreMessages] Cannot store messages - ConversationId:[{1}] - Error[{0}]", Rainbow.Util.SerializeException(e), conversationId);
+                log.LogWarning("[StoreMessages] Cannot store messages - ConversationId:[{1}] - Error[{0}]", Rainbow.Util.SerializeException(e), conversationId);
             }
         }
 
@@ -287,7 +287,7 @@ namespace MultiPlatformApplication.Helpers
             }
             catch (Exception e)
             {
-                log.Warn("[RetrieveMessages] ConversationId:[{1}] - Error[{0}]", Rainbow.Util.SerializeException(e), conversationId);
+                log.LogWarning("[RetrieveMessages] ConversationId:[{1}] - Error[{0}]", Rainbow.Util.SerializeException(e), conversationId);
             }
 
             return result;
@@ -307,7 +307,7 @@ namespace MultiPlatformApplication.Helpers
             }
             catch (Exception e)
             {
-                log.Warn("[StorePresences] Cannot store presences - Error[{0}]", Rainbow.Util.SerializeException(e));
+                log.LogWarning("[StorePresences] Cannot store presences - Error[{0}]", Rainbow.Util.SerializeException(e));
             }
         }
 
@@ -335,7 +335,7 @@ namespace MultiPlatformApplication.Helpers
             }
             catch (Exception e)
             {
-                log.Warn("[RetrievePresences] Error[{0}]", Rainbow.Util.SerializeException(e));
+                log.LogWarning("[RetrievePresences] Error[{0}]", Rainbow.Util.SerializeException(e));
             }
 
             return result;
@@ -355,7 +355,7 @@ namespace MultiPlatformApplication.Helpers
             }
             catch (Exception e)
             {
-                log.Warn("[StoreAggregatedPresences] Cannot store aggregated presences - - Error[{0}]", Rainbow.Util.SerializeException(e));
+                log.LogWarning("[StoreAggregatedPresences] Cannot store aggregated presences - - Error[{0}]", Rainbow.Util.SerializeException(e));
             }
         }
 
@@ -383,7 +383,7 @@ namespace MultiPlatformApplication.Helpers
             }
             catch (Exception e)
             {
-                log.Warn("[RetrieveAggregatedPresences] Error[{0}]", Rainbow.Util.SerializeException(e));
+                log.LogWarning("[RetrieveAggregatedPresences] Error[{0}]", Rainbow.Util.SerializeException(e));
             }
 
             return result;
@@ -403,7 +403,7 @@ namespace MultiPlatformApplication.Helpers
             }
             catch (Exception e)
             {
-                log.Warn("[StoreFilesDescriptor] Cannot store files descriptor  - - Error[{0}]", Rainbow.Util.SerializeException(e));
+                log.LogWarning("[StoreFilesDescriptor] Cannot store files descriptor  - - Error[{0}]", Rainbow.Util.SerializeException(e));
             }
         }
 
@@ -431,7 +431,7 @@ namespace MultiPlatformApplication.Helpers
             }
             catch (Exception e)
             {
-                log.Warn("[RetrieveFilesDescriptors] Error[{0}]", Rainbow.Util.SerializeException(e));
+                log.LogWarning("[RetrieveFilesDescriptors] Error[{0}]", Rainbow.Util.SerializeException(e));
             }
 
             return result;
@@ -451,7 +451,7 @@ namespace MultiPlatformApplication.Helpers
             }
             catch (Exception e)
             {
-                log.Warn("[StoreConversationsByFilesDescriptor] Cannot store Conversations By Files Descriptor - - Error[{0}]", Rainbow.Util.SerializeException(e));
+                log.LogWarning("[StoreConversationsByFilesDescriptor] Cannot store Conversations By Files Descriptor - - Error[{0}]", Rainbow.Util.SerializeException(e));
             }
         }
 
@@ -479,7 +479,7 @@ namespace MultiPlatformApplication.Helpers
             }
             catch (Exception e)
             {
-                log.Warn("[RetrieveConversationsByFilesDescriptor] Error[{0}]", Rainbow.Util.SerializeException(e));
+                log.LogWarning("[RetrieveConversationsByFilesDescriptor] Error[{0}]", Rainbow.Util.SerializeException(e));
             }
 
             return result;

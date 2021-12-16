@@ -2,7 +2,7 @@
 using MultiPlatformApplication.Helpers;
 using MultiPlatformApplication.Models;
 using MultiPlatformApplication.Views;
-using NLog;
+using Microsoft.Extensions.Logging;
 using Rainbow;
 using System;
 using System.Collections.Generic;
@@ -15,7 +15,7 @@ namespace MultiPlatformApplication.ViewModels
     [XamlCompilation(XamlCompilationOptions.Compile)]
     public class MainPageViewModel
     {
-        private static readonly Logger log = LogConfigurator.GetLogger(typeof(MainPageViewModel));
+        private static readonly ILogger log = Rainbow.LogFactory.CreateLogger<MainPageViewModel>();
 
         private Boolean firstInitialization = true;
         private String currentMenuIdSelected;

@@ -11,13 +11,13 @@ using Rainbow.Model;
 
 using MultiPlatformApplication.Helpers;
 
-using NLog;
+using Microsoft.Extensions.Logging;
 
 namespace MultiPlatformApplication
 {
     public class TestSdkWrapper: SdkWrapper
     {
-        private static readonly Logger log = LogConfigurator.GetLogger(typeof(TestSdkWrapper));
+        private static readonly ILogger log = Rainbow.LogFactory.CreateLogger<TestSdkWrapper>();
 
         // /!\ Necessary only to get correct path/folders about Avatars
         Rainbow.Application RbApplication;
@@ -59,7 +59,7 @@ namespace MultiPlatformApplication
             RbAvatars.SetFolderPathUsedToStoreAvatars(avatarsFolderPath);
 
             if (!RbAvatars.Initialize())
-                log.Error("CANNOT initialize Avatars service ...");
+                log.LogError("CANNOT initialize Avatars service ...");
 
             // Set default max size to Thumbnail
             MaxThumbnailWidth = MaxThumbnailHeight = 300;
@@ -157,22 +157,22 @@ namespace MultiPlatformApplication
             path = Path.Combine(folderPathThumbnails, fileNameOnDisk);
             if (File.Exists(path))
             {
-                //log.Debug("[IsThumbnailFileAvailable] Thumbnail exists for file descriptor id:[{0}] - path:[{1}]", fileDescriptorId, path);
+                //log.LogDebug("[IsThumbnailFileAvailable] Thumbnail exists for file descriptor id:[{0}] - path:[{1}]", fileDescriptorId, path);
                 result = true;
             }
             else
             {
-                //log.Warn("[IsThumbnailFileAvailable] Thumbnail not exists for file descriptor id:[{0}] - path:[{1}]", fileDescriptorId, path);
+                //log.LogWarning("[IsThumbnailFileAvailable] Thumbnail not exists for file descriptor id:[{0}] - path:[{1}]", fileDescriptorId, path);
 
                 folderPathThumbnails = Path.Combine(Helper.GetFileStorageFolderPath(), "Files");
                 path = Path.Combine(folderPathThumbnails, fileNameOnDisk);
                 if (File.Exists(path))
                 {
-                    //log.Debug("[IsThumbnailFileAvailable] Thumbnail exists for file descriptor id:[{0}] - path:[{1}]", fileDescriptorId, path);
+                    //log.LogDebug("[IsThumbnailFileAvailable] Thumbnail exists for file descriptor id:[{0}] - path:[{1}]", fileDescriptorId, path);
                     result = true;
                 }
                 else
-                    log.Warn("[IsThumbnailFileAvailable] Thumbnail not exists for file descriptor id:[{0}] - path:[{1}]", fileDescriptorId, path);
+                    log.LogWarning("[IsThumbnailFileAvailable] Thumbnail not exists for file descriptor id:[{0}] - path:[{1}]", fileDescriptorId, path);
             }
             return result;
         }
@@ -191,7 +191,7 @@ namespace MultiPlatformApplication
                 String path = Path.Combine(folderPathThumbnails, fileNameOnDisk);
                 if (File.Exists(path))
                 {
-                    //log.Debug("[GetThumbnailFullFilePath] File found for file descriptor id:[{0}] - path:[{1}]", fileDescriptorId, path);
+                    //log.LogDebug("[GetThumbnailFullFilePath] File found for file descriptor id:[{0}] - path:[{1}]", fileDescriptorId, path);
                     return path;
                 }
                 else
@@ -200,16 +200,16 @@ namespace MultiPlatformApplication
                     path = Path.Combine(folderPathThumbnails, fileNameOnDisk);
                     if (File.Exists(path))
                     {
-                        //log.Debug("[GetThumbnailFullFilePath] File found for file descriptor id:[{0}] - path:[{1}]", fileDescriptorId, path);
+                        //log.LogDebug("[GetThumbnailFullFilePath] File found for file descriptor id:[{0}] - path:[{1}]", fileDescriptorId, path);
                         return path;
                     }
                     else
-                        log.Warn("[GetThumbnailFullFilePath] Thumbnail not exists for file descriptor id:[{0}] - path:[{1}]", fileDescriptorId, path);
+                        log.LogWarning("[GetThumbnailFullFilePath] Thumbnail not exists for file descriptor id:[{0}] - path:[{1}]", fileDescriptorId, path);
                 }
             }
             else
             {
-                log.Warn("[GetThumbnailFullFilePath] Cannot found file descriptor id:[{0}]", fileDescriptorId);
+                log.LogWarning("[GetThumbnailFullFilePath] Cannot found file descriptor id:[{0}]", fileDescriptorId);
             }
             return null;
         }

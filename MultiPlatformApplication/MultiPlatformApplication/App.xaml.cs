@@ -12,16 +12,16 @@ using MultiPlatformApplication.Assets;
 using MultiPlatformApplication.Helpers;
 using MultiPlatformApplication.Services;
 
-using NLog;
-
+using Microsoft.Extensions.Logging;
+using NLog.Config;
 
 [assembly: ExportFont("FontAwesomeSolid.5.15.3Enhanced.otf", Alias = "FontAwesomeSolid5")]
 
 namespace MultiPlatformApplication
 {
     public partial class App : Xamarin.Forms.Application
-    {         
-        private static Logger log;
+    {
+        private static ILogger log;
 
         // Create the navigation service
         internal NavigationService NavigationService { get; } = new NavigationService();
@@ -46,25 +46,25 @@ namespace MultiPlatformApplication
             // Get app foldr path in order to init logs
             string appFolderPath = Helper.GetAppFolderPath();
 
-            InitLogs(appFolderPath);
-            log = LogConfigurator.GetLogger(typeof(App));
-            log.Info("==============================================================");
-            log.Info("Application started - App Folder Path: [{0}] - Density:[{1}]", appFolderPath, density);
+            InitLogsWithNLog(appFolderPath);
+            log = Rainbow.LogFactory.CreateLogger<App>();
+            log.LogInformation("==============================================================");
+            log.LogInformation("Application started - App Folder Path: [{0}] - Density:[{1}]", appFolderPath, density);
 
             switch(Device.RuntimePlatform)
             {
                 case Device.iOS:
                 case Device.Android:
                 case Device.UWP:
-                    log.Info("Device Info - Platform:[{0}] - Model:[{1}] - OS Version:[{2}] - Type:[{3}]", DeviceInfo.Platform, DeviceInfo.Model, DeviceInfo.VersionString, DeviceInfo.DeviceType);
+                    log.LogInformation("Device Info - Platform:[{0}] - Model:[{1}] - OS Version:[{2}] - Type:[{3}]", DeviceInfo.Platform, DeviceInfo.Model, DeviceInfo.VersionString, DeviceInfo.DeviceType);
                     break;
                 case Device.WPF:
                     // TODO: add more info
-                    log.Info("Device Info - Platform: WPF");
+                    log.LogInformation("Device Info - Platform: WPF");
                     break;
                 case Device.macOS:
                     // TODO: add more info
-                    log.Info("Device Info - Platform: macOS");
+                    log.LogInformation("Device Info - Platform: macOS");
                     break;
             }
 
@@ -135,47 +135,70 @@ namespace MultiPlatformApplication
             catch { }
         }
 
-        private void InitLogs(String folder)
+        static Boolean InitLogsWithNLog(String folder)
         {
-            String logFileName = "MultiPlatformApplication.log"; // File name of the log file
-            String archiveLogFileName = "MultiPlatformApplication_{###}.log"; // File name of the archive log file
-            String logConfigFileName = "NLogConfiguration.xml"; // File path to log configuration
+            String logConfigFileName = "NLogConfiguration.xml";
 
-            String logConfigContent; // Content of the log file configuration
-            String logFullPathFileName; // Full path to log file
-            String archiveLogFullPathFileName; ; // Full path to archive log file 
+            String logFileName = "MultiPlatformApplication"; // File name of the log file
+            String suffixWebRtc = "_WebRTC";
+            String suffixArchive = "_{###}";
+            String extension = ".log";
+
             try
             {
-                //String tempFolder = System.Environment.GetFolderPath(System.Environment.SpecialFolder.ApplicationData);
-                Directory.CreateDirectory(folder);
-
-                // Set full path to log file name
-                logFullPathFileName = Path.Combine(folder, logFileName);
-                archiveLogFullPathFileName = Path.Combine(folder, archiveLogFileName);
-
                 // Get content of the log file configuration
-                logConfigContent = Helper.GetContentOfEmbeddedResource(logConfigFileName, Encoding.UTF8);
+                String logConfigContent = Helper.GetContentOfEmbeddedResource(logConfigFileName, Encoding.UTF8);
 
                 // Load XML in XMLDocument
                 XmlDocument doc = new XmlDocument();
                 doc.LoadXml(logConfigContent);
 
-                // Set full path to log file in XML element
-                XmlElement targetElement = doc["nlog"]["targets"]["target"];
-                targetElement.SetAttribute("name", Rainbow.LogConfigurator.GetRepositoryName());    // Set target name equals to RB repository name
-                targetElement.SetAttribute("fileName", logFullPathFileName);                        // Set full path to log file
-                targetElement.SetAttribute("archiveFileName", archiveLogFullPathFileName);          // Set full path to archive log file
+                XmlElement targetElement = doc["nlog"]["targets"];
+                var targetsList = targetElement.ChildNodes;
+                foreach(var target in targetsList)
+                {
+                    if(target is XmlElement xmlElement)
+                    {
+                        var name = xmlElement.GetAttribute("name");
+                        if(name?.Contains("WEBRTC") == true)
+                        {
+                            var filename = Path.Combine(folder, logFileName + suffixWebRtc + extension);
+                            var archiveFilename = Path.Combine(folder, logFileName + suffixWebRtc + suffixArchive + extension);
+                            xmlElement.SetAttribute("fileName", filename);
+                            xmlElement.SetAttribute("archiveFileName", archiveFilename);
+                        }
+                        else
+                        {
+                            var filename = Path.Combine(folder, logFileName + extension);
+                            var archiveFilename = Path.Combine(folder, logFileName + suffixArchive + extension);
+                            xmlElement.SetAttribute("fileName", filename);
+                            xmlElement.SetAttribute("archiveFileName", archiveFilename);
+                        }
+                    }
+                }
 
-                XmlElement loggerElement = doc["nlog"]["rules"]["logger"];
-                loggerElement.SetAttribute("writeTo", Rainbow.LogConfigurator.GetRepositoryName()); // Write to RB repository name
+                // Create NLog configuration using XML file content
+                XmlLoggingConfiguration config = XmlLoggingConfiguration.CreateFromXmlString(doc.OuterXml);
+                if (config.InitializeSucceeded == true)
+                {
+                    // Set NLog configuration
+                    NLog.LogManager.Configuration = config;
 
-                // Set the configuration
-                Boolean logInit = Rainbow.LogConfigurator.Configure(doc.OuterXml);
+                    // Create Logger factory
+                    var factory = new NLog.Extensions.Logging.NLogLoggerFactory();
+
+                    // Set Logger factory to Rainbow SDK
+                    Rainbow.LogFactory.Set(factory);
+
+                    return true;
+                }
             }
-            catch
-            {
-            }
+            catch { }
+
+            return false;
         }
+
+        
 
         protected override void OnStart()
         {

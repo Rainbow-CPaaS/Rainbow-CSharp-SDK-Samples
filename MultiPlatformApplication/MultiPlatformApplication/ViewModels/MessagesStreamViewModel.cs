@@ -4,7 +4,7 @@ using MultiPlatformApplication.Events;
 using MultiPlatformApplication.Helpers;
 using MultiPlatformApplication.Models;
 using MultiPlatformApplication.Services;
-using NLog;
+using Microsoft.Extensions.Logging;
 using Rainbow;
 using Rainbow.Events;
 using Rainbow.Model;
@@ -24,7 +24,8 @@ namespace MultiPlatformApplication.ViewModels
     [XamlCompilation(XamlCompilationOptions.Compile)]
     public class MessagesStreamViewModel
     {
-        private static readonly Logger log = LogConfigurator.GetLogger(typeof(MessagesStreamViewModel));
+        private static readonly ILogger log = Rainbow.LogFactory.CreateLogger<MessagesStreamViewModel>();
+
         private static readonly int NB_MESSAGE_LOADED_BY_ROW = 20;
 
         private FilesUpload FilesUpload;
@@ -34,9 +35,7 @@ namespace MultiPlatformApplication.ViewModels
 
         private Boolean capabilityFileSharing;
         private Boolean capabilityFileStorage;
-        private Boolean capabilityMessageUrgencyReception;
         private Boolean capabilityReadReceipt;
-        private Boolean capabilityMessageUrgencySending;
 
         ContextMenuModel ContextMenuModelMessageAction = new ContextMenuModel();
         Controls.ContextMenu ContextMenuMessageAction = null;
@@ -80,9 +79,7 @@ namespace MultiPlatformApplication.ViewModels
 
             capabilityFileSharing = Helper.SdkWrapper.IsCapabilityAvailable(Rainbow.Model.Contact.Capability.FileSharing);
             capabilityFileStorage = Helper.SdkWrapper.IsCapabilityAvailable(Rainbow.Model.Contact.Capability.FileStorage);
-            capabilityMessageUrgencyReception = Helper.SdkWrapper.IsCapabilityAvailable(Rainbow.Model.Contact.Capability.MessageUrgencyReception);
             capabilityReadReceipt = Helper.SdkWrapper.IsCapabilityAvailable(Rainbow.Model.Contact.Capability.ReadReceipt);
-            capabilityMessageUrgencySending = Helper.SdkWrapper.IsCapabilityAvailable(Rainbow.Model.Contact.Capability.MessageUrgencySending);
 
             // Need to deal with filesUpload
             FilesUpload = FilesUpload.Instance;
@@ -591,7 +588,7 @@ namespace MultiPlatformApplication.ViewModels
             MessageElementModel message = null;
             if (rbMessage != null)
             {
-                //log.Debug("[GetMessageFromRBMessage] Message.Id:[{0}] - Message.ReplaceId:[{1}] - DateTime:[{2}] - Content:[{3}]", rbMessage.Id, rbMessage.ReplaceId, rbMessage.Date.ToString("o"), rbMessage.Content);
+                //log.LogDebug("[GetMessageFromRBMessage] Message.Id:[{0}] - Message.ReplaceId:[{1}] - DateTime:[{2}] - Content:[{3}]", rbMessage.Id, rbMessage.ReplaceId, rbMessage.Date.ToString("o"), rbMessage.Content);
 
                 message = new MessageElementModel();
 
@@ -620,7 +617,7 @@ namespace MultiPlatformApplication.ViewModels
                 }
                 else
                 {
-                    log.Debug("[GetMessageFromRBMessage] Unknown Contact - Jid :[{0}] - MessageId:[{1}]", rbMessage.FromJid, rbMessage.Id);
+                    log.LogDebug("[GetMessageFromRBMessage] Unknown Contact - Jid :[{0}] - MessageId:[{1}]", rbMessage.FromJid, rbMessage.Id);
 
                     // We ask to have more info about this contact usin AvatarPool
                     Helper.SdkWrapper.AddUnknownContactToPoolByJid(rbMessage.FromJid);
@@ -644,12 +641,8 @@ namespace MultiPlatformApplication.ViewModels
                 }
                 else
                 {
-                    // Display Emergency message s Std message if user has not the right to see them
-                     
-                    if ( (rbMessage.Urgency == UrgencyType.High) && (!capabilityMessageUrgencyReception) )
-                        message.Content.Urgency = UrgencyType.Std;
-                    else
-                        message.Content.Urgency = rbMessage.Urgency;
+                    // Store Urgency
+                    message.Content.Urgency = rbMessage.Urgency;
 
                     if (!String.IsNullOrEmpty(rbMessage.Content))
                     {
@@ -762,7 +755,7 @@ namespace MultiPlatformApplication.ViewModels
                         }
                         catch
                         {
-                            log.Warn("[MessageInput_MessageToSend] Cannot create stream object for this file:[{0}]", attachment.FullPath);
+                            log.LogWarning("[MessageInput_MessageToSend] Cannot create stream object for this file:[{0}]", attachment.FullPath);
                         }
                     }
                     if (filesUploadList.Count > 0)
@@ -1184,9 +1177,24 @@ namespace MultiPlatformApplication.ViewModels
 
             String urgencyType;
 
+
+            Boolean canSendEmergency = false;
+            if(rbConversation.Type == Conversation.ConversationType.User)
+            {
+                var contact = Helper.SdkWrapper.GetContactFromContactId(rbConversation.PeerId);
+                if (contact?.IsAlertNotificationEnabled == true)
+                    canSendEmergency = true;
+            }
+            else if (rbConversation.Type == Conversation.ConversationType.Room)
+            {
+                var bubble = Helper.SdkWrapper.GetBubbleByIdFromCache(rbConversation.PeerId);
+                if (bubble?.IsAlertNotificationEnabled == true)
+                    canSendEmergency = true;
+            }
+
             urgencyType = UrgencyType.High.ToString();
             Helper.GetUrgencyInfo(urgencyType, out backgroundColor, out color, out title, out label, out imageSourceId);
-            ContextMenuModel = new ContextMenuItemModel() { Id = urgencyType, ImageSourceId = imageSourceId, Title = title, Description = label, TextColor = color, isVisible = capabilityMessageUrgencySending };
+            ContextMenuModel = new ContextMenuItemModel() { Id = urgencyType, ImageSourceId = imageSourceId, Title = title, Description = label, TextColor = color, isVisible = canSendEmergency };
             ContextMenuModelUrgency.Add(ContextMenuModel);
 
             urgencyType = UrgencyType.Middle.ToString();
@@ -1247,7 +1255,7 @@ namespace MultiPlatformApplication.ViewModels
         {
             if (e.ConversationId == conversationId)
             {
-                log.Debug("[SdkWrapper_MessageReceived] - FromJId:[{0}] - ToJid:[{1}] - CarbonCopy:[{2}] - Message.Id:[{3}] - Message.ReplaceId:[{4}]", e.Message.FromJid, e.Message.ToJid, e.CarbonCopy, e.Message.Id, e.Message.ReplaceId);
+                log.LogDebug("[SdkWrapper_MessageReceived] - FromJId:[{0}] - ToJid:[{1}] - CarbonCopy:[{2}] - Message.Id:[{3}] - Message.ReplaceId:[{4}]", e.Message.FromJid, e.Message.ToJid, e.CarbonCopy, e.Message.Id, e.Message.ReplaceId);
 
                 // Mark  the message as read
                 if(e.Message.FromJid != currentContactJid)
@@ -1315,7 +1323,7 @@ namespace MultiPlatformApplication.ViewModels
                 // Check if it's related to this conversation
                 if (e.Values[0] == rbConversation?.PeerId)
                 {
-                    log.Debug("[FilesUpload_FileDescriptorCreated] PeerId:[{0}] - FileDescriptorId:[{1}]", e.Values[0], e.Values[1]);
+                    log.LogDebug("[FilesUpload_FileDescriptorCreated] PeerId:[{0}] - FileDescriptorId:[{1}]", e.Values[0], e.Values[1]);
 
                     // Get FileUploadModel
                     FileUploadModel fileUploadModel = FilesUpload.GetFileUploadByFileDescriptorId(e.Values[1]);
@@ -1336,7 +1344,7 @@ namespace MultiPlatformApplication.ViewModels
             // Check if it's related to this conversation
             if (e.PeerId == rbConversation?.PeerId)
             {
-                log.Debug("[SdkWrapper_FileUploadUpdated] PeerId:[{0}] - InProgress:[{1}] - Completed:[{2}] - SizeUploaded:[{3}]", e.PeerId, e.InProgress, e.Completed, e.SizeUploaded);
+                log.LogDebug("[SdkWrapper_FileUploadUpdated] PeerId:[{0}] - InProgress:[{1}] - Completed:[{2}] - SizeUploaded:[{3}]", e.PeerId, e.InProgress, e.Completed, e.SizeUploaded);
             }
         }
 
@@ -1348,7 +1356,7 @@ namespace MultiPlatformApplication.ViewModels
                 // Check if it's related to this conversation
                 if (e.Values[0] == rbConversation?.PeerId)
                 {
-                    log.Warn("[FilesUpload_FileDescriptorCreated] PeerId:[{0}] - FileName:[{1}]", e.Values[0], e.Values[1]);
+                    log.LogWarning("[FilesUpload_FileDescriptorCreated] PeerId:[{0}] - FileName:[{1}]", e.Values[0], e.Values[1]);
                 }
             }
         }
@@ -1361,7 +1369,7 @@ namespace MultiPlatformApplication.ViewModels
                 // Check if it's related to this conversation
                 if (e.Values[0] == rbConversation?.PeerId)
                 {
-                    log.Warn("[FilesUpload_FileDescriptorCreated] PeerId:[{0}] - FileName:[{1}] - FileDescriptorId:[{2}]", e.Values[0], e.Values[1], e.Values[2]);
+                    log.LogWarning("[FilesUpload_FileDescriptorCreated] PeerId:[{0}] - FileName:[{1}] - FileDescriptorId:[{2}]", e.Values[0], e.Values[1], e.Values[2]);
                 }
             }
         }

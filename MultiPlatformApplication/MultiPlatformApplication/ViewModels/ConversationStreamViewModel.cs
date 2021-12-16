@@ -1,6 +1,6 @@
 ﻿using MultiPlatformApplication.Helpers;
 using MultiPlatformApplication.Models;
-using NLog;
+using Microsoft.Extensions.Logging;
 using Rainbow;
 using Rainbow.Common;
 using Rainbow.Model;
@@ -19,7 +19,7 @@ namespace MultiPlatformApplication.ViewModels
     [XamlCompilation(XamlCompilationOptions.Compile)]
     public class ConversationStreamViewModel: MessageElementModel
     {
-        private static readonly Logger log = LogConfigurator.GetLogger(typeof(ConversationStreamViewModel));
+        private static readonly ILogger log = Rainbow.LogFactory.CreateLogger<ConversationStreamViewModel>();
 
         private ConversationModel conversationModel;
 

@@ -522,9 +522,14 @@ namespace MultiPlatformApplication
             return null;
         }
 
+        virtual public Bubble GetBubbleByIdFromCache(string bubbleId)
+            {
+            return null;
+        }
+
     #endregion WRAPPER - BUBBLES
 
-        #region WRAPPER - CONTACTS
+    #region WRAPPER - CONTACTS
 
         virtual public String GetCurrentContactId()
         {

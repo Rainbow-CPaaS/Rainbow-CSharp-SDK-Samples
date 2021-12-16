@@ -6,7 +6,7 @@ using Xamarin.Forms;
 
 using Rainbow;
 
-using NLog;
+using Microsoft.Extensions.Logging;
 using MultiPlatformApplication.Helpers;
 using System.Windows.Input;
 
@@ -14,7 +14,7 @@ namespace MultiPlatformApplication.Models
 {
     public class ConversationModel : ObservableObject
     {
-        private static readonly Logger log = LogConfigurator.GetLogger(typeof(ConversationModel));
+        private static readonly ILogger log = Rainbow.LogFactory.CreateLogger<ConversationModel>();
 
         String id;
         PeerModel peer;

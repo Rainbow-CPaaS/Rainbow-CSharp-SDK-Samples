@@ -1,6 +1,6 @@
 ﻿using MultiPlatformApplication.Helpers;
 using MultiPlatformApplication.Models;
-using NLog;
+using Microsoft.Extensions.Logging;
 using Rainbow;
 using Rainbow.Common;
 using Rainbow.Model;
@@ -18,7 +18,8 @@ namespace MultiPlatformApplication.Controls
     [XamlCompilation(XamlCompilationOptions.Compile)]
     public partial class MessageContentReply : ContentView
     {
-        private static readonly Logger log = LogConfigurator.GetLogger(typeof(MessageContentReply));
+        private static readonly ILogger log = Rainbow.LogFactory.CreateLogger<MessageContentReply>();
+
         private static readonly int MAX_IMAGE_SIZE = 60;
 
         private MessageElementModel message;
@@ -84,7 +85,7 @@ namespace MultiPlatformApplication.Controls
 
                     if (rbRepliedMessage != null)
                     {
-                        log.Debug("[MessageContentReply_BindingContextChanged] Id:[{0}] - Reply.Id:[{1}] - Content:[2}]", message.Id, message.Reply.Id, rbRepliedMessage.Content);
+                        log.LogDebug("[MessageContentReply_BindingContextChanged] Id:[{0}] - Reply.Id:[{1}] - Content:[2}]", message.Id, message.Reply.Id, rbRepliedMessage.Content);
                         SetReplyPartOfMessage(rbRepliedMessage);
                     }
                     else
@@ -102,7 +103,7 @@ namespace MultiPlatformApplication.Controls
                     Rainbow.Model.Message rbMessage = callback.Data;
                     if (rbMessage != null)
                     {
-                        log.Debug("[AskMessageInfo] Id:[{0}] - Reply.Id:[{1}] - Content:[2}]", message.Id, message.Reply.Id, rbMessage.Content);
+                        log.LogDebug("[AskMessageInfo] Id:[{0}] - Reply.Id:[{1}] - Content:[2}]", message.Id, message.Reply.Id, rbMessage.Content);
                         SetReplyPartOfMessage(rbMessage);
                     }
                 }
@@ -202,12 +203,12 @@ namespace MultiPlatformApplication.Controls
             else
                 message.Reply.Content.Body = Helper.ReplaceCRLFFromString(rbRepliedMessage.Content, " ");
 
-            log.Debug("[SetReplyPartOfMessage] - message.Id:[{0}] - replyMsgId:[{1}] - replyBody:[{2}] - ContactJid:[{3}]", message.Id, rbRepliedMessage.Id, message.Reply.Content.Body, rbRepliedMessage.FromJid);
+            log.LogDebug("[SetReplyPartOfMessage] - message.Id:[{0}] - replyMsgId:[{1}] - replyBody:[{2}] - ContactJid:[{3}]", message.Id, rbRepliedMessage.Id, message.Reply.Content.Body, rbRepliedMessage.FromJid);
 
 
             if (!UpdateContactInfo())
             {
-                log.Debug("[SetReplyPartOfMessage] - message.Id:[{0}] - replyMsgId:[{1}] - Unknown Contact Jid:[{2}]", message.Id, rbRepliedMessage.Id, rbRepliedMessage.FromJid);
+                log.LogDebug("[SetReplyPartOfMessage] - message.Id:[{0}] - replyMsgId:[{1}] - Unknown Contact Jid:[{2}]", message.Id, rbRepliedMessage.Id, rbRepliedMessage.FromJid);
 
                 // We ask to have more info about this contact using AvatarPool
                 Helper.SdkWrapper.AddUnknownContactToPoolByJid(rbRepliedMessage.FromJid);
@@ -250,7 +251,7 @@ namespace MultiPlatformApplication.Controls
             string filePath = Helper.SdkWrapper.GetThumbnailFullFilePath(attachmentId);
             try
             {
-                log.Debug("[DisplayThumbnail] FileId:[{0}] - Use filePath:[{1}]", attachmentId, filePath);
+                log.LogDebug("[DisplayThumbnail] FileId:[{0}] - Use filePath:[{1}]", attachmentId, filePath);
                 System.Drawing.Size size = ImageTools.GetImageSize(filePath);
                 if ((size.Width > 0) && (size.Height > 0))
                 {

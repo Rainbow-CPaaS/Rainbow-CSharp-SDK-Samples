@@ -12,7 +12,7 @@ using Rainbow.Model;
 
 using MultiPlatformApplication.Helpers;
 using MultiPlatformApplication.Models;
-using NLog;
+using Microsoft.Extensions.Logging;
 using Rainbow;
 
 
@@ -21,7 +21,7 @@ namespace MultiPlatformApplication.Controls
     [XamlCompilation(XamlCompilationOptions.Compile)]
     public partial class Avatar : ContentView
     {
-        private static readonly Logger log = LogConfigurator.GetLogger(typeof(Avatar));
+        private static readonly ILogger log = Rainbow.LogFactory.CreateLogger<Avatar>();
 
         PeerModel peer;
         Boolean manageAvatarDisplay = false;
@@ -193,7 +193,7 @@ namespace MultiPlatformApplication.Controls
             {
                 peer.Id = e.Peer.Id;
 
-                log.Debug("[SdkWrapper_PeerAvatarUpdated] Jid:[{0}]", peer.Jid);
+                log.LogDebug("[SdkWrapper_PeerAvatarUpdated] Jid:[{0}]", peer.Jid);
                 UpdateAvatarImageDisplay();
             }
         }

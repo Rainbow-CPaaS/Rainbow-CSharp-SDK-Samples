@@ -1,6 +1,6 @@
 ﻿using MultiPlatformApplication.Helpers;
 using MultiPlatformApplication.Models;
-using NLog;
+using Microsoft.Extensions.Logging;
 using Rainbow;
 using Rainbow.Events;
 using Rainbow.Model;
@@ -21,7 +21,7 @@ namespace MultiPlatformApplication.Services
     /// </summary>
     public sealed class FilesUpload
     {
-        private  readonly Logger log = LogConfigurator.GetLogger(typeof(FilesUpload));
+        private static readonly ILogger log = Rainbow.LogFactory.CreateLogger<FilesUpload>();
 
 #region PUBLIC EVENTS
         /// <summary>

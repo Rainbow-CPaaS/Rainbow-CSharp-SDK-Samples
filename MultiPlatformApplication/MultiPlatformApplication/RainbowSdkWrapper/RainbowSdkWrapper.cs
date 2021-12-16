@@ -9,14 +9,14 @@ using Rainbow.Model;
 
 using MultiPlatformApplication.Helpers;
 
-using NLog;
+using Microsoft.Extensions.Logging;
 
 
 namespace MultiPlatformApplication
 {
     public class RainbowSdkWrapper : SdkWrapper
     {
-        private static readonly Logger log = LogConfigurator.GetLogger(typeof(RainbowSdkWrapper));
+        private static readonly ILogger log = Rainbow.LogFactory.CreateLogger<RainbowSdkWrapper>();
 
         // Define all Rainbow objects we use
         internal Rainbow.Application RbApplication = null;
@@ -519,6 +519,11 @@ namespace MultiPlatformApplication
             return RbBubbles.GetBubbleByJidFromCache(bubbleJid);
         }
 
+        override public Bubble GetBubbleByIdFromCache(string bubbleId)
+        {
+            return RbBubbles.GetBubbleByIdFromCache(bubbleId);
+        }
+
     #endregion WRAPPER - BUBBLES
 
     #region WRAPPER - CONTACTS
@@ -606,7 +611,7 @@ namespace MultiPlatformApplication
             RbAvatars.PeerAvatarUpdated += RbAvatars_PeerAvatarUpdated;
 
             if (!RbAvatars.Initialize())
-                log.Error("CANNOT initialize Avatars service ...");
+                log.LogError("CANNOT initialize Avatars service ...");
         }
 
         private void InitFilePool()
