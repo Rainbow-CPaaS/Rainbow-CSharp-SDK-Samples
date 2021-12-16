@@ -5,13 +5,13 @@ using System.Text;
 
 using Rainbow;
 
-using NLog;
+using Microsoft.Extensions.Logging;
 
 namespace MassProvisioning
 {
     static class FakeData
     {
-        private static readonly Logger log = LogConfigurator.GetLogger(typeof(FakeData));
+        private static readonly ILogger log = Rainbow.LogFactory.CreateLogger("FakeData");
         
         private static Random random;
 

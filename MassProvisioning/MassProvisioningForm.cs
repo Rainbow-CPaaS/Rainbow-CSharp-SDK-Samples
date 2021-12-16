@@ -13,14 +13,14 @@ using System.Xml;
 
 using Rainbow;
 
-using NLog;
+using Microsoft.Extensions.Logging;
 
 
 namespace MassProvisioning
 {
     public partial class MassProvisioningForm : Form
     {
-        private readonly static Logger log = LogConfigurator.GetLogger(typeof(MassProvisioningForm));
+        private static readonly ILogger log = Rainbow.LogFactory.CreateLogger<MassProvisioningForm>();
 
         // Define objects from the C# SDK
         private Rainbow.Application rbApplication;
@@ -72,8 +72,8 @@ namespace MassProvisioning
 
         public void Init()
         {
-            log.Info("==============================================================");
-            log.Info("MassProvisioning started");
+            log.LogInformation("==============================================================");
+            log.LogInformation("MassProvisioning started");
 
             // CHeck if we have all mandatory information:
             if (String.IsNullOrEmpty(ApplicationInfo.APP_ID)
@@ -127,7 +127,7 @@ namespace MassProvisioning
                 if (!String.IsNullOrEmpty(message))
                 {
                     tbLog.Text = message + "\r\n" + tbLog.Text;
-                    log.Info($"StatusMessage:[{message}]");
+                    log.LogInformation($"StatusMessage:[{message}]");
                 }
             }
         }
@@ -584,7 +584,7 @@ namespace MassProvisioning
                                     if (!bubblesNotCreated.Contains(id))
                                         bubblesNotCreated.Add(id);
                                 }
-                                log.Error($"Cannot create bubble: id/name:[{id} - Error:[{message}]");
+                                log.LogError($"Cannot create bubble: id/name:[{id} - Error:[{message}]");
 
                                 AddStatusMessage($"\t\t\t*** ERROR *** - Cannot create bubble: id/name:[{id} - Error:[{message}]");
                             }
@@ -713,7 +713,7 @@ namespace MassProvisioning
 
                         if(addMemberError)
                         { 
-                            log.Error($"Cannot set members to bubble: BubbleId:[{bubbleId}] -  BubbleName:[{bubbleName}] - Error:[{message}]");
+                            log.LogError($"Cannot set members to bubble: BubbleId:[{bubbleId}] -  BubbleName:[{bubbleName}] - Error:[{message}]");
 
                             AddStatusMessage($"\t\t*** ERROR *** - Cannot set members to bubble: BubbleId:[{bubbleId}] -  BubbleName:[{bubbleName}] - Error:[{message}]");
                         }
@@ -889,7 +889,7 @@ namespace MassProvisioning
                                     if (!teachersNotCreated.Contains(id))
                                         teachersNotCreated.Add(id);
                                 }
-                                log.Error($"Cannot create teacher: email:[{teacher.Email} - Error:[{message}]");
+                                log.LogError($"Cannot create teacher: email:[{teacher.Email} - Error:[{message}]");
 
                                 AddStatusMessage($"\t\t*** ERROR *** - Cannot create teacher: Id:[{id}] - Error:[{message}");
                             }
@@ -1026,7 +1026,7 @@ namespace MassProvisioning
                                     if (!studentsNotCreated.Contains(id))
                                         studentsNotCreated.Add(id);
                                 }
-                                log.Error($"Cannot create student: email:[{student.Email} - Error:[{message}]");
+                                log.LogError($"Cannot create student: email:[{student.Email} - Error:[{message}]");
 
                                 AddStatusMessage($"\t\t*** ERROR *** - Cannot create student: Id:[{id}] - Error:[{message}");
                             }
@@ -1106,7 +1106,7 @@ namespace MassProvisioning
                 {
                     if (!callback.Result.Success)
                     {
-                        log.Error($"Cannot delete company: companyId:[{RbCompany.Id}] - Error:[{message}]");
+                        log.LogError($"Cannot delete company: companyId:[{RbCompany.Id}] - Error:[{message}]");
 
                         AddStatusMessage($"\t\t*** ERROR *** - Cannot delete company: companyId:[{RbCompany.Id}] - Error:[{message}]");
                     }
@@ -1156,7 +1156,7 @@ namespace MassProvisioning
                     else
                     {
                         message = Util.SerializeSdkError(callback.Result);
-                        log.Error($"Cannot get the list of companies - Error[{message}]");
+                        log.LogError($"Cannot get the list of companies - Error[{message}]");
                     }
                     manualResetEvent.Set();
 
@@ -1209,7 +1209,7 @@ namespace MassProvisioning
                     else
                     {
                         message = Util.SerializeSdkError(callback.Result);
-                        log.Error($"Cannot get the list of users - Error[{message}]");
+                        log.LogError($"Cannot get the list of users - Error[{message}]");
                     }
                     manualResetEvent.Set();
 
@@ -1394,7 +1394,7 @@ namespace MassProvisioning
 
                         if (userDeletionError)
                         {
-                            log.Error($"Cannot delete user: userId:[{id}] - Error:[{message}]");
+                            log.LogError($"Cannot delete user: userId:[{id}] - Error:[{message}]");
 
                             AddStatusMessage($"\t\t*** ERROR *** - Cannot delete user: userId:[{id}]- Error:[{message}");
                         }
@@ -1468,7 +1468,7 @@ namespace MassProvisioning
                 else
                 {
                     message = Util.SerializeSdkError(callback.Result);
-                    log.Error($"Cannot get the list of members - Error[{message}]");
+                    log.LogError($"Cannot get the list of members - Error[{message}]");
                 }
 
                 manualResetEvent.Set();
@@ -1501,7 +1501,7 @@ namespace MassProvisioning
                 else
                 {
                     message = Util.SerializeSdkError(callback.Result);
-                    log.Error($"Cannot get the list of bubbles - Error[{message}]");
+                    log.LogError($"Cannot get the list of bubbles - Error[{message}]");
                 }
 
                 manualResetEvent.Set();

@@ -1,3 +1,4 @@
+using NLog.Config;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -21,56 +22,43 @@ namespace MassProvisioning
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-            InitLogs();
+            InitLogsWithNLog();
 
             Application.Run(new MassProvisioningForm());
         }
 
-        static void InitLogs()
+        static Boolean InitLogsWithNLog()
         {
-            String logFileName = "RainbowMassProvisioning.log"; // File name of the log file
-            String archiveLogFileName = "RainbowMassProvisioning_{###}.log"; // File name of archive log file
-
-            //String logConfigFilePath = @"..\..\..\log4netConfiguration.xml"; // File path to log configuration
-            String logConfigFilePath = @"..\..\..\..\NLogConfiguration.xml"; // File path to log configuration
-
-            String logConfigContent; // Content of the log file configuration
-            String logFolderPath = ""; // Folder path which will contains log files;
-            String logFullPathFileName = ""; // Full path to log file
-            String archiveLogFullPathFileName = ""; // Full path to archive file
+            String logConfigFilePath = @"..\..\..\NLogConfiguration.xml"; // File path to log configuration (or you could alos use an embedded resource)
 
             try
             {
-                // Set folder path where log files are stored
-                logFolderPath = Path.GetDirectoryName(Application.ExecutablePath);
-
-                // Set full path to log file name
-                logFullPathFileName = Path.Combine(logFolderPath, logFileName);
-                archiveLogFullPathFileName = Path.Combine(logFolderPath, archiveLogFileName);
-
-                // Get content of the log file configuration
-                using (FileStream stream = File.OpenRead(logConfigFilePath))
+                if (File.Exists(logConfigFilePath))
                 {
-                    logConfigContent = File.ReadAllText(logConfigFilePath, System.Text.Encoding.UTF8);
+                    // Get content of the log file configuration
+                    String logConfigContent = File.ReadAllText(logConfigFilePath, System.Text.Encoding.UTF8);
+
+                    // Create NLog configuration using XML file content
+                    XmlLoggingConfiguration config = XmlLoggingConfiguration.CreateFromXmlString(logConfigContent);
+                    if (config.InitializeSucceeded == true)
+                    {
+                        // Set NLog configuration
+                        NLog.LogManager.Configuration = config;
+
+                        // Create Logger factory
+                        var factory = new NLog.Extensions.Logging.NLogLoggerFactory();
+
+                        // Set Logger factory to Rainbow SDK
+                        Rainbow.LogFactory.Set(factory);
+
+                        return true;
+                    }
                 }
-
-                // Load XML in XMLDocument
-                XmlDocument doc = new XmlDocument();
-                doc.LoadXml(logConfigContent);
-
-                // Set full path to log file in XML element
-                XmlElement targetElement = doc["nlog"]["targets"]["target"];
-                targetElement.SetAttribute("name", Rainbow.LogConfigurator.GetRepositoryName());
-                targetElement.SetAttribute("fileName", logFullPathFileName);
-                targetElement.SetAttribute("archiveFileName", archiveLogFullPathFileName);
-
-                XmlElement loggerElement = doc["nlog"]["rules"]["logger"];
-                loggerElement.SetAttribute("writeTo", Rainbow.LogConfigurator.GetRepositoryName());
-
-                Boolean intitlog = Rainbow.LogConfigurator.Configure(doc.OuterXml);
             }
             catch { }
 
+            return false;
         }
+
     }
 }

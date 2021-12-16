@@ -7,13 +7,13 @@ using Newtonsoft.Json;
 
 using Rainbow;
 
-using NLog;
+using Microsoft.Extensions.Logging;
 
 namespace MassProvisioning
 {
     static class DataStorage
     {
-        private static readonly Logger log = LogConfigurator.GetLogger(typeof(DataStorage));
+        private static readonly ILogger log = Rainbow.LogFactory.CreateLogger("DataStorage");
 
 
 #region PUBLIC METHODS
@@ -71,7 +71,7 @@ namespace MassProvisioning
             }
             catch (Exception e)
             {
-                log.Warn("[StoreObjectToFile] Cannot store object - Error[{0}]", Rainbow.Util.SerializeException(e));
+                log.LogWarning("[StoreObjectToFile] Cannot store object - Error[{0}]", Rainbow.Util.SerializeException(e));
             }
         }
 
@@ -90,7 +90,7 @@ namespace MassProvisioning
             }
             catch (Exception e)
             {
-                log.Warn("[RestoreObjectFromFile] Error[{0}]", Rainbow.Util.SerializeException(e));
+                log.LogWarning("[RestoreObjectFromFile] Error[{0}]", Rainbow.Util.SerializeException(e));
             }
 
             return result;
