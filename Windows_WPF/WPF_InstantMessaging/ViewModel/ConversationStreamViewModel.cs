@@ -8,13 +8,13 @@ using InstantMessaging.Model;
 
 using Rainbow;
 
-using NLog;
+using Microsoft.Extensions.Logging;
 
 namespace InstantMessaging.ViewModel
 {
     class ConversationStreamViewModel
     {
-        private static readonly Logger log = LogConfigurator.GetLogger(typeof(ConversationStreamViewModel));
+        private static readonly ILogger log = Rainbow.LogFactory.CreateLogger<ConversationStreamViewModel>();
 
         public RangeObservableCollection<MessageViewModel> MessagesList { get; set; } // Need to be public - Used as Binding from XAML
 

@@ -5,7 +5,7 @@ using SDK.WpfApp.ViewModel;
 
 using Rainbow;
 
-using NLog;
+using Microsoft.Extensions.Logging;
 
 namespace SDK.WpfApp
 {
@@ -14,7 +14,7 @@ namespace SDK.WpfApp
     /// </summary>
     public partial class MainWindow : Window
     {
-        private static readonly Logger log = LogConfigurator.GetLogger(typeof(MainWindow));
+        private static readonly ILogger log = Rainbow.LogFactory.CreateLogger<MainWindow>();
 
         private AppViewModel AppViewModel = null;
 
@@ -70,21 +70,21 @@ namespace SDK.WpfApp
             rbAvatars.AllowToAskInfoForUnknownContact(true);
             rbAvatars.AllowToAskInfoAboutUnknowBubble(true);
 
-            rbAvatars.ContactAvatarUpdated += Avatars_ContactAvatarUpdated;
+            rbAvatars.PeerAvatarUpdated += RbAvatars_PeerAvatarUpdated;
 
             if (!rbAvatars.Initialize())
-                log.Error("CANNOT initialize Avatars service ...");
+                log.LogError("CANNOT initialize Avatars service ...");
 
             // We can now specify the avatars path
             webRtcControl.SetContactAvatarFolderPath(rbAvatars.GetAvatarsFolderPath(Rainbow.Common.Avatars.AvatarType.ROUNDED, true));
             webRtcControl.SetUnknownAvatarFilePath(rbAvatars.GetUnknwonContactAvatarFilePath());
         }
 
-    #region EVENT FROM AVATARS SERVICE
-        private void Avatars_ContactAvatarUpdated(object sender, Rainbow.Events.IdEventArgs e)
+        #region EVENT FROM AVATARS SERVICE
+        private void RbAvatars_PeerAvatarUpdated(object sender, Rainbow.Events.PeerEventArgs e)
         {
-            if (e.Id == AppViewModel.UsersModel.CurrentContactId)
-                webRtcControl.UpdateContactAvatarDisplay(e.Id);
+            if (e.Peer.Id == AppViewModel.UsersModel.CurrentContactId)
+                webRtcControl.UpdateContactAvatarDisplay(e.Peer.Id);
         }
 
     #endregion EVENT FROM AVATARS SERVICE

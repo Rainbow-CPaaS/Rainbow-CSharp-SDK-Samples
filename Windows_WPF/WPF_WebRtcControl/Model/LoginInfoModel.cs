@@ -5,7 +5,7 @@ using System.Windows.Input;
 
 using Rainbow;
 
-using NLog;
+using Microsoft.Extensions.Logging;
 
 namespace SDK.WpfApp.Model
 {
@@ -137,14 +137,14 @@ namespace SDK.WpfApp.Model
             else
                 CanUseLoginLogoutButton = false;
 
-            //log.Debug("[CheckCanUseLoginOrLogoutButton] CanUseLoginLogoutButton:[{0}]", CanUseLoginLogoutButton.ToString());
+            //log.LogDebug("[CheckCanUseLoginOrLogoutButton] CanUseLoginLogoutButton:[{0}]", CanUseLoginLogoutButton.ToString());
         }
 
         private void CheckCanUseLoginAndPwdTextBlock()
         {
             CanUseLoginAndPwdTextBox = (ConnectionState == Rainbow.Model.ConnectionState.Disconnected);
 
-            //log.Debug("[CheckCanUseLoginAndPwdTextBlock] CanUseLoginAndPwdTextBox:[{0}]", CanUseLoginAndPwdTextBox.ToString());
+            //log.LogDebug("[CheckCanUseLoginAndPwdTextBlock] CanUseLoginAndPwdTextBox:[{0}]", CanUseLoginAndPwdTextBox.ToString());
         }
 
         private void UpdateButtonLoginOrLogoutText()
@@ -160,7 +160,7 @@ namespace SDK.WpfApp.Model
             else
                 ButtonLoginOrLogoutText = "Disconnect";
 
-            //log.Debug("[UpdateButtonLoginOrLogoutText] ButtonLoginOrLogoutText:[{0}] - InitialisationCompleted:[{1}]", ButtonLoginOrLogoutText, InitialisationCompleted);
+            //log.LogDebug("[UpdateButtonLoginOrLogoutText] ButtonLoginOrLogoutText:[{0}] - InitialisationCompleted:[{1}]", ButtonLoginOrLogoutText, InitialisationCompleted);
         }
     }
 }

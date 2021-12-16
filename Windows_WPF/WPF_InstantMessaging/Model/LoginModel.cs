@@ -7,14 +7,14 @@ using InstantMessaging.Helpers;
 using Rainbow;
 using Rainbow.Model;
 
-using NLog;
+using Microsoft.Extensions.Logging;
 using System.Windows;
 
 namespace InstantMessaging.Model
 {
     public class LoginModel: ObservableObject
     {
-        private static readonly Logger log = LogConfigurator.GetLogger(typeof(LoginModel));
+        private static readonly ILogger log = Rainbow.LogFactory.CreateLogger<LoginModel>();
         App CurrentApplication = (App)System.Windows.Application.Current;
         IniFileParser iniFileParser;
 
@@ -220,7 +220,7 @@ namespace InstantMessaging.Model
                 {
                     if (!callback.Result.Success)
                     {
-                        log.Warn("[RbApplication_InitializationPerformed] Cannot get all conversations");
+                        log.LogWarning("[RbApplication_InitializationPerformed] Cannot get all conversations");
                     }
                     manualEventConversations.Set();
                 });
@@ -229,7 +229,7 @@ namespace InstantMessaging.Model
                 {
                     if (!callback.Result.Success)
                     {
-                        log.Warn("[RbApplication_InitializationPerformed] Cannot get all bubbles");
+                        log.LogWarning("[RbApplication_InitializationPerformed] Cannot get all bubbles");
                     }
                     manualEventBubbles.Set();
                 });

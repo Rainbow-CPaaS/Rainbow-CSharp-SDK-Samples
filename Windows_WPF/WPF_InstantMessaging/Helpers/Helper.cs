@@ -9,15 +9,14 @@ using InstantMessaging.ViewModel;
 
 using Rainbow;
 using Rainbow.Model;
-
-using NLog;
-
+using Microsoft.Extensions.Logging;
 
 namespace InstantMessaging.Helpers
 {
     public static class Helper
     {
-        private static readonly Logger log = LogConfigurator.GetLogger(typeof(Helper));
+        
+        private static readonly ILogger log = Rainbow.LogFactory.CreateLogger("Helper");
 
         public static String GetTempFolder()
         {
@@ -271,7 +270,7 @@ namespace InstantMessaging.Helpers
                         else
                         {
                             // We ask to have more info about this contact using AvatarPool
-                            log.Debug("[GetFavoriteFromRbFavorite] - unknown contact - contactId:[{0}]", rbConversation.PeerId);
+                            log.LogDebug("[GetFavoriteFromRbFavorite] - unknown contact - contactId:[{0}]", rbConversation.PeerId);
                             avatarPool.AddUnknownContactToPoolById(rbConversation.PeerId);
 
                             // Try to get info from pool
@@ -287,7 +286,7 @@ namespace InstantMessaging.Helpers
                     else
                     {
                         //TODO (bot case)
-                        log.Debug("[GetFavoriteFromRbFavorite] Conversation from model not created - Id:[{0}]", rbConversation.Id);
+                        log.LogDebug("[GetFavoriteFromRbFavorite] Conversation from model not created - Id:[{0}]", rbConversation.Id);
                         return null;
                     }
                 }
@@ -310,7 +309,7 @@ namespace InstantMessaging.Helpers
                         result.NbMsgUnread = 0;
                         result.PresenceSource = "";
 
-                        log.Warn("[GetFavoriteFromRbFavorite] Cannot get Conversation or Bubble object from Favorite - FavoriteId:[{0}] - FavoritePeerId:[{1}]", rbFavorite.Id, rbFavorite.PeerId);
+                        log.LogWarning("[GetFavoriteFromRbFavorite] Cannot get Conversation or Bubble object from Favorite - FavoriteId:[{0}] - FavoritePeerId:[{1}]", rbFavorite.Id, rbFavorite.PeerId);
                     }
 
                     //TODO - need to get conversation ?
@@ -360,7 +359,7 @@ namespace InstantMessaging.Helpers
                     else
                     {
                         // We ask to have more info about this contact using AvatarPool
-                        log.Debug("[GetConversationFromRBConversation] - unknown contact - contactId:[{0}]", rbConversation.PeerId);
+                        log.LogDebug("[GetConversationFromRBConversation] - unknown contact - contactId:[{0}]", rbConversation.PeerId);
                         avatarPool.AddUnknownContactToPoolById(rbConversation.PeerId);
 
                         // Try to get info from pool
@@ -379,7 +378,7 @@ namespace InstantMessaging.Helpers
                 else
                 {
                     //TODO ( bot case)
-                    log.Debug("[GetConversationFromRBConversation] Conversation from model not created - Id:[{0}]", rbConversation.Id);
+                    log.LogDebug("[GetConversationFromRBConversation] Conversation from model not created - Id:[{0}]", rbConversation.Id);
                     return null;
                 }
 
@@ -439,7 +438,7 @@ namespace InstantMessaging.Helpers
                 }
                 catch (Exception exc)
                 {
-                    log.Warn("[GetBubbleAvatarImageSource] bubbleId:[{0}] - exception occurs to create avatar:[{1}]", bubbleId, Util.SerializeException(exc));
+                    log.LogWarning("[GetBubbleAvatarImageSource] bubbleId:[{0}] - exception occurs to create avatar:[{1}]", bubbleId, Util.SerializeException(exc));
                 }
 
                 if (!String.IsNullOrEmpty(filePath))
@@ -449,7 +448,7 @@ namespace InstantMessaging.Helpers
                         result = BitmapImageFromFile(filePath);
                     }
                     //else
-                    //    log.Warn("[SetConversationAvatar] - file not found - filePath:[{0}] - PeerId:[{1}]", filePath, conversation.PeerId);
+                    //    log.LogWarning("[SetConversationAvatar] - file not found - filePath:[{0}] - PeerId:[{1}]", filePath, conversation.PeerId);
                 }
             }
             return result;
@@ -467,21 +466,21 @@ namespace InstantMessaging.Helpers
                 }
                 catch (Exception exc)
                 {
-                    log.Warn("[GetContactAvatarImageSource] contactId:[{0}] - exception occurs to create avatar:[{1}]", contactId, Util.SerializeException(exc));
+                    log.LogWarning("[GetContactAvatarImageSource] contactId:[{0}] - exception occurs to create avatar:[{1}]", contactId, Util.SerializeException(exc));
                 }
 
                 if (!String.IsNullOrEmpty(filePath))
                 {
                     if (File.Exists(filePath))
                     {
-                        //log.Debug("[GetContactAvatarImageSource] - file used - filePath:[{0}] - ContactId:[{1}]", filePath, contactId);
+                        //log.LogDebug("[GetContactAvatarImageSource] - file used - filePath:[{0}] - ContactId:[{1}]", filePath, contactId);
                         result = BitmapImageFromFile(filePath);
                     }
                     else
-                        log.Warn("[GetContactAvatarImageSource] - file not found - filePath:[{0}] - ContactId:[{1}]", filePath, contactId);
+                        log.LogWarning("[GetContactAvatarImageSource] - file not found - filePath:[{0}] - ContactId:[{1}]", filePath, contactId);
                 }
                 else
-                    log.Warn("[GetContactAvatarImageSource] - no file path for this ContactId:[{0}]", contactId);
+                    log.LogWarning("[GetContactAvatarImageSource] - no file path for this ContactId:[{0}]", contactId);
             }
             else
             {
@@ -491,10 +490,10 @@ namespace InstantMessaging.Helpers
                     if (File.Exists(filePath))
                         result = BitmapImageFromFile(filePath);
                     else
-                        log.Warn("[GetContactAvatarImageSource] - file not found - filePath:[{0}]", filePath);
+                        log.LogWarning("[GetContactAvatarImageSource] - file not found - filePath:[{0}]", filePath);
                 }
                 else
-                    log.Warn("[GetContactAvatarImageSource] - Cannot get unknown avatar ...");
+                    log.LogWarning("[GetContactAvatarImageSource] - Cannot get unknown avatar ...");
             }
             return result;
         }

@@ -10,13 +10,13 @@ using InstantMessaging.Helpers;
 using InstantMessaging.Pool;
 using InstantMessaging.ViewModel;
 
-using NLog;
+using Microsoft.Extensions.Logging;
 
 namespace InstantMessaging.Model
 {
     public class FavoritesModel
     {
-        private static readonly Logger log = LogConfigurator.GetLogger(typeof(LoginModel));
+        private static readonly ILogger log = Rainbow.LogFactory.CreateLogger<FavoritesModel>();
         App CurrentApplication = (App)System.Windows.Application.Current;
 
         private Bubbles RbBubbles = null;
@@ -63,8 +63,9 @@ namespace InstantMessaging.Model
 
             // Manage event(s) from Rainbow SDK about CONTACTS
             RbContacts.ContactPresenceChanged += RbContacts_ContactPresenceChanged;
-            RbContacts.ContactAdded += RbContacts_ContactAdded;
-            RbContacts.ContactInfoChanged += RbContacts_ContactInfoChanged;
+
+            RbContacts.PeerAdded += RbContacts_PeerAdded;
+            RbContacts.PeerInfoChanged += RbContacts_PeerInfoChanged;
 
             // Manage event(s) from Rainbow SDK about BUBBLES
             RbBubbles.BubbleInfoUpdated += RbBubbles_BubbleInfoUpdated;
@@ -89,7 +90,6 @@ namespace InstantMessaging.Model
             });
             task.Start();
         }
-
 
         #region MODEL UPDATED IN THESE METHODS
 
@@ -155,7 +155,7 @@ namespace InstantMessaging.Model
                         if (newFavorite.Position < FavoritesList[i].Position)
                         {
                             FavoritesList.Insert(i, newFavorite);
-                            log.Debug("[AddFavoriteToModel] INSERT Favorite.id:[{0}] IN index:[{1}]", newFavorite.Id, i);
+                            log.LogDebug("[AddFavoriteToModel] INSERT Favorite.id:[{0}] IN index:[{1}]", newFavorite.Id, i);
                             itemAdded = true;
                             break;
                         }
@@ -163,7 +163,7 @@ namespace InstantMessaging.Model
                     if (!itemAdded)
                     {
                         FavoritesList.Add(newFavorite);
-                        log.Debug("[AddFavoriteToModel] ADD Favorite.id:[{0}] ", newFavorite.Id);
+                        log.LogDebug("[AddFavoriteToModel] ADD Favorite.id:[{0}] ", newFavorite.Id);
                     }
                 }
             }
@@ -205,12 +205,12 @@ namespace InstantMessaging.Model
                     FavoriteViewModel result = GetFavoriteByPeerId(e.Id);
                     if (result != null)
                     {
-                        log.Debug("[AvatarPool_BubbleAvatarChanged] - bubbleId:[{0}] - favoriteId:[{1}]", e.Id, result.Id);
+                        log.LogDebug("[AvatarPool_BubbleAvatarChanged] - bubbleId:[{0}] - favoriteId:[{1}]", e.Id, result.Id);
                         result.AvatarImageSource = Helper.GetBubbleAvatarImageSource(e.Id);
                     }
                     //else
                     //{
-                    //    log.Debug("[AvatarPool_BubbleAvatarChanged] - no favorite found:[{0}]", e.Id);
+                    //    log.LogDebug("[AvatarPool_BubbleAvatarChanged] - no favorite found:[{0}]", e.Id);
                     //}
                 }));
             }
@@ -225,12 +225,12 @@ namespace InstantMessaging.Model
                     FavoriteViewModel result = GetFavoriteByPeerId(e.Id);
                     if (result != null)
                     {
-                        log.Debug("[AvatarPool_ContactAvatarChanged] - contactId:[{0}] - favoriteId:[{1}]", e.Id, result.Id);
+                        log.LogDebug("[AvatarPool_ContactAvatarChanged] - contactId:[{0}] - favoriteId:[{1}]", e.Id, result.Id);
                         result.AvatarImageSource = Helper.GetContactAvatarImageSource(e.Id);
                     }
                     //else
                     //{
-                    //    log.Debug("[AvatarPool_ContactAvatarChanged] - Avatar contactId:[{0}] but no conversation found ...", e.Id);
+                    //    log.LogDebug("[AvatarPool_ContactAvatarChanged] - Avatar contactId:[{0}] but no conversation found ...", e.Id);
                     //}
                 }));
             }
@@ -283,30 +283,25 @@ namespace InstantMessaging.Model
             }
         }
 
-        private void RbContacts_ContactAdded(object sender, Rainbow.Events.JidEventArgs e)
+        private void RbContacts_PeerInfoChanged(object sender, Rainbow.Events.PeerEventArgs e)
         {
             if (System.Windows.Application.Current != null)
             {
+                if (e.Peer.Type != Rainbow.Model.Conversation.ConversationType.User)
+                    return;
+
                 System.Windows.Application.Current.Dispatcher.Invoke(new Action(() =>
                 {
-                    Rainbow.Model.Contact contact = RbContacts.GetContactFromContactJid(e.Jid);
+                    Rainbow.Model.Contact contact = RbContacts.GetContactFromContactJid(e.Peer.Jid);
                     if (contact != null)
                         UpdateFavoriteNameByPeerId(contact.Id, Util.GetContactDisplayName(contact));
                 }));
             }
         }
 
-        private void RbContacts_ContactInfoChanged(object sender, Rainbow.Events.JidEventArgs e)
+        private void RbContacts_PeerAdded(object sender, Rainbow.Events.PeerEventArgs e)
         {
-            if (System.Windows.Application.Current != null)
-            {
-                System.Windows.Application.Current.Dispatcher.Invoke(new Action(() =>
-                {
-                    Rainbow.Model.Contact contact = RbContacts.GetContactFromContactJid(e.Jid);
-                    if (contact != null)
-                        UpdateFavoriteNameByPeerId(contact.Id, Util.GetContactDisplayName(contact));
-                }));
-            }
+            RbContacts_PeerInfoChanged(sender, e);
         }
 
         private void RbContacts_ContactPresenceChanged(object sender, Rainbow.Events.PresenceEventArgs e)

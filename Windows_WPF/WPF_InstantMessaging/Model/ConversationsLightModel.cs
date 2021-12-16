@@ -10,13 +10,13 @@ using InstantMessaging.Helpers;
 using InstantMessaging.Pool;
 using InstantMessaging.ViewModel;
 
-using NLog;
+using Microsoft.Extensions.Logging;
 
 namespace InstantMessaging.Model
 {
     public class ConversationsLightModel
     {
-        private static readonly Logger log = LogConfigurator.GetLogger(typeof(ConversationsLightModel));
+        private static readonly ILogger log = Rainbow.LogFactory.CreateLogger<ConversationsLightModel>();
         private readonly App CurrentApplication = (App)System.Windows.Application.Current;
         
         private Bubbles RbBubbles = null;
@@ -77,8 +77,9 @@ namespace InstantMessaging.Model
 
             // Manage event(s) from Rainbow SDK about CONTACTS
             RbContacts.ContactPresenceChanged += RbContacts_ContactPresenceChanged;
-            RbContacts.ContactAdded += RbContacts_ContactAdded;
-            RbContacts.ContactInfoChanged += RbContacts_ContactInfoChanged;
+
+            RbContacts.PeerAdded += RbContacts_PeerAdded;
+            RbContacts.PeerInfoChanged += RbContacts_PeerInfoChanged;
 
             // Manage event(s) from Rainbow SDK about BUBBLES
             RbBubbles.BubbleInfoUpdated += RbBubbles_BubbleInfoUpdated;
@@ -97,6 +98,7 @@ namespace InstantMessaging.Model
             AvatarPool.AllowToAskInfoForUnknownContact(true);
         }
 
+
         #region COMMANDS RAISED BY THE VIEW
 
         public void ItemLeftClickCommand(object obj)
@@ -107,10 +109,10 @@ namespace InstantMessaging.Model
                 if(conversation != null)
                     CurrentApplication.ApplicationMainWindow.SetConversationIdSelectionFromConversationsList(conversation.Id);
                 else
-                    log.Warn("[ItemLeftClickCommand] Referenced object is null...");
+                    log.LogWarning("[ItemLeftClickCommand] Referenced object is null...");
             }
             else
-                log.Warn("[ItemLeftClickCommand] Referenced object is null or it's an unknown type.");
+                log.LogWarning("[ItemLeftClickCommand] Referenced object is null or it's an unknown type.");
 
         }
 
@@ -218,7 +220,7 @@ namespace InstantMessaging.Model
                         if (newConversation.LastMessageDateTime.ToUniversalTime() > ConversationsLightList[i].LastMessageDateTime.ToUniversalTime())
                         {
                             ConversationsLightList.Insert(i, newConversation);
-                            log.Debug("[AddConversationToModel] INSERT Conversation.id:[{0}] IN index:[{1}]", newConversation.Id, i);
+                            log.LogDebug("[AddConversationToModel] INSERT Conversation.id:[{0}] IN index:[{1}]", newConversation.Id, i);
                             itemAdded = true;
                             break;
                         }
@@ -226,7 +228,7 @@ namespace InstantMessaging.Model
                     if (!itemAdded)
                     {
                         ConversationsLightList.Add(newConversation);
-                        log.Debug("[AddConversationToModel] ADD Conversation.id:[{0}] ", newConversation.Id);
+                        log.LogDebug("[AddConversationToModel] ADD Conversation.id:[{0}] ", newConversation.Id);
                     }
 
                     // Check if we nee to update the view due to DateTime purpose
@@ -280,7 +282,7 @@ namespace InstantMessaging.Model
                         // Check  old index found
                         if(oldIndex == -1)
                         {
-                            log.Error("[UpdateConversationToModel] There is a pb to get old index ...");
+                            log.LogError("[UpdateConversationToModel] There is a pb to get old index ...");
                             return;
                         }
 
@@ -302,13 +304,13 @@ namespace InstantMessaging.Model
 
                         if (oldIndex != newIndex)
                         {
-                            log.Info("[UpdateConversationToModel] Move conversation from oldIndex:[{0}] to newIndex:[{1}]", oldIndex, newIndex);
+                            log.LogInformation("[UpdateConversationToModel] Move conversation from oldIndex:[{0}] to newIndex:[{1}]", oldIndex, newIndex);
 
                             // Move to corretc index
                             ConversationsLightList.Move(oldIndex, newIndex);
                         }
                         else
-                            log.Info("[UpdateConversationToModel] DON'T Move conversation - same indexes - oldIndex:[{0}] - newIndex:[{1}]", oldIndex, newIndex);
+                            log.LogInformation("[UpdateConversationToModel] DON'T Move conversation - same indexes - oldIndex:[{0}] - newIndex:[{1}]", oldIndex, newIndex);
 
                     }
                 }
@@ -317,7 +319,7 @@ namespace InstantMessaging.Model
 
         private void UpdateModelForDateTimePurpose()
         {
-            log.Debug("[UpdateModelForDateTimePurpose] - IN");
+            log.LogDebug("[UpdateModelForDateTimePurpose] - IN");
             lock (lockObservableConversations)
             {
                 foreach (ConversationLightViewModel conversation in ConversationsLightList)
@@ -326,7 +328,7 @@ namespace InstantMessaging.Model
 
             // We ask the next update 
             //CheckIfUpdateModelForDateTimePurpose(mostRecentDateTimeMessage);
-            //log.Debug("[UpdateModelForDateTimePurpose] - OUT");
+            //log.LogDebug("[UpdateModelForDateTimePurpose] - OUT");
         }
 
         private void SetConversationAvatar(ConversationLightViewModel conversation)
@@ -345,25 +347,25 @@ namespace InstantMessaging.Model
             }
             catch (Exception exc)
             {
-                log.Warn("[SetConversationAvatar] PeerId:[{0}] - exception occurs to create avatar:[{1}]", conversation.PeerId, Util.SerializeException(exc));
+                log.LogWarning("[SetConversationAvatar] PeerId:[{0}] - exception occurs to create avatar:[{1}]", conversation.PeerId, Util.SerializeException(exc));
             }
 
             if (!String.IsNullOrEmpty(filePath))
             {
                 if (File.Exists(filePath))
                 {
-                    log.Debug("[SetConversationAvatar] - file used - filePath:[{0}] - PeerId:[{1}]", filePath, conversation.PeerId);
+                    log.LogDebug("[SetConversationAvatar] - file used - filePath:[{0}] - PeerId:[{1}]", filePath, conversation.PeerId);
                     try
                     {
                         conversation.AvatarImageSource = Helper.BitmapImageFromFile(filePath);
                     }
                     catch (Exception exc)
                     {
-                        log.Warn("[SetConversationAvatar] PeerId:[{0}] - exception occurs to display avatar[{1}]", conversation.PeerId, Util.SerializeException(exc));
+                        log.LogWarning("[SetConversationAvatar] PeerId:[{0}] - exception occurs to display avatar[{1}]", conversation.PeerId, Util.SerializeException(exc));
                     }
                 }
                 else
-                    log.Warn("[SetConversationAvatar] - file not found - filePath:[{0}] - PeerId:[{1}]", filePath, conversation.PeerId);
+                    log.LogWarning("[SetConversationAvatar] - file not found - filePath:[{0}] - PeerId:[{1}]", filePath, conversation.PeerId);
             }
         }
 
@@ -434,13 +436,13 @@ namespace InstantMessaging.Model
                 // If there is not already a delay in progress, we ask a new one
                 if (delayUpdateForDateTimePurpose == null)
                 {
-                    log.Debug("[CheckIfUpdateModelForDateTimePurpose] - Start Delay:[{0}] - DateTime:[{1}] - CASE MORE RECENT", delay, dt.ToString("o"));
+                    log.LogDebug("[CheckIfUpdateModelForDateTimePurpose] - Start Delay:[{0}] - DateTime:[{1}] - CASE MORE RECENT", delay, dt.ToString("o"));
                     delayUpdateForDateTimePurpose = CancelableDelay.StartAfter(delay * 1000, () => UpdateModelForDateTimePurpose());
                 }
                 // There is already a delay running. So we need to cancel it and update display now
                 else
                 {
-                    log.Debug("[CheckIfUpdateModelForDateTimePurpose] - Stop current delay and ask update now - DateTime:[{0}]", dt.ToString("o"));
+                    log.LogDebug("[CheckIfUpdateModelForDateTimePurpose] - Stop current delay and ask update now - DateTime:[{0}]", dt.ToString("o"));
 
                     // We stop the current "update delay"
                     delayUpdateForDateTimePurpose.Cancel();
@@ -457,7 +459,7 @@ namespace InstantMessaging.Model
                 // If there is not already a delay in progress, we ask a new one
                 if ((delayUpdateForDateTimePurpose == null) || (!delayUpdateForDateTimePurpose.IsRunning()))
                 {
-                    log.Debug("[CheckIfUpdateModelForDateTimePurpose] - Start Delay:[{0}] - DateTime:[{1}] - CASE OLDER", delay, dt.ToString("o"));
+                    log.LogDebug("[CheckIfUpdateModelForDateTimePurpose] - Start Delay:[{0}] - DateTime:[{1}] - CASE OLDER", delay, dt.ToString("o"));
                     delayUpdateForDateTimePurpose = CancelableDelay.StartAfter(delay * 1000, () => UpdateModelForDateTimePurpose());
                 }
             }
@@ -475,12 +477,12 @@ namespace InstantMessaging.Model
                     ConversationLightViewModel conversation = GetConversationByPeerId(e.Id);
                     if (conversation != null)
                     {
-                        log.Debug("[AvatarPool_BubbleAvatarChanged] - conversationId:[{0}]", conversation.Id);
+                        log.LogDebug("[AvatarPool_BubbleAvatarChanged] - conversationId:[{0}]", conversation.Id);
                         conversation.AvatarImageSource = Helper.GetConversationAvatarImageSource(conversation);
                     }
                     else
                     {
-                        log.Debug("[AvatarPool_BubbleAvatarChanged] - no conversation found:[{0}]", e.Id);
+                        log.LogDebug("[AvatarPool_BubbleAvatarChanged] - no conversation found:[{0}]", e.Id);
                     }
                 }));
             }
@@ -495,12 +497,12 @@ namespace InstantMessaging.Model
                     ConversationLightViewModel conversation = GetConversationByPeerId(e.Id);
                     if (conversation != null)
                     {
-                        log.Debug("[AvatarPool_ContactAvatarChanged] - contactId:[{0}] - conversationId:[{1}]", e.Id, conversation.Id);
+                        log.LogDebug("[AvatarPool_ContactAvatarChanged] - contactId:[{0}] - conversationId:[{1}]", e.Id, conversation.Id);
                         conversation.AvatarImageSource = Helper.GetConversationAvatarImageSource(conversation);
                     }
                     //else
                     //{
-                    //    log.Debug("[AvatarPool_ContactAvatarChanged] - Avatar contactId:[{0}] but no conversation found ...", e.Id);
+                    //    log.LogDebug("[AvatarPool_ContactAvatarChanged] - Avatar contactId:[{0}] but no conversation found ...", e.Id);
                     //}
                 }));
             }
@@ -522,27 +524,38 @@ namespace InstantMessaging.Model
 
         private void RbContacts_ContactAdded(object sender, Rainbow.Events.JidEventArgs e)
         {
-            if (System.Windows.Application.Current != null)
-            {
-                System.Windows.Application.Current.Dispatcher.Invoke(new Action(() =>
-                {
-                    Rainbow.Model.Contact contact = RbContacts.GetContactFromContactJid(e.Jid);
-                    if (contact != null)
-                        UpdateConversationNameByPeerId(contact.Id, Util.GetContactDisplayName(contact));
-                }));
-            }
+            
         }
 
-        private void RbContacts_ContactInfoChanged(object sender, Rainbow.Events.JidEventArgs e)
+        private void RbContacts_PeerInfoChanged(object sender, Rainbow.Events.PeerEventArgs e)
         {
             if (System.Windows.Application.Current != null)
             {
-                System.Windows.Application.Current.Dispatcher.Invoke(new Action(() =>
+                if (e.Peer.Type == Rainbow.Model.Conversation.ConversationType.User)
                 {
-                    Rainbow.Model.Contact contact = RbContacts.GetContactFromContactJid(e.Jid);
+                    System.Windows.Application.Current.Dispatcher.Invoke(new Action(() =>
+                    {
+                        Rainbow.Model.Contact contact = RbContacts.GetContactFromContactJid(e.Peer.Jid);
+                        if (contact != null)
+                            UpdateConversationNameByPeerId(contact.Id, Util.GetContactDisplayName(contact));
+                    }));
+                }
+            }
+        }
+
+        private void RbContacts_PeerAdded(object sender, Rainbow.Events.PeerEventArgs e)
+        {
+            if (System.Windows.Application.Current != null)
+            {
+                if (e.Peer.Type == Rainbow.Model.Conversation.ConversationType.User)
+                { 
+                    System.Windows.Application.Current.Dispatcher.Invoke(new Action(() =>
+                    {
+                    Rainbow.Model.Contact contact = RbContacts.GetContactFromContactJid(e.Peer.Jid);
                     if (contact != null)
                         UpdateConversationNameByPeerId(contact.Id, Util.GetContactDisplayName(contact));
-                }));
+                    }));
+                }
             }
         }
 

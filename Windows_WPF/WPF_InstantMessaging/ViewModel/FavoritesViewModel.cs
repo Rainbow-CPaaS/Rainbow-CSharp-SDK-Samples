@@ -2,13 +2,13 @@
 
 using InstantMessaging.Helpers;
 using InstantMessaging.Model;
-using NLog;
+using Microsoft.Extensions.Logging;
 
 namespace InstantMessaging.ViewModel
 {
     class FavoritesViewModel
     {
-        private static readonly Logger log = LogConfigurator.GetLogger(typeof(FavoritesViewModel));
+        private static readonly ILogger log = Rainbow.LogFactory.CreateLogger<FavoritesViewModel>();
 
         public RangeObservableCollection<FavoriteViewModel> FavoritesList { get; set; } // Need to be public - Used as Binding from XAML
 

@@ -9,13 +9,13 @@ using Rainbow;
 using Rainbow.Model;
 using Rainbow.Wpf;
 
-using NLog;
+using Microsoft.Extensions.Logging;
 
 namespace SDK.WpfApp.ViewModel
 {
     public class AppViewModel
     {
-        private static readonly Logger log = LogConfigurator.GetLogger(typeof(AppViewModel));
+        private static readonly ILogger log = Rainbow.LogFactory.CreateLogger<AppViewModel>();
 
         private Rainbow.Application rbApplication;
         private Rainbow.Contacts rbContacts;
@@ -42,7 +42,7 @@ namespace SDK.WpfApp.ViewModel
             rbApplication.InitializationPerformed += RbApplication_InitializationPerformed;
 
             // Manage some events from Rainbow.Contacts
-            rbContacts.ContactAdded += RbContacts_ContactAdded;
+            rbContacts.PeerAdded += RbContacts_PeerAdded;
         }
 
         public void SetWebRtcControl(Rainbow.Wpf.WebRtcControl webRtcControl)
@@ -449,7 +449,7 @@ namespace SDK.WpfApp.ViewModel
                     ConversationModel.LocalVideoMuted = false;
                 }
 
-                log.Debug("[CallUpdated] CallId:[{0}] - CallInProgress[{1}] - CallRinging[{2}] - CallIncoming[{3}]", ConversationModel.CallId, ConversationModel.CallInProgress, ConversationModel.CallRinging, ConversationModel.CallIncoming);
+                log.LogDebug("[CallUpdated] CallId:[{0}] - CallInProgress[{1}] - CallRinging[{2}] - CallIncoming[{3}]", ConversationModel.CallId, ConversationModel.CallInProgress, ConversationModel.CallRinging, ConversationModel.CallIncoming);
 
                 CommandManager.InvalidateRequerySuggested();
             }));
@@ -483,10 +483,10 @@ namespace SDK.WpfApp.ViewModel
                 CommandManager.InvalidateRequerySuggested();
             }));
         }
-#endregion EVENTS - FROM Rainbow Application
+        #endregion EVENTS - FROM Rainbow Application
 
-#region EVENTS - FROM Rainbow Contacts        
-        private void RbContacts_ContactAdded(object sender, Rainbow.Events.JidEventArgs e)
+        #region EVENTS - FROM Rainbow Contacts        
+        private void RbContacts_PeerAdded(object sender, Rainbow.Events.PeerEventArgs e)
         {
             if (!LoginInfoModel.InitialisationCompleted)
                 return;
@@ -494,7 +494,7 @@ namespace SDK.WpfApp.ViewModel
             // Need to be on UI Thread
             System.Windows.Application.Current.Dispatcher.Invoke(new Action(() =>
             {
-                UsersModel.AddContact(rbContacts.GetContactFromContactJid(e.Jid));
+                UsersModel.AddContact(rbContacts.GetContactFromContactJid(e.Peer.Jid));
             }));
 
         }
@@ -570,9 +570,9 @@ namespace SDK.WpfApp.ViewModel
             String audioOutputId = DevicesModel.AudioOutputDeviceSelected?.Id;
             String videoInputId = DevicesModel.VideoInputDeviceSelected?.Id;
 
-            log.Debug("DEVICE SELECTED : Audio Input:[{0}] - [{1}]", DevicesModel.AudioInputDeviceSelected?.Id, DevicesModel.AudioInputDeviceSelected?.Name);
-            log.Debug("DEVICE SELECTED : Audio Output:[{0}] - [{1}]", DevicesModel.AudioOutputDeviceSelected?.Id, DevicesModel.AudioOutputDeviceSelected?.Name);
-            log.Debug("DEVICE SELECTED : Video Input:[{0}] - [{1}]", DevicesModel.VideoInputDeviceSelected?.Id, DevicesModel.VideoInputDeviceSelected?.Name);
+            log.LogDebug("DEVICE SELECTED : Audio Input:[{0}] - [{1}]", DevicesModel.AudioInputDeviceSelected?.Id, DevicesModel.AudioInputDeviceSelected?.Name);
+            log.LogDebug("DEVICE SELECTED : Audio Output:[{0}] - [{1}]", DevicesModel.AudioOutputDeviceSelected?.Id, DevicesModel.AudioOutputDeviceSelected?.Name);
+            log.LogDebug("DEVICE SELECTED : Video Input:[{0}] - [{1}]", DevicesModel.VideoInputDeviceSelected?.Id, DevicesModel.VideoInputDeviceSelected?.Name);
 
             RbWebRtcControl.SelectDevice(StreamDevice.KindType.AudioInput, audioInputId);
             RbWebRtcControl.SelectDevice(StreamDevice.KindType.AudioOutput, audioOutputId);
@@ -763,7 +763,7 @@ namespace SDK.WpfApp.ViewModel
             RbWebRtcControl.SetConstraints(media, constraints, false, callback =>
             {
                 if (!callback.Result.Success)
-                    log.Warn($"[SetConstraintCommand] Cannot set this constraints: maxFrameRate:[{ConstraintModel.MaxFrameRateValue}] - width:[{ConstraintModel.WidthValue}] - height:[{ConstraintModel.HeightValue}]");
+                    log.LogWarning($"[SetConstraintCommand] Cannot set this constraints: maxFrameRate:[{ConstraintModel.MaxFrameRateValue}] - width:[{ConstraintModel.WidthValue}] - height:[{ConstraintModel.HeightValue}]");
             });
         }
 

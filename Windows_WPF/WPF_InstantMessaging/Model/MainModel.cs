@@ -7,13 +7,13 @@ using InstantMessaging.Helpers;
 using Rainbow;
 using Rainbow.Model;
 
-using NLog;
+using Microsoft.Extensions.Logging;
 
 namespace InstantMessaging.Model
 {
     public class MainModel
     {
-        private static readonly Logger log = LogConfigurator.GetLogger(typeof(LoginModel));
+        private static readonly ILogger log = Rainbow.LogFactory.CreateLogger<MainModel>();
         App currentApplication = (App)System.Windows.Application.Current;
 
         public MainModel()

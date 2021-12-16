@@ -12,7 +12,8 @@ using System.Xml;
 
 using Rainbow;
 
-using NLog;
+using Microsoft.Extensions.Logging;
+using NLog.Config;
 
 namespace SDK.WpfApp
 {
@@ -29,7 +30,7 @@ namespace SDK.WpfApp
         public const string LOGIN_USER1 = "TO-DEFINE";
         public const string PASSWORD_USER1 = "TO-DEFINE";
 
-        private static Logger log;
+        private static ILogger log;
 
         private readonly String LogfileName = "WpfApp.log";
         private readonly String LogArchivefileName = "WpfApp_{###}.log";
@@ -52,12 +53,12 @@ namespace SDK.WpfApp
 
             appFolderPath = System.Environment.GetFolderPath(System.Environment.SpecialFolder.ApplicationData);
             appFolderPath = Path.Combine(appFolderPath, LogFolderName);
-            InitLogs(appFolderPath);
+            InitLogsWithNLog();
 
-            log = LogConfigurator.GetLogger(typeof(App));
-            log.Info("==============================================================");
-            log.Info("Application started: [{0}]", LogFolderName);
-            log.Info("Windows version:[{0}]", RuntimeInformation.OSDescription);
+            log = Rainbow.LogFactory.CreateLogger<App>();
+            log.LogInformation("==============================================================");
+            log.LogInformation("Application started: [{0}]", LogFolderName);
+            log.LogInformation("Windows version:[{0}]", RuntimeInformation.OSDescription);
 
             // Create Rainbow Application
             rbApplication = new Rainbow.Application(appFolderPath);
@@ -68,46 +69,31 @@ namespace SDK.WpfApp
             rbApplication.Restrictions.UseWebRTC = true;
         }
 
-        private void InitLogs(String folder)
+        static Boolean InitLogsWithNLog()
         {
-            String logFileName = LogfileName; // File name of the log file
-            String archiveLogFileName = LogArchivefileName; // File name of the archive log file
-            String logConfigFileName = LogconfigurationFile; // File path to log configuration
-
-            String logConfigContent; // Content of the log file configuration
-            String logFullPathFileName; // Full path to log file
-            String archiveLogFullPathFileName; // Full path to archive log file 
             try
             {
-                //String tempFolder = System.Environment.GetFolderPath(System.Environment.SpecialFolder.ApplicationData);
-                Directory.CreateDirectory(folder);
+                String logConfigContent = WpfUtil.GetContentFromResource("NLogConfiguration.xml");
 
-                // Set full path to log file name
-                logFullPathFileName = Path.Combine(folder, logFileName);
-                archiveLogFullPathFileName = Path.Combine(folder, archiveLogFileName);
+                // Create NLog configuration using XML file content
+                XmlLoggingConfiguration config = XmlLoggingConfiguration.CreateFromXmlString(logConfigContent);
+                if (config.InitializeSucceeded == true)
+                {
+                    // Set NLog configuration
+                    NLog.LogManager.Configuration = config;
 
-                // Get content of the log file configuration
-                logConfigContent = WpfUtil.GetContentFromResource(logConfigFileName);
+                    // Create Logger factory
+                    var factory = new NLog.Extensions.Logging.NLogLoggerFactory();
 
-                // Load XML in XMLDocument
-                XmlDocument doc = new XmlDocument();
-                doc.LoadXml(logConfigContent);
+                    // Set Logger factory to Rainbow SDK
+                    Rainbow.LogFactory.Set(factory);
 
-                // Set full path to log file in XML element
-                XmlElement targetElement = doc["nlog"]["targets"]["target"];
-                targetElement.SetAttribute("name", Rainbow.LogConfigurator.GetRepositoryName());    // Set target name equals to RB repository name
-                targetElement.SetAttribute("fileName", logFullPathFileName);                        // Set full path to log file
-                targetElement.SetAttribute("archiveFileName", archiveLogFullPathFileName);          // Set full path to archive log file
-
-                XmlElement loggerElement = doc["nlog"]["rules"]["logger"];
-                loggerElement.SetAttribute("writeTo", Rainbow.LogConfigurator.GetRepositoryName()); // Write to RB repository name
-
-                // Set the configuration
-                Rainbow.LogConfigurator.Configure(doc.OuterXml);
+                    return true;
+                }
             }
-            catch (Exception exc)
-            { 
-            }
+            catch { }
+
+            return false;
         }
 
         private void Application_Exit(object sender, ExitEventArgs e)

@@ -9,13 +9,13 @@ using Rainbow.Model;
 using InstantMessaging.Helpers;
 using InstantMessaging.Model;
 
-using NLog;
+using Microsoft.Extensions.Logging;
 
 namespace InstantMessaging.ViewModel
 {
     public class LoginViewModel : ObservableObject
     {
-        private static readonly Logger log = LogConfigurator.GetLogger(typeof(LoginViewModel));
+        private static readonly ILogger log = Rainbow.LogFactory.CreateLogger<LoginViewModel>();
 
         public LoginModel Model { get; private set; } // Need to be public - Used as Binding from XAML
 
@@ -82,14 +82,14 @@ namespace InstantMessaging.ViewModel
         //            }
         //            catch (Exception exc)
         //            {
-        //                log.Warn("[Model_PropertyChanged] EXCEPTION:[{0}]", Util.SerializeException(exc));
+        //                log.LogWarning("[Model_PropertyChanged] EXCEPTION:[{0}]", Util.SerializeException(exc));
         //            }
         //        }
         //        else
-        //            log.Warn("[Model_PropertyChanged] Cannot get property info from SENDER OBJECT - PropertyName:[{0}]", e.PropertyName);
+        //            log.LogWarning("[Model_PropertyChanged] Cannot get property info from SENDER OBJECT - PropertyName:[{0}]", e.PropertyName);
         //    }
         //    else
-        //        log.Warn("[Model_PropertyChanged] Cannot get property info from LOCAL OBJECT - PropertyName:[{0}]", e.PropertyName);
+        //        log.LogWarning("[Model_PropertyChanged] Cannot get property info from LOCAL OBJECT - PropertyName:[{0}]", e.PropertyName);
         //}
     #endregion
 
