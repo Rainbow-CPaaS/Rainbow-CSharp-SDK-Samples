@@ -7,16 +7,17 @@ using System.Windows.Forms;
 using Rainbow;
 using Rainbow.Model;
 
-using NLog;
+
 
 using System.Web.UI.WebControls;
+using Microsoft.Extensions.Logging;
 
 namespace Sample_Contacts
 {
     public partial class SampleConversationForm : Form
     {
         // Define log object
-        private static readonly Logger log = LogConfigurator.GetLogger(typeof(SampleConversationForm));
+        private static readonly ILogger log = Rainbow.LogFactory.CreateLogger<SampleConversationForm>();
 
         //Define Rainbow Application Id, Secret Key and Host Name
         const string APP_ID = "YOUR APP ID";
@@ -52,8 +53,8 @@ namespace Sample_Contacts
             tbLogin.Text = LOGIN_USER1;
             tbPassword.Text = PASSWORD_USER1;
 
-            log.Info("==============================================================");
-            log.Info("SampleConversations started");
+            log.LogInformation("==============================================================");
+            log.LogInformation("SampleConversations started");
 
             InitializeRainbowSDK();
         }
@@ -74,8 +75,8 @@ namespace Sample_Contacts
             // EVENTS WE WANT TO MANAGE
             rainbowApplication.ConnectionStateChanged += RainbowApplication_ConnectionStateChanged;
 
-            rainbowContacts.RosterContactAdded += RainbowContacts_RosterContactAdded;
-            rainbowContacts.RosterContactRemoved += RainbowContacts_RosterContactRemoved;
+            rainbowContacts.RosterPeerAdded += RainbowContacts_RosterPeerAdded;
+            rainbowContacts.RosterPeerRemoved += RainbowContacts_RosterPeerRemoved;
 
             rainbowConversations.ConversationCreated += RainbowConversations_ConversationCreated;
             rainbowConversations.ConversationRemoved += RainbowConversations_ConversationRemoved;
@@ -86,9 +87,9 @@ namespace Sample_Contacts
             rainbowContactsList = new List<Contact>();
         }
 
-#endregion INIT METHODS
+    #endregion INIT METHODS
 
-#region METHOD TO UPDATE SampleConversationForm COMPONENTS
+    #region METHOD TO UPDATE SampleConversationForm COMPONENTS
 
         /// <summary>
         /// Permits to add a new sting in the text box at the bottom of the form: it permits to log things happening
@@ -201,7 +202,7 @@ namespace Sample_Contacts
                 {
                     string peerId = favorite.PeerId;
 
-                    log.Debug("UpdateFavoritesListComboBox - peerID:[{0}] - type:[{1}]", peerId, favorite.Type);
+                    log.LogDebug("UpdateFavoritesListComboBox - peerID:[{0}] - type:[{1}]", peerId, favorite.Type);
 
                     // Is-it a favorite with a User ?
                     if (favorite.Type == Rainbow.Model.FavoriteType.User)
@@ -444,23 +445,24 @@ namespace Sample_Contacts
             CheckContactSelectedAsConversation();
         }
 
-        private void RainbowContacts_RosterContactRemoved(object sender, Rainbow.Events.JidEventArgs e)
+        private void RainbowContacts_RosterPeerRemoved(object sender, Rainbow.Events.PeerEventArgs e)
         {
-            AddStateLine($"A Contact has been removed:[{e.Jid}]");
+            AddStateLine($"A Contact has been removed:[{e.Peer.Jid}]");
             UpdateContactsListComboBox();
             CheckContactSelectedAsFavorite();
             CheckContactSelectedAsConversation();
         }
 
-        private void RainbowContacts_RosterContactAdded(object sender, Rainbow.Events.JidEventArgs e)
+        private void RainbowContacts_RosterPeerAdded(object sender, Rainbow.Events.PeerEventArgs e)
         {
-            AddStateLine($"A Contact has been added:[{e.Jid}]");
+            AddStateLine($"A Contact has been added:[{e.Peer.Jid}]");
             UpdateContactsListComboBox();
         }
 
-#endregion EVENTS FIRED BY RAINBOW SDK
 
-#region EVENTS FIRED BY SampleContactForm ELEMENTS
+    #endregion EVENTS FIRED BY RAINBOW SDK
+
+    #region EVENTS FIRED BY SampleContactForm ELEMENTS
 
         private void btnLoginLogout_Click(object sender, EventArgs e)
         {
@@ -473,7 +475,7 @@ namespace Sample_Contacts
                     {
                         string logLine = String.Format("Impossible to logout:\r\n{0}", Util.SerializeSdkError(callback.Result));
                         AddStateLine(logLine);
-                        log.Warn(logLine);
+                        log.LogWarning(logLine);
                     }
                 });
             }
@@ -494,7 +496,7 @@ namespace Sample_Contacts
                     {
                         string logLine = String.Format("Impossible to login:\r\n{0}", Util.SerializeSdkError(callback.Result));
                         AddStateLine(logLine);
-                        log.Warn(logLine);
+                        log.LogWarning(logLine);
                     }
                 });
             }
@@ -518,7 +520,7 @@ namespace Sample_Contacts
                     {
                         string logLine = String.Format("Impossible to remove conversation[{1}]:\r\n{0}", Util.SerializeSdkError(callback.Result), id);
                         AddStateLine(logLine);
-                        log.Warn(logLine);
+                        log.LogWarning(logLine);
                     }
                 });
             }
@@ -543,7 +545,7 @@ namespace Sample_Contacts
                     {
                         string logLine = String.Format("Impossible to remove favorite[{1}]:\r\n{0}", Util.SerializeSdkError(callback.Result), id);
                         AddStateLine(logLine);
-                        log.Warn(logLine);
+                        log.LogWarning(logLine);
                     }
                 });
             }
@@ -573,7 +575,7 @@ namespace Sample_Contacts
                             {
                                 string logLine = String.Format("Impossible to update favorite position [{1}]:\r\n{0}", Util.SerializeSdkError(callback.Result), id);
                                 AddStateLine(logLine);
-                                log.Warn(logLine);
+                                log.LogWarning(logLine);
                             }
                         });
                     }
@@ -603,7 +605,7 @@ namespace Sample_Contacts
                     {
                         string logLine = String.Format("Impossible to create conversation with [{1}]:\r\n{0}", Util.SerializeSdkError(callback.Result), id);
                         AddStateLine(logLine);
-                        log.Warn(logLine);
+                        log.LogWarning(logLine);
                     }
                 });
             }
@@ -627,7 +629,7 @@ namespace Sample_Contacts
                     {
                         string logLine = String.Format("Impossible to create favorite with [{1}]:\r\n{0}", Util.SerializeSdkError(callback.Result), id);
                         AddStateLine(logLine);
-                        log.Warn(logLine);
+                        log.LogWarning(logLine);
                     }
                 });
             }
@@ -681,7 +683,7 @@ namespace Sample_Contacts
                     {
                         string logLine = String.Format("Impossible to create favorite with [{1}]:\r\n{0}", Util.SerializeSdkError(callback.Result), conversationId);
                         AddStateLine(logLine);
-                        log.Warn(logLine);
+                        log.LogWarning(logLine);
                     }
                 });
             }
@@ -701,7 +703,7 @@ namespace Sample_Contacts
             if (!rainbowApplication.IsConnected())
                 return;
 
-            rainbowContacts.GetAllContacts(callback =>
+            rainbowContacts.GetAllContactsInRosterFromServer(callback =>
             {
                 if (callback.Result.Success)
                 {
@@ -713,7 +715,7 @@ namespace Sample_Contacts
                 {
                     string logLine = String.Format("Impossible to get all contacts:\r\n{0}", Util.SerializeSdkError(callback.Result));
                     AddStateLine(logLine);
-                    log.Warn(logLine);
+                    log.LogWarning(logLine);
                 }
             });
         }
@@ -749,7 +751,7 @@ namespace Sample_Contacts
                 {
                     string logLine = String.Format("Impossible to get all conversations:\r\n{0}", Util.SerializeSdkError(callback.Result));
                     AddStateLine(logLine);
-                    log.Warn(logLine);
+                    log.LogWarning(logLine);
                 }
             });
         }

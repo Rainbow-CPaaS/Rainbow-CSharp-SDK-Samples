@@ -7,15 +7,16 @@ using System.Windows.Forms;
 using Rainbow;
 using Rainbow.Model;
 
-using NLog;
+
 using System.Web.UI.WebControls;
+using Microsoft.Extensions.Logging;
 
 namespace Sample_Contacts
 {
     public partial class SampleInstantMessagingForm : Form
     {
         // Define log object
-        private static readonly Logger log = LogConfigurator.GetLogger(typeof(SampleInstantMessagingForm));
+        private static readonly ILogger log = Rainbow.LogFactory.CreateLogger<SampleInstantMessagingForm>();
 
         //Define Rainbow Application Id, Secret Key and Host Name
         const string APP_ID = "YOUR APP ID";
@@ -61,8 +62,8 @@ namespace Sample_Contacts
 
             SetDefaultPresenceList();
 
-            log.Info("==============================================================");
-            log.Info("SampleInstantMessaging started");
+            log.LogInformation("==============================================================");
+            log.LogInformation("SampleInstantMessaging started");
 
             InitializeRainbowSDK();
         }
@@ -83,8 +84,9 @@ namespace Sample_Contacts
             // EVENTS WE WANT TO MANAGE
             rainbowApplication.ConnectionStateChanged += RainbowApplication_ConnectionStateChanged;
 
-            rainbowContacts.RosterContactAdded += RainbowContacts_RosterContactAdded;
-            rainbowContacts.RosterContactRemoved += RainbowContacts_RosterContactRemoved;
+            rainbowContacts.RosterPeerAdded += RainbowContacts_RosterPeerAdded;
+            rainbowContacts.RosterPeerRemoved += RainbowContacts_RosterPeerRemoved;
+
             rainbowContacts.ContactPresenceChanged += RainbowContacts_ContactPresenceChanged;
 
             rainbowConversations.ConversationCreated += RainbowConversations_ConversationCreated;
@@ -121,10 +123,9 @@ namespace Sample_Contacts
             }
         }
 
- 
     #endregion INIT METHODS
 
-    #region METHOD TO UPDATE SampleConversationForm COMPONENTS
+        #region METHOD TO UPDATE SampleConversationForm COMPONENTS
 
         /// <summary>
         /// Permits to add a new sting in the text box at the bottom of the form: it permits to log things happening
@@ -491,15 +492,15 @@ namespace Sample_Contacts
             }
         }
 
-        private void RainbowContacts_RosterContactRemoved(object sender, Rainbow.Events.JidEventArgs e)
+        private void RainbowContacts_RosterPeerRemoved(object sender, Rainbow.Events.PeerEventArgs e)
         {
-            AddStateLine($"A Contact has been removed:[{e.Jid}]");
+            AddStateLine($"A Contact has been removed:[{e.Peer.Jid}]");
             UpdateContactsListComboBox();
         }
 
-        private void RainbowContacts_RosterContactAdded(object sender, Rainbow.Events.JidEventArgs e)
+        private void RainbowContacts_RosterPeerAdded(object sender, Rainbow.Events.PeerEventArgs e)
         {
-            AddStateLine($"A Contact has been added:[{e.Jid}]");
+            AddStateLine($"A Contact has been added:[{e.Peer.Jid}]");
             UpdateContactsListComboBox();
         }
 
@@ -680,7 +681,7 @@ namespace Sample_Contacts
                     {
                         string logLine = String.Format("Impossible to logout:\r\n{0}", Util.SerializeSdkError(callback.Result));
                         AddStateLine(logLine);
-                        log.Warn(logLine);
+                        log.LogWarning(logLine);
                     }
                 });
             }
@@ -701,7 +702,7 @@ namespace Sample_Contacts
                     {
                         string logLine = String.Format("Impossible to login:\r\n{0}", Util.SerializeSdkError(callback.Result));
                         AddStateLine(logLine);
-                        log.Warn(logLine);
+                        log.LogWarning(logLine);
                     }
                 });
             }
@@ -754,7 +755,7 @@ namespace Sample_Contacts
                 {
                     string logLine = String.Format("Impossible to unserialize presence: [{0}]", item.Text);
                     AddStateLine(logLine);
-                    log.Warn(logLine);
+                    log.LogWarning(logLine);
                     return;
                 }
 
@@ -768,7 +769,7 @@ namespace Sample_Contacts
                     {
                         string logLine = String.Format("Impossible to set presence :\r\n{0}", Util.SerializeSdkError(callback.Result));
                         AddStateLine(logLine);
-                        log.Warn(logLine);
+                        log.LogWarning(logLine);
                     }
                 });
 
@@ -800,7 +801,7 @@ namespace Sample_Contacts
                         {
                             string logLine = String.Format("Impossible to send message to contact [{1}]:\r\n{0}", Util.SerializeSdkError(callback.Result), idSelected);
                             AddStateLine(logLine);
-                            log.Warn(logLine);
+                            log.LogWarning(logLine);
                         }
                     });
                 }
@@ -816,7 +817,7 @@ namespace Sample_Contacts
                         {
                             string logLine = String.Format("Impossible to send message to conversation [{1}]:\r\n{0}", Util.SerializeSdkError(callback.Result), idSelected);
                             AddStateLine(logLine);
-                            log.Warn(logLine);
+                            log.LogWarning(logLine);
                         }
                     });
                 }
@@ -844,7 +845,7 @@ namespace Sample_Contacts
                         {
                             string logLine = String.Format("Impossible to send 'isTyping' to conversation [{1}]:\r\n{0}", Util.SerializeSdkError(callback.Result), conversationId);
                             AddStateLine(logLine);
-                            log.Warn(logLine);
+                            log.LogWarning(logLine);
                         }
                     });
                 }
@@ -898,7 +899,7 @@ namespace Sample_Contacts
                         {
                             string logLine = String.Format("Impossible to mark message [{1}] as read :\r\n{0}", Util.SerializeSdkError(callback.Result), lastMessageIDReceived);
                             AddStateLine(logLine);
-                            log.Warn(logLine);
+                            log.LogWarning(logLine);
                         }
                         else
                         {
@@ -985,7 +986,7 @@ namespace Sample_Contacts
                         {
                             string logLine = String.Format("Impossible to get older messages from conversatiob[{1}] :\r\n{0}", Util.SerializeSdkError(callback.Result), conversation.Id);
                             AddStateLine(logLine);
-                            log.Warn(logLine);
+                            log.LogWarning(logLine);
                         }
                     });
                 }
@@ -1013,7 +1014,7 @@ namespace Sample_Contacts
             if (!rainbowApplication.IsConnected())
                 return;
 
-            rainbowContacts.GetAllContacts(callback =>
+            rainbowContacts.GetAllContactsInRosterFromServer(callback =>
             {
                 if (callback.Result.Success)
                 {
@@ -1025,7 +1026,7 @@ namespace Sample_Contacts
                 {
                     string logLine = String.Format("Impossible to get all contacts:\r\n{0}", Util.SerializeSdkError(callback.Result));
                     AddStateLine(logLine);
-                    log.Warn(logLine);
+                    log.LogWarning(logLine);
                 }
             });
         }
@@ -1047,7 +1048,7 @@ namespace Sample_Contacts
                 {
                     string logLine = String.Format("Impossible to get all conversations:\r\n{0}", Util.SerializeSdkError(callback.Result));
                     AddStateLine(logLine);
-                    log.Warn(logLine);
+                    log.LogWarning(logLine);
                 }
             });
         }

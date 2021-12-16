@@ -7,24 +7,37 @@ using System.Windows.Forms;
 using Rainbow;
 using Rainbow.Model;
 
-using NLog;
+
 
 using System.Web.UI.WebControls;
+using Microsoft.Extensions.Logging;
 
 namespace Sample_Contacts
 {
     public partial class SampleContactForm : Form
     {
         // Define log object
-        private static readonly Logger log = LogConfigurator.GetLogger(typeof(SampleContactForm));
+        private static readonly ILogger log = Rainbow.LogFactory.CreateLogger<SampleContactForm>();
 
         //Define Rainbow Application Id, Secret Key and Host Name
-        const string APP_ID = "YOUR APP ID";
-        const string APP_SECRET_KEY = "YOUR SECRET KEY";
-        const string HOST_NAME = "sandbox.openrainbow.com";
+        //const string APP_ID = "YOUR APP ID";
+        //const string APP_SECRET_KEY = "YOUR SECRET KEY";
+        //const string HOST_NAME = "sandbox.openrainbow.com";
 
-        const string LOGIN_USER1 = "YOUR LOGIN";
-        const string PASSWORD_USER1 = "YOUR PASSWORD";
+        //const string LOGIN_USER1 = "YOUR LOGIN";
+        //const string PASSWORD_USER1 = "YOUR PASSWORD";
+
+
+        const string APP_ID = "6f8c5910725b11e9b55c81be00bebc2c";
+        const string APP_SECRET_KEY = "qSmr71s7idLiKRmhXGNNIOpPJynliqrS2sHKy3Wzk6ytauRSP13qebuJQmRHGwTN";
+        const string HOST_NAME = "openrainbow.net";
+
+        const string LOGIN_USER1 = "christophe.irles@al-enterprise.com"; // Superadmin sur .NET
+        const string PASSWORD_USER1 = "Back9fun!!!!"; /// "Back0fun!!!";
+        const string JID_NODE_USER1 = "j_5429522771";
+        const string ID_USER1 = "56e6bc34c219157cb207e821";
+
+
 
         // Define Rainbow objects
         Rainbow.Application rainbowApplication; // To store Rainbow Application object
@@ -47,8 +60,8 @@ namespace Sample_Contacts
             tbLogin.Text = LOGIN_USER1;
             tbPassword.Text = PASSWORD_USER1;
 
-            log.Info("==============================================================");
-            log.Info("SampleContact started");
+            log.LogInformation("==============================================================");
+            log.LogInformation("SampleContact started");
 
             InitializeRainbowSDK();
         }
@@ -68,20 +81,23 @@ namespace Sample_Contacts
             // EVENTS WE WANT TO MANAGE
             rainbowApplication.ConnectionStateChanged += RainbowApplication_ConnectionStateChanged;
 
-            rainbowContacts.ContactInfoChanged += RainbowContacts_ContactInfoChanged;
-            rainbowContacts.RosterContactAdded += RainbowContacts_RosterContactAdded;
-            rainbowContacts.RosterContactRemoved += RainbowContacts_RosterContactRemoved;
+            rainbowContacts.PeerInfoChanged += RainbowContacts_PeerInfoChanged;
 
-            rainbowContacts.ContactAvatarChanged += RainbowContacts_ContactAvatarChanged;
-            rainbowContacts.ContactAvatarDeleted += RainbowContacts_ContactAvatarDeleted;
+            rainbowContacts.RosterPeerAdded += RainbowContacts_RosterPeerAdded;
+            rainbowContacts.RosterPeerRemoved += RainbowContacts_RosterPeerRemoved;
+
+
+            rainbowContacts.PeerAvatarDeleted += RainbowContacts_PeerAvatarDeleted;
+            rainbowContacts.PeerAvatarChanged += RainbowContacts_PeerAvatarChanged;
 
             rainbowContactsList = new List<Contact>();
             rainbowContactsListFound = new List<Contact>(); ;
         }
 
-    #endregion INIT METHODS
-        
-    #region METHOD TO UPDATE SampleContactForm COMPONEnTS
+
+        #endregion INIT METHODS
+
+        #region METHOD TO UPDATE SampleContactForm COMPONEnTS
 
         /// <summary>
         /// Permits to add a new sting in the text box at the bottom of the form: it permits to log things happening
@@ -311,41 +327,43 @@ namespace Sample_Contacts
             UpdateLoginButton(e.State);
         }
 
-        private void RainbowContacts_ContactAvatarDeleted(object sender, Rainbow.Events.JidEventArgs e)
+        private void RainbowContacts_PeerAvatarChanged(object sender, Rainbow.Events.PeerEventArgs e)
         {
-            if (e.Jid == rainbowMyContact.Jid_im)
-                AddStateLine($"The server has confirmed the delete of my contact avatar");
-            else
-                AddStateLine($"A contact has deleted its avatar - JID:[{e.Jid}]");
-        }
-
-        private void RainbowContacts_ContactAvatarChanged(object sender, Rainbow.Events.JidEventArgs e)
-        {
-            if(e.Jid == rainbowMyContact.Jid_im)
+            if (e.Peer.Jid == rainbowMyContact.Jid_im)
                 AddStateLine($"The server has confirmed the update of my contact avatar");
             else
-                AddStateLine($"A contact has changed its avatar - JID:[{e.Jid}]");
+                AddStateLine($"A contact has changed its avatar - JID:[{e.Peer.Jid}]");
         }
 
-        private void RainbowContacts_RosterContactRemoved(object sender, Rainbow.Events.JidEventArgs e)
+        private void RainbowContacts_PeerAvatarDeleted(object sender, Rainbow.Events.PeerEventArgs e)
         {
-            AddStateLine($"A contact has been removed from your roster - JID:[{e.Jid}]");
+            if (e.Peer.Jid == rainbowMyContact.Jid_im)
+                AddStateLine($"The server has confirmed the delete of my contact avatar");
+            else
+                AddStateLine($"A contact has deleted its avatar - JID:[{e.Peer.Jid}]");
+        }
+
+        private void RainbowContacts_RosterPeerRemoved(object sender, Rainbow.Events.PeerEventArgs e)
+        {
+            AddStateLine($"A contact has been removed from your roster - JID:[{e.Peer.Jid}]");
             GetAllContacts();
         }
 
-        private void RainbowContacts_RosterContactAdded(object sender, Rainbow.Events.JidEventArgs e)
+        private void RainbowContacts_RosterPeerAdded(object sender, Rainbow.Events.PeerEventArgs e)
         {
-            AddStateLine($"A new contact has been added in your roster - JID:[{e.Jid}]");
+            AddStateLine($"A new contact has been added in your roster - JID:[{e.Peer.Jid}]");
             GetAllContacts();
         }
 
-        private void RainbowContacts_ContactInfoChanged(object sender, Rainbow.Events.JidEventArgs e)
+        private void RainbowContacts_PeerInfoChanged(object sender, Rainbow.Events.PeerEventArgs e)
         {
-            if (e.Jid == rainbowMyContact.Jid_im)
+            if (e.Peer.Jid == rainbowMyContact.Jid_im)
                 AddStateLine($"The server has confirmed the update of my contact information");
             else
-                AddStateLine($"A contact has changed its information - JID:[{e.Jid}]");
+                AddStateLine($"A contact has changed its information - JID:[{e.Peer.Jid}]");
         }
+
+
 
     #endregion EVENTS FIRED BY RAINBOW SDK
 
@@ -359,7 +377,7 @@ namespace Sample_Contacts
                 rainbowApplication.Logout(callback =>
                 {
                     if(!callback.Result.Success)
-                        log.Warn("Impossible to logout:\r\n{0}", Util.SerializeSdkError(callback.Result));
+                        log.LogInformation("Impossible to logout:\r\n{0}", Util.SerializeSdkError(callback.Result));
                 });
             }
             else
@@ -384,7 +402,7 @@ namespace Sample_Contacts
                     {
                         string logLine = String.Format("Impossible to login:\r\n{0}", Util.SerializeSdkError(callback.Result));
                         AddStateLine(logLine);
-                        log.Warn(logLine);
+                        log.LogInformation(logLine);
                     }
                 });
             }
@@ -412,7 +430,7 @@ namespace Sample_Contacts
                 {
                     string logLine = String.Format("Impossible to update avatar:\r\n{0}", Util.SerializeSdkError(callback.Result));
                     AddStateLine(logLine);
-                    log.Warn(logLine);
+                    log.LogInformation(logLine);
                 }
             });
         }
@@ -438,7 +456,7 @@ namespace Sample_Contacts
                 {
                     string logLine = String.Format("Impossible to update avatar:\r\n{0}", Util.SerializeSdkError(callback.Result));
                     AddStateLine(logLine);
-                    log.Warn(logLine);
+                    log.LogInformation(logLine);
                 }
             });
 
@@ -479,7 +497,7 @@ namespace Sample_Contacts
                                     {
                                         string logLine = String.Format("Impossible to update avatar:\r\n{0}", Util.SerializeSdkError(callback.Result));
                                         AddStateLine(logLine);
-                                        log.Warn(logLine);
+                                        log.LogInformation(logLine);
                                     }
                                 });
                             }
@@ -538,7 +556,7 @@ namespace Sample_Contacts
                     {
                         string logLine = String.Format("Impossible to get avatar of this contact:\r\n{0}", Util.SerializeSdkError(callback.Result));
                         AddStateLine(logLine);
-                        log.Warn(logLine);
+                        log.LogInformation(logLine);
                     }
                 });
             }
@@ -565,7 +583,7 @@ namespace Sample_Contacts
                     {
                         string logLine = String.Format("Impossible to get avatar of this contact:\r\n{0}", Util.SerializeSdkError(callback.Result));
                         AddStateLine(logLine);
-                        log.Warn(logLine);
+                        log.LogInformation(logLine);
                     }
                 });
             }
@@ -597,7 +615,7 @@ namespace Sample_Contacts
                     {
                         string logLine = String.Format("Impossible to get info about this contact [{1}]:\r\n{0}", Util.SerializeSdkError(callback.Result), id);
                         AddStateLine(logLine);
-                        log.Warn(logLine);
+                        log.LogInformation(logLine);
                     }
                 });
             }
@@ -624,7 +642,7 @@ namespace Sample_Contacts
                         {
                             string logLine = String.Format("Impossible to send invitation to this contact [{1}]:\r\n{0}", Util.SerializeSdkError(callback.Result), id);
                             AddStateLine(logLine);
-                            log.Warn(logLine);
+                            log.LogInformation(logLine);
                         }
                     });
                 }
@@ -639,7 +657,7 @@ namespace Sample_Contacts
                         {
                             string logLine = String.Format("Impossible to remove this contact [{1}] from your roster:\r\n{0}", Util.SerializeSdkError(callback.Result), id);
                             AddStateLine(logLine);
-                            log.Warn(logLine);
+                            log.LogInformation(logLine);
                         }
                     });
                 }
@@ -673,7 +691,7 @@ namespace Sample_Contacts
                 {
                     string logLine = String.Format("Impossible to get avatar of my contact:\r\n{0}", Util.SerializeSdkError(callback.Result));
                     AddStateLine(logLine);
-                    log.Warn(logLine);
+                    log.LogInformation(logLine);
                 }
             });
         }
@@ -683,7 +701,7 @@ namespace Sample_Contacts
             if (!rainbowApplication.IsConnected())
                 return;
 
-            rainbowContacts.GetAllContacts(callback =>
+            rainbowContacts.GetAllContactsInRosterFromServer(callback =>
             {
                 if (callback.Result.Success)
                 {
@@ -695,7 +713,7 @@ namespace Sample_Contacts
                 {
                     string logLine = String.Format("Impossible to get all contacts:\r\n{0}", Util.SerializeSdkError(callback.Result));
                     AddStateLine(logLine);
-                    log.Warn(logLine);
+                    log.LogInformation(logLine);
                 }
             });
         }
@@ -710,7 +728,7 @@ namespace Sample_Contacts
             }
             catch (Exception e)
             {
-                log.Warn("[GetImageFromBytes] Exception\r\n", Rainbow.Util.SerializeException(e));
+                log.LogInformation("[GetImageFromBytes] Exception\r\n", Rainbow.Util.SerializeException(e));
             }
             return result;
         }
