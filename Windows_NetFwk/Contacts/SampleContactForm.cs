@@ -20,23 +20,12 @@ namespace Sample_Contacts
         private static readonly ILogger log = Rainbow.LogFactory.CreateLogger<SampleContactForm>();
 
         //Define Rainbow Application Id, Secret Key and Host Name
-        //const string APP_ID = "YOUR APP ID";
-        //const string APP_SECRET_KEY = "YOUR SECRET KEY";
-        //const string HOST_NAME = "sandbox.openrainbow.com";
+        const string APP_ID = "YOUR APP ID";
+        const string APP_SECRET_KEY = "YOUR SECRET KEY";
+        const string HOST_NAME = "sandbox.openrainbow.com";
 
-        //const string LOGIN_USER1 = "YOUR LOGIN";
-        //const string PASSWORD_USER1 = "YOUR PASSWORD";
-
-
-        const string APP_ID = "6f8c5910725b11e9b55c81be00bebc2c";
-        const string APP_SECRET_KEY = "qSmr71s7idLiKRmhXGNNIOpPJynliqrS2sHKy3Wzk6ytauRSP13qebuJQmRHGwTN";
-        const string HOST_NAME = "openrainbow.net";
-
-        const string LOGIN_USER1 = "christophe.irles@al-enterprise.com"; // Superadmin sur .NET
-        const string PASSWORD_USER1 = "Back9fun!!!!"; /// "Back0fun!!!";
-        const string JID_NODE_USER1 = "j_5429522771";
-        const string ID_USER1 = "56e6bc34c219157cb207e821";
-
+        const string LOGIN_USER1 = "YOUR LOGIN";
+        const string PASSWORD_USER1 = "YOUR PASSWORD";
 
 
         // Define Rainbow objects

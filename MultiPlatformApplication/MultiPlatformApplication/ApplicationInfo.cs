@@ -12,9 +12,9 @@ namespace MultiPlatformApplication
         //static internal readonly string HOST_NAME = "openrainbow.com";
 
         // NET ENVIRONMENT - START
-        static internal readonly string APP_ID = "6f8c5910725b11e9b55c81be00bebc2c";
-        static internal readonly string APP_SECRET_KEY = "qSmr71s7idLiKRmhXGNNIOpPJynliqrS2sHKy3Wzk6ytauRSP13qebuJQmRHGwTN";
-        static internal readonly string HOST_NAME = "openrainbow.net";
+        static internal readonly string APP_ID = "TO DEFINE";
+        static internal readonly string APP_SECRET_KEY = "TO DEFINE";
+        static internal readonly string HOST_NAME = "TO DEFINE";
 
         static internal readonly Boolean USE_SSO = false;
 
