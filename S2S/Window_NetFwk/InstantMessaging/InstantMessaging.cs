@@ -29,14 +29,15 @@ namespace Sample_InstantMessaging
         const string LOGIN_USER1 = "YOUR LOGIN";
         const string PASSWORD_USER1 = "YOUR PASSWORD";
 
-
         // Define Rainbow objects
         Rainbow.Application rainbowApplication;     // To store Rainbow Application object
         Contacts rainbowContacts;                   // To store Rainbow Contacts object
+        Bubbles rainbowBubbles;                     // To store Rainbow Bubbles object
         Conversations rainbowConversations;         // To store Rainbow Conversations object
         InstantMessaging rainbowInstantMessaging;   // To store Rainbow InstantMessaging object
 
         Contact rainbowMyContact;                   // To store My contact (i.e. the one connected to Rainbow Server)
+        List<Bubble> rainbowBubblesList;            // To store bubbles list
         List<Contact> rainbowContactsList;          // To store contacts list of my roster
         List<Conversation> rainbowConversationsList;// To store conversations list
 
@@ -81,6 +82,7 @@ namespace Sample_InstantMessaging
 
             // Get Rainbow main objects
             rainbowContacts = rainbowApplication.GetContacts();
+            rainbowBubbles = rainbowApplication.GetBubbles();
             rainbowConversations = rainbowApplication.GetConversations();
             rainbowInstantMessaging = rainbowApplication.GetInstantMessaging();
 
@@ -103,9 +105,9 @@ namespace Sample_InstantMessaging
         }
 
 
-        #endregion INIT METHODS
+    #endregion INIT METHODS
 
-        #region METHOD TO UPDATE SampleConversationForm COMPONENTS
+    #region METHOD TO UPDATE SampleConversationForm COMPONENTS
 
         /// <summary>
         /// Permits to add a new sting in the text box at the bottom of the form: it permits to log things happening
@@ -224,7 +226,7 @@ namespace Sample_InstantMessaging
                 foreach (Contact contact in rainbowContactsList)
                 {
                     // Avoid to add my contact in the list
-                    if (contact.Id != rainbowMyContact.Id)
+                    if (contact.Id != rainbowMyContact?.Id)
                     {
                         string displayName = GetContactDisplayName(contact);
                         System.Web.UI.WebControls.ListItem item = new System.Web.UI.WebControls.ListItem(displayName, contact.Id);
@@ -438,7 +440,7 @@ namespace Sample_InstantMessaging
             if (e.State == Rainbow.Model.ConnectionState.Connected)
             {
                 GetAllContacts();
-                GetAllConversations();
+                GetAllBubbles();
             }
             else if (e.State == Rainbow.Model.ConnectionState.Disconnected)
             {
@@ -458,7 +460,7 @@ namespace Sample_InstantMessaging
 
         private void RainbowContacts_ContactPresenceChanged(object sender, Rainbow.Events.PresenceEventArgs e)
         {
-            if (e.Jid == rainbowMyContact.Jid_im)
+            if (e.Jid == rainbowMyContact?.Jid_im)
             {
                 AddStateLine($"Your presence changed to [{Util.SerializePresence(e.Presence)}]");
             }
@@ -988,14 +990,7 @@ namespace Sample_InstantMessaging
 
         private string GetContactDisplayName(Contact contact)
         {
-            string displayName = null;
-            if (contact!= null)
-            {
-                displayName = contact.DisplayName;
-                if (String.IsNullOrEmpty(displayName))
-                    displayName = $"{contact.LastName} {contact.FirstName}";
-            }
-            return displayName;
+            return Rainbow.Util.GetContactDisplayName(contact);
         }
 
         private void GetAllContacts()
@@ -1019,6 +1014,29 @@ namespace Sample_InstantMessaging
                 }
             });
         }
+
+        private void GetAllBubbles()
+        {
+            if (!rainbowApplication.IsConnected())
+                return;
+
+            rainbowBubbles.GetAllBubbles(callback =>
+            {
+                if (callback.Result.Success)
+                {
+                    rainbowBubblesList = callback.Data;
+                    AddStateLine($"Nb bubbles:{rainbowBubblesList.Count()}");
+                    GetAllConversations();
+                }
+                else
+                {
+                    string logLine = String.Format("Impossible to get all bubbles:\r\n{0}", Util.SerializeSdkError(callback.Result));
+                    AddStateLine(logLine);
+                    log.LogWarning(logLine);
+                }
+            });
+        }
+
 
         private void GetAllConversations()
         {
