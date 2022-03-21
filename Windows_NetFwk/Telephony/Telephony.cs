@@ -377,8 +377,8 @@ namespace Sample_Telephony
 
                     tbCall1Id.Text = call.Id;
                     tbCall1Status.Text = call.CallStatus.ToString();
-                    tbCall1LocalMedia.Text = call.LocalMedia.ToString();
-                    tbCall1RemoteMedia.Text = call.RemoteMedia.ToString();
+                    tbCall1LocalMedia.Text = call.LocalMedias.ToString();
+                    tbCall1RemoteMedia.Text = call.RemoteMedias.ToString();
                     tbCall1DeviceType.Text = call.DeviceType;
                     cbCall1IsConference.Checked = call.IsConference;
 
@@ -502,8 +502,8 @@ namespace Sample_Telephony
 
                     tbCall2Id.Text = call.Id;
                     tbCall2Status.Text = call.CallStatus.ToString();
-                    tbCall2LocalMedia.Text = call.LocalMedia.ToString();
-                    tbCall2RemoteMedia.Text = call.RemoteMedia.ToString();
+                    tbCall2LocalMedia.Text = call.LocalMedias.ToString();
+                    tbCall2RemoteMedia.Text = call.RemoteMedias.ToString();
                     tbCall2DeviceType.Text = call.DeviceType;
                     cbCall2IsConference.Checked = call.IsConference;
 
