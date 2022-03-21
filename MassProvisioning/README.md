@@ -6,7 +6,7 @@
 
 This sample demonstrates how to use the SDK in a mass provisioning process.
 
-It permits also to understand how to login and use SDK API which are asynchornous in a synchronous way?
+It permits also to understand how to login and use SDK API which are asynchornous in a synchronous way.
 
 This scenario is used in this sample:
 
@@ -14,7 +14,7 @@ Using an Organization admin:
 - We create a company (for a specific school)
 - We create a company admin (the responsible of teachers and students)
   
-Using the Company Admin createD just before:
+Using the Company Admin created just before:
 - We create teachers
 - We create students
 

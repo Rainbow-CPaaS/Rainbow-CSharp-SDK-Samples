@@ -23,6 +23,7 @@ They are listed in order of priority if you just started to use the SDK - they a
 
 | Content | Description | Platform | 
 | ------- | ----------- | -------- |
+| Channels | Manage Channels / Members - First sample to understand | [Windows using .NetFwk](https://github.com/Rainbow-CPaaS/Rainbow-CSharp-SDK-Samples/tree/master/Windows_NetFwk/Channels)|
 | Contacts  | Manage list of contacts - First sample to understand | [Windows using .NetFwk](https://github.com/Rainbow-CPaaS/Rainbow-CSharp-SDK-Samples/tree/master/Windows_NetFwk/Contacts)<br><br>[MacOs using Xamarin](https://github.com/Rainbow-CPaaS/Rainbow-CSharp-SDK-Samples/tree/master/Mac_Xamarin/Contacts)|
 | Conversations / Favorites | Manage list of conversations / favorites - Second sample to understand | [Windows using .NetFwk](https://github.com/Rainbow-CPaaS/Rainbow-CSharp-SDK-Samples/tree/master/Windows_NetFwk/Conversations)<br><br>[MacOs using Xamarin](https://github.com/Rainbow-CPaaS/Rainbow-CSharp-SDK-Samples/tree/master/Mac_Xamarin/Conversations) |
 | Instant Messaging | Send, receive simple IM messages, manage presence | [Windows using .NetFwk](https://github.com/Rainbow-CPaaS/Rainbow-CSharp-SDK-Samples/tree/master/Windows_NetFwk/InstantMessaging)<br><br>[MacOs using Xamarin](https://github.com/Rainbow-CPaaS/Rainbow-CSharp-SDK-Samples/tree/master/Mac_Xamarin/InstantMessaging) |
