@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<nlog xmlns="http://www.nlog-project.org/schemas/NLog.xsd"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+    <targets>
+        <target
+          xsi:type="File"
+          encoding="utf-8" 
+          name="targetName" 
+          fileName="file.txt"
+          archiveFileName="Archive{###}.log"
+          archiveAboveSize="5242880"
+          maxArchiveFiles="10"
+          layout="${longdate} | ${level:uppercase=true:padding=-5} | ${threadid:padding=-3} | ${callsite:className=True:fileName=False:includeSourcePath=False:methodName=True:padding=70:fixedLength=True:alignmentOnTruncation=Right}: ${callsite-linenumber:padding=-4} | ${message}"
+          />
+    </targets>
+
+    <rules>
+        <logger 
+          name="*" 
+          minlevel="Debug" 
+          writeTo="targetName" />
+    </rules>
+</nlog>
