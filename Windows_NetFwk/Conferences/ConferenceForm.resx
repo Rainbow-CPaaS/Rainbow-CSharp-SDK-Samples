@@ -117,11 +117,4 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="label15.Text" xml:space="preserve">
-    <value>To understand how Conference object must be used, the best thing to do it's to use
- an account logged in same time in this Form and in a Web Client.
-You can start and join a PSTN Conference from here. For WebRTC Conference the
-best is to start it from Web Client.
-Then, from here, you can see the status of the conference in progress and manage it.</value>
-  </data>
 </root>

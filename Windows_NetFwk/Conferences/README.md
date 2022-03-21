@@ -12,7 +12,7 @@ There is two different kind of Conference.
 
 This permissions are independent. You can have access to one, both or none of them according your Rainbow licence. 
 
-All information related to API here references the **Bubbles** class.
+All information related to API here references the **Conferences** class.
 
 ### Personal Conference
 To check permission of Personal Conference, you can use **PersonalConferenceAllowed()**.
@@ -69,3 +69,4 @@ To know the bubble which contains the active Personal Conference, this method ca
 - **PersonalConferenceGetPublicUrl**
 - **PersonalConferenceGenerateNewPublicUrl**
 
+![ConferenceForm](./images/ConferenceForm.png)
