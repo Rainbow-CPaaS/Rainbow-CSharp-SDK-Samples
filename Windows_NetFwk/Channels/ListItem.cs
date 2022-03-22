@@ -15,7 +15,10 @@ namespace SampleChannels
         public ListItem(String id, String text)
         {
             Id = id;
-            Text = text;
+            if(String.IsNullOrEmpty(text))
+                Text = id;
+            else
+                Text = text;
         }
 
         public override string ToString()

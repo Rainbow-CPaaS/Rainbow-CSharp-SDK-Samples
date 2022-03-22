@@ -80,9 +80,10 @@
             this.tbMassProNbChannels = new System.Windows.Forms.TextBox();
             this.label8 = new System.Windows.Forms.Label();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.tbMassProDelete = new System.Windows.Forms.Button();
             this.label9 = new System.Windows.Forms.Label();
             this.tbMassProNbPublishers = new System.Windows.Forms.TextBox();
-            this.tbMassProDelete = new System.Windows.Forms.Button();
+            this.btnSearchChannels = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.pbAvatar)).BeginInit();
             this.gbCreateChannel.SuspendLayout();
             this.gbAvatar.SuspendLayout();
@@ -588,7 +589,17 @@
             this.groupBox1.Size = new System.Drawing.Size(133, 149);
             this.groupBox1.TabIndex = 57;
             this.groupBox1.TabStop = false;
-            this.groupBox1.Text = "Mass provisionning";
+            this.groupBox1.Text = "Mass provisioning";
+            // 
+            // tbMassProDelete
+            // 
+            this.tbMassProDelete.Location = new System.Drawing.Point(18, 113);
+            this.tbMassProDelete.Name = "tbMassProDelete";
+            this.tbMassProDelete.Size = new System.Drawing.Size(102, 23);
+            this.tbMassProDelete.TabIndex = 59;
+            this.tbMassProDelete.Text = "Delete";
+            this.tbMassProDelete.UseVisualStyleBackColor = true;
+            this.tbMassProDelete.Click += new System.EventHandler(this.tbMassProDelete_Click);
             // 
             // label9
             // 
@@ -607,21 +618,22 @@
             this.tbMassProNbPublishers.TabIndex = 58;
             this.tbMassProNbPublishers.Text = "3";
             // 
-            // tbMassProDelete
+            // btnSearchChannels
             // 
-            this.tbMassProDelete.Location = new System.Drawing.Point(18, 113);
-            this.tbMassProDelete.Name = "tbMassProDelete";
-            this.tbMassProDelete.Size = new System.Drawing.Size(102, 23);
-            this.tbMassProDelete.TabIndex = 59;
-            this.tbMassProDelete.Text = "Delete";
-            this.tbMassProDelete.UseVisualStyleBackColor = true;
-            this.tbMassProDelete.Click += new System.EventHandler(this.tbMassProDelete_Click);
+            this.btnSearchChannels.Location = new System.Drawing.Point(281, 12);
+            this.btnSearchChannels.Name = "btnSearchChannels";
+            this.btnSearchChannels.Size = new System.Drawing.Size(120, 23);
+            this.btnSearchChannels.TabIndex = 58;
+            this.btnSearchChannels.Text = "Search Channels";
+            this.btnSearchChannels.UseVisualStyleBackColor = true;
+            this.btnSearchChannels.Click += new System.EventHandler(this.btnSearchChannels_Click);
             // 
             // FormChannel
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 609);
+            this.Controls.Add(this.btnSearchChannels);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.btnChannelMute);
             this.Controls.Add(this.cbChannelMuted);
@@ -733,5 +745,6 @@
         private Label label9;
         private TextBox tbMassProNbPublishers;
         private Button tbMassProDelete;
+        private Button btnSearchChannels;
     }
 }

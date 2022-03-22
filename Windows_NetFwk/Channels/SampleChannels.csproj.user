@@ -4,6 +4,9 @@
     <Compile Update="FormChannel.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Update="FormChannelItems.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Update="FormLogin.cs">
       <SubType>Form</SubType>
     </Compile>

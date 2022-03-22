@@ -22,8 +22,11 @@ namespace SampleChannels
         {
             InitializeComponent();
 
-            if(CheckApplicationInfo())
-                InitLogsWithNLog();
+            if (CheckApplicationInfo())
+            {
+                InitLogsWithNLog(); // To initialize log using NLog XML configuration file with SDK 2.6.0 and more
+                // InitLogsInOldWay(); // To initialize log using NLog XML configuration file BEFORE SDK 2.6.0
+            }
             else
                 btnConnect.Enabled = false;
                 
@@ -163,8 +166,7 @@ namespace SampleChannels
             
         }
 
-
-        private Boolean InitLogsWithNLog() // To inialize log using NLog XML configuration file wiht SDK 2.6.0 and more
+        private Boolean InitLogsWithNLog() // To initialize log using NLog XML configuration file with SDK 2.6.0 and more
         {
             String logConfigFilePath = ApplicationInfo.NLOG_CONFIG_FILE_PATH; // File path to log configuration (or you could also use an embedded resource)
 
@@ -197,8 +199,7 @@ namespace SampleChannels
             return false;
         }
 
-
-        //private void InitLogsInOldWay() // The way to log information before SDK V 2.6.0
+        //private void InitLogsInOldWay() // To initialize log using NLog XML configuration file BEFORE SDK 2.6.0
         //{
         //    String logFileName = "RainbowSampleConferences.log"; // File name of the log file
         //    String archiveLogFileName = "RainbowSampleConferences_{###}.log"; // File name of the archive log file
@@ -243,9 +244,7 @@ namespace SampleChannels
         //    catch { }
         //}
 
-
-
-        #region EVENTS RAISED BY SDK
+    #region EVENTS RAISED BY SDK
 
         private void RbApplication_InitializationPerformed(object? sender, EventArgs e)
         {
@@ -308,7 +307,7 @@ namespace SampleChannels
             if ( (formChannel == null) || (formChannel?.IsDisposed == true) )
             {
                 formChannel = new FormChannel();
-                formChannel.SetApplication(rbApplication);
+                formChannel.Initialize(rbApplication);
             }
 
             if(!formChannel.Visible)

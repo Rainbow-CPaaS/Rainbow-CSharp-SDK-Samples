@@ -32,19 +32,25 @@ namespace SampleChannels
 
         Random random = new Random();
 
+        FormChannelItems formChannelItems;
+
         public FormChannel()
         {
             InitializeComponent();
         }
 
-        public void SetApplication(Rainbow.Application application)
+        public void Initialize(Rainbow.Application application)
         {
             if ( (application != null) && (rbApplication != application) )
             {
                 // REmove previous event
                 if(rbApplication != null)
                 {
-
+                    rbChannels.ChannelAvatarUpdated -= RbChannels_ChannelAvatarUpdated;
+                    rbChannels.ChannelCreated -= RbChannels_ChannelCreated;
+                    rbChannels.ChannelDeleted -= RbChannels_ChannelDeleted;
+                    rbChannels.ChannelInfoUpdated -= RbChannels_ChannelInfoUpdated;
+                    rbChannels.MemberUpdated -= RbChannels_MemberUpdated;
                 }
 
                 rbApplication = application;
@@ -434,6 +440,11 @@ namespace SampleChannels
             GetChannels();
         }
 
+        private void btnSearchChannels_Click(object sender, EventArgs e)
+        {
+            AddInformation("Not explained in this sample yet but available in the SDK");
+        }
+        
         private void cbChannels_SelectionChangeCommitted(object sender, EventArgs e)
         {
             UpdateUIChannelSelected(true);
@@ -787,7 +798,16 @@ namespace SampleChannels
 
         private void btnManageItems_Click(object sender, EventArgs e)
         {
-            AddInformation("Not implemented yet");
+            AddInformation("Not explained in this sample yet but available in the SDK");
+
+            if ((formChannelItems == null) || (formChannelItems?.IsDisposed == true))
+            {
+                formChannelItems = new FormChannelItems();
+                formChannelItems.Initialize(rbApplication, channelIdSelected);
+            }
+
+            if (!formChannelItems.Visible)
+                formChannelItems.Show(this);
         }
 
         private void tbMassProOk_Click(object sender, EventArgs e)
@@ -941,5 +961,7 @@ namespace SampleChannels
         }
 
     #endregion EVENTS FROM Form Elements
+
+        
     }
 }
