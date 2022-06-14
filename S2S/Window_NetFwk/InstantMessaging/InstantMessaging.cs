@@ -772,8 +772,16 @@ namespace Sample_InstantMessaging
             if (!rainbowApplication.IsConnected())
                 return;
 
-            if (String.IsNullOrEmpty(tbMessage.Text))
+            String filePath = tbFilePath.Text;
+            Boolean canSendFile = false;
+            canSendFile = cbWithFile.Checked && (!String.IsNullOrEmpty(filePath)) && File.Exists(filePath);
+
+
+            if (String.IsNullOrEmpty(tbMessage.Text) && !canSendFile)
                 return;
+
+            // Uncheck file option
+            cbWithFile.Checked = false;
 
             if (selectionCorrect)
             {
@@ -782,19 +790,87 @@ namespace Sample_InstantMessaging
 
                 if (contactSelected)
                 {
-                    rainbowInstantMessaging.SendMessageToContactId(idSelected, textToSend, UrgencyType.Std, null, callback =>
+                    if (canSendFile)
                     {
-                        if (callback.Result.Success)
+                        rainbowInstantMessaging.SendMessageWithFileToContactId(idSelected, textToSend, filePath, UrgencyType.Std, null, 
+                            callbackFileDescriptor =>
+                            {
+                                if (callbackFileDescriptor.Result.Success)
+                                {
+                                    AddStateLine($"File has been uploaded to server - File:[{filePath}]");
+                                }
+                                else
+                                {
+                                    string logLine = String.Format("Impossible to upload file [{1}]:\r\n{0}", Util.SerializeSdkError(callbackFileDescriptor.Result), idSelected);
+                                    AddStateLine(logLine);
+                                    log.LogWarning(logLine);
+                                }
+                            },
+                            callbackMessage =>
+                            {
+                                if (callbackMessage.Result.Success)
+                                {
+                                    AddStateLine($"Message sent successfully to contact [{idSelected}] with File:[{filePath}]");
+                                }
+                                else
+                                {
+                                    string logLine = String.Format("Impossible to send message to contact [{1}]:\r\n{0}", Util.SerializeSdkError(callbackMessage.Result), idSelected);
+                                    AddStateLine(logLine);
+                                    log.LogWarning(logLine);
+                                }
+                            }
+                        );
+                    }
+                    else
+                    {
+                        if (canSendFile)
                         {
-                            AddStateLine($"Message sent successfully to contact [{idSelected}]");
+                            rainbowInstantMessaging.SendMessageWithFileToContactId(idSelected, textToSend, filePath, UrgencyType.Std, null,
+                                callbackFileDescriptor =>
+                                {
+                                    if (callbackFileDescriptor.Result.Success)
+                                    {
+                                        AddStateLine($"File has been uploaded to server - File:[{filePath}]");
+                                    }
+                                    else
+                                    {
+                                        string logLine = String.Format("Impossible to upload file [{1}]:\r\n{0}", Util.SerializeSdkError(callbackFileDescriptor.Result), idSelected);
+                                        AddStateLine(logLine);
+                                        log.LogWarning(logLine);
+                                    }
+                                },
+                                callbackMEssage =>
+                                {
+                                    if (callbackMEssage.Result.Success)
+                                    {
+                                        AddStateLine($"Message sent successfully to contact [{idSelected}] with File:[{filePath}]");
+                                    }
+                                    else
+                                    {
+                                        string logLine = String.Format("Impossible to send message to contact [{1}]:\r\n{0}", Util.SerializeSdkError(callbackMEssage.Result), idSelected);
+                                        AddStateLine(logLine);
+                                        log.LogWarning(logLine);
+                                    }
+                                }
+                            );
                         }
                         else
                         {
-                            string logLine = String.Format("Impossible to send message to contact [{1}]:\r\n{0}", Util.SerializeSdkError(callback.Result), idSelected);
-                            AddStateLine(logLine);
-                            log.LogWarning(logLine);
+                            rainbowInstantMessaging.SendMessageToContactId(idSelected, textToSend, UrgencyType.Std, null, callback =>
+                            {
+                                if (callback.Result.Success)
+                                {
+                                    AddStateLine($"Message sent successfully to contact [{idSelected}]");
+                                }
+                                else
+                                {
+                                    string logLine = String.Format("Impossible to send message to contact [{1}]:\r\n{0}", Util.SerializeSdkError(callback.Result), idSelected);
+                                    AddStateLine(logLine);
+                                    log.LogWarning(logLine);
+                                }
+                            });
                         }
-                    });
+                    }
                 }
                 else
                 {
@@ -984,6 +1060,17 @@ namespace Sample_InstantMessaging
             }
         }
 
+        private void btnBrowseFile_Click(object sender, EventArgs e)
+        {
+            using (OpenFileDialog openFileDialog = new OpenFileDialog())
+            {
+                openFileDialog.RestoreDirectory = true;
+
+                if (openFileDialog.ShowDialog() == DialogResult.OK)
+                    tbFilePath.Text  = openFileDialog.FileName;
+            }
+        }
+
     #endregion EVENTS FIRED BY SampleContactForm ELEMENTS
 
     #region UTIL METHODS
@@ -1036,7 +1123,6 @@ namespace Sample_InstantMessaging
                 }
             });
         }
-
 
         private void GetAllConversations()
         {
@@ -1094,9 +1180,8 @@ namespace Sample_InstantMessaging
             return server;
         }
 
-
     #endregion UTIL METHODS
 
-    
+
     }
 }

@@ -54,6 +54,10 @@
             this.label3 = new System.Windows.Forms.Label();
             this.tbCallbackUrl = new System.Windows.Forms.TextBox();
             this.cbUseS2SEventMode = new System.Windows.Forms.CheckBox();
+            this.cbWithFile = new System.Windows.Forms.CheckBox();
+            this.btnBrowseFile = new System.Windows.Forms.Button();
+            this.tbFilePath = new System.Windows.Forms.TextBox();
+            this.label8 = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // label21
@@ -297,11 +301,51 @@
             this.cbUseS2SEventMode.Text = "Use S2S event mode";
             this.cbUseS2SEventMode.UseVisualStyleBackColor = true;
             // 
+            // cbWithFile
+            // 
+            this.cbWithFile.AutoSize = true;
+            this.cbWithFile.Location = new System.Drawing.Point(319, 374);
+            this.cbWithFile.Name = "cbWithFile";
+            this.cbWithFile.Size = new System.Drawing.Size(61, 17);
+            this.cbWithFile.TabIndex = 76;
+            this.cbWithFile.Text = "with file";
+            this.cbWithFile.UseVisualStyleBackColor = true;
+            // 
+            // btnBrowseFile
+            // 
+            this.btnBrowseFile.Location = new System.Drawing.Point(386, 371);
+            this.btnBrowseFile.Name = "btnBrowseFile";
+            this.btnBrowseFile.Size = new System.Drawing.Size(75, 23);
+            this.btnBrowseFile.TabIndex = 77;
+            this.btnBrowseFile.Text = "Browse";
+            this.btnBrowseFile.UseVisualStyleBackColor = true;
+            this.btnBrowseFile.Click += new System.EventHandler(this.btnBrowseFile_Click);
+            // 
+            // tbFilePath
+            // 
+            this.tbFilePath.Location = new System.Drawing.Point(88, 372);
+            this.tbFilePath.Name = "tbFilePath";
+            this.tbFilePath.Size = new System.Drawing.Size(225, 20);
+            this.tbFilePath.TabIndex = 78;
+            // 
+            // label8
+            // 
+            this.label8.AutoSize = true;
+            this.label8.Location = new System.Drawing.Point(31, 376);
+            this.label8.Name = "label8";
+            this.label8.Size = new System.Drawing.Size(48, 13);
+            this.label8.TabIndex = 79;
+            this.label8.Text = "File Path";
+            // 
             // SampleInstantMessagingForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1008, 584);
+            this.Controls.Add(this.label8);
+            this.Controls.Add(this.tbFilePath);
+            this.Controls.Add(this.btnBrowseFile);
+            this.Controls.Add(this.cbWithFile);
             this.Controls.Add(this.cbUseS2SEventMode);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.tbCallbackUrl);
@@ -365,6 +409,10 @@
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.TextBox tbCallbackUrl;
         private System.Windows.Forms.CheckBox cbUseS2SEventMode;
+        private System.Windows.Forms.CheckBox cbWithFile;
+        private System.Windows.Forms.Button btnBrowseFile;
+        private System.Windows.Forms.TextBox tbFilePath;
+        private System.Windows.Forms.Label label8;
     }
 }
 
