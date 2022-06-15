@@ -22,32 +22,47 @@ This package targets **.Net Standard 2.0**, **.Net Standard 2.1**, **.Net Core A
 
 ## WebRTC service
 
+Permits to manage WebRTC communications: **Peer To Peer** or in a **Conference** on **Linux, MacOS and Windows** using Rainbow environment (https://developers.openrainbow.com/home)
 
-Permits to manage WebRTC communications: Peer To Peer or in a Conference on Linux, MacOS and Windows using Rainbow environment (https://developers.openrainbow.com/home)
+**Peer To Peer communication features**:
 
-Peer To Peer communication features:
 - Answer, Decline, Make, Retract, Hang up call
+    
 - Add / Remove Video or Sharing
+    
 - Mute / Unmute Audio, Video or Sharing
+    
 - Call status: Ringing incoming, ringing outgoing, in progress, ...
+    
 - Audio Stream: Output and Input are supported
-- Video Stream: Ouput is supported. Input is not supported **(work still in progress)**
+    
+- Video Stream: Output is supported. **Input is not supported** (work still in progress)
 
-Conference features:
+**Conference features**:
+
 - Start, Join Conference
+    
 - Participants list
+    
 - Publishers list
+    
 - Mute / Unmute: current user but also other Peers if current user is a moderator of the conference
-- Call status: Ringing incoming, ringing outgoing, in progress, ...
-- Display Active Talker. Current user of this SDK is never seen as Active Talker **(work still in progress)**
-- Add / Remove Video or Sharing
-- Subscribe (automatically or manualy) to publiction of Peers (Video or Sharing)
-- Request / Refuse / Accept Sharing transfert
-- Conference delegation
-- Audio Stream: Output and Input are supported
-- Video Stream: Ouput is supported. Input is not supported **(work still in progress)**
 
-Samples avaialble here: https://github.com/Rainbow-CPaaS/Rainbow-CSharp-SDK-Samples/tree/master/WebRTC
+- Call status: Ringing incoming, ringing outgoing, in progress, ...
+    
+- Display Active Talker. **Current user of this SDK is never seen as Active Talker** (work still in progress)
+    
+- Add / Remove Video or Sharing
+    
+- Subscribe (automatically or manualy) to publication of Peers (Video or Sharing)
+    
+- Request / Refuse / Accept Sharing transfert
+    
+- Conference delegation
+    
+- Audio Stream: Output and Input are supported
+    
+- Video Stream: Ouput is supported. **Input is not supported** (work still in progress)
 
 ## Libraries specific for each platform
 
