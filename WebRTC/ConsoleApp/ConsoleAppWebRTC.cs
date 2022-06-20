@@ -218,6 +218,9 @@ namespace SDK.ConsoleApp.WebRTC
                         Console.WriteLine($"\nSearch a user by Display Name (max result set to [{MAX_SEARCH_RESULT}]):");
                         currentSearchCriteria = Console.ReadLine();
 
+                        if (currentSearchCriteria == null)
+                            currentSearchCriteria = "";
+
                         currentSearchCriteria = currentSearchCriteria.Trim();
                         if (currentSearchCriteria.Length < 2)
                             Console.WriteLine($"\nUse at least two caracters to perform the search ...");
@@ -526,7 +529,8 @@ namespace SDK.ConsoleApp.WebRTC
                 else
                     devices = rbDevices.GetAudioPlaybackDevices();
 
-                if (devices.Count == 0)
+
+                if ( (devices == null) || (devices.Count == 0) )
                     Console.WriteLine($"You don't have an {logVideo} {logInput} device (Physical or emulated) ...");
 
                 int keyValue = 0;
@@ -536,10 +540,13 @@ namespace SDK.ConsoleApp.WebRTC
                     Console.Write($"\n [{0}] - Don't use this kind of device ");
 
                     int index = 1;
-                    foreach (Device device in devices)
+                    if (devices != null)
                     {
-                        Console.Write($"\n [{index}] - {device.Name} ");
-                        index++;
+                        foreach (Device device in devices)
+                        {
+                            Console.Write($"\n [{index}] - {device.Name} ");
+                            index++;
+                        }
                     }
 
                     if(isInput)
@@ -574,7 +581,7 @@ namespace SDK.ConsoleApp.WebRTC
 
                 Device ? deviceSelected = null;
 
-                if (keyValue != 0)
+                if ( (keyValue != 0) && (devices != null) )
                 {
                     deviceSelected = devices[keyValue - 1];
                     Console.WriteLine($"\n\n\t => {logVideo} {logInput} device selected:[{deviceSelected.Name}]");
