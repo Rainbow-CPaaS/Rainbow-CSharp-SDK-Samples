@@ -1,0 +1,752 @@
+﻿using NLog.Config;
+using Rainbow.Model;
+using Rainbow.WebRTC;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Threading;
+
+namespace SDK.ConsoleApp.WebRTC
+{
+    internal class ConsoleAppWebRTC
+    {
+
+        enum VIDEO_REMOTE_DISPLAY
+        {
+            NONE,
+            VIDEO,
+            SHARING,
+        }
+
+        enum APP_STEP
+        {
+            NONE,
+            CHECK_APPLICATION_INFO,
+            CHECK_LIB_PATH,
+            INIT_LIBRARIES,
+            ASK_DEVICES,
+            STAR_LOGIN_PROCESS,
+            LOGIN_PROCESS_IN_PROGRESS,
+            LOGIN_AND_INIT_DONE,
+            SEARCH_USER_TYPING,
+            SEARCH_USER_IN_PROGRESS,
+            SEARCH_USER_SELECTION,
+            SEARCH_USER_SELECTION_DONE,
+            CALL_IN_PROGRESS,
+            CALL_ENDED,
+        }
+
+        static APP_STEP appStep = APP_STEP.NONE;
+        static VIDEO_REMOTE_DISPLAY videoRemoteDisplay = VIDEO_REMOTE_DISPLAY.NONE;
+        static int remoteMedias = 0;
+        static Boolean quitApp = false;
+
+        // Object used for serach purpose        
+        static int MAX_SEARCH_RESULT = 20; // Cannot be greater than 20
+        static int currentSearchPage = 0;
+        static String? currentSearchCriteria = "";
+
+        // Define Rainbow SDK objects used in this example
+        static Rainbow.Application? rbApplication;
+        static Rainbow.Contacts? rbContacts;
+        static Rainbow.WebRTC.WebRTCCommunications? rbWebRTCCommunications;
+        static Rainbow.WebRTC.Devices? rbDevices;
+
+        // Define devices which will be used in WebRtc Conversation
+        static Rainbow.WebRTC.Device? videoInputDeviceSelected = null;
+        static Rainbow.WebRTC.Device? audioInputDeviceSelected = null;
+        static Rainbow.WebRTC.Device? audioOutputDeviceSelected = null;
+
+        // Define Contacts objects: current user and the peer used in the WebRtc Conversation
+        static Rainbow.Model.Contact? currentContact = null;
+        static Rainbow.Model.Contact? selectedContact = null;
+
+        // To store list of contacts found
+        static List<Rainbow.Model.Contact>? contactsFound = null;
+
+        // Define Call object
+        static Rainbow.Model.Call? currentCall = null;
+        static String? currentCallId = null;
+
+        // Object to display remote video in ASCII
+        static AsciiFrame? asciiFrame = null;
+        static String footerLine1 = "";
+        static String footerLine2 = "";
+
+    #region Main
+
+        static void Main(string[] args)
+        {
+            Console.Clear();
+
+            if (!InitLogsWithNLog())
+            {
+                Console.WriteLine("Cannot initialized application log files ...");
+                return;
+            }
+
+            // Check if APP_ID,  APP_SECRET_KEY,  HOST_NAME, LOGIN_USER and LOGIN_PASSWORD are set
+            appStep = APP_STEP.CHECK_APPLICATION_INFO;
+            if (!CheckApplicationInfo())
+                return;
+
+            // Check if FFmpeg lib folder path exists
+            if (!ApplicationInfo.USE_ONLY_MICROPHONE_OR_HEADSET)
+            {
+                appStep = APP_STEP.CHECK_LIB_PATH;
+                if (!CheckFFmpegLibFolderPath())
+                    return;
+            }
+
+            // Create Rainbow.Application
+            rbApplication = new Rainbow.Application();
+            rbApplication.SetApplicationInfo(ApplicationInfo.APP_ID, ApplicationInfo.APP_SECRET_KEY);
+            rbApplication.SetHostInfo(ApplicationInfo.HOST_NAME);
+            rbApplication.Restrictions.UseSameResourceId = true; // We want to use same resourceId each time
+            rbApplication.Restrictions.UseWebRTC = true; // We will use WebRTC features
+            rbApplication.Restrictions.UseAPIConferenceV2 = true; // We use Conference V2
+
+            // Create Rainbow.Contacts service
+            rbContacts = rbApplication.GetContacts();
+
+            // Create Rainbow.WebRTC.Communication service
+            appStep = APP_STEP.INIT_LIBRARIES;
+            if (!ApplicationInfo.USE_ONLY_MICROPHONE_OR_HEADSET)
+                Console.WriteLine($"\nFFmpeg libraries must be stored here:[{ApplicationInfo.FFMPEG_LIB_FOLDER_PATH}]");
+
+            Console.WriteLine($"\nSDL2 library must be stored in the current folder:[{Rainbow.Util.GetSDKFolderPath()}]");
+            if (!ApplicationInfo.USE_ONLY_MICROPHONE_OR_HEADSET)
+                Console.WriteLine($"\nTry to initalize external libraries: FFmpeg and SDL2 ...");
+            else
+                Console.WriteLine($"\nTry to initalize external libraries: SDL2 ...");
+            try
+            {
+                // Do we use audio onyl ?
+                Rainbow.WebRTC.WebRTCCommunications.USE_ONLY_MICROPHONE_OR_HEADSET = ApplicationInfo.USE_ONLY_MICROPHONE_OR_HEADSET; //  /!\ We have to set this BEFORE TO CREATE rbCommunication object
+
+                rbWebRTCCommunications = Rainbow.WebRTC.WebRTCCommunications.CreateInstance(rbApplication, ApplicationInfo.FFMPEG_LIB_FOLDER_PATH);
+            }
+            catch (Exception ex)
+            {
+                if (!ApplicationInfo.USE_ONLY_MICROPHONE_OR_HEADSET)
+                    Console.WriteLine("\nInitialization failed ... Pleae ensure you have correclty defined libray path and copy libraries (FFmpeg and SDL2) into correct path");
+                else
+                    Console.WriteLine("\nInitialization failed ... Pleae ensure you have correclty defined libray path and copy libraries (SDL2) into correct path");
+                Console.WriteLine($"\nException:[{Rainbow.Util.SerializeException(ex)}]");
+                return;
+            }
+
+            Console.WriteLine("\nInitialization done");
+
+            // Create Rainbow.WebRTC.Devices service
+            appStep = APP_STEP.ASK_DEVICES;
+            rbDevices = rbWebRTCCommunications.GetDevices();
+
+            // Select devices: Audio Input, Audio Output and Video Input
+            if (!SelectAudioInputDevice())
+            {
+                Console.WriteLine("\nIt's mandatory in this sample to create a P2P call.");
+                return;
+            }
+
+            if (!SelectAudioOutputDevice())
+            {
+                Console.WriteLine("\nIt's mandatory in this sample to create a P2P call.");
+                return;
+            }
+
+            SelectVideoInputDevice(); // Not mandatory to have a Video Input device: in this case only audio will be possible
+
+            // Define Rainbow.Application events events callback we want to manage
+            rbApplication.InitializationPerformed += RbApplication_InitializationPerformed;
+            rbApplication.ConnectionStateChanged += RbApplication_ConnectionStateChanged;
+
+            // Define Rainbow.WebRTC.Communication events callback we want to manage
+            rbWebRTCCommunications.CallUpdated += RbCommunication_CallUpdated;
+            rbWebRTCCommunications.OnVideoRemoteSourceRawSample += RbWebRTCCommunications_OnVideoRemoteSourceRawSample;
+            rbWebRTCCommunications.OnSharingRemoteSourceRawSample += RbWebRTCCommunications_OnSharingRemoteSourceRawSample;
+
+            appStep = APP_STEP.STAR_LOGIN_PROCESS;
+
+            ConsoleKeyInfo keyConsole;
+
+
+            while (!quitApp)
+            {
+                switch (appStep)
+                {
+                    case APP_STEP.STAR_LOGIN_PROCESS:
+
+                        // Try to connect to the server
+                        appStep = APP_STEP.LOGIN_PROCESS_IN_PROGRESS;
+                        Console.WriteLine($"\nUsing HostName:[{ApplicationInfo.HOST_NAME}] - User:[{ApplicationInfo.LOGIN_USER}] Trying to connect ...");
+
+                        rbApplication.Login(ApplicationInfo.LOGIN_USER, ApplicationInfo.PASSWORD_USER, callback =>
+                        {
+                            if (callback.Result.Success)
+                                Console.WriteLine("User / password are correct - waiting end of initialization");
+                            else
+                            {
+                                Console.WriteLine("Login process failed");
+                                if (callback.Result.Type == Rainbow.SdkError.SdkErrorType.IncorrectUse)
+                                {
+                                    Console.WriteLine("User / password are incorrect - you have to set correct credentials. Check also if APP_ID / APP_SECRET_KEY / HOST_NAME are correct.");
+                                    Console.WriteLine($"Exception:[{Rainbow.Util.SerializeSdkError(callback.Result)}]");
+                                }
+                                else
+                                {
+                                    Console.WriteLine($"An error occurred\nException:[{Rainbow.Util.SerializeSdkError(callback.Result)}]");
+                                }
+                                quitApp = true;
+                            }
+                        });
+                        break;
+
+                    case APP_STEP.LOGIN_AND_INIT_DONE:
+                        currentContact = rbContacts.GetCurrentContact();
+                        Console.WriteLine($"You are now connected to Rainbow ({ApplicationInfo.HOST_NAME}) using:");
+                        Console.WriteLine($"\tDisplay Name:[{Rainbow.Util.GetContactDisplayName(currentContact)}]");
+                        Console.WriteLine($"\tCompany:[{currentContact.CompanyName}]");
+                        Console.WriteLine($"\tEmail:[{ApplicationInfo.LOGIN_USER}]");
+                        Console.WriteLine($"\tId:[{currentContact.Id}]");
+                        Console.WriteLine($"\tJid:[{currentContact.Jid_im}]");
+
+                        appStep = APP_STEP.SEARCH_USER_TYPING;
+                        break;
+
+                    case APP_STEP.SEARCH_USER_TYPING:
+                        Console.WriteLine($"\nSearch a user by Display Name (max result set to [{MAX_SEARCH_RESULT}]):");
+                        currentSearchCriteria = Console.ReadLine();
+
+                        currentSearchCriteria = currentSearchCriteria.Trim();
+                        if (currentSearchCriteria.Length < 2)
+                            Console.WriteLine($"\nUse at least two caracters to perform the search ...");
+                        else
+                        {
+                            appStep = APP_STEP.SEARCH_USER_IN_PROGRESS;
+                            rbContacts.SearchContactsByDisplayName(currentSearchCriteria, MAX_SEARCH_RESULT, callback =>
+                            {
+                                if (callback.Result.Success)
+                                {
+                                    Rainbow.Model.SearchContactsResult searchContactsResult = callback.Data;
+                                    // We want to perform a WebRtcCall, so we check only Rainbow contacts
+                                    if (searchContactsResult.ContactsList?.Count > 0)
+                                    {
+                                        contactsFound = searchContactsResult.ContactsList;
+                                        currentSearchPage = 0;
+                                        appStep = APP_STEP.SEARCH_USER_SELECTION;
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine($"No contact found by Display Name using [{currentSearchCriteria}]");
+                                        appStep = APP_STEP.SEARCH_USER_TYPING;
+                                    }
+                                }
+                                else
+                                {
+                                    Console.WriteLine($"An error occurred - try again\nException:[{Rainbow.Util.SerializeSdkError(callback.Result)}]");
+                                    appStep = APP_STEP.SEARCH_USER_TYPING;
+                                }
+                            });
+                        }
+                        break;
+
+                    case APP_STEP.SEARCH_USER_SELECTION:
+                        if ((contactsFound == null) || (contactsFound.Count == 0))
+                        {
+                            appStep = APP_STEP.SEARCH_USER_TYPING;
+                            break;
+                        }
+
+                        Console.WriteLine($"\nNb contacts found:[{contactsFound.Count}] using [{currentSearchCriteria}] - current page:[{currentSearchPage}] - Max results allowed:[{MAX_SEARCH_RESULT}]");
+                        Console.WriteLine($"Select one contact using [0-9], use [n] or [p] to go to the next or previous page, use [s] to search again using.");
+
+                        int index = currentSearchPage * 10;
+                        int nbMax = Math.Min(index + 10, contactsFound.Count);
+
+                        for (int i = index; i < nbMax; i++)
+                            Console.WriteLine($"\t[{i - index}] - {Rainbow.Util.GetContactDisplayName(contactsFound[i])} - {contactsFound[i].Jid_im}");
+
+                        keyConsole = Console.ReadKey();
+
+                        if (keyConsole.KeyChar == 'n')
+                        {
+                            currentSearchPage++;
+                            if (currentSearchPage * 10 > contactsFound.Count)
+                                currentSearchPage = 0;
+                        }
+                        else if (keyConsole.KeyChar == 'p')
+                        {
+                            currentSearchPage--;
+                            if (currentSearchPage < 0)
+                                currentSearchPage = 0;
+                        }
+                        else if (keyConsole.KeyChar == 's')
+                        {
+                            appStep = APP_STEP.SEARCH_USER_TYPING;
+                        }
+                        else if (int.TryParse("" + keyConsole.KeyChar, out int keyValue) && keyValue < (nbMax - index) && keyValue >= 0)
+                        {
+                            selectedContact = contactsFound[index + keyValue];
+                            appStep = APP_STEP.SEARCH_USER_SELECTION_DONE;
+                        }
+                        break;
+
+                    case APP_STEP.SEARCH_USER_SELECTION_DONE:
+
+                        Console.Clear();
+
+                        if (selectedContact == null)
+                        {
+                            appStep = APP_STEP.SEARCH_USER_TYPING;
+                            break;
+                        }
+
+                        List<Device> devicesUsed = new List<Device>();
+                        int mediasUsed = 0;
+
+                        if (audioInputDeviceSelected != null)
+                        {
+                            Console.WriteLine($"\nAudio input device selected: [{audioInputDeviceSelected.Name}]");
+                            devicesUsed.Add(audioInputDeviceSelected);
+                        }
+
+                        if (audioOutputDeviceSelected != null)
+                        {
+                            Console.WriteLine($"\nAudio output device selected: [{audioOutputDeviceSelected.Name}]");
+                            devicesUsed.Add(audioOutputDeviceSelected);
+                        }
+
+                        if (videoInputDeviceSelected != null)
+                        {
+                            Console.WriteLine($"\nVideo input device selected: [{videoInputDeviceSelected.Name}]");
+                            devicesUsed.Add(videoInputDeviceSelected);
+                        }
+
+                        Console.WriteLine($"\nCurrent Contact : [{Rainbow.Util.GetContactDisplayName(currentContact)}]");
+                        Console.WriteLine($"Contact selected: [{Rainbow.Util.GetContactDisplayName(selectedContact)}]");
+
+                        if (videoInputDeviceSelected != null)
+                            Console.WriteLine("\nDo You want to call this user in audio [a], in video [v] or search [s] another user ?");
+                        else
+                            Console.WriteLine("\nDo You want to call this user in audio [a] or search [s] another user ?");
+
+                        keyConsole = Console.ReadKey();
+                        if (keyConsole.KeyChar == 's')
+                        {
+                            appStep = APP_STEP.SEARCH_USER_TYPING;
+                            break;
+                        }
+                        else if (keyConsole.KeyChar == 'a')
+                        {
+                            mediasUsed = Rainbow.Model.Call.Media.AUDIO;
+                        }
+                        else if ((keyConsole.KeyChar == 'v') && (videoInputDeviceSelected != null))
+                        {
+                            mediasUsed = Rainbow.Model.Call.Media.AUDIO + Rainbow.Model.Call.Media.VIDEO;
+                        }
+
+                        appStep = APP_STEP.CALL_IN_PROGRESS;
+
+                        if (asciiFrame == null)
+                            asciiFrame = new AsciiFrame(2);
+
+                        // Save presence for future rollback (once the call is over)
+                        rbContacts.SavePresenceFromCurrentContactForRollback();
+
+                        rbWebRTCCommunications.MakeCall(selectedContact.Id, mediasUsed, devicesUsed, null, callback =>
+                        {
+                            if (callback.Result.Success)
+                            {
+                                currentCallId = callback.Data;
+                                Console.WriteLine($"\nCall in progress - CallId:[{currentCallId}]");
+                            }
+                            else
+                            {
+                                Console.WriteLine($"\nCannot perform call: {Rainbow.Util.SerializeSdkError(callback.Result)}");
+                                Console.WriteLine("\nPress a key to continue");
+                                Console.ReadKey();
+                                appStep = APP_STEP.SEARCH_USER_SELECTION_DONE;
+                            }
+                        });
+
+                        break;
+
+                    case APP_STEP.CALL_ENDED:
+                        Console.WriteLine("\nCall has ended");
+                        Console.WriteLine("\nPress a key to continue");
+                        Console.ReadKey();
+                        appStep = APP_STEP.SEARCH_USER_SELECTION_DONE;
+                        break;
+                }
+
+                Thread.Sleep(10);
+            }
+        }
+    #endregion Main
+
+    #region Rainbow.WebRTC.Communication events
+
+        private static void RbWebRTCCommunications_OnSharingRemoteSourceRawSample(string callId, string userId, uint durationMilliseconds, int width, int height, int stride, IntPtr sample, SIPSorceryMedia.Abstractions.VideoPixelFormatsEnum pixelFormat)
+        {
+            if (currentCall == null)
+                return;
+
+            if (videoRemoteDisplay == VIDEO_REMOTE_DISPLAY.SHARING)
+            {
+                if (pixelFormat == SIPSorceryMedia.Abstractions.VideoPixelFormatsEnum.Rgb)
+                    asciiFrame?.GotRawImage(width, height, sample);
+            }
+            else if (videoRemoteDisplay == VIDEO_REMOTE_DISPLAY.NONE)
+                asciiFrame?.DisplayFooter();
+        }
+
+        private static void RbWebRTCCommunications_OnVideoRemoteSourceRawSample(string callId, string userId, uint durationMilliseconds, int width, int height, int stride, IntPtr sample, SIPSorceryMedia.Abstractions.VideoPixelFormatsEnum pixelFormat)
+        {
+            if (currentCall == null)
+                return;
+
+            if (videoRemoteDisplay == VIDEO_REMOTE_DISPLAY.VIDEO)
+            {
+                if (pixelFormat == SIPSorceryMedia.Abstractions.VideoPixelFormatsEnum.Rgb)
+                    asciiFrame?.GotRawImage(width, height, sample);
+            }
+            else if (videoRemoteDisplay == VIDEO_REMOTE_DISPLAY.NONE)
+                asciiFrame?.DisplayFooter();
+        }
+
+        private static void RbCommunication_CallUpdated(object? sender, Rainbow.Events.CallEventArgs e)
+        {
+            if ((e != null) && (e.Call != null))
+            {
+                if (e.Call.Id == currentCallId)
+                {
+                    // Is the call no more in progress ?
+                    if (!e.Call.IsInProgress())
+                    {
+                        currentCallId = null;
+                        currentCall = null;
+
+                        // The call is NO MORE in Progress => We Rollback presence if any
+                        rbContacts?.RollbackPresenceSavedFromCurrentContact();
+
+                        appStep = APP_STEP.CALL_ENDED;
+                    }
+                    else
+                    {
+                        currentCall = e.Call;
+
+                        // Is the call no more in ringing state ?
+                        if (!e.Call.IsRinging())
+                        {
+                            // The call is NOT IN RINGING STATE  => We update presence according media
+                            rbContacts?.SetBusyPresenceAccordingMedias(e.Call.LocalMedias);
+
+                            // If remote medias has changed, we have to update the display
+                            if (remoteMedias != e.Call.RemoteMedias)
+                            {
+                                // A media has been added ?
+                                if (remoteMedias < e.Call.RemoteMedias)
+                                {
+                                    if (Rainbow.Util.MediasWithSharing(e.Call.RemoteMedias) && !Rainbow.Util.MediasWithSharing(remoteMedias))
+                                        videoRemoteDisplay = VIDEO_REMOTE_DISPLAY.SHARING;
+                                    else if (Rainbow.Util.MediasWithVideo(e.Call.RemoteMedias) && !Rainbow.Util.MediasWithVideo(remoteMedias))
+                                        videoRemoteDisplay = VIDEO_REMOTE_DISPLAY.VIDEO;
+
+                                }
+                                // A media has been removed
+                                else
+                                {
+                                    if (Rainbow.Util.MediasWithSharing(e.Call.RemoteMedias))
+                                        videoRemoteDisplay = VIDEO_REMOTE_DISPLAY.SHARING;
+                                    else if (Rainbow.Util.MediasWithVideo(e.Call.RemoteMedias))
+                                        videoRemoteDisplay = VIDEO_REMOTE_DISPLAY.VIDEO;
+                                    else
+                                        videoRemoteDisplay = VIDEO_REMOTE_DISPLAY.NONE;
+                                }
+
+                                // Store medias
+                                remoteMedias = e.Call.RemoteMedias;
+                            }
+
+                        }
+
+                        footerLine1 = $"Call updated: Status:[{e.Call.CallStatus}] - LocalMedias:[{MediasToString(e.Call.LocalMedias)}] - RemoteMedias:[{MediasToString(e.Call.RemoteMedias)}]";
+                        footerLine2 = "";
+
+                        asciiFrame?.SetFooterText($"{footerLine1}\n{footerLine2}");
+                        asciiFrame?.DisplayFooter();
+                    }
+                }
+            }
+        }
+
+    #endregion Rainbow.WebRTC.Communication events
+
+
+    #region Rainbow.Application events
+
+        private static void RbApplication_ConnectionStateChanged(object? sender, Rainbow.Events.ConnectionStateEventArgs e)
+        {
+            Console.WriteLine($"Connection State Changed:[{e.State}]");
+
+            if (e.State == Rainbow.Model.ConnectionState.Disconnected)
+            {
+                Console.WriteLine($"We have been discconected - We quit the application");
+                quitApp = true;
+            }
+        }
+
+        private static void RbApplication_InitializationPerformed(object? sender, EventArgs e)
+        {
+            Console.WriteLine($"Initialization Performed");
+            appStep = APP_STEP.LOGIN_AND_INIT_DONE;
+        }
+
+    #endregion Rainbow.Application events
+
+
+    #region AUDIO / VIDEO DEVICES selection
+
+        static Boolean SelectDevice(Boolean isVideo, Boolean isInput)
+        {
+            String? filePath = null;
+
+            String logVideo = isVideo ? "Video" : "Audio";
+            String logInput = isInput ? "Input" : "Ouput";
+
+            if (rbDevices != null)
+            {
+                List<Device> devices;
+
+                if (isVideo)
+                    devices = rbDevices.GetVideoRecordingDevices();
+                else if (isInput)
+                    devices = rbDevices.GetAudioRecordingDevices();
+                else
+                    devices = rbDevices.GetAudioPlaybackDevices();
+
+                if (devices.Count == 0)
+                    Console.WriteLine($"You don't have an {logVideo} {logInput} device (Physical or emulated) ...");
+
+                int keyValue = 0;
+                while (true)
+                {
+                    Console.WriteLine($"\nSelect {logVideo} {logInput} device:");
+                    Console.Write($"\n [{0}] - Don't use this kind of device ");
+
+                    int index = 1;
+                    foreach (Device device in devices)
+                    {
+                        Console.Write($"\n [{index}] - {device.Name} ");
+                        index++;
+                    }
+
+                    if(isInput)
+                    {
+                        if (isVideo && (!String.IsNullOrEmpty(ApplicationInfo.VIDEO_FILE_PATH)))
+                            filePath = ApplicationInfo.VIDEO_FILE_PATH;
+                        else if ( (!isVideo) && (!String.IsNullOrEmpty(ApplicationInfo.AUDIO_FILE_PATH)))
+                            filePath = ApplicationInfo.AUDIO_FILE_PATH;
+                        if(filePath != null)
+                            Console.Write($"\n [f] - {logVideo}: [{filePath}]");
+                    }
+
+                    Console.WriteLine("\n");
+                    Console.Out.Flush();
+
+                    var keyConsole = Console.ReadKey();
+
+                    if ((keyConsole.KeyChar == 'f') && (filePath != null))
+                    {
+                        String fileName = Path.GetFileName(filePath);
+                        if (isVideo)
+                            videoInputDeviceSelected = new DeviceVideoFile(fileName, fileName, filePath, audioInputDeviceSelected?.Path == filePath, true);
+                        else 
+                            audioInputDeviceSelected = new DeviceAudioFile(fileName, fileName, filePath, true);
+                        return true;
+                    }
+                    else if (int.TryParse("" + keyConsole.KeyChar, out keyValue) && keyValue < index && keyValue >= 0)
+                    {
+                        break;
+                    }
+                }
+
+                Device ? deviceSelected = null;
+
+                if (keyValue != 0)
+                {
+                    deviceSelected = devices[keyValue - 1];
+                    Console.WriteLine($"\n\n\t => {logVideo} {logInput} device selected:[{deviceSelected.Name}]");
+                }
+                else
+                    Console.WriteLine($"\n\n\t => {logVideo} {logInput} device selected:[NONE]");
+
+                if (isVideo)
+                    videoInputDeviceSelected = deviceSelected;
+                else if (isInput)
+                    audioInputDeviceSelected = deviceSelected;
+                else
+                    audioOutputDeviceSelected = deviceSelected;
+
+                return true;
+            }
+            Console.WriteLine("rbDevices object has not be initialized");
+            return false;
+        }
+
+        static Boolean SelectAudioInputDevice()
+        {
+            return SelectDevice(false, true); ;
+        }
+
+        static Boolean SelectAudioOutputDevice()
+        {
+            return SelectDevice(false, false);
+        }
+
+        static Boolean SelectVideoInputDevice()
+        {
+            return SelectDevice(true, true);
+        }
+
+    #endregion AUDIO / VIDEO DEVICES selection
+
+        // Check if APP_ID, APP_SECRET_KEY, HOST_NAME, LOGIN_USER and LOGIN_PASSWORD are set in file "ApplicationInfo.cs"
+        static Boolean CheckApplicationInfo()
+        {
+            Boolean result = true;
+
+            if (!((ApplicationInfo.APP_ID?.Length > 0) && (ApplicationInfo.APP_ID != ApplicationInfo.DEFAULT_VALUE)))
+            {
+                Console.WriteLine("\nYou need to specify a valid APP_ID");
+                result = false;
+            }
+
+            if (!((ApplicationInfo.APP_SECRET_KEY?.Length > 0) && (ApplicationInfo.APP_SECRET_KEY != ApplicationInfo.DEFAULT_VALUE)))
+            {
+                Console.WriteLine("\nYou need to specify a valid APP_SECRET_KEY");
+                result = false;
+            }
+
+            if (!((ApplicationInfo.HOST_NAME?.Length > 0) && (ApplicationInfo.HOST_NAME != ApplicationInfo.DEFAULT_VALUE)))
+            {
+                Console.WriteLine("\nYou need to specify a valid HOST_NAME");
+                result = false;
+            }
+
+            if (!((ApplicationInfo.LOGIN_USER?.Length > 0) && (ApplicationInfo.LOGIN_USER != ApplicationInfo.DEFAULT_VALUE)))
+            {
+                Console.WriteLine("\nYou need to specify a valid LOGIN_USER");
+                result = false;
+            }
+
+            if (!((ApplicationInfo.PASSWORD_USER?.Length > 0) && (ApplicationInfo.PASSWORD_USER != ApplicationInfo.DEFAULT_VALUE)))
+            {
+                Console.WriteLine("\nYou need to specify a valid PASSWORD_USER");
+                result = false;
+            }
+
+            if (ApplicationInfo.AUDIO_FILE_PATH?.Length > 0)
+            {
+                if (!File.Exists(ApplicationInfo.AUDIO_FILE_PATH))
+                {
+                    if (!Uri.TryCreate(ApplicationInfo.AUDIO_FILE_PATH, UriKind.Absolute, out Uri? uriResult))
+                    {
+                        Console.WriteLine($"\nYou specified an AUDIO_FILE_PATH but the file has not been found - path:[{ApplicationInfo.AUDIO_FILE_PATH}]");
+                        result = false;
+                    }
+                }
+            }
+
+            if ((ApplicationInfo.VIDEO_FILE_PATH?.Length > 0) && (!File.Exists(ApplicationInfo.VIDEO_FILE_PATH)))
+            {
+                if (!File.Exists(ApplicationInfo.VIDEO_FILE_PATH))
+                {
+                    if (!Uri.TryCreate(ApplicationInfo.VIDEO_FILE_PATH, UriKind.Absolute, out Uri? uriResult))
+                    {
+                        Console.WriteLine($"\nYou specified an VIDEO_FILE_PATH but the file has not been found - path:[{ApplicationInfo.VIDEO_FILE_PATH}]");
+                        result = false;
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        // Check if folder where FFmpeg libraries are stored exists
+        static Boolean CheckFFmpegLibFolderPath()
+        {
+            Boolean result = Directory.Exists(ApplicationInfo.FFMPEG_LIB_FOLDER_PATH);
+            if (!result)
+                Console.WriteLine($"\nThe folder where FFmpeg libraries must be stored doesn't exist:[{ApplicationInfo.FFMPEG_LIB_FOLDER_PATH}]");
+            return result;
+        }
+
+        static Boolean InitLogsWithNLog()
+        {
+            if (!File.Exists(ApplicationInfo.NLOG_CONFIG_FILE_PATH))
+            {
+                Console.WriteLine("\nCannot file defined by ApplicationInfo.NLOG_CONFIG_FILE_PATH");
+                return false;
+            }
+
+            try
+            {
+                // Get content of the log file configuration
+                String logConfigContent = File.ReadAllText(ApplicationInfo.NLOG_CONFIG_FILE_PATH, System.Text.Encoding.UTF8);
+
+                // Create NLog configuration using XML file content
+                XmlLoggingConfiguration config = XmlLoggingConfiguration.CreateFromXmlString(logConfigContent);
+                if (config.InitializeSucceeded == true)
+                {
+                    // Set NLog configuration
+                    NLog.LogManager.Configuration = config;
+
+                    // Create Logger factory
+                    var factory = new NLog.Extensions.Logging.NLogLoggerFactory();
+
+                    // Set Logger factory to Rainbow SDK
+                    Rainbow.LogFactory.Set(factory);
+
+                    return true;
+                }
+               
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception:[{Rainbow.Util.SerializeException(ex)}]");
+            }
+
+            return false;
+        }
+
+        static String MediasToString(int medias)
+        {
+            if (medias == Call.Media.AUDIO)
+                return "Audio";
+
+            if (medias == Call.Media.AUDIO + Call.Media.VIDEO)
+                return "Audio+Video";
+
+            if (medias == Call.Media.AUDIO + Call.Media.SHARING)
+                return "Audio+Sharing";
+
+            if (medias == Call.Media.VIDEO)
+                return "Video";
+
+            if (medias == Call.Media.SHARING)
+                return "Sharing";
+
+            if (medias == Call.Media.VIDEO + Call.Media.SHARING)
+                return "Video+Sharing";
+
+            if (medias == Call.Media.AUDIO + Call.Media.VIDEO + Call.Media.SHARING)
+                return "Audio+Video+Sharing";
+
+            return "";
+        }
+
+    }
+}
+
