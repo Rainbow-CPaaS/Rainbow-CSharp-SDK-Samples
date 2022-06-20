@@ -2,7 +2,7 @@
 
 # Rainbow-CSharp-SDK-Samples - WebRTC 
 
-This sample demonstrates how to use the **Rainbow CSharp SDK WebRTC** 
+This folder contains smaples which demonstrates how to use the **Rainbow CSharp SDK WebRTC** 
 
 This SDK provides additional services / tools for these platforms: **Windows, MacOs, and Linux**. 
 
