@@ -28,10 +28,14 @@ namespace SDK.ConsoleApp.WebRTC
             STAR_LOGIN_PROCESS,
             LOGIN_PROCESS_IN_PROGRESS,
             LOGIN_AND_INIT_DONE,
+            SELECTION_MODE,
             SEARCH_USER_TYPING,
             SEARCH_USER_IN_PROGRESS,
             SEARCH_USER_SELECTION,
             SEARCH_USER_SELECTION_DONE,
+            SEARCH_USER_SELECTED_KNOWN,
+            WAIT_CONFERENCE_MESSAGE,
+            WAIT_CONFERENCE,
             CALL_IN_PROGRESS,
             CALL_ENDED,
         }
@@ -49,6 +53,8 @@ namespace SDK.ConsoleApp.WebRTC
         // Define Rainbow SDK objects used in this example
         static Rainbow.Application? rbApplication;
         static Rainbow.Contacts? rbContacts;
+        static Rainbow.Bubbles? rbBubbles;
+        static Rainbow.Conferences? rbConferences;
         static Rainbow.WebRTC.WebRTCCommunications? rbWebRTCCommunications;
         static Rainbow.WebRTC.Devices? rbDevices;
 
@@ -60,6 +66,7 @@ namespace SDK.ConsoleApp.WebRTC
         // Define Contacts objects: current user and the peer used in the WebRtc Conversation
         static Rainbow.Model.Contact? currentContact = null;
         static Rainbow.Model.Contact? selectedContact = null;
+        static Boolean askingMoreInfoAboutContact = false;
 
         // To store list of contacts found
         static List<Rainbow.Model.Contact>? contactsFound = null;
@@ -67,6 +74,12 @@ namespace SDK.ConsoleApp.WebRTC
         // Define Call object
         static Rainbow.Model.Call? currentCall = null;
         static String? currentCallId = null;
+        static String? currentConfId = null;
+        static String selectionMode = "P2P";
+        static Boolean isParticipating = false;
+
+        static String? previousConferenceId;
+        static DateTime? conferenceDateTime;
 
         // Object to display remote video in ASCII
         static AsciiFrame? asciiFrame = null;
@@ -108,6 +121,12 @@ namespace SDK.ConsoleApp.WebRTC
 
             // Create Rainbow.Contacts service
             rbContacts = rbApplication.GetContacts();
+
+            // Create Rainbow.Bubles service
+            rbBubbles = rbApplication.GetBubbles();
+
+            // Create Rainbow.Conferences service
+            rbConferences = rbApplication.GetConferences();
 
             // Create Rainbow.WebRTC.Communication service
             appStep = APP_STEP.INIT_LIBRARIES;
@@ -162,9 +181,13 @@ namespace SDK.ConsoleApp.WebRTC
             rbApplication.ConnectionStateChanged += RbApplication_ConnectionStateChanged;
 
             // Define Rainbow.WebRTC.Communication events callback we want to manage
-            rbWebRTCCommunications.CallUpdated += RbCommunication_CallUpdated;
+            rbWebRTCCommunications.CallUpdated += RbWebRTCCommunications_CallUpdated;
             rbWebRTCCommunications.OnVideoRemoteSourceRawSample += RbWebRTCCommunications_OnVideoRemoteSourceRawSample;
             rbWebRTCCommunications.OnSharingRemoteSourceRawSample += RbWebRTCCommunications_OnSharingRemoteSourceRawSample;
+
+            rbConferences.ConferenceRemoved += RbConferences_ConferenceRemoved;
+            rbConferences.ConferenceUpdated += RbConferences_ConferenceUpdated;
+            rbConferences.ConferenceParticipantsUpdated += RbConferences_ConferenceParticipantsUpdated;
 
             appStep = APP_STEP.STAR_LOGIN_PROCESS;
 
@@ -211,7 +234,56 @@ namespace SDK.ConsoleApp.WebRTC
                         Console.WriteLine($"\tId:[{currentContact.Id}]");
                         Console.WriteLine($"\tJid:[{currentContact.Jid_im}]");
 
-                        appStep = APP_STEP.SEARCH_USER_TYPING;
+                        appStep = APP_STEP.SELECTION_MODE;
+                        break;
+
+                    case APP_STEP.SELECTION_MODE:
+                        Console.WriteLine($"\nWhich mode to you want to use:");
+                        Console.WriteLine($"\t[0] Search a user to call him in Peer to Peer communication");
+                        Console.WriteLine($"\t[1] Wait until a Conference is started and join it automatically");
+                        keyConsole = Console.ReadKey();
+                        Console.WriteLine("");
+
+                        if (keyConsole.KeyChar == '0')
+                        {
+                            appStep = APP_STEP.SEARCH_USER_TYPING;
+                            selectionMode = "P2P";
+                        }
+                        else if (keyConsole.KeyChar == '1')
+                        {
+                            appStep = APP_STEP.WAIT_CONFERENCE_MESSAGE;
+                            selectionMode = "CONFERENCE";
+                        }
+                        break;
+
+                    case APP_STEP.WAIT_CONFERENCE_MESSAGE:
+                        Console.WriteLine($"\nAsking for bubbles avaialble...");
+                        appStep = APP_STEP.WAIT_CONFERENCE;
+
+                        rbBubbles.GetAllBubbles(callback =>
+                        {
+                            if(callback.Result.Success)
+                            {
+                                var bubbles = callback.Data;
+                                Console.WriteLine($"Existing bubbles:");
+                                foreach (var bubble in bubbles)
+                                {
+                                    Console.WriteLine($"\t{bubble.Name} - [{bubble.Topic}]");
+                                }
+                                Console.WriteLine($"\nWaiting for a Conference in one of this bubbles ...");
+                                appStep = APP_STEP.WAIT_CONFERENCE;
+                            }
+                            else
+                            {
+                                Console.WriteLine($"Error occurs. Trying again\n");
+                                appStep = APP_STEP.WAIT_CONFERENCE_MESSAGE;
+                            }
+                        });
+                        
+                        break;
+
+                    case APP_STEP.WAIT_CONFERENCE:
+                        // Nothing to do here
                         break;
 
                     case APP_STEP.SEARCH_USER_TYPING:
@@ -291,11 +363,40 @@ namespace SDK.ConsoleApp.WebRTC
                         else if (int.TryParse("" + keyConsole.KeyChar, out int keyValue) && keyValue < (nbMax - index) && keyValue >= 0)
                         {
                             selectedContact = contactsFound[index + keyValue];
+                            askingMoreInfoAboutContact = false;
                             appStep = APP_STEP.SEARCH_USER_SELECTION_DONE;
                         }
                         break;
 
                     case APP_STEP.SEARCH_USER_SELECTION_DONE:
+                        if (selectedContact == null)
+                        {
+                            appStep = APP_STEP.SEARCH_USER_TYPING;
+                            break;
+                        }
+
+                        var knowContact = rbContacts.GetContactFromContactId(selectedContact.Id);
+                        if ( (knowContact == null) && !askingMoreInfoAboutContact)
+                        {
+                            askingMoreInfoAboutContact = true;
+                            Console.WriteLine($"\nAsking more details about this contact ...");
+                            rbContacts.GetContactFromContactIdFromServer(selectedContact.Id, callback =>
+                            {
+                                if(callback.Result.Success)
+                                    appStep = APP_STEP.SEARCH_USER_SELECTED_KNOWN;
+                                else
+                                {
+                                    Console.WriteLine($"\nCannot get more details about this contact ...");
+                                    appStep = APP_STEP.SEARCH_USER_TYPING;
+                                }
+                            });
+                        }
+                        else
+                            appStep = APP_STEP.SEARCH_USER_SELECTED_KNOWN;
+
+                        break;
+
+                    case APP_STEP.SEARCH_USER_SELECTED_KNOWN:
 
                         Console.Clear();
 
@@ -305,26 +406,9 @@ namespace SDK.ConsoleApp.WebRTC
                             break;
                         }
 
-                        List<Device> devicesUsed = new List<Device>();
                         int mediasUsed = 0;
 
-                        if (audioInputDeviceSelected != null)
-                        {
-                            Console.WriteLine($"\nAudio input device selected: [{audioInputDeviceSelected.Name}]");
-                            devicesUsed.Add(audioInputDeviceSelected);
-                        }
-
-                        if (audioOutputDeviceSelected != null)
-                        {
-                            Console.WriteLine($"\nAudio output device selected: [{audioOutputDeviceSelected.Name}]");
-                            devicesUsed.Add(audioOutputDeviceSelected);
-                        }
-
-                        if (videoInputDeviceSelected != null)
-                        {
-                            Console.WriteLine($"\nVideo input device selected: [{videoInputDeviceSelected.Name}]");
-                            devicesUsed.Add(videoInputDeviceSelected);
-                        }
+                        List<Device> devicesUsed = GetDevicesToUse();
 
                         Console.WriteLine($"\nCurrent Contact : [{Rainbow.Util.GetContactDisplayName(currentContact)}]");
                         Console.WriteLine($"Contact selected: [{Rainbow.Util.GetContactDisplayName(selectedContact)}]");
@@ -369,7 +453,7 @@ namespace SDK.ConsoleApp.WebRTC
                                 Console.WriteLine($"\nCannot perform call: {Rainbow.Util.SerializeSdkError(callback.Result)}");
                                 Console.WriteLine("\nPress a key to continue");
                                 Console.ReadKey();
-                                appStep = APP_STEP.SEARCH_USER_SELECTION_DONE;
+                                appStep = APP_STEP.SEARCH_USER_SELECTED_KNOWN;
                             }
                         });
 
@@ -379,14 +463,72 @@ namespace SDK.ConsoleApp.WebRTC
                         Console.WriteLine("\nCall has ended");
                         Console.WriteLine("\nPress a key to continue");
                         Console.ReadKey();
-                        appStep = APP_STEP.SEARCH_USER_SELECTION_DONE;
+                        if (selectionMode == "P2P")
+                            appStep = APP_STEP.SEARCH_USER_SELECTED_KNOWN;
+                        else
+                            appStep = APP_STEP.WAIT_CONFERENCE_MESSAGE;
                         break;
                 }
 
                 Thread.Sleep(10);
             }
         }
+
+
+
     #endregion Main
+
+    #region Rainbow.Conferencesevents
+
+        private static void RbConferences_ConferenceRemoved(object? sender, Rainbow.Events.IdEventArgs e)
+        {
+            currentConfId = null;
+        }
+
+        private static void RbConferences_ConferenceParticipantsUpdated(object? sender, Rainbow.Events.ConferenceParticipantsEventArgs e)
+        {
+            if (currentContact == null)
+                return;
+
+            //throw new NotImplementedException();
+            if (e.Participants?.Count > 1)
+            {
+                isParticipating = e.Participants.ContainsKey(currentContact.Id);
+                CheckIfAddVideoInConference();
+            }
+        }
+
+        private static void RbConferences_ConferenceUpdated(object? sender, Rainbow.Events.ConferenceEventArgs e)
+        {
+            if (e.Conference.Active)
+            {
+                if(currentConfId != e.Conference.Id)
+                {
+                    // Store conference Id
+                    currentConfId = e.Conference.Id;
+
+                    // Join conference just after some delay
+                    Rainbow.CancelableDelay.StartAfter(1000, () =>
+                    {
+                        if ((rbWebRTCCommunications != null) && !String.IsNullOrEmpty(currentConfId))
+                        {
+                            var devices = GetDevicesToUse();
+
+                            rbWebRTCCommunications.JoinConference(currentConfId, devices, false, false, false, 0, false, callbackJoinConference =>
+                            {
+                                currentCallId = currentConfId;
+                            });
+                        }
+                    });
+                }
+            }
+            else
+            {
+                currentConfId = null;
+            }
+        }       
+
+    #endregion Rainbow.Conferencesevents
 
     #region Rainbow.WebRTC.Communication events
 
@@ -418,7 +560,7 @@ namespace SDK.ConsoleApp.WebRTC
                 asciiFrame?.DisplayFooter();
         }
 
-        private static void RbCommunication_CallUpdated(object? sender, Rainbow.Events.CallEventArgs e)
+        private static void RbWebRTCCommunications_CallUpdated(object? sender, Rainbow.Events.CallEventArgs e)
         {
             if ((e != null) && (e.Call != null))
             {
@@ -472,6 +614,12 @@ namespace SDK.ConsoleApp.WebRTC
                                 remoteMedias = e.Call.RemoteMedias;
                             }
 
+                            if (currentCall.IsConference)
+                                CheckIfAddVideoInConference();
+                        }
+                        else
+                        {
+                            
                         }
 
                         footerLine1 = $"Call updated: Status:[{e.Call.CallStatus}] - LocalMedias:[{MediasToString(e.Call.LocalMedias)}] - RemoteMedias:[{MediasToString(e.Call.RemoteMedias)}]";
@@ -479,8 +627,23 @@ namespace SDK.ConsoleApp.WebRTC
 
                         asciiFrame?.SetFooterText($"{footerLine1}\n{footerLine2}");
                         asciiFrame?.DisplayFooter();
+
+                        Console.WriteLine(footerLine1);
                     }
                 }
+                else
+                {
+                    //if (e.Call.Id == currentConfId)
+                    //{
+                    //    if (!e.Call.IsInProgress())
+                    //    {
+                    //        currentConfId = null;
+                    //    }
+                    //}
+
+                   
+                }
+
             }
         }
 
@@ -598,7 +761,9 @@ namespace SDK.ConsoleApp.WebRTC
 
                 return true;
             }
-            Console.WriteLine("rbDevices object has not be initialized");
+            else
+                Console.WriteLine("rbDevices object has not be initialized");
+
             return false;
         }
 
@@ -618,6 +783,48 @@ namespace SDK.ConsoleApp.WebRTC
         }
 
     #endregion AUDIO / VIDEO DEVICES selection
+
+        static void CheckIfAddVideoInConference()
+        {
+            if ((currentCall == null) || (rbWebRTCCommunications == null))
+                return;
+
+            if ( (!currentCall.IsConference) || (currentCall.CallStatus != Call.Status.ACTIVE) )
+                return;
+
+            if (!Rainbow.Util.MediasWithVideo(currentCall.LocalMedias))
+            {
+                Rainbow.CancelableDelay.StartAfter(1000, () =>
+                {
+                    if (!Rainbow.Util.MediasWithVideo(currentCall.LocalMedias))
+                        rbWebRTCCommunications.AddVideo(currentCall.Id, videoInputDeviceSelected);
+                });
+            }
+
+        }
+        static List<Device> GetDevicesToUse()
+        {
+            List<Device> devicesUsed = new List<Device>();
+
+            if (audioInputDeviceSelected != null)
+            {
+                Console.WriteLine($"\nAudio input device selected: [{audioInputDeviceSelected.Name}]");
+                devicesUsed.Add(audioInputDeviceSelected);
+            }
+
+            if (audioOutputDeviceSelected != null)
+            {
+                Console.WriteLine($"\nAudio output device selected: [{audioOutputDeviceSelected.Name}]");
+                devicesUsed.Add(audioOutputDeviceSelected);
+            }
+
+            if (videoInputDeviceSelected != null)
+            {
+                Console.WriteLine($"\nVideo input device selected: [{videoInputDeviceSelected.Name}]");
+                devicesUsed.Add(videoInputDeviceSelected);
+            }
+            return devicesUsed;
+        }
 
         // Check if APP_ID, APP_SECRET_KEY, HOST_NAME, LOGIN_USER and LOGIN_PASSWORD are set in file "ApplicationInfo.cs"
         static Boolean CheckApplicationInfo()
