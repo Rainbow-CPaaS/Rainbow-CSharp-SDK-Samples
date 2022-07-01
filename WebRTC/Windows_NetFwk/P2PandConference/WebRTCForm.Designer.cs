@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(WebRTCForm));
             this.label2 = new System.Windows.Forms.Label();
             this.cb_AudioPlaybackDevices = new System.Windows.Forms.ComboBox();
             this.label1 = new System.Windows.Forms.Label();
@@ -122,6 +123,11 @@
             this.tb_MaxSubscriptionVideo = new System.Windows.Forms.TextBox();
             this.cb_AutoSubscriptionVideo = new System.Windows.Forms.CheckBox();
             this.btn_AskToShare = new System.Windows.Forms.Button();
+            this.btn_DropParticipant = new System.Windows.Forms.Button();
+            this.btn_AudioRecordingDevicesRefresh = new System.Windows.Forms.Button();
+            this.btn_AudioPlaybackDevicesRefresh = new System.Windows.Forms.Button();
+            this.btn_VideoRecordingDevicesRefresh = new System.Windows.Forms.Button();
+            this.btn_VideoSecondaryRecordingDevicesRefresh = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.picture_VideoRemote)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.picture_VideoLocal)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.picture_SharingRemote)).BeginInit();
@@ -135,9 +141,9 @@
             this.label2.Location = new System.Drawing.Point(12, 9);
             this.label2.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(139, 13);
+            this.label2.Size = new System.Drawing.Size(125, 13);
             this.label2.TabIndex = 5;
-            this.label2.Text = "Audio Playback Device";
+            this.label2.Text = "Audio Output Device";
             // 
             // cb_AudioPlaybackDevices
             // 
@@ -148,23 +154,24 @@
             this.cb_AudioPlaybackDevices.Name = "cb_AudioPlaybackDevices";
             this.cb_AudioPlaybackDevices.Size = new System.Drawing.Size(244, 21);
             this.cb_AudioPlaybackDevices.TabIndex = 4;
+            this.cb_AudioPlaybackDevices.SelectedIndexChanged += new System.EventHandler(this.Cb_AudioPlaybackDevices_SelectedIndexChanged);
             // 
             // label1
             // 
             this.label1.AutoSize = true;
             this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label1.Location = new System.Drawing.Point(278, 9);
+            this.label1.Location = new System.Drawing.Point(287, 9);
             this.label1.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(203, 13);
+            this.label1.Size = new System.Drawing.Size(189, 13);
             this.label1.TabIndex = 7;
-            this.label1.Text = "Audio Secondary Playback Device";
+            this.label1.Text = "Audio Secondary Output Device";
             // 
             // cb_AudioSecondaryPlaybackDevices
             // 
             this.cb_AudioSecondaryPlaybackDevices.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cb_AudioSecondaryPlaybackDevices.FormattingEnabled = true;
-            this.cb_AudioSecondaryPlaybackDevices.Location = new System.Drawing.Point(278, 25);
+            this.cb_AudioSecondaryPlaybackDevices.Location = new System.Drawing.Point(288, 25);
             this.cb_AudioSecondaryPlaybackDevices.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
             this.cb_AudioSecondaryPlaybackDevices.Name = "cb_AudioSecondaryPlaybackDevices";
             this.cb_AudioSecondaryPlaybackDevices.Size = new System.Drawing.Size(246, 21);
@@ -177,9 +184,9 @@
             this.label3.Location = new System.Drawing.Point(12, 53);
             this.label3.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(145, 13);
+            this.label3.Size = new System.Drawing.Size(116, 13);
             this.label3.TabIndex = 9;
-            this.label3.Text = "Audio Recording Device";
+            this.label3.Text = "Audio Input Device";
             // 
             // cb_AudioRecordingDevices
             // 
@@ -190,6 +197,7 @@
             this.cb_AudioRecordingDevices.Name = "cb_AudioRecordingDevices";
             this.cb_AudioRecordingDevices.Size = new System.Drawing.Size(246, 21);
             this.cb_AudioRecordingDevices.TabIndex = 8;
+            this.cb_AudioRecordingDevices.SelectedIndexChanged += new System.EventHandler(this.Cb_AudioRecordingDevices_SelectedIndexChanged);
             // 
             // label4
             // 
@@ -219,9 +227,9 @@
             this.label5.Location = new System.Drawing.Point(12, 104);
             this.label5.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(145, 13);
+            this.label5.Size = new System.Drawing.Size(116, 13);
             this.label5.TabIndex = 13;
-            this.label5.Text = "Video Recording Device";
+            this.label5.Text = "Video Input Device";
             // 
             // cb_VideoRecordingDevices
             // 
@@ -503,10 +511,10 @@
             // btn_BrowseAudioRecordingFile
             // 
             this.btn_BrowseAudioRecordingFile.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btn_BrowseAudioRecordingFile.Location = new System.Drawing.Point(485, 69);
+            this.btn_BrowseAudioRecordingFile.Location = new System.Drawing.Point(495, 70);
             this.btn_BrowseAudioRecordingFile.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
             this.btn_BrowseAudioRecordingFile.Name = "btn_BrowseAudioRecordingFile";
-            this.btn_BrowseAudioRecordingFile.Size = new System.Drawing.Size(39, 23);
+            this.btn_BrowseAudioRecordingFile.Size = new System.Drawing.Size(39, 20);
             this.btn_BrowseAudioRecordingFile.TabIndex = 40;
             this.btn_BrowseAudioRecordingFile.Text = "...";
             this.btn_BrowseAudioRecordingFile.UseVisualStyleBackColor = true;
@@ -515,7 +523,7 @@
             // tb_AudioRecordingFile
             // 
             this.tb_AudioRecordingFile.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.tb_AudioRecordingFile.Location = new System.Drawing.Point(279, 71);
+            this.tb_AudioRecordingFile.Location = new System.Drawing.Point(288, 71);
             this.tb_AudioRecordingFile.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
             this.tb_AudioRecordingFile.Name = "tb_AudioRecordingFile";
             this.tb_AudioRecordingFile.Size = new System.Drawing.Size(204, 18);
@@ -526,7 +534,7 @@
             // tb_VideoRecordingFile
             // 
             this.tb_VideoRecordingFile.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.tb_VideoRecordingFile.Location = new System.Drawing.Point(278, 121);
+            this.tb_VideoRecordingFile.Location = new System.Drawing.Point(288, 121);
             this.tb_VideoRecordingFile.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
             this.tb_VideoRecordingFile.Name = "tb_VideoRecordingFile";
             this.tb_VideoRecordingFile.Size = new System.Drawing.Size(204, 18);
@@ -536,10 +544,10 @@
             // btn_BrowseVideoRecordingFile
             // 
             this.btn_BrowseVideoRecordingFile.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btn_BrowseVideoRecordingFile.Location = new System.Drawing.Point(484, 119);
+            this.btn_BrowseVideoRecordingFile.Location = new System.Drawing.Point(495, 120);
             this.btn_BrowseVideoRecordingFile.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
             this.btn_BrowseVideoRecordingFile.Name = "btn_BrowseVideoRecordingFile";
-            this.btn_BrowseVideoRecordingFile.Size = new System.Drawing.Size(39, 23);
+            this.btn_BrowseVideoRecordingFile.Size = new System.Drawing.Size(39, 20);
             this.btn_BrowseVideoRecordingFile.TabIndex = 42;
             this.btn_BrowseVideoRecordingFile.Text = "...";
             this.btn_BrowseVideoRecordingFile.UseVisualStyleBackColor = true;
@@ -560,7 +568,7 @@
             // check_VideoRecordingFileWithAudio
             // 
             this.check_VideoRecordingFileWithAudio.AutoSize = true;
-            this.check_VideoRecordingFileWithAudio.Location = new System.Drawing.Point(332, 141);
+            this.check_VideoRecordingFileWithAudio.Location = new System.Drawing.Point(341, 141);
             this.check_VideoRecordingFileWithAudio.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
             this.check_VideoRecordingFileWithAudio.Name = "check_VideoRecordingFileWithAudio";
             this.check_VideoRecordingFileWithAudio.Size = new System.Drawing.Size(77, 17);
@@ -619,7 +627,7 @@
             this.check_AudioRecordingFileLoop.AutoSize = true;
             this.check_AudioRecordingFileLoop.Checked = true;
             this.check_AudioRecordingFileLoop.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.check_AudioRecordingFileLoop.Location = new System.Drawing.Point(279, 91);
+            this.check_AudioRecordingFileLoop.Location = new System.Drawing.Point(288, 91);
             this.check_AudioRecordingFileLoop.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
             this.check_AudioRecordingFileLoop.Name = "check_AudioRecordingFileLoop";
             this.check_AudioRecordingFileLoop.Size = new System.Drawing.Size(50, 17);
@@ -632,7 +640,7 @@
             this.check_VideoRecordingFileLoop.AutoSize = true;
             this.check_VideoRecordingFileLoop.Checked = true;
             this.check_VideoRecordingFileLoop.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.check_VideoRecordingFileLoop.Location = new System.Drawing.Point(278, 141);
+            this.check_VideoRecordingFileLoop.Location = new System.Drawing.Point(287, 141);
             this.check_VideoRecordingFileLoop.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
             this.check_VideoRecordingFileLoop.Name = "check_VideoRecordingFileLoop";
             this.check_VideoRecordingFileLoop.Size = new System.Drawing.Size(50, 17);
@@ -645,7 +653,7 @@
             this.check_VideoSecondaryRecordingFileLoop.AutoSize = true;
             this.check_VideoSecondaryRecordingFileLoop.Checked = true;
             this.check_VideoSecondaryRecordingFileLoop.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.check_VideoSecondaryRecordingFileLoop.Location = new System.Drawing.Point(278, 194);
+            this.check_VideoSecondaryRecordingFileLoop.Location = new System.Drawing.Point(287, 194);
             this.check_VideoSecondaryRecordingFileLoop.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
             this.check_VideoSecondaryRecordingFileLoop.Name = "check_VideoSecondaryRecordingFileLoop";
             this.check_VideoSecondaryRecordingFileLoop.Size = new System.Drawing.Size(50, 17);
@@ -656,20 +664,20 @@
             // tb_VideoSecondaryRecordingFile
             // 
             this.tb_VideoSecondaryRecordingFile.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.tb_VideoSecondaryRecordingFile.Location = new System.Drawing.Point(278, 174);
+            this.tb_VideoSecondaryRecordingFile.Location = new System.Drawing.Point(288, 174);
             this.tb_VideoSecondaryRecordingFile.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
             this.tb_VideoSecondaryRecordingFile.Name = "tb_VideoSecondaryRecordingFile";
             this.tb_VideoSecondaryRecordingFile.Size = new System.Drawing.Size(204, 18);
             this.tb_VideoSecondaryRecordingFile.TabIndex = 54;
-            this.tb_VideoSecondaryRecordingFile.Text = "C:\\media\\Armello_Trailer.webm";
+            this.tb_VideoSecondaryRecordingFile.Text = "http://5.48.50.194:8081/mjpg/video.mjpg";
             // 
             // btn_BrowseVideoSecondaryRecordingFile
             // 
             this.btn_BrowseVideoSecondaryRecordingFile.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btn_BrowseVideoSecondaryRecordingFile.Location = new System.Drawing.Point(484, 172);
+            this.btn_BrowseVideoSecondaryRecordingFile.Location = new System.Drawing.Point(495, 173);
             this.btn_BrowseVideoSecondaryRecordingFile.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
             this.btn_BrowseVideoSecondaryRecordingFile.Name = "btn_BrowseVideoSecondaryRecordingFile";
-            this.btn_BrowseVideoSecondaryRecordingFile.Size = new System.Drawing.Size(39, 23);
+            this.btn_BrowseVideoSecondaryRecordingFile.Size = new System.Drawing.Size(39, 20);
             this.btn_BrowseVideoSecondaryRecordingFile.TabIndex = 53;
             this.btn_BrowseVideoSecondaryRecordingFile.Text = "...";
             this.btn_BrowseVideoSecondaryRecordingFile.UseVisualStyleBackColor = true;
@@ -682,9 +690,9 @@
             this.label10.Location = new System.Drawing.Point(12, 157);
             this.label10.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label10.Name = "label10";
-            this.label10.Size = new System.Drawing.Size(209, 13);
+            this.label10.Size = new System.Drawing.Size(180, 13);
             this.label10.TabIndex = 52;
-            this.label10.Text = "Video Secondary Recording Device";
+            this.label10.Text = "Video Secondary Input Device";
             // 
             // cb_VideoSecondaryRecordingDevices
             // 
@@ -919,10 +927,10 @@
             // 
             // btn_UnmuteParticipant
             // 
-            this.btn_UnmuteParticipant.Location = new System.Drawing.Point(623, 257);
+            this.btn_UnmuteParticipant.Location = new System.Drawing.Point(588, 256);
             this.btn_UnmuteParticipant.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
             this.btn_UnmuteParticipant.Name = "btn_UnmuteParticipant";
-            this.btn_UnmuteParticipant.Size = new System.Drawing.Size(77, 23);
+            this.btn_UnmuteParticipant.Size = new System.Drawing.Size(63, 23);
             this.btn_UnmuteParticipant.TabIndex = 83;
             this.btn_UnmuteParticipant.Text = "Unmute";
             this.btn_UnmuteParticipant.UseVisualStyleBackColor = true;
@@ -930,10 +938,10 @@
             // 
             // btn_MuteParticipant
             // 
-            this.btn_MuteParticipant.Location = new System.Drawing.Point(542, 257);
+            this.btn_MuteParticipant.Location = new System.Drawing.Point(542, 256);
             this.btn_MuteParticipant.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
             this.btn_MuteParticipant.Name = "btn_MuteParticipant";
-            this.btn_MuteParticipant.Size = new System.Drawing.Size(77, 23);
+            this.btn_MuteParticipant.Size = new System.Drawing.Size(42, 23);
             this.btn_MuteParticipant.TabIndex = 82;
             this.btn_MuteParticipant.Text = "Mute";
             this.btn_MuteParticipant.UseVisualStyleBackColor = true;
@@ -952,10 +960,10 @@
             // 
             // btn_DelegateParticipant
             // 
-            this.btn_DelegateParticipant.Location = new System.Drawing.Point(704, 257);
+            this.btn_DelegateParticipant.Location = new System.Drawing.Point(718, 256);
             this.btn_DelegateParticipant.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
             this.btn_DelegateParticipant.Name = "btn_DelegateParticipant";
-            this.btn_DelegateParticipant.Size = new System.Drawing.Size(77, 23);
+            this.btn_DelegateParticipant.Size = new System.Drawing.Size(63, 23);
             this.btn_DelegateParticipant.TabIndex = 85;
             this.btn_DelegateParticipant.Text = "Delegate";
             this.btn_DelegateParticipant.UseVisualStyleBackColor = true;
@@ -1170,12 +1178,80 @@
             this.btn_AskToShare.UseVisualStyleBackColor = true;
             this.btn_AskToShare.Click += new System.EventHandler(this.btn_AskToShare_Click);
             // 
+            // btn_DropParticipant
+            // 
+            this.btn_DropParticipant.Location = new System.Drawing.Point(653, 256);
+            this.btn_DropParticipant.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
+            this.btn_DropParticipant.Name = "btn_DropParticipant";
+            this.btn_DropParticipant.Size = new System.Drawing.Size(63, 23);
+            this.btn_DropParticipant.TabIndex = 109;
+            this.btn_DropParticipant.Text = "Drop";
+            this.btn_DropParticipant.UseVisualStyleBackColor = true;
+            this.btn_DropParticipant.Click += new System.EventHandler(this.btn_DropParticipant_Click);
+            // 
+            // btn_AudioRecordingDevicesRefresh
+            // 
+            this.btn_AudioRecordingDevicesRefresh.FlatAppearance.BorderSize = 0;
+            this.btn_AudioRecordingDevicesRefresh.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btn_AudioRecordingDevicesRefresh.Image = ((System.Drawing.Image)(resources.GetObject("Refresh.Image")));
+            this.btn_AudioRecordingDevicesRefresh.Location = new System.Drawing.Point(256, 68);
+            this.btn_AudioRecordingDevicesRefresh.Margin = new System.Windows.Forms.Padding(0);
+            this.btn_AudioRecordingDevicesRefresh.Name = "btn_AudioRecordingDevicesRefresh";
+            this.btn_AudioRecordingDevicesRefresh.Size = new System.Drawing.Size(23, 23);
+            this.btn_AudioRecordingDevicesRefresh.TabIndex = 110;
+            this.btn_AudioRecordingDevicesRefresh.UseVisualStyleBackColor = true;
+            this.btn_AudioRecordingDevicesRefresh.Click += new System.EventHandler(this.btn_AudioRecordingDevicesRefresh_Click);
+            // 
+            // btn_AudioPlaybackDevicesRefresh
+            // 
+            this.btn_AudioPlaybackDevicesRefresh.FlatAppearance.BorderSize = 0;
+            this.btn_AudioPlaybackDevicesRefresh.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btn_AudioPlaybackDevicesRefresh.Image = ((System.Drawing.Image)(resources.GetObject("Refresh.Image")));
+            this.btn_AudioPlaybackDevicesRefresh.Location = new System.Drawing.Point(257, 24);
+            this.btn_AudioPlaybackDevicesRefresh.Margin = new System.Windows.Forms.Padding(0);
+            this.btn_AudioPlaybackDevicesRefresh.Name = "btn_AudioPlaybackDevicesRefresh";
+            this.btn_AudioPlaybackDevicesRefresh.Size = new System.Drawing.Size(23, 23);
+            this.btn_AudioPlaybackDevicesRefresh.TabIndex = 111;
+            this.btn_AudioPlaybackDevicesRefresh.UseVisualStyleBackColor = true;
+            this.btn_AudioPlaybackDevicesRefresh.Click += new System.EventHandler(this.btn_AudioPlaybackDevicesRefresh_Click);
+            // 
+            // btn_VideoRecordingDevicesRefresh
+            // 
+            this.btn_VideoRecordingDevicesRefresh.FlatAppearance.BorderSize = 0;
+            this.btn_VideoRecordingDevicesRefresh.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btn_VideoRecordingDevicesRefresh.Image = ((System.Drawing.Image)(resources.GetObject("Refresh.Image")));
+            this.btn_VideoRecordingDevicesRefresh.Location = new System.Drawing.Point(257, 119);
+            this.btn_VideoRecordingDevicesRefresh.Margin = new System.Windows.Forms.Padding(0);
+            this.btn_VideoRecordingDevicesRefresh.Name = "btn_VideoRecordingDevicesRefresh";
+            this.btn_VideoRecordingDevicesRefresh.Size = new System.Drawing.Size(23, 23);
+            this.btn_VideoRecordingDevicesRefresh.TabIndex = 112;
+            this.btn_VideoRecordingDevicesRefresh.UseVisualStyleBackColor = true;
+            this.btn_VideoRecordingDevicesRefresh.Click += new System.EventHandler(this.btn_VideoRecordingDevicesRefresh_Click);
+            // 
+            // btn_VideoSecondaryRecordingDevicesRefresh
+            // 
+            this.btn_VideoSecondaryRecordingDevicesRefresh.FlatAppearance.BorderSize = 0;
+            this.btn_VideoSecondaryRecordingDevicesRefresh.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btn_VideoSecondaryRecordingDevicesRefresh.Image = ((System.Drawing.Image)(resources.GetObject("Refresh.Image")));
+            this.btn_VideoSecondaryRecordingDevicesRefresh.Location = new System.Drawing.Point(257, 172);
+            this.btn_VideoSecondaryRecordingDevicesRefresh.Margin = new System.Windows.Forms.Padding(0);
+            this.btn_VideoSecondaryRecordingDevicesRefresh.Name = "btn_VideoSecondaryRecordingDevicesRefresh";
+            this.btn_VideoSecondaryRecordingDevicesRefresh.Size = new System.Drawing.Size(23, 23);
+            this.btn_VideoSecondaryRecordingDevicesRefresh.TabIndex = 113;
+            this.btn_VideoSecondaryRecordingDevicesRefresh.UseVisualStyleBackColor = true;
+            this.btn_VideoSecondaryRecordingDevicesRefresh.Click += new System.EventHandler(this.btn_VideoSecondaryRecordingDevicesRefresh_Click);
+            // 
             // WebRTCForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoScroll = true;
             this.ClientSize = new System.Drawing.Size(1279, 662);
+            this.Controls.Add(this.btn_VideoSecondaryRecordingDevicesRefresh);
+            this.Controls.Add(this.btn_VideoRecordingDevicesRefresh);
+            this.Controls.Add(this.btn_AudioPlaybackDevicesRefresh);
+            this.Controls.Add(this.btn_AudioRecordingDevicesRefresh);
+            this.Controls.Add(this.btn_DropParticipant);
             this.Controls.Add(this.picture_VideoLocal);
             this.Controls.Add(this.btn_AskToShare);
             this.Controls.Add(this.cb_AutoSubscriptionVideo);
@@ -1286,7 +1362,6 @@
         #endregion
 
         private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.ComboBox cb_AudioPlaybackDevices;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.ComboBox cb_AudioSecondaryPlaybackDevices;
         private System.Windows.Forms.Label label3;
@@ -1379,5 +1454,11 @@
         private System.Windows.Forms.TextBox tb_MaxSubscriptionVideo;
         private System.Windows.Forms.CheckBox cb_AutoSubscriptionVideo;
         private System.Windows.Forms.Button btn_AskToShare;
+        private System.Windows.Forms.Button btn_DropParticipant;
+        private System.Windows.Forms.Button btn_AudioRecordingDevicesRefresh;
+        private System.Windows.Forms.Button btn_AudioPlaybackDevicesRefresh;
+        private System.Windows.Forms.Button btn_VideoRecordingDevicesRefresh;
+        private System.Windows.Forms.Button btn_VideoSecondaryRecordingDevicesRefresh;
+        private System.Windows.Forms.ComboBox cb_AudioPlaybackDevices;
     }
 }

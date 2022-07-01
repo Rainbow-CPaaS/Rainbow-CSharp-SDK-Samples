@@ -89,9 +89,7 @@ namespace Sample_P2PandConference
             rbConferences.ConferenceSharingTransfertStatusUpdated += RbConferences_ConferenceSharingTranfertStatusUpdated;
 
             // Form Events related to Audio devices selection
-            cb_AudioPlaybackDevices.SelectedIndexChanged += Cb_AudioPlaybackDevices_SelectedIndexChanged;
             cb_AudioSecondaryPlaybackDevices.SelectedIndexChanged += Cb_AudioSecondaryPlaybackDevices_SelectedIndexChanged;
-            cb_AudioRecordingDevices.SelectedIndexChanged += Cb_AudioRecordingDevices_SelectedIndexChanged;
 
             // Form Events related to Contact selection
             cb_ContactsList.SelectedIndexChanged += Cb_ContactsList_SelectedIndexChanged;
@@ -149,12 +147,11 @@ namespace Sample_P2PandConference
             if (rbConferences == null)
                 return;
 
-            if(e.ConferenceId == currentCallId)
+            if (e.ConferenceId == currentCallId)
             {
                 // We must ensure to use UI Thread here
                 this.BeginInvoke(new Action(() =>
                 {
-
                     string name;
                     string message;
                     string caption;
@@ -454,8 +451,8 @@ namespace Sample_P2PandConference
         private void Cb_AudioRecordingDevices_SelectedIndexChanged(object? sender, EventArgs e)
         {
             if (rbWebRTCCommunications == null)
-
                 return;
+
             if (currentCall?.IsInProgress() == true)
             {
                 Device? device = GetAudioRecordingDeviceSelected();
@@ -464,6 +461,44 @@ namespace Sample_P2PandConference
                 else
                     AddInformationMessage($"Cannot change of audio recording device");
             }
+        }
+
+        private void btn_AudioPlaybackDevicesRefresh_Click(object? sender, EventArgs e)
+        {
+            String? deviceName = cb_AudioPlaybackDevices.SelectedItem as String;
+            UpdateAudioPlayBackDevices();
+            if(!String.IsNullOrEmpty(deviceName))
+                SetDefaultComboboxValue(deviceName, cb_AudioPlaybackDevices);
+        }
+
+        private void btn_AudioRecordingDevicesRefresh_Click(object? sender, EventArgs e)
+        {
+            String? deviceName = cb_AudioRecordingDevices.SelectedItem as String;
+            UpdateAudioRecordingDevices();
+            if (!String.IsNullOrEmpty(deviceName))
+                SetDefaultComboboxValue(deviceName, cb_AudioRecordingDevices);
+
+            // Update also in same time Audio Secondary Playbac kDevices
+            deviceName = cb_AudioSecondaryPlaybackDevices.SelectedItem as String;
+            UpdateAudioSecondaryPlayBackDevices(); 
+            if (!String.IsNullOrEmpty(deviceName))
+                SetDefaultComboboxValue(deviceName, cb_AudioSecondaryPlaybackDevices);
+        }
+
+        private void btn_VideoRecordingDevicesRefresh_Click(object? sender, EventArgs e)
+        {
+            String? deviceName = cb_VideoRecordingDevices.SelectedItem as String;
+            UpdateVideoRecordingDevices();
+            if (!String.IsNullOrEmpty(deviceName))
+                SetDefaultComboboxValue(deviceName, cb_VideoRecordingDevices);
+        }
+
+        private void btn_VideoSecondaryRecordingDevicesRefresh_Click(object? sender, EventArgs e)
+        {
+            String? deviceName = cb_VideoSecondaryRecordingDevices.SelectedItem as String;
+            UpdateVideoSecondaryRecordingDevices();
+            if (!String.IsNullOrEmpty(deviceName))
+                SetDefaultComboboxValue(deviceName, cb_VideoSecondaryRecordingDevices);
         }
 
         private void Cb_AudioPlaybackDevices_SelectedIndexChanged(object? sender, EventArgs e)
@@ -1081,7 +1116,7 @@ namespace Sample_P2PandConference
 
         private void lb_Participants_SelectedIndexChanged(object? sender, EventArgs e)
         {
-            if(conferenceParticipants == null)
+            if (conferenceParticipants == null)
                 return;
 
             if (currentCall == null)
@@ -1099,6 +1134,7 @@ namespace Sample_P2PandConference
                     {
                         btn_MuteParticipant.Enabled = !participant.Muted;
                         btn_UnmuteParticipant.Enabled = participant.Muted;
+                        btn_DropParticipant.Enabled = true;
 
                         // To delegate: we can't delegate ourselves
                         //          AND current call has not been initiated by current user
@@ -1144,6 +1180,21 @@ namespace Sample_P2PandConference
                 {
                     if (!callback.Result.Success)
                         AddInformationMessage($"Cannot unmute ParticipantId:[{selectedConferenceParticipantId}] - Error:[{Rainbow.Util.SerializeSdkError(callback.Result)}");
+                });
+            }
+        }
+
+        private void btn_DropParticipant_Click(object? sender, EventArgs e)
+        {
+            if (rbConferences == null)
+                return;
+
+            if (selectedConferenceParticipantId != null)
+            {
+                rbConferences.ConferenceDropParticipant(conferenceInProgressId, selectedConferenceParticipantId,  callback =>
+                {
+                    if (!callback.Result.Success)
+                        AddInformationMessage($"Cannot drop ParticipantId:[{selectedConferenceParticipantId}] - Error:[{Rainbow.Util.SerializeSdkError(callback.Result)}");
                 });
             }
         }
@@ -1455,13 +1506,16 @@ namespace Sample_P2PandConference
                 return false;
 
             // It's possible to start conference if user is the owner or a moderator of this bubble
-            Boolean result = false;
+            Boolean? result = null;
 
             var bubble = rbBubbles.GetBubbleByIdFromCache(bubbleId);
             if (bubble != null)
-                result = rbBubbles.IsModerator(bubble) == true;
+                result = rbBubbles.IsModerator(bubble);
 
-            return result;
+            if (result == null)
+                return false;
+
+            return result.Value;
         }
 
         // To update the UI interface when the Call is updated
@@ -1897,7 +1951,7 @@ namespace Sample_P2PandConference
             }
         }
 
-        // Update Participants List Box, Mute, Unmute, Delegate
+        // Update Participants List Box, Mute, Unmute, Drop, Delegate
         private void UpdateParticipantsListBox()
         {
             if (this.InvokeRequired)
@@ -1944,10 +1998,9 @@ namespace Sample_P2PandConference
                 btn_MuteParticipant.Enabled = false;
                 btn_UnmuteParticipant.Enabled = false;
                 btn_DelegateParticipant.Enabled = false;
-
+                btn_DropParticipant.Enabled = false;
             }
         }
-
 
         private void UpdateVideoPublisherBtns()
         {
@@ -2452,10 +2505,10 @@ namespace Sample_P2PandConference
 
             if (comboBox.Items.Count > 0)
             {
-                for(int i = 0; i < comboBox.Items.Count; i++)
+                for (int i = 0; i < comboBox.Items.Count; i++)
                 {
                     var str = comboBox.Items[i].ToString();
-                    if ( (str != null) && (str.IndexOf(containValue, StringComparison.InvariantCultureIgnoreCase) != -1))
+                    if ((str != null) && (str.IndexOf(containValue, StringComparison.InvariantCultureIgnoreCase) != -1))
                     {
                         comboBox.SelectedIndex = i;
                         return;
@@ -2507,12 +2560,8 @@ namespace Sample_P2PandConference
                 return "";
 
             String result = "";
-
-            if (!String.IsNullOrEmpty(participantPhoneNumber))
-            {
-                result = participantPhoneNumber;
-            }
-            else if (!String.IsNullOrEmpty(participantJid))
+            
+            if (!String.IsNullOrEmpty(participantJid))
             {
                 if (participantJid == currentContactJid)
                     result = "MYSELF";
@@ -2521,9 +2570,11 @@ namespace Sample_P2PandConference
                     var contact = rbContacts.GetContactFromContactJid(participantJid);
                     if (contact != null)
                         result = Rainbow.Util.GetContactDisplayName(contact);
+                    else
+                        rbContacts.GetContactFromContactJidFromServer(participantJid); // We ask server here to finally have contacts information
                 }
             }
-            else if (rbAplication.Restrictions.UseAPIConferenceV2 && !String.IsNullOrEmpty(participantId))
+            else if (!String.IsNullOrEmpty(participantId))
             {
                 if (participantId == currentContactId)
                     result = "MYSELF";
@@ -2532,7 +2583,13 @@ namespace Sample_P2PandConference
                     var contact = rbContacts.GetContactFromContactId(participantId);
                     if (contact != null)
                         result = Rainbow.Util.GetContactDisplayName(contact);
+                    else
+                        rbContacts.GetContactFromContactIdFromServer(participantId); // We ask server here to finally have contacts information
                 }
+            }
+            else if (!String.IsNullOrEmpty(participantPhoneNumber))
+            {
+                result = participantPhoneNumber;
             }
 
             if (String.IsNullOrEmpty(result) && !String.IsNullOrEmpty(participantId))
@@ -2573,7 +2630,7 @@ namespace Sample_P2PandConference
 
         private int MediasToInt(string? medias)
         {
-            if (medias == null)
+            if(medias == null)
                 return 0;
 
             if (medias == "None")
@@ -2603,9 +2660,5 @@ namespace Sample_P2PandConference
             AddInformationMessage($"Medias specified {medias} cannot be set to Int");
             return 0;
         }
-
-
-
-
     }
 }
