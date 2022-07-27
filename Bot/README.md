@@ -16,9 +16,9 @@ List of examples:
 
 - [Bot - Base](#BotBase): **This example is the base of all others Bot**.
 
-- [Bot - Adaptative Cards](#BotAdaptativeCards): This example demonstrates how to use **Adaptative Cards** to create a MCQ test.
+- [Bot - Adaptive Cards](#BotAdaptiveCards): This example demonstrates how to use [**Adaptive Cards**](https://adaptivecards.io/) for example to create a multiple choice question (MCQ) test.
 
-- [Bot - CCTV](#BotCCTV): This example demonstrates how several Bots can **communicates** and use **WebRTC**. The bot master asks other bots to join specific conference to display a specific CCTV.
+- [Bot - CCTV](#BotCCTV): This example demonstrates how several Bots can **communicate** and use **WebRTC**. The bot master asks other bots to join specific conference to display a specific CCTV.
 
 <a name="StateMachine"></a>
 ## State Machine
@@ -52,7 +52,7 @@ A dot graph is a plain text describing a graph. To visualize it a tool is necess
 ## Bot - Base
 ---
 
-[This bot](./BotBase) is used as base for all other bots.
+[This bot](./BotBase/README.md) is used as base for all other bots.
 
 It includes these features:
 
@@ -75,8 +75,8 @@ It includes these features:
   - A different process is used if the message is coming from a bubble or from a one to one conversation. The message is then answered by a default message which depends of the process.
 
 
-<a name="BotAdaptativeCards"></a>
-## Bot - Adaptative Cards
+<a name="BotAdaptiveCards"></a>
+## Bot - Adaptive Cards
 ---
 
 **IN PROGRESS**

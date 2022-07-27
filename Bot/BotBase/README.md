@@ -10,8 +10,6 @@ This example is working on **Linux, MacOs or Windows**.
 
 It's based on a state machine to simplify the complexity. See more info about this [here](../README.md#StateMachine)
 
-This README is divided in several part:
-
 - [Bot features](#BotFeatures)
 
 - [Dot graph](#DotGraph)
