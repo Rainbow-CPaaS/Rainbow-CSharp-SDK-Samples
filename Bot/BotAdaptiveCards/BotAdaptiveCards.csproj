@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+	  <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\AdaptiveCards\mcqQuestion-data-00.json" />
+    <EmbeddedResource Include="Resources\AdaptiveCards\mcqQuestion-data-01.json" />
+    <EmbeddedResource Include="Resources\AdaptiveCards\mcqQuestion-data-02.json" />
+    <EmbeddedResource Include="Resources\AdaptiveCards\mcqQuestion-data-03.json" />
+    <EmbeddedResource Include="Resources\AdaptiveCards\mcqQuestion-data-04.json" />
+    <EmbeddedResource Include="Resources\AdaptiveCards\mcqQuestion-data-05.json" />
+    <EmbeddedResource Include="Resources\AdaptiveCards\mcqQuestion-template.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AdaptiveCards.Templating" Version="1.3.1" />
+    <PackageReference Include="NLog.Extensions.Logging" Version="1.7.5" />
+    <PackageReference Include="Rainbow.CSharp.SDK" Version="2.6.8" />
+    <PackageReference Include="stateless" Version="5.11.0" />
+  </ItemGroup>
+
+</Project>

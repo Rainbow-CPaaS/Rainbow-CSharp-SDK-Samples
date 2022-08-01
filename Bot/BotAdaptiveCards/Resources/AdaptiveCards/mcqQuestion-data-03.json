@@ -1,0 +1,28 @@
+{
+    "title": "Question 3/5",
+    "question": "What tool would you use to reduce the digital image size?",
+    "questionId": "03",
+    "buttonTitle": "Submit",
+    "information": "Answered",
+    "messageToDisplay": "Question 3/5 answered",
+    "userAnswer": "A",
+    "items": [
+        {
+            "choice": "Filter",
+            "value": "A"
+        },
+        {
+            "choice": "Brush",
+            "value": "B"
+        },
+        {
+            "choice": "Rotate",
+            "value": "C"
+        },
+        {
+            "choice": "Crop",
+            "value": "D",
+            "correct":  true
+        }
+    ]
+}

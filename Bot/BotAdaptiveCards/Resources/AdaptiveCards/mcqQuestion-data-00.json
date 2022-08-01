@@ -1,0 +1,11 @@
+{
+    "title": "Welcome to the MCQ Test",
+    "question": "Are you ready ?",
+    "questionId": "00",
+    "buttonTitle": "Go !",
+    "information": "MCQ Test started",
+    "messageToDisplay":  "Go",
+    "userAnswer": "",
+    "correctAnswer":  "",
+    "items": [ ]
+}

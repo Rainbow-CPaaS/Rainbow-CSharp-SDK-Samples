@@ -1,0 +1,28 @@
+{
+    "title": "Question 4/5",
+    "question": "Why is Big Data important?",
+    "questionId": "04",
+    "buttonTitle": "Submit",
+    "information": "Answered",
+    "messageToDisplay": "Question 4/5 answered",
+    "userAnswer": "A",
+    "items": [
+        {
+            "choice": "Because it is structured",
+            "value": "A"
+        },
+        {
+            "choice": "Because it may be analyzed to reveal patterns and trends",
+            "value": "B",
+            "correct":  true
+        },
+        {
+            "choice": "Because of its complexity",
+            "value": "C"
+        },
+        {
+            "choice": "Because of its size",
+            "value": "D"
+        }
+    ]
+}
