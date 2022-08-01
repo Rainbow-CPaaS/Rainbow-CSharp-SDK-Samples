@@ -79,7 +79,35 @@ It includes these features:
 ## Bot - Adaptive Cards
 ---
 
-**IN PROGRESS**
+[This bot](./BotAdaptiveCards/README.md) is based on **Bot Base**.
+
+The goal of this Bot is to create a multiple choice question (**MCQ**) test for a specific list of users defined at startup.
+
+Questions to users are displayed using **Adaptive cards**.
+
+So we need to properly manage the connection with the RB server, contact all the users who need to take the test and, when they are ready, run the test until the end.
+
+**Features**:
+
+- Get dot graph of the [state machine](../README.md#StateMachine) (thanks to [stateless](https://github.com/dotnet-state-machine/stateless) third-party)
+
+- Accept a specific configuration (login, pwd, host, ini file location, user list who must take the test) - so it's possible to create several bot and used them in sametime. If a thousand users need to pass the test, we can imagine having several bots (for example one for 100 users) instead of a single bot...
+
+- Connect to Rainbow server and manage auto-reconnection (at least once an authentication has succeeded)
+
+- Once connected, we send a welcome message to all test participants one by one, explaining that a MCQ test is available and how to start it. 
+
+- Manage incoming messages:
+
+  - Message coming from ourself are not taken into account.
+  
+  - Message coming from bubble are not taken into account.
+  
+  - Message coming directly from user who doesn't need to take the test are not taken into account 
+  
+  - Message coming from users taking the test are analysed and only anser to the test are taken into account: answer aer stored and the next question is displayd until the end. Then a final message is sentd with the test result.
+
+[![Video here](./BotAdaptiveCards/images/RainbowBotAdaptiveCardsOutput.png)](./BotAdaptiveCards/images/Rainbow-MCQTest.mp4)
 
 <a name="BotCCTV"></a>
 ## Bot - CCTV
