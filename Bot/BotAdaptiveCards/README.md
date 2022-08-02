@@ -10,7 +10,9 @@ This example is working on **Linux, MacOs or Windows**.
 
 It's based on a state machine to simplify the complexity and use **Adaptive Cards** to display MCQ question.
 
-[![Video here](./images/RainbowBotAdaptiveCardsOutput.png)](./images/Rainbow-MCQTest.mp4)
+![Gif](./images/Rainbow-MCQTest.gif)
+
+You can watch a [Video here](./images/Rainbow-MCQTest.mp4) to see the result.
 
 - [Bot features](#BotFeatures)
 
@@ -62,8 +64,6 @@ We also need to modify a restriction defined in the **Bot base**. We want users 
 RbApplication.Restrictions.MessageStorageMode = Restrictions.SDKMessageStorageMode.Store; // in Bot Base, we used Restrictions.SDKMessageStorageMode.NoStore
    
 ```  
-
-You can watch a [Video here](./images/Rainbow-MCQTest.mp4) to see the result.  
 
 <a name="DotGraph"></a>
 ## Dot graph
