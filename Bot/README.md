@@ -107,7 +107,7 @@ So we need to properly manage the connection with the RB server, contact all the
   
   - Message coming from users taking the test are analysed and only anser to the test are taken into account: answer aer stored and the next question is displayd until the end. Then a final message is sentd with the test result.
 
-[![Video here](./BotAdaptiveCards/images/RainbowBotAdaptiveCardsOutput.png)](./BotAdaptiveCards/images/Rainbow-MCQTest.mp4)
+![Gif](./BotAdaptiveCards/images/Rainbow-MCQTest.gif)
 
 <a name="BotCCTV"></a>
 ## Bot - CCTV
