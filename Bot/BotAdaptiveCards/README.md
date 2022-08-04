@@ -108,7 +108,7 @@ To know more about **Adaptive Cards** check first the [dedicated web site](https
 
 It's well documented:
 
-- [Designer](https://adaptivecards.io/): Very usefull to create / design your Adaptive card
+- [Designer](https://adaptivecards.io/designer): Very usefull to create / design your Adaptive card
 
 - [Schema Explorer](https://adaptivecards.io/explorer/)
 
