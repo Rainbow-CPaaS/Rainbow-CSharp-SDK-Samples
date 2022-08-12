@@ -13,10 +13,7 @@ namespace RainbowBotBase
 {
     public class RainbowBotBase
     {
-        private readonly String STOP_MESSAGE = "Bot please stop";
-        private readonly String AUTOMATIC_ANSWER_P2P = "Automatic answer ! I'm a Bot using SDK C# :). Thanks for your message ! [P2P]";
-        private readonly String AUTOMATIC_ANSWER_BUBBLE = "Automatic answer ! I'm a Bot using SDK C# :). Thanks for your message ! [Bubble]";
-        private readonly int MESSAGE_READ_BY_SECOND = 10; // nb messages READ by seconds. We will wait the necessary delay to read the next one. No message are lost. They are just read step by step avoiding a flood
+        
 
         /// <summary>
         /// State list used by this bot
@@ -60,8 +57,6 @@ namespace RainbowBotBase
 
             TooManyAttempts,
 
-            DequeueInvitationsAndMessages,
-
             MessageReceivedFromBubble,
             MessageReceivedFromPeer,
             StopMessage,
@@ -80,7 +75,7 @@ namespace RainbowBotBase
         // The TriggerWithParameters object is used when a trigger requires a payload.
         private StateMachine<State, Trigger>.TriggerWithParameters<MessageEventArgs>? _messageReceivedFromBubbleTrigger;
         private StateMachine<State, Trigger>.TriggerWithParameters<MessageEventArgs>? _messageReceivedFromPeerTrigger;
-        private StateMachine<State, Trigger>.TriggerWithParameters<BubbleInvitationEventArgs>? _bubbleInvitationReceivedTrigger;
+        private StateMachine<State, Trigger>.TriggerWithParameters<String>? _bubbleInvitationReceivedTrigger;
         private StateMachine<State, Trigger>.TriggerWithParameters<InvitationEventArgs>? _invitationReceivedTrigger;
 
 
@@ -88,7 +83,8 @@ namespace RainbowBotBase
         private readonly ConcurrentQueue<MessageEventArgs> _messageQueue;
 
         // Concurrent queue of invitations received to be  member of a bubble
-        private readonly ConcurrentQueue<BubbleInvitationEventArgs> _bubbleInvitationQueue;
+        private readonly ConcurrentQueue<String> _bubbleInvitationQueue;
+        private readonly List<String> _bubbleInvitationInProgress = new List<String>();
 
         // Concurrent queue of invitations received to sare its presence with other users
         private readonly ConcurrentQueue<InvitationEventArgs> _invitationQueue;
@@ -122,7 +118,7 @@ namespace RainbowBotBase
             // Create Trigger(s) using parameters
             _messageReceivedFromPeerTrigger = _machine.SetTriggerParameters<MessageEventArgs>(Trigger.MessageReceivedFromPeer);
             _messageReceivedFromBubbleTrigger = _machine.SetTriggerParameters<MessageEventArgs>(Trigger.MessageReceivedFromBubble);
-            _bubbleInvitationReceivedTrigger = _machine.SetTriggerParameters<BubbleInvitationEventArgs>(Trigger.BubbleInvitationReceived);
+            _bubbleInvitationReceivedTrigger = _machine.SetTriggerParameters<String>(Trigger.BubbleInvitationReceived);
             _invitationReceivedTrigger = _machine.SetTriggerParameters<InvitationEventArgs>(Trigger.InvitationReceived);
 
             // Configure the Configured state
@@ -155,9 +151,7 @@ namespace RainbowBotBase
 
             // Configure the Connected state
             _machine.Configure(State.Connected)
-                .OnEntry(CheckConnectedState)
-
-                .PermitReentry(Trigger.DequeueInvitationsAndMessages)
+                .OnEntry(CheckConnectionInvitationsAndMessages)
 
                 .Permit(Trigger.Disconnect, State.AutoReconnection)
 
@@ -212,15 +206,19 @@ namespace RainbowBotBase
         }
 
         /// <summary>
-        /// To dequeue in this oreder: 
+        /// Check connection first then dequeue in this order: 
         ///     - invitations to share presence
         ///     - invitations to be a member of a bubble
         ///     - message received (we avoid a flod here using MESSAGE_READ_BY_SECOND variable)
         /// </summary>
-        private void DequeueInvitationsAndMessages()
+        private void CheckConnectionInvitationsAndMessages()
         {
-            // We have to dequeue invitations then bubble's invitation and finally messages
+            // Check first if are stille connected
+            if (!RbApplication.IsConnected())
+                FireTrigger(Trigger.Disconnect);
 
+
+            // We have to dequeue invitations then bubble's invitation and finally messages
 
             // Dequeue invitation
             if (_invitationQueue.TryDequeue(out InvitationEventArgs? invitation))
@@ -233,7 +231,7 @@ namespace RainbowBotBase
             }
 
             // Dequeue bubble's invitation
-            if (_bubbleInvitationQueue.TryDequeue(out BubbleInvitationEventArgs? bubbleInvitation))
+            if (_bubbleInvitationQueue.TryDequeue(out String? bubbleInvitation))
             {
                 if (bubbleInvitation != null)
                 {
@@ -247,7 +245,7 @@ namespace RainbowBotBase
             {
                 //  /!\ Here we add a protection to avoid to manage a flood of messages using a restriction: a nb of messages to read by sedonc (using MESSAGE_READ_BY_SECOND)
                 Boolean canReadMessage = false;
-                if (_messageDateList.Count < MESSAGE_READ_BY_SECOND)
+                if (_messageDateList.Count < RainbowApplicationInfo.MESSAGE_READ_BY_SECOND)
                 {
                     canReadMessage = true;
                     _messageDateList.Add(DateTime.Now);
@@ -283,7 +281,7 @@ namespace RainbowBotBase
                             if ((_masterBotJid != null) && _masterBotJid.Equals(_masterBotEmail, StringComparison.InvariantCultureIgnoreCase))
                             {
                                 // Check if it's the "stop message"
-                                if (messageEvent.Message.Content.Equals(STOP_MESSAGE, StringComparison.InvariantCultureIgnoreCase))
+                                if (messageEvent.Message.Content.Equals(RainbowApplicationInfo.STOP_MESSAGE, StringComparison.InvariantCultureIgnoreCase))
                                 {
                                     _machine.Fire(Trigger.StopMessage);
                                     return;
@@ -300,11 +298,23 @@ namespace RainbowBotBase
                         
                     }
                 }
-                else
-                {
-                    CancelableDelay.StartAfter(10, DequeueInvitationsAndMessages);
-                }
             }
+
+            CancelableDelay.StartAfter(10, CheckConnectionInvitationsAndMessages);
+        }
+
+        /// <summary>
+        /// To know if we are in status Invited in the specified Bubble 
+        /// </summary>
+        private Boolean? IsInvitedToBubble(Bubble? bubble)
+        {
+            if (bubble != null)
+            {
+                Bubble.Member? myself = bubble.Users.Find(member => member.UserId == _currentContact?.Id);
+
+                return (myself?.Status == Bubble.MemberStatus.Invited);
+            }
+            return null;
         }
 
         /// <summary>
@@ -324,7 +334,7 @@ namespace RainbowBotBase
             {
                 String conversationId = messageEvent.ConversationId;
 
-                RbInstantMessaging.SendMessageToConversationId(conversationId, AUTOMATIC_ANSWER_BUBBLE, null);
+                RbInstantMessaging.SendMessageToConversationId(conversationId, RainbowApplicationInfo.AUTOMATIC_ANSWER_BUBBLE, null);
             }
             FireTrigger(Trigger.MessageManaged);
         }
@@ -338,7 +348,7 @@ namespace RainbowBotBase
             {
                 String conversationId = messageEvent.ConversationId;
 
-                RbInstantMessaging.SendMessageToConversationId(conversationId, AUTOMATIC_ANSWER_P2P, null);
+                RbInstantMessaging.SendMessageToConversationId(conversationId, RainbowApplicationInfo.AUTOMATIC_ANSWER_P2P, null);
             }
             FireTrigger(Trigger.MessageManaged);
         }
@@ -346,11 +356,20 @@ namespace RainbowBotBase
         /// <summary>
         /// To answer to the specified invitations to be a member of a bubble
         /// </summary>
-        private void AnswerToBubbleInvitation(BubbleInvitationEventArgs? bubbleInvitation)
+        private void AnswerToBubbleInvitation(String? bubbleId)
         {
-            if(bubbleInvitation != null)
+            if (bubbleId != null)
             {
-                RbBubbles.AcceptInvitation(bubbleInvitation.BubbleId);
+                if (!_bubbleInvitationInProgress.Contains(bubbleId))
+                    _bubbleInvitationInProgress.Add(bubbleId);
+
+                RbBubbles.AcceptInvitation(bubbleId, callback =>
+                {
+                    if (!callback.Result.Success)
+                    {
+                        _bubbleInvitationInProgress.Remove(bubbleId);
+                    }
+                });
             }
 
             FireTrigger(Trigger.BubbleInvitationManaged);
@@ -367,19 +386,6 @@ namespace RainbowBotBase
             }
 
             FireTrigger(Trigger.InvitationManaged);
-        }
-
-        /// <summary>
-        /// On entry of the Connected State, we check the connection status with the server and if it's ok we dequeue invitations/messages
-        /// </summary>
-        private void CheckConnectedState()
-        {
-            // Check first if are stille connected
-            if (!RbApplication.IsConnected())
-                FireTrigger(Trigger.Disconnect);
-
-            // Now dequeue invitations, bubble's invitation or messages
-            DequeueInvitationsAndMessages();
         }
 
         /// <summary>
@@ -523,7 +529,23 @@ namespace RainbowBotBase
             _currentContact = RbContacts.GetCurrentContact();
 
             // We ask server all bubbles information. For each of them, the SDK will automatically "register" to them. It's mandatory to receive message send to a bubble.
-            RbBubbles.GetAllBubbles();
+            RbBubbles.GetAllBubbles(callback =>
+            {
+                if (callback.Result.Success)
+                {
+                    // We need to accept any invitation available from bubbles
+                    var bubbles = callback.Data;
+                    foreach (var bubble in bubbles)
+                    {
+                        if (IsInvitedToBubble(bubble) == true)
+                        {
+                            // Queue bubble invitation
+                            if (!_bubbleInvitationInProgress.Contains(bubble.Id))
+                                _bubbleInvitationQueue.Enqueue(bubble.Id);
+                        }
+                    }
+                }
+            });
 
             FireTrigger(Trigger.InitializationPerformed);
         }
@@ -555,10 +577,6 @@ namespace RainbowBotBase
         {
             // Queue invitation
             _invitationQueue.Enqueue(invitationEvent);
-
-            // If we are in state Connected, we ask to dequeue invitations and messages
-            if (_machine.IsInState(State.Connected))
-                _machine.Fire(Trigger.DequeueInvitationsAndMessages);
         }
 
         /// <summary>
@@ -567,11 +585,8 @@ namespace RainbowBotBase
         private void RbBubbles_BubbleInvitationReceived(object? sender, BubbleInvitationEventArgs bubbleInvitationEvent)
         {
             // Queue bubble invitation
-            _bubbleInvitationQueue.Enqueue(bubbleInvitationEvent);
-
-            // If we are in state Connected, we ask to dequeue invitations and messages
-            if (_machine.IsInState(State.Connected))
-                _machine.Fire(Trigger.DequeueInvitationsAndMessages);
+            if (!_bubbleInvitationInProgress.Contains(bubbleInvitationEvent.BubbleId))
+                _bubbleInvitationQueue.Enqueue(bubbleInvitationEvent.BubbleId);
         }
 
         /// <summary>
@@ -584,10 +599,6 @@ namespace RainbowBotBase
             {
                 // Queue message
                 _messageQueue.Enqueue(messageEvent);
-
-                // If we are in state Connected, we ask to dequeue invitations and messages
-                if (_machine.IsInState(State.Connected))
-                    _machine.Fire(Trigger.DequeueInvitationsAndMessages);
             }
         }
 
@@ -609,7 +620,7 @@ namespace RainbowBotBase
             ConfigureStateMachine();
 
             _messageQueue = new ConcurrentQueue<MessageEventArgs>();
-            _bubbleInvitationQueue = new ConcurrentQueue<BubbleInvitationEventArgs>();
+            _bubbleInvitationQueue = new ConcurrentQueue<String>();
             _invitationQueue = new ConcurrentQueue<InvitationEventArgs>();
 
             _messageDateList = new List<DateTime>();
