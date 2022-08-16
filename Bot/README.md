@@ -18,7 +18,7 @@ List of examples:
 
 - [Bot - Adaptive Cards](#BotAdaptiveCards): This example demonstrates how to use [**Adaptive Cards**](https://adaptivecards.io/) for example to create a multiple choice question (MCQ) test.
 
-- [Bot - CCTV](#BotCCTV): This example demonstrates how several Bots can **communicate** and use **WebRTC**. The bot master asks other bots to join specific conference to display a specific CCTV.
+- [Bot - Video Broadcaster](#BotVideoBroadcaster): This example demonstrates how to automaticaly broadcast video stream in a conference.
 
 <a name="StateMachine"></a>
 ## State Machine
@@ -87,6 +87,8 @@ Questions to users are displayed using **Adaptive cards**.
 
 So we need to properly manage the connection with the RB server, contact all the users who need to take the test and, when they are ready, run the test until the end.
 
+![Gif](./BotAdaptiveCards/images/Rainbow-MCQTest.gif)
+
 **Features**:
 
 - Get dot graph of the [state machine](../README.md#StateMachine) (thanks to [stateless](https://github.com/dotnet-state-machine/stateless) third-party)
@@ -107,10 +109,44 @@ So we need to properly manage the connection with the RB server, contact all the
   
   - Message coming from users taking the test are analysed and only anser to the test are taken into account: answer aer stored and the next question is displayd until the end. Then a final message is sentd with the test result.
 
-![Gif](./BotAdaptiveCards/images/Rainbow-MCQTest.gif)
 
-<a name="BotCCTV"></a>
-## Bot - CCTV
+
+<a name="BotVideoBroadcaster"></a>
+## Bot - Video Broadcaster
 ---
 
-**IN PROGRESS**
+[This bot](./BotVideoBroadcaster/README.md) is based on **Bot Base**.
+
+**Script:**
+
+ - Allow a security guard to **easily monitor all available CCTV** in a specific area.
+ 
+ - For each sector, a bubble was created with one or more security guards and **one or more "Bot Video BroadCaster"**.
+
+ - **When a guard starts the conference, all "Bot Video BroadCaster" members join it** to broadcast their CTTV. It is therefore possible to check if everything is fine in this area.
+
+In the video shared as example, two "Bot Video BroadCaster" are running and ready to join the conference. The first bot has been configrued to stream two videos, the second one to stream only one.
+
+We can see also at the end that one of the bot has been stopped thanks to a specific message send by the **master bot**
+
+![Gif](./BotVideoBroadcaster/images/TwoBotsVideoBroadcast_1920x1080_compressed_200.gif)
+
+Each bot need to properly manage the connection with the RB server, join the conference when avaialble and start the video brodcast.
+
+To simplify the complexity to create this bot, we have modified slightly the **state machine** created in **Bot Base**.
+
+**Features**:
+
+ - Bot is configured with
+    - A video stream URI - for example a CCTV - can be null
+    - A sharing stream URI - for example another CCTV - can be null
+    - A bubbleId - can be null
+    - Credentials to connect to Rainbow Server
+ - If a bubbleId has been set, it will join ONLY a conference from this bubble automatically when available. 
+ - If a bubbleId has NOT been set, it will join automatically any conference when available.
+ - When it has joined a conference, it will start the streaming of video and/or sharing defined.
+ - If a sharing is already used, it will wait until it ends to play its own sharing stream.
+ - If CCTV stream is not avaialble (or no more available), the bot will try automatically a new connection.
+ - "Master Bot" can ask him to stop using specific "stop message"
+ 
+ 
