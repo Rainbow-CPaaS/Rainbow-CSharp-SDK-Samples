@@ -1,0 +1,11 @@
+{
+	"labelTitle": "CCTV broadcast",
+	"labelSet": "Apply",
+	"labelSetAction": "Broadcast settings applied",
+	"labelNone": "None",
+	"labelNoVideo": "Do not broadcast",
+	"labelUseSharingStream": "Sharing stream on:",
+	"labelNoConferenceInProgress": "There is no conference in progress ... No video broadcast settings available.",
+	"labelVideosUriName": [ "Stream 1", "Stream 2", "Stream 3", "Stream 4", "Local stream 1", "Local  stream 2" ],
+	"labelBotsVideoBroadcasterName": [ "CCTV 1", "CCTV 2", "CCTV 3", "CCTV 4" ]
+}

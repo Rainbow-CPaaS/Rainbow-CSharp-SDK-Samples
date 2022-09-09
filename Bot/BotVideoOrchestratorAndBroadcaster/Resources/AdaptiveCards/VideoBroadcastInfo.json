@@ -1,0 +1,26 @@
+{
+	"type": "TableRow",
+	"cells": [{
+			"type": "TableCell",
+			"items": [{
+				"type": "Input.Toggle",
+				"id": "BOT[[$ID]]_Toggle",
+				"title": "${botsInfo[[[$ID]]].name}",
+				"value": "${botsInfo[[[$ID]]].checked}"
+			}]
+		},
+		{
+			"type": "TableCell",
+			"items": [{
+				"type": "Input.ChoiceSet",
+				"id": "BOT[[$ID]]_ChoiceSet",
+				"value": "${botsInfo[[[$ID]]].uri}",
+				"choices": [{
+					"$data": "${videos}",
+					"title": "${title}",
+					"value": "${uri}"
+				}]
+			}]
+		}
+	]
+}

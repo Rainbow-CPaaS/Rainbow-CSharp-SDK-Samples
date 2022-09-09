@@ -1,0 +1,49 @@
+{
+	"ffmpegLibFolderPath": "C:\\ffmpeg-4.4.1-full_build-shared\\bin",
+
+	"labelsFilePath": "labels_EN.json",
+
+	"videosUri": [ "C:\\media\\sample_960x400_ocean_with_audio.mp4", "C:\\media\\Joy_and_Heron.webm" ], 
+
+	"serverConfig": {
+		"appId": "",
+		"appSecret": "",
+		"hostname": "openrainbow.com"
+	},
+
+	"_comment_botManagers": "Only login can be set here BUT ONLY if the bot manager has been added in the roster of the bot orchestrator OR the jid must be set",
+	"botManagers": [
+		{
+			"login": "christophe.irles@al-enterprise.com",
+			"id": "570e12832d768e9b52a8b7bf",
+			"jid": "bf036de2873749038589897a63eb4c42"
+		},
+		{
+
+			"login": "pierre-yves.noel@al-enterprise.com",
+			"id": "",
+			"jid": ""
+		}
+	],
+
+	"_comment_botVideoOrchestrator": "The bot which commanfs others bot.",
+	"botVideoOrchestrator": {
+		"login": "",
+		"password": "",
+		"autoJoinConference": false,
+		"commandMenu": "cctv menu",
+		"commandStop": "cctv stop"
+	},
+
+	"_comment_nbMaxVideoBroadcaster": "Use to indicate the max number of bots which will be displayed in the adaptive card. use -1 to use all defined in 'botsVideoBroadcaster' list",
+	"nbMaxVideoBroadcaster": -1,
+
+	"_comment_botsVideoBroadcaster": "Can define more than nbMaxVideoBroadcaster",
+	"botsVideoBroadcaster": [
+		{
+			"login": "",
+			"password": ""
+		}
+	]
+}
+
