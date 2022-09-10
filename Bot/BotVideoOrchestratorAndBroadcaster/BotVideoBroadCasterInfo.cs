@@ -53,21 +53,6 @@ namespace BotVideoOrchestratorAndBroadcaster
             Boolean canContinue = true;
             String message;
 
-
-            string? uriVideo;
-            string? uriSharing;
-
-            if (SharingSelected)
-            {
-                uriVideo = null;
-                uriSharing = Uri;
-            }
-            else
-            {
-                uriVideo = Uri;
-                uriSharing = null;
-            }
-
             List<BotManager>? botManagers = null; ;
             if (_botManager != null)
                 botManagers = new List<BotManager>() { _botManager };
@@ -79,9 +64,9 @@ namespace BotVideoOrchestratorAndBroadcaster
                     Name,
                     botManagers,
                     _stopMessage,
-                    "INVALID_BUBBLE_ID",
-                    uriVideo,
-                    uriSharing,
+                    RainbowBotVideoBroadcaster.INVALID_BUBBLE_ID,
+                    null,
+                    null,
                     "./",
                     Name + ".ini"
                     ))

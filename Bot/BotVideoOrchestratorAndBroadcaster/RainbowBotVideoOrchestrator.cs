@@ -10,11 +10,7 @@ using System.Collections.Concurrent;
 using AdaptiveCards.Templating;
 using Newtonsoft.Json;
 using System.Linq;
-using System.Security.Principal;
 using System.Threading;
-using Rainbow.WebRTC;
-using FFmpeg.AutoGen;
-using System.ComponentModel;
 
 namespace BotVideoOrchestratorAndBroadcaster
 {
@@ -657,8 +653,8 @@ namespace BotVideoOrchestratorAndBroadcaster
                                     dataToSend.Add("joinConference", joinConference);
                                     dataToSend.Add("conferenceId", confId);
                                     dataToSend.Add("useName", videoTitle);
-                                    dataToSend.Add("streamUri", choiceSet);
-                                    dataToSend.Add("useSharing", (sharingChoiceSet == bot.Name));
+                                    dataToSend.Add("videoUri", ((sharingChoiceSet != bot.Name) ? choiceSet : ""));
+                                    dataToSend.Add("sharingUri", ((sharingChoiceSet == bot.Name) ? choiceSet : ""));
 
                                     String dataToSendJsonString = Rainbow.Util.GetJsonStringFromDictionary(dataToSend);
                                     //Console.WriteLine($"[{_botName}] Message to send to [{bot.Name}]: [{dataToSendJsonString}]");

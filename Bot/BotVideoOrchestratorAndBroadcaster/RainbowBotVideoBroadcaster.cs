@@ -8,14 +8,15 @@ using System.Collections.Concurrent;
 using Rainbow.WebRTC;
 using System.Collections.Generic;
 using System.Linq;
-using DirectShowLib;
-using static Org.BouncyCastle.Math.EC.ECCurve;
 using Newtonsoft.Json;
 
 namespace BotVideoOrchestratorAndBroadcaster
 {
     public class RainbowBotVideoBroadcaster
     {
+
+        public static readonly String INVALID_BUBBLE_ID = "INVALID_BUBBLE_ID";
+
         /// <summary>
         /// State list used by this bot
         /// </summary>
@@ -342,8 +343,37 @@ namespace BotVideoOrchestratorAndBroadcaster
                 (Boolean isWithAlternateContent, String? alternateContent) = GetAlternateContent(messageEvent.Message, "application/json");
                 if (isWithAlternateContent)
                 {
+                    var dicoData = JsonConvert.DeserializeObject<Dictionary<String, Object>>(alternateContent);
+
+                    if(dicoData != null)
+                    {
+                        Boolean joinConference = (Boolean)dicoData["joinConference"];
+                        String conferenceId = (String)dicoData["conferenceId"];
+                        String useName = (String)dicoData["useName"];
+                        String videoUri = (String)dicoData["videoUri"];
+                        String sharingUri = (String)dicoData["sharingUri"];
+
+                        if (joinConference && (!String.IsNullOrEmpty(conferenceId)))
+                        {
+                            if (conferenceId != _monitoredBubbleId)
+                            {
+                                Util.WriteDebugToConsole($"[{_botName}] We have to JOIN the conference [{conferenceId}]");
+                                _monitoredBubbleId = conferenceId;
+                            }
+                            UpdateVideoDevice(videoUri);
+                            UpdateSharingDevice(sharingUri);
+                        }
+                        else
+                        {
+                            if (_monitoredBubbleId != INVALID_BUBBLE_ID)
+                            {
+                                Util.WriteDebugToConsole($"[{_botName}] We have to QUIT the conference [{_monitoredBubbleId}]");
+                                _monitoredBubbleId = INVALID_BUBBLE_ID;
+                            }
+                        }
+                    }
                     // TODO
-                    Util.WriteDebugToConsole($"[{_botName}] Message received from a Bot Manager - Content:[{alternateContent}]");
+                    //Util.WriteDebugToConsole($"[{_botName}] Message received from a Bot Manager - Content:[{alternateContent}]");
                 }
                 else
                 {
@@ -414,6 +444,7 @@ namespace BotVideoOrchestratorAndBroadcaster
             }
 
             // If we are a participant in a conference, check if video and/or sharing stream must be added
+            CheckIfVideoAndSharingMustBeAdded();
             if (!String.IsNullOrEmpty(_currentConferenceId) && _isParticipantInConference)
             {
                 if (!_addingVideoStreamInConference)
@@ -735,68 +766,182 @@ namespace BotVideoOrchestratorAndBroadcaster
 
         public void UpdateVideoDevice(String? uri)
         {
-            if (uri == _videoStreamUri)
-                return;
-            _videoStreamUri = uri;
-
-            if (_videoStreamUri == null)
-                _videoDevice = null;
+            DeviceVideoFile? newVideoDevice = null;
+            if (_videoDevice == null)
+            {
+                if(!String.IsNullOrEmpty(uri))
+                    newVideoDevice = new DeviceVideoFile("videoStream", "videoStream", uri, false, true);
+            }
             else
-                _videoDevice = new DeviceVideoFile("videoStream", "videoStream", _videoStreamUri, false, true);
+            {
+                if (!String.IsNullOrEmpty(uri))
+                {
+                    if (_videoDevice.Path == uri)
+                    {
+                        Util.WriteDebugToConsole($"[{_botName}] We set the same video device - nothing to do.");
+                        return; // We set the same device
+                    }
+                    else
+                        newVideoDevice = new DeviceVideoFile("videoStream", "videoStream", uri, false, true);
+                }
+            }
 
+            // Are we currently in a conference ?
             if (_currentConferenceId != null)
             {
-                RbWebRTCCommunications.RemoveVideo(_currentConferenceId);
-
-                if(_videoDevice != null)
+                // Do we have already a video device ?
+                if (_videoDevice != null)
                 {
-                    CancelableDelay.StartAfter(500, () =>
+                    if (RbWebRTCCommunications.RemoveVideo(_currentConferenceId))
                     {
-                        if (_currentConferenceId != null)
-                        { 
-                            if (!RbWebRTCCommunications.AddVideo(_currentConferenceId, _videoDevice))
-                            {
-                                if (!RbWebRTCCommunications.ChangeVideoRecordingDevice(_currentConferenceId, _videoDevice))
-                                {
+                        Util.WriteDebugToConsole($"[{_botName}] We remove current video device.");
 
+                        if (newVideoDevice != null)
+                        {
+                            Util.WriteDebugToConsole($"[{_botName}] For Video, we will use this URI:[{newVideoDevice.Path}]");
+                            _videoDevice = newVideoDevice;
+
+                            CancelableDelay.StartAfter(500, () =>
+                            {
+                                if ((_currentConferenceId != null) && (_videoDevice != null))
+                                {
+                                    if (RbWebRTCCommunications.AddVideo(_currentConferenceId, _videoDevice))
+                                    {
+                                        Util.WriteDebugToConsole($"[{_botName}] We have added the new video device to the communication (after removed the old one)");
+                                    }
+                                    else
+                                    {
+                                        Util.WriteErrorToConsole($"[{_botName}] We CANNOT add the new video device to the communication ... (after removed the old one)");
+                                    }
                                 }
-                            }
+                            });
                         }
-                    });
+                        else
+                        {
+                            _videoDevice = null;
+                        }
+                    }
+                    else
+                    {
+                        Util.WriteErrorToConsole($"[{_botName}] We cannot remove video device to the communication ...");
+                    }
+
+                }
+                else
+                {
+                    if (newVideoDevice != null)
+                    {
+                        Util.WriteDebugToConsole($"[{_botName}] For Video, we wiil use this URI:[{newVideoDevice.Path}]");
+                        _videoDevice = newVideoDevice;
+
+                        if (RbWebRTCCommunications.AddVideo(_currentConferenceId, _videoDevice))
+                        {
+                            Util.WriteDebugToConsole($"[{_botName}] We have added the new video device to the communication");
+                        }
+                        else
+                        {
+                            Util.WriteErrorToConsole($"[{_botName}] We CANNOT add the new video device to the communication ...");
+                        }
+                    }
+                }
+            }
+            else
+            {
+                if (newVideoDevice != null)
+                {
+                    Util.WriteDebugToConsole($"[{_botName}] For Video, we wiil use this URI:[{newVideoDevice.Path}]");
+                    _videoDevice = newVideoDevice;
                 }
             }
         }
 
         public void UpdateSharingDevice(String? uri)
         {
-            if (uri == _sharingStreamUri)
-                return;
-            _sharingStreamUri = uri;
-
-            if (_sharingStreamUri == null)
-                _sharingDevice = null;
+            DeviceVideoFile? newSharingDevice = null;
+            if (_sharingDevice == null)
+            {
+                if (!String.IsNullOrEmpty(uri))
+                    newSharingDevice = new DeviceVideoFile("sharingStream", "sharingStream", uri, false, true);
+            }
             else
-                _sharingDevice = new DeviceVideoFile("sharingStream", "sharingStream", _sharingStreamUri, false, true);
+            {
+                if (!String.IsNullOrEmpty(uri))
+                {
+                    if (_sharingDevice.Path == uri)
+                    {
+                        Util.WriteDebugToConsole($"[{_botName}] We set the same sharing device - nothing to do.");
+                        return; // We set the same device
+                    }
+                    else
+                        newSharingDevice = new DeviceVideoFile("sharingStream", "sharingStream", uri, false, true);
+                }
+            }
 
+            // Are we currently in a conference ?
             if (_currentConferenceId != null)
             {
-                RbWebRTCCommunications.RemoveSharing(_currentConferenceId);
-
+                // Do we have already a video device ?
                 if (_sharingDevice != null)
                 {
-                    CancelableDelay.StartAfter(500, () =>
+                    if (RbWebRTCCommunications.RemoveSharing(_currentConferenceId))
                     {
-                        if (_currentConferenceId != null)
-                        {
-                            if (!RbWebRTCCommunications.AddSharing(_currentConferenceId, _sharingDevice))
-                            {
-                                if (!RbWebRTCCommunications.ChangeVideoSecondaryRecordingDevice(_currentConferenceId, _sharingDevice))
-                                {
+                        Util.WriteDebugToConsole($"[{_botName}] We remove current sharing device.");
 
+                        if (newSharingDevice != null)
+                        {
+                            Util.WriteDebugToConsole($"[{_botName}] For Sharing, we will use this URI:[{newSharingDevice.Path}] (case 1)");
+                            _sharingDevice = newSharingDevice;
+
+                            CancelableDelay.StartAfter(500, () =>
+                            {
+                                if ((_currentConferenceId != null) && (_sharingDevice != null))
+                                {
+                                    if (RbWebRTCCommunications.AddSharing(_currentConferenceId, _sharingDevice))
+                                    {
+                                        Util.WriteDebugToConsole($"[{_botName}] We have added the new sharing device to the communication (after removed the old one)");
+                                    }
+                                    else
+                                    {
+                                        Util.WriteErrorToConsole($"[{_botName}] We CANNOT add the new sharing device to the communication ... (after removed the old one)");
+                                    }
                                 }
-                            }
+                            });
                         }
-                    });
+                        else
+                        {
+                            _sharingDevice = null;
+                        }
+                    }
+                    else
+                    {
+                        Util.WriteErrorToConsole($"[{_botName}] We cannot remove sharing device to the communication ...");
+                    }
+
+                }
+                else
+                {
+                    if (newSharingDevice != null)
+                    {
+                        Util.WriteDebugToConsole($"[{_botName}] For Sharing, we will use this URI:[{newSharingDevice.Path}] (case 2)");
+                        _sharingDevice = newSharingDevice;
+
+                        if (RbWebRTCCommunications.AddSharing(_currentConferenceId, _sharingDevice))
+                        {
+                            Util.WriteDebugToConsole($"[{_botName}] We have added the new sharing device to the communication");
+                        }
+                        else
+                        {
+                            Util.WriteErrorToConsole($"[{_botName}] We CANNOT add the new sharing device to the communication ...");
+                        }
+                    }
+                }
+            }
+            else
+            {
+                if (newSharingDevice != null)
+                {
+                    Util.WriteDebugToConsole($"[{_botName}] For Sharing, we wiil use this URI:[{newSharingDevice.Path}] (case 3)");
+                    _sharingDevice = newSharingDevice;
                 }
             }
         }
@@ -968,7 +1113,6 @@ namespace BotVideoOrchestratorAndBroadcaster
                 return;
 
             _isParticipantInConference = (e.Participants?.Count > 0) && e.Participants.ContainsKey(_currentContact.Id);
-            CheckIfVideoAndSharingMustBeAdded();
         }
 
         /// <summary>
@@ -998,7 +1142,6 @@ namespace BotVideoOrchestratorAndBroadcaster
                     if (!e.Call.IsRinging())
                     {
                         RbContacts?.SetBusyPresenceAccordingMedias(e.Call.LocalMedias);
-                        CheckIfVideoAndSharingMustBeAdded();
                     }
                 }
                 else
@@ -1106,12 +1249,6 @@ namespace BotVideoOrchestratorAndBroadcaster
                     }
                 });
             }
-        }
-
-        public void UdpateConferenceId(string? confId)
-        {
-            if (confId != _monitoredBubbleId)
-                _monitoredBubbleId = confId;
         }
 
         /// <summary>

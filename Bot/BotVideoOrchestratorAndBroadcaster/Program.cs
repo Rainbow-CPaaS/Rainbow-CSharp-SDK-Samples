@@ -1,16 +1,10 @@
-﻿using BotVideoOrchestratorAndBroadcaster;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NLog.Config;
-using Rainbow.Model;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Net;
-using System.Runtime.CompilerServices;
 using System.Threading;
-using System.Threading.Tasks;
-using System.Xml.Linq;
 
 namespace BotVideoOrchestratorAndBroadcaster
 {
