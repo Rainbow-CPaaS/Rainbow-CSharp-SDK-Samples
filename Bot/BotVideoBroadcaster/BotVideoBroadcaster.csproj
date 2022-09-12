@@ -14,7 +14,7 @@
 
   <ItemGroup>
     <PackageReference Include="NLog.Extensions.Logging" Version="1.7.5" />
-    <PackageReference Include="Rainbow.CSharp.SDK.WebRTC" Version="0.0.3-sts" />
+    <PackageReference Include="Rainbow.CSharp.SDK.WebRTC" Version="0.0.2-sts" />
     <PackageReference Include="stateless" Version="5.11.0" />
   </ItemGroup>
 

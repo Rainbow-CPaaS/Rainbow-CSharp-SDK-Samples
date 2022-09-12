@@ -267,7 +267,7 @@ namespace BotVideoBroadcaster
                         if (bubble != null)
                         {
                             // Check if we are an accepted member of this bubble
-                            if (RbBubbles.IsAccepted(bubble) == true)
+                            if (RbBubbles.IsMember(bubble) == true)
                             { 
                                 if (_bubbleInvitationInProgress.Contains(confId))
                                     _bubbleInvitationInProgress.Remove(confId);
@@ -926,7 +926,7 @@ namespace BotVideoBroadcaster
                 return false;
 
             // Create Rainbow Application (root object of th SDK)
-            RbApplication = new Rainbow.Application(iniFolderFullPathName, iniFileName, botName + "_");
+            RbApplication = new Rainbow.Application(iniFolderFullPathName, iniFileName);//, botName + "_");
 
             // Set APP_ID, APP_SECRET_KET and HOSTNAME
             RbApplication.SetApplicationInfo(appId, appSecretKey);
