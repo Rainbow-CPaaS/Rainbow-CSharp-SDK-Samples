@@ -445,7 +445,7 @@ namespace BotVideoOrchestratorAndBroadcaster
 
             // If we are a participant in a conference, check if video and/or sharing stream must be added
             CheckIfVideoAndSharingMustBeAdded();
-            if (!String.IsNullOrEmpty(_currentConferenceId) && _isParticipantInConference)
+            if (!String.IsNullOrEmpty(_currentConferenceId))
             {
                 if (!_addingVideoStreamInConference)
                 {
@@ -661,7 +661,7 @@ namespace BotVideoOrchestratorAndBroadcaster
 
         private void CheckIfVideoAndSharingMustBeAdded()
         {
-            if(_isParticipantInConference && (_currentCall != null) && (_currentCall.CallStatus == Call.Status.ACTIVE) )
+            if((_currentCall != null) && (_currentCall.CallStatus == Call.Status.ACTIVE) )
             {
                 if( (!_addingVideoStreamInConference) && (!Rainbow.Util.MediasWithVideo(_currentCall.LocalMedias)) )
                 {
