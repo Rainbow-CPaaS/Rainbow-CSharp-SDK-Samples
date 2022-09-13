@@ -1283,6 +1283,8 @@ namespace BotVideoOrchestratorAndBroadcaster
             RbApplication.SetApplicationInfo(appId, appSecretKey);
             RbApplication.SetHostInfo(hostname);
 
+            RbApplication.SetTimeout(10000);
+
             // Set restrictions
             SetRainbowRestrictions();
 
