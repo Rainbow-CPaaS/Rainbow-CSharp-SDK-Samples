@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace BotVideoOrchestratorAndBroadcaster
 {
@@ -9,7 +10,7 @@ namespace BotVideoOrchestratorAndBroadcaster
         static internal readonly string DEFAULT_VALUE = "TO DEFINE";  // /!\ DON'T MODIFY THIS
 
         // NLog configuration file used to log SDK debug information
-        static internal readonly String NLOG_CONFIG_FILE_PATH = @".\Resources\NLogConfiguration.xml";
+        static internal readonly String NLOG_CONFIG_FILE_PATH = $".{Path.DirectorySeparatorChar}Resources{Path.DirectorySeparatorChar}NLogConfiguration.xml";
 
         static internal String ffmpegLibFolderPath = DEFAULT_VALUE;
 

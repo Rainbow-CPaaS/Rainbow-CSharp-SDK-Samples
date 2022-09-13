@@ -163,7 +163,7 @@ namespace BotVideoOrchestratorAndBroadcaster
 
         static private Boolean CheckApplicationInfoValues()
         {
-            String configFilePath = @".\Resources\config.json";
+            String configFilePath = $".{Path.DirectorySeparatorChar}Resources{Path.DirectorySeparatorChar}config.json";
 
             if (!File.Exists(configFilePath))
             {
@@ -186,7 +186,7 @@ namespace BotVideoOrchestratorAndBroadcaster
                     RainbowApplicationInfo.ffmpegLibFolderPath = json["ffmpegLibFolderPath"].ToString();
 
                 if (json["labelsFilePath"] != null)
-                    RainbowApplicationInfo.labelsFilePath = @".\Resources\" + json["labelsFilePath"].ToString();
+                    RainbowApplicationInfo.labelsFilePath = $".{Path.DirectorySeparatorChar}Resources{Path.DirectorySeparatorChar}" + json["labelsFilePath"].ToString();
 
                 if (json["videosUri"] != null)
                 {
