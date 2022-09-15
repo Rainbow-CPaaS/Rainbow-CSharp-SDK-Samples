@@ -1,112 +1,139 @@
 {
-	"type": "AdaptiveCard",
-	"$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
-	"version": "1.5",
-	"body": [
-		{
-			"type": "TextBlock",
-			"text": "${title}",
-			"size": "large",
-			"weight": "bolder",
-			"style": "heading",
-			"width": "stretch"
-		},
-		{
-			"type": "Table",
-			"verticalContentAlignment": "center",
-			"showGridLines": false,
-			"columns": [
-				{
-					"width": "3"
-				},
-				{
-					"width": "4"
-				}
-			],
-			"rows": [
-				[[$BOT_VIDEO_BROADCAST_INFO]],
-				{
-					"type": "TableRow",
-					"cells": [
-						{
-							"type": "TableCell",
-							"items": [
-								{
-									"type": "Image",
-									"url": "https://upload.wikimedia.org/wikipedia/commons/c/ca/1x1.png",
-									"height": "1px",
-									"width": "180px"
-								}
-							]
-						},
-						{
-							"type": "TableCell",
-							"items": [
-								{
-									"type": "Image",
-									"url": "https://upload.wikimedia.org/wikipedia/commons/c/ca/1x1.png",
-									"height": "1px",
-									"width": "200px"
-								}
-							]
-						}
-					]
-				},
-				{
-					"type": "TableRow",
-					"cells": [
-						{
-							"type": "TableCell",
-							"items": [
-								{
-									"type": "TextBlock",
-									"weight": "bolder",
-									"text": "${useSharingStream}"
-								}
-							]
-						},
-						{
-							"type": "TableCell",
-							"items": [
-								{
-									"type": "Input.ChoiceSet",
-									"id": "Sharing_ChoiceSet",
-									"value": "${sharingSelected}",
-									"choices": [
-										{
-											"$data": "${sharingSelection}",
-											"title": "${name}",
-											"value": "${name}"
-										}
-									]
-								}
-							]
-						}
-					]
-				}
-			]
-		},
-		{
-			"type": "Container",
-			"items": [
-				{
-					"type": "ActionSet",
-					"actions": [
-						{
-							"type": "Action.Submit",
-							"title": "${set}",
-							"style": "positive",
-							"data": {
-								"rainbow": {
-									"type": "messageBack",
-									"value": {},
-									"text": "${setAction}"
-								}
-							}
-						}
-					]
-				}
-			]
-		}
-	]
+  "type": "AdaptiveCard",
+  "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+  "version": "1.5",
+  "body": [
+    {
+      "type": "TextBlock",
+      "text": "${title}",
+      "size": "large",
+      "weight": "bolder",
+      "style": "heading",
+      "width": "stretch"
+    },
+    {
+      "type": "Table",
+      "verticalContentAlignment": "center",
+      "showGridLines": false,
+      "columns": [
+        {
+          "width": "15"
+        },
+        {
+          "width": "35"
+        }
+      ],
+      "rows": [
+        ${BOT_VIDEO_BROADCAST_INFO},
+        {
+          "type": "TableRow",
+          "cells": [
+            {
+              "type": "TableCell",
+              "items": [
+                {
+                  "type": "Image",
+                  "url": "https://upload.wikimedia.org/wikipedia/commons/c/ca/1x1.png",
+                  "height": "1px",
+                  "width": "150px"
+                }
+              ]
+            },
+            {
+              "type": "TableCell",
+              "items": [
+                {
+                  "type": "Image",
+                  "url": "https://upload.wikimedia.org/wikipedia/commons/c/ca/1x1.png",
+                  "height": "1px",
+                  "width": "350px"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "TableRow",
+          "cells": [
+            {
+              "type": "TableCell",
+              "items": [
+                {
+                  "type": "TextBlock",
+                  "weight": "bolder",
+                  "text": "${useSharingStream}"
+                }
+              ]
+            },
+            {
+              "type": "TableCell",
+              "items": [
+                {
+                  "type": "ColumnSet",
+                  "columns": [
+                    {
+                      "type": "Column",
+                      "items": [
+                        {
+                          "type": "Input.ChoiceSet",
+                          "id": "Sharing_ChoiceSet",
+                          "value": "${sharingSelected}",
+                          "choices": [
+                            {
+                              "$data": "${sharingSelection}",
+                              "title": "${name}",
+                              "value": "${name}"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "Column",
+                      "items": [
+                        {
+                          "type": "Input.ChoiceSet",
+                          "id": "SharingStream_ChoiceSet",
+                          "value": "${sharingStreamSelected}",
+                          "choices": [
+                            {
+                              "$data": "${videos}",
+                              "title": "${title}",
+                              "value": "${uri}"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "Container",
+      "items": [
+        {
+          "type": "ActionSet",
+          "actions": [
+            {
+              "type": "Action.Submit",
+              "title": "${set}",
+              "style": "positive",
+              "data": {
+                "rainbow": {
+                  "type": "messageBack",
+                  "value": {},
+                  "text": "${setAction}"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
 }

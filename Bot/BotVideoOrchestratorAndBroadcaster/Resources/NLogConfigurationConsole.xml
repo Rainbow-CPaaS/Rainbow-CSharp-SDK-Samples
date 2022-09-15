@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<nlog xmlns="http://www.nlog-project.org/schemas/NLog.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <rules>
+        <logger 
+            name="WEBRTC" 
+            minlevel="Debug" 
+            writeTo="RAINBOW_WEBRTC_LOGGER_CONSOLE"
+            final="true" />
+        <logger 
+            name="*" 
+            minlevel="Trace" 
+            writeTo="RAINBOW_DEFAULT_LOGGER_CONSOLE"
+            />
+    </rules>
+    
+    <targets>
+        <target 
+            xsi:type="Console" 
+            encoding="utf-8" 
+            name="RAINBOW_WEBRTC_LOGGER_CONSOLE"
+            layout="${longdate} | ${level:uppercase=true:padding=-5} | ${threadid:padding=-3} | ${callsite:className=True:fileName=False:includeSourcePath=False:methodName=True:padding=70:fixedLength=True:alignmentOnTruncation=Right}: ${callsite-linenumber:padding=-4} | ${message}"
+            />
+    
+        <target 
+            xsi:type="Console" 
+            encoding="utf-8" 
+            name="RAINBOW_DEFAULT_LOGGER_CONSOLE"
+            layout="${longdate} | ${level:uppercase=true:padding=-5} | ${threadid:padding=-3} | ${callsite:className=True:fileName=False:includeSourcePath=False:methodName=True:padding=70:fixedLength=True:alignmentOnTruncation=Right}: ${callsite-linenumber:padding=-4} | ${message}"
+            />
+            
+    </targets>
+
+</nlog>

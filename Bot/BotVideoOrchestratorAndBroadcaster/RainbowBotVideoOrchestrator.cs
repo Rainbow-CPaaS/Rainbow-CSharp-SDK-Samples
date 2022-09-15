@@ -365,8 +365,32 @@ namespace BotVideoOrchestratorAndBroadcaster
         private void LogoutBot()
         {
             Util.WriteDebugToConsole($"[{_botName}] Message received from a Bot Manager - STOP message");
-            HangUp();
-            RbApplication.Logout();
+
+            int index = 0;
+            foreach (var bot in botVideoBroadcasterInfos)
+            {
+                if (bot.Name != RainbowApplicationInfo.labelNone)
+                {
+                    index++;
+                    var conversation = RbConversations.GetOrCreateConversationFromUserId(bot.Id);
+                    if (conversation != null)
+                    {
+                        RbInstantMessaging.SendMessageToConversationId(conversation.Id, RainbowApplicationInfo.commandStop, null, UrgencyType.Low, null, callback =>
+                        {
+
+                        });
+                    }
+
+                }
+            }
+
+            int delay = 2000 + (index * 500);
+            Util.WriteErrorToConsole($"[{_botName}] We will quit after some delay:[{delay}ms]");
+            CancelableDelay.StartAfter(delay, () => 
+            {
+                HangUp();
+                RbApplication.Logout();
+            });
         }
 
         /// <summary>
@@ -464,6 +488,7 @@ namespace BotVideoOrchestratorAndBroadcaster
                 if (bot.SharingSelected)
                     sharingSelected = bot.Name;
             }
+            result += $"\r\n\"sharingStreamSelected\": \"{RainbowApplicationInfo.labelNoVideo}\",";
             result += $"\r\n\"sharingSelected\": \"{sharingSelected}\",";
             result += $"\r\n\"sharingSelection\": [{String.Join(",", sharingSelection)}],";
 
@@ -527,7 +552,7 @@ namespace BotVideoOrchestratorAndBroadcaster
             }
 
             String globalVideoInfo = String.Join(",", videoInfo);
-            jsonTemplate = jsonTemplate.Replace("[[$BOT_VIDEO_BROADCAST_INFO]]", globalVideoInfo);
+            jsonTemplate = jsonTemplate.Replace("${BOT_VIDEO_BROADCAST_INFO}", globalVideoInfo);
 
             AdaptiveCardTemplate template = new AdaptiveCardTemplate(jsonTemplate);
 
@@ -618,11 +643,20 @@ namespace BotVideoOrchestratorAndBroadcaster
                         
                         string toggle;
                         string choiceSet;
-                        string sharingChoiceSet = "" ;
                         string videoTitle;
+
+                        string sharingChoiceSet = "";
+                        string sharingStreamChoiceSet = "";
 
                         if (json["Sharing_ChoiceSet"] != null)
                             sharingChoiceSet = json["Sharing_ChoiceSet"].ToString() ;
+
+                        if (json["SharingStream_ChoiceSet"] != null)
+                        {
+                            sharingStreamChoiceSet = json["SharingStream_ChoiceSet"].ToString();
+                            if (sharingStreamChoiceSet.Equals(RainbowApplicationInfo.labelNoVideo))
+                                sharingStreamChoiceSet = "";
+                        }
 
                         int index = 0;
                         foreach(var bot in botVideoBroadcasterInfos)
@@ -631,7 +665,7 @@ namespace BotVideoOrchestratorAndBroadcaster
                             {
                                 toggle = json[$"BOT{index}_Toggle"].ToString();
                                 choiceSet = json[$"BOT{index}_ChoiceSet"].ToString();
-                                if (choiceSet.Contains(RainbowApplicationInfo.labelNoVideo))
+                                if (choiceSet.Equals(RainbowApplicationInfo.labelNoVideo))
                                     choiceSet = "";
 
                                 (botState, botCanContinue, botMessage) = bot.CheckBotStatus();
@@ -653,8 +687,8 @@ namespace BotVideoOrchestratorAndBroadcaster
                                     dataToSend.Add("joinConference", joinConference);
                                     dataToSend.Add("conferenceId", confId);
                                     dataToSend.Add("useName", videoTitle);
-                                    dataToSend.Add("videoUri", ((sharingChoiceSet != bot.Name) ? choiceSet : ""));
-                                    dataToSend.Add("sharingUri", ((sharingChoiceSet == bot.Name) ? choiceSet : ""));
+                                    dataToSend.Add("videoUri", choiceSet);
+                                    dataToSend.Add("sharingUri", ((sharingChoiceSet == bot.Name) ? sharingStreamChoiceSet : ""));
 
                                     String dataToSendJsonString = Rainbow.Util.GetJsonStringFromDictionary(dataToSend);
                                     //Console.WriteLine($"[{_botName}] Message to send to [{bot.Name}]: [{dataToSendJsonString}]");
@@ -1304,7 +1338,7 @@ namespace BotVideoOrchestratorAndBroadcaster
             if (RainbowApplicationInfo.videosUri == null)
                 return false;
             videoInfos = new List<VideoInfo>();
-            videoInfos.Add(new VideoInfo($"**{RainbowApplicationInfo.labelNoVideo}**"));
+            videoInfos.Add(new VideoInfo(RainbowApplicationInfo.labelNoVideo));
             int index = 0;
             foreach(var uri in RainbowApplicationInfo.videosUri)
             {

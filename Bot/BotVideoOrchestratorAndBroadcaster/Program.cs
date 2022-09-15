@@ -12,6 +12,8 @@ namespace BotVideoOrchestratorAndBroadcaster
     {
         static void Main()
         {
+            Util.WriteDebugToConsole($"{Global.ProductName()} v{Global.FileVersion()}");
+
             // Check done on values defined in file RainbowApplicationInfo.cs AND in config.json
             if (!CheckApplicationInfoValues())
                 return;
@@ -28,6 +30,8 @@ namespace BotVideoOrchestratorAndBroadcaster
 
             // Init log configuration
             InitLogsWithNLog();
+
+
 
             // Create RainbowBotVideoOrchestrator and RainbowBotVideoBroadcaster (for this one just it's just to have the dot graph)
             RainbowBotVideoOrchestrator botVideoOrchestrator = new RainbowBotVideoOrchestrator();
@@ -390,7 +394,7 @@ namespace BotVideoOrchestratorAndBroadcaster
                     RainbowApplicationInfo.labelNone = json["labelNone"];
 
                 if (json["labelNoVideo"] != null)
-                    RainbowApplicationInfo.labelNoVideo = json["labelNoVideo"];
+                    RainbowApplicationInfo.labelNoVideo = "**"+json["labelNoVideo"]+"**";
 
                 if (json["labelNoConferenceInProgress"] != null)
                     RainbowApplicationInfo.labelNoConferenceInProgress = json["labelNoConferenceInProgress"];
