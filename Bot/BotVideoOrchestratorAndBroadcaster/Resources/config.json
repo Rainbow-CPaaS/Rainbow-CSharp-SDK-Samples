@@ -14,19 +14,13 @@
 	"_comment_botManagers": "Only login can be set here BUT ONLY if the bot manager has been added in the roster of the bot orchestrator OR the jid must be set",
 	"botManagers": [
 		{
-			"login": "christophe.irles@al-enterprise.com",
-			"id": "570e12832d768e9b52a8b7bf",
-			"jid": "bf036de2873749038589897a63eb4c42"
-		},
-		{
-
-			"login": "pierre-yves.noel@al-enterprise.com",
+			"login": "",
 			"id": "",
 			"jid": ""
 		}
 	],
 
-	"_comment_botVideoOrchestrator": "The bot which commanfs others bot.",
+	"_comment_botVideoOrchestrator": "The bot which commands others bot.",
 	"botVideoOrchestrator": {
 		"login": "",
 		"password": "",
