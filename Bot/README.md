@@ -20,6 +20,8 @@ List of examples:
 
 - [Bot - Video Broadcaster](#BotVideoBroadcaster): This example demonstrates how to automaticaly broadcast video stream in a conference.
 
+- [Bot - Video Orchestrator and Video Broadcaster](#BotVideoOrchestratorAndVideoBroadcaster): Using an Adaptive Card from Bot Video Orhcestrator, select one or several Bot Video Broadcaster to stream video in a conference
+
 <a name="StateMachine"></a>
 ## State Machine
 ---
@@ -149,4 +151,34 @@ To simplify the complexity to create this bot, we have modified slightly the **s
  - If CCTV stream is not avaialble (or no more available), the bot will try automatically a new connection.
  - "Master Bot" can ask him to stop using specific "stop message"
  
+ <a name="BotVideoOrchestratorAndVideoBroadcaster"></a>
+ ## Bot - Video Orchestrator and Video Broadcaster
+ ---
  
+[This bot](./BotVideoOrchestratorAndBroadcaster/README.md) is based on **Bot Video Broadcaster** and also use Adaptive Card.
+
+![AdaptiveCard](./BotVideoOrchestratorAndBroadcaster/images/AdaptiveCard-description.png)
+
+ - Using a form from an "Adaptive Card" send by the "Bot Video Orchestrator", it's possible to select zero, one or several "Bot Video Broadcaster".
+ 
+ - For each of them, a stream can be selected: it can be a remote stream (for example from a CCTV) or a local stream (for example a video presentation).
+ 
+ - It's also possible for one of the "Bot Video Broadcaster" to select a stream used as "Sharing" stream in the conference.
+
+ - Once the form is applied, selected "Bot Video Orchestrator" will join the conference and broadcast their stream.
+ 
+ - The form can be used several times so "Bot Video Orchestrator" can join or quit the conference according how the form is filled.
+ 
+ - The list of the "Bot Video Orchestrator" available is defined in a configuration file.
+ 
+ - The list of video stream available is also defined in this file. 
+ 
+ - A notion of "Bot Manager" permits to restrict the use of the form from the "Adaptive Card".
+ 
+ - To display the "Adaptive Card" a specific message (which can be set in the configuration file) must be send by a "Bot Manager".
+ 
+ - Another specific message (configurable) can be used to totally stop each "Bot Video Broadcaster" and the "Bot Video Orchestrator".
+ 
+ - All labels in the form can be changed using a specific file - so you can use your favorite language.
+ 
+ ![Gif](./BotVideoOrchestratorAndBroadcaster/images/BotVideoOrchestratorAndVideoBroadcaster.gif)
