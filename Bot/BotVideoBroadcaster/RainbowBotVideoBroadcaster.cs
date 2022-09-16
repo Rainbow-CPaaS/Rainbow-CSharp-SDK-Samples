@@ -267,7 +267,7 @@ namespace BotVideoBroadcaster
                         if (bubble != null)
                         {
                             // Check if we are an accepted member of this bubble
-                            if (RbBubbles.IsMember(bubble) == true)
+                            if (RbBubbles.IsAccepted(bubble) == true)
                             { 
                                 if (_bubbleInvitationInProgress.Contains(confId))
                                     _bubbleInvitationInProgress.Remove(confId);
