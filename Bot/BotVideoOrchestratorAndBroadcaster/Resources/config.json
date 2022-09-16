@@ -1,9 +1,11 @@
 {
+	"_comment_ffmpegLibFolderPath": "A valide where FFMpeg libraries are stored according your system",
 	"ffmpegLibFolderPath": "C:\\ffmpeg-4.4.1-full_build-shared\\bin",
 
 	"labelsFilePath": "labels_EN.json",
 
-	"videosUri": [ "C:\\media\\sample_960x400_ocean_with_audio.mp4", "C:\\media\\Joy_and_Heron.webm" ], 
+	"_comment_videosUri": "You can specify several URI: local or remote",
+	"videosUri": [ "C:\\media\\sample_960x400_ocean_with_audio.mp4", "C:\\media\\Joy_and_Heron.webm" ],
 
 	"serverConfig": {
 		"appId": "",
