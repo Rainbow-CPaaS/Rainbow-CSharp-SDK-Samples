@@ -1,174 +1,139 @@
 ![Rainbow](../../logo_rainbow.png)
 
  
-# Rainbow CSharp SDK - Bot Video Broadcaster
+# Rainbow CSharp SDK - Bot Video Orchestrator using several Bot Video Broadcaster
 ---
 
-This example has been created using the [**Bot Base**](../BotBase) code. Ensure to understand it before to continue.
+![Gif](./images/BotVideoOrchestratorAndVideoBroadcaster.gif)
 
-This example is working on **Linux, MacOs or Windows**.
+A video (better quality) can be downloaded [here](./images/BotVideoOrchestratorAndVideoBroadcaster.mp4)
 
-It's based on a state machine to simplify the complexity and use [**Rainbow.CSharp.SDK.WebRTC**](https://www.nuget.org/packages/Rainbow.CSharp.SDK.WebRTC/) package to stream Video in a Conference.
+- [Prerequisites](#Prerequisites)
 
-This package add **WebRTC features** in the Rainbow SDK CSharp. It necessary to understand how to use it first using [**samples available here**](C:\Mercurial\CSharpSDKSamples\WebRTC)
+- [Features](#Features)
 
-This sample is also the first one using two bots in sametime. You can easily change it to add more bots.  
-
-![Gif](./images/TwoBotsVideoBroadcast_1920x1080_compressed_200.gif)
-
-- [Bot features](#BotFeatures)
+- [How it works](#HowItWorks)
 
 - [Dot graph](#DotGraph)
 
 - [Configuration and log file](#Configuration)
 
-- [Implementation details](#ImplementationDetails)
- 
-<a name="BotFeatures"></a>
-## Bot Features
+<a name="Prerequisites"></a>
+## Prerequisites
 ---
 
-**Script:**
+This example is working on **Linux, MacOs or Windows**.
 
- - Allow a security guard to **easily monitor all available CCTV** in a specific area.
+It has been created using the [**Bot Video Broadcaster**](../BotVideoBroadcaster) code. Ensure to understand it before to continue.
+
+It's based on a state machine to simplify the complexity and use [**Rainbow.CSharp.SDK.WebRTC**](https://www.nuget.org/packages/Rainbow.CSharp.SDK.WebRTC/) package to stream Video in a Conference.
+
+This package add **WebRTC features** in the [**Rainbow CSharp SDK**](https://developers.openrainbow.com/csharp). It necessary to understand how to use it first using [**samples available here**](C:\Mercurial\CSharpSDKSamples\WebRTC)
+
+<a name="Features"></a>
+## Features
+---
+
+![AdaptiveCard](./images/AdaptiveCard-description.png)
+
+ - Using a form from an "Adaptive Card" send by the "Bot Video Orchestrator", it's possible to select zero, one or several "Bot Video Broadcaster".
  
- - For each sector, a bubble was created with one or more security guards and **one or more "Bot Video BroadCaster"**.
+ - For each of them, a stream can be selected: it can be a remote stream (for example from a CCTV) or a local stream (for example a video presentation).
+ 
+ - It's also possible for one of the "Bot Video Broadcaster" to select a stream used as "Sharing" stream in the conference.
 
- - **When a guard starts the conference, all "Bot Video BroadCaster" members join it** to broadcast their CTTV. It is therefore possible to check if everything is fine in this area.
+ - Once the form is applied, selected "Bot Video Orchestrator" will join the conference and broadcast their stream.
+ 
+ - The form can be used several times so "Bot Video Orchestrator" can join or quit the conference according how the form is filled.
+ 
+ - The list of the "Bot Video Orchestrator" available is defined in a configuration file.
+ 
+ - The list of video stream available is also defined in this file. 
+ 
+ - A notion of "Bot Manager" permits to restrict the use of the form from the "Adaptive Card".
+ 
+ - To display the "Adaptive Card" a specific message (which can be set in the configuration file) must be send by a "Bot Manager".
+ 
+ - Another specific message (configurable) can be used to totally stop each "Bot Video Broadcaster" and the "Bot Video Orchestrator".
+ 
+ - All labels in the form can be changed using a specific file - so you can use your favorite language.
 
-In the video shared as example, two "Bot Video BroadCaster" are running and ready to join the conference. The first bot has been configrued to stream two videos, the second one to stream only one.
 
-We can see also at the end that one of the bot has been stopped thanks to a specific message send by the **master bot**
+<a name="HowItWorks"></a>
+## How it works
+---
 
-Each bot need to properly manage the connection with the RB server, join the conference when avaialble and start the video brodcast.
+When the sample is started, configuration file is read to have:
+ - Information to connect to Rainbow Server
+ - List of "Bot Manager"
+ - Details about "Bot Video Orchestrator"
+ - List of "Bot Video Broadcaster" 
+ - List of video stream
+ - File to use for labels
+ - Store command used to display Adaptive Card (we call it "commandMenu")
+ - Store command used to stop the sample (we call it "commandStop") 
 
-To simplify the complexity to create this bot, we have modified slightly the **state machine** created in **Bot Base**.
+If all this information are correctly set, the "Bot Video Orchestrator" start its login process to Rainbow Server.
 
-**Features**:
+Once done, one by one "Bot Video Broadcaster" start their login process to Rainbow Server.
 
- - Bot is configured with
-    - A video stream URI - for example a CCTV - can be null
-    - A sharing stream URI - for example another CCTV - can be null
-    - A bubbleId - can be null
-    - Credentials to connect to Rainbow Server
- - If a bubbleId has been set, it will join ONLY a conference from this bubble automatically when available. 
- - If a bubbleId has NOT been set, it will join automatically any conference when available.
- - When it has joined a conference, it will start the streaming of video and/or sharing defined.
- - If a sharing is already used, it will wait until it ends to play its own sharing stream.
- - If CCTV stream is not avaialble (or no more available), the bot will try automatically a new connection.
- - "Master Bot" can ask him to stop using specific "stop message"
+When a conference is started with "Bot Video Orchestrator" as member, the conference Id is stored by the "Bot Video Orchestrator".
+
+Then sending the "commandMenu" to the "Bot Video Orchestrator" will display the form from the Adaptive Card.
+
+Using it will permit to the "Bot Video Orchestrator" to send a message to each "Bot Video Broadcaster" so they can join / quit the conference (using the conference Id stored) and broadcas their video stream.
+
+If there is no conference available for the "Bot Video Orchestrator" when the "commandMenu" is send, it will answer with a message like this: "There is no conference in progress ... No video broadcast settings available." 
+
+When the "commandStop" is used, the "Bot Video Orchestrator" send a message to each "Bot Video Broadcaster" so they can quit properly the current conference (if any) and log out from the Rainbow Server. After a delay, the "Bot Video Orchestrator" also log out form teh Rainbow Server then the process is stopped. 
  
 <a name="DotGraph"></a>
 ## Dot graph
 ---
 
-It's the dot graph of this bot 
+## "Bot Video Orchestrator"
+
+![Dot graph](./images/BotVideoOrchestrator.svg)
+
+
+## "Bot Video Broadcaster"
+
 ![Dot graph](./images/BotVideoBroadcaster.svg)
-
-
-The image file has been created using this online tool https://dreampuf.github.io/GraphvizOnline/ using the dot graph generated wiht this line of code:
-```cs 
-StateMachine<State, Trigger> _machine; // The state machine
-...
-String dotGrpah = UmlDotGraph.Format(_machine.GetInfo()); // Create dot graph as String once the state machine has been totally defined   
-```  
 
 <a name="Configuration"></a>
 ## Configuration and log file
 ---
 
-To use this sample you need to define several information in file **RainbowApplicationInfo.cs**:
+Two files, in JSON format, are used, both stored in "Resources" folder:
+ - **config.json**
+ - **labels_EN.json** (name can changed in "config.json" file)
 
-- **APP_ID, FFMPEG_LIB_FOLDER_PATH**: Absolute or relative path to ffmpeg library - more details [here](https://www.nuget.org/packages/Rainbow.CSharp.SDK.WebRTC/).
+Ensure to validate JSON files before to start the example - for example you can use this online tool: [JsonLint](https://jsonlint.com) 
 
-- **APP_ID, APP_SECRET_KEY**: Id and Secret key of your Rainbow application - more details [here](https://developers.openrainbow.com/doc/hub/developer-journey).
+### config.json
 
-- **HOST_NAME**: the hostname to use to reach Rainbow server - for example **openrainbow.com**.
+- **ffmpegLibFolderPath**: Absolute or relative path to ffmpeg library - more details [here](https://www.nuget.org/packages/Rainbow.CSharp.SDK.WebRTC/).
 
-- **LOGIN_MASTER_BOT**: the login (i.e. email address) of the user (the "master bot") which can stop the bot remotely using a IM message.
+- **serverConfig**: to cofigure **appId, appSecret** and **hostname** - more details [here](https://developers.openrainbow.com/doc/hub/developer-journey).
 
-- **STOP_MESSAGE_BOT_01**: "Stop message" uses to stop the first bot
+- **labelsFilePath**: Absolute or relative path to label file - by default "labels_EN.json"
 
-- **NAME_BOT_01**: Name of the first bot
+- **videosUri**: List of video uri to used as stream (local or remote)
 
-- **LOGIN_BOT_01, PASSWORD_BOT_01**: Login and password to use for the first bot to connect to the server.
+- **botManagers**: List of manage of the bot. You must specify a **login** (i.e. the email address) **id** and **jid** are optionals
 
-- **STOP_MESSAGE_BOT_02**: "Stop message" uses to stop the second bot
+- **botVideoOrchestrator**: Define here the **login**, **password**, **commandMenu**, **commandStop** and **autoJoinConference** (if set to True the Orchestrator will also join the conference)   
 
-- **NAME_BOT_02**: Name of the second bot
+- **botsVideoBroadcaster**: Define here list of Broadcaster with their **login** and **password**
 
-- **LOGIN_BOT_02, PASSWORD_BOT_02**: Login and password to use for the second bot to connect to the server.
+- **nbMaxVideoBroadcaster**: To restrict the number of Broadcaster: -1 to use all of them, X to use only the first X Broadcasters defined
 
-- **VIDEO_URI_01, VIDEO_URI_02, VIDEO_URI_03**: Uri to a CCTV or video file (local or remote)
+### labels_EN.json
 
-- **NLOG_CONFIG_FILE_PATH**: Valid path to a XML file used to configure NLog. Without it no log files will be generated. This XML file is available [here](https://github.com/Rainbow-CPaaS/Rainbow-CSharp-SDK-Samples/blob/master/NLogConfiguration.xml).
+To define labels used in the form from the Adaptive Card.
 
-**NOTE**: APP_ID, APP_SECRET_KEY and HOST_NAME are linked. Generally APP_ID and APP_SECRET_KEY are different according the HOST_NAME.
+Only two labels needs some description:
 
-<a name="ImplementationDetails"></a>
-## Implementation details
----
-
-This example is composed mainly 3 files: **RainbowApplicationInfo.cs, Program.cs and RainbowBotConnect.cs**
-
-### RainbowApplicationInfo.cs
-
-Used to store main information (see previous chapter)
-
-### Program.cs
-
-Contains the Main method. It checks if main information seems correct, initialize log configuration, create the two bots and configure them. You can add easily more bots if necesary.
-
-It also check two specific states for each bot: **NotConnected** and **Created**
-
-#### NotConnected state 
-
-If we are in this state, we need to take a specific action (or perhaps nothing more) according the **trigger** used to reach this state
-
-- **Disconnect trigger**: The bot has received the "stop message" from the "master bot". It will do nothing more. Needs to add more logic if we want to start it again.    
-
-- **ServerNotReachable trigger**: The server has never been reached. Need to add more logic to try again
-
-- **TooManyAttempts trigger**: The Bot was logged at least once but now even after several attempts it's no more possible. Needs to add more logic to try again.
-
-#### Created state
-
-If we are in this state, we need to take a specific action (or perhaps nothing more) according the **trigger** used to reach this state
-
-- **IncorrectCredentials trigger**: Credentials provided are incorrect. It's necessary to provide new ones. Needs to add more logic to try again.
-
-
-### BotVideoBroadcaster.cs
-
-All possible states and triggers of the bot using a state machine are defined in this file.
-
-**Trigger's list:** Configure, StartLogin, Disconnect, ServerNotReachable, IncorrectCredentials, AuthenticationSucceeded, InitializationPerformed, Connect, TooManyAttempts, VideoStreamAvailable, SharingStreamAvailable, ConferenceAvailable, ActionDone, BubbleInvitationReceived, BubbleInvitationManaged,StopMessage
- 
-**State's list:** Created, NotConnected, Connecting, ConnectionFailed, Authenticated, Initialized, Connected, JoinConference, AddVideoStream, AddSharingStream, AutoReconnection, BubbleInvitationReceived, StopMessageReceived
-
-
-**Main methods are:**
-
-- **ConfigureStateMachine**: To create / configure all the state machine.
-
-- **CheckConnectionConferenceAndMessages**: Check in this order: connection to the server, bubble invitations, conference in progress, media to add in conference, messages queued.   
-
-- **CreateRainbowObjects**: To create all necessary objects from the Rainbow SDK C#.
-
-- **SetRainbowRestrictions**: To specify restrictions to use in the Rainbow SDK - for example we want to use the AutoReconnection service and don' want to store message.
-
-- **SubscribeToRainbowEvents / UnsubscribeToRainbowEvents**: To subscribe / unsubscribe to all necessary events from the Rainbow SDK C#.
-
-- **JoinConference**: To join a conference.
-
-- **AddVideoStream**: To add video stream in the conference.
-
-- **AddSharingStream**: To add video stream in the conference.
-
-- **CheckIfVideoAndSharingMustBeAdded**: To check if a video and/or sharing stream must be be added in the conference.
-
-- **IsSharingNotUsedByPeer**: To know if a sharing is already used by a peer in the conference.
-
- 
-
- 
+- **labelVideosUriName**: To name video stream using the same order than uris specified in **videosUri** of the **config.json** file
+  
+- **labelBotsVideoBroadcasterName**: To name "Bot Video Broadcaster" using the same order than ones defined specified in **botsVideoBroadcaster** of the **config.json** file
