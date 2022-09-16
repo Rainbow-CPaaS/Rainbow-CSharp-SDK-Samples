@@ -5,7 +5,7 @@
     "buttonTitle": "Submit",
     "information": "Answered",
     "messageToDisplay": "Question 5/5 answered",
-    "userAnswer": "A",
+    "userAnswer": "",
     "items": [
         {
             "choice": "Zero-day exploit",

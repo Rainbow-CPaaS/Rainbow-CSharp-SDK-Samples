@@ -331,6 +331,10 @@ namespace BotAdaptiveCards
 
                 if ((jsonData != null) && (jsonTemplate != null))
                 {
+                    // Nothing is required for the first adaptive card
+                    if (questionIndex == 0)
+                        jsonTemplate = jsonTemplate.Replace("\"isRequired\": true", "\"isRequired\": false");
+
                     // Do we need to change the content since we have the user answer ?
                     if (!String.IsNullOrEmpty(userAnswer))
                     {
@@ -381,7 +385,7 @@ namespace BotAdaptiveCards
                 var question = _mcQInfo.Questions[i].Title;
                 
                 adaptiveCardResult += MCQ.MCQ_RESULT_QUESTION.Replace("{question}", $"Question {i+1}: {_mcQInfo.Questions[i].Title}");
-                adaptiveCardResult += MCQ.MCQ_RESULT_ANSWER.Replace("{answer}", $"Answer expected: {_mcQInfo.Questions[i].CorrectChoice()}").Replace("Accent", "Dark");
+                adaptiveCardResult += MCQ.MCQ_RESULT_ANSWER.Replace("{answer}", $"Answer expected: {_mcQInfo.Questions[i].CorrectChoice()}");
 
                 var userAnwer = userMCQStatus.Answers[i];
                 if(userAnwer != null)
@@ -392,7 +396,11 @@ namespace BotAdaptiveCards
                         correctAnswers++;
                     }
                     else
-                        adaptiveCardResult += MCQ.MCQ_RESULT_ANSWER.Replace("{answer}", $"Your answer: {_mcQInfo.Questions[i].GetChoice(userAnwer)}");
+                    {
+                        String answer = MCQ.MCQ_RESULT_ANSWER.Replace("{answer}", $"Your answer: {_mcQInfo.Questions[i].GetChoice(userAnwer)}");
+                        answer = answer.Replace("accent", "attention");
+                        adaptiveCardResult += answer;
+                    }
                 }
                 else
                     adaptiveCardResult += MCQ.MCQ_RESULT_ANSWER.Replace("{answer}", $"You didn't answer ...");
@@ -417,10 +425,21 @@ namespace BotAdaptiveCards
             var alternativeContent = new List<MessageAlternativeContent> { messageAlternativeContent };
 
             ManualResetEvent pause = new ManualResetEvent(false);
-            RbInstantMessaging.SendAlternativeContentsToConversationId(conversationId, message, alternativeContent, UrgencyType.Std, null, callback =>
+
+            if (RainbowApplicationInfo.USE_ALWAYS_SAME_ADAPTIVE_CARD)
             {
-                pause.Set();
-            });
+                RbInstantMessaging.EditMessage(conversationId, userMCQStatus.LastAdaptativeCardMessageID, message, alternativeContent, callback =>
+                {
+                    pause.Set();
+                }); ;
+            }
+            else
+            {
+                RbInstantMessaging.SendAlternativeContentsToConversationId(conversationId, message, alternativeContent, UrgencyType.Std, null, callback =>
+                {
+                    pause.Set();
+                });
+            }
             pause.WaitOne();
 
             return true;
@@ -448,46 +467,35 @@ namespace BotAdaptiveCards
                     return false;
                 }
 
-                if(userMCQStatus.CurrentQuestion > MAX_MCQ_QUESTION)
+                (String? message, List<MessageAlternativeContent>? alternativeContent) = CreateMCQQuestionAdaptiveCard(userMCQStatus.CurrentQuestion);
+                if ((message != null) && (alternativeContent != null))
                 {
-                    // Ste the test has finished
-                    userMCQStatus.TestFinished = true;
-                    return SendMCQResult(userMCQStatus);
+                    Boolean result = false;
+                    ManualResetEvent pause = new ManualResetEvent(false);
+                    RbInstantMessaging.SendAlternativeContentsToConversationId(conversationId, message, alternativeContent, UrgencyType.Std, null, callback =>
+                    {
+                        if (callback.Result.Success)
+                        {
+                            result = true;
+                            userMCQStatus.LastAdaptativeCardMessageID = callback.Data.Id;
+                        }
+                        else
+                        {
+                            result = false;
+                            userMCQStatus.LastAdaptativeCardMessageID = null;
+                        }
+                        pause.Set();
+                    });
+                    pause.WaitOne();
+
+                        
+                    return result;
                 }
                 else
-                { 
-                    (String? message, List<MessageAlternativeContent>? alternativeContent) = CreateMCQQuestionAdaptiveCard(userMCQStatus.CurrentQuestion);
-                    if ((message != null) && (alternativeContent != null))
-                    {
-                        Boolean result = false;
-                        ManualResetEvent pause = new ManualResetEvent(false);
-                        RbInstantMessaging.SendAlternativeContentsToConversationId(conversationId, message, alternativeContent, UrgencyType.Std, null, callback =>
-                        {
-                            if (callback.Result.Success)
-                            {
-                                result = true;
-                                userMCQStatus.LastAdaptativeCardMessageID = callback.Data.Id;
-                            }
-                            else
-                            {
-                                result = false;
-                                userMCQStatus.LastAdaptativeCardMessageID = null;
-                            }
-                            pause.Set();
-                        });
-                        pause.WaitOne();
-
-                        // Increase question
-                        userMCQStatus.CurrentQuestion++;
-                        return result;
-                    }
-                    else
-                    {
-                        Console.WriteLine($"We have a problem to create Adaptive Card for question [{userMCQStatus.CurrentQuestion}]");
-                        return false;
-                    }
+                {
+                    Console.WriteLine($"We have a problem to create Adaptive Card for question [{userMCQStatus.CurrentQuestion}]");
+                    return false;
                 }
-                
             }
 
             return true;
@@ -519,31 +527,35 @@ namespace BotAdaptiveCards
                     return false;
                 }
 
-                (String? message, List<MessageAlternativeContent>? alternativeContent) = CreateMCQQuestionAdaptiveCard(userMCQStatus.CurrentQuestion - 1, userAnswer);
+                int questionIndex;
+                String? userHasAnswered;
+
+                if (RainbowApplicationInfo.USE_ALWAYS_SAME_ADAPTIVE_CARD)
+                {
+                    questionIndex = userMCQStatus.CurrentQuestion + 1;
+                    userHasAnswered = null;
+                }
+                else
+                {
+                    questionIndex = userMCQStatus.CurrentQuestion;
+                    userHasAnswered = userAnswer;
+                }
+                    
+
+                (String? message, List<MessageAlternativeContent>? alternativeContent) = CreateMCQQuestionAdaptiveCard(questionIndex, userHasAnswered);
                 if ((message != null) && (alternativeContent != null))
                 {
                     if (userMCQStatus.LastAdaptativeCardMessageID != null)
                     {
                         Boolean result = false;
                         ManualResetEvent pause = new ManualResetEvent(false);
-
-                        // /!\ We edit the previous adaptive card => For the moment it's not managed by web client (so it's not visible)
                         pause.Reset();
 
-                        // /!\ To use with Rainbow SDK C# >= 2.6.9
-                        //RbInstantMessaging.EditMessage(conversationId, userMCQStatus.LastAdaptativeCardMessageID, message, alternativeContent, callback =>
-                        //{
-                        //    result = callback.Result.Success;
-                        //    pause.Set();
-                        //});
-
-                        // /!\ To use with Rainbow SDK C# < 2.6.9
-                        RbInstantMessaging.EditMessage(conversationId, userMCQStatus.LastAdaptativeCardMessageID, message, callback =>
+                        RbInstantMessaging.EditMessage(conversationId, userMCQStatus.LastAdaptativeCardMessageID, message, alternativeContent, callback =>
                         {
                             result = callback.Result.Success;
                             pause.Set();
                         });
-                        pause.WaitOne();
 
                         return result;
                     }
@@ -555,7 +567,7 @@ namespace BotAdaptiveCards
                 }
                 else
                 {
-                    Console.WriteLine($"We have a problem to create Adaptive Card for question [{userMCQStatus.CurrentQuestion - 1}]");
+                    Console.WriteLine($"We have a problem to create Adaptive Card for question [{questionIndex}]");
                     return false;
                 }
             }
@@ -589,20 +601,32 @@ namespace BotAdaptiveCards
                     if (userMCQStatus != null)
                     {
                         //  Store user answer
-                        if ( (userMCQStatus.CurrentQuestion > 1) && (userMCQStatus.CurrentQuestion < MAX_MCQ_QUESTION + 1) )
-                            userMCQStatus.Answers[userMCQStatus.CurrentQuestion-2] = userAnswer;
-
-                        if (userAnswer != null)
-                            EditMCQQuestion(userMCQStatus, userAnswer);
-
-                        // Store answers
-                        if( (userMCQStatus.CurrentQuestion > 1) && (userMCQStatus.CurrentQuestion <= MAX_MCQ_QUESTION) )
+                        if ((userMCQStatus.CurrentQuestion > 0) && (userMCQStatus.CurrentQuestion <= MAX_MCQ_QUESTION))
                         {
                             userMCQStatus.Answers[userMCQStatus.CurrentQuestion - 1] = userAnswer;
                             Console.WriteLine($"[{userMCQStatus.LoginEmail}] answered to question [{userMCQStatus.CurrentQuestion - 1}] with answer :[{userAnswer}]");
                         }
-                    
-                        SendMCQQuestion(userMCQStatus);
+
+                        // Check if the test is finished
+                        if (userMCQStatus.CurrentQuestion >= MAX_MCQ_QUESTION)
+                        {
+                            // Set as finished and send the result
+                            userMCQStatus.TestFinished = true;
+                            SendMCQResult(userMCQStatus);
+                        }
+                        else
+                        {
+                            // Edit previous Adaptive Card
+                            if (userAnswer != null)
+                                EditMCQQuestion(userMCQStatus, userAnswer);
+
+                            // Increase question
+                            userMCQStatus.CurrentQuestion++;
+
+                            // If we use each time a new message with a new Adaptive Card, we send it now
+                            if (!RainbowApplicationInfo.USE_ALWAYS_SAME_ADAPTIVE_CARD)
+                                SendMCQQuestion(userMCQStatus);
+                        }
                     }
                 }
                 else
@@ -673,8 +697,10 @@ namespace BotAdaptiveCards
             RbApplication.Restrictions.EventMode = Restrictions.SDKEventMode.XMPP;
 
             // We want to use conference features via API V2
-            RbApplication.Restrictions.UseConferences = true; 
-            RbApplication.Restrictions.UseAPIConferenceV2 = true;
+            RbApplication.Restrictions.UseConferences = true;
+
+            // We want edition / deletion of IM message via API V2
+            RbApplication.Restrictions.UseMessageEditionAndDeletionV2 = true;
         }
 
         /// <summary>

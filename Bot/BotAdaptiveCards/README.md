@@ -12,8 +12,6 @@ It's based on a state machine to simplify the complexity and use **Adaptive Card
 
 ![Gif](./images/Rainbow-MCQTest.gif)
 
-You can watch a [Video here](./images/Rainbow-MCQTest.mp4) to see the result.
-
 - [Bot features](#BotFeatures)
 
 - [Dot graph](#DotGraph)

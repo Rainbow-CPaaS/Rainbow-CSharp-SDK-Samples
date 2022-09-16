@@ -101,7 +101,6 @@ namespace BotAdaptiveCards
                 Console.WriteLine("Cannot configure the bot ...");
         }
 
-
         static Boolean InitLogsWithNLog()
         {
             try

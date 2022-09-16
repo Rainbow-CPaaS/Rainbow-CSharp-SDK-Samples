@@ -43,7 +43,7 @@ namespace BotAdaptiveCards
             ""text"": ""{answer}"",
             ""horizontalAlignment"": ""left"",
             ""wrap"": true,
-            ""color"": ""Accent""
+            ""color"": ""accent""
         }";
 
         static public String MCQ_RESULT_CORRECT_ANSWER =
@@ -54,7 +54,7 @@ namespace BotAdaptiveCards
             ""text"": ""You have correclty answered."",
             ""horizontalAlignment"": ""left"",
             ""wrap"": true,
-            ""color"": ""Good""
+            ""color"": ""good""
         }";
 
     }
