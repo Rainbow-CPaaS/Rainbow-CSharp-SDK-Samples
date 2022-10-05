@@ -113,6 +113,8 @@ namespace BotVideoOrchestratorAndBroadcaster
 
         private readonly List<String> _conferencesInProgress = new List<string>();
 
+        private readonly Dictionary<String, String> _adaptiveCardMessageIdByConversationId = new Dictionary<String, String>(); // Conversation Id / Message Id
+
         private List<BotVideoBroadcasterInfo> botVideoBroadcasterInfos;
         private List<VideoInfo> videoInfos;
 
@@ -127,6 +129,8 @@ namespace BotVideoOrchestratorAndBroadcaster
         private Rainbow.Invitations RbInvitations;
 
         private Rainbow.WebRTC.WebRTCCommunications RbWebRTCCommunications;
+
+        private int _messageCount = 0;
 
 #region PRIVATE API
 
@@ -317,41 +321,62 @@ namespace BotVideoOrchestratorAndBroadcaster
                 {
                     if (messageEvent?.Message != null)
                     {
+                        // The message must be sent by a master bot
+                        // The message must be sent from the conference in progress (if any)
+                        //  OR in P2P
+
                         Boolean? messageFromMasterBot = IsMessageFromMasterBot(messageEvent.Message);
+                        
                         if (messageFromMasterBot == true)
                         {
-                            // Is-it the stop message from master bot ?
-                            if (IsStopMessage(messageEvent.Message))
+                            var conversation = RbConversations.GetConversationByIdFromCache(messageEvent.ConversationId);
+                            if (conversation != null)
                             {
-                                _machine.Fire(Trigger.StopMessage);
-                                return;
-                            }
-                            // Is-it the help message from master bot ?
-                            else if (IsHelpMessage(messageEvent.Message))
-                            {
-                                _machine.Fire(_helpMessageReceivedTrigger, messageEvent);
-                                return;
+                                if ((conversation.Type == Conversation.ConversationType.Room) && (conversation.PeerId != _currentConferenceId))
+                                {
+                                    // We do nothing. We received a message from a bubble but not the one where there is a conference
+                                    Util.WriteDebugToConsole($"[{_botName}] Message received from a Bot Manager from a BUBBLE but not the one used for the conference in progress ...");
+                                }
+                                else
+                                {
+                                    // Is-it the stop message from master bot ?
+                                    if (IsStopMessage(messageEvent.Message))
+                                    {
+                                        _machine.Fire(Trigger.StopMessage);
+                                        return;
+                                    }
+                                    // Is-it the help message from master bot ?
+                                    else if (IsHelpMessage(messageEvent.Message))
+                                    {
+                                        _machine.Fire(_helpMessageReceivedTrigger, messageEvent);
+                                        return;
+                                    }
+                                    else
+                                    {
+                                        _machine.Fire(_messageReceivedFromPeerTrigger, messageEvent);
+                                        return;
+                                    }
+                                }
                             }
                             else
-                            {
-                                _machine.Fire(_messageReceivedFromPeerTrigger, messageEvent);
-                                return;
-                            }
+                                Util.WriteWarningToConsole($"[{_botName}] Message received from a Bot Manager - Cannot get a conversation from the message recevied - ConversationId: [{messageEvent.ConversationId}]");
+
+                            
                         }
                         else if (messageFromMasterBot == null)
                         {
                             // Since we don't know if it's the message is coming from master bot we enqueue the message
                             _messageQueue.Enqueue(messageEvent);
                         }
-                        else
-                        {
-                            // Is it a message from bubble  ?
-                            if (!IsMessageNotFromBubble(messageEvent.Message))
-                            {
-                                _machine.Fire(_messageReceivedFromPeerTrigger, messageEvent);
-                                return;
-                            }
-                        }
+                        //else
+                        //{
+                        //    //// Is it a message from bubble  ?
+                        //    //if (!IsMessageNotFromBubble(messageEvent.Message))
+                        //    //{
+                        //    //    _machine.Fire(_messageReceivedFromPeerTrigger, messageEvent);
+                        //    //    return;
+                        //    //}
+                        //}
 
                     }
                 }
@@ -366,6 +391,28 @@ namespace BotVideoOrchestratorAndBroadcaster
         {
             Util.WriteDebugToConsole($"[{_botName}] Message received from a Bot Manager - STOP message");
 
+            // UPDATE the Adaptive Card in all Conversation previously send
+
+            (String? message, List<MessageAlternativeContent>? alternateContent )= CreateAdaptiveCardForEnd();
+            var keys = _adaptiveCardMessageIdByConversationId.Keys.ToList();
+            foreach (var key in keys)
+            {
+                var previousMessageId = _adaptiveCardMessageIdByConversationId[key];
+                RbInstantMessaging.EditMessage(key, previousMessageId, message, alternateContent, callback =>
+                {
+                    if (callback.Result.Success)
+                    {
+                        Util.WriteDebugToConsole($"[{_botName}] UPDATE previous AdaptiveCard in ConversationId:[{key}] - MessageID:[{previousMessageId}]");
+                    }
+                    else
+                    {
+                        Util.WriteErrorToConsole($"[{_botName}] Cannot UPDATE Adaptive Card in ConversationId:[{key}] - MessageID:[{previousMessageId}] - Exception:[{Rainbow.Util.SerializeSdkError(callback.Result)}]");
+                    }
+                });
+            }
+            _adaptiveCardMessageIdByConversationId.Clear();
+
+            // Send to all bot the STOP message
             int index = 0;
             foreach (var bot in botVideoBroadcasterInfos)
             {
@@ -470,27 +517,13 @@ namespace BotVideoOrchestratorAndBroadcaster
         {
             String result = "{";
 
+            //result += $"\r\n\"title\": \"{RainbowApplicationInfo.labelTitle} - {_messageCount++}\",";
             result += $"\r\n\"title\": \"{RainbowApplicationInfo.labelTitle}\",";
             result += $"\r\n\"set\": \"{RainbowApplicationInfo.labelSet}\",";
-            result += $"\r\n\"setAction\": \"{RainbowApplicationInfo.labelSetAction}\",";
+            result += $"\r\n\"stop\": \"{RainbowApplicationInfo.labelStop}\",";
+            result += $"\r\n\"setAction\": \"\",";
             result += $"\r\n\"useSharingStream\": \"{RainbowApplicationInfo.labelUseSharingStream}\",";
 
-            // Add sharingSelection
-            List<string> sharingSelection = new List<string>();
-            String sharingSelected = RainbowApplicationInfo.labelNone;
-            foreach (var bot in botVideoBroadcasterInfos)
-            {
-                String info = "{";
-                info += $"\r\n\"name\": \"{bot.Name}\"";
-                info += "}";
-
-                sharingSelection.Add(info);
-                if (bot.SharingSelected)
-                    sharingSelected = bot.Name;
-            }
-            result += $"\r\n\"sharingStreamSelected\": \"{RainbowApplicationInfo.labelNoVideo}\",";
-            result += $"\r\n\"sharingSelected\": \"{sharingSelected}\",";
-            result += $"\r\n\"sharingSelection\": [{String.Join(",", sharingSelection)}],";
 
             // Add botsInfo
             List<string> botInfos = new List<string>();
@@ -519,10 +552,68 @@ namespace BotVideoOrchestratorAndBroadcaster
 
                 videos.Add(info);
             }
-            result += $"\r\n\"videos\": [{String.Join(",", videos)}]";
+            result += $"\r\n\"videos\": [{String.Join(",", videos)}],";
+
+
+            // Videos for sharing doesn't contain "No Video" (so the first element)
+            videos.RemoveAt(0);
+            result += $"\r\n\"videosForSharing\": [{String.Join(",", videos)}],";
+
+            // Add sharingSelection
+            List<string> sharingSelection = new List<string>();
+            String sharingSelected = RainbowApplicationInfo.labelNone;
+            String sharingUri = videoInfos[1].Uri;
+            foreach (var bot in botVideoBroadcasterInfos)
+            {
+                String info = "{";
+                info += $"\r\n\"name\": \"{bot.Name}\"";
+                info += "}";
+
+                sharingSelection.Add(info);
+                if (!String.IsNullOrEmpty(bot.SharingUri))
+                {
+                    sharingSelected = bot.Name;
+                    sharingUri = bot.SharingUri;
+                }
+            }
+            result += $"\r\n\"sharingStreamSelected\": \"{sharingUri.Replace("\\", "\\\\")}\",";
+            result += $"\r\n\"sharingSelected\": \"{sharingSelected}\",";
+            result += $"\r\n\"sharingSelection\": [{String.Join(",", sharingSelection)}],";
 
             result += "}";
             return result;
+        }
+
+        private (String? message, List<MessageAlternativeContent>? alternativeContent) CreateAdaptiveCardForEnd()
+        {
+            String? message = null;
+            List<MessageAlternativeContent>? alternativeContent = null;
+
+            // Create a Template instance from the template payload
+            String? jsonTemplate = Util.GetContentOfEmbeddedResource("VideoBroadcastEnd.json", System.Text.Encoding.UTF8);
+            String jsonData = "{";
+            jsonData += $"\r\n\"title\": \"{RainbowApplicationInfo.labelTitleEnd}\"";
+            jsonData += "}";
+
+            // Create template
+            AdaptiveCardTemplate template = new AdaptiveCardTemplate(jsonTemplate);
+
+            // "Expand" the template - this generates the final Adaptive Card payload
+            string cardJson = template.Expand(jsonData);
+
+            // Create an Message Alternative Content
+            MessageAlternativeContent messageAlternativeContent = new MessageAlternativeContent();
+            messageAlternativeContent.Type = "form/json";
+            messageAlternativeContent.Content = cardJson;
+
+            alternativeContent = new List<MessageAlternativeContent> { messageAlternativeContent };
+            // Get title of the question
+            var json = JsonConvert.DeserializeObject<dynamic>(jsonData);
+            message = json?.GetValue("title").ToObject<string>();
+            if (String.IsNullOrEmpty(message))
+                message = " "; // => Due to a bug in WebClient must not be empty/null
+
+            return (message, alternativeContent);
         }
 
         /// <summary>
@@ -569,20 +660,22 @@ namespace BotVideoOrchestratorAndBroadcaster
             // Get title of the question
             var json = JsonConvert.DeserializeObject<dynamic>(jsonData);
             message = json?.GetValue("title").ToObject<string>();
-            if (message == null)
+            if (String.IsNullOrEmpty(message))
                 message = " "; // => Due to a bug in WebClient must not be empty/null
 
-             return (message, alternativeContent);
+            return (message, alternativeContent);
         }
 
         private void AnswerToMenuMessage(MessageEventArgs? messageEvent)
         {
-            Util.WriteDebugToConsole($"[{_botName}] Message received from a Bot Manager - Menu message");
             if (messageEvent != null)
             {
                 ManualResetEvent pause = new ManualResetEvent(false);
+                
+                // Check if a conference is in progress
                 if (String.IsNullOrEmpty(_currentConferenceId))
                 {
+                    Util.WriteDebugToConsole($"[{_botName}] MENU Message received from a Bot Manager but no conference is in progress ...");
                     RbInstantMessaging.SendMessageToConversationId(messageEvent.ConversationId, RainbowApplicationInfo.labelNoConferenceInProgress, null, UrgencyType.Low, null, callback =>
                     {
                         pause.Set();
@@ -595,13 +688,50 @@ namespace BotVideoOrchestratorAndBroadcaster
                     (String? message, List<MessageAlternativeContent>? alternativeContent) = CreateAdaptiveCard();
                     if (alternativeContent?.Count > 0)
                     {
-                        RbInstantMessaging.SendAlternativeContentsToConversationId(messageEvent.ConversationId, message, alternativeContent, UrgencyType.Std, null, callback =>
+                        // Update the Adaptive Card in all Conversation already known
+                        var keys = _adaptiveCardMessageIdByConversationId.Keys.ToList();
+                        foreach (var key in keys)
                         {
-                            pause.Set();
-                        });
+                            var previousMessageId = _adaptiveCardMessageIdByConversationId[key];
+                            RbInstantMessaging.EditMessage(key, previousMessageId, message, alternativeContent, callback =>
+                            {
+                                if (callback.Result.Success)
+                                {
+                                    Util.WriteDebugToConsole($"[{_botName}] MENU Message received from a Bot Manager - UPDATE previous AdaptiveCard in ConversationId:[{key}] - MessageID:[{previousMessageId}] ");
+                                    // Store this message Id in order to update it later
+                                    //_adaptiveCardMessageIdByConversationId[key] = callback.Data.Id;
+                                }
+                                else
+                                {
+                                    Util.WriteErrorToConsole($"[{_botName}] MENU Message received from a Bot Manager - Cannot UPDATE Adaptive Card in ConversationId:[{key}] - Exception:[{Rainbow.Util.SerializeSdkError(callback.Result)}]");
+                                }
+                                pause.Set();
+                            });
+                        }
 
+                        // Check if have already send a AdaptiveCard in this Conversation
+                        if (!_adaptiveCardMessageIdByConversationId.ContainsKey(messageEvent.ConversationId))
+                        {
+                            RbInstantMessaging.SendAlternativeContentsToConversationId(messageEvent.ConversationId, message, alternativeContent, UrgencyType.Std, null, callback =>
+                            {
+                                if(callback.Result.Success)
+                                {
+                                    // Store this message Id in order to update it later
+                                    var messageId = callback.Data.Id;
+                                    Util.WriteDebugToConsole($"[{_botName}] MENU Message received from a Bot Manager - send AdaptiveCard in ConversationId:[{messageEvent.ConversationId}] - MessageID:[{messageId}]");
+                                    _adaptiveCardMessageIdByConversationId.Add(messageEvent.ConversationId, messageId);
+                                }
+                                else
+                                {
+                                    Util.WriteErrorToConsole($"[{_botName}] MENU Message received from a Bot Manager - Cannot SEND Adaptive Card in ConversationId:[{messageEvent.ConversationId}] - Exception:[{Rainbow.Util.SerializeSdkError(callback.Result)}]");
+                                }
+                                pause.Set();
+                            });
+                        }
                         pause.WaitOne();
                     }
+                    else
+                        Util.WriteWarningToConsole($"[{_botName}] MENU Message received from a Bot Manager - Cannot create Adaptive Card - ConversationId: [{messageEvent.ConversationId}]");
                 }
             }
             FireTrigger(Trigger.MessageManaged);
@@ -637,6 +767,17 @@ namespace BotVideoOrchestratorAndBroadcaster
                     var json = JsonConvert.DeserializeObject<dynamic>(alternateContent);
                     if(json != null)
                     {
+                        // Check first if we have to stop or not
+                        if ( (json["rainbow"] != null) && (json["rainbow"]["id"] != null) )
+                        {
+                            if(json["rainbow"]["id"].ToString() == "stop")
+                            {
+                                FireTrigger(Trigger.MessageManaged);
+                                FireTrigger(Trigger.StopMessage);
+                            }
+                        }
+
+
                         RainbowBotVideoBroadcaster.State botState;
                         Boolean botCanContinue;
                         String botMessage;
@@ -683,12 +824,18 @@ namespace BotVideoOrchestratorAndBroadcaster
                                         confId = "";
                                     var joinConference = (toggle == "true");
 
+
+                                    // Update Bot info:
+                                    bot.Selected = joinConference;
+                                    bot.Uri = choiceSet;
+                                    bot.SharingUri = (sharingChoiceSet == bot.Name) ? sharingStreamChoiceSet : "";
+
                                     Dictionary <String, Object> dataToSend = new Dictionary<string, Object>();
                                     dataToSend.Add("joinConference", joinConference);
                                     dataToSend.Add("conferenceId", confId);
                                     dataToSend.Add("useName", videoTitle);
-                                    dataToSend.Add("videoUri", choiceSet);
-                                    dataToSend.Add("sharingUri", ((sharingChoiceSet == bot.Name) ? sharingStreamChoiceSet : ""));
+                                    dataToSend.Add("videoUri", bot.Uri);
+                                    dataToSend.Add("sharingUri", bot.SharingUri);
 
                                     String dataToSendJsonString = Rainbow.Util.GetJsonStringFromDictionary(dataToSend);
                                     //Console.WriteLine($"[{_botName}] Message to send to [{bot.Name}]: [{dataToSendJsonString}]");
@@ -714,6 +861,31 @@ namespace BotVideoOrchestratorAndBroadcaster
                                 }
                             }
                             index++;
+                        }
+
+
+                        // Update the Adaptive Card in all Conversation already known
+                        (String? message, List<MessageAlternativeContent>? alternativeContent) = CreateAdaptiveCard();
+                        if (alternativeContent?.Count > 0)
+                        {
+                            var keys = _adaptiveCardMessageIdByConversationId.Keys.ToList();
+                            foreach (var key in keys)
+                            {
+                                var previousMessageId = _adaptiveCardMessageIdByConversationId[key];
+                                RbInstantMessaging.EditMessage(key, previousMessageId, message, alternativeContent, callback =>
+                                {
+                                    if (callback.Result.Success)
+                                    {
+                                        Util.WriteDebugToConsole($"[{_botName}] MENU Message received from a Bot Manager - UPDATE previous AdaptiveCard in ConversationId:[{key}] - MessageID:[{previousMessageId}] ");
+                                        // Store this message Id in order to update it later
+                                        //_adaptiveCardMessageIdByConversationId[key] = callback.Data.Id;
+                                    }
+                                    else
+                                    {
+                                        Util.WriteErrorToConsole($"[{_botName}] MENU Message received from a Bot Manager - Cannot UPDATE Adaptive Card in ConversationId:[{key}] - Exception:[{Rainbow.Util.SerializeSdkError(callback.Result)}]");
+                                    }
+                                });
+                            }
                         }
                     }
                     else
@@ -915,7 +1087,7 @@ namespace BotVideoOrchestratorAndBroadcaster
             RbApplication.Restrictions.UseConferences = true;
 
             // We want edition / deletion of IM message via API V2
-            //RbApplication.Restrictions.UseMessageEditionAndDeletionV2 = true;
+            RbApplication.Restrictions.UseMessageEditionAndDeletionV2 = true;
 
             // We want to use WebRTC
             RbApplication.Restrictions.UseWebRTC = true;
@@ -1212,7 +1384,7 @@ namespace BotVideoOrchestratorAndBroadcaster
         {
             if (e.Id == _currentConferenceId)
             {
-                Util.WriteDebugToConsole($"[{_botName}] This conference has been stopeed: [{_currentConferenceId}] - We no more use it to broadcast videos");
+                Util.WriteDebugToConsole($"[{_botName}] This conference has been stopped: [{_currentConferenceId}] - We no more use it to broadcast videos");
                 // TODO - inform all bots
                 ResetValues();
             }
@@ -1370,22 +1542,20 @@ namespace BotVideoOrchestratorAndBroadcaster
                 // Set Bot default URI
                 if (RainbowApplicationInfo.videosUri?.Count > 0)
                 {
-                    if (RainbowApplicationInfo.videosUri?.Count > index)
+                    if (RainbowApplicationInfo.videosUri.Count > index)
                         botVideoBroadcasterInfo.Uri = RainbowApplicationInfo.videosUri[index];
                     else
                         botVideoBroadcasterInfo.Uri = RainbowApplicationInfo.videosUri[index % RainbowApplicationInfo.videosUri.Count];
                 }
 
-                if (index == 0)
-                    botVideoBroadcasterInfo.SharingSelected = true;
+                //if (index == 0)
+                //    botVideoBroadcasterInfo.SharingSelected = true;
 
                 botVideoBroadcasterInfos.Add(botVideoBroadcasterInfo);
                 index++;
                 if ((RainbowApplicationInfo.nbMaxVideoBroadcaster > 0) && (index == RainbowApplicationInfo.nbMaxVideoBroadcaster))
                     break;
             }
-
-            CreateAdaptiveCard();
 
             // Fire the trigger
             return FireTrigger(triggerToUse);

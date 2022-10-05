@@ -24,7 +24,7 @@ namespace BotVideoOrchestratorAndBroadcaster
 
             if(RainbowApplicationInfo.botVideoOrchestrator == null)
             {
-                Util.WriteErrorToConsole($"[{RainbowApplicationInfo.labelOrchestrator}] No login/pwd specify - Check 'config.json'");
+                Util.WriteErrorToConsole($"[{RainbowApplicationInfo.labelOrchestrator}] No login/pwd specify - Check 'config.json' file");
                 return;
             }
 
@@ -52,7 +52,7 @@ namespace BotVideoOrchestratorAndBroadcaster
                     "botVideoOrchestrator.ini"
                     ))
             {
-                Util.WriteErrorToConsole($"[{RainbowApplicationInfo.labelOrchestrator}] Cannot configure - Check 'config.json'");
+                Util.WriteErrorToConsole($"[{RainbowApplicationInfo.labelOrchestrator}] Cannot configure - Check 'config.json' file");
                 return;
             }
 
@@ -115,7 +115,7 @@ namespace BotVideoOrchestratorAndBroadcaster
                 }
             }
             else
-                Util.WriteErrorToConsole($"[{RainbowApplicationInfo.labelOrchestrator}] Cannot start the login process ... Check 'config.json'");
+                Util.WriteErrorToConsole($"[{RainbowApplicationInfo.labelOrchestrator}] Cannot start the login process ... Check 'config.json' file");
         }
 
         static Boolean InitLogsWithNLog()
@@ -171,7 +171,7 @@ namespace BotVideoOrchestratorAndBroadcaster
 
             if (!File.Exists(configFilePath))
             {
-                Util.WriteErrorToConsole($"The file '{configFilePath}' has not been found. It must be stored in the same fodler than this application.");
+                Util.WriteErrorToConsole($"The file '{configFilePath}' has not been found. It must be stored in the same folder than this application.");
                 return false;
             }
 
@@ -384,12 +384,15 @@ namespace BotVideoOrchestratorAndBroadcaster
                 if (json["labelTitle"] != null)
                     RainbowApplicationInfo.labelTitle = json["labelTitle"];
 
+                if (json["labelTitleEnd"] != null)
+                    RainbowApplicationInfo.labelTitleEnd = json["labelTitleEnd"];
+
                 if (json["labelSet"] != null)
                     RainbowApplicationInfo.labelSet = json["labelSet"];
 
-                if (json["labelSetAction"] != null)
-                    RainbowApplicationInfo.labelSetAction = json["labelSetAction"];
-
+                if (json["labelStop"] != null)
+                    RainbowApplicationInfo.labelStop = json["labelStop"];
+                
                 if (json["labelNone"] != null)
                     RainbowApplicationInfo.labelNone = json["labelNone"];
 
@@ -436,15 +439,21 @@ namespace BotVideoOrchestratorAndBroadcaster
                 result = false;
             }
 
+            if (!IsConfigValueValid(RainbowApplicationInfo.labelTitleEnd))
+            {
+                message += "\r\n\t labelTitleEnd has not been defined";
+                result = false;
+            }
+
             if (!IsConfigValueValid(RainbowApplicationInfo.labelSet))
             {
                 message += "\r\n\t labelSet has not been defined";
                 result = false;
             }
 
-            if (!IsConfigValueValid(RainbowApplicationInfo.labelSetAction))
+            if (!IsConfigValueValid(RainbowApplicationInfo.labelStop))
             {
-                message += "\r\n\t labelSetAction has not been defined";
+                message += "\r\n\t labelStop has not been defined";
                 result = false;
             }
 

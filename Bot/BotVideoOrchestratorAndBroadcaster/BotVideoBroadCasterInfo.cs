@@ -27,7 +27,7 @@ namespace BotVideoOrchestratorAndBroadcaster
 
         public bool Selected; // To know if this bot must join the conference
 
-        public bool SharingSelected; // To know if the video stream must used the media "sharing" to stream it - if not the media "video" will be used
+        public string SharingUri; // Uri of the stream to use in sharing stream (distant or local)
 
         public BotVideoBroadcasterInfo(string login, string pwd)
         {
@@ -37,7 +37,7 @@ namespace BotVideoOrchestratorAndBroadcaster
             Name = "";
             Uri = "";
             Selected = false;
-            SharingSelected = false;
+            SharingUri = "";
 
             botVideoBroadcaster = new RainbowBotVideoBroadcaster();
         }
@@ -71,13 +71,13 @@ namespace BotVideoOrchestratorAndBroadcaster
                     Name + ".ini"
                     ))
             {
-                Util.WriteErrorToConsole($"[{Name} Cannot configure this bot - check config.json !");
+                Util.WriteErrorToConsole($"[{Name} Cannot configure this bot - check 'config.json' file !");
                 return;
             }
 
             if (!botVideoBroadcaster.StartLogin())
             {
-                Util.WriteErrorToConsole($"[{Name} Cannot start login configure this bot - check config.json !");
+                Util.WriteErrorToConsole($"[{Name} Cannot start login with this bot - check 'config.json' file !");
                 return;
             }
 

@@ -97,7 +97,7 @@
                           "value": "${sharingStreamSelected}",
                           "choices": [
                             {
-                              "$data": "${videos}",
+                              "$data": "${videosForSharing}",
                               "title": "${title}",
                               "value": "${uri}"
                             }
@@ -125,6 +125,25 @@
               "style": "positive",
               "data": {
                 "rainbow": {
+                  "id": "apply",
+                  "type": "messageBack",
+                  "value": {},
+                  "text": "${setAction}"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "ActionSet",
+          "actions": [
+            {
+              "type": "Action.Submit",
+              "title": "${stop}",
+              "style": "destructive",
+              "data": {
+                "rainbow": {
+                  "id": "stop",
                   "type": "messageBack",
                   "value": {},
                   "text": "${setAction}"

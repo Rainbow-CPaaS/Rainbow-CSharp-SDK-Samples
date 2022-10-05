@@ -831,7 +831,7 @@ namespace BotVideoOrchestratorAndBroadcaster
                 {
                     if (newVideoDevice != null)
                     {
-                        Util.WriteDebugToConsole($"[{_botName}] For Video, we wiil use this URI:[{newVideoDevice.Path}]");
+                        Util.WriteDebugToConsole($"[{_botName}] For Video, we will use this URI:[{newVideoDevice.Path}]");
                         _videoDevice = newVideoDevice;
 
                         if (RbWebRTCCommunications.AddVideo(_currentConferenceId, _videoDevice))
@@ -849,7 +849,7 @@ namespace BotVideoOrchestratorAndBroadcaster
             {
                 if (newVideoDevice != null)
                 {
-                    Util.WriteDebugToConsole($"[{_botName}] For Video, we wiil use this URI:[{newVideoDevice.Path}]");
+                    Util.WriteDebugToConsole($"[{_botName}] For Video, we will use this URI:[{newVideoDevice.Path}]");
                     _videoDevice = newVideoDevice;
                 }
             }
@@ -940,7 +940,7 @@ namespace BotVideoOrchestratorAndBroadcaster
             {
                 if (newSharingDevice != null)
                 {
-                    Util.WriteDebugToConsole($"[{_botName}] For Sharing, we wiil use this URI:[{newSharingDevice.Path}] (case 3)");
+                    Util.WriteDebugToConsole($"[{_botName}] For Sharing, we will use this URI:[{newSharingDevice.Path}] (case 3)");
                     _sharingDevice = newSharingDevice;
                 }
             }

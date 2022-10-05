@@ -1,7 +1,8 @@
 {
-	"labelTitle": "CCTV broadcast",
+	"labelTitle": "CCTV Broadcast Menu",
+	"labelTitleEnd": "CCTV Broadcast has ended",
 	"labelSet": "Apply",
-	"labelSetAction": "Broadcast settings applied",
+	"labelStop": "Stop",
 	"labelNone": "None",
 	"labelNoVideo": "Do not broadcast",
 	"labelUseSharingStream": "Sharing stream on:",
