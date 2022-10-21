@@ -1,0 +1,135 @@
+{
+  "ffmpegLibFolderPath": "C:\\ffmpeg-4.4.1-full_build-shared\\bin",
+
+  "serverConfig": {
+    "appId": "TO FILL",
+    "appSecret": "TO FILL",
+    "hostname": "TO FILL"
+  },
+
+  "_comment_botManagers": "Only login can be set here BUT ONLY if the bot manager has been added in the roster of the bot orchestrator OR the jid must be set",
+  "botManagers": [
+    {
+      "email": "irlesuser1@sophia.com",
+      "id": "",
+      "jid": ""
+    }
+  ],
+
+  "_comment_botsVideoBroadcaster": "Can define more than nbMaxVideoBroadcaster",
+  "botsVideoBroadcaster": [
+    {
+      "PARAM_loginAxis": "axis.login",
+      "PARAM_pwdAxis": "axis.pwd",
+
+      "name": "Axis 1",
+      "login": "TO FILL",
+      "password": "TO FILL",
+      "videoUri": "http://5.48.50.194:8081/mjpg/video.mjpg",
+      "sharingUri": null,
+
+      "autoJoinConference": true,
+      "onlyJoinBubbleJid": null,
+
+      "commandsFromIM": [
+        {
+          "trigger": "cctv menu",
+          "type": "SEND_IM",
+          "details": {
+            "content": "",
+            "alternateType": "form/json",
+            "alternateContent": "AdaptiveCardRemoteControl.json"
+          }
+        }
+      ],
+      "commandsFromAC": [
+        {
+          "trigger": "zoomPlus",
+          "type": "HTTP",
+          "details": {
+            "uri": "http://axis1.hostname/axis-cgi/com/ptz.cgi?zoom=max",
+            "repeat": 1,
+            "login": "${PARAM_loginAxis}",
+            "password": "${PARAM_pwdAxis}"
+          }
+        },
+        {
+          "trigger": "zoomMedium",
+          "type": "HTTP",
+          "details": {
+            "method": "GET",
+            "uri": "http://axis1.hostname/axis-cgi/com/ptz.cgi?zoom=medium",
+            "repeat": 1,
+            "login": "${PARAM_loginAxis}",
+            "password": "${PARAM_pwdAxis}"
+          }
+        },
+        {
+          "trigger": "zoomMinus",
+          "type": "HTTP",
+          "details": {
+            "method": "GET",
+            "uri": "http://axis1.hostname/axis-cgi/com/ptz.cgi?zoom=min",
+            "repeat": 1,
+            "login": "${PARAM_loginAxis}",
+            "password": "${PARAM_pwdAxis}"
+          }
+        },
+        {
+          "trigger": "moveUp",
+          "type": "HTTP",
+          "details": {
+            "method": "GET",
+            "uri": "http://axis1.hostname/axis-cgi/com/ptz.cgi?move=up",
+            "repeat": 3,
+            "login": "${PARAM_loginAxis}",
+            "password": "${PARAM_pwdAxis}"
+          }
+        },
+        {
+          "trigger": "moveDown",
+          "type": "HTTP",
+          "details": {
+            "method": "GET",
+            "uri": "http://axis1.hostname/axis-cgi/com/ptz.cgi?move=down",
+            "repeat": 3,
+            "login": "${PARAM_loginAxis}",
+            "password": "${PARAM_pwdAxis}"
+          }
+        },
+        {
+          "trigger": "moveLeft",
+          "type": "HTTP",
+          "details": {
+            "method": "GET",
+            "uri": "http://axis1.hostname/axis-cgi/com/ptz.cgi?move=left",
+            "repeat": 3,
+            "login": "${PARAM_loginAxis}",
+            "password": "${PARAM_pwdAxis}"
+          }
+        },
+        {
+          "trigger": "moveRight",
+          "type": "HTTP",
+          "details": {
+            "method": "GET",
+            "uri": "http://axis1.hostname/axis-cgi/com/ptz.cgi?move=right",
+            "repeat": 3,
+            "login": "${PARAM_loginAxis}",
+            "password": "${PARAM_pwdAxis}"
+          }
+        },
+        {
+          "trigger": "screenshot",
+          "type": "HTTP",
+          "details": {
+            "downloadData": true,
+            "uri": "http://axis1.hostname/jpg/image.jpg?resolution=320x240",
+            "withUID": true,
+            "repeat": 1
+          }
+        }
+      ]
+    }
+  ]
+}

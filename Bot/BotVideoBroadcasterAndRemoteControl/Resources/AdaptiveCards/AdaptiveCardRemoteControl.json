@@ -1,0 +1,409 @@
+{
+  "type": "AdaptiveCard",
+  "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+  "version": "1.5",
+  "body": [
+    {
+      "type": "Table",
+      "verticalCellContentAlignment": "Center",
+      "horizontalCellContentAlignment": "Center",
+      "columns": [
+        {
+          "width": 1
+        }
+      ],
+      "rows": [
+        {
+          "type": "TableRow",
+          "cells": [
+            {
+              "type": "TableCell",
+              "items": [
+                {
+                  "type": "Table",
+                  "columns": [
+                    {
+                      "width": 1
+                    },
+                    {
+                      "width": 1
+                    },
+                    {
+                      "width": 1
+                    }
+                  ],
+                  "rows": [
+                    {
+                      "type": "TableRow",
+                      "cells": [
+                        {
+                          "type": "TableCell",
+                          "items": [
+                            {
+                              "type": "Container",
+                              "items": [
+                                {
+                                  "type": "ActionSet",
+                                  "actions": [
+                                    {
+                                      "type": "Action.Submit",
+                                      "title": "➕",
+                                      "data": {
+                                        "rainbow": {
+                                          "id": "zoomPlus",
+                                          "type": "messageBack",
+                                          "value": {},
+                                          "text": ""
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "TableCell",
+                          "items": [
+                            {
+                              "type": "Container",
+                              "items": [
+                                {
+                                  "type": "ActionSet",
+                                  "actions": [
+                                    {
+                                      "type": "Action.Submit",
+                                      "title": "⬜",
+                                      "data": {
+                                        "rainbow": {
+                                          "id": "zoomMedium",
+                                          "type": "messageBack",
+                                          "value": {},
+                                          "text": ""
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "TableCell",
+                          "items": [
+                            {
+                              "type": "Container",
+                              "items": [
+                                {
+                                  "type": "ActionSet",
+                                  "actions": [
+                                    {
+                                      "type": "Action.Submit",
+                                      "title": "➖",
+                                      "data": {
+                                        "rainbow": {
+                                          "id": "zoomMinus",
+                                          "type": "messageBack",
+                                          "value": {},
+                                          "text": ""
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "firstRowAsHeaders": false,
+                  "showGridLines": false
+
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "TableRow",
+          "cells": [
+            {
+              "type": "TableCell",
+              "items": [
+                {
+                  "type": "Table",
+                  "columns": [
+                    {
+                      "width": 1
+                    },
+                    {
+                      "width": 1
+                    },
+                    {
+                      "width": 1
+                    }
+                  ],
+                  "rows": [
+                    {
+                      "type": "TableRow",
+                      "cells": [
+                        {
+                          "type": "TableCell",
+                          "items": [
+                            {
+                              "type": "TextBlock",
+                              "text": " "
+                            }
+                          ]
+                        },
+                        {
+                          "type": "TableCell",
+                          "items": [
+                            {
+                              "type": "Container",
+                              "items": [
+                                {
+                                  "type": "ActionSet",
+                                  "actions": [
+                                    {
+                                      "type": "Action.Submit",
+                                      "title": "⏫",
+                                      "data": {
+                                        "rainbow": {
+                                          "id": "moveUp",
+                                          "type": "messageBack",
+                                          "value": {},
+                                          "text": ""
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "TableCell",
+                          "items": [
+                            {
+                              "type": "TextBlock",
+                              "text": " "
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "firstRowAsHeaders": false,
+                  "showGridLines": false
+
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "TableRow",
+          "cells": [
+            {
+              "type": "TableCell",
+              "items": [
+                {
+                  "type": "Table",
+                  "columns": [
+                    {
+                      "width": 1
+                    },
+                    {
+                      "width": 1
+                    },
+                    {
+                      "width": 1
+                    }
+                  ],
+                  "rows": [
+                    {
+                      "type": "TableRow",
+                      "cells": [
+                        {
+                          "type": "TableCell",
+                          "items": [
+                            {
+                              "type": "Container",
+                              "items": [
+                                {
+                                  "type": "ActionSet",
+                                  "actions": [
+                                    {
+                                      "type": "Action.Submit",
+                                      "title": "⏪",
+                                      "data": {
+                                        "rainbow": {
+                                          "id": "moveLeft",
+                                          "type": "messageBack",
+                                          "value": {},
+                                          "text": ""
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "TableCell",
+                          "items": [
+                            {
+                              "type": "Container",
+                              "items": [
+                                {
+                                  "type": "ActionSet",
+                                  "actions": [
+                                    {
+                                      "type": "Action.Submit",
+                                      "title": "⏬",
+                                      "data": {
+                                        "rainbow": {
+                                          "id": "moveDown",
+                                          "type": "messageBack",
+                                          "value": {},
+                                          "text": ""
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "TableCell",
+                          "items": [
+                            {
+                              "type": "Container",
+                              "items": [
+                                {
+                                  "type": "ActionSet",
+                                  "actions": [
+                                    {
+                                      "type": "Action.Submit",
+                                      "title": "⏩",
+                                      "data": {
+                                        "rainbow": {
+                                          "id": "moveRight",
+                                          "type": "messageBack",
+                                          "value": {},
+                                          "text": ""
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "firstRowAsHeaders": false,
+                  "showGridLines": false
+
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "TableRow",
+          "cells": [
+            {
+              "type": "TableCell",
+              "items": [
+                {
+                  "type": "Table",
+                  "columns": [
+                    {
+                      "width": 1
+                    },
+                    {
+                      "width": 1
+                    },
+                    {
+                      "width": 1
+                    }
+                  ],
+                  "rows": [
+                    {
+                      "type": "TableRow",
+                      "cells": [
+                        {
+                          "type": "TableCell",
+                          "items": [
+                            {
+                              "type": "TextBlock",
+                              "text": " "
+                            }
+                          ]
+                        },
+                        {
+                          "type": "TableCell",
+                          "items": [
+                            {
+                              "type": "Container",
+                              "items": [
+                                {
+                                  "type": "ActionSet",
+                                  "actions": [
+                                    {
+                                      "type": "Action.Submit",
+                                      "title": "📷",
+                                      "data": {
+                                        "rainbow": {
+                                          "id": "screenshot",
+                                          "type": "messageBack",
+                                          "value": {},
+                                          "text": ""
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "TableCell",
+                          "items": [
+                            {
+                              "type": "TextBlock",
+                              "text": " "
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "firstRowAsHeaders": false,
+                  "showGridLines": false
+
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "showGridLines": false,
+      "firstRowAsHeaders": true
+    }
+  ]
+}
