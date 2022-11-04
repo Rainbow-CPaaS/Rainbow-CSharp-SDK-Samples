@@ -1,19 +1,21 @@
-﻿using System;
-using Stateless;
-using Stateless.Graph;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Rainbow;
 using Rainbow.Model;
 using Rainbow.Events;
-using System.Collections.Concurrent;
 using Rainbow.WebRTC;
-using System.Collections.Generic;
-using System.Linq;
-using Newtonsoft.Json;
-using System.Threading;
-using Newtonsoft.Json.Linq;
-using RestSharp.Authenticators;
 using RestSharp;
+using RestSharp.Authenticators;
+using RestSharp.Authenticators.Digest;
+using Stateless;
+using Stateless.Graph;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Threading;
+
 
 namespace BotVideoOrchestratorAndRemoteControl
 {
@@ -470,12 +472,17 @@ namespace BotVideoOrchestratorAndRemoteControl
 
                     var restClient = new RestClient(uri);
 
-                    // Set login / password if necessary
-                    if (action.Details.Info.ContainsKey("login") && action.Details.Info.ContainsKey("password"))
+                    // Set login / password if necessary using correct authentication system
+                    if (action.Details.Info.ContainsKey("authentication") 
+                        && action.Details.Info.ContainsKey("login") && action.Details.Info.ContainsKey("password"))
                     {
+                        var authentication = action.Details.Info["authentication"];
                         var login = action.Details.Info["login"];
                         var password = action.Details.Info["password"];
-                        restClient.Authenticator = new HttpBasicAuthenticator(login, password);
+                        if(authentication == "digest")
+                            restClient.Authenticator = new DigestAuthenticator(login, password);
+                        else
+                            restClient.Authenticator = new HttpBasicAuthenticator(login, password);
                     }
 
                     RestRequest? restRequest = null;
@@ -549,7 +556,6 @@ namespace BotVideoOrchestratorAndRemoteControl
                                 {
                                     if (!task.Result.IsSuccessful)
                                     {
-
                                         Util.WriteErrorToConsole($"[{_broadcaster.Name}] Trigger:{action.Trigger} received from a Bot Manager - Action:[{action.Type}] in ConversationId:[{messageEvent.ConversationId}] - Parameters:[{String.Join(", ", restRequest.Parameters)}] - Exception:[{Rainbow.Util.SerializeFromResponse(task.Result)}]");
                                     }
                                 }
