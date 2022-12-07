@@ -179,10 +179,10 @@ Nine Video streams are scaled then padded to have a 320x240 output. Then theyr u
 
 # Full example
 
-A full [example](./windows/UIForm.Medias/) is provided to understand all features of this package.
+A full [example](./Windows/UIForm.Medias/) is provided to understand all features of this package.
 
 <center>
-<img src="./windows/UIForm.Medias/images/FormMediaInputStreams-description.png">
+<img src="./Windows/UIForm.Medias/images/FormMediaInputStreams-description.png">
 </center>
 
 
