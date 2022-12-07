@@ -1,0 +1,54 @@
+{
+  "medias": [
+    {
+      "id": "local01",
+      "type": "FileOrStream",
+      "uri": "C:\\media\\Joy_and_Heron.webm",
+      "audio": true,
+      "video": true,
+      "loop": true
+    },
+    {
+      "id": "local02",
+      "type": "FileOrStream",
+      "uri": "C:\\media\\big_buck_bunny.mp4",
+      "audio": true,
+      "video": true,
+      "loop": true
+    },
+    {
+      "id": "local03",
+      "type": "FileOrStream",
+      "uri": "C:\\media\\Armello_Trailer.webm",
+      "audio": true,
+      "video": true,
+      "loop": true
+    },
+    {
+      "id": "local04",
+      "type": "FileOrStream",
+      "uri": "C:\\media\\TOEFLTest.mp4",
+      "audio": true,
+      "video": true,
+      "loop": true
+    },
+    {
+      "id": "local05",
+      "type": "FileOrStream",
+      "uri": "C:\\media\\sample_960x400_ocean_with_audio.mp4",
+      "audio": true,
+      "video": true,
+      "loop": true
+    },
+    {
+      "id": "filter01",
+      "type": "MultiInputs",
+      "mediaInputIdList": [ "local01", "local02", "local03", "local04", "local05" ],
+      "mediaInputIdListForVideoFilter": [ "local04" ],
+      "videoFilter": "subtitles=f=c\\\\:\\\\\\\\media\\\\\\\\TOEFLTest.mp4:si=0",
+      "audio": false,
+      "video": true,
+      "loop": true
+    }
+  ]
+}
