@@ -2,7 +2,7 @@
 
 # Rainbow-CSharp-SDK-Samples - WebRTC 
 
-This folder contains smaples which demonstrates how to use the **Rainbow CSharp SDK WebRTC** 
+This folder contains samples which demonstrates how to use the **Rainbow CSharp SDK WebRTC** 
 
 This SDK provides additional services / tools for these platforms: **Windows, MacOs, and Linux**. 
 
@@ -10,7 +10,17 @@ This SDK provides additional services / tools for these platforms: **Windows, Ma
 
 **Android and iOS are not yet supported.**
 
-It uses as core the **Rainbow CSharp SDK (core)** library. So you need first to understand how to use it.
+It uses the **Rainbow CSharp SDK (core)** library. Check a look [here](../README.md)
+
+It uses the **Rainbow CSharp SDK Medias** library. Check a look [here](../Medias/README.md)
+
+So you need first to understand how to use them.
+
+Full Documentation of **Rainbow CSharp SDK (core)** is available **[here](https://developers.openrainbow.com/doc/sdk/csharp/core/lts/guides/001_getting_started**
+
+Full Documentation of **Rainbow CSharp SDK Medias** is available **[here](https://developers.openrainbow.com/doc/sdk/csharp/medias/sts/guides/001_getting_started?isBeta=true)**
+
+Full Documentation of **Rainbow CSharp SDK WebRTC** is available **[here](https://developers.openrainbow.com/doc/sdk/csharp/webrtc/sts/guides/001_getting_started?isBeta=true)**
 
 ## Nuget package
 
@@ -60,102 +70,14 @@ Permits to manage WebRTC communications: **Peer To Peer** or in a **Conference**
     
 - Conference delegation
     
-- Audio Stream: Output and Input are supported
+- Audio Stream: Output is supported. **Input is not supported** (work still in progress)
     
 - Video Stream: Ouput is supported. **Input is not supported** (work still in progress)
 
-## Libraries specific for each platform
+## SDL2 and FFmpeg libraries
 
-This SDK is based on [FFmpeg](https://www.ffmpeg.org/) libraries and [SDL2](https://www.libsdl.org) libraries. 
+To use this samples you need to download and install SDL2 and FFmpeg libraries.
 
-They are available for each platform (Windows, MacOs, and Linux) but you need to get them differently according your environement.
-
-### Windows
-
-#### SDL2 libraries:
-
-Download X64 libraries from here: https://www.libsdl.org/download-2.0.php
-
-Then they must be installed in the same folder that your executable using this SDK.  
-
-#### FFmpeg libraries:
-
-Download X64 libraries from here: https://github.com/GyanD/codexffmpeg/releases/download/4.4.1/ffmpeg-4.4.1-full_build-shared.zip
-
-From this ZIP file only files in folder **bin** are used by the SDK. You can store them on your system where you want but you need to specify this folder when you create an instance of **WebRTCCommunications** object.
-
-Example:
-``` csharp
-String FFMPEG_LIB_PATH = @"C:\ffmpeg-4.4.1-full_build-shared\bin";
-
-Rainbow.Application rbApplication = new Rainbow.Application();
-Rainbow.WebRTCCommunications rbWebRTCCommunications =  WebRTCCommunications.CreateInstance(rbApplication, FFMPEG_LIB_PATH); 
-```
-
-### MacOS
-
-#### SDL2 libraries:
-
-Download X64 libraries from here: https://www.libsdl.org/download-2.0.php
-
-Then they must be installed in the same folder that your executable using this SDK.  
-
-#### FFmpeg libraries:
-
-Get x64 libraries using this command line:
-
-`sudo apt install ffmpeg`
-
-Then use these command line:
-
-`ffmpeg --version`
-
-You will have an ouput with some details about ffmpeg and about **libdir** path. 
-
-For example something like this: **--libdir=/usr/lib/aarch64-linux-gnu**
-
-Use this path to create a valide **WebRTCCommunications** object.
-
-Example:
-``` csharp
-String FFMPEG_LIB_PATH = @"/usr/lib/aarch64-linux-gnu";
-
-Rainbow.Application rbApplication = new Rainbow.Application();
-Rainbow.WebRTCCommunications rbWebRTCCommunications =  WebRTCCommunications.CreateInstance(rbApplication, FFMPEG_LIB_PATH); 
-```
-
-### Linux
-
-#### SDL2 libraries:
-
-Get x64 libraries using this command line:
-
-`sudo apt-get install libsdl2-dev`
-
-Then they must be installed in the same folder that your executable using this SDK.
-
-#### FFmpeg libraries:
-
-Get x64 libraries using this command line:
-
-`sudo apt install ffmpeg`
-
-Then use these command line:
-
-`ffmpeg --version`
-
-You will have an ouput with some details about ffmpeg and about **libdir** path. 
-
-For example something like this: **--libdir=/usr/lib/aarch64-linux-gnu**
-
-Use this path to create a valide **WebRTCCommunications** object.
-
-Example:
-``` csharp
-String FFMPEG_LIB_PATH = @"/usr/lib/aarch64-linux-gnu";
-
-Rainbow.Application rbApplication = new Rainbow.Application();
-Rainbow.WebRTCCommunications rbWebRTCCommunications =  WebRTCCommunications.CreateInstance(rbApplication, FFMPEG_LIB_PATH); 
-```
+Please [refer](../Binaries/README.md) to this docmentation for all details.
 
 
