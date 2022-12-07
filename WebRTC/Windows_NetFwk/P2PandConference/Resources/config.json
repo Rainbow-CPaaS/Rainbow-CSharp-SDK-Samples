@@ -1,0 +1,19 @@
+{
+  "ffmpegLibFolderPath": "C:\\ffmpeg-5.1.1-full_build-shared\\bin",
+
+  "nlogConfigFilePath": ".\\Resources\\NLogConfiguration.xml",
+
+  "mediasConfigFilePath": ".\\Resources\\medias.json",
+
+  "serverConfig": {
+    "appId": "TO DEFINE",
+    "appSecret": "TO DEFINE",
+    "hostname": "openrainbow.com"
+  },
+
+  "userConfig": {
+    "login": "TO DEFINE",
+    "password": "TO DEFINE",
+    "autoLogin": true
+  }
+}
