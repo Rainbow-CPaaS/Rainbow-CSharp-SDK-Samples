@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Sample_P2PandConference
+namespace SDK.UIForm.WebRTC
 {
     public class ListItem
     {
@@ -13,7 +13,7 @@ namespace Sample_P2PandConference
 
         public override string ToString()
         {
-            if(String.IsNullOrEmpty(Text))
+            if (String.IsNullOrEmpty(Text))
                 return Value;
             return Text;
         }
@@ -24,5 +24,4 @@ namespace Sample_P2PandConference
             Text = text;
         }
     }
-
 }

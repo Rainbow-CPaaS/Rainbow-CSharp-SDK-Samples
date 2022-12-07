@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup />
+  <ItemGroup>
+    <Compile Update="FormConferenceOptions.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="FormLogin.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="FormMediaFilteredStreams.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="FormMediaInputStreams.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="FormVideoOutputStream.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="FormWebcam.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="FormWebRTC.cs">
+      <SubType>Form</SubType>
+    </Compile>
+  </ItemGroup>
+</Project>

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace Sample_P2PandConference
+namespace SDK.UIForm.WebRTC
 {
     internal static class Program
     {
@@ -14,10 +14,19 @@ namespace Sample_P2PandConference
         [STAThread]
         static void Main()
         {
-            Application.SetHighDpiMode(HighDpiMode.SystemAware);
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new FormLogin());
+            // Create Configuration object and load config from file
+            var configuration = Configuration.Instance;
+
+            // We have to init external libraries
+            if (configuration.Initialized)
+            {
+                Rainbow.Medias.Helper.InitExternalLibraries(configuration.FFmpegLibPath);
+
+                Application.SetHighDpiMode(HighDpiMode.SystemAware);
+                Application.EnableVisualStyles();
+                Application.SetCompatibleTextRenderingDefault(false);
+                Application.Run(new FormLogin());
+            }
         }
     }
 }

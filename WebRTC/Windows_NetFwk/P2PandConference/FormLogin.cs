@@ -1,12 +1,16 @@
+﻿using Newtonsoft.Json.Linq;
 using NLog.Config;
 using Rainbow;
 using System;
+using System.Configuration;
 using System.IO;
 using System.Reflection;
 using System.Windows.Forms;
 using System.Xml;
 
-namespace Sample_P2PandConference
+using static System.Net.Mime.MediaTypeNames;
+
+namespace SDK.UIForm.WebRTC
 {
     public partial class FormLogin : Form
     {
@@ -17,32 +21,50 @@ namespace Sample_P2PandConference
         // Define Rainbow SDK objects
         Rainbow.Application rbApplication;
 
-        WebRTCForm? webRTCForm;
+        FormWebRTC? _formWebRTC;
 
         public FormLogin()
         {
+            this.HandleCreated += Form_HandleCreated;
+            
             InitializeComponent();
 
-            if(CheckApplicationInfo())
-                InitLogsWithNLog();
-            else
-                btnConnect.Enabled = false;
-                
-            tbHostName.Text = ApplicationInfo.HOST_NAME;
-            tbLogin.Text = ApplicationInfo.LOGIN_USER;
-            tbPassword.Text = ApplicationInfo.PASSWORD_USER;
+            
+        }
 
+        private void Form_HandleCreated(object sender, EventArgs e)
+        {
+            var configuration = Configuration.Instance;
+
+            // Fill form with Configuration info
+            tbHostName.Text = configuration.HostName;
+            tbLogin.Text = configuration.UserLogin;
+            tbPassword.Text = configuration.UserPassword;
+            cb_AutoLogin.Checked = configuration.AutoLogin;
 
             // Create Rainbow.Application object
             rbApplication = new Rainbow.Application();
 
             // Set main values
-            rbApplication.SetApplicationInfo(ApplicationInfo.APP_ID, ApplicationInfo.APP_SECRET_KEY);
-            rbApplication.SetHostInfo(ApplicationInfo.HOST_NAME);
+            rbApplication.SetApplicationInfo(configuration.AppId, configuration.AppSecret);
+            rbApplication.SetHostInfo(configuration.HostName);
+            rbApplication.SetTimeout(10000);
 
-            // DEfine events we want to manage
+            // Define events we want to manage
             rbApplication.ConnectionStateChanged += RbApplication_ConnectionStateChanged;
             rbApplication.InitializationPerformed += RbApplication_InitializationPerformed;
+
+            // Start Login process (if necessary)
+            if (configuration.AutoLogin)
+            {
+                CancelableDelay.StartAfter(200, () =>
+                {
+                    this.BeginInvoke(new Action(() =>
+                    {
+                        btnConnect_Click(null, null);
+                    }));
+                });
+            }
         }
 
         // Used to add information message in "lbInformation" List Box element
@@ -67,60 +89,6 @@ namespace Sample_P2PandConference
                     tbInformation.ScrollToCaret();
                 }
             }
-        }
-
-        // Check if mandatory information have been set in file ApplicationInfo.cs
-        private Boolean CheckApplicationInfo()
-        {
-            Boolean result = true;
-
-            if ( ! (ApplicationInfo.APP_ID?.Length > 0 && ApplicationInfo.APP_ID != ApplicationInfo.DEFAULT_VALUE) )
-            {
-                AddInformation("ApplicationInfo.APP_ID has not been defined correctly");
-                result = false;
-            }
-
-            if (!(ApplicationInfo.APP_SECRET_KEY?.Length > 0 && ApplicationInfo.APP_SECRET_KEY != ApplicationInfo.DEFAULT_VALUE))
-            {
-                AddInformation("ApplicationInfo.APP_SECRET_KEY has not been defined correctly");
-                result = false;
-            }
-
-            if (!(ApplicationInfo.HOST_NAME?.Length > 0 && ApplicationInfo.HOST_NAME != ApplicationInfo.DEFAULT_VALUE))
-            {
-                AddInformation("ApplicationInfo.HOST_NAME has not been defined correctly");
-                result = false;
-            }
-
-            if (ApplicationInfo.NLOG_CONFIG_FILE_PATH?.Length > 0)
-            {
-                if(!File.Exists(ApplicationInfo.NLOG_CONFIG_FILE_PATH))
-                {
-                    AddInformation("ApplicationInfo.NLOG_CONFIG_FILE_PATH has been defined but the path is invalid");
-                    result = false;
-                }
-            }
-            else
-            {
-                AddInformation("ApplicationInfo.NLOG_CONFIG_FILE_PATH has not been defined correctly");
-                result = false;
-            }
-
-            if(ApplicationInfo.FFMPEG_LIB_PATH?.Length > 0 && ApplicationInfo.FFMPEG_LIB_PATH != ApplicationInfo.DEFAULT_VALUE)
-            {
-                if (!Directory.Exists(ApplicationInfo.FFMPEG_LIB_PATH))
-                {
-                    AddInformation("ApplicationInfo.FFMPEG_LIB_PATH has been defined but the path is invalid");
-                    result = false;
-                }
-            }
-            else
-            {
-                AddInformation("ApplicationInfo.FFMPEG_LIB_PATH has not been defined correctly");
-                result = false;
-            }
-
-            return result;
         }
 
         private void UpdateFormAccodringRainbowConnectionStatus()
@@ -178,88 +146,6 @@ namespace Sample_P2PandConference
             
         }
 
-
-        private Boolean InitLogsWithNLog() // To inialize log using NLog XML configuration file wiht SDK 2.6.0 and more
-        {
-            String logConfigFilePath = ApplicationInfo.NLOG_CONFIG_FILE_PATH; // File path to log configuration (or you could also use an embedded resource)
-
-            try
-            {
-                if (File.Exists(logConfigFilePath))
-                {
-                    // Get content of the log file configuration
-                    String logConfigContent = File.ReadAllText(logConfigFilePath, System.Text.Encoding.UTF8);
-
-                    // Create NLog configuration using XML file content
-                    XmlLoggingConfiguration config = XmlLoggingConfiguration.CreateFromXmlString(logConfigContent);
-                    if (config.InitializeSucceeded == true)
-                    {
-                        // Set NLog configuration
-                        NLog.LogManager.Configuration = config;
-
-                        // Create Logger factory
-                        var factory = new NLog.Extensions.Logging.NLogLoggerFactory();
-
-                        // Set Logger factory to Rainbow SDK
-                        Rainbow.LogFactory.Set(factory);
-
-                        return true;
-                    }
-                }
-            }
-            catch { }
-
-            return false;
-        }
-
-
-        //private void InitLogsInOldWay() // The way to log information before SDK V 2.6.0
-        //{
-        //    String logFileName = "RainbowSampleConferences.log"; // File name of the log file
-        //    String archiveLogFileName = "RainbowSampleConferences_{###}.log"; // File name of the archive log file
-        //    String logConfigFilePath = @"..\..\..\..\..\NLogConfigurationOldWay.xml"; // File path to log configuration
-
-        //    String logConfigContent; // Content of the log file configuration
-        //    String logFolderPath = ""; // Folder path which will contains log files;
-        //    String logFullPathFileName = ""; // Full path to log file
-        //    String archiveLogFullPathFileName; ; // Full path to archive log file 
-
-        //    try
-        //    {
-        //        // Set folder path where log files are stored
-        //        logFolderPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-
-        //        // Set full path to log file name
-        //        logFullPathFileName = Path.Combine(logFolderPath, logFileName);
-        //        archiveLogFullPathFileName = Path.Combine(logFolderPath, archiveLogFileName);
-
-        //        // Get content of the log file configuration
-        //        using (FileStream stream = File.OpenRead(logConfigFilePath))
-        //        {
-        //            logConfigContent = File.ReadAllText(logConfigFilePath, System.Text.Encoding.UTF8);
-        //        }
-
-        //        // Load XML in XMLDocument
-        //        XmlDocument doc = new XmlDocument();
-        //        doc.LoadXml(logConfigContent);
-
-        //        // Set full path to log file in XML element
-        //        XmlElement targetElement = doc["nlog"]["targets"]["target"];
-        //        targetElement.SetAttribute("name", Rainbow.LogConfigurator.GetRepositoryName());    // Set target name equals to RB repository name
-        //        targetElement.SetAttribute("fileName", logFullPathFileName);                        // Set full path to log file
-        //        targetElement.SetAttribute("archiveFileName", archiveLogFullPathFileName);          // Set full path to archive log file
-
-        //        XmlElement loggerElement = doc["nlog"]["rules"]["logger"];
-        //        loggerElement.SetAttribute("writeTo", Rainbow.LogConfigurator.GetRepositoryName()); // Write to RB repository name
-
-        //        // Set the configuration
-        //        Rainbow.LogConfigurator.Configure(doc.OuterXml);
-        //    }
-        //    catch { }
-        //}
-
-
-
     #region EVENTS RAISED BY SDK
 
         private void RbApplication_InitializationPerformed(object? sender, EventArgs e)
@@ -305,7 +191,6 @@ namespace Sample_P2PandConference
                 btnConnect.Text = "Connecting";
 
                 rbApplication.Restrictions.UseWebRTC = true; // We want to use WebRTC features
-                rbApplication.Restrictions.UseAPIConferenceV2 = cbUseConfV2.Checked; // API Conference V2 must be used too
 
                 rbApplication.Login(tbLogin.Text, tbPassword.Text, callback =>
                 {
@@ -323,15 +208,14 @@ namespace Sample_P2PandConference
 
         private void btnOpenTestForm_Click(object sender, EventArgs? e)
         {
-            if ( (webRTCForm == null) || (webRTCForm?.IsDisposed == true) )
+            if (_formWebRTC == null)
             {
-                webRTCForm = new WebRTCForm();
-                webRTCForm.Initialize(rbApplication);
-                webRTCForm.FormClosed += (senderObject, eventArgs) => webRTCForm = null;
+                _formWebRTC = new FormWebRTC();
+                _formWebRTC.Initialize(rbApplication, Configuration.Instance.FFmpegLibPath);
             }
 
-            if(webRTCForm?.Visible != true)
-                webRTCForm?.Show(this);
+            _formWebRTC.WindowState = FormWindowState.Normal;
+            _formWebRTC.Show();
         }
 
     #endregion EVENTS RAISED BY Forms Elements
