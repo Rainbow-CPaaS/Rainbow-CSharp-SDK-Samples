@@ -16,7 +16,7 @@ It uses the **Rainbow CSharp SDK Medias** library. Check a look [here](../Medias
 
 So you need first to understand how to use them.
 
-Full Documentation of **Rainbow CSharp SDK (core)** is available **[here](https://developers.openrainbow.com/doc/sdk/csharp/core/lts/guides/001_getting_started**
+Full Documentation of **Rainbow CSharp SDK (core)** is available **[here](https://developers.openrainbow.com/doc/sdk/csharp/core/lts/guides/001_getting_started)**
 
 Full Documentation of **Rainbow CSharp SDK Medias** is available **[here](https://developers.openrainbow.com/doc/sdk/csharp/medias/sts/guides/001_getting_started?isBeta=true)**
 
@@ -32,7 +32,7 @@ This package targets **.Net Standard 2.0**, **.Net Standard 2.1**, **.Net Core A
 
 ## WebRTC service
 
-Permits to manage WebRTC communications: **Peer To Peer** or in a **Conference** on **Linux, MacOS and Windows** using Rainbow environment (https://developers.openrainbow.com/home)
+Permits to manage WebRTC communications: **Peer To Peer** or in a **Conference** on **Linux, MacOS and Windows** using [Rainbow environment](https://developers.openrainbow.com/home).
 
 **Peer To Peer communication features**:
 
