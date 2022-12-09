@@ -11,6 +11,8 @@ using AdaptiveCards.Templating;
 using Newtonsoft.Json;
 using System.Linq;
 using System.Threading;
+using System.Linq.Expressions;
+using System.Web;
 
 namespace BotVideoOrchestratorAndBroadcaster
 {
@@ -19,10 +21,10 @@ namespace BotVideoOrchestratorAndBroadcaster
         /// <summary>
         /// State list used by this bot
         /// </summary>
-        public enum State { 
+        public enum State {
             Created,
 
-            NotConnected, 
+            NotConnected,
             Connecting,
             ConnectionFailed,
             Authenticated,
@@ -46,7 +48,7 @@ namespace BotVideoOrchestratorAndBroadcaster
         /// <summary>
         /// Trigger list used by this bot
         /// </summary>
-        public enum Trigger { 
+        public enum Trigger {
             Configure,
 
             StartLogin,
@@ -228,8 +230,8 @@ namespace BotVideoOrchestratorAndBroadcaster
                 .OnEntryFrom(_messageReceivedFromPeerTrigger, AnswerToPeerMessage)
                 .Permit(Trigger.MessageManaged, State.Connected);
 
-            _machine.OnUnhandledTrigger( (state, trigger) => Util.WriteWarningToConsole($"[{_botName}] OnUnhandledTrigger - State: {state} with Trigger: {trigger}"));
-            
+            _machine.OnUnhandledTrigger((state, trigger) => Util.WriteWarningToConsole($"[{_botName}] OnUnhandledTrigger - State: {state} with Trigger: {trigger}"));
+
             _machine.OnTransitionCompleted(transition => {
                 // Store the trigger used
                 _lastTrigger = transition.Trigger;
@@ -239,7 +241,7 @@ namespace BotVideoOrchestratorAndBroadcaster
             });
         }
 
-        private Boolean ? IsMessageFromMasterBot(Message message)
+        private Boolean? IsMessageFromMasterBot(Message message)
         {
             // Get jid of the user who has sent this message
             String fromJid = message.FromJid;
@@ -256,7 +258,7 @@ namespace BotVideoOrchestratorAndBroadcaster
                 return true;
 
             // We try to get more info about this contact
-            if(contact == null)
+            if (contact == null)
             {
                 if (!_unknownUser.Contains(message.FromJid))
                 {
@@ -326,7 +328,7 @@ namespace BotVideoOrchestratorAndBroadcaster
                         //  OR in P2P
 
                         Boolean? messageFromMasterBot = IsMessageFromMasterBot(messageEvent.Message);
-                        
+
                         if (messageFromMasterBot == true)
                         {
                             var conversation = RbConversations.GetConversationByIdFromCache(messageEvent.ConversationId);
@@ -361,7 +363,7 @@ namespace BotVideoOrchestratorAndBroadcaster
                             else
                                 Util.WriteWarningToConsole($"[{_botName}] Message received from a Bot Manager - Cannot get a conversation from the message recevied - ConversationId: [{messageEvent.ConversationId}]");
 
-                            
+
                         }
                         else if (messageFromMasterBot == null)
                         {
@@ -393,7 +395,7 @@ namespace BotVideoOrchestratorAndBroadcaster
 
             // UPDATE the Adaptive Card in all Conversation previously send
 
-            (String? message, List<MessageAlternativeContent>? alternateContent )= CreateAdaptiveCardForEnd();
+            (String? message, List<MessageAlternativeContent>? alternateContent) = CreateAdaptiveCardForEnd();
             var keys = _adaptiveCardMessageIdByConversationId.Keys.ToList();
             foreach (var key in keys)
             {
@@ -433,7 +435,7 @@ namespace BotVideoOrchestratorAndBroadcaster
 
             int delay = 2000 + (index * 500);
             Util.WriteErrorToConsole($"[{_botName}] We will quit after some delay:[{delay}ms]");
-            CancelableDelay.StartAfter(delay, () => 
+            CancelableDelay.StartAfter(delay, () =>
             {
                 HangUp();
                 RbApplication.Logout();
@@ -483,7 +485,7 @@ namespace BotVideoOrchestratorAndBroadcaster
 
             FireTrigger(Trigger.UserInvitationManaged);
         }
-        
+
         /// <summary>
         /// To retrieve Alternate Content from the specified message sent as response to an Adaptive Card
         /// </summary>
@@ -497,7 +499,7 @@ namespace BotVideoOrchestratorAndBroadcaster
             {
                 foreach (MessageAlternativeContent alternativeContent in message.AlternativeContent)
                 {
-                    if(alternativeContent.Type == "rainbow/json")
+                    if (alternativeContent.Type == "rainbow/json")
                     {
                         isAdaptiveCardAnswer = true;
                         alternateContent = alternativeContent.Content;
@@ -632,12 +634,12 @@ namespace BotVideoOrchestratorAndBroadcaster
 
             String? broadCastInfo = Util.GetContentOfEmbeddedResource("VideoBroadcastInfo.json", System.Text.Encoding.UTF8);
 
-            if((jsonTemplate == null) || (broadCastInfo == null))
+            if ((jsonTemplate == null) || (broadCastInfo == null))
                 return (null, null);
 
             List<String> videoInfo = new List<String>();
             var nb = botVideoBroadcasterInfos.Count;
-            for(int i = 1; i < nb; i++)
+            for (int i = 1; i < nb; i++)
             {
                 videoInfo.Add(broadCastInfo.Replace("[[$ID]]", i.ToString()));
             }
@@ -650,7 +652,7 @@ namespace BotVideoOrchestratorAndBroadcaster
             // "Expand" the template - this generates the final Adaptive Card payload
             String? jsonData = CreateAdaptiveCardData();
             string cardJson = template.Expand(jsonData);
-
+            
             // Create an Message Alternative Content
             MessageAlternativeContent messageAlternativeContent = new MessageAlternativeContent();
             messageAlternativeContent.Type = "form/json";
@@ -667,73 +669,80 @@ namespace BotVideoOrchestratorAndBroadcaster
         }
 
         private void AnswerToMenuMessage(MessageEventArgs? messageEvent)
-        {
-            if (messageEvent != null)
+        {   
+            try
             {
-                ManualResetEvent pause = new ManualResetEvent(false);
-                
-                // Check if a conference is in progress
-                if (String.IsNullOrEmpty(_currentConferenceId))
+                if (messageEvent != null)
                 {
-                    Util.WriteDebugToConsole($"[{_botName}] MENU Message received from a Bot Manager but no conference is in progress ...");
-                    RbInstantMessaging.SendMessageToConversationId(messageEvent.ConversationId, RainbowApplicationInfo.labelNoConferenceInProgress, null, UrgencyType.Low, null, callback =>
-                    {
-                        pause.Set();
-                    });
+                    ManualResetEvent pause = new ManualResetEvent(false);
 
-                    pause.WaitOne();
-                }
-                else
-                {
-                    (String? message, List<MessageAlternativeContent>? alternativeContent) = CreateAdaptiveCard();
-                    if (alternativeContent?.Count > 0)
+                    // Check if a conference is in progress
+                    if (String.IsNullOrEmpty(_currentConferenceId))
                     {
-                        // Update the Adaptive Card in all Conversation already known
-                        var keys = _adaptiveCardMessageIdByConversationId.Keys.ToList();
-                        foreach (var key in keys)
+                        Util.WriteDebugToConsole($"[{_botName}] MENU Message received from a Bot Manager but no conference is in progress ...");
+                        RbInstantMessaging.SendMessageToConversationId(messageEvent.ConversationId, RainbowApplicationInfo.labelNoConferenceInProgress, null, UrgencyType.Low, null, callback =>
                         {
-                            var previousMessageId = _adaptiveCardMessageIdByConversationId[key];
-                            RbInstantMessaging.EditMessage(key, previousMessageId, message, alternativeContent, callback =>
-                            {
-                                if (callback.Result.Success)
-                                {
-                                    Util.WriteDebugToConsole($"[{_botName}] MENU Message received from a Bot Manager - UPDATE previous AdaptiveCard in ConversationId:[{key}] - MessageID:[{previousMessageId}] ");
-                                    // Store this message Id in order to update it later
-                                    //_adaptiveCardMessageIdByConversationId[key] = callback.Data.Id;
-                                }
-                                else
-                                {
-                                    Util.WriteErrorToConsole($"[{_botName}] MENU Message received from a Bot Manager - Cannot UPDATE Adaptive Card in ConversationId:[{key}] - Exception:[{Rainbow.Util.SerializeSdkError(callback.Result)}]");
-                                }
-                                pause.Set();
-                            });
-                        }
+                            pause.Set();
+                        });
 
-                        // Check if have already send a AdaptiveCard in this Conversation
-                        if (!_adaptiveCardMessageIdByConversationId.ContainsKey(messageEvent.ConversationId))
-                        {
-                            RbInstantMessaging.SendAlternativeContentsToConversationId(messageEvent.ConversationId, message, alternativeContent, UrgencyType.Std, null, callback =>
-                            {
-                                if(callback.Result.Success)
-                                {
-                                    // Store this message Id in order to update it later
-                                    var messageId = callback.Data.Id;
-                                    Util.WriteDebugToConsole($"[{_botName}] MENU Message received from a Bot Manager - send AdaptiveCard in ConversationId:[{messageEvent.ConversationId}] - MessageID:[{messageId}]");
-                                    _adaptiveCardMessageIdByConversationId.Add(messageEvent.ConversationId, messageId);
-                                }
-                                else
-                                {
-                                    Util.WriteErrorToConsole($"[{_botName}] MENU Message received from a Bot Manager - Cannot SEND Adaptive Card in ConversationId:[{messageEvent.ConversationId}] - Exception:[{Rainbow.Util.SerializeSdkError(callback.Result)}]");
-                                }
-                                pause.Set();
-                            });
-                        }
                         pause.WaitOne();
                     }
                     else
-                        Util.WriteWarningToConsole($"[{_botName}] MENU Message received from a Bot Manager - Cannot create Adaptive Card - ConversationId: [{messageEvent.ConversationId}]");
+                    {
+                        (String? message, List<MessageAlternativeContent>? alternativeContent) = CreateAdaptiveCard();
+                        if (alternativeContent?.Count > 0)
+                        {
+                            // Update the Adaptive Card in all Conversation already known
+                            var keys = _adaptiveCardMessageIdByConversationId.Keys.ToList();
+                            foreach (var key in keys)
+                            {
+                                var previousMessageId = _adaptiveCardMessageIdByConversationId[key];
+                                RbInstantMessaging.EditMessage(key, previousMessageId, message, alternativeContent, callback =>
+                                {
+                                    if (callback.Result.Success)
+                                    {
+                                        Util.WriteDebugToConsole($"[{_botName}] MENU Message received from a Bot Manager - UPDATE previous AdaptiveCard in ConversationId:[{key}] - MessageID:[{previousMessageId}] ");
+                                        // Store this message Id in order to update it later
+                                        //_adaptiveCardMessageIdByConversationId[key] = callback.Data.Id;
+                                    }
+                                    else
+                                    {
+                                        Util.WriteErrorToConsole($"[{_botName}] MENU Message received from a Bot Manager - Cannot UPDATE Adaptive Card in ConversationId:[{key}] - Exception:[{Rainbow.Util.SerializeSdkError(callback.Result)}]");
+                                    }
+                                    pause.Set();
+                                });
+                            }
+
+                            // Check if have already send a AdaptiveCard in this Conversation
+                            if (!_adaptiveCardMessageIdByConversationId.ContainsKey(messageEvent.ConversationId))
+                            {
+                                RbInstantMessaging.SendAlternativeContentsToConversationId(messageEvent.ConversationId, message, alternativeContent, UrgencyType.Std, null, callback =>
+                                {
+                                    if (callback.Result.Success)
+                                    {
+                                        // Store this message Id in order to update it later
+                                        var messageId = callback.Data.Id;
+                                        Util.WriteDebugToConsole($"[{_botName}] MENU Message received from a Bot Manager - send AdaptiveCard in ConversationId:[{messageEvent.ConversationId}] - MessageID:[{messageId}]");
+                                        _adaptiveCardMessageIdByConversationId.Add(messageEvent.ConversationId, messageId);
+                                    }
+                                    else
+                                    {
+                                        Util.WriteErrorToConsole($"[{_botName}] MENU Message received from a Bot Manager - Cannot SEND Adaptive Card in ConversationId:[{messageEvent.ConversationId}] - Exception:[{Rainbow.Util.SerializeSdkError(callback.Result)}]");
+                                    }
+                                    pause.Set();
+                                });
+                            }
+                            pause.WaitOne();
+                        }
+                        else
+                            Util.WriteWarningToConsole($"[{_botName}] MENU Message received from a Bot Manager - Cannot create Adaptive Card - ConversationId: [{messageEvent.ConversationId}]");
+                    }
                 }
+            
+            } catch (Exception exc)
+            {
             }
+
             FireTrigger(Trigger.MessageManaged);
         }
 
@@ -1036,7 +1045,7 @@ namespace BotVideoOrchestratorAndBroadcaster
         {
             if (_currentConferenceId != null)
             {
-                RbWebRTCCommunications.JoinConference(_currentConferenceId, null, false, false, false, 0, false, callback =>
+                RbWebRTCCommunications.JoinConference(_currentConferenceId, null, false, 0, false, callback =>
                 {
                     if (!callback.Result.Success)
                     {
