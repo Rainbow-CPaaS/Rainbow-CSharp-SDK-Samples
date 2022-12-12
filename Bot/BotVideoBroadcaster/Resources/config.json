@@ -1,0 +1,38 @@
+{
+	"ffmpegLibFolderPath": "C:\\ffmpeg-5.1.1-full_build-shared\\bin",
+
+	"videosUri": [
+		"C:\\media\\sample_960x400_ocean_with_audio.mp4",
+		"C:\\media\\Joy_and_Heron.webm"
+	],
+
+	"serverConfig": {
+		"appId": "",
+		"appSecret": "",
+		"hostname": "openrainbow.net"
+	},
+
+	"_comment_botManagers": "Just login can be set here BUT ONLY if the bot manager has been added in the roster of the bot orchestrator. If not login+jid must be set",
+	"botManagers": [
+		{
+			"login": "user@mydomain.com",
+			"id": "",
+			"jid": ""
+		}
+	],
+
+	"command": {
+		"stop": "stop"
+	},
+
+	"_comment_nbMaxVideoBroadcaster": "Use to indicate the max number of bots. Use -1 to use all defined in 'botsVideoBroadcaster' list",
+	"nbMaxVideoBroadcaster": -1,
+
+	"_comment_botsVideoBroadcaster": "Can define more than nbMaxVideoBroadcaster",
+	"botsVideoBroadcaster": [
+		{
+			"login": "",
+			"password": ""
+		}
+	]
+}

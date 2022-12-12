@@ -7,15 +7,18 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Resources\**" />
-    <EmbeddedResource Remove="Resources\**" />
-    <None Remove="Resources\**" />
+    <PackageReference Include="NLog.Extensions.Logging" Version="1.7.5" />
+    <PackageReference Include="Rainbow.CSharp.SDK.WebRTC" Version="0.0.5.7-sts" />
+    <PackageReference Include="stateless" Version="5.11.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="NLog.Extensions.Logging" Version="1.7.5" />
-    <PackageReference Include="Rainbow.CSharp.SDK.WebRTC" Version="0.0.5-sts" />
-    <PackageReference Include="stateless" Version="5.11.0" />
+    <None Update="Resources\config.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\NLogConfiguration.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

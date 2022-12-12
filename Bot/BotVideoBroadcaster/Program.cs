@@ -1,15 +1,24 @@
-﻿using NLog.Config;
+﻿using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
+using NLog.Config;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading;
+using System.Reflection;
 
 namespace BotVideoBroadcaster
 {
     internal class Program
     {
+        private static List<BotVideoBroadcasterInfo>? botVideoBroadcasterInfos;
+
         static void Main()
         {
-            // Check done on values defined in file RainbowApplicationInfo.cs
+
+            Util.WriteDebugToConsole($"{Global.ProductName()} v{Global.FileVersion()}");
+
+            // Check done on values defined in file RainbowApplicationInfo.cs AND in config.json
             if (!CheckApplicationInfoValues())
                 return;
 
@@ -17,76 +26,80 @@ namespace BotVideoBroadcaster
             InitLogsWithNLog();
 
             // Create BotVideoBroadcaster 01 && 02
-            RainbowBotVideoBroadcaster botVideoBroadcaster01 = new RainbowBotVideoBroadcaster();
-            RainbowBotVideoBroadcaster botVideoBroadcaster02 = new RainbowBotVideoBroadcaster();
+            RainbowBotVideoBroadcaster botVideoBroadcaster = new RainbowBotVideoBroadcaster();
 
             // Get the dot graph of this Bot - it's a String which can be used to represent the state machine diagram on a online tool like https://dreampuf.github.io/GraphvizOnline/
-            string graph = botVideoBroadcaster01.ToDotGraph();
+            string graph = botVideoBroadcaster.ToDotGraph();
 
-            // Configure the BotVideoBroadcaster 01
-            if (!botVideoBroadcaster01.Configure(
-                    RainbowApplicationInfo.APP_ID, RainbowApplicationInfo.APP_SECRET_KEY,
-                    RainbowApplicationInfo.HOST_NAME,
-                    RainbowApplicationInfo.LOGIN_BOT_01, RainbowApplicationInfo.PASSWORD_BOT_01,
-                    RainbowApplicationInfo.NAME_BOT_01,
-                    RainbowApplicationInfo.LOGIN_MASTER_BOT,
-                    RainbowApplicationInfo.STOP_MESSAGE_BOT_01,
-                    null,
-                    RainbowApplicationInfo.VIDEO_URI_01,
-                    RainbowApplicationInfo.VIDEO_URI_02,
-                    "./",
-                    RainbowApplicationInfo.NAME_BOT_01+ ".ini"
-                    ))
+
+            botVideoBroadcasterInfos = new List<BotVideoBroadcasterInfo>();
+            int index = 0;
+            foreach (var account in RainbowApplicationInfo.botsVideoBroadcaster)
             {
-                Console.WriteLine("Cannot configure Bot 01 - We quit");
-                return;
+                var botVideoBroadcasterInfo = new BotVideoBroadcasterInfo(account.Login, account.Password);
+                botVideoBroadcasterInfo.Name = $"CCTV {index + 1}";
+
+                // Set Both default URI
+                if (RainbowApplicationInfo.videosUri?.Count > 0)
+                {
+                    if (RainbowApplicationInfo.videosUri.Count > index)
+                        botVideoBroadcasterInfo.Uri = RainbowApplicationInfo.videosUri[index];
+                    else
+                        botVideoBroadcasterInfo.Uri = RainbowApplicationInfo.videosUri[index % RainbowApplicationInfo.videosUri.Count];
+                }
+
+                botVideoBroadcasterInfos.Add(botVideoBroadcasterInfo);
+                index++;
+                if ((RainbowApplicationInfo.nbMaxVideoBroadcaster > 0) && (index == RainbowApplicationInfo.nbMaxVideoBroadcaster))
+                    break;
             }
 
-            // Configure the BotVideoBroadcaster 02
-            if (!botVideoBroadcaster02.Configure(
-                    RainbowApplicationInfo.APP_ID, RainbowApplicationInfo.APP_SECRET_KEY,
-                    RainbowApplicationInfo.HOST_NAME,
-                    RainbowApplicationInfo.LOGIN_BOT_02, RainbowApplicationInfo.PASSWORD_BOT_02,
-                    RainbowApplicationInfo.NAME_BOT_02,
-                    RainbowApplicationInfo.LOGIN_MASTER_BOT,
-                    RainbowApplicationInfo.STOP_MESSAGE_BOT_02,
-                    null,
-                    RainbowApplicationInfo.VIDEO_URI_03,
-                    null,
-                    "./",
-                    RainbowApplicationInfo.NAME_BOT_02 + ".ini"
-                    ))
-            {
-                Console.WriteLine("Cannot configure Bot 02 - We quit");
-                return;
-            }
 
-            if (! botVideoBroadcaster01.StartLogin())
+            do
             {
-                Console.WriteLine("Cannot Start login with Bot 01 - We quit");
-                return;
-            }
 
-            if (!botVideoBroadcaster02.StartLogin())
-            {
-                Console.WriteLine("Cannot Start login with Bot 02 - We quit");
-                return;
-            }
+                // Check if a Bot has not been started / Created
+                foreach (var bot in botVideoBroadcasterInfos)
+                {
+                    RainbowBotVideoBroadcaster.State botState;
+                    Boolean botCanContinue;
+                    String botMessage;
 
-            Boolean canContinueBot01 = true;
-            Boolean canContinueBot02 = true;
+                    (botState, botCanContinue, botMessage) = bot.CheckBotStatus();
 
-            // We loop until both bot cannot continue
-            while (canContinueBot01 || canContinueBot02)
-            {
+                    // If a bot has just been created, we configure it and start login
+                    if (botState == RainbowBotVideoBroadcaster.State.Created)
+                    {
+                        bot.Configure(RainbowApplicationInfo.commandStop, RainbowApplicationInfo.botManagers);
+
+                        do
+                        {
+                            Thread.Sleep(20);
+                            (botState, botCanContinue, botMessage) = bot.CheckBotStatus();
+                            if(!botCanContinue)
+                            {
+                                Util.WriteErrorToConsole($"[{bot.Name}] Cannot connect to the server ...");
+                                return;
+                            }
+                            else
+                            {
+                                if (botState == RainbowBotVideoBroadcaster.State.Connected)
+                                    break;
+                            }
+
+                        } while (true);
+                    }
+                    // If this bot is not already connected, we don't try to check another one
+                    else if (botState != RainbowBotVideoBroadcaster.State.Connected)
+                    {
+                        break;
+                    }
+                }
+
+                // Here all bots are connected
                 Thread.Sleep(20);
 
-                if(canContinueBot01)
-                    canContinueBot01 = CheckBotStatus(botVideoBroadcaster01);
-
-                if (canContinueBot02)
-                    canContinueBot02 = CheckBotStatus(botVideoBroadcaster02);
-            }
+            } while (true);
         }
 
         static Boolean CheckBotStatus(RainbowBotVideoBroadcaster botVideoBroadcaster)
@@ -179,101 +192,152 @@ namespace BotVideoBroadcaster
 
         static private Boolean CheckApplicationInfoValues()
         {
-            String message = "You must define this variable(s) in the file RainbowApplicationInfo.cs:";
+            String configFilePath = $".{Path.DirectorySeparatorChar}Resources{Path.DirectorySeparatorChar}config.json";
+
+            if (!File.Exists(configFilePath))
+            {
+                Util.WriteErrorToConsole($"The file '{configFilePath}' has not been found. It must be stored in the same folder than this application.");
+                return false;
+            }
+
+            try
+            {
+                String jsonConfig = File.ReadAllText(configFilePath);
+                var json = JsonConvert.DeserializeObject<dynamic>(jsonConfig);
+
+                if (json == null)
+                {
+                    Util.WriteErrorToConsole($"Cannot get JSON data from file '{configFilePath}'.");
+                    return false;
+                }
+
+                if (json["ffmpegLibFolderPath"] != null)
+                    RainbowApplicationInfo.ffmpegLibFolderPath = json["ffmpegLibFolderPath"].ToString();
+
+                if (json["videosUri"] != null)
+                {
+                    JArray list = (JArray)json["videosUri"];
+                    RainbowApplicationInfo.videosUri = new List<String>();
+                    foreach (var item in list)
+                        RainbowApplicationInfo.videosUri.Add(item.ToString());
+                }
+
+                if (json["serverConfig"] != null)
+                {
+                    var jobject = json["serverConfig"];
+                    if (jobject["appId"] != null)
+                        RainbowApplicationInfo.appId = jobject["appId"].ToString();
+
+                    if (jobject["appSecret"] != null)
+                        RainbowApplicationInfo.appSecret = jobject["appSecret"].ToString();
+
+                    if (jobject["hostname"] != null)
+                        RainbowApplicationInfo.hostname = jobject["hostname"].ToString();
+                }
+
+                if (json["command"] != null)
+                {
+                    var jobject = json["command"];
+
+                    if (jobject["stop"] != null)
+                        RainbowApplicationInfo.commandStop = jobject["stop"].ToString();
+                }
+
+                if (json["nbMaxVideoBroadcaster"] != null)
+                    RainbowApplicationInfo.nbMaxVideoBroadcaster = (int)json["nbMaxVideoBroadcaster"];
+
+
+                if (json["botManagers"] != null)
+                {
+                    JArray list = (JArray)json["botManagers"];
+                    RainbowApplicationInfo.botManagers = new List<BotManager>();
+
+                    foreach (var item in list)
+                    {
+                        String? login = item["login"]?.ToString();
+                        String? jid = item["jid"]?.ToString();
+                        String? id = item["id"]?.ToString();
+
+                        if (!String.IsNullOrEmpty(login))
+                            RainbowApplicationInfo.botManagers.Add(new BotManager(login, id, jid));
+                    }
+                }
+
+                if (json["botsVideoBroadcaster"] != null)
+                {
+                    JArray list = (JArray)json["botsVideoBroadcaster"];
+                    RainbowApplicationInfo.botsVideoBroadcaster = new List<Account>();
+
+                    foreach (var item in list)
+                    {
+                        String? login = item["login"]?.ToString();
+                        String? pwd = item["password"]?.ToString();
+
+                        if ((!String.IsNullOrEmpty(login)) && (!String.IsNullOrEmpty(pwd)))
+                            RainbowApplicationInfo.botsVideoBroadcaster.Add(new Account(login, pwd));
+                    }
+                }
+
+            }
+            catch (Exception exc)
+            {
+                Util.WriteErrorToConsole($"Exception occurs when reading '{configFilePath}' - Exception:[{Rainbow.Util.SerializeException(exc)}]");
+                return false;
+            }
+
+            String message = $"You must define this variable(s) in the file RainbowApplicationInfo.cs OR in file '{configFilePath}'";
             Boolean result = true;
 
-            if (!IsConfigValueValid(RainbowApplicationInfo.FFMPEG_LIB_FOLDER_PATH))
+            if (!IsConfigValueValid(RainbowApplicationInfo.ffmpegLibFolderPath))
             {
-                message += "\r\n\t FFMPEG_LIB_FOLDER_PATH has not been defined";
+                message += "\r\n\t ffmpegLibFolderPath has not been defined";
                 result = false;
             }
 
-            if (!IsConfigValueValid(RainbowApplicationInfo.APP_ID))
+            if (!IsConfigValueValid(RainbowApplicationInfo.commandStop))
             {
-                message += "\r\n\t APP_ID has not been defined";
+                message += "\r\n\t botVideoOrchestrator.commcommandStopandMenu has not been defined";
                 result = false;
             }
 
-            if (!IsConfigValueValid(RainbowApplicationInfo.APP_SECRET_KEY))
+            if (RainbowApplicationInfo.videosUri == null)
             {
-                message += "\r\n\t APP_SECRET_KEY has not been defined";
+                message += "\r\n\t videosUri has not been defined";
                 result = false;
             }
 
-            if (!IsConfigValueValid(RainbowApplicationInfo.HOST_NAME))
+            if (!IsConfigValueValid(RainbowApplicationInfo.appId))
             {
-                message += "\r\n\t HOST_NAME has not been defined";
+                message += "\r\n\t appId has not been defined";
                 result = false;
             }
 
-            if (!IsConfigValueValid(RainbowApplicationInfo.LOGIN_MASTER_BOT))
+            if (!IsConfigValueValid(RainbowApplicationInfo.appSecret))
             {
-                message += "\r\n\t LOGIN_MASTER_BOT has not been defined";
+                message += "\r\n\t appSecret has not been defined";
                 result = false;
             }
 
-            if (!IsConfigValueValid(RainbowApplicationInfo.STOP_MESSAGE_BOT_01))
+            if (!IsConfigValueValid(RainbowApplicationInfo.hostname))
             {
-                message += "\r\n\t STOP_MESSAGE_BOT_01 has not been defined";
+                message += "\r\n\t hostname has not been defined";
                 result = false;
             }
 
-            if (!IsConfigValueValid(RainbowApplicationInfo.NAME_BOT_01))
+            if (RainbowApplicationInfo.botManagers == null)
             {
-                message += "\r\n\t NAME_BOT_01 has not been defined";
+                message += "\r\n\t botManagers has not been defined";
                 result = false;
             }
 
-            if (!IsConfigValueValid(RainbowApplicationInfo.LOGIN_BOT_01))
+            if (RainbowApplicationInfo.botsVideoBroadcaster == null)
             {
-                message += "\r\n\t LOGIN_BOT_01 has not been defined";
-                result = false;
-            }
-
-            if (!IsConfigValueValid(RainbowApplicationInfo.PASSWORD_BOT_01))
-            {
-                message += "\r\n\t PASSWORD_BOT_01 has not been defined";
-                result = false;
-            }
-
-            if (!IsConfigValueValid(RainbowApplicationInfo.STOP_MESSAGE_BOT_02))
-            {
-                message += "\r\n\t STOP_MESSAGE_BOT_02 has not been defined";
-                result = false;
-            }
-
-            if (!IsConfigValueValid(RainbowApplicationInfo.NAME_BOT_02))
-            {
-                message += "\r\n\t NAME_BOT_02 has not been defined";
-                result = false;
-            }
-
-            if (!IsConfigValueValid(RainbowApplicationInfo.LOGIN_BOT_02))
-            {
-                message += "\r\n\t LOGIN_BOT_02 has not been defined";
-                result = false;
-            }
-
-            if (!IsConfigValueValid(RainbowApplicationInfo.VIDEO_URI_01))
-            {
-                message += "\r\n\t VIDEO_URI_01 has not been defined";
-                result = false;
-            }
-
-            if (!IsConfigValueValid(RainbowApplicationInfo.VIDEO_URI_02))
-            {
-                message += "\r\n\t VIDEO_URI_02 has not been defined";
-                result = false;
-            }
-
-            if (!IsConfigValueValid(RainbowApplicationInfo.VIDEO_URI_03))
-            {
-                message += "\r\n\t VIDEO_URI_03 has not been defined";
+                message += "\r\n\t botsVideoBroadcaster has not been defined";
                 result = false;
             }
 
             if (!result)
-                Console.WriteLine(message);
+                Util.WriteErrorToConsole(message);
 
             return result;
         }
