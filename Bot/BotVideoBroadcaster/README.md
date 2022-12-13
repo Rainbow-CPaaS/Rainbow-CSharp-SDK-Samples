@@ -79,31 +79,25 @@ String dotGrpah = UmlDotGraph.Format(_machine.GetInfo()); // Create dot graph as
 
 To use this sample you need to define several information in file **RainbowApplicationInfo.cs**:
 
-- **APP_ID, FFMPEG_LIB_FOLDER_PATH**: Absolute or relative path to ffmpeg library - more details [here](https://www.nuget.org/packages/Rainbow.CSharp.SDK.WebRTC/).
+A file **config.json**, in JSON format, is used stored in "Resources" folder:
+ 
+Ensure to validate JSON files before to start the example - for example you can use this online tool: [JsonLint](https://jsonlint.com) 
 
-- **APP_ID, APP_SECRET_KEY**: Id and Secret key of your Rainbow application - more details [here](https://developers.openrainbow.com/doc/hub/developer-journey).
+### config.json
 
-- **HOST_NAME**: the hostname to use to reach Rainbow server - for example **openrainbow.com**.
+- **ffmpegLibFolderPath**: Absolute or relative path to ffmpeg library - more details [here](https://www.nuget.org/packages/Rainbow.CSharp.SDK.WebRTC/).
 
-- **LOGIN_MASTER_BOT**: the login (i.e. email address) of the user (the "master bot") which can stop the bot remotely using a IM message.
+- **serverConfig**: to cofigure **appId, appSecret** and **hostname** - more details [here](https://developers.openrainbow.com/doc/hub/developer-journey).
 
-- **STOP_MESSAGE_BOT_01**: "Stop message" uses to stop the first bot
+- **labelsFilePath**: Absolute or relative path to label file - by default "labels_EN.json"
 
-- **NAME_BOT_01**: Name of the first bot
+- **videosUri**: List of video uri to used as stream (local or remote)
 
-- **LOGIN_BOT_01, PASSWORD_BOT_01**: Login and password to use for the first bot to connect to the server.
+- **botManagers**: List of manage of the bot. You must specify a **login** (i.e. the email address) **id** and **jid** are optionals
 
-- **STOP_MESSAGE_BOT_02**: "Stop message" uses to stop the second bot
+- **botsVideoBroadcaster**: Define here list of Broadcaster with their **login** and **password**
 
-- **NAME_BOT_02**: Name of the second bot
-
-- **LOGIN_BOT_02, PASSWORD_BOT_02**: Login and password to use for the second bot to connect to the server.
-
-- **VIDEO_URI_01, VIDEO_URI_02, VIDEO_URI_03**: Uri to a CCTV or video file (local or remote)
-
-- **NLOG_CONFIG_FILE_PATH**: Valid path to a XML file used to configure NLog. Without it no log files will be generated. This XML file is available [here](https://github.com/Rainbow-CPaaS/Rainbow-CSharp-SDK-Samples/blob/master/NLogConfiguration.xml).
-
-**NOTE**: APP_ID, APP_SECRET_KEY and HOST_NAME are linked. Generally APP_ID and APP_SECRET_KEY are different according the HOST_NAME.
+- **nbMaxVideoBroadcaster**: To restrict the number of Broadcaster: -1 to use all of them, X to use only the first X Broadcasters defined
 
 <a name="ImplementationDetails"></a>
 ## Implementation details
