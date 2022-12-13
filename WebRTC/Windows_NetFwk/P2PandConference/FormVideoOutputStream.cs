@@ -28,6 +28,7 @@ namespace SDK.UIForm.WebRTC
         private float _ratio = 0;
 
         private IMediaVideo? _currentMediaVideo = null;
+        private Boolean _needToStoreMediaVideo = false;
 
         public FormVideoOutputStream()
         {
@@ -53,7 +54,6 @@ namespace SDK.UIForm.WebRTC
 
             FillMainComboBoxWithMediaInputStream();
 
-            FillCodecList();
         }
 
         private void FillCodecList()
@@ -61,7 +61,7 @@ namespace SDK.UIForm.WebRTC
             var list = Rainbow.WebRTC.Helper.WebRTCVideoFormatsSupported();
             foreach(var element in list)
             {
-                ListItem item = new ListItem(element.FormatName, Rainbow.WebRTC.Helper.GetVideoCodec(element.Codec).ToString());
+                ListItem item = new ListItem(element.ToString(), element.ToString());
                 cb_Codecs.Items.Add(item);
             }
         }
@@ -71,7 +71,10 @@ namespace SDK.UIForm.WebRTC
             var dicoAll = _mediaInputStreamsManager.GetList(true, true, true, false);
             FillComboBoxWithMediaInputStream(cb_ListOfInputStreams, dicoAll.Values.ToList());
 
-            cb_ListOfInputStreams_SelectedIndexChanged(null, null);
+            if (_needToStoreMediaVideo)
+                _needToStoreMediaVideo = false;
+            else
+                cb_ListOfInputStreams_SelectedIndexChanged(null, null);
         }
 
         private void FillComboBoxWithMediaInputStream(System.Windows.Forms.ComboBox comboBox, List<IMedia>? mediaList, Boolean avoidNone = false)
@@ -110,6 +113,10 @@ namespace SDK.UIForm.WebRTC
         private String GetSelectedIdOfComboBoxWithMediaStream(System.Windows.Forms.ComboBox comboBox)
         {
             String selectedId = "";
+
+            if (_needToStoreMediaVideo && (_currentMediaVideo != null))
+                return _currentMediaVideo.Id;
+
             // Get the the selectedItem (if any)
             if (comboBox.SelectedItem != null)
             {
@@ -123,6 +130,8 @@ namespace SDK.UIForm.WebRTC
         {
             lock (lockAboutImageManagement)
             {
+                _needToStoreMediaVideo = false;
+
                 if (_currentMediaVideo != null)
                     _currentMediaVideo.OnImage -= MediaVideo_OnImage;
                 
@@ -137,6 +146,9 @@ namespace SDK.UIForm.WebRTC
                     // We set a null image 
                     Helper.UpdatePictureBox(pb_VideoStream, null);
 
+
+                    if (cb_Codecs.Items.Count == 0)
+                        FillCodecList();
 
                     // Set selection in Codecs list
                     var codecID = mediaVideo.VideoCodecId.ToString();
@@ -171,6 +183,11 @@ namespace SDK.UIForm.WebRTC
                                 }
                             }
                             cb_ListOfInputStreams.SelectedIndex = index;
+                        }
+                        else
+                        {
+                            if (updateSelectedItem)
+                                _needToStoreMediaVideo = true;
                         }
                     }
                 }
@@ -226,7 +243,6 @@ namespace SDK.UIForm.WebRTC
             else
                 action.Invoke();
         }
-
 
 #endregion Events from MediaVideo
 
@@ -330,13 +346,13 @@ namespace SDK.UIForm.WebRTC
             if (_currentMediaVideo == null)
                 return;
 
-            _currentMediaVideo.OnVideoSample -= MediaVideo_OnVideoSample;
+            _currentMediaVideo.OnVideoSampleConverted -= MediaVideo_OnVideoSampleConverted;
             if ( cb_BindVideoSample.Checked )
-                _currentMediaVideo.OnVideoSample += MediaVideo_OnVideoSample;
+                _currentMediaVideo.OnVideoSampleConverted += MediaVideo_OnVideoSampleConverted;
                 
         }
 
-        private void MediaVideo_OnVideoSample(string mediaId, uint duration, byte[] sample)
+        private void MediaVideo_OnVideoSampleConverted(string mediaId, uint duration, byte[] sample)
         {
             // Nothing to do;
         }

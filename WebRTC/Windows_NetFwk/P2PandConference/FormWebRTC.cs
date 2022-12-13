@@ -22,6 +22,8 @@ namespace SDK.UIForm.WebRTC
         private static String MUTED = "Muted";
 
         private MediaInputStreamsManager _mediaInputStreamsManager;
+        private MediaAudioDeviceManager _mediaAudioDeviceManager;
+
         private FormConferenceOptions? _formConferenceOptions = null;
 
         // DEFINE SDK OBJECTS
@@ -36,12 +38,10 @@ namespace SDK.UIForm.WebRTC
         private String? currentCallId = null;
         private List<String> conferencesInProgress = new List<string>();
 
-        private String? currentContactId; // The contact Id using the SDK
-        private String? currentContactJid; // The contact Jid using the SDK
-        private String? selectedContactId; // The contact id selected in the Form
-        private String? selectedBubbleId; // // The bubble id selected in the Form
-
-        private SDL2AudioInput? _currentSDL2AudioInput = null; // Used to get stream from Audio Input Device (like microphone)
+        private String? currentContactId;   // The contact Id using the SDK
+        private String? currentContactJid;  // The contact Jid using the SDK
+        private String? selectedContactId;  // The contact Id selected in the Form
+        private String? selectedBubbleId;   // The bubble Id selected in the Form
 
         private List<Bubble>? bubblesList = null;
 
@@ -86,6 +86,12 @@ namespace SDK.UIForm.WebRTC
             _mediaInputStreamsManager = MediaInputStreamsManager.Instance;
             _mediaInputStreamsManager.OnListUpdated += MediaInputStreamsManager_ListUpdated;
             _mediaInputStreamsManager.OnMediaStreamStateChanged += MediaInputStreamsManager_OnMediaStreamStateChanged;
+
+            // Create MediaInputStreamsManager and init necessary events
+            _mediaAudioDeviceManager = MediaAudioDeviceManager.Instance;
+            _mediaAudioDeviceManager.OnAudioOutputDeviceChanged += MediaAudioDeviceManager_OnAudioOutputDeviceChanged;
+            _mediaAudioDeviceManager.OnAudioInputDeviceChanged += MediaAudioDeviceManager_OnAudioInputDeviceChanged;
+
 
             FillMainComboBoxWithMediaInputStream();
             // By default a Media Stream if available
@@ -892,36 +898,16 @@ namespace SDK.UIForm.WebRTC
         private IMedia ? GetAudioInputMediaStream()
         {
             var id = GetSelectedIdOfComboBoxUsingMediaInputStreamItem(cb_AudioInputs);
-            if (String.IsNullOrEmpty(id))
+            if (!String.IsNullOrEmpty(id))
             {
-                if(cb_AudioInputs.SelectedItem is String audioInputName)
-                {
-                    // Check if use the current SDL2 Audio Input
-                    if (_currentSDL2AudioInput?.Name == audioInputName)
-                        return _currentSDL2AudioInput;
+                var result = _mediaInputStreamsManager.GetMediaStream(id);
+                if (result != null)
+                    return result;
 
-                    if (_currentSDL2AudioInput != null)
-                    {
-                        _currentSDL2AudioInput.Stop();
-                        _currentSDL2AudioInput = null;
-                    }
-
-                    if (audioInputName != NONE)
-                    {
-                        _currentSDL2AudioInput = new SDL2AudioInput(audioInputName, audioInputName, "");
-                        if (!_currentSDL2AudioInput.Init())
-                            _currentSDL2AudioInput = null;
-                    }
-
-                    return _currentSDL2AudioInput;
-                }
-                else 
-                {
-                    return null;
-                }
+                return _mediaAudioDeviceManager.SetAudioInputDevice(id);
             }
 
-            return _mediaInputStreamsManager.GetMediaStream(id);
+            return null;
         }
 
         private IMedia? GetVideoInputMediaStream()
@@ -1190,6 +1176,19 @@ namespace SDK.UIForm.WebRTC
 
 #endregion EVENTS from MediaInputStreamsManager
 
+#region EVENTS from MediaAudioDeviceManager
+
+        private void MediaAudioDeviceManager_OnAudioInputDeviceChanged(object? sender, EventArgs e)
+        {
+            // TODO - MediaAudioDeviceManager_OnAudioInputDeviceChanged
+        }
+
+        private void MediaAudioDeviceManager_OnAudioOutputDeviceChanged(object? sender, EventArgs e)
+        {
+            // TODO - MediaAudioDeviceManager_OnAudioOutputDeviceChanged
+        }
+
+#endregion EVENTS from MediaAudioDeviceManager
 
 #region EVENTS from Rainbow SDK Objects
 

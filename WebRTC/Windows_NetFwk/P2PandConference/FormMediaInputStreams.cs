@@ -25,8 +25,12 @@ namespace SDK.UIForm.WebRTC
     {
         private static String NONE = "NONE";
 
-        private FormMediaFilteredStreams? _formMediaFilteredStreams = null;
         private MediaInputStreamsManager _mediaInputStreamsManager;
+        
+        private MediaAudioDeviceManager _mediaAudioDeviceManager;
+
+        private FormMediaFilteredStreams? _formMediaFilteredStreams = null;
+        
         private Dictionary<String, Bitmap> _currentImageByMediaStreamId = new Dictionary<String, Bitmap>();
         private String[] _currentMediaStreamIdView = new String[9];
         private Boolean[] _currentMediaStreamIsViewing = new Boolean[9];
@@ -116,6 +120,11 @@ namespace SDK.UIForm.WebRTC
             _mediaInputStreamsManager = MediaInputStreamsManager.Instance;
             _mediaInputStreamsManager.OnListUpdated += MediaInputStreamsManager_ListUpdated;
             _mediaInputStreamsManager.OnMediaStreamStateChanged += MediaInputStreamsManager_OnMediaStreamStateChanged;
+
+            // Create MediaAudioDeviceManager and init necessary events
+            _mediaAudioDeviceManager = MediaAudioDeviceManager.Instance;
+            _mediaAudioDeviceManager.OnAudioInputDeviceChanged += MediaAudioDeviceManager_OnAudioInputDeviceChanged;
+            _mediaAudioDeviceManager.OnAudioOutputDeviceChanged += MediaAudioDeviceManager_OnAudioOutputDeviceChanged;
 
             // We fill forms elements about Input streams and Audio Outputs devices
             CancelableDelay.StartAfter(200, () =>
@@ -593,24 +602,6 @@ namespace SDK.UIForm.WebRTC
             }
         }
 
-        private void StopAudioEvent()
-        {
-            if (_currentAudioInput != null)
-            {
-                _currentAudioInput.OnAudioSample -= MediaAudio_OnAudioSample;
-            }
-        }
-
-        private void StartAudioEvent()
-        {
-            if ((_currentAudioOutput != null) 
-                && (_currentAudioInput != null))
-            {
-                _currentAudioInput.OnAudioSample += MediaAudio_OnAudioSample;
-                
-            }
-        }
-
         private void FillFormElementsAfterMediaInputStreamListUpdate()
         {
             // Need to update the global list of MediaInputStream
@@ -690,10 +681,7 @@ namespace SDK.UIForm.WebRTC
 
         private void MediaAudio_OnAudioSample(string mediaId, uint duration, byte[] sample)
         {
-            if (_currentAudioOutput != null)
-            {
-                _currentAudioOutput.QueueSample(sample);
-            }
+            _mediaAudioDeviceManager.AudioOutputDevice?.QueueSample(sample);
         }
 
 #endregion EVENTS from MediaVideo
@@ -725,6 +713,63 @@ namespace SDK.UIForm.WebRTC
         }
 
 #endregion EVENTS from MediaInputStreamsManager
+
+
+#region EVENTS from MediaAudioDeviceManager
+
+        private void MediaAudioDeviceManager_OnAudioInputDeviceChanged(object? sender, EventArgs e)
+        {
+            Boolean needToRemovePrevious;
+            Boolean needToSetNewOne;
+
+            if (_currentAudioInput != null)
+            {
+                needToRemovePrevious = true;
+
+                if (_mediaAudioDeviceManager.AudioInputDevice != null)
+                {
+                    needToSetNewOne = true;
+
+                    if (_currentAudioInput.Id != _mediaAudioDeviceManager.AudioInputDevice.Id)
+                    {
+                        needToRemovePrevious = true;
+                    }
+                }
+                else
+                {
+                    needToSetNewOne = false;
+                }
+            }
+            else
+            {
+                needToRemovePrevious = false;
+                needToSetNewOne = (_mediaAudioDeviceManager.AudioInputDevice != null);
+            }
+
+            if (needToRemovePrevious)
+            {
+                // Remove previous
+                _currentAudioInput.OnAudioSample -= MediaAudio_OnAudioSample;
+                _currentAudioInput = null;
+            }
+
+            if (needToSetNewOne)
+            {
+                // Store new one with event
+                _currentAudioInput = _mediaAudioDeviceManager.AudioInputDevice;
+                _currentAudioInput.OnAudioSample += MediaAudio_OnAudioSample;
+
+                // TODO - need to update display
+            }
+            
+        }
+
+        private void MediaAudioDeviceManager_OnAudioOutputDeviceChanged(object? sender, EventArgs e)
+        {
+            // TODO - MediaAudioDeviceManager_OnAudioOutputDeviceChanged
+        }
+
+#endregion EVENTS from MediaAudioDeviceManager
 
 #region EVENTS from FORM elements
 
@@ -1139,7 +1184,7 @@ namespace SDK.UIForm.WebRTC
                     mediaIdList.Add(streamItem.Id);
                 }
             }
-            if(! _currentMediaStreamFiltered.SetVideoFilters(mediaIdList, tb_FilterOnMultiStream.Text))
+            if(! _currentMediaStreamFiltered.SetVideoFilter(mediaIdList, tb_FilterOnMultiStream.Text))
                 SetLabel(lbl_InfoFilterOnMultiStream, "Cannot set this filter - Check:\r\nTo have enough video source(s)\r\nTo use a correct filter string", true);
             else
                 SetLabel(lbl_InfoFilterOnMultiStream, "Filter hes been set");
@@ -1232,7 +1277,18 @@ namespace SDK.UIForm.WebRTC
 
         private void btn_SetAudioSettings_Click(object sender, EventArgs e)
         {
-            if (cb_AudioInputList.SelectedIndex > 0)
+            // If _currentAudioInput is used, we remove OnAudioSample event  
+            if (_currentAudioInput != null)
+            {
+                _currentAudioInput.OnAudioSample -= MediaAudio_OnAudioSample;
+                _currentAudioInput = null;
+            }
+
+            //If an AudioInputDevice is used, we remove OnAudioSample event
+            if (_mediaAudioDeviceManager.AudioInputDevice != null)
+                _mediaAudioDeviceManager.AudioInputDevice.OnAudioSample -= MediaAudio_OnAudioSample;
+
+            if (cb_AudioInputList.SelectedIndex >= 0)
             {
                 var inputItem = cb_AudioInputList.SelectedItem;
                 if (inputItem is MediaInputStreamItem mediaInputStreamItem)
@@ -1241,61 +1297,26 @@ namespace SDK.UIForm.WebRTC
 
                     if (media is IMediaAudio mediaAudio)
                     {
-                        if ((_currentAudioInput == null) || (_currentAudioInput.Id != mediaAudio.Id))
-                        {
-                            StopAudioEvent();
-
-                            _currentAudioInput = mediaAudio;
-                        }
+                        _currentAudioInput = mediaAudio;
+                        _currentAudioInput.OnAudioSample += MediaAudio_OnAudioSample;
                     }
                 }
                 else if (inputItem is String audioInputDeviceName)
                 {
-                    // TODO - manage audioInputDeviceName
+                    // Don't need here to store the new Audio Input Device - event OnAudioInputDeviceChanged is raised
+                    _mediaAudioDeviceManager.SetAudioInputDevice(audioInputDeviceName);
                 }
             }
-            else
-            {
-                StopAudioEvent();
-            }
 
-            if (cb_AudioOutputList.SelectedIndex > 0)
+            if (cb_AudioOutputList.SelectedIndex >= 0)
             {
                 var outputItem = cb_AudioOutputList.SelectedItem;
                 if(outputItem is String audioOutputDeviceName)
                 {
-                    if ( (_currentAudioOutput == null) || (_currentAudioOutput.Id != audioOutputDeviceName))
-                    {
-                        if (_currentAudioOutput != null)
-                        {
-                            StopAudioEvent();
-                            _currentAudioOutput.Stop();
-                        }
-
-                        SDL2AudioOutput audioOutput = new SDL2AudioOutput(audioOutputDeviceName, audioOutputDeviceName);
-                        if (audioOutput.Init())
-                        {
-                            audioOutput.Start();
-                            _currentAudioOutput = audioOutput;
-                        }
-                        else
-                        {
-                            // TODO - need to inform of the pb (cannot init audio output)
-                        }
-                    }
+                    // Don't need here to store the new Audio Ouput Device - event OnAudioOutputDeviceChanged is raised
+                    _mediaAudioDeviceManager.SetAudioOutputDevice(audioOutputDeviceName);
                 }
             }
-            else
-            {
-                if (_currentAudioOutput != null)
-                {
-                    StopAudioEvent();
-                    _currentAudioOutput.Stop();
-                }
-                _currentAudioOutput = null;
-            }
-
-            StartAudioEvent();
         }
 
         private void cb_AudioInputList_SelectedIndexChanged(object sender, EventArgs e)
