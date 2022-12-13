@@ -1191,6 +1191,7 @@ namespace SDK.UIForm.WebRTC
             this.btn_ManageAudio.TabIndex = 320;
             this.btn_ManageAudio.Text = "Manage Audio";
             this.btn_ManageAudio.UseVisualStyleBackColor = true;
+            this.btn_ManageAudio.Visible = false;
             this.btn_ManageAudio.Click += new System.EventHandler(this.btn_ManageAudio_Click);
             // 
             // btn_RemoveSourceForFilter

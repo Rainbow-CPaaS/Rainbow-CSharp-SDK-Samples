@@ -152,7 +152,7 @@ namespace SDK.UIForm.WebRTC
 
             var mediaInput = new Rainbow.Medias.MediaInput(new InputStreamDevice(id, id, uri, withVideo: useVideo, withAudio: useAudio, loop: true), loggerPrefix: "");
 
-            if(mediaInput.Init())
+            if(mediaInput.Init(true))
                 return Add(mediaInput);
 
             return false;
@@ -318,7 +318,7 @@ namespace SDK.UIForm.WebRTC
                                     {
                                         // Create MediaFiltered
                                         MediaFiltered mediaFiltered = new MediaFiltered(mediaDescriptor.Id, mediaInputs);
-                                        if (!mediaFiltered.SetVideoFilters(mediaDescriptor.MediaInputIdListForVideoFilter, mediaDescriptor.VideoFilter))
+                                        if (!mediaFiltered.SetVideoFilter(mediaDescriptor.MediaInputIdListForVideoFilter, mediaDescriptor.VideoFilter))
                                             message += $"\r\nCannot set video filters on FilteredMediaInput [{mediaDescriptor.Id}]";
 
                                         mediaFiltered.OnStateChanged += MediaStream_OnStateChanged;
@@ -492,13 +492,10 @@ namespace SDK.UIForm.WebRTC
             _formScreen.WindowState = FormWindowState.Normal;
             _formScreen.Show();
         }
-        
-
 
 #endregion PUBLIC API
 
 #region PRIVATE API
-
 
         public void RemoveMediaStream(string? id)
         {
@@ -525,7 +522,6 @@ namespace SDK.UIForm.WebRTC
             _simpleMediaStreams = new Dictionary<string, IMedia>();
             _filteredMediaStreams = new Dictionary<string, IMedia>();
         }
-
 
 #endregion PRIVATE API
     }

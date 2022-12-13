@@ -204,7 +204,7 @@ namespace SDK.UIForm.WebRTC
                 MediaFiltered mediaFiltered = new MediaFiltered(newId, mediaInputsList);
 
                 // We set by default a "null" filter with the first mediaInput
-                mediaFiltered.SetVideoFilters(new List<string>() { mediaInputsList.First().Id });
+                mediaFiltered.SetVideoFilter(new List<string>() { mediaInputsList.First().Id });
 
                 _mediaInputStreamsManager.Add(mediaFiltered);
             }
