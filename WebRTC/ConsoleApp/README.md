@@ -8,8 +8,6 @@ It permits to do this:
 
 - Select an Audio Input device: a Microphone (if any), an Audio file (local or remote) or no device
 
-- Select an Audio Output device: an Headset (if any) or no device 
-
 - Select an Video Input device: a Camera (if any), a Monitor, an Video file (local or remote) or no device
 
 - Connect to Rainbow server
@@ -26,3 +24,5 @@ You must also ensure to have correct credentials: **LOGIN_USER, PASSWORD_USER** 
  
 **NOTE:**
 - On MacOS, access to Camera or Monitor needs specific permissions. Ensure to set them so the terminal/console can use them.
+
+**More important details [here](../README.md)**

@@ -1,10 +1,13 @@
 ﻿using NLog.Config;
 using Rainbow.Model;
 using Rainbow.WebRTC;
+using Rainbow.Medias;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
+using static DirectShowLib.MediaSubType;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace SDK.ConsoleApp.WebRTC
 {
@@ -56,12 +59,15 @@ namespace SDK.ConsoleApp.WebRTC
         static Rainbow.Bubbles? rbBubbles;
         static Rainbow.Conferences? rbConferences;
         static Rainbow.WebRTC.WebRTCCommunications? rbWebRTCCommunications;
-        static Rainbow.WebRTC.Devices? rbDevices;
 
         // Define devices which will be used in WebRtc Conversation
-        static Rainbow.WebRTC.Device? videoInputDeviceSelected = null;
-        static Rainbow.WebRTC.Device? audioInputDeviceSelected = null;
-        static Rainbow.WebRTC.Device? audioOutputDeviceSelected = null;
+        static Rainbow.Medias.Device? videoInputSelected = null;
+        static Rainbow.Medias.Device? audioInputSelected = null;
+
+        static Rainbow.Medias.MediaInput? videoInputStream = null;
+        static Rainbow.Medias.MediaInput? audioInputStream = null;
+
+        static Rainbow.Medias.Device? audioOutputSelected = null;
 
         // Define Contacts objects: current user and the peer used in the WebRtc Conversation
         static Rainbow.Model.Contact? currentContact = null;
@@ -82,7 +88,7 @@ namespace SDK.ConsoleApp.WebRTC
         static DateTime? conferenceDateTime;
 
         // Object to display remote video in ASCII
-        static AsciiFrame? asciiFrame = null;
+        static Rainbow.AsciiFrame? asciiFrame = null;
         static String footerLine1 = "";
         static String footerLine2 = "";
 
@@ -141,7 +147,7 @@ namespace SDK.ConsoleApp.WebRTC
             try
             {
                 // Do we use audio onyl ?
-                Rainbow.WebRTC.WebRTCCommunications.USE_ONLY_MICROPHONE_OR_HEADSET = ApplicationInfo.USE_ONLY_MICROPHONE_OR_HEADSET; //  /!\ We have to set this BEFORE TO CREATE rbCommunication object
+                //Rainbow.WebRTC.WebRTCCommunications.USE_ONLY_MICROPHONE_OR_HEADSET = ApplicationInfo.USE_ONLY_MICROPHONE_OR_HEADSET; //  /!\ We have to set this BEFORE TO CREATE rbCommunication object
 
                 rbWebRTCCommunications = Rainbow.WebRTC.WebRTCCommunications.CreateInstance(rbApplication, ApplicationInfo.FFMPEG_LIB_FOLDER_PATH);
             }
@@ -159,7 +165,6 @@ namespace SDK.ConsoleApp.WebRTC
 
             // Create Rainbow.WebRTC.Devices service
             appStep = APP_STEP.ASK_DEVICES;
-            rbDevices = rbWebRTCCommunications.GetDevices();
 
             // Select devices: Audio Input, Audio Output and Video Input
             if (!SelectAudioInputDevice())
@@ -168,11 +173,11 @@ namespace SDK.ConsoleApp.WebRTC
                 return;
             }
 
-            if (!SelectAudioOutputDevice())
-            {
-                Console.WriteLine("\nIt's mandatory in this sample to create a P2P call.");
-                return;
-            }
+            //if (!SelectAudioOutputDevice())
+            //{
+            //    Console.WriteLine("\nIt's mandatory in this sample to create a P2P call.");
+            //    return;
+            //}
 
             SelectVideoInputDevice(); // Not mandatory to have a Video Input device: in this case only audio will be possible
 
@@ -182,8 +187,6 @@ namespace SDK.ConsoleApp.WebRTC
 
             // Define Rainbow.WebRTC.Communication events callback we want to manage
             rbWebRTCCommunications.CallUpdated += RbWebRTCCommunications_CallUpdated;
-            rbWebRTCCommunications.OnVideoRemoteSourceRawSample += RbWebRTCCommunications_OnVideoRemoteSourceRawSample;
-            rbWebRTCCommunications.OnSharingRemoteSourceRawSample += RbWebRTCCommunications_OnSharingRemoteSourceRawSample;
 
             rbConferences.ConferenceRemoved += RbConferences_ConferenceRemoved;
             rbConferences.ConferenceUpdated += RbConferences_ConferenceUpdated;
@@ -235,6 +238,9 @@ namespace SDK.ConsoleApp.WebRTC
                         Console.WriteLine($"\tJid:[{currentContact.Jid_im}]");
 
                         appStep = APP_STEP.SELECTION_MODE;
+
+
+
                         break;
 
                     case APP_STEP.SELECTION_MODE:
@@ -413,7 +419,7 @@ namespace SDK.ConsoleApp.WebRTC
                         Console.WriteLine($"\nCurrent Contact : [{Rainbow.Util.GetContactDisplayName(currentContact)}]");
                         Console.WriteLine($"Contact selected: [{Rainbow.Util.GetContactDisplayName(selectedContact)}]");
 
-                        if (videoInputDeviceSelected != null)
+                        if (videoInputSelected != null)
                             Console.WriteLine("\nDo You want to call this user in audio [a], in video [v] or search [s] another user ?");
                         else
                             Console.WriteLine("\nDo You want to call this user in audio [a] or search [s] another user ?");
@@ -428,20 +434,24 @@ namespace SDK.ConsoleApp.WebRTC
                         {
                             mediasUsed = Rainbow.Model.Call.Media.AUDIO;
                         }
-                        else if ((keyConsole.KeyChar == 'v') && (videoInputDeviceSelected != null))
+                        else if ((keyConsole.KeyChar == 'v') && (videoInputSelected != null))
                         {
                             mediasUsed = Rainbow.Model.Call.Media.AUDIO + Rainbow.Model.Call.Media.VIDEO;
                         }
 
                         appStep = APP_STEP.CALL_IN_PROGRESS;
 
-                        if (asciiFrame == null)
-                            asciiFrame = new AsciiFrame(2);
-
                         // Save presence for future rollback (once the call is over)
                         rbContacts.SavePresenceFromCurrentContactForRollback();
 
-                        rbWebRTCCommunications.MakeCall(selectedContact.Id, mediasUsed, devicesUsed, null, callback =>
+                        Dictionary<int, IMedia> mediaInputs = new Dictionary<int, IMedia>();
+                        if(Rainbow.Util.MediasWithVideo(mediasUsed) && (videoInputStream != null))
+                                mediaInputs.Add(Call.Media.VIDEO, videoInputStream);
+
+                        if (Rainbow.Util.MediasWithAudio(mediasUsed) && (audioInputStream != null))
+                            mediaInputs.Add(Call.Media.AUDIO, audioInputStream);
+
+                        rbWebRTCCommunications.MakeCall(selectedContact.Id, mediaInputs, null, callback =>
                         {
                             if (callback.Result.Success)
                             {
@@ -463,6 +473,7 @@ namespace SDK.ConsoleApp.WebRTC
                         Console.WriteLine("\nCall has ended");
                         Console.WriteLine("\nPress a key to continue");
                         Console.ReadKey();
+
                         if (selectionMode == "P2P")
                             appStep = APP_STEP.SEARCH_USER_SELECTED_KNOWN;
                         else
@@ -473,8 +484,6 @@ namespace SDK.ConsoleApp.WebRTC
                 Thread.Sleep(10);
             }
         }
-
-
 
     #endregion Main
 
@@ -514,7 +523,11 @@ namespace SDK.ConsoleApp.WebRTC
                         {
                             var devices = GetDevicesToUse();
 
-                            rbWebRTCCommunications.JoinConference(currentConfId, devices, false, false, false, 0, false, callbackJoinConference =>
+                            Dictionary<int, IMedia> mediaInputs = new Dictionary<int, IMedia>();
+                            if(audioInputStream != null)
+                                mediaInputs.Add(Call.Media.AUDIO, audioInputStream);
+
+                            rbWebRTCCommunications.JoinConference(currentConfId, mediaInputs, false, 0, false, callbackJoinConference =>
                             {
                                 currentCallId = currentConfId;
                             });
@@ -531,34 +544,6 @@ namespace SDK.ConsoleApp.WebRTC
     #endregion Rainbow.Conferencesevents
 
     #region Rainbow.WebRTC.Communication events
-
-        private static void RbWebRTCCommunications_OnSharingRemoteSourceRawSample(string callId, string userId, uint durationMilliseconds, int width, int height, int stride, IntPtr sample, SIPSorceryMedia.Abstractions.VideoPixelFormatsEnum pixelFormat)
-        {
-            if (currentCall == null)
-                return;
-
-            if (videoRemoteDisplay == VIDEO_REMOTE_DISPLAY.SHARING)
-            {
-                if (pixelFormat == SIPSorceryMedia.Abstractions.VideoPixelFormatsEnum.Rgb)
-                    asciiFrame?.GotRawImage(width, height, sample);
-            }
-            else if (videoRemoteDisplay == VIDEO_REMOTE_DISPLAY.NONE)
-                asciiFrame?.DisplayFooter();
-        }
-
-        private static void RbWebRTCCommunications_OnVideoRemoteSourceRawSample(string callId, string userId, uint durationMilliseconds, int width, int height, int stride, IntPtr sample, SIPSorceryMedia.Abstractions.VideoPixelFormatsEnum pixelFormat)
-        {
-            if (currentCall == null)
-                return;
-
-            if (videoRemoteDisplay == VIDEO_REMOTE_DISPLAY.VIDEO)
-            {
-                if (pixelFormat == SIPSorceryMedia.Abstractions.VideoPixelFormatsEnum.Rgb)
-                    asciiFrame?.GotRawImage(width, height, sample);
-            }
-            else if (videoRemoteDisplay == VIDEO_REMOTE_DISPLAY.NONE)
-                asciiFrame?.DisplayFooter();
-        }
 
         private static void RbWebRTCCommunications_CallUpdated(object? sender, Rainbow.Events.CallEventArgs e)
         {
@@ -625,10 +610,7 @@ namespace SDK.ConsoleApp.WebRTC
                         footerLine1 = $"Call updated: Status:[{e.Call.CallStatus}] - LocalMedias:[{MediasToString(e.Call.LocalMedias)}] - RemoteMedias:[{MediasToString(e.Call.RemoteMedias)}]";
                         footerLine2 = "";
 
-                        asciiFrame?.SetFooterText($"{footerLine1}\n{footerLine2}");
-                        asciiFrame?.DisplayFooter();
-
-                        Console.WriteLine(footerLine1);
+                        Console.WriteLine($"{footerLine1}\n{footerLine2}");
                     }
                 }
                 else
@@ -640,8 +622,6 @@ namespace SDK.ConsoleApp.WebRTC
                     //        currentConfId = null;
                     //    }
                     //}
-
-                   
                 }
 
             }
@@ -681,90 +661,119 @@ namespace SDK.ConsoleApp.WebRTC
             String logVideo = isVideo ? "Video" : "Audio";
             String logInput = isInput ? "Input" : "Ouput";
 
-            if (rbDevices != null)
+            List<Device>? devices = null;
+
+            if (isVideo)
             {
-                List<Device> devices;
-
-                if (isVideo)
-                    devices = rbDevices.GetVideoRecordingDevices();
-                else if (isInput)
-                    devices = rbDevices.GetAudioRecordingDevices();
-                else
-                    devices = rbDevices.GetAudioPlaybackDevices();
-
-
-                if ( (devices == null) || (devices.Count == 0) )
-                    Console.WriteLine($"You don't have an {logVideo} {logInput} device (Physical or emulated) ...");
-
-                int keyValue = 0;
-                while (true)
+                var list  = Devices.GetWebcamDevices();
+                if (list != null)
                 {
-                    Console.WriteLine($"\nSelect {logVideo} {logInput} device:");
-                    Console.Write($"\n [{0}] - Don't use this kind of device ");
-
-                    int index = 1;
-                    if (devices != null)
+                    devices = new List<Device>();
+                    foreach (var webcam in list)
                     {
-                        foreach (Device device in devices)
+                        devices.Add(webcam);
+                    }
+                }
+            }
+            else if (isInput)
+                devices = Devices.GetAudioInputDevices();
+            else
+                devices = Devices.GetAudioOutputDevices();
+
+
+            if ( (devices == null) || (devices.Count == 0) )
+                Console.WriteLine($"You don't have an {logVideo} {logInput} device (Physical or emulated) ...");
+
+            int keyValue = 0;
+            while (true)
+            {
+                Console.WriteLine($"\nSelect {logVideo} {logInput} device:");
+                Console.Write($"\n [{0}] - Don't use this kind of device ");
+
+                int index = 1;
+                if (devices != null)
+                {
+                    foreach (Device device in devices)
+                    {
+                        Console.Write($"\n [{index}] - {device.Name} ");
+                        index++;
+                    }
+                }
+
+                if (isInput)
+                {
+                    if (isVideo && (!String.IsNullOrEmpty(ApplicationInfo.VIDEO_FILE_PATH)))
+                        filePath = ApplicationInfo.VIDEO_FILE_PATH;
+                    else if ((!isVideo) && (!String.IsNullOrEmpty(ApplicationInfo.AUDIO_FILE_PATH)))
+                        filePath = ApplicationInfo.AUDIO_FILE_PATH;
+                    if (filePath != null)
+                        Console.Write($"\n [f] - {logVideo}: [{filePath}]");
+                }
+
+                Console.WriteLine("\n");
+                Console.Out.Flush();
+
+                var keyConsole = Console.ReadKey();
+
+                if ((keyConsole.KeyChar == 'f') && (filePath != null))
+                {
+                    String fileName = Path.GetFileName(filePath);
+                    if (isVideo)
+                    {
+                        videoInputSelected = new InputStreamDevice(fileName, fileName, filePath, true, audioInputSelected?.Path == filePath, true);
+                        videoInputStream = new MediaInput(videoInputSelected);
+                        if (!videoInputStream.Init())
                         {
-                            Console.Write($"\n [{index}] - {device.Name} ");
-                            index++;
+                            Console.WriteLine($"\n\n\t => {logVideo} {logInput} file/uri selected:[{filePath}] => Cannot init the stream ....");
+                            return false;
+                        }
+                        Console.WriteLine($"\n\n\t => {logVideo} {logInput} file/uri selected:[{filePath}]");
+
+                        if (audioInputSelected?.Path == filePath)
+                        {
+                            if (audioInputStream != null)
+                                audioInputStream.Dispose();
+                            audioInputStream = videoInputStream;
                         }
                     }
-
-                    if(isInput)
+                    else
                     {
-                        if (isVideo && (!String.IsNullOrEmpty(ApplicationInfo.VIDEO_FILE_PATH)))
-                            filePath = ApplicationInfo.VIDEO_FILE_PATH;
-                        else if ( (!isVideo) && (!String.IsNullOrEmpty(ApplicationInfo.AUDIO_FILE_PATH)))
-                            filePath = ApplicationInfo.AUDIO_FILE_PATH;
-                        if(filePath != null)
-                            Console.Write($"\n [f] - {logVideo}: [{filePath}]");
+                        audioInputSelected = new InputStreamDevice(fileName, fileName, filePath, false, true, true);
+                        audioInputStream = new MediaInput(audioInputSelected);
+                        if (!audioInputStream.Init())
+                        {
+                            Console.WriteLine($"\n\n\t => {logVideo} {logInput} file/uri selected:[{filePath}] => Cannot init the stream ....");
+                            return false;
+                        }
+                        Console.WriteLine($"\n\n\t => {logVideo} {logInput} file/uri selected:[{filePath}]");
                     }
-
-                    Console.WriteLine("\n");
-                    Console.Out.Flush();
-
-                    var keyConsole = Console.ReadKey();
-
-                    if ((keyConsole.KeyChar == 'f') && (filePath != null))
-                    {
-                        String fileName = Path.GetFileName(filePath);
-                        if (isVideo)
-                            videoInputDeviceSelected = new DeviceVideoFile(fileName, fileName, filePath, audioInputDeviceSelected?.Path == filePath, true);
-                        else 
-                            audioInputDeviceSelected = new DeviceAudioFile(fileName, fileName, filePath, true);
-                        return true;
-                    }
-                    else if (int.TryParse("" + keyConsole.KeyChar, out keyValue) && keyValue < index && keyValue >= 0)
-                    {
-                        break;
-                    }
+                    return true;
                 }
-
-                Device ? deviceSelected = null;
-
-                if ( (keyValue != 0) && (devices != null) )
+                else if (int.TryParse("" + keyConsole.KeyChar, out keyValue) && keyValue < index && keyValue >= 0)
                 {
-                    deviceSelected = devices[keyValue - 1];
-                    Console.WriteLine($"\n\n\t => {logVideo} {logInput} device selected:[{deviceSelected.Name}]");
+                    break;
                 }
-                else
-                    Console.WriteLine($"\n\n\t => {logVideo} {logInput} device selected:[NONE]");
+            }
 
-                if (isVideo)
-                    videoInputDeviceSelected = deviceSelected;
-                else if (isInput)
-                    audioInputDeviceSelected = deviceSelected;
-                else
-                    audioOutputDeviceSelected = deviceSelected;
+            Device ? deviceSelected = null;
 
-                return true;
+            if ( (keyValue != 0) && (devices != null) )
+            {
+                deviceSelected = devices[keyValue - 1];
+                Console.WriteLine($"\n\n\t => {logVideo} {logInput} device selected:[{deviceSelected.Name}]");
             }
             else
-                Console.WriteLine("rbDevices object has not be initialized");
+                Console.WriteLine($"\n\n\t => {logVideo} {logInput} device selected:[NONE]");
 
-            return false;
+            if (isVideo)
+                videoInputSelected = deviceSelected;
+            else if (isInput)
+                audioInputSelected = deviceSelected;
+            else
+                audioOutputSelected = deviceSelected;
+
+            return true;
+
         }
 
         static Boolean SelectAudioInputDevice()
@@ -796,8 +805,13 @@ namespace SDK.ConsoleApp.WebRTC
             {
                 Rainbow.CancelableDelay.StartAfter(1000, () =>
                 {
-                    if (!Rainbow.Util.MediasWithVideo(currentCall.LocalMedias))
-                        rbWebRTCCommunications.AddVideo(currentCall.Id, videoInputDeviceSelected);
+                    if (videoInputSelected != null)
+                    {
+                        var video = new MediaInput(videoInputSelected);
+                        if ( (!Rainbow.Util.MediasWithVideo(currentCall.LocalMedias))  && (video.Init()) )
+                            rbWebRTCCommunications.AddVideo(currentCall.Id, video);
+                    
+                    }
                 });
             }
 
@@ -806,22 +820,22 @@ namespace SDK.ConsoleApp.WebRTC
         {
             List<Device> devicesUsed = new List<Device>();
 
-            if (audioInputDeviceSelected != null)
+            if (audioInputSelected != null)
             {
-                Console.WriteLine($"\nAudio input device selected: [{audioInputDeviceSelected.Name}]");
-                devicesUsed.Add(audioInputDeviceSelected);
+                Console.WriteLine($"\nAudio input device selected: [{audioInputSelected.Name}]");
+                devicesUsed.Add(audioInputSelected);
             }
 
-            if (audioOutputDeviceSelected != null)
+            if (audioOutputSelected != null)
             {
-                Console.WriteLine($"\nAudio output device selected: [{audioOutputDeviceSelected.Name}]");
-                devicesUsed.Add(audioOutputDeviceSelected);
+                Console.WriteLine($"\nAudio output device selected: [{audioOutputSelected.Name}]");
+                devicesUsed.Add(audioOutputSelected);
             }
 
-            if (videoInputDeviceSelected != null)
+            if (videoInputSelected != null)
             {
-                Console.WriteLine($"\nVideo input device selected: [{videoInputDeviceSelected.Name}]");
-                devicesUsed.Add(videoInputDeviceSelected);
+                Console.WriteLine($"\nVideo input device selected: [{videoInputSelected.Name}]");
+                devicesUsed.Add(videoInputSelected);
             }
             return devicesUsed;
         }
