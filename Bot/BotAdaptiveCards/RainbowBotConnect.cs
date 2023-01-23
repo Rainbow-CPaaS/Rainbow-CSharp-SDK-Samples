@@ -698,9 +698,6 @@ namespace BotAdaptiveCards
 
             // We want to use conference features via API V2
             RbApplication.Restrictions.UseConferences = true;
-
-            // We want edition / deletion of IM message via API V2
-            RbApplication.Restrictions.UseMessageEditionAndDeletionV2 = true;
         }
 
         /// <summary>
