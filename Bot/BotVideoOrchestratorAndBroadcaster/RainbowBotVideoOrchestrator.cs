@@ -1045,7 +1045,7 @@ namespace BotVideoOrchestratorAndBroadcaster
         {
             if (_currentConferenceId != null)
             {
-                RbWebRTCCommunications.JoinConference(_currentConferenceId, null, false, 0, false, callback =>
+                RbWebRTCCommunications.JoinConference(_currentConferenceId, null, callback =>
                 {
                     if (!callback.Result.Success)
                     {
@@ -1126,7 +1126,7 @@ namespace BotVideoOrchestratorAndBroadcaster
 
             try
             {
-                RbWebRTCCommunications = Rainbow.WebRTC.WebRTCCommunications.CreateInstance(RbApplication, RainbowApplicationInfo.ffmpegLibFolderPath);
+                RbWebRTCCommunications = Rainbow.WebRTC.WebRTCCommunications.GetOrCreateInstance(RbApplication, RainbowApplicationInfo.ffmpegLibFolderPath);
             }
             catch (Exception ex)
             {
@@ -1363,7 +1363,7 @@ namespace BotVideoOrchestratorAndBroadcaster
                 }
                 else
                 {
-                    RbContacts.SetPresenceLevel(new Presence("online"));
+                    RbContacts.SetPresenceLevel(RbContacts.CreatePresence(true, "online", ""));
                 }
             }
         }

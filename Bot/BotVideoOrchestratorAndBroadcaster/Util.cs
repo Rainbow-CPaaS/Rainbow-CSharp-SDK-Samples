@@ -58,6 +58,9 @@ namespace BotVideoOrchestratorAndBroadcaster
             if (String.IsNullOrEmpty(message))
                 return;
 
+            
+            ConsoleColor color = new ConsoleColor();
+
             lock (consoleLockObject)
             {
                 if (foregroundColor != null)
