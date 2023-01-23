@@ -1,18 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Drawing.Imaging;
-using System.Linq;
-using System.Security.Policy;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using FFmpeg.AutoGen;
-using Rainbow.WebRTC;
+﻿using FFmpeg.AutoGen;
+using Rainbow;
 using Rainbow.Medias;
-using static Rainbow.Model.Call;
+using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Linq;
+using System.Windows.Forms;
 
 namespace SDK.UIForm.WebRTC
 {
@@ -29,6 +22,10 @@ namespace SDK.UIForm.WebRTC
 
         private IMediaVideo? _currentMediaVideo = null;
         private Boolean _needToStoreMediaVideo = false;
+
+        private AsciiFrame? _asciiFrame = null;
+
+        Boolean _initDone = false;
 
         public FormVideoOutputStream()
         {
@@ -54,11 +51,12 @@ namespace SDK.UIForm.WebRTC
 
             FillMainComboBoxWithMediaInputStream();
 
+            _initDone = true;
         }
 
         private void FillCodecList()
         {
-            var list = Rainbow.WebRTC.Helper.WebRTCVideoFormatsSupported();
+            var list = Rainbow.Medias.Helper.WebRTCVideoFormatsSupported();
             foreach(var element in list)
             {
                 ListItem item = new ListItem(element.ToString(), element.ToString());
@@ -134,18 +132,13 @@ namespace SDK.UIForm.WebRTC
 
                 if (_currentMediaVideo != null)
                     _currentMediaVideo.OnImage -= MediaVideo_OnImage;
-                
 
                 if (mediaVideo != null)
                 {
-                    _currentMediaVideo = mediaVideo;
-                    _currentMediaVideo.OnImage += MediaVideo_OnImage;
-
                     UpdatePlayBtn(mediaVideo.Id, mediaVideo.IsStarted, mediaVideo.IsPaused);
 
                     // We set a null image 
                     Helper.UpdatePictureBox(pb_VideoStream, null);
-
 
                     if (cb_Codecs.Items.Count == 0)
                         FillCodecList();
@@ -175,7 +168,7 @@ namespace SDK.UIForm.WebRTC
                             {
                                 if (cb_ListOfInputStreams.Items[i] is MediaInputStreamItem mediaInputStreamItem)
                                 {
-                                    if (_currentMediaVideo.Id == mediaInputStreamItem.Id)
+                                    if (mediaVideo.Id == mediaInputStreamItem.Id)
                                     {
                                         index = i;
                                         break;
@@ -190,6 +183,15 @@ namespace SDK.UIForm.WebRTC
                                 _needToStoreMediaVideo = true;
                         }
                     }
+
+                    CancelableDelay.StartAfter(200, () =>
+                    {
+                        lock (lockAboutImageManagement)
+                        {
+                            _currentMediaVideo = mediaVideo;
+                            _currentMediaVideo.OnImage += MediaVideo_OnImage;
+                        }
+                    });
                 }
                 else
                 {
@@ -201,7 +203,7 @@ namespace SDK.UIForm.WebRTC
                 }
             }
         }
-
+        
         private void UpdatePlayBtn(string mediaId, Boolean isStarted, Boolean isPaused)
         {
             if (_currentMediaVideo?.Id == mediaId)
@@ -252,6 +254,9 @@ namespace SDK.UIForm.WebRTC
         {
             lock (lockAboutImageManagement)
             {
+                if (!_initDone)
+                    return;
+
                 if (_currentMediaVideo?.Id == mediaId)
                 {
                     Bitmap? bitmap = Helper.BitmapFromImageData(width, height, stride, data, pixelFormat);
@@ -268,10 +273,17 @@ namespace SDK.UIForm.WebRTC
         {
             if(_currentMediaVideo != null)
                 _currentMediaVideo.OnImage -= MediaVideo_OnImage;
+
+            if(_asciiFrame != null)
+                _asciiFrame.OnAsciiFrame -= AsciiFrame_OnAsciiFrame;
+
         }
 
         private void FormVideoOutputStream_ClientSizeChanged(object sender, EventArgs e)
         {
+            if (!_initDone)
+                return;
+
             int width = this.Width - _diffWidth;
             int height = this.Height - _diffHeight;
 
@@ -357,7 +369,43 @@ namespace SDK.UIForm.WebRTC
             // Nothing to do;
         }
 
+        private void cb_AsciiFrame_CheckedChanged(object sender, EventArgs e)
+        {
+            tb_AsciiFrame.Visible = cb_AsciiFrame.Checked;
+            pb_VideoStream.Visible = !cb_AsciiFrame.Checked;
+
+            if (cb_AsciiFrame.Checked)
+            {
+                if(_asciiFrame == null)
+                {
+                    _asciiFrame = new AsciiFrame(false, 0);
+                    _asciiFrame.SetSize(160, 90);
+                    //_asciiFrame.SetSize(212, 64);
+                    _asciiFrame.OnAsciiFrame += AsciiFrame_OnAsciiFrame;
+                    if ( (_currentMediaVideo != null) && (_currentMediaVideo is MediaInput mediaInput) )
+                        _asciiFrame.SetMediaVideo(mediaInput);
+                }
+            }
+            else
+            {
+
+            }
+
+            
+
+        }
 
 #endregion Events from Form elements
+
+        private void AsciiFrame_OnAsciiFrame(object? sender, Rainbow.Events.StringEventArgs e)
+        {
+            lock (tb_AsciiFrame)
+            {
+                this.BeginInvoke(new Action(() =>
+                {
+                    tb_AsciiFrame.Text = e.Value;
+                }));
+            }
+        }
     }
 }

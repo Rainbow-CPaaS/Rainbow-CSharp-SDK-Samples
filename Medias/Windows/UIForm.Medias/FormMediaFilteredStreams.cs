@@ -1,16 +1,8 @@
-﻿using System;
+﻿using Rainbow.Medias;
+using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
 using System.Linq;
-using System.Security.Policy;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using Rainbow.Medias;
-using SIPSorcery.Net;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace SDK.UIForm.WebRTC
 {

@@ -4,7 +4,8 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <UseWindowsForms>true</UseWindowsForms>
-	<LangVersion>9.0</LangVersion>
+	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+	<LangVersion>10.0</LangVersion>
 	<Nullable>enable</Nullable>
 
   </PropertyGroup>
@@ -13,7 +14,7 @@
 		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.1" />
 		<PackageReference Include="NLog" Version="4.7.15" />
 		<PackageReference Include="NLog.Extensions.Logging" Version="1.7.5" />
-		<PackageReference Include="Rainbow.CSharp.SDK.WebRTC" Version="0.0.6-sts" />
+		<PackageReference Include="Rainbow.CSharp.SDK.WebRTC" Version="0.0.7-sts" />
 	</ItemGroup>
 
 	<ItemGroup>
