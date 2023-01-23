@@ -1,14 +1,6 @@
-﻿using Newtonsoft.Json.Linq;
-using NLog.Config;
-using Rainbow;
+﻿using Rainbow;
 using System;
-using System.Configuration;
-using System.IO;
-using System.Reflection;
 using System.Windows.Forms;
-using System.Xml;
-
-using static System.Net.Mime.MediaTypeNames;
 
 namespace SDK.UIForm.WebRTC
 {
@@ -28,8 +20,6 @@ namespace SDK.UIForm.WebRTC
             this.HandleCreated += Form_HandleCreated;
             
             InitializeComponent();
-
-            
         }
 
         private void Form_HandleCreated(object sender, EventArgs e)
@@ -48,7 +38,7 @@ namespace SDK.UIForm.WebRTC
             // Set main values
             rbApplication.SetApplicationInfo(configuration.AppId, configuration.AppSecret);
             rbApplication.SetHostInfo(configuration.HostName);
-            rbApplication.SetTimeout(10000);
+            rbApplication.SetTimeout(20000);
 
             // Define events we want to manage
             rbApplication.ConnectionStateChanged += RbApplication_ConnectionStateChanged;
@@ -216,6 +206,7 @@ namespace SDK.UIForm.WebRTC
 
             _formWebRTC.WindowState = FormWindowState.Normal;
             _formWebRTC.Show();
+            _formWebRTC.Activate();
         }
 
     #endregion EVENTS RAISED BY Forms Elements

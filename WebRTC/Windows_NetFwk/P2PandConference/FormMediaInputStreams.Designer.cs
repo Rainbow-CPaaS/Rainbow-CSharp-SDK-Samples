@@ -145,7 +145,6 @@ namespace SDK.UIForm.WebRTC
             this.btn_OutputVideo07 = new System.Windows.Forms.Button();
             this.btn_OutputVideo08 = new System.Windows.Forms.Button();
             this.btn_OutputVideo09 = new System.Windows.Forms.Button();
-            this.cb_DisposeMediaStream = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.pb_Video03)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pb_Video06)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pb_Video09)).BeginInit();
@@ -1449,26 +1448,11 @@ namespace SDK.UIForm.WebRTC
             this.btn_OutputVideo09.UseVisualStyleBackColor = true;
             this.btn_OutputVideo09.Click += new System.EventHandler(this.btn_OuputVideoXX_Click);
             // 
-            // cb_DisposeMediaStream
-            // 
-            this.cb_DisposeMediaStream.AutoCheck = false;
-            this.cb_DisposeMediaStream.AutoSize = true;
-            this.cb_DisposeMediaStream.Location = new System.Drawing.Point(476, 634);
-            this.cb_DisposeMediaStream.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
-            this.cb_DisposeMediaStream.Name = "cb_DisposeMediaStream";
-            this.cb_DisposeMediaStream.Size = new System.Drawing.Size(257, 19);
-            this.cb_DisposeMediaStream.TabIndex = 343;
-            this.cb_DisposeMediaStream.Text = "Dispose Media Stream object when stopped";
-            this.cb_DisposeMediaStream.UseVisualStyleBackColor = true;
-            this.cb_DisposeMediaStream.Visible = false;
-            this.cb_DisposeMediaStream.CheckedChanged += new System.EventHandler(this.cb_DisposeMediaStream_CheckedChanged);
-            // 
             // FormMediaInputStreams
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(873, 694);
-            this.Controls.Add(this.cb_DisposeMediaStream);
             this.Controls.Add(this.btn_OutputVideo09);
             this.Controls.Add(this.btn_OutputVideo08);
             this.Controls.Add(this.btn_OutputVideo07);
@@ -1722,6 +1706,5 @@ namespace SDK.UIForm.WebRTC
         private Button btn_OutputVideo07;
         private Button btn_OutputVideo08;
         private Button btn_OutputVideo09;
-        private CheckBox cb_DisposeMediaStream;
     }
 }

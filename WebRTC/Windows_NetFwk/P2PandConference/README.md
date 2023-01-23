@@ -16,4 +16,4 @@ It uses the **Rainbow CSharp SDK Medias** library. Check a look [here](../Medias
 
 So you need first to understand how to use them.
 
-**More details [here](../../README.md)**
+**More important details [here](../../README.md)**

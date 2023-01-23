@@ -1,23 +1,11 @@
-﻿using System;
+﻿using Rainbow;
+using Rainbow.Medias;
+using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Drawing.Imaging;
 using System.Linq;
-using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Xml.Linq;
-using DirectShowLib.MultimediaStreaming;
-using EmguFFmpeg;
-using FFmpeg.AutoGen;
-using Rainbow;
-using Rainbow.Medias;
-using Rainbow.WebRTC;
-using SIPSorcery.net.RTP;
-using static Rainbow.Model.Call;
 
 namespace SDK.UIForm.WebRTC
 {
@@ -941,12 +929,18 @@ namespace SDK.UIForm.WebRTC
                 IMedia? mediaStream = GetMediaInputStreamRelatedToControl(control);
                 if (mediaStream != null)
                 {
-                    if (mediaStream.IsPaused)
-                        mediaStream.Resume();
-                    else if (mediaStream.IsStarted)
-                        mediaStream.Pause();
-                    else
-                        mediaStream.Start();
+                    Action action = () =>
+                    {
+                        if (mediaStream.IsPaused)
+                            mediaStream.Resume();
+                        else if (mediaStream.IsStarted)
+                            mediaStream.Pause();
+                        else
+                            mediaStream.Start();
+                    };
+
+                    Task task = new Task(action);
+                    task.Start();
 
                     //UpdatePlayAllBtn(mediaStream.Id, mediaStream.IsStarted, mediaStream.IsPaused);
                 }
@@ -970,8 +964,8 @@ namespace SDK.UIForm.WebRTC
                 if (mediaStream is IMediaVideo mediaVideo)
                 {
                     var form = new FormVideoOutputStream();
-                    form.SetMediaVideo(mediaVideo);
                     form.Show();
+                    form.SetMediaVideo(mediaVideo);
                 }
             }
         }
@@ -1011,6 +1005,7 @@ namespace SDK.UIForm.WebRTC
 
             _formMediaFilteredStreams.WindowState = FormWindowState.Normal;
             _formMediaFilteredStreams.Show();
+            _formMediaFilteredStreams.Activate();
         }
 
         private void cb_SelectMultiStream_SelectedIndexChanged(object sender, EventArgs e)
@@ -1157,7 +1152,8 @@ namespace SDK.UIForm.WebRTC
 
         private void btn_RemoveSourceForFilter_Click(object sender, EventArgs e)
         {
-            cb_ListOnFilters.Items.RemoveAt(cb_ListOnFilters.SelectedIndex);
+            if(cb_ListOnFilters.SelectedIndex > -1)
+                cb_ListOnFilters.Items.RemoveAt(cb_ListOnFilters.SelectedIndex);
             if (cb_ListOnFilters.Items.Count > 0)
                 cb_ListOnFilters.SelectedIndex = 0;
 
@@ -1223,16 +1219,21 @@ namespace SDK.UIForm.WebRTC
         {
             if (_currentMediaStreamFiltered != null)
             {
+                Action action = () =>
+                {
+                    if (_currentMediaStreamFiltered.IsPaused)
+                        _currentMediaStreamFiltered.Resume();
+                    else if (_currentMediaStreamFiltered.IsStarted)
+                        _currentMediaStreamFiltered.Pause();
+                    else
+                        _currentMediaStreamFiltered.Start();
 
-                if (_currentMediaStreamFiltered.IsPaused)
-                    _currentMediaStreamFiltered.Resume();
-                else if (_currentMediaStreamFiltered.IsStarted)
-                    _currentMediaStreamFiltered.Pause();
-                else
-                    _currentMediaStreamFiltered.Start();
+                    UpdatePlayBtnForMediaFiltered();
+                };
+
+                Task task = new Task(action);
+                task.Start();
             }
-
-            UpdatePlayBtnForMediaFiltered();
         }
 
         private void btn_StopVideoFilter_Click(object sender, EventArgs e)
@@ -1255,8 +1256,8 @@ namespace SDK.UIForm.WebRTC
                 if (_currentMediaStreamFiltered is IMediaVideo mediaVideo)
                 {
                     var form = new FormVideoOutputStream();
-                    form.SetMediaVideo(mediaVideo);
                     form.Show();
+                    form.SetMediaVideo(mediaVideo);
                 }
             }
         }
@@ -1322,11 +1323,6 @@ namespace SDK.UIForm.WebRTC
         private void cb_AudioInputList_SelectedIndexChanged(object sender, EventArgs e)
         {
 
-        }
-
-        private void cb_DisposeMediaStream_CheckedChanged(object sender, EventArgs e)
-        {
-            _mediaInputStreamsManager.SetDisposeMediaStreamWhenStopped(cb_DisposeMediaStream.Checked);
         }
 
         private void btn_ManageWebcam_Click(object sender, EventArgs e)

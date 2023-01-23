@@ -39,8 +39,6 @@
             this.label2 = new System.Windows.Forms.Label();
             this.lb_PublishersSharing = new System.Windows.Forms.ListBox();
             this.label3 = new System.Windows.Forms.Label();
-            this.button1 = new System.Windows.Forms.Button();
-            this.button2 = new System.Windows.Forms.Button();
             this.label4 = new System.Windows.Forms.Label();
             this.lb_Members = new System.Windows.Forms.ListBox();
             this.label5 = new System.Windows.Forms.Label();
@@ -54,10 +52,16 @@
             this.lblConferenceRecordingStatus = new System.Windows.Forms.Label();
             this.lbl_ConferenceInProgress = new System.Windows.Forms.Label();
             this.lbl_ConferenceDetails = new System.Windows.Forms.Label();
+            this.btn_OutputRemoteVideoInput = new System.Windows.Forms.Button();
+            this.btn_OutputRemoteSharingInput = new System.Windows.Forms.Button();
+            this.btn_SubscribeRemoteVideoInput = new System.Windows.Forms.Button();
+            this.btn_SubscribeRemoteSharingInput = new System.Windows.Forms.Button();
+            this.btn_SubscribeRemoteAudioInput = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // btn_ParticipantDelegate
             // 
+            this.btn_ParticipantDelegate.Enabled = false;
             this.btn_ParticipantDelegate.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.btn_ParticipantDelegate.Location = new System.Drawing.Point(321, 474);
             this.btn_ParticipantDelegate.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
@@ -72,21 +76,23 @@
             // 
             this.lb_ActiveTalkers.Font = new System.Drawing.Font("Segoe UI", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.lb_ActiveTalkers.FormattingEnabled = true;
-            this.lb_ActiveTalkers.Location = new System.Drawing.Point(13, 445);
+            this.lb_ActiveTalkers.Location = new System.Drawing.Point(17, 142);
             this.lb_ActiveTalkers.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.lb_ActiveTalkers.Name = "lb_ActiveTalkers";
             this.lb_ActiveTalkers.Size = new System.Drawing.Size(200, 56);
             this.lb_ActiveTalkers.TabIndex = 1280;
+            this.lb_ActiveTalkers.SelectedIndexChanged += new System.EventHandler(this.lb_ActiveTalkers_SelectedIndexChanged);
             // 
             // lb_PublishersVideo
             // 
             this.lb_PublishersVideo.Font = new System.Drawing.Font("Segoe UI", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.lb_PublishersVideo.FormattingEnabled = true;
-            this.lb_PublishersVideo.Location = new System.Drawing.Point(13, 153);
+            this.lb_PublishersVideo.Location = new System.Drawing.Point(15, 247);
             this.lb_PublishersVideo.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.lb_PublishersVideo.Name = "lb_PublishersVideo";
             this.lb_PublishersVideo.Size = new System.Drawing.Size(200, 147);
             this.lb_PublishersVideo.TabIndex = 1279;
+            this.lb_PublishersVideo.SelectedIndexChanged += new System.EventHandler(this.lb_PublishersVideo_SelectedIndexChanged);
             // 
             // lb_Participants
             // 
@@ -97,9 +103,11 @@
             this.lb_Participants.Name = "lb_Participants";
             this.lb_Participants.Size = new System.Drawing.Size(201, 238);
             this.lb_Participants.TabIndex = 1278;
+            this.lb_Participants.SelectedIndexChanged += new System.EventHandler(this.lb_Participants_SelectedIndexChanged);
             // 
             // btn_ParticipantDrop
             // 
+            this.btn_ParticipantDrop.Enabled = false;
             this.btn_ParticipantDrop.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.btn_ParticipantDrop.Location = new System.Drawing.Point(382, 474);
             this.btn_ParticipantDrop.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
@@ -112,6 +120,7 @@
             // 
             // btn_ParticipantMute
             // 
+            this.btn_ParticipantMute.Enabled = false;
             this.btn_ParticipantMute.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.btn_ParticipantMute.Location = new System.Drawing.Point(232, 474);
             this.btn_ParticipantMute.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
@@ -126,7 +135,7 @@
             // 
             this.label1.AutoSize = true;
             this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.label1.Location = new System.Drawing.Point(9, 134);
+            this.label1.Location = new System.Drawing.Point(11, 231);
             this.label1.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(113, 13);
@@ -148,7 +157,7 @@
             // 
             this.label2.AutoSize = true;
             this.label2.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.label2.Location = new System.Drawing.Point(9, 429);
+            this.label2.Location = new System.Drawing.Point(13, 126);
             this.label2.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(93, 13);
@@ -159,46 +168,23 @@
             // 
             this.lb_PublishersSharing.Font = new System.Drawing.Font("Segoe UI", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.lb_PublishersSharing.FormattingEnabled = true;
-            this.lb_PublishersSharing.Location = new System.Drawing.Point(13, 349);
+            this.lb_PublishersSharing.Location = new System.Drawing.Point(15, 449);
             this.lb_PublishersSharing.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.lb_PublishersSharing.Name = "lb_PublishersSharing";
-            this.lb_PublishersSharing.Size = new System.Drawing.Size(201, 43);
+            this.lb_PublishersSharing.Size = new System.Drawing.Size(201, 30);
             this.lb_PublishersSharing.TabIndex = 1284;
+            this.lb_PublishersSharing.SelectedIndexChanged += new System.EventHandler(this.lb_PublishersSharing_SelectedIndexChanged);
             // 
             // label3
             // 
             this.label3.AutoSize = true;
             this.label3.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.label3.Location = new System.Drawing.Point(9, 333);
+            this.label3.Location = new System.Drawing.Point(11, 433);
             this.label3.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(124, 13);
             this.label3.TabIndex = 1283;
             this.label3.Text = "Publishers - Sharing:";
-            // 
-            // button1
-            // 
-            this.button1.Enabled = false;
-            this.button1.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.button1.Location = new System.Drawing.Point(47, 301);
-            this.button1.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(143, 27);
-            this.button1.TabIndex = 1285;
-            this.button1.Text = "Subscribe / Unsubscribe";
-            this.button1.UseVisualStyleBackColor = true;
-            // 
-            // button2
-            // 
-            this.button2.Enabled = false;
-            this.button2.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.button2.Location = new System.Drawing.Point(45, 393);
-            this.button2.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
-            this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(143, 27);
-            this.button2.TabIndex = 1286;
-            this.button2.Text = "Subscribe / Unsubscribe";
-            this.button2.UseVisualStyleBackColor = true;
             // 
             // label4
             // 
@@ -246,7 +232,7 @@
             // tbInformation
             // 
             this.tbInformation.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.tbInformation.Location = new System.Drawing.Point(440, 25);
+            this.tbInformation.Location = new System.Drawing.Point(440, 23);
             this.tbInformation.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
             this.tbInformation.Multiline = true;
             this.tbInformation.Name = "tbInformation";
@@ -256,11 +242,11 @@
             // 
             // btnConferenceLock
             // 
-            this.btnConferenceLock.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.btnConferenceLock.Location = new System.Drawing.Point(122, 59);
+            this.btnConferenceLock.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.btnConferenceLock.Location = new System.Drawing.Point(128, 48);
             this.btnConferenceLock.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.btnConferenceLock.Name = "btnConferenceLock";
-            this.btnConferenceLock.Size = new System.Drawing.Size(91, 27);
+            this.btnConferenceLock.Size = new System.Drawing.Size(86, 20);
             this.btnConferenceLock.TabIndex = 1293;
             this.btnConferenceLock.Text = "Lock/Unlock";
             this.btnConferenceLock.UseVisualStyleBackColor = true;
@@ -268,11 +254,11 @@
             // 
             // btnConferenceMute
             // 
-            this.btnConferenceMute.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.btnConferenceMute.Location = new System.Drawing.Point(13, 59);
+            this.btnConferenceMute.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.btnConferenceMute.Location = new System.Drawing.Point(13, 48);
             this.btnConferenceMute.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.btnConferenceMute.Name = "btnConferenceMute";
-            this.btnConferenceMute.Size = new System.Drawing.Size(89, 27);
+            this.btnConferenceMute.Size = new System.Drawing.Size(86, 20);
             this.btnConferenceMute.TabIndex = 1292;
             this.btnConferenceMute.Text = "Mute/Unmute";
             this.btnConferenceMute.UseVisualStyleBackColor = true;
@@ -280,11 +266,11 @@
             // 
             // btnConferenceStop
             // 
-            this.btnConferenceStop.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.btnConferenceStop.Location = new System.Drawing.Point(174, 2);
+            this.btnConferenceStop.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.btnConferenceStop.Location = new System.Drawing.Point(174, 7);
             this.btnConferenceStop.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.btnConferenceStop.Name = "btnConferenceStop";
-            this.btnConferenceStop.Size = new System.Drawing.Size(39, 27);
+            this.btnConferenceStop.Size = new System.Drawing.Size(39, 20);
             this.btnConferenceStop.TabIndex = 1294;
             this.btnConferenceStop.Text = "Stop";
             this.btnConferenceStop.UseVisualStyleBackColor = true;
@@ -292,11 +278,11 @@
             // 
             // btnConferenceRecordingStart
             // 
-            this.btnConferenceRecordingStart.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.btnConferenceRecordingStart.Location = new System.Drawing.Point(17, 104);
+            this.btnConferenceRecordingStart.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.btnConferenceRecordingStart.Location = new System.Drawing.Point(13, 94);
             this.btnConferenceRecordingStart.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.btnConferenceRecordingStart.Name = "btnConferenceRecordingStart";
-            this.btnConferenceRecordingStart.Size = new System.Drawing.Size(89, 27);
+            this.btnConferenceRecordingStart.Size = new System.Drawing.Size(86, 20);
             this.btnConferenceRecordingStart.TabIndex = 1297;
             this.btnConferenceRecordingStart.Text = "Start/Stop";
             this.btnConferenceRecordingStart.UseVisualStyleBackColor = true;
@@ -304,11 +290,11 @@
             // 
             // btnConferenceRecordingPause
             // 
-            this.btnConferenceRecordingPause.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.btnConferenceRecordingPause.Location = new System.Drawing.Point(122, 104);
+            this.btnConferenceRecordingPause.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.btnConferenceRecordingPause.Location = new System.Drawing.Point(128, 94);
             this.btnConferenceRecordingPause.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.btnConferenceRecordingPause.Name = "btnConferenceRecordingPause";
-            this.btnConferenceRecordingPause.Size = new System.Drawing.Size(91, 27);
+            this.btnConferenceRecordingPause.Size = new System.Drawing.Size(86, 20);
             this.btnConferenceRecordingPause.TabIndex = 1296;
             this.btnConferenceRecordingPause.Text = "Pause/Resume";
             this.btnConferenceRecordingPause.UseVisualStyleBackColor = true;
@@ -318,7 +304,7 @@
             // 
             this.lblConferenceRecordingStatus.AutoSize = true;
             this.lblConferenceRecordingStatus.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.lblConferenceRecordingStatus.Location = new System.Drawing.Point(15, 88);
+            this.lblConferenceRecordingStatus.Location = new System.Drawing.Point(15, 78);
             this.lblConferenceRecordingStatus.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.lblConferenceRecordingStatus.Name = "lblConferenceRecordingStatus";
             this.lblConferenceRecordingStatus.Size = new System.Drawing.Size(69, 13);
@@ -336,23 +322,91 @@
             this.lbl_ConferenceInProgress.TabIndex = 1298;
             this.lbl_ConferenceInProgress.Text = "In progress";
             this.lbl_ConferenceInProgress.TextAlign = System.Drawing.ContentAlignment.TopCenter;
+            this.lbl_ConferenceInProgress.Visible = false;
             // 
             // lbl_ConferenceDetails
             // 
             this.lbl_ConferenceDetails.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.lbl_ConferenceDetails.ForeColor = System.Drawing.Color.Blue;
-            this.lbl_ConferenceDetails.Location = new System.Drawing.Point(15, 32);
+            this.lbl_ConferenceDetails.Location = new System.Drawing.Point(15, 26);
             this.lbl_ConferenceDetails.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.lbl_ConferenceDetails.Name = "lbl_ConferenceDetails";
-            this.lbl_ConferenceDetails.Size = new System.Drawing.Size(212, 14);
+            this.lbl_ConferenceDetails.Size = new System.Drawing.Size(202, 21);
             this.lbl_ConferenceDetails.TabIndex = 1299;
             this.lbl_ConferenceDetails.Text = "details";
+            this.lbl_ConferenceDetails.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // btn_OutputRemoteVideoInput
+            // 
+            this.btn_OutputRemoteVideoInput.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            this.btn_OutputRemoteVideoInput.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btn_OutputRemoteVideoInput.ForeColor = System.Drawing.SystemColors.Control;
+            this.btn_OutputRemoteVideoInput.Location = new System.Drawing.Point(151, 398);
+            this.btn_OutputRemoteVideoInput.Name = "btn_OutputRemoteVideoInput";
+            this.btn_OutputRemoteVideoInput.Size = new System.Drawing.Size(16, 16);
+            this.btn_OutputRemoteVideoInput.TabIndex = 1303;
+            this.btn_OutputRemoteVideoInput.UseVisualStyleBackColor = true;
+            // 
+            // btn_OutputRemoteSharingInput
+            // 
+            this.btn_OutputRemoteSharingInput.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            this.btn_OutputRemoteSharingInput.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btn_OutputRemoteSharingInput.ForeColor = System.Drawing.SystemColors.Control;
+            this.btn_OutputRemoteSharingInput.Location = new System.Drawing.Point(151, 483);
+            this.btn_OutputRemoteSharingInput.Name = "btn_OutputRemoteSharingInput";
+            this.btn_OutputRemoteSharingInput.Size = new System.Drawing.Size(16, 16);
+            this.btn_OutputRemoteSharingInput.TabIndex = 1304;
+            this.btn_OutputRemoteSharingInput.UseVisualStyleBackColor = true;
+            // 
+            // btn_SubscribeRemoteVideoInput
+            // 
+            this.btn_SubscribeRemoteVideoInput.Enabled = false;
+            this.btn_SubscribeRemoteVideoInput.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.btn_SubscribeRemoteVideoInput.ForeColor = System.Drawing.Color.DarkGreen;
+            this.btn_SubscribeRemoteVideoInput.Location = new System.Drawing.Point(72, 395);
+            this.btn_SubscribeRemoteVideoInput.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            this.btn_SubscribeRemoteVideoInput.Name = "btn_SubscribeRemoteVideoInput";
+            this.btn_SubscribeRemoteVideoInput.Size = new System.Drawing.Size(73, 20);
+            this.btn_SubscribeRemoteVideoInput.TabIndex = 1306;
+            this.btn_SubscribeRemoteVideoInput.Text = "Subscribe";
+            this.btn_SubscribeRemoteVideoInput.UseVisualStyleBackColor = true;
+            // 
+            // btn_SubscribeRemoteSharingInput
+            // 
+            this.btn_SubscribeRemoteSharingInput.Enabled = false;
+            this.btn_SubscribeRemoteSharingInput.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.btn_SubscribeRemoteSharingInput.ForeColor = System.Drawing.Color.DarkGreen;
+            this.btn_SubscribeRemoteSharingInput.Location = new System.Drawing.Point(72, 481);
+            this.btn_SubscribeRemoteSharingInput.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            this.btn_SubscribeRemoteSharingInput.Name = "btn_SubscribeRemoteSharingInput";
+            this.btn_SubscribeRemoteSharingInput.Size = new System.Drawing.Size(73, 20);
+            this.btn_SubscribeRemoteSharingInput.TabIndex = 1307;
+            this.btn_SubscribeRemoteSharingInput.Text = "Subscribe";
+            this.btn_SubscribeRemoteSharingInput.UseVisualStyleBackColor = true;
+            // 
+            // btn_SubscribeRemoteAudioInput
+            // 
+            this.btn_SubscribeRemoteAudioInput.Enabled = false;
+            this.btn_SubscribeRemoteAudioInput.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.btn_SubscribeRemoteAudioInput.ForeColor = System.Drawing.Color.DarkGreen;
+            this.btn_SubscribeRemoteAudioInput.Location = new System.Drawing.Point(74, 200);
+            this.btn_SubscribeRemoteAudioInput.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            this.btn_SubscribeRemoteAudioInput.Name = "btn_SubscribeRemoteAudioInput";
+            this.btn_SubscribeRemoteAudioInput.Size = new System.Drawing.Size(73, 20);
+            this.btn_SubscribeRemoteAudioInput.TabIndex = 1308;
+            this.btn_SubscribeRemoteAudioInput.Text = "Subscribe";
+            this.btn_SubscribeRemoteAudioInput.UseVisualStyleBackColor = true;
             // 
             // FormConferenceOptions
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(780, 513);
+            this.Controls.Add(this.btn_SubscribeRemoteAudioInput);
+            this.Controls.Add(this.btn_SubscribeRemoteSharingInput);
+            this.Controls.Add(this.btn_SubscribeRemoteVideoInput);
+            this.Controls.Add(this.btn_OutputRemoteSharingInput);
+            this.Controls.Add(this.btn_OutputRemoteVideoInput);
             this.Controls.Add(this.lbl_ConferenceDetails);
             this.Controls.Add(this.lbl_ConferenceInProgress);
             this.Controls.Add(this.btnConferenceRecordingStart);
@@ -366,8 +420,6 @@
             this.Controls.Add(this.lb_Members);
             this.Controls.Add(this.label5);
             this.Controls.Add(this.label4);
-            this.Controls.Add(this.button2);
-            this.Controls.Add(this.button1);
             this.Controls.Add(this.lb_PublishersSharing);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.label2);
@@ -403,8 +455,6 @@
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.ListBox lb_PublishersSharing;
         private System.Windows.Forms.Label label3;
-        private System.Windows.Forms.Button button1;
-        private System.Windows.Forms.Button button2;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.ListBox lb_Members;
         private System.Windows.Forms.Label label5;
@@ -418,5 +468,10 @@
         private System.Windows.Forms.Label lblConferenceRecordingStatus;
         private System.Windows.Forms.Label lbl_ConferenceInProgress;
         private System.Windows.Forms.Label lbl_ConferenceDetails;
+        private System.Windows.Forms.Button btn_OutputRemoteVideoInput;
+        private System.Windows.Forms.Button btn_OutputRemoteSharingInput;
+        private System.Windows.Forms.Button btn_SubscribeRemoteVideoInput;
+        private System.Windows.Forms.Button btn_SubscribeRemoteSharingInput;
+        private System.Windows.Forms.Button btn_SubscribeRemoteAudioInput;
     }
 }

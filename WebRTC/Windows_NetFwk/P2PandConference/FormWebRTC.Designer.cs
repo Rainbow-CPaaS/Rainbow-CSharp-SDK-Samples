@@ -30,6 +30,7 @@ namespace SDK.UIForm.WebRTC
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.cb_AudioOutputs = new System.Windows.Forms.ComboBox();
             this.label4 = new System.Windows.Forms.Label();
             this.cb_AudioInputs = new System.Windows.Forms.ComboBox();
@@ -83,8 +84,6 @@ namespace SDK.UIForm.WebRTC
             this.cb_RemoveMedia = new System.Windows.Forms.ComboBox();
             this.cb_AddMedia = new System.Windows.Forms.ComboBox();
             this.cb_UnmuteMedia = new System.Windows.Forms.ComboBox();
-            this.btn_OutputRemoteVideoInput = new System.Windows.Forms.Button();
-            this.btn_OutputRemoteSharingInput = new System.Windows.Forms.Button();
             this.btn_OutputLocalVideoInput = new System.Windows.Forms.Button();
             this.btn_OutputLocalSharingInput = new System.Windows.Forms.Button();
             this.btn_StopVideoInput = new System.Windows.Forms.Button();
@@ -98,6 +97,12 @@ namespace SDK.UIForm.WebRTC
             this.lbl_ConversationInProgress = new System.Windows.Forms.Label();
             this.cb_ConferencesName = new System.Windows.Forms.ComboBox();
             this.btn_AddAsParticipant = new System.Windows.Forms.Button();
+            this.btn_OutputRemoteVideoInput = new System.Windows.Forms.Button();
+            this.btn_OutputRemoteSharingInput = new System.Windows.Forms.Button();
+            this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
+            this.btn_SubscribeRemoteAudioInput = new System.Windows.Forms.Button();
+            this.btn_SubscribeRemoteVideoInput = new System.Windows.Forms.Button();
+            this.btn_SubscribeRemoteSharingInput = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // cb_AudioOutputs
@@ -677,33 +682,12 @@ namespace SDK.UIForm.WebRTC
             this.cb_UnmuteMedia.Size = new System.Drawing.Size(123, 23);
             this.cb_UnmuteMedia.TabIndex = 353;
             // 
-            // btn_OutputRemoteVideoInput
-            // 
-            this.btn_OutputRemoteVideoInput.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btn_OutputRemoteVideoInput.ForeColor = System.Drawing.SystemColors.Control;
-            this.btn_OutputRemoteVideoInput.Location = new System.Drawing.Point(237, 458);
-            this.btn_OutputRemoteVideoInput.Name = "btn_OutputRemoteVideoInput";
-            this.btn_OutputRemoteVideoInput.Size = new System.Drawing.Size(16, 16);
-            this.btn_OutputRemoteVideoInput.TabIndex = 354;
-            this.btn_OutputRemoteVideoInput.UseVisualStyleBackColor = true;
-            this.btn_OutputRemoteVideoInput.Click += new System.EventHandler(this.btn_OutputRemoteVideoInput_Click);
-            // 
-            // btn_OutputRemoteSharingInput
-            // 
-            this.btn_OutputRemoteSharingInput.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btn_OutputRemoteSharingInput.ForeColor = System.Drawing.SystemColors.Control;
-            this.btn_OutputRemoteSharingInput.Location = new System.Drawing.Point(237, 482);
-            this.btn_OutputRemoteSharingInput.Name = "btn_OutputRemoteSharingInput";
-            this.btn_OutputRemoteSharingInput.Size = new System.Drawing.Size(16, 16);
-            this.btn_OutputRemoteSharingInput.TabIndex = 355;
-            this.btn_OutputRemoteSharingInput.UseVisualStyleBackColor = true;
-            this.btn_OutputRemoteSharingInput.Click += new System.EventHandler(this.btn_OutputRemoteSharingInput_Click);
-            // 
             // btn_OutputLocalVideoInput
             // 
+            this.btn_OutputLocalVideoInput.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.btn_OutputLocalVideoInput.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btn_OutputLocalVideoInput.ForeColor = System.Drawing.SystemColors.Control;
-            this.btn_OutputLocalVideoInput.Location = new System.Drawing.Point(108, 482);
+            this.btn_OutputLocalVideoInput.Location = new System.Drawing.Point(106, 459);
             this.btn_OutputLocalVideoInput.Name = "btn_OutputLocalVideoInput";
             this.btn_OutputLocalVideoInput.Size = new System.Drawing.Size(16, 16);
             this.btn_OutputLocalVideoInput.TabIndex = 356;
@@ -712,9 +696,10 @@ namespace SDK.UIForm.WebRTC
             // 
             // btn_OutputLocalSharingInput
             // 
+            this.btn_OutputLocalSharingInput.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.btn_OutputLocalSharingInput.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btn_OutputLocalSharingInput.ForeColor = System.Drawing.SystemColors.Control;
-            this.btn_OutputLocalSharingInput.Location = new System.Drawing.Point(108, 458);
+            this.btn_OutputLocalSharingInput.Location = new System.Drawing.Point(107, 482);
             this.btn_OutputLocalSharingInput.Name = "btn_OutputLocalSharingInput";
             this.btn_OutputLocalSharingInput.Size = new System.Drawing.Size(16, 16);
             this.btn_OutputLocalSharingInput.TabIndex = 357;
@@ -809,12 +794,12 @@ namespace SDK.UIForm.WebRTC
             // btn_ConferenceOptions
             // 
             this.btn_ConferenceOptions.Enabled = false;
-            this.btn_ConferenceOptions.Location = new System.Drawing.Point(24, 246);
+            this.btn_ConferenceOptions.Location = new System.Drawing.Point(174, 506);
             this.btn_ConferenceOptions.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
             this.btn_ConferenceOptions.Name = "btn_ConferenceOptions";
-            this.btn_ConferenceOptions.Size = new System.Drawing.Size(123, 23);
+            this.btn_ConferenceOptions.Size = new System.Drawing.Size(144, 23);
             this.btn_ConferenceOptions.TabIndex = 365;
-            this.btn_ConferenceOptions.Text = "Conf. Options ...";
+            this.btn_ConferenceOptions.Text = "Conference options ...";
             this.btn_ConferenceOptions.UseVisualStyleBackColor = true;
             this.btn_ConferenceOptions.Click += new System.EventHandler(this.btn_ConferenceOptions_Click);
             // 
@@ -852,11 +837,77 @@ namespace SDK.UIForm.WebRTC
             this.btn_AddAsParticipant.Text = "Add as participant";
             this.btn_AddAsParticipant.UseVisualStyleBackColor = true;
             // 
+            // btn_OutputRemoteVideoInput
+            // 
+            this.btn_OutputRemoteVideoInput.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            this.btn_OutputRemoteVideoInput.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btn_OutputRemoteVideoInput.ForeColor = System.Drawing.SystemColors.Control;
+            this.btn_OutputRemoteVideoInput.Location = new System.Drawing.Point(320, 459);
+            this.btn_OutputRemoteVideoInput.Name = "btn_OutputRemoteVideoInput";
+            this.btn_OutputRemoteVideoInput.Size = new System.Drawing.Size(16, 16);
+            this.btn_OutputRemoteVideoInput.TabIndex = 1302;
+            this.btn_OutputRemoteVideoInput.UseVisualStyleBackColor = true;
+            this.btn_OutputRemoteVideoInput.Click += new System.EventHandler(this.btn_OutputRemoteVideoInput_Click);
+            // 
+            // btn_OutputRemoteSharingInput
+            // 
+            this.btn_OutputRemoteSharingInput.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            this.btn_OutputRemoteSharingInput.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btn_OutputRemoteSharingInput.ForeColor = System.Drawing.SystemColors.Control;
+            this.btn_OutputRemoteSharingInput.Location = new System.Drawing.Point(320, 482);
+            this.btn_OutputRemoteSharingInput.Name = "btn_OutputRemoteSharingInput";
+            this.btn_OutputRemoteSharingInput.Size = new System.Drawing.Size(16, 16);
+            this.btn_OutputRemoteSharingInput.TabIndex = 1303;
+            this.btn_OutputRemoteSharingInput.UseVisualStyleBackColor = true;
+            this.btn_OutputRemoteSharingInput.Click += new System.EventHandler(this.btn_OutputRemoteSharingInput_Click);
+            // 
+            // btn_SubscribeRemoteAudioInput
+            // 
+            this.btn_SubscribeRemoteAudioInput.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.btn_SubscribeRemoteAudioInput.ForeColor = System.Drawing.Color.DarkGreen;
+            this.btn_SubscribeRemoteAudioInput.Location = new System.Drawing.Point(244, 433);
+            this.btn_SubscribeRemoteAudioInput.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            this.btn_SubscribeRemoteAudioInput.Name = "btn_SubscribeRemoteAudioInput";
+            this.btn_SubscribeRemoteAudioInput.Size = new System.Drawing.Size(73, 20);
+            this.btn_SubscribeRemoteAudioInput.TabIndex = 1305;
+            this.btn_SubscribeRemoteAudioInput.Text = "Unsubscribe";
+            this.btn_SubscribeRemoteAudioInput.UseVisualStyleBackColor = true;
+            this.btn_SubscribeRemoteAudioInput.Click += new System.EventHandler(this.btn_SubscribeRemoteAudioInput_Click);
+            // 
+            // btn_SubscribeRemoteVideoInput
+            // 
+            this.btn_SubscribeRemoteVideoInput.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.btn_SubscribeRemoteVideoInput.Location = new System.Drawing.Point(244, 457);
+            this.btn_SubscribeRemoteVideoInput.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            this.btn_SubscribeRemoteVideoInput.Name = "btn_SubscribeRemoteVideoInput";
+            this.btn_SubscribeRemoteVideoInput.Size = new System.Drawing.Size(73, 20);
+            this.btn_SubscribeRemoteVideoInput.TabIndex = 1306;
+            this.btn_SubscribeRemoteVideoInput.Text = "Unsubscribe";
+            this.btn_SubscribeRemoteVideoInput.UseVisualStyleBackColor = true;
+            this.btn_SubscribeRemoteVideoInput.Click += new System.EventHandler(this.btn_SubscribeRemoteVideoInput_Click);
+            // 
+            // btn_SubscribeRemoteSharingInput
+            // 
+            this.btn_SubscribeRemoteSharingInput.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.btn_SubscribeRemoteSharingInput.Location = new System.Drawing.Point(244, 480);
+            this.btn_SubscribeRemoteSharingInput.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            this.btn_SubscribeRemoteSharingInput.Name = "btn_SubscribeRemoteSharingInput";
+            this.btn_SubscribeRemoteSharingInput.Size = new System.Drawing.Size(73, 20);
+            this.btn_SubscribeRemoteSharingInput.TabIndex = 1307;
+            this.btn_SubscribeRemoteSharingInput.Text = "Unsubscribe";
+            this.btn_SubscribeRemoteSharingInput.UseVisualStyleBackColor = true;
+            this.btn_SubscribeRemoteSharingInput.Click += new System.EventHandler(this.btn_SubscribeRemoteSharingInput_Click);
+            // 
             // FormWebRTC
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(943, 566);
+            this.Controls.Add(this.btn_SubscribeRemoteSharingInput);
+            this.Controls.Add(this.btn_SubscribeRemoteVideoInput);
+            this.Controls.Add(this.btn_SubscribeRemoteAudioInput);
+            this.Controls.Add(this.btn_OutputRemoteSharingInput);
+            this.Controls.Add(this.btn_OutputRemoteVideoInput);
             this.Controls.Add(this.btn_AddAsParticipant);
             this.Controls.Add(this.cb_ConferencesName);
             this.Controls.Add(this.lbl_ConversationInProgress);
@@ -870,8 +921,6 @@ namespace SDK.UIForm.WebRTC
             this.Controls.Add(this.btn_StartVideoInput);
             this.Controls.Add(this.btn_OutputLocalSharingInput);
             this.Controls.Add(this.btn_OutputLocalVideoInput);
-            this.Controls.Add(this.btn_OutputRemoteSharingInput);
-            this.Controls.Add(this.btn_OutputRemoteVideoInput);
             this.Controls.Add(this.cb_UnmuteMedia);
             this.Controls.Add(this.cb_RemoveMedia);
             this.Controls.Add(this.cb_AddMedia);
@@ -991,8 +1040,6 @@ namespace SDK.UIForm.WebRTC
         private ComboBox cb_RemoveMedia;
         private ComboBox cb_AddMedia;
         private ComboBox cb_UnmuteMedia;
-        private Button btn_OutputRemoteVideoInput;
-        private Button btn_OutputRemoteSharingInput;
         private Button btn_OutputLocalVideoInput;
         private Button btn_OutputLocalSharingInput;
         private Button btn_StopVideoInput;
@@ -1006,5 +1053,11 @@ namespace SDK.UIForm.WebRTC
         private Label lbl_ConversationInProgress;
         private ComboBox cb_ConferencesName;
         private Button btn_AddAsParticipant;
+        private Button btn_OutputRemoteVideoInput;
+        private Button btn_OutputRemoteSharingInput;
+        private ToolTip toolTip1;
+        private Button btn_SubscribeRemoteAudioInput;
+        private Button btn_SubscribeRemoteVideoInput;
+        private Button btn_SubscribeRemoteSharingInput;
     }
 }

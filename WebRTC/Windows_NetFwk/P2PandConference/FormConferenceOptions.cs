@@ -18,10 +18,15 @@ namespace SDK.UIForm.WebRTC
         private Rainbow.Contacts _rbContacts;
         private Rainbow.Conferences _rbConferences;
 
-
+        private String? _currentUserJid = null;
+        private Boolean _participantOfConference = false;
         private Conference ? _currentConference = null;
         private String? _currentConfId = null;
         private String? _currentConfJid = null;
+
+        private Boolean _canSubscribeToMediaPublication = false;
+
+        private List<MediaPublication> _mediaPublicationsSubscribed = new List<MediaPublication>();
 
 #region CONSTRUCTOR
         public FormConferenceOptions()
@@ -30,35 +35,59 @@ namespace SDK.UIForm.WebRTC
             InitializeComponent();
         }
 
-        public void Initialize(Rainbow.Application application)
+        public void Initialize(Rainbow.Application application, Boolean canSubscribeToMediaPublication)
         {
+            _canSubscribeToMediaPublication = canSubscribeToMediaPublication;
+
             // Get / Store SDK Objects
             _rbApplication = application;
             _rbBubbles = _rbApplication.GetBubbles();
             _rbContacts = _rbApplication.GetContacts();
-            _rbConferences = _rbApplication?.GetConferences();
+            _rbConferences = _rbApplication.GetConferences();
 
+            _currentUserJid = _rbContacts.GetCurrentContactJid();
 
             // Events related to Rainbow SDK
             _rbConferences.ConferenceUpdated += Conferences_ConferenceUpdated;
             _rbConferences.ConferenceRemoved += Conferences_ConferenceRemoved;
             _rbConferences.ConferenceParticipantsUpdated += Conferences_ConferenceParticipantsUpdated;
             _rbConferences.ConferenceTalkersUpdated += Conferences_ConferenceTalkersUpdated;
-            _rbConferences.ConferencePublishersUpdated += Conferences_ConferencePublishersUpdated;
-        }
-
-        public void SetConferenceInfo(String confId, String confJid)
-        {
-            _currentConfId = confId;
-            _currentConfJid = confJid;
-
-            _currentConference = _rbConferences.ConferenceGetByIdFromCache(confId);
+            _rbConferences.ConferenceMediaPublicationsUpdated += Conferences_ConferenceMediaPublicationsUpdated;
 
             UpdateUIFull();
         }
 
-#endregion CONSTRUCTOR
+        public void SetConferenceInfo(String confId)
+        {
+            _currentConfId = confId;
+            //_currentConfJid = confJid;
 
+            _currentConference = _rbConferences.ConferenceGetByIdFromCache(confId);
+
+            if (_currentConference != null)
+            {
+                var participants = _rbConferences.ConferenceGetParticipantsFromCache(_currentConference.Id);
+                if ( (participants == null) || (participants?.Count == 0) )
+                {
+                    // We need to ask a full snapshot since we kno nothing about participants
+                    _rbConferences.ConferenceGetFullSnapshot(confId, callback =>
+                    {
+                        // What ever the result we update the UI
+                        UpdateUIFull();
+                    });
+                    return;
+                }
+            }
+            UpdateUIFull();
+        }
+
+        // To use when current user subscribed or unsubscribed to a media publication
+        public void UpdateMediaPublicationSubscription(Boolean subscribed, MediaPublication mediaPublication)
+        {
+
+        }
+
+#endregion CONSTRUCTOR
 
 #region PRIVATE methods
 
@@ -69,14 +98,26 @@ namespace SDK.UIForm.WebRTC
                 UpdateUIConferenceInfo();
 
                 UpdateUIParticipants();
-                UpdateUITalkers();
                 UpdateUIPublishers();
+                UpdateUITalkers();
+
+                UpdateSubscriptionButtons();
             });
 
             if (this.InvokeRequired)
                 this.BeginInvoke(action);
             else
                 action.Invoke();
+        }
+
+        private void UpdateUIMainButtons()
+        {
+            var enabled = (_currentConference != null) && _participantOfConference;
+            btnConferenceStop.Enabled = enabled;
+            btnConferenceMute.Enabled = enabled;
+            btnConferenceLock.Enabled = enabled;
+            btnConferenceRecordingStart.Enabled = enabled;
+            btnConferenceRecordingPause.Enabled = enabled;
         }
 
         private void UpdateUIConferenceInfo()
@@ -115,23 +156,40 @@ namespace SDK.UIForm.WebRTC
                     Dictionary<String, Conference.Participant> participants;
                     participants = _rbConferences.ConferenceGetParticipantsFromCache(_currentConference.Id);
 
+                    _participantOfConference = false;
                     if (participants?.Count > 0)
                     {
-                        foreach (var participant in participants.Values)
+                        //if (_rbConferences.IsParticipantUsingJid(_currentUserJid, participants))
                         {
-                            String displayName = GetDisplayName(participant.Id, participant.Jid_im, participant.PhoneNumber);
+                            foreach (var participant in participants.Values)
+                            {
+                                // Check if we are a member of this conference
+                                if (!_participantOfConference)
+                                    _participantOfConference = participant.Jid_im == _currentUserJid;
 
-                            displayName += $" [{participant.Privilege}]";
-                            displayName += String.IsNullOrEmpty(participant.PhoneNumber) ? "" : $" [{participant.PhoneNumber}]";
-                            displayName += participant.Muted ? " [MUTED]" : "";
-                            displayName += participant.Hold ? " [HOLD]" : "";
+                                String displayName = GetDisplayName(participant.Id, participant.Jid_im, participant.PhoneNumber);
 
-                            ListItem item = new ListItem(displayName, participant.Id);
+                                displayName += $" [{participant.Privilege}]";
+                                displayName += String.IsNullOrEmpty(participant.PhoneNumber) ? "" : $" [{participant.PhoneNumber}]";
+                                displayName += participant.Muted ? " [MUTED]" : "";
+                                displayName += participant.Hold ? " [HOLD]" : "";
 
-                            lb_Participants.Items.Add(item);
+                                ListItem item = new ListItem(displayName, participant.Id);
+
+                                lb_Participants.Items.Add(item);
+                            }
                         }
                     }
                 }
+
+                var enabled = lb_Participants.Items.Count > 0;
+                btn_ParticipantMute.Enabled = enabled;
+                btn_ParticipantDelegate.Enabled = enabled;
+                btn_ParticipantDrop.Enabled = enabled;
+
+                UpdateUIMainButtons();
+
+
             });
             if (this.InvokeRequired)
                 this.BeginInvoke(action);
@@ -181,24 +239,21 @@ namespace SDK.UIForm.WebRTC
                 lb_PublishersSharing.Items.Clear();
                 if (_currentConference != null)
                 {
-                    Dictionary<String, Conference.Publisher> publishers;
-                    publishers = _rbConferences.ConferenceGetPublishersFromCache(_currentConference.Id);
+                    List<MediaPublication> mediaPublications;
+                    mediaPublications = _rbConferences.ConferenceGetMediaPublicationsFromCache(_currentConference.Id);
 
-                    if (publishers?.Count > 0)
+                    if (mediaPublications?.Count > 0)
                     {
-                        foreach (var publisher in publishers.Values)
+                        foreach (var mediaPublication in mediaPublications)
                         {
-                            String displayName = GetDisplayName(publisher.Id, publisher.Jid_im);
+                            String displayName = GetDisplayName(mediaPublication.PublisherId, mediaPublication.PublisherJid_im);
 
-                            ListItem item = new ListItem(displayName, publisher.Id);
+                            ListItem item = new ListItem(displayName, mediaPublication.PublisherId);
 
-                            foreach (var pubMedia in publisher.Medias)
-                            {
-                                if (pubMedia.Media.Equals("sharing", StringComparison.InvariantCultureIgnoreCase))
-                                    lb_PublishersSharing.Items.Add(item);
-                                else
-                                    lb_PublishersVideo.Items.Add(item);
-                            }
+                            if(mediaPublication.Media == Call.Media.VIDEO)
+                                lb_PublishersVideo.Items.Add(item);
+                            else if (mediaPublication.Media == Call.Media.SHARING)
+                                lb_PublishersSharing.Items.Add(item);
                         }
                     }
                 }
@@ -208,6 +263,24 @@ namespace SDK.UIForm.WebRTC
                 this.BeginInvoke(action);
             else
                 action.Invoke();
+        }
+
+        private void UpdateSubscriptionButtons()
+        {
+            if(_canSubscribeToMediaPublication)
+            {
+
+            }
+            else
+            {
+                btn_SubscribeRemoteAudioInput.Enabled = false;
+
+                btn_SubscribeRemoteVideoInput.Enabled = false;
+                btn_OutputRemoteVideoInput.Visible = false;
+
+                btn_SubscribeRemoteSharingInput.Enabled = false;
+                btn_OutputRemoteSharingInput.Visible = false;
+            }
         }
 
         private void AddInformationMessage(string status)
@@ -259,7 +332,7 @@ namespace SDK.UIForm.WebRTC
 
 #region EVENTS from SDK Objects
 
-        private void Conferences_ConferencePublishersUpdated(object sender, Rainbow.Events.ConferencePublishersEventArgs e)
+        private void Conferences_ConferenceMediaPublicationsUpdated(object? sender, Rainbow.Events.MediaPublicationsEventArgs e)
         {
             if (_currentConference?.Id == e.ConferenceId)
                 UpdateUIPublishers();
@@ -300,7 +373,6 @@ namespace SDK.UIForm.WebRTC
         }
 
 #endregion EVENTS from SDK Objects
-
 
 #region EVENTS from FORM elements
 
@@ -488,6 +560,9 @@ namespace SDK.UIForm.WebRTC
         {
             if (_currentConference != null)
             {
+                _rbConferences.ConferenceGetFullSnapshot(_currentConference.Id);
+                return;
+
                 var bubbleId = _rbConferences.GetBubbleIdByConferenceIdFromCache(_currentConference.Id);
                 if (bubbleId == null)
                 {
@@ -591,6 +666,46 @@ namespace SDK.UIForm.WebRTC
                     });
                 }
             }
+        }
+
+        private void lb_ActiveTalkers_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            // Nothing to do here
+        }
+
+        private void lb_PublishersVideo_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            Boolean enabled = false;
+            if(_canSubscribeToMediaPublication)
+            {
+                if(lb_PublishersVideo.SelectedItem is ListItem item)
+                {
+                    var publisherId = item.Value;
+                    var media = Call.Media.VIDEO;
+                    // TODO - Need to check MediaPublication
+                }
+            }
+            btn_SubscribeRemoteVideoInput.Enabled = enabled;
+        }
+
+        private void lb_PublishersSharing_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            Boolean enabled = false;
+            if (_canSubscribeToMediaPublication)
+            {
+                if (lb_PublishersSharing.SelectedItem is ListItem item)
+                {
+                    var publisherId = item.Value;
+                    var media = Call.Media.SHARING;
+                    // TODO - Need to check MediaPublication
+                }
+            }
+            btn_SubscribeRemoteVideoInput.Enabled = enabled;
+        }
+
+        private void lb_Participants_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            
         }
 
 #endregion EVENTS from FORM elements

@@ -20,14 +20,12 @@ namespace SDK.UIForm.WebRTC
         private static MediaInputStreamsManager? _instance = null;
 
         private String _configFilePath;
-        private readonly Dictionary<String, IMedia> _simpleMediaStreams;
-        private readonly Dictionary<String, IMedia> _filteredMediaStreams;
+        private readonly Dictionary<String, MediaInput> _simpleMediaStreams;
+        private readonly Dictionary<String, MediaFiltered> _filteredMediaStreams;
 
         private FormMediaInputStreams? _formMediaInputStreams = null;
         private FormWebcam? _formWebcam = null;
         private FormScreen? _formScreen = null;
-
-        private Boolean _disposeMediaStreamWhenStopped = false;
 
 #region EVENT(S)
 
@@ -133,15 +131,6 @@ namespace SDK.UIForm.WebRTC
             return true;
         }
 
-        public void SetDisposeMediaStreamWhenStopped(Boolean value)
-        {
-            if(_disposeMediaStreamWhenStopped != value)
-            {
-                _disposeMediaStreamWhenStopped = value;
-                OnDisposeMediaStreamUpdated?.Invoke(this, new BooleanEventArgs(value));
-            }
-        }
-
         public Boolean Add(String id, String uri, Boolean useVideo, Boolean useAudio)
         {
             if ( String.IsNullOrEmpty(id) || String.IsNullOrEmpty(uri) )
@@ -163,20 +152,23 @@ namespace SDK.UIForm.WebRTC
             if ( (mediaStream == null) || (String.IsNullOrEmpty(mediaStream.Id)) )
                 return false;
 
-            if  ( (!mediaStream.HasAudio()) && (!mediaStream.HasVideo()) )
-                return false;
-
             if (!CheckIdUnicity(mediaStream.Id))
                 return false;
 
-            if (mediaStream is MediaFiltered)
+            if (mediaStream is MediaFiltered mediaFiltered)
             {
-                _filteredMediaStreams.Add(mediaStream.Id, mediaStream);
+                if ((!mediaFiltered.HasAudio()) && (!mediaFiltered.HasVideo()))
+                    return false;
+
+                _filteredMediaStreams.Add(mediaStream.Id, mediaFiltered);
                 OnListUpdatedWithFilteredInputs?.Invoke(this, null);
             }
-            else
+            else if (mediaStream is MediaInput mediaInput)
             {
-                _simpleMediaStreams.Add(mediaStream.Id, mediaStream);
+                if ((!mediaInput.HasAudio()) && (!mediaInput.HasVideo()))
+                    return false;
+
+                _simpleMediaStreams.Add(mediaStream.Id, mediaInput);
                 OnListUpdatedWithoutFilteredInputs?.Invoke(this, null);
             }
 
@@ -196,11 +188,11 @@ namespace SDK.UIForm.WebRTC
             // Check on Filtered MediaStreams
             if (_filteredMediaStreams.ContainsKey(id))
             {
-                _filteredMediaStreams.Remove(id, out IMedia? mediaStream);
-                if (mediaStream != null)
+                _filteredMediaStreams.Remove(id, out MediaFiltered? mediaFiltered);
+                if (mediaFiltered != null)
                 {
-                    mediaStream.OnStateChanged -= MediaStream_OnStateChanged;
-                    mediaStream.Dispose();
+                    mediaFiltered.OnStateChanged -= MediaStream_OnStateChanged;
+                    mediaFiltered.Dispose();
                 }
 
                 if (raiseEvent)
@@ -216,11 +208,11 @@ namespace SDK.UIForm.WebRTC
             // Check on Simple MediaStreams
             if (_simpleMediaStreams.ContainsKey(id))
             {
-                _simpleMediaStreams.Remove(id, out IMedia? mediaStream);
-                if (mediaStream != null)
+                _simpleMediaStreams.Remove(id, out MediaInput? mediaInput);
+                if (mediaInput != null)
                 {
-                    mediaStream.OnStateChanged -= MediaStream_OnStateChanged;
-                    mediaStream.Dispose();
+                    mediaInput.OnStateChanged -= MediaStream_OnStateChanged;
+                    mediaInput.Dispose();
                 }
 
                 if (raiseEvent)
@@ -254,6 +246,7 @@ namespace SDK.UIForm.WebRTC
             {
                 needtoRaiseForSimple = true;
                 var first = _simpleMediaStreams.First();
+                first.Value.Dispose();
                 Remove(first.Key, false);
             }
 
@@ -375,6 +368,9 @@ namespace SDK.UIForm.WebRTC
                 return false;
             }
 
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+
             return true;
         }
 
@@ -456,12 +452,8 @@ namespace SDK.UIForm.WebRTC
             if (stream != null)
             {
                 result = stream.Stop();
-                if (_disposeMediaStreamWhenStopped)
-                {
-                    RemoveMediaStream(id);
-                    stream.Dispose();
-                    stream = null;
-                }
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
             }
             return result;
         }
@@ -473,6 +465,7 @@ namespace SDK.UIForm.WebRTC
 
             _formMediaInputStreams.WindowState = FormWindowState.Normal;
             _formMediaInputStreams.Show();
+            _formMediaInputStreams.Activate();
         }
 
         public void OpenFormWebcam()
@@ -482,6 +475,7 @@ namespace SDK.UIForm.WebRTC
 
             _formWebcam.WindowState = FormWindowState.Normal;
             _formWebcam.Show();
+            _formWebcam.Activate();
         }
 
         public void OpenFormScreen()
@@ -491,6 +485,7 @@ namespace SDK.UIForm.WebRTC
 
             _formScreen.WindowState = FormWindowState.Normal;
             _formScreen.Show();
+            _formScreen.Activate();
         }
 
 #endregion PUBLIC API
@@ -519,8 +514,8 @@ namespace SDK.UIForm.WebRTC
         private MediaInputStreamsManager()
         {
             _configFilePath = $".{Path.DirectorySeparatorChar}Resources{Path.DirectorySeparatorChar}medias.json";
-            _simpleMediaStreams = new Dictionary<string, IMedia>();
-            _filteredMediaStreams = new Dictionary<string, IMedia>();
+            _simpleMediaStreams = new Dictionary<string, MediaInput>();
+            _filteredMediaStreams = new Dictionary<string, MediaFiltered>();
         }
 
 #endregion PRIVATE API
