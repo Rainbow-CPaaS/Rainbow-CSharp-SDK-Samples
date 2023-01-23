@@ -796,11 +796,11 @@ namespace BotVideoOrchestratorAndRemoteControl
 
             try
             {
-                RbWebRTCCommunications = Rainbow.WebRTC.WebRTCCommunications.CreateInstance(RbApplication, RainbowApplicationInfo.ffmpegLibFolderPath);
+                RbWebRTCCommunications = Rainbow.WebRTC.WebRTCCommunications.GetOrCreateInstance(RbApplication, RainbowApplicationInfo.ffmpegLibFolderPath);
             }
             catch (Exception ex)
             {
-                Util.WriteErrorToConsole($"[{_broadcaster.Name}] Initialization failed ... \r\nException:[{Rainbow.Util.SerializeException(ex)}] \r\nPossible reason: SDL2 library is not in the same folder than the executable");
+                Util.WriteErrorToConsole($"[Initialization failed ... \r\nException:[{Rainbow.Util.SerializeException(ex)}] \r\nPossible reason: SDL2 library is not in the same folder than the executable");
                 return false;
             }
 
@@ -891,7 +891,7 @@ namespace BotVideoOrchestratorAndRemoteControl
         {
             _currentConferenceId = confId;
 
-            RbWebRTCCommunications.JoinConference(confId, null, false, 0, false, callback =>
+            RbWebRTCCommunications.JoinConference(confId, null, callback =>
             {
                 if (!callback.Result.Success)
                 {
@@ -1352,7 +1352,7 @@ namespace BotVideoOrchestratorAndRemoteControl
                 }
                 else
                 {
-                    RbContacts.SetPresenceLevel(new Presence("online"));
+                    RbContacts.SetPresenceLevel(RbContacts.CreatePresence(true, "online", ""));
                 }
             }
         }
@@ -1360,9 +1360,9 @@ namespace BotVideoOrchestratorAndRemoteControl
         /// <summary>
         /// Event raised when the Sharing input stream of the current user is not possible / accessible
         /// </summary>
-        private void RbWebRTCCommunications_OnLocalVideoError(string callId, string userId, string mediaId, string message)
+        private void RbWebRTCCommunications_OnLocalVideoError(string callId, string userId, int media, string mediaId, string message)
         {
-            if (mediaId == "videoStream")
+            if (media == Call.Media.VIDEO)
             {
                 Util.WriteErrorToConsole($"[{_broadcaster.Name}] Failed to stream video using URI:[{_broadcaster.VideoURI}] - Retrying ...");
 
