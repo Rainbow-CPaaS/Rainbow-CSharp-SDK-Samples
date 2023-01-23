@@ -579,7 +579,7 @@ namespace BotVideoBroadcaster
 
             try
             {
-                RbWebRTCCommunications = Rainbow.WebRTC.WebRTCCommunications.CreateInstance(RbApplication, RainbowApplicationInfo.ffmpegLibFolderPath);
+                RbWebRTCCommunications = Rainbow.WebRTC.WebRTCCommunications.GetOrCreateInstance(RbApplication, RainbowApplicationInfo.ffmpegLibFolderPath);
             }
             catch (Exception ex)
             {
@@ -674,7 +674,7 @@ namespace BotVideoBroadcaster
         {
             _currentConferenceId = confId;
 
-            RbWebRTCCommunications.JoinConference(confId, null, false, 0, false, callback =>
+            RbWebRTCCommunications.JoinConference(confId, null, callback =>
             {
                 if (!callback.Result.Success)
                 {
@@ -1118,7 +1118,7 @@ namespace BotVideoBroadcaster
                 }
                 else
                 {
-                    RbContacts.SetPresenceLevel(new Presence("online"));
+                    RbContacts.SetPresenceLevel(RbContacts.CreatePresence(true, "online", ""));
                 }
             }
         }
@@ -1126,9 +1126,9 @@ namespace BotVideoBroadcaster
         /// <summary>
         /// Event raised when the Sharing input stream of the current user is not possible / accessible
         /// </summary>
-        private void RbWebRTCCommunications_OnLocalVideoError(string callId, string userId, string mediaId, string message)
+        private void RbWebRTCCommunications_OnLocalVideoError(string callId, string userId, int media, string mediaId, string message)
         {
-            if (mediaId == "videoStream")
+            if (media == Call.Media.VIDEO)
             {
                 Util.WriteErrorToConsole($"[{_botName}] Failed to stream video using URI:[{_videoStreamUri}] - Retrying ...");
 
