@@ -110,12 +110,9 @@ namespace SDK.ConsoleApp.WebRTC
                 return;
 
             // Check if FFmpeg lib folder path exists
-            if (!ApplicationInfo.USE_ONLY_MICROPHONE_OR_HEADSET)
-            {
-                appStep = APP_STEP.CHECK_LIB_PATH;
-                if (!CheckFFmpegLibFolderPath())
-                    return;
-            }
+            appStep = APP_STEP.CHECK_LIB_PATH;
+            if (!CheckFFmpegLibFolderPath())
+                return;
 
             // Create Rainbow.Application
             rbApplication = new Rainbow.Application();
@@ -123,7 +120,6 @@ namespace SDK.ConsoleApp.WebRTC
             rbApplication.SetHostInfo(ApplicationInfo.HOST_NAME);
             rbApplication.Restrictions.UseSameResourceId = true; // We want to use same resourceId each time
             rbApplication.Restrictions.UseWebRTC = true; // We will use WebRTC features
-            rbApplication.Restrictions.UseAPIConferenceV2 = true; // We use Conference V2
 
             // Create Rainbow.Contacts service
             rbContacts = rbApplication.GetContacts();
@@ -136,27 +132,21 @@ namespace SDK.ConsoleApp.WebRTC
 
             // Create Rainbow.WebRTC.Communication service
             appStep = APP_STEP.INIT_LIBRARIES;
-            if (!ApplicationInfo.USE_ONLY_MICROPHONE_OR_HEADSET)
-                Console.WriteLine($"\nFFmpeg libraries must be stored here:[{ApplicationInfo.FFMPEG_LIB_FOLDER_PATH}]");
+            Console.WriteLine($"\nFFmpeg libraries must be stored here:[{ApplicationInfo.FFMPEG_LIB_FOLDER_PATH}]");
 
             Console.WriteLine($"\nSDL2 library must be stored in the current folder:[{Rainbow.Util.GetSDKFolderPath()}]");
-            if (!ApplicationInfo.USE_ONLY_MICROPHONE_OR_HEADSET)
-                Console.WriteLine($"\nTry to initalize external libraries: FFmpeg and SDL2 ...");
-            else
-                Console.WriteLine($"\nTry to initalize external libraries: SDL2 ...");
+            Console.WriteLine($"\nTry to initalize external libraries: FFmpeg and SDL2 ...");
+
             try
             {
                 // Do we use audio onyl ?
                 //Rainbow.WebRTC.WebRTCCommunications.USE_ONLY_MICROPHONE_OR_HEADSET = ApplicationInfo.USE_ONLY_MICROPHONE_OR_HEADSET; //  /!\ We have to set this BEFORE TO CREATE rbCommunication object
 
-                rbWebRTCCommunications = Rainbow.WebRTC.WebRTCCommunications.CreateInstance(rbApplication, ApplicationInfo.FFMPEG_LIB_FOLDER_PATH);
+                rbWebRTCCommunications = Rainbow.WebRTC.WebRTCCommunications.GetOrCreateInstance(rbApplication, ApplicationInfo.FFMPEG_LIB_FOLDER_PATH);
             }
             catch (Exception ex)
             {
-                if (!ApplicationInfo.USE_ONLY_MICROPHONE_OR_HEADSET)
-                    Console.WriteLine("\nInitialization failed ... Pleae ensure you have correclty defined libray path and copy libraries (FFmpeg and SDL2) into correct path");
-                else
-                    Console.WriteLine("\nInitialization failed ... Pleae ensure you have correclty defined libray path and copy libraries (SDL2) into correct path");
+                Console.WriteLine("\nInitialization failed ... Pleae ensure you have correclty defined libray path and copy libraries (FFmpeg and SDL2) into correct path");
                 Console.WriteLine($"\nException:[{Rainbow.Util.SerializeException(ex)}]");
                 return;
             }
@@ -527,7 +517,7 @@ namespace SDK.ConsoleApp.WebRTC
                             if(audioInputStream != null)
                                 mediaInputs.Add(Call.Media.AUDIO, audioInputStream);
 
-                            rbWebRTCCommunications.JoinConference(currentConfId, mediaInputs, false, 0, false, callbackJoinConference =>
+                            rbWebRTCCommunications.JoinConference(currentConfId, mediaInputs, callbackJoinConference =>
                             {
                                 currentCallId = currentConfId;
                             });
