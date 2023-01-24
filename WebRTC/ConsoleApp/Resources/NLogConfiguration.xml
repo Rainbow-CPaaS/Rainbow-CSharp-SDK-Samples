@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<nlog xmlns="http://www.nlog-project.org/schemas/NLog.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <rules>
+    
+      <!-- DEFINE BOT01 loggers -->
+        <logger 
+            name="BOT01_WEBRTC" 
+            minlevel="Debug" 
+            writeTo="BOT01_RAINBOW_WEBRTC_LOGGER"
+            final="true" />
+        <logger 
+            name="BOT01_*" 
+            minlevel="Debug" 
+            writeTo="BOT01_RAINBOW_DEFAULT_LOGGER"
+            />
+            
+      <!-- DEFINE BOT02 loggers -->        
+        <logger 
+            name="BOT02_WEBRTC" 
+            minlevel="Debug" 
+            writeTo="BOT02_RAINBOW_WEBRTC_LOGGER"
+            final="true" />
+        <logger 
+            name="BOT02_*" 
+            minlevel="Debug" 
+            writeTo="BOT02_RAINBOW_DEFAULT_LOGGER"
+            />
+            
+      <!-- DEFINE default loggers -->
+        <logger 
+            name="WEBRTC" 
+            minlevel="Debug" 
+            writeTo="RAINBOW_WEBRTC_LOGGER"
+            final="true" />
+        <logger 
+            name="*" 
+            minlevel="Debug" 
+            writeTo="RAINBOW_DEFAULT_LOGGER"
+            />
+            
+    </rules>
+    
+    <targets>
+    
+      <!-- DEFINE BOT01 Targets -->
+        <target 
+            xsi:type="File" 
+            encoding="utf-8" 
+            name="BOT01_RAINBOW_WEBRTC_LOGGER" 
+            fileName=".\BOT01_RainbowSdk_WebRTC.log" 
+            archiveFileName=".\BOT01_RainbowSdk_{###}_WebRTC.log" 
+            archiveAboveSize="5242880" 
+            maxArchiveFiles="10" 
+            layout="${longdate} | ${level:uppercase=true:padding=-5} | ${threadid:padding=-3} | ${callsite:className=True:fileName=False:includeSourcePath=False:methodName=True:padding=70:fixedLength=True:alignmentOnTruncation=Right}: ${callsite-linenumber:padding=-4} | ${message}"
+            />
+    
+        <target 
+            xsi:type="File" 
+            encoding="utf-8" 
+            name="BOT01_RAINBOW_DEFAULT_LOGGER" 
+            fileName=".\BOT01_RainbowSdk.log" 
+            archiveFileName=".\BOT01_RainbowSdk_{###}.log" 
+            archiveAboveSize="5242880" 
+            maxArchiveFiles="10" 
+            layout="${longdate} | ${level:uppercase=true:padding=-5} | ${threadid:padding=-3} | ${callsite:className=True:fileName=False:includeSourcePath=False:methodName=True:padding=70:fixedLength=True:alignmentOnTruncation=Right}: ${callsite-linenumber:padding=-4} | ${message}"
+            />
+            
+      <!-- DEFINE BOT02 Targets -->
+        <target 
+            xsi:type="File" 
+            encoding="utf-8" 
+            name="BOT02_RAINBOW_WEBRTC_LOGGER" 
+            fileName=".\BOT02_RainbowSdk_WebRTC.log" 
+            archiveFileName=".\BOT02_RainbowSdk_{###}_WebRTC.log" 
+            archiveAboveSize="5242880" 
+            maxArchiveFiles="10" 
+            layout="${longdate} | ${level:uppercase=true:padding=-5} | ${threadid:padding=-3} | ${callsite:className=True:fileName=False:includeSourcePath=False:methodName=True:padding=70:fixedLength=True:alignmentOnTruncation=Right}: ${callsite-linenumber:padding=-4} | ${message}"
+            />
+    
+        <target 
+            xsi:type="File" 
+            encoding="utf-8" 
+            name="BOT02_RAINBOW_DEFAULT_LOGGER" 
+            fileName=".\BOT02_RainbowSdk.log" 
+            archiveFileName=".\BOT02_RainbowSdk_{###}.log" 
+            archiveAboveSize="5242880" 
+            maxArchiveFiles="10" 
+            layout="${longdate} | ${level:uppercase=true:padding=-5} | ${threadid:padding=-3} | ${callsite:className=True:fileName=False:includeSourcePath=False:methodName=True:padding=70:fixedLength=True:alignmentOnTruncation=Right}: ${callsite-linenumber:padding=-4} | ${message}"
+            />
+            
+      <!-- DEFINE default Targets -->
+        <target 
+            xsi:type="File" 
+            encoding="utf-8" 
+            name="RAINBOW_WEBRTC_LOGGER" 
+            fileName=".\RainbowSdk_WebRTC.log" 
+            archiveFileName=".\RainbowSdk_{###}_WebRTC.log" 
+            archiveAboveSize="5242880" 
+            maxArchiveFiles="10" 
+            layout="${longdate} | ${level:uppercase=true:padding=-5} | ${threadid:padding=-3} | ${callsite:className=True:fileName=False:includeSourcePath=False:methodName=True:padding=70:fixedLength=True:alignmentOnTruncation=Right}: ${callsite-linenumber:padding=-4} | ${message}"
+            />
+    
+        <target 
+            xsi:type="File" 
+            encoding="utf-8" 
+            name="RAINBOW_DEFAULT_LOGGER" 
+            fileName=".\RainbowSdk.log" 
+            archiveFileName=".\RainbowSdk_{###}.log" 
+            archiveAboveSize="5242880" 
+            maxArchiveFiles="10" 
+            layout="${longdate} | ${level:uppercase=true:padding=-5} | ${threadid:padding=-3} | ${callsite:className=True:fileName=False:includeSourcePath=False:methodName=True:padding=70:fixedLength=True:alignmentOnTruncation=Right}: ${callsite-linenumber:padding=-4} | ${message}"
+            />
+            
+    </targets>
+
+</nlog>
+
