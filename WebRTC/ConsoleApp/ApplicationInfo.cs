@@ -9,7 +9,7 @@ namespace SDK.ConsoleApp.WebRTC
         static internal readonly string DEFAULT_VALUE = "TO DEFINE";  // /!\ DON'T MODIFY THIS
 
         // NLog configuration file used to log SDK debug information
-        static internal readonly String NLOG_CONFIG_FILE_PATH = @"..\..\..\..\..\NLogConfiguration.xml";
+        static internal readonly String NLOG_CONFIG_FILE_PATH = @".\Resources\NLogConfiguration.xml";
 
         // DEFINE FOLDER PATH TO FFmpeg binaries/libraries - can be a relative path or an absolute path
         static internal readonly string FFMPEG_LIB_FOLDER_PATH = DEFAULT_VALUE; //@"C:\ffmpeg-5.1.1-full_build-shared\bin";

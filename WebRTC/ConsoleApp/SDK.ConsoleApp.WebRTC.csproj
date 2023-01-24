@@ -16,4 +16,10 @@
     <PackageReference Include="NLog.Extensions.Logging" Version="1.7.4" />
     <PackageReference Include="Rainbow.CSharp.SDK.WebRTC" Version="0.0.7-sts" />
   </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Resources\NLogConfiguration.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>
