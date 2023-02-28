@@ -2,15 +2,7 @@
   "ffmpegLibFolderPath": "C:\\ffmpeg-5.1.1-full_build-shared\\bin",
 
   "videosUri": [
-    "http://178.194.8.37:9000/mjpg/video.mjpg",
-    "http://212.114.24.142/cgi-bin/faststream.jpg",
-    "http://217.128.255.110:81/mjpg/video.mjpg",
-    "http://80.14.131.195/mjpg/video.mjpg",
-    "http://5.10.10.199:50000/cgi-bin/faststream.jpg",
-    "http://87.139.153.80/cgi-bin/faststream.jpg",
-    "http://185.36.240.161/mjpg/video.mjpg",
-    "http://79.135.52.133/cgi-bin/faststream.jpg",
-    "http://80.14.131.195/mjpg/video.mjpg"
+    "http://90.85.218.84/mjpg/"
   ],
 
   "labels": "labels_EN.json",
@@ -29,15 +21,15 @@
   "fps": [ 10, 5, 1 ],
 
   "serverConfig": {
-    "appId": "6f8c5910725b11e9b55c81be00bebc2c",
-    "appSecret": "5CkS7sRKU5NgGjZ8DfFjHnKkHv0LrpcVqVcunCJ5XQvi3ZbQdNvuUMgYUYk0KCnQ",
+    "appId": "TO_DEFINE",
+    "appSecret": "TO_DEFINE",
     "hostname": "openrainbow.net"
   },
 
   "_comment_botVideoCompositor": "Login / password to use for the Video Compositor",
   "botVideoCompositor": {
-    "login": "cctvmaster@compirles.com",
-    "password": "Rainbow1!"
+    "login": "TO_DEFINE",
+    "password": "TO_DEFINE"
   },
 
   "command": {
@@ -48,12 +40,12 @@
   "_comment_botManagers": "Just login can be set here BUT ONLY if the bot manager has been added in the roster of the bot orchestrator. If not login+jid must be set",
   "botManagers": [
     {
-      "login": "irlesuser1@sophia.com",
+      "login": "TO_DEFINE",
       "id": "",
       "jid": ""
     },
     {
-      "login": "irlesuser2@sophia.com",
+      "login": "TO_DEFINE",
       "id": "",
       "jid": ""
     }
