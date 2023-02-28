@@ -1,0 +1,79 @@
+{
+	"streamsName": [
+		"Harbor 1",
+		"Harbor 2",
+		"Harbor 3",
+		"Harbor 4",
+		"Harbor 5",
+		"Harbor 6",
+		"Harbor 7",
+		"Harbor 8",
+		"Harbor 9"
+	],
+	"title": "Broadcast - Configuration",
+	"titleAD": "<font color='blue'><b>Broadcast - Configuration</b></font>",
+	"configError": "<font color='red'>You try to set an invalid configuration. No update done.</font>",
+	"noConfig": "No configuration set yet.",
+	"currentStreams": "<font color='blue'><b>Stream(s) used:</b></font>",
+	"streams": "<font color='blue'><b>Stream(s) available:</b></font>",
+	"oneStream": "<font color='blue'><b>One stream - Output:</b></font>",
+	"overlay": "<font color='blue'><b>Overlay - Ouput</b></font>",
+	"mosaic": "<font color='blue'><b>Mosaic - Ouput</b></font>",
+	"size": "<font color='green'><b>Size:</b></font>",
+	"fps": "<font color='green'><b>Fps:</b></font>",
+	"vignette": "<font color='green'><b>Vignette:</b></font>",
+	"layout": "<font color='green'><b>Layout:</b></font>",
+	"btnUpdate": "Update",
+	"btnSet": "Set",
+	"btnCancel": "Cancel",
+	"btnOneStream": "Use one stream",
+	"btnOverlay": "Use Overlay (two streams)",
+	"btnSetOverlay": "Set Overlay",
+	"btnMosaic": "Use Mosaic (two or more streams)",
+	"btnSetMosaic": "Set Mosaic",
+	"overlayDisplay": [
+		{
+			"title": "Top Left",
+			"value": "TL"
+		},
+		{
+			"title": "Top Right",
+			"value": "TR"
+		},
+		{
+			"title": "Bottom Right",
+			"value": "BR"
+		},
+		{
+			"title": "Bottom Left",
+			"value": "BL"
+		}
+	],
+	"mosaicDisplay": [
+		{
+			"title": "Grid (2x2, 3x3, ...)",
+			"value": "G"
+		},
+		{
+			"title": "Horizontal (1x1x...)",
+			"value": "H"
+		},
+		{
+			"title": "Horizontal (Main + 2 vignettes)",
+			"value": "H-M+2v"
+		},
+		{
+			"title": "Vertical (1x1x...)",
+			"value": "V"
+		},
+		{
+			"title": "Vertical (Main + 2 vignettes)",
+			"value": "V-M+2v"
+		},
+		{
+			"title": "Watch mode (Main + 5 vignettes)",
+			"value": "W"
+		}
+
+	]
+}

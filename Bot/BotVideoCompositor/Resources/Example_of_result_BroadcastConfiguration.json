@@ -1,0 +1,809 @@
+{
+	"type": "AdaptiveCard",
+	"body": [{
+		"type": "TextBlock",
+		"weight": "bolder",
+		"horizontalAlignment": "center",
+		"text": "<font color='blue'><b>Broadcast - Configuration</b></font>"
+	}, {
+		"type": "Image",
+		"url": "https://upload.wikimedia.org/wikipedia/commons/c/ca/1x1.png",
+		"height": "1px",
+		"width": "500px",
+		"spacing": "none"
+	}, {
+		"id": "currentConfigContainer",
+		"type": "Container",
+		"items": [{
+			"type": "TextBlock",
+			"isVisible": "false",
+			"weight": "bolder",
+			"text": "<font color='red'>You try to set an invalid configuration. No update done.</font>"
+		}, {
+			"type": "TextBlock",
+			"isVisible": "false",
+			"weight": "bolder",
+			"text": "No configuration set yet."
+		}, {
+			"id": "currentConfigDetailsContainer",
+			"type": "Container",
+			"isVisible": "true",
+			"items": [{
+				"type": "TextBlock",
+				"weight": "bolder",
+				"text": "<font color='blue'><b>Stream(s) used:</b></font>"
+			}, {
+				"type": "FactSet",
+				"facts": [{
+					"title": "Joy and Heron",
+					"value": "[1920x1080 - 25fps]"
+				}, {
+					"title": "Big Buck Bunny",
+					"value": "[640x360 - 24fps]"
+				}, {
+					"title": "Ocean",
+					"value": "[960x400 - 24fps]"
+				}, {
+					"title": "TOEFL Test",
+					"value": "[640x480 - 30fps]"
+				}]
+			}, {
+				"type": "TextBlock",
+				"weight": "bolder",
+				"text": "<font color='blue'><b>Mosaic - Ouput</b></font>"
+			}, {
+				"type": "ColumnSet",
+				"columns": [{
+					"type": "Column",
+					"verticalContentAlignment": "bottom",
+					"horizontalAlignment": "right",
+					"items": [{
+						"type": "TextBlock",
+						"text": "<font color='green'><b>Fps:</b></font>",
+						"wrap": true
+					}, {
+						"isVisible": "true",
+						"type": "TextBlock",
+						"text": "<font color='green'><b>Vignette:</b></font>",
+						"wrap": true
+					}],
+					"width": "auto"
+				}, {
+					"type": "Column",
+					"verticalContentAlignment": "bottom",
+					"items": [{
+						"type": "TextBlock",
+						"text": "10",
+						"wrap": true
+					}, {
+						"isVisible": "true",
+						"type": "TextBlock",
+						"text": "400x300",
+						"wrap": true
+					}],
+					"width": "auto"
+				}, {
+					"type": "Column",
+					"verticalContentAlignment": "bottom",
+					"horizontalAlignment": "right",
+					"items": [{
+						"isVisible": "false",
+						"type": "TextBlock",
+						"text": "<font color='green'><b>Size:</b></font>",
+						"wrap": true
+					}, {
+						"isVisible": "true",
+						"type": "TextBlock",
+						"text": "<font color='green'><b>Layout:</b></font>",
+						"wrap": true
+					}],
+					"width": "auto"
+				}, {
+					"type": "Column",
+					"verticalContentAlignment": "bottom",
+					"items": [{
+						"isVisible": "false",
+						"type": "TextBlock",
+						"text": "1920x1080",
+						"wrap": true
+					}, {
+						"type": "TextBlock",
+						"text": "Grid (2x2, 3x3, ...)",
+						"wrap": true
+					}],
+					"width": "auto"
+				}]
+			}]
+		}]
+	}, {
+		"id": "updateToggleVisibility",
+		"type": "ActionSet",
+		"actions": [{
+			"type": "Action.ToggleVisibility",
+			"title": "Update",
+			"style": "destructive",
+			"targetElements": [{
+				"elementId": "currentConfigContainer",
+				"isVisible": false
+			}, {
+				"elementId": "updateToggleVisibility",
+				"isVisible": false
+			}, {
+				"elementId": "oneStreamToggleVisibility",
+				"isVisible": true
+			}, {
+				"elementId": "overlayToggleVisibility",
+				"isVisible": true
+			}, {
+				"elementId": "mosaicToggleVisibility",
+				"isVisible": true
+			}, {
+				"elementId": "streamsContainer",
+				"isVisible": false
+			}, {
+				"elementId": "configContainer",
+				"isVisible": false
+			}, {
+				"elementId": "cancelToggleVisibility",
+				"isVisible": true
+			}]
+		}]
+	}, {
+		"id": "oneStreamToggleVisibility",
+		"type": "ActionSet",
+		"isVisible": false,
+		"actions": [{
+			"type": "Action.ToggleVisibility",
+			"title": "Use one stream",
+			"style": "positive",
+			"targetElements": [{
+				"elementId": "currentConfigContainer",
+				"isVisible": false
+			}, {
+				"elementId": "updateToggleVisibility",
+				"isVisible": false
+			}, {
+				"elementId": "oneStreamToggleVisibility",
+				"isVisible": true
+			}, {
+				"elementId": "overlayToggleVisibility",
+				"isVisible": false
+			}, {
+				"elementId": "mosaicToggleVisibility",
+				"isVisible": false
+			}, {
+				"elementId": "streamsContainer",
+				"isVisible": true
+			}, {
+				"elementId": "configContainer",
+				"isVisible": true
+			}, {
+				"elementId": "cancelToggleVisibility",
+				"isVisible": true
+			}, {
+				"elementId": "oneStreamSubmit",
+				"isVisible": true
+			}, {
+				"elementId": "overlaySubmit",
+				"isVisible": false
+			}, {
+				"elementId": "mosaicSubmit",
+				"isVisible": false
+			}, {
+				"elementId": "SizeTextBlock",
+				"isVisible": true
+			}, {
+				"elementId": "Size",
+				"isVisible": true
+			}, {
+				"elementId": "OverlayVignetteSizeTextBlock",
+				"isVisible": false
+			}, {
+				"elementId": "OverlayVignetteSize",
+				"isVisible": false
+			}, {
+				"elementId": "OverlayLayoutTextBlock",
+				"isVisible": false
+			}, {
+				"elementId": "OverlayLayout",
+				"isVisible": false
+			}, {
+				"elementId": "MosaicVignetteSizeTextBlock",
+				"isVisible": false
+			}, {
+				"elementId": "MosaicVignetteSize",
+				"isVisible": false
+			}, {
+				"elementId": "MosaicLayoutTextBlock",
+				"isVisible": false
+			}, {
+				"elementId": "MosaicLayout",
+				"isVisible": false
+			}]
+		}]
+	}, {
+		"id": "overlayToggleVisibility",
+		"type": "ActionSet",
+		"isVisible": false,
+		"actions": [{
+			"type": "Action.ToggleVisibility",
+			"title": "Use Overlay (two streams)",
+			"style": "positive",
+			"targetElements": [{
+				"elementId": "currentConfigContainer",
+				"isVisible": false
+			}, {
+				"elementId": "updateToggleVisibility",
+				"isVisible": false
+			}, {
+				"elementId": "oneStreamToggleVisibility",
+				"isVisible": false
+			}, {
+				"elementId": "overlayToggleVisibility",
+				"isVisible": true
+			}, {
+				"elementId": "mosaicToggleVisibility",
+				"isVisible": false
+			}, {
+				"elementId": "streamsContainer",
+				"isVisible": true
+			}, {
+				"elementId": "configContainer",
+				"isVisible": true
+			}, {
+				"elementId": "cancelToggleVisibility",
+				"isVisible": true
+			}, {
+				"elementId": "oneStreamSubmit",
+				"isVisible": false
+			}, {
+				"elementId": "overlaySubmit",
+				"isVisible": true
+			}, {
+				"elementId": "mosaicSubmit",
+				"isVisible": false
+			}, {
+				"elementId": "SizeTextBlock",
+				"isVisible": true
+			}, {
+				"elementId": "Size",
+				"isVisible": true
+			}, {
+				"elementId": "OverlayVignetteSizeTextBlock",
+				"isVisible": true
+			}, {
+				"elementId": "OverlayVignetteSize",
+				"isVisible": true
+			}, {
+				"elementId": "OverlayLayoutTextBlock",
+				"isVisible": true
+			}, {
+				"elementId": "OverlayLayout",
+				"isVisible": true
+			}, {
+				"elementId": "MosaicVignetteSizeTextBlock",
+				"isVisible": false
+			}, {
+				"elementId": "MosaicVignetteSize",
+				"isVisible": false
+			}, {
+				"elementId": "MosaicLayoutTextBlock",
+				"isVisible": false
+			}, {
+				"elementId": "MosaicLayout",
+				"isVisible": false
+			}]
+		}]
+	}, {
+		"id": "mosaicToggleVisibility",
+		"type": "ActionSet",
+		"isVisible": false,
+		"actions": [{
+			"type": "Action.ToggleVisibility",
+			"title": "Use Mosaic (two or more streams)",
+			"style": "positive",
+			"targetElements": [{
+				"elementId": "currentConfigContainer",
+				"isVisible": false
+			}, {
+				"elementId": "updateToggleVisibility",
+				"isVisible": false
+			}, {
+				"elementId": "oneStreamToggleVisibility",
+				"isVisible": false
+			}, {
+				"elementId": "overlayToggleVisibility",
+				"isVisible": false
+			}, {
+				"elementId": "mosaicToggleVisibility",
+				"isVisible": true
+			}, {
+				"elementId": "streamsContainer",
+				"isVisible": true
+			}, {
+				"elementId": "configContainer",
+				"isVisible": true
+			}, {
+				"elementId": "cancelToggleVisibility",
+				"isVisible": true
+			}, {
+				"elementId": "oneStreamSubmit",
+				"isVisible": false
+			}, {
+				"elementId": "overlaySubmit",
+				"isVisible": false
+			}, {
+				"elementId": "mosaicSubmit",
+				"isVisible": true
+			}, {
+				"elementId": "SizeTextBlock",
+				"isVisible": false
+			}, {
+				"elementId": "Size",
+				"isVisible": false
+			}, {
+				"elementId": "OverlayVignetteSizeTextBlock",
+				"isVisible": false
+			}, {
+				"elementId": "OverlayVignetteSize",
+				"isVisible": false
+			}, {
+				"elementId": "OverlayLayoutTextBlock",
+				"isVisible": false
+			}, {
+				"elementId": "OverlayLayout",
+				"isVisible": false
+			}, {
+				"elementId": "MosaicVignetteSizeTextBlock",
+				"isVisible": true
+			}, {
+				"elementId": "MosaicVignetteSize",
+				"isVisible": true
+			}, {
+				"elementId": "MosaicLayoutTextBlock",
+				"isVisible": true
+			}, {
+				"elementId": "MosaicLayout",
+				"isVisible": true
+			}]
+		}]
+	}, {
+		"id": "streamsContainer",
+		"type": "Container",
+		"isVisible": false,
+		"items": [{
+			"type": "TextBlock",
+			"weight": "bolder",
+			"text": "<font color='blue'><b>Stream(s) available:</b></font>"
+		}, {
+			"type": "ColumnSet",
+			"columns": [{
+				"type": "Column",
+				"items": [{
+					"type": "Input.ChoiceSet",
+					"id": "Streams",
+					"label": "",
+					"value": "0,1,2,3",
+					"style": "expanded",
+					"isRequired": false,
+					"isMultiSelect": true,
+					"errorMessage": "Selection is required",
+					"choices": [{
+						"title": "<p style=\"font-family: Courier\"><b>Joy and Heron&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</b>&nbsp;[1920x1080 - 25fps]</p>",
+						"value": "0"
+					}, {
+						"title": "<p style=\"font-family: Courier\"><b>Big Buck Bunny&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</b>&nbsp;[640x360 - 24fps]</p>",
+						"value": "1"
+					}, {
+						"title": "<p style=\"font-family: Courier\"><b>Ocean&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</b>&nbsp;[960x400 - 24fps]</p>",
+						"value": "2"
+					}, {
+						"title": "<p style=\"font-family: Courier\"><b>TOEFL Test&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</b>&nbsp;[640x480 - 30fps]</p>",
+						"value": "3"
+					}, {
+						"title": "<p style=\"font-family: Courier\"><b>Armello Trailer&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</b>&nbsp;[1920x1080 - 25fps]</p>",
+						"value": "4"
+					}, {
+						"title": "<p style=\"font-family: Courier\"><b>Placebo - Beautiful James</b>&nbsp;[1280x640 - 24fps]</p>",
+						"value": "5"
+					}, {
+						"title": "<p style=\"font-family: Courier\"><b>Stadium&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</b>&nbsp;[3840x2160 - 30fps]</p>",
+						"value": "6"
+					}]
+				}],
+				"width": "auto"
+			}]
+		}]
+	}, {
+		"id": "configContainer",
+		"type": "Container",
+		"isVisible": false,
+		"items": [{
+			"type": "ColumnSet",
+			"columns": [{
+				"type": "Column",
+				"verticalContentAlignment": "bottom",
+				"horizontalAlignment": "right",
+				"items": [{
+					"type": "TextBlock",
+					"text": "<font color='green'><b>Fps:</b></font>",
+					"wrap": true
+				}, {
+					"id": "OverlayVignetteSizeTextBlock",
+					"type": "TextBlock",
+					"text": "<font color='green'><b>Vignette:</b></font>",
+					"wrap": true
+				}, {
+					"id": "MosaicVignetteSizeTextBlock",
+					"type": "TextBlock",
+					"text": "<font color='green'><b>Vignette:</b></font>",
+					"wrap": true
+				}],
+				"width": "auto"
+			}, {
+				"type": "Column",
+				"verticalContentAlignment": "bottom",
+				"items": [{
+					"type": "Input.ChoiceSet",
+					"id": "Fps",
+					"label": "",
+					"value": "10",
+					"style": "compact",
+					"isRequired": false,
+					"isMultiSelect": false,
+					"errorMessage": "Selection is required",
+					"choices": [{
+						"title": "25",
+						"value": "25"
+					}, {
+						"title": "20",
+						"value": "20"
+					}, {
+						"title": "15",
+						"value": "15"
+					}, {
+						"title": "10",
+						"value": "10"
+					}, {
+						"title": "5",
+						"value": "5"
+					}, {
+						"title": "1",
+						"value": "1"
+					}]
+				}, {
+					"type": "Input.ChoiceSet",
+					"id": "OverlayVignetteSize",
+					"label": "",
+					"value": "400x300",
+					"style": "compact",
+					"isRequired": false,
+					"isMultiSelect": false,
+					"errorMessage": "Selection is required",
+					"choices": [{
+						"title": "800x640____[5:4]",
+						"value": "800x640"
+					}, {
+						"title": "800x600____[4:3]",
+						"value": "800x600"
+					}, {
+						"title": "800x450____[16:9]",
+						"value": "800x450"
+					}, {
+						"title": "640x512____[5:4]",
+						"value": "640x512"
+					}, {
+						"title": "640x480____[4:3]",
+						"value": "640x480"
+					}, {
+						"title": "640x360____[16:9]",
+						"value": "640x360"
+					}, {
+						"title": "400x320____[5:4]",
+						"value": "400x320"
+					}, {
+						"title": "400x300____[4:3]",
+						"value": "400x300"
+					}, {
+						"title": "320x256____[5:4]",
+						"value": "320x256"
+					}, {
+						"title": "320x240____[4:3]",
+						"value": "320x240"
+					}, {
+						"title": "320x180____[16:9]",
+						"value": "320x180"
+					}, {
+						"title": "300x240____[5:4]",
+						"value": "300x240"
+					}, {
+						"title": "240x192____[5:4]",
+						"value": "240x192"
+					}, {
+						"title": "240x180____[4:3]",
+						"value": "240x180"
+					}, {
+						"title": "200x160____[5:4]",
+						"value": "200x160"
+					}, {
+						"title": "200x150____[4:3]",
+						"value": "200x150"
+					}]
+				}, {
+					"type": "Input.ChoiceSet",
+					"id": "MosaicVignetteSize",
+					"label": "",
+					"value": "400x300",
+					"style": "compact",
+					"isRequired": false,
+					"isMultiSelect": false,
+					"errorMessage": "Selection is required",
+					"choices": [{
+						"title": "800x640____[5:4]",
+						"value": "800x640"
+					}, {
+						"title": "800x600____[4:3]",
+						"value": "800x600"
+					}, {
+						"title": "800x450____[16:9]",
+						"value": "800x450"
+					}, {
+						"title": "640x512____[5:4]",
+						"value": "640x512"
+					}, {
+						"title": "640x480____[4:3]",
+						"value": "640x480"
+					}, {
+						"title": "640x360____[16:9]",
+						"value": "640x360"
+					}, {
+						"title": "400x320____[5:4]",
+						"value": "400x320"
+					}, {
+						"title": "400x300____[4:3]",
+						"value": "400x300"
+					}, {
+						"title": "320x256____[5:4]",
+						"value": "320x256"
+					}, {
+						"title": "320x240____[4:3]",
+						"value": "320x240"
+					}, {
+						"title": "320x180____[16:9]",
+						"value": "320x180"
+					}, {
+						"title": "300x240____[5:4]",
+						"value": "300x240"
+					}, {
+						"title": "240x192____[5:4]",
+						"value": "240x192"
+					}, {
+						"title": "240x180____[4:3]",
+						"value": "240x180"
+					}, {
+						"title": "200x160____[5:4]",
+						"value": "200x160"
+					}, {
+						"title": "200x150____[4:3]",
+						"value": "200x150"
+					}]
+				}],
+				"width": "auto"
+			}, {
+				"type": "Column",
+				"verticalContentAlignment": "bottom",
+				"horizontalAlignment": "right",
+				"items": [{
+					"id": "SizeTextBlock",
+					"type": "TextBlock",
+					"text": "<font color='green'><b>Size:</b></font>",
+					"wrap": true
+				}, {
+					"id": "OverlayLayoutTextBlock",
+					"type": "TextBlock",
+					"text": "<font color='green'><b>Layout:</b></font>",
+					"wrap": true
+				}, {
+					"id": "MosaicLayoutTextBlock",
+					"type": "TextBlock",
+					"text": "<font color='green'><b>Layout:</b></font>",
+					"wrap": true
+				}],
+				"width": "auto"
+			}, {
+				"type": "Column",
+				"verticalContentAlignment": "bottom",
+				"items": [{
+					"type": "Input.ChoiceSet",
+					"id": "Size",
+					"label": "",
+					"value": "1920x1080",
+					"style": "compact",
+					"isRequired": false,
+					"isMultiSelect": false,
+					"errorMessage": "Selection is required",
+					"choices": [{
+						"title": "1920x1080____[16:9]",
+						"value": "1920x1080"
+					}, {
+						"title": "1440x1080____[4:3]",
+						"value": "1440x1080"
+					}, {
+						"title": "1440x810_____[16:9]",
+						"value": "1440x810"
+					}, {
+						"title": "1280x1024____[5:4]",
+						"value": "1280x1024"
+					}, {
+						"title": "1280x960_____[4:3]",
+						"value": "1280x960"
+					}, {
+						"title": "1280x720_____[16:9]",
+						"value": "1280x720"
+					}, {
+						"title": "1024x768_____[4:3]",
+						"value": "1024x768"
+					}, {
+						"title": "1024x576_____[16:9]",
+						"value": "1024x576"
+					}, {
+						"title": "800x640______[5:4]",
+						"value": "800x640"
+					}, {
+						"title": "800x600______[4:3]",
+						"value": "800x600"
+					}, {
+						"title": "800x450______[16:9]",
+						"value": "800x450"
+					}, {
+						"title": "640x512______[5:4]",
+						"value": "640x512"
+					}, {
+						"title": "640x480______[4:3]",
+						"value": "640x480"
+					}, {
+						"title": "640x360______[16:9]",
+						"value": "640x360"
+					}]
+				}, {
+					"type": "Input.ChoiceSet",
+					"id": "OverlayLayout",
+					"isVisible": true,
+					"label": "",
+					"value": "TL",
+					"style": "compact",
+					"isRequired": false,
+					"isMultiSelect": false,
+					"errorMessage": "Selection is required",
+					"choices": [{
+						"title": "Top Left",
+						"value": "TL"
+					}, {
+						"title": "Top Right",
+						"value": "TR"
+					}, {
+						"title": "Bottom Right",
+						"value": "BR"
+					}, {
+						"title": "Bottom Left",
+						"value": "BL"
+					}]
+				}, {
+					"type": "Input.ChoiceSet",
+					"id": "MosaicLayout",
+					"isVisible": true,
+					"label": "",
+					"value": "G",
+					"style": "compact",
+					"isRequired": false,
+					"isMultiSelect": false,
+					"errorMessage": "Selection is required",
+					"choices": [{
+						"title": "Grid (2x2, 3x3, ...)",
+						"value": "G"
+					}, {
+						"title": "Horizontal (1x1x...)",
+						"value": "H"
+					}, {
+						"title": "Horizontal (Main + 2 vignettes)",
+						"value": "H-M+2v"
+					}, {
+						"title": "Vertical (1x1x...)",
+						"value": "V"
+					}, {
+						"title": "Vertical (Main + 2 vignettes)",
+						"value": "V-M+2v"
+					}, {
+						"title": "Watch mode (Main + 5 vignettes)",
+						"value": "W"
+					}]
+				}],
+				"width": "auto"
+			}]
+		}, {
+			"type": "ActionSet",
+			"id": "oneStreamSubmit",
+			"actions": [{
+				"type": "Action.Submit",
+				"title": "Set",
+				"style": "positive",
+				"data": {
+					"rainbow": {
+						"type": "messageBack",
+						"value": {},
+						"text": ""
+					},
+					"Mode": "OneStream"
+				}
+			}]
+		}, {
+			"type": "ActionSet",
+			"id": "overlaySubmit",
+			"actions": [{
+				"type": "Action.Submit",
+				"title": "Set",
+				"style": "positive",
+				"data": {
+					"rainbow": {
+						"type": "messageBack",
+						"value": {},
+						"text": ""
+					},
+					"Mode": "Overlay"
+				}
+			}]
+		}, {
+			"type": "ActionSet",
+			"id": "mosaicSubmit",
+			"actions": [{
+				"type": "Action.Submit",
+				"title": "Set",
+				"style": "positive",
+				"data": {
+					"rainbow": {
+						"type": "messageBack",
+						"value": {},
+						"text": ""
+					},
+					"Mode": "Mosaic"
+				}
+			}]
+		}]
+	}, {
+		"id": "cancelToggleVisibility",
+		"type": "ActionSet",
+		"isVisible": false,
+		"actions": [{
+			"type": "Action.ToggleVisibility",
+			"title": "Cancel",
+			"style": "destructive",
+			"targetElements": [{
+				"elementId": "currentConfigContainer",
+				"isVisible": true
+			}, {
+				"elementId": "updateToggleVisibility",
+				"isVisible": true
+			}, {
+				"elementId": "oneStreamToggleVisibility",
+				"isVisible": false
+			}, {
+				"elementId": "overlayToggleVisibility",
+				"isVisible": false
+			}, {
+				"elementId": "mosaicToggleVisibility",
+				"isVisible": false
+			}, {
+				"elementId": "streamsContainer",
+				"isVisible": false
+			}, {
+				"elementId": "configContainer",
+				"isVisible": false
+			}, {
+				"elementId": "cancelToggleVisibility",
+				"isVisible": false
+			}]
+		}]
+	}],
+	"$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+	"version": "1.5"
+}

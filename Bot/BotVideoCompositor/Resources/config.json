@@ -1,0 +1,61 @@
+{
+  "ffmpegLibFolderPath": "C:\\ffmpeg-5.1.1-full_build-shared\\bin",
+
+  "videosUri": [
+    "http://178.194.8.37:9000/mjpg/video.mjpg",
+    "http://212.114.24.142/cgi-bin/faststream.jpg",
+    "http://217.128.255.110:81/mjpg/video.mjpg",
+    "http://80.14.131.195/mjpg/video.mjpg",
+    "http://5.10.10.199:50000/cgi-bin/faststream.jpg",
+    "http://87.139.153.80/cgi-bin/faststream.jpg",
+    "http://185.36.240.161/mjpg/video.mjpg",
+    "http://79.135.52.133/cgi-bin/faststream.jpg",
+    "http://80.14.131.195/mjpg/video.mjpg"
+  ],
+
+  "labels": "labels_EN.json",
+
+  "_comment_ouputs": "For output video stream, define ratios supported then possible width and finally the max height supported",
+  "outputRatio": [ "5x4", "4x3", "16x9" ],
+  "outputWidth": [ 1920, 1680, 1440, 1280, 1024, 800, 640 ],
+  "outputMaxHeight": 1080,
+
+  "_comment_vignettesOutput": "For vignettes (in Mosaic or in Overlay), define ratios supported then possible width and finally the max height supported",
+  "vignetteRatio": [ "5x4", "4x3", "16x9" ],
+  "vignetteWidth": [ 800, 640, 400, 320, 300, 240, 200 ],
+  "vignetteMaxHeight": 640,
+
+  "_comment_fps": "Fps possible values",
+  "fps": [ 10, 5, 1 ],
+
+  "serverConfig": {
+    "appId": "6f8c5910725b11e9b55c81be00bebc2c",
+    "appSecret": "5CkS7sRKU5NgGjZ8DfFjHnKkHv0LrpcVqVcunCJ5XQvi3ZbQdNvuUMgYUYk0KCnQ",
+    "hostname": "openrainbow.net"
+  },
+
+  "_comment_botVideoCompositor": "Login / password to use for the Video Compositor",
+  "botVideoCompositor": {
+    "login": "cctvmaster@compirles.com",
+    "password": "Rainbow1!"
+  },
+
+  "command": {
+    "start": "cctv menu",
+    "stop": "cctv stop"
+  },
+
+  "_comment_botManagers": "Just login can be set here BUT ONLY if the bot manager has been added in the roster of the bot orchestrator. If not login+jid must be set",
+  "botManagers": [
+    {
+      "login": "irlesuser1@sophia.com",
+      "id": "",
+      "jid": ""
+    },
+    {
+      "login": "irlesuser2@sophia.com",
+      "id": "",
+      "jid": ""
+    }
+  ]
+}
