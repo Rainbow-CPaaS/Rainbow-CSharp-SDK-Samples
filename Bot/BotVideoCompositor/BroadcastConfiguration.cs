@@ -10,6 +10,8 @@ namespace BotVideoCompositor
 {
     internal class BroadcastConfiguration
     {
+        public Boolean StartBroadcast;
+
         public Dictionary<String, string> LastACMessageIdByConversationId { get; set; } // Id of the last IM message sent about BroabcastConfiguration by ConversationId
 
         public Dictionary<String, MediaInput> MediaInputCollections;
@@ -28,8 +30,15 @@ namespace BotVideoCompositor
 
         public String Layout; // For Overlay: TL, TR, BR, BL.   For Mosaic: G, H, V, H-M+2v, V-M+2v, W 
 
+        public Boolean ConfigError;
+
+        public Boolean StayConnectedToStreams;
+
         public BroadcastConfiguration()
         {
+            StartBroadcast = false;
+            StayConnectedToStreams = true;
+
             LastACMessageIdByConversationId = new Dictionary<string, string>();
             StreamsSelected = new List<string>();
             MediaInputCollections = new Dictionary<string, MediaInput>();
@@ -44,6 +53,8 @@ namespace BotVideoCompositor
         public void Init()
         {
             Mode = "None";
+
+            ConfigError = false;
 
             if (RainbowApplicationInfo.outputs?.Count > 0)
                 Size = RainbowApplicationInfo.outputs.First().Key;

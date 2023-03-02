@@ -11,26 +11,29 @@
 		"Harbor 9"
 	],
 	"title": "Broadcast - Configuration",
-	"titleAD": "<font color='blue'><b>Broadcast - Configuration</b></font>",
+	"titleAD": "<b>Broadcast - Configuration</b>",
+	"titleEnd": "Broadcast has ended",
+	"titleEndAD": "<b>Broadcast as ended</b>",
 	"configError": "<font color='red'>You try to set an invalid configuration. No update done.</font>",
 	"noConfig": "No configuration set yet.",
-	"currentStreams": "<font color='blue'><b>Stream(s) used:</b></font>",
-	"streams": "<font color='blue'><b>Stream(s) available:</b></font>",
-	"oneStream": "<font color='blue'><b>One stream - Output:</b></font>",
-	"overlay": "<font color='blue'><b>Overlay - Ouput</b></font>",
-	"mosaic": "<font color='blue'><b>Mosaic - Ouput</b></font>",
-	"size": "<font color='green'><b>Size:</b></font>",
-	"fps": "<font color='green'><b>Fps:</b></font>",
-	"vignette": "<font color='green'><b>Vignette:</b></font>",
-	"layout": "<font color='green'><b>Layout:</b></font>",
+	"currentStreams": "<b>Stream(s) used:</b>",
+	"streams": "<b>Stream(s) available:</b>",
+	"oneStream": "<b>One stream - Output:</b>",
+	"overlay": "<b>Overlay - Ouput</b>",
+	"mosaic": "<b>Mosaic - Ouput</b>",
+	"size": "<b>Size:</b>",
+	"fps": "<b>Fps:</b>",
+	"vignette": "<b>Vignette:</b>",
+	"layout": "<b>Layout:</b>",
+	"startBroadcast": "<b>Start broadcast</b>",
+	"connectedToLiveStream": "<b>Stay connected to CCTV</b>",
+	"btnSaveConfig": "Set and Save",
+	"btnOtherConfig": "Other settings",
 	"btnUpdate": "Update",
 	"btnSet": "Set",
-	"btnCancel": "Cancel",
 	"btnOneStream": "Use one stream",
-	"btnOverlay": "Use Overlay (two streams)",
-	"btnSetOverlay": "Set Overlay",
-	"btnMosaic": "Use Mosaic (two or more streams)",
-	"btnSetMosaic": "Set Mosaic",
+	"btnOverlay": "Use overlay (two streams)",
+	"btnMosaic": "Use mosaic (two or more streams)",
 	"overlayDisplay": [
 		{
 			"title": "Top Left",
@@ -51,27 +54,27 @@
 	],
 	"mosaicDisplay": [
 		{
-			"title": "Grid (2x2, 3x3, ...)",
+			"title": "Grid",
 			"value": "G"
 		},
 		{
-			"title": "Horizontal (1x1x...)",
+			"title": "Horizontal",
 			"value": "H"
 		},
 		{
-			"title": "Horizontal (Main + 2 vignettes)",
+			"title": "H. Main + 2 vignettes",
 			"value": "H-M+2v"
 		},
 		{
-			"title": "Vertical (1x1x...)",
+			"title": "Vertical",
 			"value": "V"
 		},
 		{
-			"title": "Vertical (Main + 2 vignettes)",
+			"title": "V. Main + 2 vignettes",
 			"value": "V-M+2v"
 		},
 		{
-			"title": "Watch mode (Main + 5 vignettes)",
+			"title": "Main + 5 vignettes",
 			"value": "W"
 		}
 

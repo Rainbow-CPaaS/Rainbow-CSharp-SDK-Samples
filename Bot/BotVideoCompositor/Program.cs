@@ -261,7 +261,7 @@ namespace BotVideoCompositor
                     foreach (var item in ratiosAvailable)
                     {
                         var key = item.Key;
-                        var value = Util.AddString(item.Key, "_", maxStringLength) + "____" + item.Value;
+                        var value = Util.AddString(item.Key, "_", maxStringLength) + "_" + item.Value;
                         ratiosAvailableForDisplay.Add(key, value);
                     }
 
@@ -315,7 +315,7 @@ namespace BotVideoCompositor
                     foreach (var item in ratiosAvailable)
                     {
                         var key = item.Key;
-                        var value = Util.AddString(item.Key, "_", maxStringLength) + "____" + item.Value;
+                        var value = Util.AddString(item.Key, "_", maxStringLength) + "_" + item.Value;
                         ratiosAvailableForDisplay.Add(key, value);
                     }
 

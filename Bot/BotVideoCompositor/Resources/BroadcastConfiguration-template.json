@@ -3,7 +3,6 @@
   "body": [
     {
       "type": "TextBlock",
-      "weight": "bolder",
       "horizontalAlignment": "center",
       "text": "${titleAD}"
     },
@@ -15,179 +14,15 @@
       "spacing": "none"
     },
     {
-      "id": "currentConfigContainer",
-      "type": "Container",
-      "items": [
-        {
-          "type": "TextBlock",
-          "isVisible": "${RB_configError}",
-          "weight": "bolder",
-          "text": "${configError}"
-        },
-        {
-          "type": "TextBlock",
-          "isVisible": "${RB_currentConfigNone}",
-          "weight": "bolder",
-          "text": "${noConfig}"
-        },
-        {
-          "id": "currentConfigDetailsContainer",
-          "type": "Container",
-          "isVisible": "${RB_currentConfigIsNotNone}",
-          "items": [
-            {
-              "type": "TextBlock",
-              "weight": "bolder",
-              "text": "${currentStreams}"
-            },
-            {
-              "type": "FactSet",
-              "facts": [
-                {
-                  "$data": "${streamsSelected}",
-                  "title": "${title}",
-                  "value": "${value}"
-                }
-              ]
-            },
-            {
-              "type": "TextBlock",
-              "weight": "bolder",
-              "text": "${RB_currentConfigText}"
-            },
-            {
-              "type": "ColumnSet",
-              "columns": [
-                {
-                  "type": "Column",
-                  "verticalContentAlignment": "bottom",
-                  "horizontalAlignment": "right",
-                  "items": [
-                    {
-                      "type": "TextBlock",
-                      "text": "${fps}",
-                      "wrap": true
-                    },
-                    {
-                      "isVisible": "${RB_currentVignetteIsVisible}",
-                      "type": "TextBlock",
-                      "text": "${vignette}",
-                      "wrap": true
-                    }
-                  ],
-                  "width": "auto"
-                },
-                {
-                  "type": "Column",
-                  "verticalContentAlignment": "bottom",
-                  "items": [
-                    {
-                      "type": "TextBlock",
-                      "text": "${RB_currentFps}",
-                      "wrap": true
-                    },
-                    {
-                      "isVisible": "${RB_currentVignetteIsVisible}",
-                      "type": "TextBlock",
-                      "text": "${RB_currentVignetteSize}",
-                      "wrap": true
-                    }
-                  ],
-                  "width": "auto"
-                },
-                {
-                  "type": "Column",
-                  "verticalContentAlignment": "bottom",
-                  "horizontalAlignment": "right",
-                  "items": [
-                    {
-                      "isVisible": "${RB_currentSizeIsVisible}",
-                      "type": "TextBlock",
-                      "text": "${size}",
-                      "wrap": true
-                    },
-                    {
-                      "isVisible": "${RB_currentVignetteIsVisible}",
-                      "type": "TextBlock",
-                      "text": "${layout}",
-                      "wrap": true
-                    }
-                  ],
-                  "width": "auto"
-                },
-                {
-                  "type": "Column",
-                  "verticalContentAlignment": "bottom",
-                  "items": [
-                    {
-                      "isVisible": "${RB_currentSizeIsVisible}",
-                      "type": "TextBlock",
-                      "text": "${RB_currentSize}",
-                      "wrap": true
-                    },
-                    {
-                      "type": "TextBlock",
-                      "text": "${RB_currentLayoutText}",
-                      "wrap": true
-                    }
-                  ],
-                  "width": "auto"
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "id": "updateToggleVisibility",
-      "type": "ActionSet",
-      "actions": [
-        {
-          "type": "Action.ToggleVisibility",
-          "title": "${btnUpdate}",
-          "style": "destructive",
-          "targetElements": [
-            {
-              "elementId": "currentConfigContainer",
-              "isVisible": false
-            },
-            {
-              "elementId": "updateToggleVisibility",
-              "isVisible": false
-            },
-            {
-              "elementId": "oneStreamToggleVisibility",
-              "isVisible": true
-            },
-            {
-              "elementId": "overlayToggleVisibility",
-              "isVisible": true
-            },
-            {
-              "elementId": "mosaicToggleVisibility",
-              "isVisible": true
-            },
-            {
-              "elementId": "streamsContainer",
-              "isVisible": false
-            },
-            {
-              "elementId": "configContainer",
-              "isVisible": false
-            },
-            {
-              "elementId": "cancelToggleVisibility",
-              "isVisible": true
-            }
-          ]
-        }
-      ]
+      "id": "ConfigErrorTextBlock",
+      "type": "TextBlock",
+      "isVisible": "${RB_configError}",
+      "text": "${configError}"
     },
     {
       "id": "oneStreamToggleVisibility",
       "type": "ActionSet",
-      "isVisible": false,
+      "isVisible": "${RB_oneStreamIsVisible}",
       "actions": [
         {
           "type": "Action.ToggleVisibility",
@@ -195,14 +30,6 @@
           "style": "positive",
           "targetElements": [
             {
-              "elementId": "currentConfigContainer",
-              "isVisible": false
-            },
-            {
-              "elementId": "updateToggleVisibility",
-              "isVisible": false
-            },
-            {
               "elementId": "oneStreamToggleVisibility",
               "isVisible": true
             },
@@ -215,15 +42,7 @@
               "isVisible": false
             },
             {
-              "elementId": "streamsContainer",
-              "isVisible": true
-            },
-            {
               "elementId": "configContainer",
-              "isVisible": true
-            },
-            {
-              "elementId": "cancelToggleVisibility",
               "isVisible": true
             },
             {
@@ -239,43 +58,27 @@
               "isVisible": false
             },
             {
+              "elementId": "VignetteTextBlock",
+              "isVisible": false
+            },
+            {
+              "elementId": "Vignette",
+              "isVisible": false
+            },
+            {
               "elementId": "SizeTextBlock",
               "isVisible": true
+            },
+            {
+              "elementId": "LayoutTextBlock",
+              "isVisible": false
             },
             {
               "elementId": "Size",
               "isVisible": true
             },
             {
-              "elementId": "OverlayVignetteSizeTextBlock",
-              "isVisible": false
-            },
-            {
-              "elementId": "OverlayVignetteSize",
-              "isVisible": false
-            },
-            {
-              "elementId": "OverlayLayoutTextBlock",
-              "isVisible": false
-            },
-            {
-              "elementId": "OverlayLayout",
-              "isVisible": false
-            },
-            {
-              "elementId": "MosaicVignetteSizeTextBlock",
-              "isVisible": false
-            },
-            {
-              "elementId": "MosaicVignetteSize",
-              "isVisible": false
-            },
-            {
-              "elementId": "MosaicLayoutTextBlock",
-              "isVisible": false
-            },
-            {
-              "elementId": "MosaicLayout",
+              "elementId": "ContainerLayout",
               "isVisible": false
             }
           ]
@@ -285,21 +88,13 @@
     {
       "id": "overlayToggleVisibility",
       "type": "ActionSet",
-      "isVisible": false,
+      "isVisible": "${RB_overlayIsVisible}",
       "actions": [
         {
           "type": "Action.ToggleVisibility",
           "title": "${btnOverlay}",
           "style": "positive",
           "targetElements": [
-            {
-              "elementId": "currentConfigContainer",
-              "isVisible": false
-            },
-            {
-              "elementId": "updateToggleVisibility",
-              "isVisible": false
-            },
             {
               "elementId": "oneStreamToggleVisibility",
               "isVisible": false
@@ -313,15 +108,7 @@
               "isVisible": false
             },
             {
-              "elementId": "streamsContainer",
-              "isVisible": true
-            },
-            {
               "elementId": "configContainer",
-              "isVisible": true
-            },
-            {
-              "elementId": "cancelToggleVisibility",
               "isVisible": true
             },
             {
@@ -337,7 +124,19 @@
               "isVisible": false
             },
             {
+              "elementId": "VignetteTextBlock",
+              "isVisible": true
+            },
+            {
+              "elementId": "Vignette",
+              "isVisible": true
+            },
+            {
               "elementId": "SizeTextBlock",
+              "isVisible": true
+            },
+            {
+              "elementId": "LayoutTextBlock",
               "isVisible": true
             },
             {
@@ -345,32 +144,12 @@
               "isVisible": true
             },
             {
-              "elementId": "OverlayVignetteSizeTextBlock",
-              "isVisible": true
-            },
-            {
-              "elementId": "OverlayVignetteSize",
-              "isVisible": true
-            },
-            {
-              "elementId": "OverlayLayoutTextBlock",
+              "elementId": "ContainerLayout",
               "isVisible": true
             },
             {
               "elementId": "OverlayLayout",
               "isVisible": true
-            },
-            {
-              "elementId": "MosaicVignetteSizeTextBlock",
-              "isVisible": false
-            },
-            {
-              "elementId": "MosaicVignetteSize",
-              "isVisible": false
-            },
-            {
-              "elementId": "MosaicLayoutTextBlock",
-              "isVisible": false
             },
             {
               "elementId": "MosaicLayout",
@@ -383,21 +162,13 @@
     {
       "id": "mosaicToggleVisibility",
       "type": "ActionSet",
-      "isVisible": false,
+      "isVisible": "${RB_mosaicIsVisible}",
       "actions": [
         {
           "type": "Action.ToggleVisibility",
           "title": "${btnMosaic}",
           "style": "positive",
           "targetElements": [
-            {
-              "elementId": "currentConfigContainer",
-              "isVisible": false
-            },
-            {
-              "elementId": "updateToggleVisibility",
-              "isVisible": false
-            },
             {
               "elementId": "oneStreamToggleVisibility",
               "isVisible": false
@@ -411,15 +182,7 @@
               "isVisible": true
             },
             {
-              "elementId": "streamsContainer",
-              "isVisible": true
-            },
-            {
               "elementId": "configContainer",
-              "isVisible": true
-            },
-            {
-              "elementId": "cancelToggleVisibility",
               "isVisible": true
             },
             {
@@ -435,40 +198,32 @@
               "isVisible": true
             },
             {
+              "elementId": "VignetteTextBlock",
+              "isVisible": true
+            },
+            {
+              "elementId": "Vignette",
+              "isVisible": true
+            },
+            {
               "elementId": "SizeTextBlock",
               "isVisible": false
+            },
+            {
+              "elementId": "LayoutTextBlock",
+              "isVisible": true
             },
             {
               "elementId": "Size",
               "isVisible": false
             },
             {
-              "elementId": "OverlayVignetteSizeTextBlock",
-              "isVisible": false
-            },
-            {
-              "elementId": "OverlayVignetteSize",
-              "isVisible": false
-            },
-            {
-              "elementId": "OverlayLayoutTextBlock",
-              "isVisible": false
+              "elementId": "ContainerLayout",
+              "isVisible": true
             },
             {
               "elementId": "OverlayLayout",
               "isVisible": false
-            },
-            {
-              "elementId": "MosaicVignetteSizeTextBlock",
-              "isVisible": true
-            },
-            {
-              "elementId": "MosaicVignetteSize",
-              "isVisible": true
-            },
-            {
-              "elementId": "MosaicLayoutTextBlock",
-              "isVisible": true
             },
             {
               "elementId": "MosaicLayout",
@@ -479,13 +234,12 @@
       ]
     },
     {
-      "id": "streamsContainer",
+      "id": "configContainer",
       "type": "Container",
-      "isVisible": false,
+      "isVisible": true,
       "items": [
         {
           "type": "TextBlock",
-          "weight": "bolder",
           "text": "${streams}"
         },
         {
@@ -497,12 +251,9 @@
                 {
                   "type": "Input.ChoiceSet",
                   "id": "Streams",
-                  "label": "",
                   "value": "${RB_streamsSelected}",
                   "style": "expanded",
-                  "isRequired": false,
                   "isMultiSelect": true,
-                  "errorMessage": "Selection is required",
                   "choices": [
                     {
                       "$data": "${streamsCollection}",
@@ -515,15 +266,7 @@
               "width": "auto"
             }
           ]
-        }
-      ]
-    },
-    {
-      "id": "configContainer",
-      "type": "Container",
-      "isVisible": false,
-      "items": [
-
+        },
         {
           "type": "ColumnSet",
           "columns": [
@@ -534,20 +277,13 @@
               "items": [
                 {
                   "type": "TextBlock",
-                  "text": "${fps}",
-                  "wrap": true
+                  "text": "${fps}"
                 },
                 {
-                  "id": "OverlayVignetteSizeTextBlock",
+                  "id": "VignetteTextBlock",
+                  "isVisible": "${RB_oneStreamIsNotVisible}",
                   "type": "TextBlock",
-                  "text": "${vignette}",
-                  "wrap": true
-                },
-                {
-                  "id": "MosaicVignetteSizeTextBlock",
-                  "type": "TextBlock",
-                  "text": "${vignette}",
-                  "wrap": true
+                  "text": "${vignette}"
                 }
               ],
               "width": "auto"
@@ -559,12 +295,9 @@
                 {
                   "type": "Input.ChoiceSet",
                   "id": "Fps",
-                  "label": "",
                   "value": "${RB_currentFps}",
                   "style": "compact",
-                  "isRequired": false,
                   "isMultiSelect": false,
-                  "errorMessage": "Selection is required",
                   "choices": [
                     {
                       "$data": "${fpsCollection}",
@@ -575,30 +308,11 @@
                 },
                 {
                   "type": "Input.ChoiceSet",
-                  "id": "OverlayVignetteSize",
-                  "label": "",
+                  "id": "Vignette",
+                  "isVisible": "${RB_oneStreamIsNotVisible}",
                   "value": "${RB_currentVignetteSize}",
                   "style": "compact",
-                  "isRequired": false,
                   "isMultiSelect": false,
-                  "errorMessage": "Selection is required",
-                  "choices": [
-                    {
-                      "$data": "${vignetteSizeSelection}",
-                      "title": "${title}",
-                      "value": "${value}"
-                    }
-                  ]
-                },
-                {
-                  "type": "Input.ChoiceSet",
-                  "id": "MosaicVignetteSize",
-                  "label": "",
-                  "value": "${RB_currentVignetteSize}",
-                  "style": "compact",
-                  "isRequired": false,
-                  "isMultiSelect": false,
-                  "errorMessage": "Selection is required",
                   "choices": [
                     {
                       "$data": "${vignetteSizeSelection}",
@@ -617,21 +331,15 @@
               "items": [
                 {
                   "id": "SizeTextBlock",
+                  "isVisible": "${RB_SizeTextBlockIsVisible}",
                   "type": "TextBlock",
-                  "text": "${size}",
-                  "wrap": true
+                  "text": "${size}"
                 },
                 {
-                  "id": "OverlayLayoutTextBlock",
+                  "id": "LayoutTextBlock",
+                  "isVisible": "${RB_oneStreamIsNotVisible}",
                   "type": "TextBlock",
-                  "text": "${layout}",
-                  "wrap": true
-                },
-                {
-                  "id": "MosaicLayoutTextBlock",
-                  "type": "TextBlock",
-                  "text": "${layout}",
-                  "wrap": true
+                  "text": "${layout}"
                 }
               ],
               "width": "auto"
@@ -643,12 +351,10 @@
                 {
                   "type": "Input.ChoiceSet",
                   "id": "Size",
-                  "label": "",
+                  "isVisible": "${RB_SizeIsVisible}",
                   "value": "${RB_currentSize}",
                   "style": "compact",
-                  "isRequired": false,
                   "isMultiSelect": false,
-                  "errorMessage": "Selection is required",
                   "choices": [
                     {
                       "$data": "${sizeCollection}",
@@ -658,38 +364,40 @@
                   ]
                 },
                 {
-                  "type": "Input.ChoiceSet",
-                  "id": "OverlayLayout",
-                  "isVisible": true,
-                  "label": "",
-                  "value": "${RB_currentLayoutOverlay}",
-                  "style": "compact",
-                  "isRequired": false,
-                  "isMultiSelect": false,
-                  "errorMessage": "Selection is required",
-                  "choices": [
+                  "type": "Container",
+                  "id": "ContainerLayout",
+                  "isVisible": "${RB_containerLayoutIsVisible}",
+                  "verticalContentAlignment": "bottom",
+                  "items": [
                     {
-                      "$data": "${overlayDisplay}",
-                      "title": "${title}",
-                      "value": "${value}"
-                    }
-                  ]
-                },
-                {
-                  "type": "Input.ChoiceSet",
-                  "id": "MosaicLayout",
-                  "isVisible": true,
-                  "label": "",
-                  "value": "${RB_currentLayoutMosaic}",
-                  "style": "compact",
-                  "isRequired": false,
-                  "isMultiSelect": false,
-                  "errorMessage": "Selection is required",
-                  "choices": [
+                      "type": "Input.ChoiceSet",
+                      "id": "OverlayLayout",
+                      "isVisible": "${RB_overlayLayoutIsVisible}",
+                      "value": "${RB_currentLayoutOverlay}",
+                      "style": "compact",
+                      "isMultiSelect": false,
+                      "choices": [
+                        {
+                          "$data": "${overlayDisplay}",
+                          "title": "${title}",
+                          "value": "${value}"
+                        }
+                      ]
+                    },
                     {
-                      "$data": "${mosaicDisplay}",
-                      "title": "${title}",
-                      "value": "${value}"
+                      "type": "Input.ChoiceSet",
+                      "id": "MosaicLayout",
+                      "isVisible": "${RB_mosaicLayoutIsVisible}",
+                      "value": "${RB_currentLayoutMosaic}",
+                      "style": "compact",
+                      "isMultiSelect": false,
+                      "choices": [
+                        {
+                          "$data": "${mosaicDisplay}",
+                          "title": "${title}",
+                          "value": "${value}"
+                        }
+                      ]
                     }
                   ]
                 }
@@ -699,8 +407,40 @@
           ]
         },
         {
+          "type": "ColumnSet",
+          "columns": [
+            {
+              "type": "Column",
+              "verticalContentAlignment": "bottom",
+              "items": [
+                {
+                  "type": "Input.Toggle",
+                  "id": "StartBroadcast",
+                  "title": "${startBroadcast}",
+                  "value": "${RB_startBroadcast}",
+                  "valueOn": "true"
+                }
+              ]
+            },
+            {
+              "type": "Column",
+              "verticalContentAlignment": "bottom",
+              "items": [
+                {
+                  "type": "Input.Toggle",
+                  "id": "ConnectedToLiveStream",
+                  "title": "${connectedToLiveStream}",
+                  "value": "${RB_connectedToLiveStream}",
+                  "valueOn": "true"
+                }
+              ]
+            }
+          ]
+        },
+        {
           "type": "ActionSet",
           "id": "oneStreamSubmit",
+          "isVisible": "${RB_oneStreamIsVisible}",
           "actions": [
             {
               "type": "Action.Submit",
@@ -714,12 +454,27 @@
                 },
                 "Mode": "OneStream"
               }
+            },
+            {
+              "type": "Action.Submit",
+              "title": "${btnSaveConfig}",
+              "style": "destructive",
+              "data": {
+                "rainbow": {
+                  "type": "messageBack",
+                  "value": {},
+                  "text": ""
+                },
+                "Mode": "OneStream",
+                "SaveConfig": "true"
+              }
             }
           ]
         },
         {
           "type": "ActionSet",
           "id": "overlaySubmit",
+          "isVisible": "${RB_overlayIsVisible}",
           "actions": [
             {
               "type": "Action.Submit",
@@ -733,12 +488,27 @@
                 },
                 "Mode": "Overlay"
               }
+            },
+            {
+              "type": "Action.Submit",
+              "title": "${btnSaveConfig}",
+              "style": "destructive",
+              "data": {
+                "rainbow": {
+                  "type": "messageBack",
+                  "value": {},
+                  "text": ""
+                },
+                "Mode": "Overlay",
+                "SaveConfig": "true"
+              }
             }
           ]
         },
         {
           "type": "ActionSet",
           "id": "mosaicSubmit",
+          "isVisible": "${RB_mosaicIsVisible}",
           "actions": [
             {
               "type": "Action.Submit",
@@ -752,55 +522,53 @@
                 },
                 "Mode": "Mosaic"
               }
+            },
+            {
+              "type": "Action.Submit",
+              "title": "${btnSaveConfig}",
+              "style": "destructive",
+              "data": {
+                "rainbow": {
+                  "type": "messageBack",
+                  "value": {},
+                  "text": ""
+                },
+                "Mode": "Mosaic",
+                "SaveConfig": "true"
+              }
             }
           ]
-        }
-      ]
-    },
-    {
-      "id": "cancelToggleVisibility",
-      "type": "ActionSet",
-      "isVisible": false,
-      "actions": [
+        },
         {
-          "type": "Action.ToggleVisibility",
-          "title": "${btnCancel}",
-          "style": "destructive",
-          "targetElements": [
+          "id": "otherConfigToggleVisibility",
+          "type": "ActionSet",
+          "actions": [
             {
-              "elementId": "currentConfigContainer",
-              "isVisible": true
-            },
-            {
-              "elementId": "updateToggleVisibility",
-              "isVisible": true
-            },
-            {
-              "elementId": "oneStreamToggleVisibility",
-              "isVisible": false
-            },
-            {
-              "elementId": "overlayToggleVisibility",
-              "isVisible": false
-            },
-            {
-              "elementId": "mosaicToggleVisibility",
-              "isVisible": false
-            },
-            {
-              "elementId": "streamsContainer",
-              "isVisible": false
-            },
-            {
-              "elementId": "configContainer",
-              "isVisible": false
-            },
-            {
-              "elementId": "cancelToggleVisibility",
-              "isVisible": false
+              "type": "Action.ToggleVisibility",
+              "title": "${btnOtherConfig}",
+              "style": "destructive",
+              "targetElements": [
+                {
+                  "elementId": "oneStreamToggleVisibility",
+                  "isVisible": true
+                },
+                {
+                  "elementId": "overlayToggleVisibility",
+                  "isVisible": true
+                },
+                {
+                  "elementId": "mosaicToggleVisibility",
+                  "isVisible": true
+                },
+                {
+                  "elementId": "configContainer",
+                  "isVisible": false
+                }
+              ]
             }
           ]
         }
+
       ]
     }
   ],

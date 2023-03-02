@@ -5,7 +5,6 @@ using Rainbow;
 using Rainbow.Model;
 using Rainbow.Events;
 using System.Collections.Concurrent;
-using Rainbow.WebRTC;
 using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
@@ -13,7 +12,7 @@ using Rainbow.Medias;
 using Newtonsoft.Json.Linq;
 using AdaptiveCards.Templating;
 using System.Threading;
-using Microsoft.Extensions.Configuration;
+using System.IO;
 
 namespace BotVideoCompositor
 {
@@ -39,6 +38,8 @@ namespace BotVideoCompositor
 
             AutoReconnection,
 
+            ReadSavedConfigurationFile,
+
             BubbleInvitationReceived,
 
             JoinConference,
@@ -48,7 +49,10 @@ namespace BotVideoCompositor
             StopMessageReceived,
 
             AddVideoStream,
-            AddSharingStream
+            AddSharingStream,
+
+            StopVideoStream,
+            StopSharingStream
         }
 
         /// <summary>
@@ -68,6 +72,8 @@ namespace BotVideoCompositor
 
             TooManyAttempts,
 
+            ReadSavedConfigurationFile,
+
             BubbleInvitationReceived,
             BubbleInvitationManaged,
 
@@ -81,6 +87,9 @@ namespace BotVideoCompositor
 
             VideoStreamAvailable,
             SharingStreamAvailable,
+
+            VideoStreamToStop,
+            SharingStreamToStop,
         }
 
         private readonly StateMachine<State, Trigger> _machine;
@@ -114,19 +123,20 @@ namespace BotVideoCompositor
 
         private Boolean _needToAddVideoStreamInConference = false;
         private Boolean _addingVideoStreamInConference = false;
-        private MediaInput? _videoStream = null;
-        private String? _videoStreamUri = null;
 
         private Boolean _needToAddSharingStreamInConference = false;
         private Boolean _addingSharingStreamInConference = false;
-        private MediaInput? _sharingStream = null;
-        private String? _sharingStreamUri = null;
+
+        private Boolean _needToRemoveSharingStreamInConference = false;
+        private Boolean _removingSharingStreamInConference = false;
 
         private String? _monitoredBubbleId = null;
         private String? _currentConferenceId = null;
         private Boolean _autoJoinConference = false;
         private Boolean _isParticipantInConference = true;
         private Call? _currentCall = null;
+
+        private Boolean _isSavedConfigurationFileRead = false;
 
         private readonly List<String> _conferencesInProgress = new List<string>();
 
@@ -190,8 +200,14 @@ namespace BotVideoCompositor
                 .PermitIf(_conferenceAvailableTrigger, State.JoinConference)
                 .PermitIf(Trigger.ConferenceQuit, State.QuitConference)
 
+                .PermitIf(Trigger.ReadSavedConfigurationFile, State.ReadSavedConfigurationFile)
+                
+
                 .Permit(Trigger.VideoStreamAvailable, State.AddVideoStream)
                 .Permit(Trigger.SharingStreamAvailable, State.AddSharingStream)
+
+                .Permit(Trigger.VideoStreamToStop, State.StopVideoStream)
+                .Permit(Trigger.SharingStreamToStop, State.StopSharingStream)
 
                 .PermitIf(_messageReceivedFromPeerTrigger, State.MessageFromPeer)
                 .PermitIf(_bubbleInvitationReceivedTrigger, State.BubbleInvitationReceived)
@@ -208,9 +224,24 @@ namespace BotVideoCompositor
                 .OnEntry(AddSharingStream)
                 .Permit(Trigger.ActionDone, State.Connected);
 
+            // Configure the StopVideoStream state
+            _machine.Configure(State.StopVideoStream)
+                .OnEntry(StopVideoStream)
+                .Permit(Trigger.ActionDone, State.Connected);
+
+            // Configure the StopVideoStream state
+            _machine.Configure(State.StopSharingStream)
+                .OnEntry(StopSharingStream)
+                .Permit(Trigger.ActionDone, State.Connected);
+
             // Configure the JoinConference state
             _machine.Configure(State.JoinConference)
                 .OnEntryFrom(_conferenceAvailableTrigger, JoinConference)
+                .Permit(Trigger.ActionDone, State.Connected);
+
+            // Configure the ReadSavedConfigurationFile state
+            _machine.Configure(State.ReadSavedConfigurationFile)
+                .OnEntry(ReadSavedConfigurationFile)
                 .Permit(Trigger.ActionDone, State.Connected);
 
             // Configure the QuitConference state
@@ -263,6 +294,9 @@ namespace BotVideoCompositor
 
             _needToAddSharingStreamInConference = false;
             _addingSharingStreamInConference = false;
+
+            _needToRemoveSharingStreamInConference = false;
+            _removingSharingStreamInConference = false;
         }
 
         private Boolean? IsMessageFromMasterBot(Message message)
@@ -350,6 +384,269 @@ namespace BotVideoCompositor
         }
 
         /// <summary>
+        /// To create Broadcat Configuration from Json String
+        /// </summary>
+        /// <param name="jsonString"><see cref="String"/>Json String</param>
+        /// <returns></returns>
+        private (Boolean configError, BroadcastConfiguration? newConfiguration) CreateConfigurationFromJson(String jsonString)
+        {
+            Boolean configError = false;
+            BroadcastConfiguration? newConfiguration = null;
+
+            var dicoData = JsonConvert.DeserializeObject<Dictionary<String, Object>>(jsonString);
+            if (dicoData != null)
+            {
+                newConfiguration = new BroadcastConfiguration();
+
+                if (dicoData.ContainsKey("Mode"))
+                {
+                    newConfiguration.Mode = dicoData["Mode"].ToString();
+
+                    // Check if we have to save the configuration
+                    if (dicoData.ContainsKey("SaveConfig") && dicoData["SaveConfig"]?.ToString() == "true")
+                        File.WriteAllText(RainbowApplicationInfo.SAVED_CONFIG_FILE_PATH, jsonString);
+
+                    if (dicoData.ContainsKey("ConnectedToLiveStream"))
+                        newConfiguration.StayConnectedToStreams = dicoData["ConnectedToLiveStream"].ToString() == "true";
+                    else
+                        configError = true;
+
+                    if (dicoData.ContainsKey("StartBroadcast"))
+                        newConfiguration.StartBroadcast = dicoData["StartBroadcast"].ToString() == "true";
+                    else
+                        configError = true;
+
+                    if (dicoData.ContainsKey("Fps"))
+                        int.TryParse(dicoData["Fps"].ToString(), out newConfiguration.Fps);
+                    else
+                        configError = true;
+
+                    if (dicoData.ContainsKey("Size"))
+                        newConfiguration.Size = dicoData["Size"].ToString();
+                    else
+                        configError = true;
+
+                    if (dicoData.ContainsKey("Streams"))
+                    {
+                        var str = dicoData["Streams"].ToString();
+                        if (!String.IsNullOrEmpty(str))
+                            newConfiguration.StreamsSelected = str.Split(",").ToList();
+                    }
+                    else
+                        configError = true;
+
+                    switch (newConfiguration.Mode)
+                    {
+                        case "Overlay":
+                            if (dicoData.ContainsKey("OverlayLayout"))
+                                newConfiguration.Layout = dicoData["OverlayLayout"].ToString();
+                            else
+                                configError = true;
+
+                            if (dicoData.ContainsKey("Vignette"))
+                                newConfiguration.VignetteSize = dicoData["Vignette"].ToString();
+                            else
+                                configError = true;
+
+                            if (newConfiguration.StreamsSelected.Count != 2)
+                                configError = true;
+                            break;
+
+                        case "Mosaic":
+                            if (dicoData.ContainsKey("MosaicLayout"))
+                                newConfiguration.Layout = dicoData["MosaicLayout"].ToString();
+                            else
+                                configError = true;
+
+                            if (dicoData.ContainsKey("Vignette"))
+                                newConfiguration.VignetteSize = dicoData["Vignette"].ToString();
+                            else
+                                configError = true;
+
+                            if (newConfiguration.StreamsSelected.Count < 2)
+                                configError = true;
+                            break;
+
+                        case "OneStream":
+                            if (newConfiguration.StreamsSelected.Count != 1)
+                                configError = true;
+                            break;
+
+                        default:
+                            configError = true;
+                            break;
+                    }
+                }
+                else
+                {
+                    Util.WriteRedToConsole($"[{_botName}] Message received has invalid data - Mode property has not been found");
+                }
+            }
+            else
+            {
+                Util.WriteRedToConsole($"[{_botName}] Cannot dezerialized string as json:[{jsonString}]");
+            }
+
+            return (configError, newConfiguration);
+        }
+
+        private void SetCurrentConfigurationWithFilter(BroadcastConfiguration? newConfiguration)
+        {
+            Boolean configError = false;
+
+            // Store new configuration and create filter
+            if (newConfiguration != null)
+            {
+                // Store previous streams used:
+                var previousStreamsSlected = RainbowApplicationInfo.BroadcastConfiguration.StreamsSelected;
+
+                newConfiguration.LastACMessageIdByConversationId = RainbowApplicationInfo.BroadcastConfiguration.LastACMessageIdByConversationId;
+                newConfiguration.MediaInputCollections = RainbowApplicationInfo.BroadcastConfiguration.MediaInputCollections;
+                newConfiguration.MediaFiltered = RainbowApplicationInfo.BroadcastConfiguration.MediaFiltered;
+                RainbowApplicationInfo.BroadcastConfiguration = newConfiguration;
+
+                String? filterToUse = "";
+                Size? srcSize, srcOverlaySize;
+                Size? dstSize, dstVignetteSize;
+
+                // Create filter
+                switch (newConfiguration.Mode)
+                {
+                    case "OneStream":
+                        srcSize = Util.GetMediaInputSize(newConfiguration.StreamsSelected[0]);
+                        dstSize = new Size(newConfiguration.Size);
+                        if ((srcSize == null) || (dstSize == null))
+                            configError = true;
+                        else
+                            filterToUse = Util.FilterToScaleSize(srcSize, dstSize, newConfiguration.Fps);
+                        break;
+
+                    case "Overlay":
+                        srcSize = Util.GetMediaInputSize(newConfiguration.StreamsSelected[0]);
+                        dstSize = new Size(newConfiguration.Size);
+                        srcOverlaySize = Util.GetMediaInputSize(newConfiguration.StreamsSelected[1]);
+                        dstVignetteSize = new Size(newConfiguration.VignetteSize);
+
+                        if ((srcSize == null) || (dstSize == null) || (srcOverlaySize == null) || (dstVignetteSize == null))
+                            configError = true;
+                        else
+                            filterToUse = Util.FilterToOverlay(srcSize, srcOverlaySize, dstSize, dstVignetteSize, newConfiguration.Layout, newConfiguration.Fps);
+                        break;
+
+                    case "Mosaic":
+                        List<Size> srcVideoSize = new List<Size>();
+
+                        foreach (string id in newConfiguration.StreamsSelected)
+                        {
+                            srcSize = Util.GetMediaInputSize(id);
+                            if (srcSize == null)
+                            {
+                                configError = true;
+                                break;
+                            }
+                            srcVideoSize.Add(srcSize);
+                        }
+
+                        dstVignetteSize = new Size(newConfiguration.VignetteSize);
+                        if (dstVignetteSize == null)
+                            configError = true;
+                        else if (!configError)
+                            filterToUse = Util.FilterToMosaic(srcVideoSize, dstVignetteSize, newConfiguration.Layout, newConfiguration.Fps);
+                        break;
+
+                    default:
+                        break;
+                }
+
+                if (String.IsNullOrEmpty(filterToUse))
+                    configError = true;
+
+
+                if (!configError)
+                {
+                    // Log info about filter to use
+                    Util.WriteBlueToConsole($"[{_botName}] Filter to use:\r\n{filterToUse}\r\n");
+
+                    // Create MediaFiltered if necessary.
+                    if (RainbowApplicationInfo.BroadcastConfiguration.MediaFiltered == null)
+                        RainbowApplicationInfo.BroadcastConfiguration.MediaFiltered = new MediaFiltered("mediaFiltered", RainbowApplicationInfo.BroadcastConfiguration.MediaInputCollections.Values.ToList());
+
+                    // Loop on all Media Input to start or stop them
+                    foreach(var item in RainbowApplicationInfo.BroadcastConfiguration.MediaInputCollections)
+                    {
+                        string id = item.Key;
+                        var mediaInput = item.Value;
+                        if(mediaInput != null)
+                        {
+                            // Is this media input used ?
+                            if (RainbowApplicationInfo.BroadcastConfiguration.StreamsSelected.Contains(id))
+                            {
+                                if (RainbowApplicationInfo.BroadcastConfiguration.StartBroadcast)
+                                {
+                                    if (!mediaInput.IsStarted)
+                                    {
+                                        mediaInput.Start();
+                                        Util.WriteBlueToConsole($"[{_botName}] Starting MediaInput [{id}]");
+                                    }
+                                }
+                                else
+                                {
+                                    if (mediaInput.IsStarted)
+                                    {
+                                        if (mediaInput.LiveStream)
+                                        {
+                                            if (!RainbowApplicationInfo.BroadcastConfiguration.StayConnectedToStreams)
+                                            {
+                                                mediaInput.Stop();
+                                                Util.WriteBlueToConsole($"[{_botName}] Stopping Live Stream MediaInput [{id}]");
+                                            }
+                                        }
+                                        else
+                                        {
+                                            mediaInput.Stop();
+                                            Util.WriteBlueToConsole($"[{_botName}] Stopping MediaInput [{id}]");
+                                        }
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                if (mediaInput.IsStarted)
+                                {
+                                    if (mediaInput.LiveStream)
+                                    {
+                                        if (!RainbowApplicationInfo.BroadcastConfiguration.StayConnectedToStreams)
+                                        {
+                                            mediaInput.Stop();
+                                            Util.WriteBlueToConsole($"[{_botName}] Stopping unused Live Stream MediaInput [{id}]");
+                                        }
+                                    }
+                                    else
+                                    {
+                                        mediaInput.Stop();
+                                        Util.WriteBlueToConsole($"[{_botName}] Stopping unused MediaInput [{id}]");
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    if (RainbowApplicationInfo.BroadcastConfiguration.MediaFiltered.SetVideoFilter(RainbowApplicationInfo.BroadcastConfiguration.StreamsSelected, filterToUse))
+                    {
+                        RainbowApplicationInfo.BroadcastConfiguration.MediaFiltered.Start();
+                    }
+                    else
+                    {
+                        configError = true;
+                    }
+                }
+            }
+
+            // Store info about config error
+            RainbowApplicationInfo.BroadcastConfiguration.ConfigError = configError;
+        }
+
+        /// <summary>
         /// To answer to the specified message coming directly for another user
         /// </summary>
         private void AnswerToPeerMessage(Rainbow.Events.MessageEventArgs? messageEvent)
@@ -361,211 +658,14 @@ namespace BotVideoCompositor
                 (Boolean isWithAlternateContent, String? alternateContent) = GetAlternateContent(messageEvent.Message, "rainbow/json");
                 if (isWithAlternateContent && (alternateContent != null) )
                 {
-                    var dicoData = JsonConvert.DeserializeObject<Dictionary<String, Object>>(alternateContent);
-                    if(dicoData != null)
-                    {
-                        Boolean configError = false;
-                        var newConfiguration = new BroadcastConfiguration();
+                    // Get configuration from Json String
+                    (Boolean configError, BroadcastConfiguration? newConfiguration) = CreateConfigurationFromJson(alternateContent);
 
-                        if (dicoData.ContainsKey("Mode"))
-                        {
-                            newConfiguration.Mode = dicoData["Mode"].ToString();
+                    if (!configError)
+                         SetCurrentConfigurationWithFilter(newConfiguration);
 
-                            if (dicoData.ContainsKey("Fps"))
-                                int.TryParse(dicoData["Fps"].ToString(), out newConfiguration.Fps);
-                            else
-                                configError = true;
-
-                            if (dicoData.ContainsKey("Size"))
-                                newConfiguration.Size = dicoData["Size"].ToString();
-                            else
-                                configError = true;
-
-                            if (dicoData.ContainsKey("Streams"))
-                            {
-                                var str = dicoData["Streams"].ToString();
-                                if (!String.IsNullOrEmpty(str))
-                                    newConfiguration.StreamsSelected = str.Split(",").ToList();
-                            }
-                            else
-                                configError = true;
-
-                            switch (newConfiguration.Mode)
-                            {
-                                case "Overlay":
-                                    if (dicoData.ContainsKey("OverlayLayout"))
-                                        newConfiguration.Layout = dicoData["OverlayLayout"].ToString();
-                                    else
-                                        configError = true;
-
-                                    if (dicoData.ContainsKey("OverlayVignetteSize"))
-                                        newConfiguration.VignetteSize = dicoData["OverlayVignetteSize"].ToString();
-                                    else
-                                        configError = true;
-
-                                    if (newConfiguration.StreamsSelected.Count != 2)
-                                        configError = true;
-                                    break;
-
-                                case "Mosaic":
-                                    if (dicoData.ContainsKey("MosaicLayout"))
-                                        newConfiguration.Layout = dicoData["MosaicLayout"].ToString();
-                                    else
-                                        configError = true;
-
-                                    if (dicoData.ContainsKey("MosaicVignetteSize"))
-                                        newConfiguration.VignetteSize = dicoData["MosaicVignetteSize"].ToString();
-                                    else
-                                        configError = true;
-
-                                    if (newConfiguration.StreamsSelected.Count < 2)
-                                        configError = true;
-                                    break;
-
-                                case "OneStream":
-                                    if(newConfiguration.StreamsSelected.Count != 1)
-                                        configError = true;
-                                    break;
-
-                                case "None":
-                                default:
-                                    break;
-                            }
-
-                            // Store new configuration and create filter
-                            if (!configError)
-                            {
-                                // Store previous streams used:
-                                var previousStreamsSlected = RainbowApplicationInfo.BroadcastConfiguration.StreamsSelected;
-
-                                newConfiguration.LastACMessageIdByConversationId = RainbowApplicationInfo.BroadcastConfiguration.LastACMessageIdByConversationId;
-                                newConfiguration.MediaInputCollections = RainbowApplicationInfo.BroadcastConfiguration.MediaInputCollections;
-                                newConfiguration.MediaFiltered = RainbowApplicationInfo.BroadcastConfiguration.MediaFiltered;
-                                RainbowApplicationInfo.BroadcastConfiguration = newConfiguration;
-
-                                String? filterToUse = "";
-                                Size? srcSize, srcOverlaySize;
-                                Size? dstSize, dstVignetteSize;
-
-                                // Create filter
-                                switch (newConfiguration.Mode)
-                                {
-                                    case "OneStream":
-                                        srcSize = Util.GetMediaInputSize(newConfiguration.StreamsSelected[0]);
-                                        dstSize = new Size(newConfiguration.Size);
-                                        if ( (srcSize == null) || (dstSize == null) )
-                                            configError = true;
-                                        else
-                                            filterToUse = Util.FilterToScaleSize(srcSize, dstSize, newConfiguration.Fps);
-                                        break;
-
-                                    case "Overlay":
-                                        srcSize = Util.GetMediaInputSize(newConfiguration.StreamsSelected[0]);
-                                        dstSize = new Size(newConfiguration.Size);
-                                        srcOverlaySize = Util.GetMediaInputSize(newConfiguration.StreamsSelected[1]);
-                                        dstVignetteSize = new Size(newConfiguration.VignetteSize);
-
-                                        if ((srcSize == null) || (dstSize == null) || (srcOverlaySize == null) || (dstVignetteSize == null))
-                                            configError = true;
-                                        else
-                                            filterToUse = Util.FilterToOverlay(srcSize, srcOverlaySize, dstSize, dstVignetteSize, newConfiguration.Layout, newConfiguration.Fps);
-                                        break;
-
-                                    case "Mosaic":
-                                        List<Size> srcVideoSize = new List<Size>();
-
-                                        foreach (string id in newConfiguration.StreamsSelected)
-                                        {
-                                            srcSize = Util.GetMediaInputSize(id);
-                                            if (srcSize == null)
-                                            {
-                                                configError = true;
-                                                break;
-                                            }
-                                            srcVideoSize.Add(srcSize);
-                                        }
-
-                                        dstVignetteSize = new Size(newConfiguration.VignetteSize);
-                                        if (dstVignetteSize == null)
-                                            configError = true;
-                                        else if (!configError)
-                                            filterToUse = Util.FilterToMosaic(srcVideoSize, dstVignetteSize, newConfiguration.Layout, newConfiguration.Fps);
-                                        break;
-
-                                    case "None":
-                                    default:
-                                        filterToUse = "NONE";
-                                        break;
-                                }
-
-                                if (String.IsNullOrEmpty(filterToUse))
-                                    configError = true;
-
-                                
-                                if (!configError)
-                                {
-                                    // Log info about filter to use
-                                    Util.WriteBlueToConsole($"[{_botName}] Filter to use:\r\n{filterToUse}\r\n");
-
-                                    // Create MediaFiltered if necessary.
-                                    if (RainbowApplicationInfo.BroadcastConfiguration.MediaFiltered == null)
-                                        RainbowApplicationInfo.BroadcastConfiguration.MediaFiltered = new MediaFiltered("mediaFiltered", RainbowApplicationInfo.BroadcastConfiguration.MediaInputCollections.Values.ToList());
-
-                                    foreach(string id in RainbowApplicationInfo.BroadcastConfiguration.StreamsSelected)
-                                    {
-                                        var m = Util.GetMediaInput(id);
-                                        if (m != null)
-                                        {
-                                            if (!m.IsStarted)
-                                                m.Start();
-                                        }
-                                    }
-
-                                    // Need to stop media no more used (except LiveStream) - use previousStreamsSlected;
-                                    foreach(var id in previousStreamsSlected)
-                                    {
-                                        if(!RainbowApplicationInfo.BroadcastConfiguration.StreamsSelected.Contains(id))
-                                        {
-                                            var mediaInput = Util.GetMediaInput(id);
-                                            if ( (mediaInput?.LiveStream == false) && (mediaInput.IsStarted))
-                                            {
-                                                mediaInput.Stop();
-                                                Util.WriteBlueToConsole($"[{_botName}] Stopping MediaInput [{id}] not used");
-                                            }
-                                        }
-                                    }
-
-                                    if (filterToUse == "NONE")
-                                    {
-                                        // TODO - need to remove Video from conference
-                                        // For the moment it's not possible to do this in the AC
-                                    }
-                                    else
-                                    {
-                                        if (RainbowApplicationInfo.BroadcastConfiguration.MediaFiltered.SetVideoFilter(RainbowApplicationInfo.BroadcastConfiguration.StreamsSelected, filterToUse))
-                                        {
-                                            RainbowApplicationInfo.BroadcastConfiguration.MediaFiltered.Start();
-                                        }
-                                        else
-                                        {
-                                            configError = true;
-                                        }
-                                    }
-                                }
-                            }
-
-                            // Create an AC and send/update it
-                            CreateAndSendAdaptiveCard(conversationId, configError);
-                        }
-                        else
-                        {
-                            Util.WriteRedToConsole($"[{_botName}] Message received has invalid data - Mode property has not been found");
-                        }
-                    }
-                    else
-                    {
-                        Util.WriteRedToConsole($"[{_botName}] Message received from a Bot Manager but alternate Content cannot be parsed as JSON:[{alternateContent}]");
-                    }
+                    // Create an AC and send/update it
+                    CreateAndSendAdaptiveCard(conversationId);
                 }
                 else if(IsStartMessage(messageEvent.Message))
                 {
@@ -590,7 +690,7 @@ namespace BotVideoCompositor
             FireTrigger(Trigger.MessageManaged);
         }
 
-        private void CreateAndSendAdaptiveCard(String conversationId, Boolean configError = false)
+        private void CreateAndSendAdaptiveCard(String conversationId)
         {
             var broadcastConfiguration = RainbowApplicationInfo.BroadcastConfiguration;
 
@@ -606,7 +706,6 @@ namespace BotVideoCompositor
             var messageTitle = jsonData["title"]?.ToString();
             if (messageTitle == null)
                 messageTitle = " "; // => Due to a bug in WebClient must not be empty/null
-
 
             // Manage "streamsSelected" property
             jsonData.Remove("streamsSelected");
@@ -659,64 +758,99 @@ namespace BotVideoCompositor
 
             /*
               ${RB_configError}                 => "true" if configError or "false"
-              ${RB_currentConfigNone}           => "true" if no config set or "false"
-              ${RB_currentConfigIsNotNone}      => "true" if config set or "false"
-              ${RB_currentConfigText}           => ${oneStream}, ${overlay}, ${mosaic}
               ${RB_currentFps}                  => actual fps value or ""
-              ${RB_currentVignetteIsVisible}    => "true" if config is Overlay or Mosaic or "false"
               ${RB_currentVignetteSize}         => actual vignetteSize value or ""
-              ${RB_currentSizeIsVisible}        => "true" if config is OneStream or Overlay or "false"
               ${RB_currentSize}                 => actual size value or ""
-              ${RB_currentLayoutText}           => actual layout value AS TEXT or "" (need to translate text <=> value AND according Overlay <=> Mosaic)
               ${RB_currentLayoutOverlay}        => actual layout value AS VALUE or "" (need to translate text <=> value)
               ${RB_currentLayoutMosaic}         => actual layout value AS VALUE or "" (need to translate text <=> value)
               ${RB_streamsSelected}             => ids of streams selected (comma delimited)
+
+              ${RB_oneStreamIsVisible}          => "true" if config is None or OneStream
+              ${RB_oneStreamIsNotVisible}       => "false" if config is None or OneStream
+              ${RB_overlayIsVisible}            => "true" if config is Overlay
+              ${RB_mosaicIsVisible}             => "true" if config is Mosaic
+              ${RB_containerLayoutIsVisible}    => "true" if config is Overlay or Mosaic
+              ${RB_overlayLayoutIsVisible}      => "true" if config is Overlay
+              ${RB_mosaicLayoutIsVisible}       => "true" if config is Mosaic
+
+              ${RB_SizeTextBlockIsVisible}      => "true" if config is not Mosaic
+              ${RB_SizeIsVisible}               => "true" if config is not Mosaic
+
+              ${RB_startBroadcast}              => "true" if broadcast is started
+              ${RB_connectedToLiveStream}       => "true" if it's necessary to stay connecte to live stream
             */
 
             Dictionary<String, String> configurationInfoToUpdate = new Dictionary<string, string>();
 
-            configurationInfoToUpdate.Add("${RB_configError}",              (configError) ? "true" : "false");
-            configurationInfoToUpdate.Add("${RB_currentConfigNone}",        (broadcastConfiguration.Mode == "None") ? "true": "false");
-            configurationInfoToUpdate.Add("${RB_currentConfigIsNotNone}",   (broadcastConfiguration.Mode == "None") ? "false" : "true");
+            configurationInfoToUpdate.Add("${RB_configError}",              (broadcastConfiguration.ConfigError) ? "true" : "false");
+
             configurationInfoToUpdate.Add("${RB_currentFps}",               broadcastConfiguration.Fps.ToString());
             configurationInfoToUpdate.Add("${RB_currentVignetteSize}",      broadcastConfiguration.VignetteSize);
             configurationInfoToUpdate.Add("${RB_currentSize}",              broadcastConfiguration.Size);
-            configurationInfoToUpdate.Add("${RB_currentVignetteIsVisible}", ((broadcastConfiguration.Mode == "Overlay") || (broadcastConfiguration.Mode == "Mosaic")) ? "true" : "false");
-            configurationInfoToUpdate.Add("${RB_currentSizeIsVisible}",     ((broadcastConfiguration.Mode == "OneStream") || (broadcastConfiguration.Mode == "Overlay")) ? "true" : "false");
+            
             configurationInfoToUpdate.Add("${RB_streamsSelected}",          String.Join(",", broadcastConfiguration.StreamsSelected));
 
-            String currentLayoutText;
             String currentLayoutOverlay;
             String currentLayoutMosaic;
             switch (broadcastConfiguration.Mode)
             {
                 case "Overlay":
-                    currentLayoutText = Util.GetLayoutText(true, broadcastConfiguration.Layout);
                     currentLayoutOverlay = broadcastConfiguration.Layout;
                     currentLayoutMosaic = Util.GetDefaultLayoutValue(false);
 
-                    configurationInfoToUpdate.Add("${RB_currentConfigText}", "${overlay}");
+                    configurationInfoToUpdate.Add("${RB_oneStreamIsVisible}", "false");
+                    configurationInfoToUpdate.Add("${RB_oneStreamIsNotVisible}", "true");
+                    configurationInfoToUpdate.Add("${RB_overlayIsVisible}", "true");
+                    configurationInfoToUpdate.Add("${RB_mosaicIsVisible}", "false");
+
+                    configurationInfoToUpdate.Add("${RB_containerLayoutIsVisible}", "true");
+                    configurationInfoToUpdate.Add("${RB_overlayLayoutIsVisible}", "true");
+                    configurationInfoToUpdate.Add("${RB_mosaicLayoutIsVisible}", "false");
+
+                    configurationInfoToUpdate.Add("${RB_SizeTextBlockIsVisible}", "true");
+                    configurationInfoToUpdate.Add("${RB_SizeIsVisible}", "true");
+
                     break;
 
                 case "Mosaic":
-                    currentLayoutText = Util.GetLayoutText(false, broadcastConfiguration.Layout);
                     currentLayoutOverlay = Util.GetDefaultLayoutValue(true);
                     currentLayoutMosaic = broadcastConfiguration.Layout;
 
-                    configurationInfoToUpdate.Add("${RB_currentConfigText}", "${mosaic}");
+                    configurationInfoToUpdate.Add("${RB_oneStreamIsVisible}", "false");
+                    configurationInfoToUpdate.Add("${RB_oneStreamIsNotVisible}", "true");
+                    configurationInfoToUpdate.Add("${RB_overlayIsVisible}", "false");
+                    configurationInfoToUpdate.Add("${RB_mosaicIsVisible}", "true");
+
+                    configurationInfoToUpdate.Add("${RB_containerLayoutIsVisible}", "true");
+                    configurationInfoToUpdate.Add("${RB_overlayLayoutIsVisible}", "false");
+                    configurationInfoToUpdate.Add("${RB_mosaicLayoutIsVisible}", "true");
+
+                    configurationInfoToUpdate.Add("${RB_SizeTextBlockIsVisible}", "false");
+                    configurationInfoToUpdate.Add("${RB_SizeIsVisible}", "false");
                     break;
 
                 default:
-                    currentLayoutText = "";
                     currentLayoutOverlay = Util.GetDefaultLayoutValue(true);
                     currentLayoutMosaic = Util.GetDefaultLayoutValue(false);
 
-                    configurationInfoToUpdate.Add("${RB_currentConfigText}", "${oneStream}");
+                    configurationInfoToUpdate.Add("${RB_oneStreamIsVisible}", "true");
+                    configurationInfoToUpdate.Add("${RB_oneStreamIsNotVisible}", "false");
+                    configurationInfoToUpdate.Add("${RB_overlayIsVisible}", "false");
+                    configurationInfoToUpdate.Add("${RB_mosaicIsVisible}", "false");
+
+                    configurationInfoToUpdate.Add("${RB_containerLayoutIsVisible}", "false");
+                    configurationInfoToUpdate.Add("${RB_overlayLayoutIsVisible}", "false");
+                    configurationInfoToUpdate.Add("${RB_mosaicLayoutIsVisible}", "false");
+
+                    configurationInfoToUpdate.Add("${RB_SizeTextBlockIsVisible}", "true");
+                    configurationInfoToUpdate.Add("${RB_SizeIsVisible}", "true");
                     break;
             }
-            configurationInfoToUpdate.Add("${RB_currentLayoutText}", currentLayoutText);
             configurationInfoToUpdate.Add("${RB_currentLayoutOverlay}", currentLayoutOverlay);
             configurationInfoToUpdate.Add("${RB_currentLayoutMosaic}", currentLayoutMosaic);
+
+            configurationInfoToUpdate.Add("${RB_startBroadcast}", broadcastConfiguration.StartBroadcast ? "true": "false");
+            configurationInfoToUpdate.Add("${RB_connectedToLiveStream}", broadcastConfiguration.StayConnectedToStreams ? "true" : "false");
 
             // Need to replace in Json Template some data
             foreach (var item in configurationInfoToUpdate)
@@ -775,6 +909,13 @@ namespace BotVideoCompositor
                 return;
             }
 
+            // Check if we have red the default config file
+            if (!_isSavedConfigurationFileRead)
+            {
+                _machine.Fire(Trigger.ReadSavedConfigurationFile);
+                return;
+            }
+
             // Dequeue bubble's invitation
             if (_bubbleInvitationQueue.TryDequeue(out String? bubbleId))
             {
@@ -793,7 +934,7 @@ namespace BotVideoCompositor
             }
 
             // Check if we are not in a conference and if a conference is in progress
-            if (String.IsNullOrEmpty(_currentConferenceId) && (_conferencesInProgress.Count > 0))
+            if ( (String.IsNullOrEmpty(_currentConferenceId) && (_conferencesInProgress.Count > 0)) ) // || (_currentCall == null) )
             {
                 foreach (String confId in _conferencesInProgress)
                 {
@@ -826,11 +967,11 @@ namespace BotVideoCompositor
             CheckIfVideoAndSharingMustBeAdded();
             if (!String.IsNullOrEmpty(_currentConferenceId))
             {
-                if (_needToAddVideoStreamInConference && !_addingVideoStreamInConference)
-                {
-                    _machine.Fire(Trigger.VideoStreamAvailable);
-                    return;
-                }
+                //if (_needToAddVideoStreamInConference && !_addingVideoStreamInConference)
+                //{
+                //    _machine.Fire(Trigger.VideoStreamAvailable);
+                //    return;
+                //}
 
                 if (_needToAddSharingStreamInConference && !_addingSharingStreamInConference)
                 {
@@ -842,6 +983,23 @@ namespace BotVideoCompositor
                     }
                 }
             }
+
+            CheckIfVideoAndSharingMustBeStopped();
+            if (!String.IsNullOrEmpty(_currentConferenceId))
+            {
+                //if (_needToAddVideoStreamInConference && !_addingVideoStreamInConference)
+                //{
+                //    _machine.Fire(Trigger.VideoStreamAvailable);
+                //    return;
+                //}
+
+                if (_needToRemoveSharingStreamInConference && !_removingSharingStreamInConference)
+                {
+                    _machine.Fire(Trigger.SharingStreamToStop);
+                    return;
+                }
+            }
+
 
             // Dequeue messages
             if (_messageQueue.Count > 0)
@@ -1041,8 +1199,23 @@ namespace BotVideoCompositor
                 //if ((!_addingVideoStreamInConference) && (!Rainbow.Util.MediasWithVideo(_currentCall.LocalMedias)))
                 //    _needToAddVideoStreamInConference = (RainbowApplicationInfo.BroadcastConfiguration.MediaFiltered?.IsStarted == true);
 
-                if ((!_addingSharingStreamInConference) && (!Rainbow.Util.MediasWithSharing(_currentCall.LocalMedias)) )
-                    _needToAddSharingStreamInConference = (RainbowApplicationInfo.BroadcastConfiguration.MediaFiltered?.IsStarted == true);
+                if ((!_addingSharingStreamInConference) 
+                    && (!Rainbow.Util.MediasWithSharing(_currentCall.LocalMedias)) )
+                    _needToAddSharingStreamInConference = (RainbowApplicationInfo.BroadcastConfiguration.MediaFiltered?.IsStarted == true) 
+                                                && RainbowApplicationInfo.BroadcastConfiguration.StartBroadcast;
+            }
+        }
+
+        private void CheckIfVideoAndSharingMustBeStopped()
+        {
+            if ((_currentCall != null) && (_currentCall.CallStatus == Call.Status.ACTIVE))
+            {
+                //if ((!_addingVideoStreamInConference) && (!Rainbow.Util.MediasWithVideo(_currentCall.LocalMedias)))
+                //    _needToAddVideoStreamInConference = (RainbowApplicationInfo.BroadcastConfiguration.MediaFiltered?.IsStarted == true);
+
+                if ((!_removingSharingStreamInConference)
+                    && (Rainbow.Util.MediasWithSharing(_currentCall.LocalMedias)))
+                    _needToRemoveSharingStreamInConference = !RainbowApplicationInfo.BroadcastConfiguration.StartBroadcast;
             }
         }
 
@@ -1050,7 +1223,7 @@ namespace BotVideoCompositor
         {
             _currentConferenceId = confId;
 
-            Dictionary<int, IMedia?>? mediaStreams = new Dictionary<int, IMedia?>();
+            Dictionary<int, IMedia>? mediaStreams = new Dictionary<int, IMedia?>();
             mediaStreams.Add(Call.Media.AUDIO, null); // ALLOW TO USE NO AUDIO DEVICE WHEN JOINING A CONF
 
             RbWebRTCCommunications.JoinConference(confId, mediaStreams, callback =>
@@ -1077,10 +1250,70 @@ namespace BotVideoCompositor
             }
         }
 
+        private void ReadSavedConfigurationFile()
+        {
+            _isSavedConfigurationFileRead = true;
+
+            if(File.Exists(RainbowApplicationInfo.SAVED_CONFIG_FILE_PATH))
+            {
+                var configJson = File.ReadAllText(RainbowApplicationInfo.SAVED_CONFIG_FILE_PATH);
+                (Boolean configError, BroadcastConfiguration? newConfiguration) = CreateConfigurationFromJson(configJson);
+                if (!configError)
+                    SetCurrentConfigurationWithFilter(newConfiguration);
+            }
+
+            FireTrigger(Trigger.ActionDone);
+        }
+
         private void QuitConference()
         {
-            SetNewVideoOrSharingStream(ref _videoStream, null);
-            SetNewVideoOrSharingStream(ref _sharingStream, null);
+            Util.WriteRedToConsole($"[{_botName}] Quit conference");
+            if (RainbowApplicationInfo.BroadcastConfiguration.LastACMessageIdByConversationId.Count > 0)
+            {
+                // Get Json Template from resources
+                var jsonTemplate = Util.GetContentOfEmbeddedResource("BroadcastConfigurationEnded-template.json", System.Text.Encoding.UTF8);
+                if (jsonTemplate == null)
+                {
+                    Util.WriteRedToConsole($"[{_botName}] Cannot get Json Template from Resources to create AC (as broadcast end).");
+                    return;
+                }
+
+                var jsonData = Util.CreateBasicAdaptiveCardsData();
+
+                // Get Title
+                var messageTitle = jsonData["titleEnd"]?.ToString();
+                if (messageTitle == null)
+                    messageTitle = " "; // => Due to a bug in WebClient must not be empty/null
+
+                // Create a Template instance from the template payload
+                AdaptiveCardTemplate template = new AdaptiveCardTemplate(jsonTemplate);
+
+                // Create an Message Alternative Content
+                MessageAlternativeContent messageAlternativeContent = new MessageAlternativeContent();
+                messageAlternativeContent.Type = "form/json";
+                messageAlternativeContent.Content = template.Expand(jsonData); // "Expand" the template => generates the final Adaptive Card payload
+
+                var alternativeContent = new List<MessageAlternativeContent> { messageAlternativeContent };
+
+                ManualResetEvent pause = new ManualResetEvent(false);
+                foreach (var item in RainbowApplicationInfo.BroadcastConfiguration.LastACMessageIdByConversationId)
+                {
+                    string conversationId = item.Key;
+                    string messageId = item.Value;
+
+                    if ((!String.IsNullOrEmpty(conversationId)) && (!String.IsNullOrEmpty(conversationId)))
+                    {
+                        pause.Reset();
+                        RbInstantMessaging.EditMessage(conversationId, messageId, messageTitle, alternativeContent, callback =>
+                        {
+                            pause.Set();
+                        });
+                        pause.WaitOne();
+                    }
+                }
+            }
+
+            RainbowApplicationInfo.BroadcastConfiguration.LastACMessageIdByConversationId.Clear();
 
             HangUp();
             ResetValues();
@@ -1110,202 +1343,51 @@ namespace BotVideoCompositor
             _needToAddSharingStreamInConference = false;
             _addingSharingStreamInConference = true;
 
-            if (RainbowApplicationInfo.BroadcastConfiguration.MediaFiltered != null)
+            if ( (RainbowApplicationInfo.BroadcastConfiguration.MediaFiltered != null) 
+                && (RainbowApplicationInfo.BroadcastConfiguration.StartBroadcast) )
             {
                 Rainbow.CancelableDelay.StartAfter(500, () =>
                 {
                     if (!RbWebRTCCommunications.AddSharing(_currentConferenceId, RainbowApplicationInfo.BroadcastConfiguration.MediaFiltered))
-                        Util.WriteRedToConsole($"[{_botName}] Cannot SET Video stream ...");
-                    _needToAddSharingStreamInConference = false;
+                        Util.WriteRedToConsole($"[{_botName}] Cannot SET Sharing stream ...");
+                    _addingSharingStreamInConference = false;
 
                 });
+            }
+            else
+            {
+                _addingSharingStreamInConference = false;
             }
             FireTrigger(Trigger.ActionDone);
         }
 
-        private void SetNewVideoOrSharingStream(ref MediaInput? internalStream, MediaInput? newSharingStream)
+        public void StopVideoStream()
         {
-            internalStream ??= newSharingStream;
-
-            if ( (newSharingStream != null) && (internalStream != null) )
-            {
-                if (newSharingStream.Path != internalStream.Path)
-                {
-                    // Dispose previous stream
-                    internalStream.Dispose();
-
-                    // Store new one
-                    internalStream = newSharingStream;
-                }
-            }
-            else if(internalStream != null)
-            {
-                // Dispose previous stream
-                internalStream.Dispose();
-
-                internalStream = null;
-            }
+            FireTrigger(Trigger.ActionDone);
         }
 
-        private void SetNewSharingStream(MediaInput? newSharingStream)
+        public void StopSharingStream()
         {
-            SetNewVideoOrSharingStream(ref _sharingStream, newSharingStream);
+            _needToRemoveSharingStreamInConference = false;
+            _removingSharingStreamInConference = true;
+
+            if (! RainbowApplicationInfo.BroadcastConfiguration.StartBroadcast)
+            {
+                Rainbow.CancelableDelay.StartAfter(500, () =>
+                {
+                    if (!RbWebRTCCommunications.RemoveSharing(_currentConferenceId))
+                        Util.WriteRedToConsole($"[{_botName}] Cannot REMOVE Sharing stream ...");
+                    _removingSharingStreamInConference = false;
+
+                });
+            }
+            else
+            {
+                _removingSharingStreamInConference = false;
+            }
+            FireTrigger(Trigger.ActionDone);
         }
 
-        private void SetNewVideoStream(MediaInput ? newVideoStream)
-        {
-            SetNewVideoOrSharingStream(ref _videoStream, newVideoStream);
-        }
-
-        public void UpdateVideoStream(String? uri)
-        {
-            if (String.IsNullOrEmpty(uri))
-            {
-                Util.WriteWhiteToConsole($"[{_botName}] URI for Video Stream is null/empty");
-                return;
-            }
-            
-            if (_currentConferenceId == null)
-            {
-                Util.WriteWhiteToConsole($"[{_botName}] currentConferenceId is null/empty");
-                return;
-            }
-
-
-            // Are we currently in a conference ?
-            if ((_currentCall != null) && (_currentCall.CallStatus == Call.Status.ACTIVE))
-            {
-                MediaInput newStreamToUse;
-
-                if (_videoStream?.Path == uri)
-                {
-                    newStreamToUse = _videoStream;
-                }
-                else
-                {
-                    var uriDevice = new InputStreamDevice("videoStream", "videoStream", uri, true, false, true);
-                    newStreamToUse = new MediaInput(uriDevice);
-                    if (!newStreamToUse.Init(true))
-                    {
-                        Util.WriteRedToConsole($"[{_botName}] Canno init Video Stream using this URI:{uri}].");
-                        return;
-                    }
-                }
-
-                Util.WriteGreenToConsole($"[{_botName}] For Video Stream trying to use this URI:{uri}].");
-
-                Boolean videoHasNotBeenSet = false;
-
-                if (Rainbow.Util.MediasWithVideo(_currentCall.LocalMedias))
-                {
-                    if (newStreamToUse.Path == _videoStream?.Path)
-                    {
-                        Util.WriteGreenToConsole($"[{_botName}] For Video, We alreayd use this URI:[{uri}]");
-                        return;
-                    }
-
-
-                    if (!RbWebRTCCommunications.ChangeVideo(_currentConferenceId, newStreamToUse))
-                    {
-                        videoHasNotBeenSet = true;
-                        Util.WriteRedToConsole($"[{_botName}] Cannot UPDATE Video stream to new URI:[{uri}]");
-
-                        RbWebRTCCommunications.RemoveVideo(_currentConferenceId);
-                    }
-                    else
-                    {
-                        Util.WriteGreenToConsole($"[{_botName}] Video stream using URI:[{uri}]");
-                    }
-                }
-                else
-                {
-                    if (!RbWebRTCCommunications.AddVideo(_currentConferenceId, newStreamToUse))
-                    {
-                        videoHasNotBeenSet = true;
-                        Util.WriteRedToConsole($"[{_botName}] Cannot SET Video stream to new URI:[{uri}]");
-                    }
-                    else
-                    {
-                        Util.WriteGreenToConsole($"[{_botName}] Video stream using URI:[{uri}]");
-                    }
-                }
-
-                if (!videoHasNotBeenSet)
-                    SetNewVideoStream(newStreamToUse);
-            }
-        }
-
-        public void UpdateSharingStream(String? uri)
-        {
-            if (String.IsNullOrEmpty(uri))
-            {
-                Util.WriteBlueToConsole($"[{_botName}] URI for Sharing Stream is null/empty");
-                return;
-            }
-
-            // Are we currently in a conference ?
-            if ((_currentConferenceId != null) && (_currentCall != null))
-            {
-                MediaInput newStreamToUse;
-
-                if (_sharingStream?.Path == uri)
-                {
-                    newStreamToUse = _sharingStream;
-                }
-                else
-                {
-                    var uriDevice = new InputStreamDevice("sharingStream", "sharingStream", uri, true, false, true);
-                    newStreamToUse = new MediaInput(uriDevice);
-                    if (!newStreamToUse.Init(true))
-                    {
-                        Util.WriteRedToConsole($"[{_botName}] Canno init Sharing Stream using this URI:|{uri}].");
-                        return;
-                    }
-                }
-
-                Util.WriteGreenToConsole($"[{_botName}] For Sharing Stream trying to use this URI:{uri}].");
-
-                Boolean sharingHasNotBeenSet = false;
-            
-
-                if (Rainbow.Util.MediasWithSharing(_currentCall.LocalMedias))
-                {
-                    if (newStreamToUse.Path == _sharingStream?.Path)
-                    {
-                        Util.WriteGreenToConsole($"[{_botName}] For Sharing, We alreayd use this URI:[{uri}]");
-                        return;
-                    }
-
-                    if (!RbWebRTCCommunications.ChangeSharing(_currentConferenceId, newStreamToUse))
-                    {
-                        sharingHasNotBeenSet = true;
-                        Util.WriteRedToConsole($"[{_botName}] Cannot UPDATE Sharing stream to new URI:[{uri}]");
-
-                        RbWebRTCCommunications.RemoveSharing(_currentConferenceId);
-                    }
-                    else
-                    {
-                        Util.WriteGreenToConsole($"[{_botName}] Sharing stream using URI:[{uri}]");
-                    }
-                }
-                else
-                {
-                    if (!RbWebRTCCommunications.AddSharing(_currentConferenceId, newStreamToUse))
-                    {
-                        sharingHasNotBeenSet = true;
-                        Util.WriteRedToConsole($"[{_botName}] Cannot SET Sharing stream to new URI:[{uri}]");
-                    }
-                    else
-                    {
-                        Util.WriteGreenToConsole($"[{_botName}] Sharing stream using URI:[{uri}]");
-                    }
-                }
-
-                if (!sharingHasNotBeenSet)
-                    SetNewSharingStream(newStreamToUse);
-            }
-        }
-        
         private Boolean IsSharingNotUsedByPeer()
         {
             return (_currentCall != null) && !Rainbow.Util.MediasWithSharing(_currentCall.RemoteMedias);
@@ -1442,7 +1524,7 @@ namespace BotVideoCompositor
         private void RbConferences_ConferenceRemoved(object? sender, IdEventArgs e)
         {
             if (e.Id == _currentConferenceId)
-                ResetValues();
+                QuitConference();
 
             // Remove info about this conference
             _conferencesInProgress.Remove(e.Id);
@@ -1472,7 +1554,13 @@ namespace BotVideoCompositor
             if (_currentContact == null)
                 return;
 
-            _isParticipantInConference = (e.Participants?.Count > 0) && e.Participants.ContainsKey(_currentContact.Id);
+            if(e.Participants?.Count > 0)
+            {
+                _isParticipantInConference = (e.Participants.Count > 1) && e.Participants.ContainsKey(_currentContact.Id);
+
+                if ( (e.Participants.Count == 1) && e.Participants.ContainsKey(_currentContact.Id))
+                    QuitConference();
+            }
         }
 
         /// <summary>
@@ -1495,6 +1583,9 @@ namespace BotVideoCompositor
         {
             if (e.Call.Id == _currentConferenceId)
             {
+                if ((_currentCall == null) || (_currentCall.CallStatus != e.Call.CallStatus))
+                    Util.WriteBlueToConsole($"[{_botName}] New CallStatus:[{e.Call.CallStatus}]");
+
                 _currentCall = e.Call;
 
                 if (e.Call.IsInProgress())
@@ -1509,6 +1600,10 @@ namespace BotVideoCompositor
                     RbContacts.SetPresenceLevel(RbContacts.CreatePresence(true, "online", ""));
                 }
             }
+            else
+            {
+
+            }
         }
 
         /// <summary>
@@ -1518,7 +1613,7 @@ namespace BotVideoCompositor
         {
             if (media == Call.Media.VIDEO)
             {
-                Util.WriteRedToConsole($"[{_botName}] Failed to stream video using URI:[{_videoStreamUri}] - Retrying ...");
+                Util.WriteRedToConsole($"[{_botName}] Failed to stream video - Retrying ...");
 
                 if (_currentCall != null)
                 {
@@ -1530,7 +1625,7 @@ namespace BotVideoCompositor
             }
             else
             {
-                Util.WriteRedToConsole($"[{_botName}] Failed to stream Sharing using URI:[{_sharingStreamUri}] - Retrying ...");
+                Util.WriteRedToConsole($"[{_botName}] Failed to stream Sharing - Retrying ...");
 
                 if (_currentCall != null)
                 {

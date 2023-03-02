@@ -18,6 +18,9 @@ namespace BotVideoCompositor
         // NLog configuration file used to log SDK debug information
         static internal readonly String NLOG_CONFIG_FILE_PATH = $".{Path.DirectorySeparatorChar}Resources{Path.DirectorySeparatorChar}NLogConfiguration.xml";
 
+        // Path to the saved configuartion file
+        static internal readonly String SAVED_CONFIG_FILE_PATH = $".{Path.DirectorySeparatorChar}Resources{Path.DirectorySeparatorChar}configurationSaved.Json";
+
         static internal List<BotManager>? botManagers = null;
         
         static internal String commandStop = DEFAULT_VALUE;
