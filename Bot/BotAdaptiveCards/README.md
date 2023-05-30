@@ -34,13 +34,13 @@ So we need to properly manage the connection with the RB server, contact all the
 
 To simplify the complexity to create this bot, we have modified slightly the **state machine** created in **Bot Base**.
 
-Firts we removed some states/triggers not necessayr in this sample and add new ones 
+First we removed some states/triggers not necessary in this sample and add new ones 
 
 **Features**:
 
 - Get dot graph of the [state machine](../README.md#StateMachine) (thanks to [stateless](https://github.com/dotnet-state-machine/stateless) third-party)
 
-- Accept a specific configuration (login, pwd, host, ini file location, user list who must take the test) - so it's possible to create several bot and used them in sametime. If a thousand users need to pass the test, we can imagine having several bots (for example one for 100 users) instead of a single bot...
+- Accept a specific configuration (login, pwd, host, ini file location, user list who must take the test) - so it's possible to create several bot and used them in same time. If a thousand users need to pass the test, we can imagine having several bots (for example one for 100 users) instead of a single bot...
 
 - Connect to Rainbow server and manage auto-reconnection (at least once an authentication has succeeded)
 
@@ -54,7 +54,7 @@ Firts we removed some states/triggers not necessayr in this sample and add new o
   
   - Message coming directly from user who doesn't need to take the test are not taken into account 
   
-  - Message coming from users taking the test are analysed and only anser to the test are taken into account: answer aer stored and the next question is displayd until the end. Then a final message is sentd with the test result.
+  - Message coming from users taking the test are analysed and only for them : answers are stored and the next question is displayed until the end of the test. Then a final message is sent with the test result.
 
 We also need to modify a restriction defined in the **Bot base**. We want users to be able to see MCQ messages even after reconnecting. So messages must therefore be stored.
 
