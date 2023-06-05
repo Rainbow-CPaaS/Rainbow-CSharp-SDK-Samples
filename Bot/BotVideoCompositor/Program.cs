@@ -32,7 +32,9 @@ namespace BotVideoCompositor
             // Init log configuration
             InitLogsWithNLog();
 
-            // Create BotVideoBroadcaster 01 && 02
+            Util.SetLogger();
+
+            // Create Bot
             RainbowBotVideoCompositor botVideoCompositor = new RainbowBotVideoCompositor();
 
             // Get the dot graph of this Bot - it's a String which can be used to represent the state machine diagram on a online tool like https://dreampuf.github.io/GraphvizOnline/

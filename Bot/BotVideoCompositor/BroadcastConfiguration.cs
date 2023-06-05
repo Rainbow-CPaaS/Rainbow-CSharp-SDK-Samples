@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json.Linq;
 using Rainbow.Medias;
+using Rainbow.WebRTC.Abstractions;
 using System;
 using System.Collections.Generic;
 using System.Dynamic;
@@ -17,6 +18,8 @@ namespace BotVideoCompositor
         public Dictionary<String, MediaInput> MediaInputCollections;
 
         public MediaFiltered? MediaFiltered = null;
+
+        public IVideoStreamTrack? VideoStreamTrack = null;
 
         public List<String> StreamsSelected; // List of Streams (by id) delimited by comma
         

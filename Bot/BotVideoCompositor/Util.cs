@@ -11,6 +11,8 @@ using System.Collections;
 using Org.BouncyCastle.Utilities;
 using System.Reflection;
 using DirectShowLib.MultimediaStreaming;
+using FFmpeg.AutoGen;
+using Microsoft.Extensions.Logging;
 
 namespace BotVideoCompositor
 {
@@ -27,28 +29,39 @@ namespace BotVideoCompositor
 
         private static Object consoleLockObject = new Object();
 
+        private static ILogger log = null;
+
+        static public void SetLogger()
+        {
+            log = Rainbow.LogFactory.CreateLogger<Util>();
+        }
+
         // To write in RED to console
         static public void WriteRedToConsole(String message)
         {
             WriteToConsole(message, foregroundColor: ConsoleColor.Red);
+            log?.LogInformation(message);
         }
 
         // To write ni GREEN to console
         static public void WriteGreenToConsole(String message)
         {
             WriteToConsole(message, foregroundColor: ConsoleColor.Green);
+            log?.LogInformation(message);
         }
 
         // To write in BLUE to console
         static public void WriteBlueToConsole(String message)
         {
             WriteToConsole(message, foregroundColor: ConsoleColor.Blue);
+            log?.LogInformation(message);
         }
 
         // To write in WHITE to console
         static public void WriteWhiteToConsole(String message)
         {
             WriteToConsole(message, foregroundColor: ConsoleColor.White);
+            log?.LogInformation(message);
         }
 
         /// <summary>
@@ -91,12 +104,21 @@ namespace BotVideoCompositor
             return null;
         }
 
-        static public JToken? InitVideoStreams()
+        private static av_log_set_callback_callback? _logCallback;
+
+        static public unsafe JToken? InitVideoStreams()
         {
             List<Item> items = new List<Item>();
 
             // -- Create data about streams
             Rainbow.Medias.Helper.InitExternalLibraries(RainbowApplicationInfo.ffmpegLibFolderPath);
+
+            //_logCallback = (p0, level, format, vl) =>
+            //{
+            //    return;
+            //};
+            //ffmpeg.av_log_set_callback(_logCallback);
+
 
             RainbowApplicationInfo.BroadcastConfiguration = new BroadcastConfiguration();
 

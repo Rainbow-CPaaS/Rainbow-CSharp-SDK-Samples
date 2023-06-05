@@ -13,6 +13,8 @@ using Newtonsoft.Json.Linq;
 using AdaptiveCards.Templating;
 using System.Threading;
 using System.IO;
+using Rainbow.WebRTC;
+using Rainbow.WebRTC.Desktop;
 
 namespace BotVideoCompositor
 {
@@ -148,6 +150,9 @@ namespace BotVideoCompositor
         private Rainbow.Conferences RbConferences;
         private Rainbow.InstantMessaging RbInstantMessaging;
         private Rainbow.Invitations RbInvitations;
+
+        private Rainbow.WebRTC.Desktop.WebRTCFactory RbWebRTCDesktopFactory;
+        
 
         private Rainbow.WebRTC.WebRTCCommunications RbWebRTCCommunications;
 
@@ -569,10 +574,18 @@ namespace BotVideoCompositor
 
                     // Create MediaFiltered if necessary.
                     if (RainbowApplicationInfo.BroadcastConfiguration.MediaFiltered == null)
+                    {
                         RainbowApplicationInfo.BroadcastConfiguration.MediaFiltered = new MediaFiltered("mediaFiltered", RainbowApplicationInfo.BroadcastConfiguration.MediaInputCollections.Values.ToList());
+                        RainbowApplicationInfo.BroadcastConfiguration.MediaFiltered.OnError += MediaFiltered_OnError;
 
+
+                        RainbowApplicationInfo.BroadcastConfiguration.MediaFiltered.Init(true);
+
+                        RainbowApplicationInfo.BroadcastConfiguration.VideoStreamTrack = RbWebRTCDesktopFactory.CreateVideoTrack(RainbowApplicationInfo.BroadcastConfiguration.MediaFiltered);
+
+                    }
                     // Loop on all Media Input to start or stop them
-                    foreach(var item in RainbowApplicationInfo.BroadcastConfiguration.MediaInputCollections)
+                    foreach (var item in RainbowApplicationInfo.BroadcastConfiguration.MediaInputCollections)
                     {
                         string id = item.Key;
                         var mediaInput = item.Value;
@@ -1113,7 +1126,8 @@ namespace BotVideoCompositor
 
             try
             {
-                RbWebRTCCommunications = Rainbow.WebRTC.WebRTCCommunications.GetOrCreateInstance(RbApplication, RainbowApplicationInfo.ffmpegLibFolderPath);
+                RbWebRTCDesktopFactory = new Rainbow.WebRTC.Desktop.WebRTCFactory();
+                RbWebRTCCommunications = Rainbow.WebRTC.WebRTCCommunications.GetOrCreateInstance(RbApplication, RbWebRTCDesktopFactory);
             }
             catch (Exception ex)
             {
@@ -1147,7 +1161,6 @@ namespace BotVideoCompositor
             RbInstantMessaging.MessageReceived -= RbInstantMessaging_MessageReceived;
 
             RbWebRTCCommunications.CallUpdated -= RbWebRTCCommunications_CallUpdated;
-            RbWebRTCCommunications.OnLocalVideoError -= RbWebRTCCommunications_OnLocalVideoError;
         }
 
         /// <summary>
@@ -1171,7 +1184,6 @@ namespace BotVideoCompositor
             RbConferences.ConferenceParticipantsUpdated += RbConferences_ConferenceParticipantsUpdated;
 
             RbWebRTCCommunications.CallUpdated += RbWebRTCCommunications_CallUpdated;
-            RbWebRTCCommunications.OnLocalVideoError += RbWebRTCCommunications_OnLocalVideoError;
         }
 
         /// <summary>
@@ -1223,15 +1235,14 @@ namespace BotVideoCompositor
         {
             _currentConferenceId = confId;
 
-            Dictionary<int, IMedia>? mediaStreams = new Dictionary<int, IMedia?>();
-            mediaStreams.Add(Call.Media.AUDIO, null); // ALLOW TO USE NO AUDIO DEVICE WHEN JOINING A CONF
+            var emptyAudioTrack = RbWebRTCDesktopFactory.CreateEmptyAudioTrack(); // ALLOW TO USE NO AUDIO DEVICE WHEN JOINING A CONF
 
-            RbWebRTCCommunications.JoinConference(confId, mediaStreams, callback =>
+            RbWebRTCCommunications.JoinConference(confId, emptyAudioTrack, callback =>
             {
                 if (!callback.Result.Success)
                 {
                     _currentConferenceId = null;
-                    Util.WriteRedToConsole($"[{_botName}] Cannot Join Conference - BubbleID:[{confId}] - Error:[{Rainbow.Util.SerializeSdkError(callback.Result)}");
+                    Util.WriteRedToConsole($"[{_botName}] Cannot Join Conference - BubbleID:[{confId}] - Error:[{callback.Result}");
                 }
             });
             
@@ -1329,7 +1340,7 @@ namespace BotVideoCompositor
             {
                 Rainbow.CancelableDelay.StartAfter(500, () =>
                 {
-                    if (!RbWebRTCCommunications.AddVideo(_currentConferenceId, RainbowApplicationInfo.BroadcastConfiguration.MediaFiltered))
+                    if (!RbWebRTCCommunications.AddVideo(_currentConferenceId, RainbowApplicationInfo.BroadcastConfiguration.VideoStreamTrack))
                         Util.WriteRedToConsole($"[{_botName}] Cannot SET Video stream ...");
                     _addingVideoStreamInConference = false;
 
@@ -1348,7 +1359,7 @@ namespace BotVideoCompositor
             {
                 Rainbow.CancelableDelay.StartAfter(500, () =>
                 {
-                    if (!RbWebRTCCommunications.AddSharing(_currentConferenceId, RainbowApplicationInfo.BroadcastConfiguration.MediaFiltered))
+                    if (!RbWebRTCCommunications.AddSharing(_currentConferenceId, RainbowApplicationInfo.BroadcastConfiguration.VideoStreamTrack))
                         Util.WriteRedToConsole($"[{_botName}] Cannot SET Sharing stream ...");
                     _addingSharingStreamInConference = false;
 
@@ -1437,9 +1448,7 @@ namespace BotVideoCompositor
             // Store info about the current contact
             _currentContact = RbContacts.GetCurrentContact();
 
-            // Update the name using _botName
-            UpdateName();
-
+            
             // Get list of bubbles - it's mandatory to be informed when a conference is started in one of this bubble
             RbBubbles.GetAllBubbles(callback =>
             {
@@ -1486,6 +1495,9 @@ namespace BotVideoCompositor
             }
 
             FireTrigger(Trigger.InitializationPerformed);
+
+            if(RbApplication.ConnectionState() == ConnectionState.Connected)
+                FireTrigger(Trigger.Connect);
         }
 
         /// <summary>
@@ -1606,6 +1618,11 @@ namespace BotVideoCompositor
             }
         }
 
+        private void MediaFiltered_OnError(string mediaId, string message)
+        {
+            Util.WriteRedToConsole($"[{_botName}] Failed to stream video ...");
+        }
+
         /// <summary>
         /// Event raised when the Sharing input stream of the current user is not possible / accessible
         /// </summary>
@@ -1674,37 +1691,6 @@ namespace BotVideoCompositor
             UnsubscribeToRainbowEvents();
         }
 
-        public void UpdateName(String? name = null)
-        {
-            if ((name != null) && (name == _accountName))
-                return;
-
-            if (name != null)
-                _accountName = name;
-
-            if (RbApplication == null)
-                return;
-
-            if (!RbApplication.IsConnected())
-                return;
-
-            var contact = RbContacts.GetCurrentContact();
-            if(contact != null)
-            {
-                
-
-                contact.FirstName = _accountName;
-                contact.LastName = "_";
-                RbContacts.UpdateCurrentContact(contact, callback =>
-                {
-                    if(callback.Result.Success)
-                    {
-
-                    }
-                });
-            }
-        }
-
         /// <summary>
         /// Get Dot Graph of this Bot
         /// </summary>
@@ -1758,7 +1744,7 @@ namespace BotVideoCompositor
             RbApplication.SetApplicationInfo(appId, appSecretKey);
             RbApplication.SetHostInfo(hostname);
 
-            RbApplication.SetTimeout(10000);
+            RbApplication.SetTimeout(100000);
 
             // Set restrictions
             SetRainbowRestrictions();
