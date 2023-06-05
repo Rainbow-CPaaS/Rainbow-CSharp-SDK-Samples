@@ -44,6 +44,11 @@ namespace SDK.UIForm.WebRTC
             rbApplication.ConnectionStateChanged += RbApplication_ConnectionStateChanged;
             rbApplication.InitializationPerformed += RbApplication_InitializationPerformed;
 
+            // Define Restrictions
+            rbApplication.Restrictions.UseWebRTC = true; // We want to use WebRTC features
+            rbApplication.Restrictions.LogRestRequest = true;
+            rbApplication.Restrictions.AutoReconnection = true;
+
             // Start Login process (if necessary)
             if (configuration.AutoLogin)
             {
@@ -169,7 +174,7 @@ namespace SDK.UIForm.WebRTC
                         AddInformation($"Logout has succeded.");
                     else
                     {
-                        AddInformation($"Logout failed:[{Util.SerializeSdkError(callback.Result)}");
+                        AddInformation($"Logout failed:[{callback.Result}]");
 
                         UpdateFormAccodringRainbowConnectionStatus();
                     }
@@ -180,19 +185,23 @@ namespace SDK.UIForm.WebRTC
                 btnConnect.Enabled = false;
                 btnConnect.Text = "Connecting";
 
-                rbApplication.Restrictions.UseWebRTC = true; // We want to use WebRTC features
 
-                rbApplication.Login(tbLogin.Text, tbPassword.Text, callback =>
-                {
-                    if (callback.Result.Success)
-                        AddInformation($"Login has succeded. Waiting for full initialization ...");
-                    else
-                    {
-                        AddInformation($"Login failed:[{Util.SerializeSdkError(callback.Result)}");
 
-                        UpdateFormAccodringRainbowConnectionStatus();
-                    }
-                });
+                var autoReconnect = rbApplication.GetAutoReconnection();
+
+                autoReconnect.Login(tbLogin.Text, tbPassword.Text);
+
+                //rbApplication.Login(tbLogin.Text, tbPassword.Text, callback =>
+                //{
+                //    if (callback.Result.Success)
+                //        AddInformation($"Login has succeded. Waiting for full initialization ...");
+                //    else
+                //    {
+                //        AddInformation($"Login failed:[{callback.Result}]");
+
+                        
+                //    }
+                //});
             }
         }
 

@@ -1,5 +1,7 @@
 ﻿using Rainbow;
 using Rainbow.Model;
+using Rainbow.WebRTC;
+using Rainbow.WebRTC.Desktop;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -23,6 +25,8 @@ namespace SDK.UIForm.WebRTC
         private float _ratio = 0;
 
         private Rainbow.WebRTC.WebRTCCommunications? _webRTCCommunications = null;
+        private MediaStreamTrackDescriptor? mediaInputStreamDescriptor;
+        private VideoStreamTrack? videoStreamTrack = null;
 
         private List<(Boolean remote, int media, String publisherId)> _publicationsList = new();
         private DateTime _firstCheckDateTime = DateTime.MinValue;
@@ -61,7 +65,7 @@ namespace SDK.UIForm.WebRTC
 
                 _currentContactId = _rbContacts.GetCurrentContactId();
 
-                _webRTCCommunications = Rainbow.WebRTC.WebRTCCommunications.GetOrCreateInstance(_rbApplication);
+                _webRTCCommunications = Rainbow.WebRTC.WebRTCCommunications.GetOrCreateInstance(_rbApplication, null);
                 if (_webRTCCommunications != null)
                 {
                     _currentCallId = callId;
@@ -69,24 +73,42 @@ namespace SDK.UIForm.WebRTC
 
                     _webRTCCommunications.CallUpdated += WebRTCCommunications_CallUpdated;
 
-                    _webRTCCommunications.OnLocalVideo += WebRTCCommunications_OnLocalVideo;
-                    _webRTCCommunications.OnRemoteVideo += WebRTCCommunications_OnRemoteVideo;
+                    // TODO - manage local and remote video
+                    //_webRTCCommunications.OnLocalVideo += WebRTCCommunications_OnLocalVideo;
+                    //_webRTCCommunications.OnRemoteVideo += WebRTCCommunications_OnRemoteVideo;
 
                     _webRTCCommunications.OnMediaPublicationUpdated += WebRTCCommunications_OnMediaPublicationUpdated;
                 }
             }
         }
 
-        public void SetMediaAndPublisher(Boolean remote, int media = 0 , String? publisherId = null)
+        public void SetMediaStreamTrackDescriptor(MediaStreamTrackDescriptor? newMediaInputStreamDescriptor)
         {
-            _currentRemote = remote;
-            _currentMedia = media;
-            _currentPublisherId = publisherId;
+            // Dispose previous VideoStreamTrack
+            if (videoStreamTrack != null)
+            {
+                videoStreamTrack.OnImage -= VideoStreamTrack_OnImage;
+                videoStreamTrack.Dispose();
+            }
+
+            if (newMediaInputStreamDescriptor == null)
+                return;
+
+            mediaInputStreamDescriptor = newMediaInputStreamDescriptor;
+
+            if (newMediaInputStreamDescriptor.MediaStreamTrack != null)
+            {
+                videoStreamTrack = (VideoStreamTrack)newMediaInputStreamDescriptor.MediaStreamTrack;
+                videoStreamTrack.OnImage += VideoStreamTrack_OnImage;
+            }
 
             if (_webRTCCommunications != null)
                 _initDone = true;
+        }
 
-            UpdateListOfPublications();
+        private void VideoStreamTrack_OnImage(string mediaId, int width, int height, int stride, IntPtr data, FFmpeg.AutoGen.AVPixelFormat pixelFormat)
+        {
+            UpdatePictureBox(width, height, stride, data, pixelFormat);
         }
 
         private String GetPublisherNameFromId(String id)
@@ -212,7 +234,7 @@ namespace SDK.UIForm.WebRTC
 
 #region Events from WebRTCCommunications
 
-        private void WebRTCCommunications_OnMediaPublicationUpdated(object? sender, Rainbow.Events.MediaPublicationEventArgs e)
+        private void WebRTCCommunications_OnMediaPublicationUpdated(object? sender, MediaPublicationEventArgs e)
         {
         }
 
@@ -225,17 +247,7 @@ namespace SDK.UIForm.WebRTC
                 UpdatePictureBox(width, height, stride, data, pixelFormat);
         }
 
-        private void WebRTCCommunications_OnRemoteVideo(string callId, string userId, int media, string mediaId, int width, int height, int stride, IntPtr data, FFmpeg.AutoGen.AVPixelFormat pixelFormat)
-        {
-            OnVideo(true, callId, userId, media, mediaId, width, height, stride, data, pixelFormat);
-        }
-
-        private void WebRTCCommunications_OnLocalVideo(string callId, string userId, int media, string mediaId, int width, int height, int stride, IntPtr data, FFmpeg.AutoGen.AVPixelFormat pixelFormat)
-        {
-            OnVideo(false, callId, userId, media, mediaId, width, height, stride, data, pixelFormat);
-        }
-
-        private void WebRTCCommunications_CallUpdated(object? sender, Rainbow.Events.CallEventArgs e)
+         private void WebRTCCommunications_CallUpdated(object? sender, Rainbow.Events.CallEventArgs e)
         {
             if (!_initDone)
                 return;
@@ -271,8 +283,9 @@ namespace SDK.UIForm.WebRTC
             {
                 _webRTCCommunications.CallUpdated -= WebRTCCommunications_CallUpdated;
 
-                _webRTCCommunications.OnLocalVideo -= WebRTCCommunications_OnLocalVideo;
-                _webRTCCommunications.OnRemoteVideo -= WebRTCCommunications_OnRemoteVideo;
+                // TODO - manage local and remote video
+                //_webRTCCommunications.OnLocalVideo -= WebRTCCommunications_OnLocalVideo;
+                //_webRTCCommunications.OnRemoteVideo -= WebRTCCommunications_OnRemoteVideo;
 
                 _webRTCCommunications.OnMediaPublicationUpdated += WebRTCCommunications_OnMediaPublicationUpdated;
 

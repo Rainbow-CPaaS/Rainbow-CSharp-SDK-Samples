@@ -1,23 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
-using Org.BouncyCastle.Crypto.Engines;
 using Rainbow.Medias;
-using System.Security.Policy;
-using System.Xml.Linq;
 using Rainbow.Events;
 using System.IO;
 using System.Windows.Forms;
+using Rainbow.WebRTC.Abstractions;
 
 namespace SDK.UIForm.WebRTC
 {
     public sealed class MediaInputStreamsManager
     {
         private static MediaInputStreamsManager? _instance = null;
+
+        private Rainbow.WebRTC.Desktop.WebRTCFactory rbWebRTCDesktopFactory;
 
         private String _configFilePath;
         private readonly Dictionary<String, MediaInput> _simpleMediaStreams;
@@ -27,13 +25,16 @@ namespace SDK.UIForm.WebRTC
         private FormWebcam? _formWebcam = null;
         private FormScreen? _formScreen = null;
 
+
+        public Rainbow.WebRTC.Desktop.WebRTCFactory WebRTCFactory { get => rbWebRTCDesktopFactory; }
+
 #region EVENT(S)
 
         public event EventHandler? OnListUpdated;
         public event EventHandler? OnListUpdatedWithFilteredInputs;
         public event EventHandler? OnListUpdatedWithoutFilteredInputs;
 
-        public event IMedia.StateDelegate? OnMediaStreamStateChanged;
+        public event StateDelegate? OnMediaStreamStateChanged;
 
         public event EventHandler? OnConfigurationLoaded;
 
@@ -314,8 +315,13 @@ namespace SDK.UIForm.WebRTC
                                         if (!mediaFiltered.SetVideoFilter(mediaDescriptor.MediaInputIdListForVideoFilter, mediaDescriptor.VideoFilter))
                                             message += $"\r\nCannot set video filters on FilteredMediaInput [{mediaDescriptor.Id}]";
 
-                                        mediaFiltered.OnStateChanged += MediaStream_OnStateChanged;
-                                        _filteredMediaStreams.Add(mediaFiltered.Id, mediaFiltered);
+                                        if (mediaFiltered.Init())
+                                        {
+                                            mediaFiltered.OnStateChanged += MediaStream_OnStateChanged;
+                                            _filteredMediaStreams.Add(mediaFiltered.Id, mediaFiltered);
+                                        }
+                                        else
+                                            message += $"\r\nPb to init MediaFilteread [{mediaFiltered.Id}]";
                                     }
                                 }
                                 else if (mediaDescriptor.Type == "FileOrStream")
@@ -418,9 +424,43 @@ namespace SDK.UIForm.WebRTC
             }
 
 
-            var strContent = Rainbow.Util.GetJsonStringFromObject(mediaInputStreamDescriptors);
+            var strContent = Helper.GetJsonStringFromObject(mediaInputStreamDescriptors);
             strContent = "{\r\n\t\"medias\": " + strContent + "\r\n}";
             File.WriteAllText(_configFilePath, strContent);
+        }
+
+        public IAudioStreamTrack? GetAudioMediaStreamTrack(string? id)
+        {
+            var media = GetMediaStream(id);
+            IAudioStreamTrack? result = null;
+            try
+            {
+                if (media != null)
+                    result = rbWebRTCDesktopFactory.CreateAudioTrack(media);
+                else
+                    result = rbWebRTCDesktopFactory.CreateEmptyAudioTrack();
+            }
+            catch
+            {
+
+            }
+            return result;
+        }
+
+        public IVideoStreamTrack? GetVideoMediaStreamTrack(string? id)
+        {
+            var media = GetMediaStream(id);
+            IVideoStreamTrack? result = null;
+            try
+            {
+                if (media != null)
+                    result = rbWebRTCDesktopFactory.CreateVideoTrack(media);
+            }
+            catch
+            {
+
+            }
+            return result;
         }
 
         public IMedia? GetMediaStream(string? id)
@@ -516,6 +556,8 @@ namespace SDK.UIForm.WebRTC
             _configFilePath = $".{Path.DirectorySeparatorChar}Resources{Path.DirectorySeparatorChar}medias.json";
             _simpleMediaStreams = new Dictionary<string, MediaInput>();
             _filteredMediaStreams = new Dictionary<string, MediaFiltered>();
+
+            rbWebRTCDesktopFactory = new Rainbow.WebRTC.Desktop.WebRTCFactory();
         }
 
 #endregion PRIVATE API

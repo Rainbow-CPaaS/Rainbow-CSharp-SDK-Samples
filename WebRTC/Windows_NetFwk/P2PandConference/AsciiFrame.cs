@@ -111,12 +111,12 @@ namespace Rainbow
             return result;
         }
 
-        private void MediaFiltered_OnVideoFrame(string mediaId, EmguFFmpeg.MediaFrame mediaFrame)
+        private void MediaFiltered_OnVideoFrame(string mediaId, FFmpegSharp.MediaFrame mediaFrame)
         {
             (Boolean done, Boolean needUpdate) = CheckAndUpdateFilterIfNecessary(_mediaInput, _mediaInput.Width, _mediaInput.Height);
             if (done && !needUpdate)
             {
-                var asciiFrame = CreateAsciiFrame(mediaFrame.AVFrame);
+                var asciiFrame = CreateAsciiFrame(mediaFrame.Ref);
                 DrawAsciiFrame(asciiFrame);
                 OnAsciiFrame?.Invoke(this, new Rainbow.Events.StringEventArgs(asciiFrame));
 

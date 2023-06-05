@@ -1,11 +1,6 @@
 ﻿using Rainbow.Medias;
-using SIPSorcery.net.RTP;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Text;
 using System.Windows.Forms;
 
 namespace SDK.UIForm.WebRTC
@@ -14,9 +9,17 @@ namespace SDK.UIForm.WebRTC
     {
         private ScreenDevice? _screenDevice = null;
         private MediaInput? _mediaInput = null;
-        private MediaInputStreamsManager _mediaInputStreamsManager;
+        
 
         private Object lockAboutImageManagement = new Object();
+
+        private MediaInputStreamsManager _mediaInputStreamsManager;
+        private int _x = 0;
+        private int _y = 0;
+        private int _diffHeight = 0;
+        private int _diffWidth = 0;
+        private float _ratio = 0;
+        Boolean _initDone = false;
 
         public FormScreen()
         {
@@ -197,7 +200,17 @@ namespace SDK.UIForm.WebRTC
             lbl_ScreenMaxFps.Text = "";
             lbl_Info.Text = "";
 
+            _ratio = ((float)pb_VideoStream.Size.Width / (float)pb_VideoStream.Size.Height);
+
+            _diffWidth = this.Width - pb_VideoStream.Size.Width;
+            _diffHeight = this.Height - pb_VideoStream.Size.Height;
+
+            _x = pb_VideoStream.Left;
+            _y = pb_VideoStream.Top;
+
             RefreshScreensList();
+
+            _initDone = true;
         }
 
         private void FormScreen_FormClosing(object sender, FormClosingEventArgs e)
@@ -212,6 +225,26 @@ namespace SDK.UIForm.WebRTC
         {
             // TODO - FormScreen_Shown => Avoir to lock Screen if form is not used
             //RefreshScreenList();
+        }
+
+
+        private void FormScreen_ClientSizeChanged(object sender, EventArgs e)
+        {
+            if (!_initDone)
+                return;
+
+            int width = this.Width - _diffWidth;
+            int height = this.Height - _diffHeight;
+
+            int calculateWidth = (int)Math.Round(height * _ratio);
+            if (calculateWidth > width)
+            {
+                height = (int)Math.Round(width / _ratio);
+            }
+            else
+                width = calculateWidth;
+
+            pb_VideoStream.SetBounds(_x, _y, width, height);
         }
 
         private void btn_StartScreen_Click(object sender, EventArgs e)
@@ -284,8 +317,8 @@ namespace SDK.UIForm.WebRTC
             }
         }
 
-#endregion EVENTS from FORM elements
 
+#endregion EVENTS from FORM elements
 
     }
 }

@@ -77,7 +77,6 @@ namespace SDK.UIForm.WebRTC
             this.label10 = new System.Windows.Forms.Label();
             this.lbl_IncomingCall = new System.Windows.Forms.Label();
             this.lbl_ConversationDetails = new System.Windows.Forms.Label();
-            this.tb_ConferenceName = new System.Windows.Forms.TextBox();
             this.lbl_BubbleInfo = new System.Windows.Forms.Label();
             this.btn_AnswerCall = new System.Windows.Forms.Button();
             this.cb_AnswerCallMedias = new System.Windows.Forms.ComboBox();
@@ -103,6 +102,7 @@ namespace SDK.UIForm.WebRTC
             this.btn_SubscribeRemoteAudioInput = new System.Windows.Forms.Button();
             this.btn_SubscribeRemoteVideoInput = new System.Windows.Forms.Button();
             this.btn_SubscribeRemoteSharingInput = new System.Windows.Forms.Button();
+            this.btn_Test = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // cb_AudioOutputs
@@ -611,15 +611,6 @@ namespace SDK.UIForm.WebRTC
             this.lbl_ConversationDetails.TabIndex = 344;
             this.lbl_ConversationDetails.Text = "details";
             // 
-            // tb_ConferenceName
-            // 
-            this.tb_ConferenceName.Location = new System.Drawing.Point(530, 167);
-            this.tb_ConferenceName.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
-            this.tb_ConferenceName.Name = "tb_ConferenceName";
-            this.tb_ConferenceName.ReadOnly = true;
-            this.tb_ConferenceName.Size = new System.Drawing.Size(167, 23);
-            this.tb_ConferenceName.TabIndex = 345;
-            // 
             // lbl_BubbleInfo
             // 
             this.lbl_BubbleInfo.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
@@ -819,7 +810,7 @@ namespace SDK.UIForm.WebRTC
             // 
             this.cb_ConferencesName.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cb_ConferencesName.FormattingEnabled = true;
-            this.cb_ConferencesName.Location = new System.Drawing.Point(530, 193);
+            this.cb_ConferencesName.Location = new System.Drawing.Point(530, 168);
             this.cb_ConferencesName.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
             this.cb_ConferencesName.Name = "cb_ConferencesName";
             this.cb_ConferencesName.Size = new System.Drawing.Size(167, 23);
@@ -898,11 +889,24 @@ namespace SDK.UIForm.WebRTC
             this.btn_SubscribeRemoteSharingInput.UseVisualStyleBackColor = true;
             this.btn_SubscribeRemoteSharingInput.Click += new System.EventHandler(this.btn_SubscribeRemoteSharingInput_Click);
             // 
+            // btn_Test
+            // 
+            this.btn_Test.Location = new System.Drawing.Point(280, 196);
+            this.btn_Test.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
+            this.btn_Test.Name = "btn_Test";
+            this.btn_Test.Size = new System.Drawing.Size(81, 23);
+            this.btn_Test.TabIndex = 1308;
+            this.btn_Test.Text = "Test";
+            this.btn_Test.UseVisualStyleBackColor = true;
+            this.btn_Test.Visible = false;
+            this.btn_Test.Click += new System.EventHandler(this.btn_Test_Click);
+            // 
             // FormWebRTC
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(943, 566);
+            this.Controls.Add(this.btn_Test);
             this.Controls.Add(this.btn_SubscribeRemoteSharingInput);
             this.Controls.Add(this.btn_SubscribeRemoteVideoInput);
             this.Controls.Add(this.btn_SubscribeRemoteAudioInput);
@@ -927,7 +931,6 @@ namespace SDK.UIForm.WebRTC
             this.Controls.Add(this.cb_AnswerCallMedias);
             this.Controls.Add(this.btn_AnswerCall);
             this.Controls.Add(this.lbl_BubbleInfo);
-            this.Controls.Add(this.tb_ConferenceName);
             this.Controls.Add(this.lbl_ConversationDetails);
             this.Controls.Add(this.lbl_IncomingCall);
             this.Controls.Add(this.label10);
@@ -1033,7 +1036,6 @@ namespace SDK.UIForm.WebRTC
         private Label label10;
         private Label lbl_IncomingCall;
         private Label lbl_ConversationDetails;
-        private TextBox tb_ConferenceName;
         private Label lbl_BubbleInfo;
         private Button btn_AnswerCall;
         private ComboBox cb_AnswerCallMedias;
@@ -1059,5 +1061,6 @@ namespace SDK.UIForm.WebRTC
         private Button btn_SubscribeRemoteAudioInput;
         private Button btn_SubscribeRemoteVideoInput;
         private Button btn_SubscribeRemoteSharingInput;
+        private Button btn_Test;
     }
 }

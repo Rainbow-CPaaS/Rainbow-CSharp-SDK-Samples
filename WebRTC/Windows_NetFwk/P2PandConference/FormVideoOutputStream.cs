@@ -19,13 +19,12 @@ namespace SDK.UIForm.WebRTC
         private int _diffWidth = 0;
         private int _diffHeight = 0;
         private float _ratio = 0;
+        Boolean _initDone = false;
 
         private IMediaVideo? _currentMediaVideo = null;
         private Boolean _needToStoreMediaVideo = false;
 
         private AsciiFrame? _asciiFrame = null;
-
-        Boolean _initDone = false;
 
         public FormVideoOutputStream()
         {

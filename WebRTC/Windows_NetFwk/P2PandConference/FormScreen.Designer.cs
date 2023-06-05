@@ -52,7 +52,7 @@
             // 
             this.cb_Screens.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cb_Screens.FormattingEnabled = true;
-            this.cb_Screens.Location = new System.Drawing.Point(97, 12);
+            this.cb_Screens.Location = new System.Drawing.Point(90, 12);
             this.cb_Screens.Name = "cb_Screens";
             this.cb_Screens.Size = new System.Drawing.Size(174, 23);
             this.cb_Screens.TabIndex = 146;
@@ -61,7 +61,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(26, 15);
+            this.label2.Location = new System.Drawing.Point(19, 15);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(45, 15);
             this.label2.TabIndex = 145;
@@ -70,9 +70,9 @@
             // pb_VideoStream
             // 
             this.pb_VideoStream.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.pb_VideoStream.Location = new System.Drawing.Point(12, 116);
+            this.pb_VideoStream.Location = new System.Drawing.Point(5, 145);
             this.pb_VideoStream.Name = "pb_VideoStream";
-            this.pb_VideoStream.Size = new System.Drawing.Size(320, 240);
+            this.pb_VideoStream.Size = new System.Drawing.Size(320, 180);
             this.pb_VideoStream.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.pb_VideoStream.TabIndex = 229;
             this.pb_VideoStream.TabStop = false;
@@ -82,7 +82,7 @@
             this.cb_ScreenSize.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cb_ScreenSize.Enabled = false;
             this.cb_ScreenSize.FormattingEnabled = true;
-            this.cb_ScreenSize.Location = new System.Drawing.Point(97, 41);
+            this.cb_ScreenSize.Location = new System.Drawing.Point(90, 41);
             this.cb_ScreenSize.Name = "cb_ScreenSize";
             this.cb_ScreenSize.Size = new System.Drawing.Size(119, 23);
             this.cb_ScreenSize.TabIndex = 230;
@@ -91,7 +91,7 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(64, 44);
+            this.label1.Location = new System.Drawing.Point(57, 44);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(30, 15);
             this.label1.TabIndex = 231;
@@ -101,7 +101,7 @@
             // 
             this.label8.AutoSize = true;
             this.label8.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.label8.Location = new System.Drawing.Point(65, 74);
+            this.label8.Location = new System.Drawing.Point(58, 74);
             this.label8.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label8.Name = "label8";
             this.label8.Size = new System.Drawing.Size(27, 13);
@@ -111,7 +111,7 @@
             // tb_ScreenFps
             // 
             this.tb_ScreenFps.Enabled = false;
-            this.tb_ScreenFps.Location = new System.Drawing.Point(96, 70);
+            this.tb_ScreenFps.Location = new System.Drawing.Point(89, 70);
             this.tb_ScreenFps.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
             this.tb_ScreenFps.Name = "tb_ScreenFps";
             this.tb_ScreenFps.Size = new System.Drawing.Size(43, 23);
@@ -120,7 +120,7 @@
             // lbl_ScreenMaxFps
             // 
             this.lbl_ScreenMaxFps.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.lbl_ScreenMaxFps.Location = new System.Drawing.Point(143, 74);
+            this.lbl_ScreenMaxFps.Location = new System.Drawing.Point(136, 74);
             this.lbl_ScreenMaxFps.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.lbl_ScreenMaxFps.Name = "lbl_ScreenMaxFps";
             this.lbl_ScreenMaxFps.Size = new System.Drawing.Size(72, 13);
@@ -132,7 +132,7 @@
             this.btn_ScreenSet.Enabled = false;
             this.btn_ScreenSet.FlatAppearance.BorderSize = 0;
             this.btn_ScreenSet.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.btn_ScreenSet.Location = new System.Drawing.Point(217, 70);
+            this.btn_ScreenSet.Location = new System.Drawing.Point(210, 70);
             this.btn_ScreenSet.Margin = new System.Windows.Forms.Padding(0);
             this.btn_ScreenSet.Name = "btn_ScreenSet";
             this.btn_ScreenSet.Size = new System.Drawing.Size(54, 23);
@@ -144,7 +144,7 @@
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(49, 365);
+            this.label6.Location = new System.Drawing.Point(10, 119);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(42, 15);
             this.label6.TabIndex = 368;
@@ -152,14 +152,14 @@
             // 
             // tb_NameOfNewInputStream
             // 
-            this.tb_NameOfNewInputStream.Location = new System.Drawing.Point(97, 362);
+            this.tb_NameOfNewInputStream.Location = new System.Drawing.Point(58, 116);
             this.tb_NameOfNewInputStream.Name = "tb_NameOfNewInputStream";
-            this.tb_NameOfNewInputStream.Size = new System.Drawing.Size(158, 23);
+            this.tb_NameOfNewInputStream.Size = new System.Drawing.Size(190, 23);
             this.tb_NameOfNewInputStream.TabIndex = 367;
             // 
             // btn_AddNewInputStream
             // 
-            this.btn_AddNewInputStream.Location = new System.Drawing.Point(261, 362);
+            this.btn_AddNewInputStream.Location = new System.Drawing.Point(254, 116);
             this.btn_AddNewInputStream.Name = "btn_AddNewInputStream";
             this.btn_AddNewInputStream.Size = new System.Drawing.Size(71, 23);
             this.btn_AddNewInputStream.TabIndex = 366;
@@ -172,7 +172,7 @@
             this.btn_RefreshScreen.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.btn_RefreshScreen.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btn_RefreshScreen.ForeColor = System.Drawing.SystemColors.Control;
-            this.btn_RefreshScreen.Location = new System.Drawing.Point(316, 16);
+            this.btn_RefreshScreen.Location = new System.Drawing.Point(309, 16);
             this.btn_RefreshScreen.Name = "btn_RefreshScreen";
             this.btn_RefreshScreen.Size = new System.Drawing.Size(16, 16);
             this.btn_RefreshScreen.TabIndex = 369;
@@ -185,7 +185,7 @@
             this.btn_StartScreen.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.btn_StartScreen.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btn_StartScreen.ForeColor = System.Drawing.SystemColors.Control;
-            this.btn_StartScreen.Location = new System.Drawing.Point(276, 16);
+            this.btn_StartScreen.Location = new System.Drawing.Point(269, 16);
             this.btn_StartScreen.Name = "btn_StartScreen";
             this.btn_StartScreen.Size = new System.Drawing.Size(16, 16);
             this.btn_StartScreen.TabIndex = 370;
@@ -198,7 +198,7 @@
             this.btn_StopScreen.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.btn_StopScreen.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btn_StopScreen.ForeColor = System.Drawing.SystemColors.Control;
-            this.btn_StopScreen.Location = new System.Drawing.Point(294, 16);
+            this.btn_StopScreen.Location = new System.Drawing.Point(287, 16);
             this.btn_StopScreen.Name = "btn_StopScreen";
             this.btn_StopScreen.Size = new System.Drawing.Size(16, 16);
             this.btn_StopScreen.TabIndex = 371;
@@ -209,7 +209,7 @@
             // 
             this.lbl_Info.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.lbl_Info.ForeColor = System.Drawing.Color.Red;
-            this.lbl_Info.Location = new System.Drawing.Point(12, 100);
+            this.lbl_Info.Location = new System.Drawing.Point(5, 100);
             this.lbl_Info.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.lbl_Info.Name = "lbl_Info";
             this.lbl_Info.Size = new System.Drawing.Size(320, 13);
@@ -221,7 +221,7 @@
             // 
             this.cb_ScreenPrimary.AutoCheck = false;
             this.cb_ScreenPrimary.AutoSize = true;
-            this.cb_ScreenPrimary.Location = new System.Drawing.Point(221, 43);
+            this.cb_ScreenPrimary.Location = new System.Drawing.Point(214, 43);
             this.cb_ScreenPrimary.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
             this.cb_ScreenPrimary.Name = "cb_ScreenPrimary";
             this.cb_ScreenPrimary.Size = new System.Drawing.Size(67, 19);
@@ -233,7 +233,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(346, 393);
+            this.ClientSize = new System.Drawing.Size(332, 331);
             this.Controls.Add(this.cb_ScreenPrimary);
             this.Controls.Add(this.lbl_Info);
             this.Controls.Add(this.btn_StartScreen);
@@ -255,6 +255,7 @@
             this.Text = "FormWebcam";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.FormScreen_FormClosing);
             this.Shown += new System.EventHandler(this.FormScreen_Shown);
+            this.ClientSizeChanged += new System.EventHandler(this.FormScreen_ClientSizeChanged);
             ((System.ComponentModel.ISupportInitialize)(this.pb_VideoStream)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();

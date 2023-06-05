@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Text;
 using System.Windows.Forms;
-using Microsoft.VisualBasic;
 using Rainbow;
+using Rainbow.Events;
 using Rainbow.Model;
+using Rainbow.WebRTC;
 
 namespace SDK.UIForm.WebRTC
 {
@@ -22,11 +19,16 @@ namespace SDK.UIForm.WebRTC
         private Boolean _participantOfConference = false;
         private Conference ? _currentConference = null;
         private String? _currentConfId = null;
-        private String? _currentConfJid = null;
 
         private Boolean _canSubscribeToMediaPublication = false;
 
         private List<MediaPublication> _mediaPublicationsSubscribed = new List<MediaPublication>();
+
+
+        public event EventHandler<MediaPublicationEventArgs>? OnMediaSubscription;
+
+        public event EventHandler<(int media, String? publisherId)>? OpenVideoPublication;
+
 
 #region CONSTRUCTOR
         public FormConferenceOptions()
@@ -35,10 +37,14 @@ namespace SDK.UIForm.WebRTC
             InitializeComponent();
         }
 
+        private void Form_HandleCreated(object sender, EventArgs e)
+        {
+            btn_OutputRemoteVideoInput.BackgroundImage = Helper.GetBitmapOutput();
+            btn_OutputRemoteSharingInput.BackgroundImage = Helper.GetBitmapOutput();
+        }
+
         public void Initialize(Rainbow.Application application, Boolean canSubscribeToMediaPublication)
         {
-            _canSubscribeToMediaPublication = canSubscribeToMediaPublication;
-
             // Get / Store SDK Objects
             _rbApplication = application;
             _rbBubbles = _rbApplication.GetBubbles();
@@ -57,11 +63,14 @@ namespace SDK.UIForm.WebRTC
             UpdateUIFull();
         }
 
+        public void CanSubscribe(Boolean canSubscribeToMediaPublication)
+        {
+            _canSubscribeToMediaPublication = canSubscribeToMediaPublication;
+        }
+
         public void SetConferenceInfo(String confId)
         {
             _currentConfId = confId;
-            //_currentConfJid = confJid;
-
             _currentConference = _rbConferences.ConferenceGetByIdFromCache(confId);
 
             if (_currentConference != null)
@@ -81,10 +90,39 @@ namespace SDK.UIForm.WebRTC
             UpdateUIFull();
         }
 
+        private Boolean IsMediaSubscribed(String publisherId, int media)
+        {
+            Boolean result = false;
+            if(media == Call.Media.AUDIO)
+                result = _mediaPublicationsSubscribed.Exists(m => m.Media == media);
+            else
+                result = _mediaPublicationsSubscribed.Exists(m => m.PublisherId == publisherId && m.Media == media);
+            return result;
+        }
+
+        private void RemoveMediaSubscribed(String publisherId, int media)
+        {
+            _mediaPublicationsSubscribed.RemoveAll(m => m.PublisherId == publisherId && m.Media == media);
+        }
+
         // To use when current user subscribed or unsubscribed to a media publication
         public void UpdateMediaPublicationSubscription(Boolean subscribed, MediaPublication mediaPublication)
         {
+            if (mediaPublication.CallId != _currentConfId)
+                return;
 
+            if (subscribed)
+            {
+                if(!IsMediaSubscribed(mediaPublication.PublisherId, mediaPublication.Media))
+                    _mediaPublicationsSubscribed.Add(mediaPublication);
+            }
+            else
+            {
+                if (IsMediaSubscribed(mediaPublication.PublisherId, mediaPublication.Media))
+                    RemoveMediaSubscribed(mediaPublication.PublisherId, mediaPublication.Media);
+            }
+
+            UpdateSubscriptionButtons();
         }
 
 #endregion CONSTRUCTOR
@@ -118,6 +156,8 @@ namespace SDK.UIForm.WebRTC
             btnConferenceLock.Enabled = enabled;
             btnConferenceRecordingStart.Enabled = enabled;
             btnConferenceRecordingPause.Enabled = enabled;
+
+            UpdateSubscriptionButtons();
         }
 
         private void UpdateUIConferenceInfo()
@@ -153,7 +193,7 @@ namespace SDK.UIForm.WebRTC
                 lb_Participants.Items.Clear();
                 if (_currentConference != null)
                 {
-                    Dictionary<String, Conference.Participant> participants;
+                    Dictionary<String, Participant> participants;
                     participants = _rbConferences.ConferenceGetParticipantsFromCache(_currentConference.Id);
 
                     _participantOfConference = false;
@@ -180,6 +220,9 @@ namespace SDK.UIForm.WebRTC
                             }
                         }
                     }
+
+                    if(!_participantOfConference)
+                        _mediaPublicationsSubscribed.Clear();
                 }
 
                 var enabled = lb_Participants.Items.Count > 0;
@@ -206,7 +249,7 @@ namespace SDK.UIForm.WebRTC
                 lb_ActiveTalkers.Items.Clear();
                 if (_currentConference != null)
                 {
-                    Dictionary<String, Conference.Talker> talkers;
+                    Dictionary<String, Talker> talkers;
                     talkers = _rbConferences.ConferenceGetTalkersFromCache(_currentConference.Id);
 
                     if (talkers?.Count > 0)
@@ -257,6 +300,8 @@ namespace SDK.UIForm.WebRTC
                         }
                     }
                 }
+
+                UpdateSubscriptionButtons();
             });
 
             if (this.InvokeRequired)
@@ -267,19 +312,109 @@ namespace SDK.UIForm.WebRTC
 
         private void UpdateSubscriptionButtons()
         {
-            if(_canSubscribeToMediaPublication)
+            var action = new Action(() =>
             {
+                UpdateAudioSubscription();
+                UpdateVideoSubscription();
+                UpdateSharingSubscription();
+            });
 
+            if (this.InvokeRequired)
+                this.BeginInvoke(action);
+            else
+                action.Invoke();
+        }
+
+        private void UpdateAudioSubscription()
+        {
+            if (_canSubscribeToMediaPublication)
+            {
+                btn_SubscribeRemoteAudioInput.Visible = true;
+
+                Boolean subscribed;
+                if ( (_currentConfId != null) && (lb_Participants.Items.Count > 0) )
+                {
+                    btn_SubscribeRemoteAudioInput.Enabled = true;
+
+                    var publisherId = _currentConfId;
+                    var media = Call.Media.AUDIO;
+                    subscribed = IsMediaSubscribed(publisherId, media);
+                }
+                else 
+                {
+                    btn_SubscribeRemoteAudioInput.Enabled = false;
+                    subscribed = false;
+                }
+                btn_SubscribeRemoteAudioInput.Text = subscribed ? "Unsubscribe" : "Subscribe";
+                btn_SubscribeRemoteAudioInput.ForeColor = subscribed ? System.Drawing.Color.DarkRed : System.Drawing.Color.DarkGreen;
             }
             else
             {
-                btn_SubscribeRemoteAudioInput.Enabled = false;
+                btn_SubscribeRemoteAudioInput.Visible = false;
+            }
+        }
 
-                btn_SubscribeRemoteVideoInput.Enabled = false;
+        private void UpdateVideoSubscription()
+        {
+            if (_canSubscribeToMediaPublication)
+            {
+                btn_SubscribeRemoteVideoInput.Visible = true;
+
+                if (lb_PublishersVideo.SelectedItem is ListItem item)
+                {
+                    var publisherId = item.Value;
+                    var media = Call.Media.VIDEO;
+                    var subscribed = IsMediaSubscribed(publisherId, media);
+
+                    btn_SubscribeRemoteVideoInput.Enabled = true;
+                    btn_SubscribeRemoteVideoInput.Text = subscribed ? "Unsubscribe" : "Subscribe";
+                    btn_SubscribeRemoteVideoInput.ForeColor = subscribed ? System.Drawing.Color.DarkRed : System.Drawing.Color.DarkGreen;
+
+                    btn_OutputRemoteVideoInput.Visible = subscribed;
+                }
+                else
+                {
+                    btn_SubscribeRemoteVideoInput.Enabled = false;
+                    btn_OutputRemoteVideoInput.Visible = false;
+                }
+            }
+            else
+            {
+                btn_SubscribeRemoteVideoInput.Visible = false;
                 btn_OutputRemoteVideoInput.Visible = false;
+                
+            }
+        }
 
-                btn_SubscribeRemoteSharingInput.Enabled = false;
+        private void UpdateSharingSubscription()
+        {
+            if (_canSubscribeToMediaPublication)
+            {
+                btn_SubscribeRemoteSharingInput.Visible = true;
+
+                if (lb_PublishersSharing.SelectedItem is ListItem item)
+                {
+                    var publisherId = item.Value;
+                    var media = Call.Media.SHARING;
+                    var subscribed = IsMediaSubscribed(publisherId, media);
+
+                    btn_SubscribeRemoteSharingInput.Enabled = true;
+                    btn_SubscribeRemoteSharingInput.Text = subscribed ? "Unsubscribe" : "Subscribe";
+                    btn_SubscribeRemoteSharingInput.ForeColor = subscribed ? System.Drawing.Color.DarkRed : System.Drawing.Color.DarkGreen;
+
+                    btn_OutputRemoteSharingInput.Visible = subscribed;
+                }
+                else
+                {
+                    btn_SubscribeRemoteSharingInput.Enabled = false;
+                    btn_OutputRemoteSharingInput.Visible = false;
+                }
+            }
+            else
+            {
+                btn_SubscribeRemoteSharingInput.Visible = false;
                 btn_OutputRemoteSharingInput.Visible = false;
+
             }
         }
 
@@ -328,6 +463,11 @@ namespace SDK.UIForm.WebRTC
             return result;
         }
 
+        private void OpenFormVideoOutputStreamWebRTC(int media, String ? publisherId)
+        {
+            OpenVideoPublication?.Invoke(this, (media, publisherId));
+        }
+
 #endregion PRIVATE methods
 
 #region EVENTS from SDK Objects
@@ -353,7 +493,10 @@ namespace SDK.UIForm.WebRTC
         private void Conferences_ConferenceRemoved(object sender, Rainbow.Events.IdEventArgs e)
         {
             if ((_currentConference != null) && (_currentConference.Id == e.Id))
+            {
                 _currentConference = null;
+                _mediaPublicationsSubscribed.Clear();
+            }
 
             UpdateUIFull();
         }
@@ -366,8 +509,11 @@ namespace SDK.UIForm.WebRTC
                 _currentConference = e.Conference;
 
 
-            if (!e.Conference.Active)
+            if ((_currentConference != null) && (_currentConference.Id == e.Conference.Id) && (!e.Conference.Active))
+            {
                 _currentConference = null;
+                _mediaPublicationsSubscribed.Clear();
+            }
 
             UpdateUIFull();
         }
@@ -375,11 +521,6 @@ namespace SDK.UIForm.WebRTC
 #endregion EVENTS from SDK Objects
 
 #region EVENTS from FORM elements
-
-        private void Form_HandleCreated(object sender, EventArgs e)
-        {
-
-        }
 
         private void FormConferenceOptions_FormClosing(object sender, FormClosingEventArgs e)
         {
@@ -421,7 +562,7 @@ namespace SDK.UIForm.WebRTC
                             if (callback.Result.Success)
                                 AddInformationMessage($"Conference - PSTN Participant Mute / Unmute done");
                             else
-                                AddInformationMessage($"Conference - PSTN Participant Pb to Mute / Unmute:[{Rainbow.Util.SerializeSdkError(callback.Result)}]");
+                                AddInformationMessage($"Conference - PSTN Participant Pb to Mute / Unmute:[{callback.Result}]");
                         });
                     }
                     else
@@ -431,7 +572,7 @@ namespace SDK.UIForm.WebRTC
                             if (callback.Result.Success)
                                 AddInformationMessage($"Conference - Participant Mute / Unmute done");
                             else
-                                AddInformationMessage($"Conference - Participant Pb to Mute / Unmute:[{Rainbow.Util.SerializeSdkError(callback.Result)}]");
+                                AddInformationMessage($"Conference - Participant Pb to Mute / Unmute:[{callback.Result}]");
                         });
                     }
                 }
@@ -475,7 +616,7 @@ namespace SDK.UIForm.WebRTC
                             if (callback.Result.Success)
                                 AddInformationMessage($"Conference - Participant Delegate done");
                             else
-                                AddInformationMessage($"Conference - Participant Pb to Delegate:[{Rainbow.Util.SerializeSdkError(callback.Result)}]");
+                                AddInformationMessage($"Conference - Participant Pb to Delegate:[{callback.Result}]");
                         });
                     }
                 }
@@ -517,7 +658,7 @@ namespace SDK.UIForm.WebRTC
                             if (callback.Result.Success)
                                 AddInformationMessage($"Conference - PSTN Participant Drop done");
                             else
-                                AddInformationMessage($"Conference - PSTN Participant Pb to Drop:[{Rainbow.Util.SerializeSdkError(callback.Result)}]");
+                                AddInformationMessage($"Conference - PSTN Participant Pb to Drop:[{callback.Result}]");
                         });
                     }
                     else
@@ -527,7 +668,7 @@ namespace SDK.UIForm.WebRTC
                             if (callback.Result.Success)
                                 AddInformationMessage($"Conference - Participant Drop done");
                             else
-                                AddInformationMessage($"Conference - Participant Pb to Drop:[{Rainbow.Util.SerializeSdkError(callback.Result)}]");
+                                AddInformationMessage($"Conference - Participant Pb to Drop:[{callback.Result}]");
                         });
                     }
                 }
@@ -551,7 +692,7 @@ namespace SDK.UIForm.WebRTC
                     if (callback.Result.Success)
                         AddInformationMessage($"Conference - Mute / Unmute done");
                     else
-                        AddInformationMessage($"Conference - Pb Mute / Unmute:[{Rainbow.Util.SerializeSdkError(callback.Result)}]");
+                        AddInformationMessage($"Conference - Pb Mute / Unmute:[{callback.Result}]");
                 });
             }
         }
@@ -574,7 +715,7 @@ namespace SDK.UIForm.WebRTC
                     if (callback.Result.Success)
                         AddInformationMessage($"Conference - Lock / Unlock done");
                     else
-                        AddInformationMessage($"Conference - Pb Lock / Unlock:[{Rainbow.Util.SerializeSdkError(callback.Result)}]");
+                        AddInformationMessage($"Conference - Pb Lock / Unlock:[{callback.Result}]");
                 });
             }
         }
@@ -595,7 +736,7 @@ namespace SDK.UIForm.WebRTC
                     if (callback.Result.Success)
                         AddInformationMessage(String.Format("Conference - Stop done"));
                     else
-                        AddInformationMessage($"Pb to stop Conference:[{Rainbow.Util.SerializeSdkError(callback.Result)}]");
+                        AddInformationMessage($"Pb to stop Conference:[{callback.Result}]");
                 });
             }
         }
@@ -618,7 +759,7 @@ namespace SDK.UIForm.WebRTC
                         if (callback.Result.Success)
                             AddInformationMessage($"Conference - Recording Stop done");
                         else
-                            AddInformationMessage($"Conference - Pb Recording Stop:[{Rainbow.Util.SerializeSdkError(callback.Result)}]");
+                            AddInformationMessage($"Conference - Pb Recording Stop:[{callback.Result}]");
                     });
                 }
                 else
@@ -628,7 +769,7 @@ namespace SDK.UIForm.WebRTC
                         if (callback.Result.Success)
                             AddInformationMessage($"Conference - Recording Start done");
                         else
-                            AddInformationMessage($"Conference - Pb Recording Start:[{Rainbow.Util.SerializeSdkError(callback.Result)}]");
+                            AddInformationMessage($"Conference - Pb Recording Start:[{callback.Result}]");
                     });
                 }
             }
@@ -652,7 +793,7 @@ namespace SDK.UIForm.WebRTC
                         if (callback.Result.Success)
                             AddInformationMessage($"Conference - Recording Resume done");
                         else
-                            AddInformationMessage($"Conference - Pb Resume Pause:[{Rainbow.Util.SerializeSdkError(callback.Result)}]");
+                            AddInformationMessage($"Conference - Pb Resume Pause:[{callback.Result}]");
                     });
                 }
                 else if (_currentConference.RecordStatus == "on")
@@ -662,7 +803,7 @@ namespace SDK.UIForm.WebRTC
                         if (callback.Result.Success)
                             AddInformationMessage($"Conference - Recording Pause done");
                         else
-                            AddInformationMessage($"Conference - Pb Recording Pause:[{Rainbow.Util.SerializeSdkError(callback.Result)}]");
+                            AddInformationMessage($"Conference - Pb Recording Pause:[{callback.Result}]");
                     });
                 }
             }
@@ -675,37 +816,79 @@ namespace SDK.UIForm.WebRTC
 
         private void lb_PublishersVideo_SelectedIndexChanged(object sender, EventArgs e)
         {
-            Boolean enabled = false;
-            if(_canSubscribeToMediaPublication)
-            {
-                if(lb_PublishersVideo.SelectedItem is ListItem item)
-                {
-                    var publisherId = item.Value;
-                    var media = Call.Media.VIDEO;
-                    // TODO - Need to check MediaPublication
-                }
-            }
-            btn_SubscribeRemoteVideoInput.Enabled = enabled;
+            UpdateVideoSubscription();
         }
 
         private void lb_PublishersSharing_SelectedIndexChanged(object sender, EventArgs e)
         {
-            Boolean enabled = false;
+            UpdateSharingSubscription();
+        }
+
+
+        private void btn_SubscribeRemoteAudioInput_Click(object sender, EventArgs e)
+        {
+            if (_canSubscribeToMediaPublication)
+            {
+                var subscribed = IsMediaSubscribed("", Call.Media.AUDIO);
+                OnMediaSubscription?.Raise((object)this, new MediaPublicationEventArgs(_currentConfId, "", "", Call.Media.AUDIO, subscribed ? MediaPublicationStatus.CURRENT_USER_UNSUBSCRIBED : MediaPublicationStatus.CURRENT_USER_SUBSCRIBED));
+            }
+        }
+
+        private void btn_SubscribeRemoteVideoInput_Click(object sender, EventArgs e)
+        {
+            if (_canSubscribeToMediaPublication)
+            {
+                if (lb_PublishersVideo.SelectedItem is ListItem item)
+                {
+                    var subscribed = IsMediaSubscribed(item.Value, Call.Media.VIDEO);
+                    OnMediaSubscription?.Raise(this, new MediaPublicationEventArgs(_currentConfId, item.Value, "", Call.Media.VIDEO, subscribed ? MediaPublicationStatus.CURRENT_USER_UNSUBSCRIBED : MediaPublicationStatus.CURRENT_USER_SUBSCRIBED)); 
+                }
+            }
+        }
+
+        private void btn_SubscribeRemoteSharingInput_Click(object sender, EventArgs e)
+        {
+            if (_canSubscribeToMediaPublication)
+            {
+                if (lb_PublishersSharing.SelectedItem is ListItem item)
+                {
+                    var subscribed = IsMediaSubscribed(item.Value, Call.Media.SHARING);
+                    OnMediaSubscription?.Raise(this, new MediaPublicationEventArgs(_currentConfId, item.Value, "", Call.Media.SHARING, subscribed ? MediaPublicationStatus.CURRENT_USER_UNSUBSCRIBED : MediaPublicationStatus.CURRENT_USER_SUBSCRIBED));
+                }
+            }
+        }
+
+        private void lb_Participants_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            
+        }
+
+        private void btn_OutputRemoteVideoInput_Click(object sender, EventArgs e)
+        {
+            if (_canSubscribeToMediaPublication)
+            {
+                if (lb_PublishersVideo.SelectedItem is ListItem item)
+                {
+                    var publisherId = item.Value;
+                    var media = Call.Media.VIDEO;
+
+                    OpenFormVideoOutputStreamWebRTC(media, publisherId);
+                }
+            }
+                    
+        }
+
+        private void btn_OutputRemoteSharingInput_Click(object sender, EventArgs e)
+        {
             if (_canSubscribeToMediaPublication)
             {
                 if (lb_PublishersSharing.SelectedItem is ListItem item)
                 {
                     var publisherId = item.Value;
                     var media = Call.Media.SHARING;
-                    // TODO - Need to check MediaPublication
+                    OpenFormVideoOutputStreamWebRTC(media, publisherId);
                 }
             }
-            btn_SubscribeRemoteVideoInput.Enabled = enabled;
-        }
-
-        private void lb_Participants_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            
         }
 
 #endregion EVENTS from FORM elements

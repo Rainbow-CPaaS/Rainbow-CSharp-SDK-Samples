@@ -346,6 +346,7 @@
             this.btn_OutputRemoteVideoInput.Size = new System.Drawing.Size(16, 16);
             this.btn_OutputRemoteVideoInput.TabIndex = 1303;
             this.btn_OutputRemoteVideoInput.UseVisualStyleBackColor = true;
+            this.btn_OutputRemoteVideoInput.Click += new System.EventHandler(this.btn_OutputRemoteVideoInput_Click);
             // 
             // btn_OutputRemoteSharingInput
             // 
@@ -357,6 +358,7 @@
             this.btn_OutputRemoteSharingInput.Size = new System.Drawing.Size(16, 16);
             this.btn_OutputRemoteSharingInput.TabIndex = 1304;
             this.btn_OutputRemoteSharingInput.UseVisualStyleBackColor = true;
+            this.btn_OutputRemoteSharingInput.Click += new System.EventHandler(this.btn_OutputRemoteSharingInput_Click);
             // 
             // btn_SubscribeRemoteVideoInput
             // 
@@ -370,6 +372,7 @@
             this.btn_SubscribeRemoteVideoInput.TabIndex = 1306;
             this.btn_SubscribeRemoteVideoInput.Text = "Subscribe";
             this.btn_SubscribeRemoteVideoInput.UseVisualStyleBackColor = true;
+            this.btn_SubscribeRemoteVideoInput.Click += new System.EventHandler(this.btn_SubscribeRemoteVideoInput_Click);
             // 
             // btn_SubscribeRemoteSharingInput
             // 
@@ -383,6 +386,7 @@
             this.btn_SubscribeRemoteSharingInput.TabIndex = 1307;
             this.btn_SubscribeRemoteSharingInput.Text = "Subscribe";
             this.btn_SubscribeRemoteSharingInput.UseVisualStyleBackColor = true;
+            this.btn_SubscribeRemoteSharingInput.Click += new System.EventHandler(this.btn_SubscribeRemoteSharingInput_Click);
             // 
             // btn_SubscribeRemoteAudioInput
             // 
@@ -396,6 +400,7 @@
             this.btn_SubscribeRemoteAudioInput.TabIndex = 1308;
             this.btn_SubscribeRemoteAudioInput.Text = "Subscribe";
             this.btn_SubscribeRemoteAudioInput.UseVisualStyleBackColor = true;
+            this.btn_SubscribeRemoteAudioInput.Click += new System.EventHandler(this.btn_SubscribeRemoteAudioInput_Click);
             // 
             // FormConferenceOptions
             // 

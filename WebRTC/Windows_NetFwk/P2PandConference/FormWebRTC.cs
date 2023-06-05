@@ -7,6 +7,8 @@ using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Rainbow.WebRTC.Abstractions;
+using Rainbow.WebRTC;
 
 namespace SDK.UIForm.WebRTC
 {
@@ -42,10 +44,9 @@ namespace SDK.UIForm.WebRTC
 
         private List<Bubble>? bubblesList = null;
 
-        private SDL2AudioOutput? _audioOutput = null;
+        private List<MediaStreamTrackDescriptor> mediaStreamTrackDescriptors = new();
 
         private String _ffmpegLibPath;
-        private String? selectedConferenceVideoViewerId;
 
 #region CONSTRUCTOR
 
@@ -121,37 +122,63 @@ namespace SDK.UIForm.WebRTC
             currentContactId = rbContacts.GetCurrentContactId();
             currentContactJid = rbContacts.GetCurrentContactJid();
 
-            rbWebRTCCommunications = Rainbow.WebRTC.WebRTCCommunications.GetOrCreateInstance(rbAplication, _ffmpegLibPath);
+            rbWebRTCCommunications = Rainbow.WebRTC.WebRTCCommunications.GetOrCreateInstance(rbAplication, _mediaInputStreamsManager.WebRTCFactory);
 
             // Events related to Rainbow SDK Objects
             rbWebRTCCommunications.CallUpdated += WebRTCCommunications_CallUpdated;
-            rbWebRTCCommunications.OnRemoteAudio += WebRTCCommunications_OnRemoteAudio;
+            rbWebRTCCommunications.OnTrack += RbWebRTCCommunications_OnTrack;
+            //TODO - Manage RemoteAudio
+            //rbWebRTCCommunications.OnRemoteAudio += WebRTCCommunications_OnRemoteAudio;
             rbWebRTCCommunications.OnMediaPublicationUpdated += WebRTCCommunications_OnMediaPublicationUpdated;
 
             rbConferences.ConferenceUpdated += Conferences_ConferenceUpdated;
             rbConferences.ConferenceRemoved += Conferences_ConferenceRemoved;
             rbConferences.ConferenceSharingTransfertStatusUpdated += Conferences_ConferenceSharingTranfertStatusUpdated;
 
+            rbAplication.InitializationPerformed += RbAplication_InitializationPerformed;
+
             // Fill users Combo Box
             UpdateContactsComboBox();
 
-            // Fill Bubbles Combo Box
-            rbBubbles.GetAllBubbles(callback =>
-            {
-
-                if (callback.Result.Success)
-                {
-                    bubblesList = callback.Data;
-                    UpdateBubblesComboBox();
-                }
-                else
-                {
-                    AddInformationMessage("CANNOT GET LIST OF BUBBLES !");
-                }
-            });
+            AskAllBubbles();
 
             // Update elements based on Call info/status
             UpdateUIAccordingCall();
+
+            if (_formConferenceOptions == null)
+            {
+                _formConferenceOptions = new FormConferenceOptions();
+                _formConferenceOptions.Initialize(rbAplication, true);
+
+                _formConferenceOptions.OnMediaSubscription += FormConferenceOptions_OnMediaSubscription;
+                _formConferenceOptions.OpenVideoPublication += FormConferenceOptions_OpenVideoPublication;
+            }
+        }
+
+
+        private void AskAllBubbles()
+        {
+            if (rbBubbles != null)
+            {
+                rbBubbles.GetAllBubbles(callback =>
+                {
+
+                    if (callback.Result.Success)
+                    {
+                        bubblesList = callback.Data;
+                        UpdateBubblesComboBox();
+                    }
+                    else
+                    {
+                        AddInformationMessage("CANNOT GET LIST OF BUBBLES !");
+                    }
+                });
+            }
+        }
+
+        private void RbAplication_InitializationPerformed(object? sender, EventArgs e)
+        {
+            AskAllBubbles();
         }
 
         private Boolean CanStartConferenceFromBubbleId(String bubbleId)
@@ -345,10 +372,11 @@ namespace SDK.UIForm.WebRTC
                         if (contact.Id != currentContactId)
                         {
                             ListItem item = new ListItem(Rainbow.Util.GetContactDisplayName(contact), contact.Id);
+                            cb_ContactsList.Items.Add(item);
+
                             if (contact.Id == selectedContactId)
                                 cb_ContactsList.SelectedIndex = index;
 
-                            cb_ContactsList.Items.Add(item);
                             index++;
                         }
                     }
@@ -408,7 +436,7 @@ namespace SDK.UIForm.WebRTC
                             cb_ConferencesName.Items.Add(item);
                         }
 
-                        if (cb_ConferencesName.SelectedIndex < 0)
+                        if ( (cb_ConferencesName.SelectedIndex < 0) && (cb_ConferencesName.Items.Count >0) )
                             cb_ConferencesName.SelectedIndex = 0;
                     }
                 }
@@ -957,6 +985,25 @@ namespace SDK.UIForm.WebRTC
             return null;
         }
 
+        private IAudioStreamTrack? GetAudioInputMediaStreamTrack()
+        {
+            var id = GetSelectedIdOfComboBoxUsingMediaInputStreamItem(cb_AudioInputs);
+            if (!String.IsNullOrEmpty(id))
+            {
+                var result = _mediaInputStreamsManager.GetAudioMediaStreamTrack(id);
+                if (result != null)
+                    return result;
+
+                // We add it to the manager
+                _mediaAudioDeviceManager.SetAudioInputDevice(id);
+                result = _mediaInputStreamsManager.GetAudioMediaStreamTrack(id);
+                if (result != null)
+                    return result;
+            }
+
+            return null;
+        }
+
         private IMedia? GetVideoInputMediaStream()
         {
             var id = GetSelectedIdOfComboBoxUsingMediaInputStreamItem(cb_VideoInputs);
@@ -964,6 +1011,15 @@ namespace SDK.UIForm.WebRTC
                 return null;
 
             return _mediaInputStreamsManager.GetMediaStream(id);
+        }
+
+        private IVideoStreamTrack? GetVideoInputMediaStreamTrack()
+        {
+            var id = GetSelectedIdOfComboBoxUsingMediaInputStreamItem(cb_VideoInputs);
+            if (String.IsNullOrEmpty(id))
+                return null;
+
+            return _mediaInputStreamsManager.GetVideoMediaStreamTrack(id);
         }
 
         private IMedia? GetSharingInputMediaStream()
@@ -974,6 +1030,16 @@ namespace SDK.UIForm.WebRTC
 
             return _mediaInputStreamsManager.GetMediaStream(id);
         }
+
+        private IVideoStreamTrack? GetSharingInputMediaStreamTrack()
+        {
+            var id = GetSelectedIdOfComboBoxUsingMediaInputStreamItem(cb_SharingInputs);
+            if (String.IsNullOrEmpty(id))
+                return null;
+
+            return _mediaInputStreamsManager.GetVideoMediaStreamTrack(id);
+        }
+
 
         private String GetSelectedIdOfComboBoxUsingMediaInputStreamItem(System.Windows.Forms.ComboBox comboBox)
         {
@@ -989,37 +1055,37 @@ namespace SDK.UIForm.WebRTC
             return selectedId;
         }
 
-        private Dictionary<int, IMedia>? GetMediaInputStreamsSelected(int medias)
+        private Dictionary<int, IMediaStreamTrack?>? GetMediaInputStreamTracksSelected(int medias)
         {
             // Get Media Inputs Stream according selection
-            Dictionary<int, IMedia>? mediaStreams = new Dictionary<int, IMedia>();
-            IMedia? mediaStream;
+            Dictionary<int, IMediaStreamTrack?>? mediaStreamTracks = new Dictionary<int, IMediaStreamTrack?>();
+            IMediaStreamTrack? mediaStreamTrack;
 
             // Audio Input Stream
             if (Rainbow.Util.MediasWithAudio(medias))
             {
-                mediaStream = GetAudioInputMediaStream();
-                mediaStreams.Add(Call.Media.AUDIO, mediaStream);
+                mediaStreamTrack = GetAudioInputMediaStreamTrack();
+                mediaStreamTracks.Add(Call.Media.AUDIO, mediaStreamTrack);
             }
 
             // Video Input Stream
             if (Rainbow.Util.MediasWithVideo(medias))
             {
-                mediaStream = GetVideoInputMediaStream();
-                mediaStreams.Add(Call.Media.VIDEO, mediaStream);
+                mediaStreamTrack = GetVideoInputMediaStreamTrack();
+                mediaStreamTracks.Add(Call.Media.VIDEO, mediaStreamTrack);
             }
 
             // Sharing Input Stream
             if (Rainbow.Util.MediasWithSharing(medias))
             {
-                mediaStream = GetSharingInputMediaStream();
-                mediaStreams.Add(Call.Media.SHARING, mediaStream);
+                mediaStreamTrack = GetSharingInputMediaStreamTrack();
+                mediaStreamTracks.Add(Call.Media.SHARING, mediaStreamTrack);
             }
 
-            if (mediaStreams.Count == 0)
-                mediaStreams = null;
+            if (mediaStreamTracks.Count == 0)
+                mediaStreamTracks = null;
 
-            return mediaStreams;
+            return mediaStreamTracks;
         }
 
         private void MuteMedia(int media, Boolean muteOn)
@@ -1043,14 +1109,20 @@ namespace SDK.UIForm.WebRTC
 
             if (media == Call.Media.VIDEO)
             {
-                if (!rbWebRTCCommunications.MuteVideo(currentCallId, muteOn))
-                    AddInformationMessage($"Cannot {muteStr} video media");
+                rbWebRTCCommunications.MuteVideo(currentCallId, muteOn, callback =>
+                {
+                    if(!callback.Result.Success)
+                        AddInformationMessage($"Cannot {muteStr} video media");
+                });
             }
 
             if (media == Call.Media.SHARING)
             {
-                if (!rbWebRTCCommunications.MuteSharing(currentCallId, muteOn))
-                    AddInformationMessage($"Cannot {muteStr} sharing media");
+                rbWebRTCCommunications.MuteSharing(currentCallId, muteOn, callback =>
+                {
+                    if (!callback.Result.Success)
+                        AddInformationMessage($"Cannot {muteStr} sharing media");
+                });
             }
         }
 
@@ -1323,7 +1395,7 @@ namespace SDK.UIForm.WebRTC
                             if (result == System.Windows.Forms.DialogResult.OK)
                             {
                                 // Add Sharing
-                                var mediaStream = GetSharingInputMediaStream();
+                                var mediaStream = GetSharingInputMediaStreamTrack();
                                 if (!rbWebRTCCommunications.AddSharing(currentCallId, mediaStream))
                                     AddInformationMessage("Cannot add sharing media");
                             }
@@ -1365,15 +1437,56 @@ namespace SDK.UIForm.WebRTC
 
 #region EVENTS from Rainbow WebRTCCommunications Object
 
-        private void WebRTCCommunications_OnMediaPublicationUpdated(object? sender, Rainbow.Events.MediaPublicationEventArgs e)
+        private void WebRTCCommunications_OnMediaPublicationUpdated(object? sender, MediaPublicationEventArgs e)
         {
+            if (e.MediaPublication.CallId != currentCallId)
+                return;
+
             var action = new Action(() =>
             {
+                String publisher = (e.MediaPublication.PublisherId == currentContactId) ? "ME" : e.MediaPublication.PublisherId;
+                String media = Util.MediasToString(e.MediaPublication.Media);
+                AddInformationMessage($"Mediapublication Updated: Status:[{e.Status}] - Publisher:[{publisher}] - Media:[{media}]");
+
                 UpdateLocalAndRemoteMediasCheckbox();
+
+                if (_formConferenceOptions != null)
+                {
+                    if ((e.Status == MediaPublicationStatus.CURRENT_USER_SUBSCRIBED)
+                        || (e.Status == MediaPublicationStatus.CURRENT_USER_UNSUBSCRIBED)
+                        || (e.Status == MediaPublicationStatus.PEER_STOPPED))
+                    {
+                        Boolean subscribed = (e.Status == MediaPublicationStatus.CURRENT_USER_SUBSCRIBED);
+                        _formConferenceOptions.UpdateMediaPublicationSubscription(subscribed, e.MediaPublication);
+                    }
+                }
             });
 
             this.BeginInvoke(action);
         }
+
+        private void RbWebRTCCommunications_OnTrack(string callId, MediaStreamTrackDescriptor mediaStreamTrackDescriptor)
+        {
+            if (callId == currentCallId)
+            {
+                String publisher = (mediaStreamTrackDescriptor.PublisherId == currentContactId) ? "ME" : mediaStreamTrackDescriptor.PublisherId;
+                String media = Util.MediasToString(mediaStreamTrackDescriptor.Media);
+
+
+                // Remove (if any) previous Media Strem Track with same publisher and same Media.
+                var result = mediaStreamTrackDescriptors.Find(m => (m.PublisherId == mediaStreamTrackDescriptor.PublisherId) && (m.Media == mediaStreamTrackDescriptor.Media));
+                if (result != null)
+                {
+                    AddInformationMessage($"Previous Track has been removed: Publisher:[{publisher}] - Media:[{media}]");
+                    mediaStreamTrackDescriptors.Remove(result);
+                }
+
+                mediaStreamTrackDescriptors.Add(mediaStreamTrackDescriptor);
+
+                AddInformationMessage($"New Track: Publisher:[{publisher}] - Media:[{media}] - nb MediaStreamTrack:[{mediaStreamTrackDescriptors.Count}]");
+            }
+        }
+
 
         private void WebRTCCommunications_OnRemoteAudio(string callId, string userId, string mediaId, uint duration, byte[] sample)
         {
@@ -1383,14 +1496,20 @@ namespace SDK.UIForm.WebRTC
         private void WebRTCCommunications_CallUpdated(object? sender, Rainbow.Events.CallEventArgs e)
         {
             if (e.Call == null)
+            {
+                AddInformationMessage($"Call object is null ...");
                 return;
+            }
 
             if (rbContacts == null)
                 return;
 
             // If we don't currently manage a call, we take the first new one into account
             if (currentCallId == null)
+            {
                 currentCallId = e.Call.Id;
+                AddInformationMessage($"Call - new with id:[{currentCallId}]");
+            }
 
             if (e.Call.Id == currentCallId)
             {
@@ -1401,6 +1520,18 @@ namespace SDK.UIForm.WebRTC
 
                     // The call is NO MORE in Progress => We Rollback presence if any
                     rbContacts.RollbackPresenceSavedFromCurrentContact();
+
+                    // Clear all MediaStreamDescriptors
+                    while (mediaStreamTrackDescriptors.Count > 0)
+                    {
+                        var mediaStreamTrackDescriptor = mediaStreamTrackDescriptors[0];
+                        mediaStreamTrackDescriptors.RemoveAt(0);
+
+                        mediaStreamTrackDescriptor.MediaStreamTrack?.Dispose();
+                        mediaStreamTrackDescriptor.MediaStreamTrack = null;
+                        mediaStreamTrackDescriptor = null;
+                    }
+                    AddInformationMessage("All Tracks has been removed");
                 }
                 else 
                 {
@@ -1448,6 +1579,7 @@ namespace SDK.UIForm.WebRTC
         private void cb_VideoInputs_SelectedIndexChanged(object sender, EventArgs e)
         {
             var mediaSream = GetVideoInputMediaStream();
+            
             String? mediaSreamId = null;
             Boolean IsStarted = false;
             Boolean IsPaused = false;
@@ -1461,11 +1593,15 @@ namespace SDK.UIForm.WebRTC
 
             UpdatePlayAllBtn(mediaSreamId, IsStarted, IsPaused);
 
+            
             // Change Audio Stream
             if ((currentCall != null) && currentCall.IsInProgress())
             {
                 if (Rainbow.Util.MediasWithVideo(currentCall.LocalMedias))
-                    rbWebRTCCommunications.ChangeVideo(currentCall.Id, mediaSream);
+                {
+                    var mediaSreamTrack = GetVideoInputMediaStreamTrack();
+                    rbWebRTCCommunications.ChangeVideo(currentCall.Id, mediaSreamTrack);
+                }
             }
         }
 
@@ -1489,22 +1625,25 @@ namespace SDK.UIForm.WebRTC
             if ((currentCall != null) && currentCall.IsInProgress())
             {
                 if (Rainbow.Util.MediasWithSharing(currentCall.LocalMedias))
-                    rbWebRTCCommunications.ChangeSharing(currentCall.Id, mediaSream);
+                {
+                    var mediaSreamTrack = GetSharingInputMediaStreamTrack();
+                    rbWebRTCCommunications.ChangeSharing(currentCall.Id, mediaSreamTrack);
+                }
             }
         }
 
         private void cb_AudioInputList_SelectedIndexChanged(object sender, EventArgs e)
         {
-            var mediaSream = GetAudioInputMediaStream();
+            var mediaStream = GetAudioInputMediaStream();
             String? mediaSreamId = null;
             Boolean IsStarted = false;
             Boolean IsPaused = false;
 
-            if (mediaSream != null)
+            if (mediaStream != null)
             {
-                mediaSreamId = mediaSream.Id;
-                IsStarted = mediaSream.IsStarted;
-                IsPaused = mediaSream.IsPaused;
+                mediaSreamId = mediaStream.Id;
+                IsStarted = mediaStream.IsStarted;
+                IsPaused = mediaStream.IsPaused;
             }
 
             UpdatePlayAllBtn(mediaSreamId, IsStarted, IsPaused);
@@ -1513,7 +1652,10 @@ namespace SDK.UIForm.WebRTC
             if ((currentCall != null) && currentCall.IsInProgress())
             {
                 if (Rainbow.Util.MediasWithAudio(currentCall.LocalMedias))
-                    rbWebRTCCommunications.ChangeAudio(currentCall.Id, mediaSream);
+                {
+                    var mediaStreamTrack = GetAudioInputMediaStreamTrack();
+                    rbWebRTCCommunications.ChangeAudio(currentCall.Id, mediaStreamTrack);
+                }
             }
 
         }
@@ -1634,13 +1776,13 @@ namespace SDK.UIForm.WebRTC
                 }
 
                 // Get Media Inputs Stream according selection
-                Dictionary<int, IMedia>? mediaStreams = GetMediaInputStreamsSelected(medias);
+                Dictionary<int, IMediaStreamTrack?>? mediaStreamTracks = GetMediaInputStreamTracksSelected(medias);
 
                 // Save presence for future rollback (once the call is over)
                 rbContacts.SavePresenceFromCurrentContactForRollback();
 
                 // TODO - Make call using IMedia list 
-                rbWebRTCCommunications.MakeCall(contactId, mediaStreams, subject, callback =>
+                rbWebRTCCommunications.MakeCall(contactId, mediaStreamTracks, subject, callback =>
                 {
                     if (callback.Result.Success)
                     {
@@ -1681,10 +1823,10 @@ namespace SDK.UIForm.WebRTC
                 int medias = MediasToInt(mediaString);
 
                 // Get Media Inputs Stream according selection
-                Dictionary<int, IMedia>? mediaStreams = GetMediaInputStreamsSelected(medias);
+                Dictionary<int, IMediaStreamTrack?>? mediaStreamTracks = GetMediaInputStreamTracksSelected(medias);
 
                 rbContacts.SavePresenceFromCurrentContactForRollback();
-                if (rbWebRTCCommunications.AnswerCall(currentCallId, mediaStreams))
+                if (rbWebRTCCommunications.AnswerCall(currentCallId, mediaStreamTracks))
                 {
                     // TODO - Answer call without  error - something to do more ?
                 }
@@ -1769,24 +1911,23 @@ namespace SDK.UIForm.WebRTC
                 if (cb_AddMedia.SelectedItem is String mediaStr)
                 {
                     int media = MediasToInt(mediaStr); // To get the media we want to add
-                    IMedia? mediaStream;
 
                     if (media == Call.Media.AUDIO)
                     {
-                        mediaStream = GetAudioInputMediaStream();
-                        if (!rbWebRTCCommunications.AddAudio(currentCallId, mediaStream))
+                        var mediaStreamTrack = GetAudioInputMediaStreamTrack();
+                        if (!rbWebRTCCommunications.AddAudio(currentCallId, mediaStreamTrack))
                             AddInformationMessage("Cannot add audio media");
                     }
                     else if (media == Call.Media.VIDEO)
                     {
-                        mediaStream = GetVideoInputMediaStream();
-                        if (!rbWebRTCCommunications.AddVideo(currentCallId, mediaStream))
+                        var mediaStreamTrack = GetVideoInputMediaStreamTrack();
+                        if (!rbWebRTCCommunications.AddVideo(currentCallId, mediaStreamTrack))
                             AddInformationMessage("Cannot add video media");
                     }
                     else if (media == Call.Media.SHARING)
                     {
-                        mediaStream = GetSharingInputMediaStream();
-                        if (!rbWebRTCCommunications.AddSharing(currentCallId, mediaStream))
+                        var mediaStreamTrack = GetSharingInputMediaStreamTrack();
+                        if (!rbWebRTCCommunications.AddSharing(currentCallId, mediaStreamTrack))
                             AddInformationMessage("Cannot add sharing media");
                     }
                 }
@@ -1810,7 +1951,7 @@ namespace SDK.UIForm.WebRTC
                 rbConferences.ConferenceSendSharingTransfertStatus(currentCallId, toJid, toResource, ConferenceSharingTranfertStatus.REQUEST, callback =>
                 {
                     if (!callback.Result.Success)
-                        AddInformationMessage($"Cannot request sharing transfert: [{Rainbow.Util.SerializeSdkError(callback.Result)}]");
+                        AddInformationMessage($"Cannot request sharing transfert: [[{callback.Result}]]");
                 });
             }
         }
@@ -1849,22 +1990,36 @@ namespace SDK.UIForm.WebRTC
             }
         }
 
-        private void OpenFormVideoOutputStreamWebRTC(Boolean remote, int media, String ? publisherId)
+        private void OpenFormVideoOutputStreamWebRTC(int media, String? publisherId)
         {
-            var form = new FormVideoOutputStreamWebRTC();
-            form.Show();
-            form.SetApplicationAndCallId(rbAplication, currentCallId);
-            form.SetMediaAndPublisher(remote, media, publisherId);
+            var result = mediaStreamTrackDescriptors.Find(m => (m.PublisherId == publisherId) && (m.Media == media));
+            if (result == null)
+            {
+                AddInformationMessage($"Cannot open [{Util.MediasToString(media)}] Publisher:[{publisherId}] - no Media Stream Track Descriptor found");
+            }
+            else
+            {
+                var form = new FormVideoOutputStreamWebRTC();
+                form.Show();
+                form.SetApplicationAndCallId(rbAplication, currentCallId);
+                form.SetMediaStreamTrackDescriptor(result);
+            }
         }
 
         private void btn_OutputRemoteVideoInput_Click(object sender, EventArgs e)
         {
-            OpenFormVideoOutputStreamWebRTC(true, Call.Media.VIDEO, null);
+            if(currentCall == null)
+                AddInformationMessage("Cannot see remote video - currentCall is null");
+            else
+                OpenFormVideoOutputStreamWebRTC(Call.Media.VIDEO, currentCall.PeerId);
         }
 
         private void btn_OutputRemoteSharingInput_Click(object sender, EventArgs e)
         {
-            OpenFormVideoOutputStreamWebRTC(true, Call.Media.SHARING, null);
+            if (currentCall == null)
+                AddInformationMessage("Cannot see remote sharing - currentCall is null");
+            else
+                OpenFormVideoOutputStreamWebRTC(Call.Media.SHARING, currentCall.PeerId);
         }
 
         private void btn_SubscribeRemoteSharingInput_Click(object sender, EventArgs e)
@@ -1884,12 +2039,18 @@ namespace SDK.UIForm.WebRTC
 
         private void btn_OutputLocalVideoInput_Click(object sender, EventArgs e)
         {
-            OpenFormVideoOutputStreamWebRTC(false, Call.Media.VIDEO, currentContactId);
+            if (currentCall == null)
+                AddInformationMessage("Cannot see local VIDEO - currentCall is null");
+            else
+                OpenFormVideoOutputStreamWebRTC(Call.Media.VIDEO, currentContactId);
         }
 
         private void btn_OutputLocalSharingInput_Click(object sender, EventArgs e)
         {
-            OpenFormVideoOutputStreamWebRTC(false, Call.Media.SHARING, currentContactId);
+            if (currentCall == null)
+                AddInformationMessage("Cannot see local SHARING - currentCall is null");
+            else
+                OpenFormVideoOutputStreamWebRTC(Call.Media.SHARING, currentContactId);
         }
 
         private void btn_StartMediaInput_Click(object sender, EventArgs e)
@@ -1972,7 +2133,8 @@ namespace SDK.UIForm.WebRTC
             // Get subscription info from UI
             //(Boolean autoSubscriptionSharing, Boolean autoSubscriptionVideo, int maxSubscriptionVideo) = GetSubscriptionInfo();
 
-            rbWebRTCCommunications.StartAndJoinConference(selectedBubbleId, mediaStreams, callback =>
+            var mediaStreamTrack = GetAudioInputMediaStreamTrack();
+            rbWebRTCCommunications.StartAndJoinConference(selectedBubbleId, mediaStreamTrack, callback =>
             {
                 if (callback.Result.Success)
                 {
@@ -1980,7 +2142,7 @@ namespace SDK.UIForm.WebRTC
                 }
                 else
                 {
-                    AddInformationMessage($"Cannot start conference: [{Rainbow.Util.SerializeSdkError(callback.Result)}]");
+                    AddInformationMessage($"Cannot start conference: [[{callback.Result}]]");
                 }
             });
         }
@@ -2009,18 +2171,12 @@ namespace SDK.UIForm.WebRTC
                 return;
 
             // Get Audio Media Input Stream according selection
-            Dictionary<int, IMedia>? mediaStreams = null;
-            var mediaStream = GetAudioInputMediaStream();
-            if (mediaStream != null)
-            {
-                mediaStreams = new Dictionary<int, IMedia>();
-                mediaStreams.Add(Call.Media.AUDIO, mediaStream);
-            }
-
+            var mediaStreamTrack = GetAudioInputMediaStreamTrack();
+            
             // Save presence for future rollback (once the call is over)
             rbContacts.SavePresenceFromCurrentContactForRollback();
 
-            rbWebRTCCommunications.JoinConference(conferenceInProgressId, mediaStreams, callback =>
+            rbWebRTCCommunications.JoinConference(conferenceInProgressId, mediaStreamTrack, callback =>
             {
                 if (callback.Result.Success)
                 {
@@ -2028,7 +2184,7 @@ namespace SDK.UIForm.WebRTC
                 }
                 else
                 {
-                    AddInformationMessage($"Cannot join conference: [{Rainbow.Util.SerializeSdkError(callback.Result)}]");
+                    AddInformationMessage($"Cannot join conference: [[{callback.Result}]]");
                 }
             });
         }
@@ -2046,7 +2202,7 @@ namespace SDK.UIForm.WebRTC
                 rbConferences.ConferenceReject(conferenceInProgressId, callback =>
                 {
                     if(!callback.Result.Success)
-                        AddInformationMessage($"Cannot declinc conf - {Util.SerializeSdkError(callback.Result)}");
+                        AddInformationMessage($"Cannot decline conf - {callback.Result}");
                 });
             }
         }
@@ -2058,24 +2214,60 @@ namespace SDK.UIForm.WebRTC
 
         private void btn_ConferenceOptions_Click(object sender, EventArgs e)
         {
-            if (_formConferenceOptions == null)
-            {
-                _formConferenceOptions = new FormConferenceOptions();
-                _formConferenceOptions.Initialize(rbAplication, true);
-            }
 
-            // Set conference Info (if any)
+
+            // Set conference Info (if any) and subscription
             if (currentCall?.IsConference == true)
+            {
+                _formConferenceOptions.CanSubscribe(true);
                 _formConferenceOptions.SetConferenceInfo(currentCall.ConferenceId);
-            else if(conferencesInProgress.Count > 0)
+            }
+            else if (conferencesInProgress.Count > 0)
+            {
+                _formConferenceOptions.CanSubscribe(false);
                 _formConferenceOptions.SetConferenceInfo(conferencesInProgress[0]);
+            }
 
             _formConferenceOptions.WindowState = FormWindowState.Normal;
             _formConferenceOptions.Show();
             _formConferenceOptions.Activate();
         }
 
+        private void btn_Test_Click(object sender, EventArgs e)
+        {
+            if(currentCall != null)
+            {
+                var available = rbWebRTCCommunications.GetMediaPublicationsAvailable(currentCall.Id);
+                var subscribed = rbWebRTCCommunications.GetMediaPublicationsSubscribed(currentCall.Id);
+            }
+        }
+
+
 #endregion EVENTS from UI Elements of the form
+
+#region EVENTS from FormConferenceOptions
+
+        private void FormConferenceOptions_OnMediaSubscription(object? sender, MediaPublicationEventArgs e)
+        {
+            // Is-it related to teh current call ?
+            if(currentCall?.Id == e.MediaPublication.CallId)
+            {
+                if (e.Status == MediaPublicationStatus.CURRENT_USER_SUBSCRIBED)
+                    rbWebRTCCommunications?.SubscribeToMediaPublication(e.MediaPublication);
+                else
+                    rbWebRTCCommunications?.UnsubscribeToMediaPublication(e.MediaPublication);
+            }
+            
+        }
+
+
+        private void FormConferenceOptions_OpenVideoPublication(object? sender, (int media, string? publisherId) e)
+        {
+            OpenFormVideoOutputStreamWebRTC(e.media, e.publisherId);
+        }
+
+
+#endregion EVENTS from FormConferenceOptions
 
 
     }

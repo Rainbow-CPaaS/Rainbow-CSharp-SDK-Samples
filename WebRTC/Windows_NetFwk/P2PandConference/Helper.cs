@@ -1,4 +1,6 @@
 ﻿using FFmpeg.AutoGen;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 using System;
 using System.Drawing;
 using System.Drawing.Imaging;
@@ -9,6 +11,27 @@ namespace SDK.UIForm.WebRTC
     public static class Helper
     {
         public static String NONE = "NONE";
+
+        public static String GetJsonStringFromObject<T>(T obj, Boolean indented = false)
+        {
+            if (obj == null)
+                return "null";
+
+            JsonSerializerSettings jsonSerializerSettings = new()
+            {
+                Formatting = indented ? Formatting.Indented : Formatting.None,
+                NullValueHandling = NullValueHandling.Ignore, // Avoid null values
+
+                ContractResolver = new DefaultContractResolver
+                {
+                    NamingStrategy = new CamelCaseNamingStrategy
+                    {
+                        OverrideSpecifiedNames = false
+                    }
+                }
+            };
+            return JsonConvert.SerializeObject(obj, jsonSerializerSettings);
+        }
 
         public static Bitmap GetBitmapPause(Boolean small = true)
         {
