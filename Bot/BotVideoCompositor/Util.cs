@@ -1,18 +1,14 @@
-﻿using Newtonsoft.Json.Serialization;
-using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Linq;
-using Newtonsoft.Json.Linq;
 using Rainbow.Medias;
-using System.Collections;
-using Org.BouncyCastle.Utilities;
-using System.Reflection;
-using DirectShowLib.MultimediaStreaming;
 using FFmpeg.AutoGen;
 using Microsoft.Extensions.Logging;
+using Rainbow.SimpleJSON;
+using Rainbow;
+using Rainbow.Model;
 
 namespace BotVideoCompositor
 {
@@ -22,7 +18,7 @@ namespace BotVideoCompositor
     public class Util
     {
         internal static readonly String NamespaceResources = "BotVideoCompositor.Resources";
-        internal static JObject? _basicAdaptiveCardsData = null;
+        internal static JSONNode? _basicAdaptiveCardsData = null;
 
         private static Boolean resourcesInit = false;
         private static List<String>? resources = null;
@@ -76,25 +72,23 @@ namespace BotVideoCompositor
             return null;
         }
 
-        static public String GetJsonStringFromObject(Object obj, Boolean indented = false)
+        static public String GetJsonStringFromItemsList(List<Item>? items, Boolean indented = false)
         {
-            if (obj == null)
+            if (items == null)
                 return "null";
 
-            JsonSerializerSettings jsonSerializerSettings = new JsonSerializerSettings
+            JSONArray jsonArray = new JSONArray();
+            foreach (var item in items)
             {
-                Formatting = indented ? Formatting.Indented : Formatting.None,
-                NullValueHandling = NullValueHandling.Ignore, // Avoid null values
+                var jsonNode = new JSONObject();
 
-                ContractResolver = new DefaultContractResolver
-                {
-                    NamingStrategy = new CamelCaseNamingStrategy
-                    {
-                        OverrideSpecifiedNames = false
-                    }
-                }
-            };
-            return JsonConvert.SerializeObject(obj, jsonSerializerSettings);
+                UtilJson.AddNode(jsonNode, "title", item.title);
+                UtilJson.AddNode(jsonNode, "value", item.value);
+
+                jsonArray.Add(jsonNode);
+            }
+
+            return jsonArray.ToString();
         }
 
         static public int? GetHeightAccordingRatio(int width, Size ratio)
@@ -106,7 +100,7 @@ namespace BotVideoCompositor
 
         private static av_log_set_callback_callback? _logCallback;
 
-        static public unsafe JToken? InitVideoStreams()
+        static public unsafe JSONNode? InitVideoStreams()
         {
             List<Item> items = new List<Item>();
 
@@ -124,12 +118,13 @@ namespace BotVideoCompositor
 
             items.Clear();
             List<String> streamsName = new List<string>();
-            var temp = JsonConvert.DeserializeObject<dynamic>(RainbowApplicationInfo.labels);
-            if (temp is JObject jsonLabels)
+            var jsonLabels = JSON.Parse(RainbowApplicationInfo.labels);
+            if (jsonLabels != null)
             {
-                if (jsonLabels["streamsName"] is JArray jarrayStreams)
+                if (jsonLabels["streamsName"]?.IsArray == true)
                 {
-                    foreach (var stream in jarrayStreams)
+                    var list = UtilJson.AsStringList(jsonLabels, "streamsName");
+                    foreach (var stream in list)
                         streamsName.Add(stream.ToString());
                 }
                 else
@@ -198,10 +193,9 @@ namespace BotVideoCompositor
                     index++;
                 }
 
-
-                var str = Util.GetJsonStringFromObject(itemsForDisplay, true);
-                temp = JsonConvert.DeserializeObject<dynamic>(str);
-                return temp;
+                var str = Util.GetJsonStringFromItemsList(itemsForDisplay, true);
+                var json = JSON.Parse(str);
+                return json;
 
                 //// Add fps data with labels
                 //if (temp is JToken jtokenStreams)
@@ -212,7 +206,7 @@ namespace BotVideoCompositor
             return null;
         }
 
-        static public JObject? CreateBasicAdaptiveCardsData()
+        static public JSONNode? CreateBasicAdaptiveCardsData()
         {
             if (_basicAdaptiveCardsData != null)
                 return _basicAdaptiveCardsData;
@@ -229,20 +223,20 @@ namespace BotVideoCompositor
                 List<Item> items = new List<Item>();
                 String str;
 
-                var temp = JsonConvert.DeserializeObject<dynamic>(RainbowApplicationInfo.labels);
-                if (temp is JObject jsonLabels)
+                var jsonLabels = JSON.Parse(RainbowApplicationInfo.labels);
+                if (jsonLabels != null)
                 {
                     // ---------------------------
                     // -- Create data about overlayDisplay
-                    if (temp["overlayDisplay"] != null)
+                    if (jsonLabels["overlayDisplay"]?.IsArray == true)
                     {
-                        JArray list = (JArray)temp["overlayDisplay"];
+                        var list = jsonLabels["overlayDisplay"];
                         RainbowApplicationInfo.overlayDisplay = new Dictionary<string, string>();
 
                         foreach (var item in list)
                         {
-                            String? title = item["title"]?.ToString();
-                            String? value = item["value"]?.ToString();
+                            String? title = UtilJson.AsString(item, "title");
+                            String? value = UtilJson.AsString(item, "value");
                             if ((!String.IsNullOrEmpty(title)) && (!String.IsNullOrEmpty(value)))
                                 RainbowApplicationInfo.overlayDisplay.Add(title, value);
                         }
@@ -254,15 +248,15 @@ namespace BotVideoCompositor
 
                     // ---------------------------
                     // -- Create data about mosaicDisplay
-                    if (temp["mosaicDisplay"] != null)
+                    if (jsonLabels["mosaicDisplay"]?.IsArray == true)
                     {
-                        JArray list = (JArray)temp["mosaicDisplay"];
+                        var list = jsonLabels["mosaicDisplay"];
                         RainbowApplicationInfo.mosaicDisplay = new Dictionary<string, string>();
 
                         foreach (var item in list)
                         {
-                            String? title = item["title"]?.ToString();
-                            String? value = item["value"]?.ToString();
+                            String? title = UtilJson.AsString(item, "title");
+                            String? value = UtilJson.AsString(item, "value");
                             if ((!String.IsNullOrEmpty(title)) && (!String.IsNullOrEmpty(value)))
                                 RainbowApplicationInfo.mosaicDisplay.Add(title, value);
                         }
@@ -280,12 +274,11 @@ namespace BotVideoCompositor
                     foreach (var fps in RainbowApplicationInfo.fps)
                         items.Add(new Item(fps, fps));
 
-                    str = Util.GetJsonStringFromObject(items, true);
-                    temp = JsonConvert.DeserializeObject<dynamic>(str);
-
+                    str = Util.GetJsonStringFromItemsList(items, true);
+                    var json = JSON.Parse(str);
                     // Add fps data with labels
-                    if (temp is JToken jtokenFps)
-                        jsonLabels.Add("fpsCollection", jtokenFps);
+                    if (json != null)
+                        jsonLabels.Add("fpsCollection", json);
                     else
                         return null;
 
@@ -296,12 +289,12 @@ namespace BotVideoCompositor
                     foreach (var output in RainbowApplicationInfo.outputs)
                         items.Add(new Item(output.Value, output.Key));
 
-                    str = Util.GetJsonStringFromObject(items, true);
-                    temp = JsonConvert.DeserializeObject<dynamic>(str);
+                    str = Util.GetJsonStringFromItemsList(items, true);
+                    json = JSON.Parse(str);
 
                     // Add fps data with labels
-                    if (temp is JToken jtokenOutputs)
-                        jsonLabels.Add("sizeCollection", jtokenOutputs);
+                    if (json != null)
+                        jsonLabels.Add("sizeCollection", json);
                     else
                         return null;
 
@@ -312,12 +305,12 @@ namespace BotVideoCompositor
                     foreach (var output in RainbowApplicationInfo.vignettes)
                         items.Add(new Item(output.Value, output.Key));
 
-                    str = Util.GetJsonStringFromObject(items, true);
-                    temp = JsonConvert.DeserializeObject<dynamic>(str);
+                    str = Util.GetJsonStringFromItemsList(items, true);
+                    json = JSON.Parse(str);
 
                     // Add fps data with labels
-                    if (temp is JToken jtokenVignettes)
-                        jsonLabels.Add("vignetteSizeSelection", jtokenVignettes);
+                    if (json != null)
+                        jsonLabels.Add("vignetteSizeSelection", json);
                     else
                         return null;
 

@@ -1,20 +1,17 @@
-﻿using System;
-using Stateless;
-using Stateless.Graph;
+﻿using AdaptiveCards.Templating;
 using Rainbow;
+using Rainbow.Medias;
 using Rainbow.Model;
 using Rainbow.Events;
+using Rainbow.SimpleJSON;
+using Stateless;
+using Stateless.Graph;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
-using Newtonsoft.Json;
-using Rainbow.Medias;
-using Newtonsoft.Json.Linq;
-using AdaptiveCards.Templating;
-using System.Threading;
 using System.IO;
-using Rainbow.WebRTC;
-using Rainbow.WebRTC.Desktop;
+using System.Linq;
+using System.Threading;
 
 namespace BotVideoCompositor
 {
@@ -398,42 +395,42 @@ namespace BotVideoCompositor
             Boolean configError = false;
             BroadcastConfiguration? newConfiguration = null;
 
-            var dicoData = JsonConvert.DeserializeObject<Dictionary<String, Object>>(jsonString);
-            if (dicoData != null)
+            var json = JSON.Parse(jsonString);
+            if (json != null)
             {
                 newConfiguration = new BroadcastConfiguration();
 
-                if (dicoData.ContainsKey("Mode"))
+                if (json["Mode"] != null)
                 {
-                    newConfiguration.Mode = dicoData["Mode"].ToString();
+                    newConfiguration.Mode = UtilJson.AsString(json, "Mode");
 
                     // Check if we have to save the configuration
-                    if (dicoData.ContainsKey("SaveConfig") && dicoData["SaveConfig"]?.ToString() == "true")
+                    if(UtilJson.AsString(json, "SaveConfig") == "true")
                         File.WriteAllText(RainbowApplicationInfo.SAVED_CONFIG_FILE_PATH, jsonString);
 
-                    if (dicoData.ContainsKey("ConnectedToLiveStream"))
-                        newConfiguration.StayConnectedToStreams = dicoData["ConnectedToLiveStream"].ToString() == "true";
+                    if (json["ConnectedToLiveStream"] != null)
+                        newConfiguration.StayConnectedToStreams = UtilJson.AsString(json, "ConnectedToLiveStream") == "true";
                     else
                         configError = true;
 
-                    if (dicoData.ContainsKey("StartBroadcast"))
-                        newConfiguration.StartBroadcast = dicoData["StartBroadcast"].ToString() == "true";
+                    if (json["StartBroadcast"] != null)
+                        newConfiguration.StartBroadcast = UtilJson.AsString(json, "StartBroadcast") == "true";
                     else
                         configError = true;
 
-                    if (dicoData.ContainsKey("Fps"))
-                        int.TryParse(dicoData["Fps"].ToString(), out newConfiguration.Fps);
+                    if (json["Fps"] != null)
+                        newConfiguration.Fps = int.Parse(UtilJson.AsString(json, "Fps"));
                     else
                         configError = true;
 
-                    if (dicoData.ContainsKey("Size"))
-                        newConfiguration.Size = dicoData["Size"].ToString();
+                    if (json["Size"] != null)
+                        newConfiguration.Size = UtilJson.AsString(json, "Size");
                     else
                         configError = true;
 
-                    if (dicoData.ContainsKey("Streams"))
+                    if (json["Streams"] != null)
                     {
-                        var str = dicoData["Streams"].ToString();
+                        var str = UtilJson.AsString(json, "Streams");
                         if (!String.IsNullOrEmpty(str))
                             newConfiguration.StreamsSelected = str.Split(",").ToList();
                     }
@@ -443,13 +440,13 @@ namespace BotVideoCompositor
                     switch (newConfiguration.Mode)
                     {
                         case "Overlay":
-                            if (dicoData.ContainsKey("OverlayLayout"))
-                                newConfiguration.Layout = dicoData["OverlayLayout"].ToString();
+                            if (json["OverlayLayout"] != null)
+                                newConfiguration.Layout = UtilJson.AsString(json, "OverlayLayout");
                             else
                                 configError = true;
 
-                            if (dicoData.ContainsKey("Vignette"))
-                                newConfiguration.VignetteSize = dicoData["Vignette"].ToString();
+                            if (json["Vignette"] != null)
+                                newConfiguration.VignetteSize = UtilJson.AsString(json, "Vignette");
                             else
                                 configError = true;
 
@@ -458,13 +455,14 @@ namespace BotVideoCompositor
                             break;
 
                         case "Mosaic":
-                            if (dicoData.ContainsKey("MosaicLayout"))
-                                newConfiguration.Layout = dicoData["MosaicLayout"].ToString();
+                            if (json["MosaicLayout"] != null)
+                                newConfiguration.Layout = UtilJson.AsString(json, "MosaicLayout");
                             else
                                 configError = true;
 
-                            if (dicoData.ContainsKey("Vignette"))
-                                newConfiguration.VignetteSize = dicoData["Vignette"].ToString();
+                            if (json["Vignette"] != null)
+
+                                newConfiguration.VignetteSize = UtilJson.AsString(json, "Vignette");
                             else
                                 configError = true;
 
@@ -577,13 +575,11 @@ namespace BotVideoCompositor
                     {
                         RainbowApplicationInfo.BroadcastConfiguration.MediaFiltered = new MediaFiltered("mediaFiltered", RainbowApplicationInfo.BroadcastConfiguration.MediaInputCollections.Values.ToList());
                         RainbowApplicationInfo.BroadcastConfiguration.MediaFiltered.OnError += MediaFiltered_OnError;
-
-
                         RainbowApplicationInfo.BroadcastConfiguration.MediaFiltered.Init(true);
-
-                        RainbowApplicationInfo.BroadcastConfiguration.VideoStreamTrack = RbWebRTCDesktopFactory.CreateVideoTrack(RainbowApplicationInfo.BroadcastConfiguration.MediaFiltered);
-
                     }
+
+                    RainbowApplicationInfo.BroadcastConfiguration.VideoStreamTrack ??= RbWebRTCDesktopFactory.CreateVideoTrack(RainbowApplicationInfo.BroadcastConfiguration.MediaFiltered);
+
                     // Loop on all Media Input to start or stop them
                     foreach (var item in RainbowApplicationInfo.BroadcastConfiguration.MediaInputCollections)
                     {
@@ -738,11 +734,10 @@ namespace BotVideoCompositor
                     }
                 }
 
-                var str = Util.GetJsonStringFromObject(itemsForDisplay, true);
-                var temp = JsonConvert.DeserializeObject<dynamic>(str);
-
-                if (temp is JToken jtokenStreams)
-                    jsonData.Add("streamsSelected", jtokenStreams);
+                var str = Util.GetJsonStringFromItemsList(itemsForDisplay, true);
+                var json = JSON.Parse(str);
+                if (json != null)
+                    jsonData.Add("streamsSelected", json);
                 else
                 {
                     Util.WriteRedToConsole($"[{_botName}] Cannot create list of streamSelected...");
@@ -877,7 +872,7 @@ namespace BotVideoCompositor
             // Create an Message Alternative Content
             MessageAlternativeContent messageAlternativeContent = new MessageAlternativeContent();
             messageAlternativeContent.Type = "form/json";
-            messageAlternativeContent.Content = template.Expand(jsonData); // "Expand" the template => generates the final Adaptive Card payload
+            messageAlternativeContent.Content = template.Expand(jsonData.ToString()); // "Expand" the template => generates the final Adaptive Card payload
 
             var alternativeContent = new List<MessageAlternativeContent> { messageAlternativeContent };
 
@@ -1302,7 +1297,7 @@ namespace BotVideoCompositor
                 // Create an Message Alternative Content
                 MessageAlternativeContent messageAlternativeContent = new MessageAlternativeContent();
                 messageAlternativeContent.Type = "form/json";
-                messageAlternativeContent.Content = template.Expand(jsonData); // "Expand" the template => generates the final Adaptive Card payload
+                messageAlternativeContent.Content = template.Expand(jsonData.ToString()); // "Expand" the template => generates the final Adaptive Card payload
 
                 var alternativeContent = new List<MessageAlternativeContent> { messageAlternativeContent };
 

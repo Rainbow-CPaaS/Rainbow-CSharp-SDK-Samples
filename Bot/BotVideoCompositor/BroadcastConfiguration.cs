@@ -1,11 +1,8 @@
-﻿using Newtonsoft.Json.Linq;
-using Rainbow.Medias;
+﻿using Rainbow.Medias;
 using Rainbow.WebRTC.Abstractions;
 using System;
 using System.Collections.Generic;
-using System.Dynamic;
 using System.Linq;
-using System.Text;
 
 namespace BotVideoCompositor
 {

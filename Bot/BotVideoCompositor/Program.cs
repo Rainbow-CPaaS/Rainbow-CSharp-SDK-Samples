@@ -1,15 +1,10 @@
-﻿using Newtonsoft.Json.Linq;
-using Newtonsoft.Json;
-using NLog.Config;
+﻿using NLog.Config;
+using Rainbow;
+using Rainbow.SimpleJSON;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
-using System.Reflection;
-using System.Collections;
-using Rainbow.Medias;
-using Microsoft.Extensions.Configuration;
-using System.Xml.Linq;
 
 namespace BotVideoCompositor
 {
@@ -142,7 +137,7 @@ namespace BotVideoCompositor
             try
             {
                 String jsonConfig = File.ReadAllText(configFilePath);
-                var json = JsonConvert.DeserializeObject<dynamic>(jsonConfig);
+                var json = JSON.Parse(jsonConfig);
 
                 if (json == null)
                 {
@@ -150,67 +145,51 @@ namespace BotVideoCompositor
                     return false;
                 }
 
-                if (json["ffmpegLibFolderPath"] != null)
-                    RainbowApplicationInfo.ffmpegLibFolderPath = json["ffmpegLibFolderPath"].ToString();
+                RainbowApplicationInfo.ffmpegLibFolderPath = UtilJson.AsString(json, "ffmpegLibFolderPath");
 
-                if (json["videosUri"] != null)
+                if (json["videosUri"]?.IsArray == true)
                 {
-                    JArray list = (JArray)json["videosUri"];
+                    var  list = UtilJson.AsStringList(json, "videosUri");
                     RainbowApplicationInfo.videosUri = new List<String>();
                     foreach (var item in list)
                         RainbowApplicationInfo.videosUri.Add(item.ToString());
                 }
 
-                if (json["serverConfig"] != null)
+                if (json["serverConfig"]?.IsObject == true)
                 {
                     var jobject = json["serverConfig"];
-                    if (jobject["appId"] != null)
-                        RainbowApplicationInfo.appId = jobject["appId"].ToString();
-
-                    if (jobject["appSecret"] != null)
-                        RainbowApplicationInfo.appSecret = jobject["appSecret"].ToString();
-
-                    if (jobject["hostname"] != null)
-                        RainbowApplicationInfo.hostname = jobject["hostname"].ToString();
+                    RainbowApplicationInfo.appId = UtilJson.AsString(jobject, "appId");
+                    RainbowApplicationInfo.appSecret = UtilJson.AsString(jobject, "appSecret");
+                    RainbowApplicationInfo.hostname = UtilJson.AsString(jobject, "hostname");
                 }
 
-                if (json["botVideoCompositor"] != null)
+                if (json["botVideoCompositor"]?.IsObject == true)
                 {
-                    String login = "";
-                    String password = "";
-
                     var jobject = json["botVideoCompositor"];
-                    if (jobject["login"] != null)
-                        login = jobject["login"].ToString();
-
-                    if (jobject["password"] != null)
-                        password = jobject["password"].ToString();
+                    String login = UtilJson.AsString(jobject, "login");
+                    String password = UtilJson.AsString(jobject, "password");
 
                     if ((!String.IsNullOrEmpty(login)) && (!String.IsNullOrEmpty(password)))
                         RainbowApplicationInfo.account = new Account(login, password);
                 }
 
-                if (json["command"] != null)
+                if (json["command"]?.IsObject == true)
                 {
                     var jobject = json["command"];
-
-                    if (jobject["stop"] != null)
-                        RainbowApplicationInfo.commandStop = jobject["stop"].ToString();
-
-                    if (jobject["start"] != null)
-                        RainbowApplicationInfo.commandStart = jobject["start"].ToString();
+                    RainbowApplicationInfo.commandStop = UtilJson.AsString(jobject, "stop");
+                    RainbowApplicationInfo.commandStart = UtilJson.AsString(jobject, "start");
                 }
 
-                if (json["botManagers"] != null)
+                if (json["botManagers"]?.IsArray == true)
                 {
-                    JArray list = (JArray)json["botManagers"];
+                    var list = json["botManagers"];
                     RainbowApplicationInfo.botManagers = new List<BotManager>();
 
                     foreach (var item in list)
                     {
-                        String? login = item["login"]?.ToString();
-                        String? jid = item["jid"]?.ToString();
-                        String? id = item["id"]?.ToString();
+                        String? login = UtilJson.AsString(item, "login");
+                        String? jid = UtilJson.AsString(item, "jid");
+                        String? id = UtilJson.AsString(item, "id");
 
                         if (!String.IsNullOrEmpty(login))
                             RainbowApplicationInfo.botManagers.Add(new BotManager(login, id, jid));
@@ -218,24 +197,22 @@ namespace BotVideoCompositor
                 }
 
                 // Calculate outputs size available
-                if ((json["outputRatio"] != null) && (json["outputWidth"] != null) && (json["outputMaxHeight"] != null))
+                if ((json["outputRatio"]?.IsArray == true) && (json["outputWidth"]?.IsArray == true) && (json["outputMaxHeight"] != null))
                 {
-                    JArray jList;
-
                     // Get all ratios
                     List<Size> ratiosList = new List<Size>();
-                    jList = (JArray)json["outputRatio"];
+                    var jList = UtilJson.AsStringList(json, "outputRatio");
                     foreach (var item in jList)
-                        ratiosList.Add(new Size(item.ToString()));
+                        ratiosList.Add(new Size(item));
 
                     // Get all width
                     List<int> widthList = new List<int>();
-                    jList = (JArray)json["outputWidth"];
-                    foreach (var item in jList)
-                        widthList.Add(item.ToObject<int>());
+                    var jObject = json["outputWidth"];
+                    foreach (var item in jObject)
+                        widthList.Add(item.Value.AsInt);
 
                     // Get Max Height
-                    int maxHeight = (int)json["outputMaxHeight"];
+                    int maxHeight = json["outputMaxHeight"].AsInt;
 
                     // Loop on all width and create different size
                     Dictionary<String, String> ratiosAvailable = new Dictionary<string, string>();
@@ -272,24 +249,22 @@ namespace BotVideoCompositor
                 }
 
                 // Calculate vignettes/overlay size available
-                if ((json["vignetteRatio"] != null) && (json["vignetteWidth"] != null) && (json["vignetteMaxHeight"] != null))
+                if ((json["vignetteRatio"]?.IsArray != null) && (json["vignetteWidth"]?.IsArray != null) && (json["vignetteMaxHeight"] != null))
                 {
-                    JArray jList;
-
                     // Get all ratios
                     List<Size> ratiosList = new List<Size>();
-                    jList = (JArray)json["vignetteRatio"];
+                    var jList = UtilJson.AsStringList(json, "vignetteRatio");
                     foreach (var item in jList)
-                        ratiosList.Add(new Size(item.ToString()));
+                        ratiosList.Add(new Size(item));
 
                     // Get all width
                     List<int> widthList = new List<int>();
-                    jList = (JArray)json["vignetteWidth"];
-                    foreach (var item in jList)
-                        widthList.Add(item.ToObject<int>());
+                    var jObject = json["vignetteWidth"];
+                    foreach (var item in jObject)
+                        widthList.Add(item.Value.AsInt);
 
                     // Get Max Height
-                    int maxHeight = (int)json["vignetteMaxHeight"];
+                    int maxHeight = json["vignetteMaxHeight"].AsInt;
 
                     // Loop on all widht and create different size
                     Dictionary<String, String> ratiosAvailable = new Dictionary<string, string>();
@@ -326,13 +301,13 @@ namespace BotVideoCompositor
                 }
 
                 // Get fps
-                if (json["fps"] != null)
+                if (json["fps"]?.IsArray == true)
                 {
                     // Get all ratios
                     List<int> fpsList = new List<int>();
-                    JArray jList = (JArray)json["fps"];
-                    foreach (var item in jList)
-                        fpsList.Add((int)item);
+                    var jObject = json["fps"];
+                    foreach (var item in jObject)
+                        fpsList.Add(item.Value.AsInt);
 
                     // Store result
                     RainbowApplicationInfo.fps = fpsList;
@@ -341,7 +316,7 @@ namespace BotVideoCompositor
                 // Get labels
                 if (json["labels"] != null)
                 {
-                    string labels = json["labels"].ToString();
+                    string labels = UtilJson.AsString(json, "labels");
 
                     String labelsFilePath = $".{Path.DirectorySeparatorChar}Resources{Path.DirectorySeparatorChar}{labels}";
                     if(File.Exists(labelsFilePath))
