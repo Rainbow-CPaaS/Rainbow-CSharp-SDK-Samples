@@ -1,15 +1,15 @@
-﻿using System;
-using Stateless;
-using Stateless.Graph;
-using Rainbow;
+﻿using Rainbow;
+using Rainbow.Medias;
 using Rainbow.Model;
 using Rainbow.Events;
+using Rainbow.SimpleJSON;
+using Stateless;
+using Stateless.Graph;
+using System;
 using System.Collections.Concurrent;
-using Rainbow.WebRTC;
 using System.Collections.Generic;
 using System.Linq;
-using Newtonsoft.Json;
-using Rainbow.Medias;
+
 
 namespace BotVideoBroadcaster
 {
@@ -136,6 +136,7 @@ namespace BotVideoBroadcaster
         private Rainbow.InstantMessaging RbInstantMessaging;
         private Rainbow.Invitations RbInvitations;
 
+        private Rainbow.WebRTC.Desktop.WebRTCFactory RbWebRTCFactory;
         private Rainbow.WebRTC.WebRTCCommunications RbWebRTCCommunications;
 
 #region PRIVATE API
@@ -170,16 +171,16 @@ namespace BotVideoBroadcaster
 
             // Configure the Connecting state
             _machine.Configure(State.Authenticated)
-                .Permit(Trigger.InitializationPerformed, State.Initialized)
-                .Permit(Trigger.Disconnect, State.AutoReconnection);
-
-            // Configure the Connected state
-            _machine.Configure(State.Initialized)
                 .Permit(Trigger.Connect, State.Connected)
                 .Permit(Trigger.Disconnect, State.AutoReconnection);
 
             // Configure the Connected state
             _machine.Configure(State.Connected)
+                .Permit(Trigger.InitializationPerformed, State.Initialized)
+                .Permit(Trigger.Disconnect, State.AutoReconnection);
+
+            // Configure the Connected state
+            _machine.Configure(State.Initialized)
                 .OnEntry(CheckConnectionConferenceAndMessages)
 
                 .Permit(Trigger.Disconnect, State.AutoReconnection)
@@ -198,40 +199,40 @@ namespace BotVideoBroadcaster
             // Configure the AddVideoStream state
             _machine.Configure(State.AddVideoStream)
                 .OnEntry(AddVideoStream)
-                .Permit(Trigger.ActionDone, State.Connected);
+                .Permit(Trigger.ActionDone, State.Initialized);
 
             // Configure the AddSharingStream state
             _machine.Configure(State.AddSharingStream)
                 .OnEntry(AddSharingStream)
-                .Permit(Trigger.ActionDone, State.Connected);
+                .Permit(Trigger.ActionDone, State.Initialized);
 
             // Configure the JoinConference state
             _machine.Configure(State.JoinConference)
                 .OnEntryFrom(_conferenceAvailableTrigger, JoinConference)
-                .Permit(Trigger.ActionDone, State.Connected);
+                .Permit(Trigger.ActionDone, State.Initialized);
 
             // Configure the QuitConference state
             _machine.Configure(State.QuitConference)
                 .OnEntry(QuitConference)
-                .Permit(Trigger.ActionDone, State.Connected);
+                .Permit(Trigger.ActionDone, State.Initialized);
 
             // Configure the AutoReconnection state
             _machine.Configure(State.AutoReconnection)
                 .PermitReentry(Trigger.Disconnect)
                 .Permit(Trigger.TooManyAttempts, State.NotConnected)
                 .Permit(Trigger.IncorrectCredentials, State.Created)
-                .Permit(Trigger.InitializationPerformed, State.Initialized)
+                .Permit(Trigger.InitializationPerformed, State.Connected)
                 .Permit(Trigger.AuthenticationSucceeded, State.Authenticated);
 
             // Configure the InvitationReceived state
             _machine.Configure(State.BubbleInvitationReceived)
                 .OnEntryFrom(_bubbleInvitationReceivedTrigger, AnswerToBubbleInvitation)
-                .Permit(Trigger.BubbleInvitationManaged, State.Connected);
+                .Permit(Trigger.BubbleInvitationManaged, State.Initialized);
 
             // Configure the MessageFromPeer state
             _machine.Configure(State.MessageFromPeer)
                 .OnEntryFrom(_messageReceivedFromPeerTrigger, AnswerToPeerMessage)
-                .Permit(Trigger.MessageManaged, State.Connected);
+                .Permit(Trigger.MessageManaged, State.Initialized);
 
             // Configure the StopMessageReceived state
             _machine.Configure(State.StopMessageReceived)
@@ -346,15 +347,14 @@ namespace BotVideoBroadcaster
                 (Boolean isWithAlternateContent, String? alternateContent) = GetAlternateContent(messageEvent.Message, "application/json");
                 if (isWithAlternateContent)
                 {
-                    var dicoData = JsonConvert.DeserializeObject<Dictionary<String, Object>>(alternateContent);
-
+                    var dicoData = JSON.Parse(alternateContent);
                     if(dicoData != null)
                     {
-                        Boolean joinConference = (Boolean)dicoData["joinConference"];
-                        String conferenceId = (String)dicoData["conferenceId"];
-                        String useName = (String)dicoData["useName"];
-                        _videoStreamUri = (String)dicoData["videoUri"];
-                        _sharingStreamUri = (String)dicoData["sharingUri"];
+                        Boolean joinConference = UtilJson.AsBoolean(dicoData, "joinConference");
+                        String conferenceId = UtilJson.AsString(dicoData, "conferenceId");
+                        String useName = UtilJson.AsString(dicoData, "useName");
+                        _videoStreamUri = UtilJson.AsString(dicoData, "videoUri");
+                        _sharingStreamUri = UtilJson.AsString(dicoData, "sharingUri");
 
                         if (joinConference && (!String.IsNullOrEmpty(conferenceId)))
                         {
@@ -550,9 +550,6 @@ namespace BotVideoBroadcaster
             // We want to use always the same resource id when we connect to the event server
             RbApplication.Restrictions.UseSameResourceId = true;
 
-            // We want to auto reconnect in case of network trouble
-            RbApplication.Restrictions.AutoReconnection = true;
-
             // We use XMPP for event mode
             RbApplication.Restrictions.EventMode = Restrictions.SDKEventMode.XMPP;
 
@@ -579,7 +576,8 @@ namespace BotVideoBroadcaster
 
             try
             {
-                RbWebRTCCommunications = Rainbow.WebRTC.WebRTCCommunications.GetOrCreateInstance(RbApplication, RainbowApplicationInfo.ffmpegLibFolderPath);
+                RbWebRTCFactory = new Rainbow.WebRTC.Desktop.WebRTCFactory();
+                RbWebRTCCommunications = Rainbow.WebRTC.WebRTCCommunications.GetOrCreateInstance(RbApplication, RbWebRTCFactory);
             }
             catch (Exception ex)
             {
@@ -613,7 +611,7 @@ namespace BotVideoBroadcaster
             RbInstantMessaging.MessageReceived -= RbInstantMessaging_MessageReceived;
 
             RbWebRTCCommunications.CallUpdated -= RbWebRTCCommunications_CallUpdated;
-            RbWebRTCCommunications.OnLocalVideoError -= RbWebRTCCommunications_OnLocalVideoError;
+            //RbWebRTCCommunications.OnLocalVideoError -= RbWebRTCCommunications_OnLocalVideoError;
         }
 
         /// <summary>
@@ -637,7 +635,7 @@ namespace BotVideoBroadcaster
             RbConferences.ConferenceParticipantsUpdated += RbConferences_ConferenceParticipantsUpdated;
 
             RbWebRTCCommunications.CallUpdated += RbWebRTCCommunications_CallUpdated;
-            RbWebRTCCommunications.OnLocalVideoError += RbWebRTCCommunications_OnLocalVideoError;
+            //RbWebRTCCommunications.OnLocalVideoError += RbWebRTCCommunications_OnLocalVideoError;
         }
 
         /// <summary>
@@ -674,12 +672,14 @@ namespace BotVideoBroadcaster
         {
             _currentConferenceId = confId;
 
-            RbWebRTCCommunications.JoinConference(confId, null, callback =>
+            var emptyAudioTrack = RbWebRTCFactory.CreateEmptyAudioTrack(); // ALLOW TO USE NO AUDIO DEVICE WHEN JOINING A CONF
+
+            RbWebRTCCommunications.JoinConference(confId, emptyAudioTrack, callback =>
             {
                 if (!callback.Result.Success)
                 {
                     _currentConferenceId = null;
-                    Util.WriteErrorToConsole($"[{_botName}] Cannot Join Conference - BubbleID:[{confId}] - Error:[{Rainbow.Util.SerializeSdkError(callback.Result)}");
+                    Util.WriteErrorToConsole($"[{_botName}] Cannot Join Conference - BubbleID:[{confId}] - Error:[{callback.Result}");
                 }
             });
             
@@ -817,7 +817,7 @@ namespace BotVideoBroadcaster
                         return;
                     }
 
-                    if (!RbWebRTCCommunications.ChangeVideo(_currentConferenceId, newStreamToUse))
+                    if (!RbWebRTCCommunications.ChangeVideo(_currentConferenceId, RbWebRTCFactory.CreateVideoTrack(newStreamToUse)))
                     {
                         videoHasNotBeenSet = true;
                         Util.WriteErrorToConsole($"[{_botName}] Cannot UPDATE Video stream to new URI:[{uri}]");
@@ -831,7 +831,7 @@ namespace BotVideoBroadcaster
                 }
                 else
                 {
-                    if (!RbWebRTCCommunications.AddVideo(_currentConferenceId, newStreamToUse))
+                    if (!RbWebRTCCommunications.AddVideo(_currentConferenceId, RbWebRTCFactory.CreateVideoTrack(newStreamToUse)))
                     {
                         videoHasNotBeenSet = true;
                         Util.WriteErrorToConsole($"[{_botName}] Cannot SET Video stream to new URI:[{uri}]");
@@ -888,7 +888,7 @@ namespace BotVideoBroadcaster
                         return;
                     }
 
-                    if (!RbWebRTCCommunications.ChangeSharing(_currentConferenceId, newStreamToUse))
+                    if (!RbWebRTCCommunications.ChangeSharing(_currentConferenceId, RbWebRTCFactory.CreateVideoTrack(newStreamToUse)))
                     {
                         sharingHasNotBeenSet = true;
                         Util.WriteErrorToConsole($"[{_botName}] Cannot UPDATE Sharing stream to new URI:[{uri}]");
@@ -902,7 +902,7 @@ namespace BotVideoBroadcaster
                 }
                 else
                 {
-                    if (!RbWebRTCCommunications.AddSharing(_currentConferenceId, newStreamToUse))
+                    if (!RbWebRTCCommunications.AddSharing(_currentConferenceId, RbWebRTCFactory.CreateVideoTrack(newStreamToUse)))
                     {
                         sharingHasNotBeenSet = true;
                         Util.WriteErrorToConsole($"[{_botName}] Cannot SET Sharing stream to new URI:[{uri}]");
@@ -944,8 +944,7 @@ namespace BotVideoBroadcaster
             switch (e.State)
             {
                 case ConnectionState.Connected:
-                    if (RbApplication.IsInitialized())
-                        FireTrigger(Trigger.Connect);
+                    FireTrigger(Trigger.Connect);
                     break;
 
                 case ConnectionState.Disconnected:

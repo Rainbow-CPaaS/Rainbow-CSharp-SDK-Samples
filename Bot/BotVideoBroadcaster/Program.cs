@@ -1,11 +1,10 @@
-﻿using Newtonsoft.Json.Linq;
-using Newtonsoft.Json;
-using NLog.Config;
+﻿using NLog.Config;
+using Rainbow;
+using Rainbow.SimpleJSON;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
-using System.Reflection;
 
 namespace BotVideoBroadcaster
 {
@@ -203,7 +202,7 @@ namespace BotVideoBroadcaster
             try
             {
                 String jsonConfig = File.ReadAllText(configFilePath);
-                var json = JsonConvert.DeserializeObject<dynamic>(jsonConfig);
+                var json = JSON.Parse(jsonConfig);
 
                 if (json == null)
                 {
@@ -212,27 +211,27 @@ namespace BotVideoBroadcaster
                 }
 
                 if (json["ffmpegLibFolderPath"] != null)
-                    RainbowApplicationInfo.ffmpegLibFolderPath = json["ffmpegLibFolderPath"].ToString();
+                    RainbowApplicationInfo.ffmpegLibFolderPath = UtilJson.AsString(json, "ffmpegLibFolderPath");
 
                 if (json["videosUri"] != null)
                 {
-                    JArray list = (JArray)json["videosUri"];
+                    var list = UtilJson.AsStringList(json, "videosUri");
                     RainbowApplicationInfo.videosUri = new List<String>();
                     foreach (var item in list)
-                        RainbowApplicationInfo.videosUri.Add(item.ToString());
+                        RainbowApplicationInfo.videosUri.Add(item);
                 }
 
                 if (json["serverConfig"] != null)
                 {
                     var jobject = json["serverConfig"];
                     if (jobject["appId"] != null)
-                        RainbowApplicationInfo.appId = jobject["appId"].ToString();
+                        RainbowApplicationInfo.appId = UtilJson.AsString(jobject, "appId");
 
                     if (jobject["appSecret"] != null)
-                        RainbowApplicationInfo.appSecret = jobject["appSecret"].ToString();
+                        RainbowApplicationInfo.appSecret = UtilJson.AsString(jobject, "appSecret");
 
                     if (jobject["hostname"] != null)
-                        RainbowApplicationInfo.hostname = jobject["hostname"].ToString();
+                        RainbowApplicationInfo.hostname = UtilJson.AsString(jobject, "hostname");
                 }
 
                 if (json["command"] != null)
@@ -240,41 +239,45 @@ namespace BotVideoBroadcaster
                     var jobject = json["command"];
 
                     if (jobject["stop"] != null)
-                        RainbowApplicationInfo.commandStop = jobject["stop"].ToString();
+                        RainbowApplicationInfo.commandStop = UtilJson.AsString(jobject, "stop");
                 }
 
                 if (json["nbMaxVideoBroadcaster"] != null)
-                    RainbowApplicationInfo.nbMaxVideoBroadcaster = (int)json["nbMaxVideoBroadcaster"];
+                    RainbowApplicationInfo.nbMaxVideoBroadcaster = UtilJson.AsInt(json, "nbMaxVideoBroadcaster");
 
 
                 if (json["botManagers"] != null)
                 {
-                    JArray list = (JArray)json["botManagers"];
-                    RainbowApplicationInfo.botManagers = new List<BotManager>();
-
-                    foreach (var item in list)
+                    var list = json["botManagers"];
+                    if (list?.IsArray == true)
                     {
-                        String? login = item["login"]?.ToString();
-                        String? jid = item["jid"]?.ToString();
-                        String? id = item["id"]?.ToString();
+                        RainbowApplicationInfo.botManagers = new List<BotManager>();
+                        foreach (JSONNode jsonItem in list)
+                        {
+                            String login = UtilJson.AsString(jsonItem, "login");
+                            String jid = UtilJson.AsString(jsonItem, "jid");
+                            String id = UtilJson.AsString(jsonItem, "id");
 
-                        if (!String.IsNullOrEmpty(login))
-                            RainbowApplicationInfo.botManagers.Add(new BotManager(login, id, jid));
+                            if (!String.IsNullOrEmpty(login))
+                                RainbowApplicationInfo.botManagers.Add(new BotManager(login, id, jid));
+                        }
                     }
                 }
 
                 if (json["botsVideoBroadcaster"] != null)
                 {
-                    JArray list = (JArray)json["botsVideoBroadcaster"];
-                    RainbowApplicationInfo.botsVideoBroadcaster = new List<Account>();
-
-                    foreach (var item in list)
+                    var list = json["botsVideoBroadcaster"];
+                    if (list?.IsArray == true)
                     {
-                        String? login = item["login"]?.ToString();
-                        String? pwd = item["password"]?.ToString();
+                        RainbowApplicationInfo.botsVideoBroadcaster = new List<Account>();
+                        foreach (JSONNode jsonItem in list)
+                        {
+                            String login = UtilJson.AsString(jsonItem, "login");
+                            String pwd = UtilJson.AsString(jsonItem, "password");
 
-                        if ((!String.IsNullOrEmpty(login)) && (!String.IsNullOrEmpty(pwd)))
-                            RainbowApplicationInfo.botsVideoBroadcaster.Add(new Account(login, pwd));
+                            if ((!String.IsNullOrEmpty(login)) && (!String.IsNullOrEmpty(pwd)))
+                                RainbowApplicationInfo.botsVideoBroadcaster.Add(new Account(login, pwd));
+                        }
                     }
                 }
 
@@ -293,6 +296,8 @@ namespace BotVideoBroadcaster
                 message += "\r\n\t ffmpegLibFolderPath has not been defined";
                 result = false;
             }
+
+            Rainbow.Medias.Helper.InitExternalLibraries(RainbowApplicationInfo.ffmpegLibFolderPath);
 
             if (!IsConfigValueValid(RainbowApplicationInfo.commandStop))
             {
