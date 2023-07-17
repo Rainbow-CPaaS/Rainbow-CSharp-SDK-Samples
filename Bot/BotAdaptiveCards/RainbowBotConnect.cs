@@ -18,8 +18,6 @@ namespace BotAdaptiveCards
     {
         private readonly int MAX_MCQ_QUESTION = 5;
 
-        private readonly String STOP_MESSAGE = "Bot please stop";
-
         /// <summary>
         /// State list used by this bot
         /// </summary>
@@ -130,16 +128,16 @@ namespace BotAdaptiveCards
 
             // Configure the Connecting state
             _machine.Configure(State.Authenticated)
+                .Permit(Trigger.Connect, State.Connected)
+                .Permit(Trigger.Disconnect, State.AutoReconnection);
+
+            // Configure the Initialized state
+            _machine.Configure(State.Connected)
                 .Permit(Trigger.InitializationPerformed, State.Initialized)
                 .Permit(Trigger.Disconnect, State.AutoReconnection);
 
             // Configure the Connected state
             _machine.Configure(State.Initialized)
-                .Permit(Trigger.Connect, State.Connected)
-                .Permit(Trigger.Disconnect, State.AutoReconnection);
-
-            // Configure the Connected state
-            _machine.Configure(State.Connected)
                 .OnEntry(CheckConnectedState)
 
                 .PermitReentry(Trigger.DequeueMessages)
@@ -168,12 +166,12 @@ namespace BotAdaptiveCards
             // Configure the MessageFromPeer state
             _machine.Configure(State.MessageFromPeer)
                 .OnEntryFrom(_messageReceivedFromPeerTrigger, AnswerToPeerMessage)
-                .Permit(Trigger.MessageManaged, State.Connected);
+                .Permit(Trigger.MessageManaged, State.Initialized);
 
             // Configure the InitializeUserMCQ state
             _machine.Configure(State.InitializeUserMCQ)
                 .OnEntryFrom(_MCQToInitializeTrigger, InitializeUserMCQ)
-                .Permit(Trigger.MCQInitialized, State.Connected);
+                .Permit(Trigger.MCQInitialized, State.Initialized);
 
             _machine.OnUnhandledTrigger( (state, trigger) => Console.WriteLine($"OnUnhandledTrigger - State: {state} with Trigger: {trigger}"));
             
@@ -203,7 +201,7 @@ namespace BotAdaptiveCards
                 if ((contactLoginEmail != null) && contactLoginEmail.Equals(_masterBotEmail, StringComparison.InvariantCultureIgnoreCase))
                 {
                     // Check if it's the "stop message"
-                    return (message.Content.Equals(STOP_MESSAGE, StringComparison.InvariantCultureIgnoreCase));
+                    return (message.Content.Equals(RainbowApplicationInfo.STOP_MESSAGE, StringComparison.InvariantCultureIgnoreCase));
                 }
             }
             else
@@ -690,9 +688,6 @@ namespace BotAdaptiveCards
             // We want to use always the same resource id when we connect to the event server
             RbApplication.Restrictions.UseSameResourceId = true;
 
-            // We want to auto reconnect in case of network trouble
-            RbApplication.Restrictions.AutoReconnection = true;
-
             // We use XMPP for event mode
             RbApplication.Restrictions.EventMode = Restrictions.SDKEventMode.XMPP;
 
@@ -780,8 +775,7 @@ namespace BotAdaptiveCards
             switch(e.State)
             {
                 case ConnectionState.Connected:
-                    if(RbApplication.IsInitialized())
-                        FireTrigger(Trigger.Connect);
+                    FireTrigger(Trigger.Connect);
                     break;
 
                 case ConnectionState.Disconnected:
