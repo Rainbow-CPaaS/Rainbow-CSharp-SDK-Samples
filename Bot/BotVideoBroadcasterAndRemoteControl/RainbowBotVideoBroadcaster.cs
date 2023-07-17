@@ -1,11 +1,6 @@
-﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using Rainbow;
+﻿using Rainbow;
 using Rainbow.Model;
 using Rainbow.Events;
-using RestSharp;
-using RestSharp.Authenticators;
-using RestSharp.Authenticators.Digest;
 using Stateless;
 using Stateless.Graph;
 using System;
@@ -15,6 +10,10 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using Rainbow.Medias;
+using RestSharp;
+using RestSharp.Authenticators.Digest;
+using RestSharp.Authenticators;
+using Rainbow.SimpleJSON;
 
 namespace BotVideoOrchestratorAndRemoteControl
 {
@@ -143,6 +142,7 @@ namespace BotVideoOrchestratorAndRemoteControl
         private Rainbow.InstantMessaging RbInstantMessaging;
         private Rainbow.Invitations RbInvitations;
 
+        private Rainbow.WebRTC.Desktop.WebRTCFactory RbWebRTCDesktopFactory;
         private Rainbow.WebRTC.WebRTCCommunications RbWebRTCCommunications;
 
 #region PRIVATE API
@@ -178,16 +178,16 @@ namespace BotVideoOrchestratorAndRemoteControl
 
             // Configure the Connecting state
             _machine.Configure(State.Authenticated)
-                .Permit(Trigger.InitializationPerformed, State.Initialized)
-                .Permit(Trigger.Disconnect, State.AutoReconnection);
-
-            // Configure the Connected state
-            _machine.Configure(State.Initialized)
                 .Permit(Trigger.Connect, State.Connected)
                 .Permit(Trigger.Disconnect, State.AutoReconnection);
 
             // Configure the Connected state
             _machine.Configure(State.Connected)
+                .Permit(Trigger.InitializationPerformed, State.Initialized)
+                .Permit(Trigger.Disconnect, State.AutoReconnection);
+
+            // Configure the Connected state
+            _machine.Configure(State.Initialized)
                 .OnEntry(CheckConnectionConferenceAndMessages)
 
                 .Permit(Trigger.Disconnect, State.AutoReconnection)
@@ -208,22 +208,22 @@ namespace BotVideoOrchestratorAndRemoteControl
             // Configure the AddVideoStream state
             _machine.Configure(State.AddVideoStream)
                 .OnEntry(AddVideoStream)
-                .Permit(Trigger.ActionDone, State.Connected);
+                .Permit(Trigger.ActionDone, State.Initialized);
 
             // Configure the AddSharingStream state
             _machine.Configure(State.AddSharingStream)
                 .OnEntry(AddSharingStream)
-                .Permit(Trigger.ActionDone, State.Connected);
+                .Permit(Trigger.ActionDone, State.Initialized);
 
             // Configure the JoinConference state
             _machine.Configure(State.JoinConference)
                 .OnEntryFrom(_conferenceAvailableTrigger, JoinConference)
-                .Permit(Trigger.ActionDone, State.Connected);
+                .Permit(Trigger.ActionDone, State.Initialized);
 
             // Configure the QuitConference state
             _machine.Configure(State.QuitConference)
                 .OnEntry(QuitConference)
-                .Permit(Trigger.ActionDone, State.Connected);
+                .Permit(Trigger.ActionDone, State.Initialized);
 
             // Configure the AutoReconnection state
             _machine.Configure(State.AutoReconnection)
@@ -236,17 +236,17 @@ namespace BotVideoOrchestratorAndRemoteControl
             // Configure the InvitationReceived state
             _machine.Configure(State.UserInvitationReceived)
                 .OnEntryFrom(_userInvitationReceivedTrigger, AnswerToUserInvitation)
-                .Permit(Trigger.UserInvitationManaged, State.Connected);
+                .Permit(Trigger.UserInvitationManaged, State.Initialized);
 
             // Configure the InvitationReceived state
             _machine.Configure(State.BubbleInvitationReceived)
                 .OnEntryFrom(_bubbleInvitationReceivedTrigger, AnswerToBubbleInvitation)
-                .Permit(Trigger.BubbleInvitationManaged, State.Connected);
+                .Permit(Trigger.BubbleInvitationManaged, State.Initialized);
 
             // Configure the MessageFromPeer state
             _machine.Configure(State.MessageFromPeer)
                 .OnEntryFrom(_messageReceivedFromPeerTrigger, AnswerToPeerMessage)
-                .Permit(Trigger.MessageManaged, State.Connected);
+                .Permit(Trigger.MessageManaged, State.Initialized);
 
             // Configure the StopMessageReceived state
             _machine.Configure(State.StopMessageReceived)
@@ -365,14 +365,14 @@ namespace BotVideoOrchestratorAndRemoteControl
                 (Boolean isWithAlternateContent, String? alternateContent) = GetAlternateContent(messageEvent.Message, "rainbow/json");
                 if (isWithAlternateContent)
                 {
-                    var dicoData = JsonConvert.DeserializeObject<Dictionary<String, Object>>(alternateContent);
+                    var dicoData = JSON.Parse(alternateContent);
 
                     if( (dicoData != null) && (dicoData["rainbow"] != null))
                     {
-                        var rb = dicoData["rainbow"] as JObject;
+                        var rb = dicoData["rainbow"];
                         if (rb["id"] != null)
                         {
-                            var trigger = rb["id"].ToString();
+                            var trigger = UtilJson.AsString(rb, "id");
 
                             if ((_broadcaster.CommandsFromAC != null) && !String.IsNullOrEmpty(trigger))
                             {
@@ -445,7 +445,7 @@ namespace BotVideoOrchestratorAndRemoteControl
                     }
                     else
                     {
-                        Util.WriteErrorToConsole($"[{_broadcaster.Name}] Trigger:{action.Trigger} received from a Bot Manager - Action:[{action.Type}] in ConversationId:[{messageEvent.ConversationId}] - Exception:[{Rainbow.Util.SerializeSdkError(callback.Result)}]");
+                        Util.WriteErrorToConsole($"[{_broadcaster.Name}] Trigger:{action.Trigger} received from a Bot Manager - Action:[{action.Type}] in ConversationId:[{messageEvent.ConversationId}] - Exception:[{callback.Result}]");
                     }
                     pause.Set();
                 });
@@ -545,7 +545,7 @@ namespace BotVideoOrchestratorAndRemoteControl
                                     }
                                     else
                                     {
-                                        Util.WriteErrorToConsole($"[{_broadcaster.Name}] Trigger:{action.Trigger} received from a Bot Manager - Action:[{action.Type}] in ConversationId:[{messageEvent.ConversationId}] - Exception:[{Rainbow.Util.SerializeSdkError(callback.Result)}]");
+                                        Util.WriteErrorToConsole($"[{_broadcaster.Name}] Trigger:{action.Trigger} received from a Bot Manager - Action:[{action.Type}] in ConversationId:[{messageEvent.ConversationId}] - Exception:[{callback.Result}]");
                                     }
                                     pause.Set();
                                 });
@@ -558,7 +558,7 @@ namespace BotVideoOrchestratorAndRemoteControl
                                 {
                                     if (!task.Result.IsSuccessful)
                                     {
-                                        Util.WriteErrorToConsole($"[{_broadcaster.Name}] Trigger:{action.Trigger} received from a Bot Manager - Action:[{action.Type}] in ConversationId:[{messageEvent.ConversationId}] - Parameters:[{String.Join(", ", restRequest.Parameters)}] - Exception:[{Rainbow.Util.SerializeFromResponse(task.Result)}]");
+                                        Util.WriteErrorToConsole($"[{_broadcaster.Name}] Trigger:{action.Trigger} received from a Bot Manager - Action:[{action.Type}] in ConversationId:[{messageEvent.ConversationId}] - Parameters:[{String.Join(", ", restRequest.Parameters)}] - Exception:[{task.Result.ErrorException}]");
                                     }
                                 }
                                 pause.Set();
@@ -767,9 +767,6 @@ namespace BotVideoOrchestratorAndRemoteControl
             // We want to use always the same resource id when we connect to the event server
             RbApplication.Restrictions.UseSameResourceId = true;
 
-            // We want to auto reconnect in case of network trouble
-            RbApplication.Restrictions.AutoReconnection = true;
-
             // We use XMPP for event mode
             RbApplication.Restrictions.EventMode = Restrictions.SDKEventMode.XMPP;
 
@@ -796,7 +793,8 @@ namespace BotVideoOrchestratorAndRemoteControl
 
             try
             {
-                RbWebRTCCommunications = Rainbow.WebRTC.WebRTCCommunications.GetOrCreateInstance(RbApplication, RainbowApplicationInfo.ffmpegLibFolderPath);
+                RbWebRTCDesktopFactory = new Rainbow.WebRTC.Desktop.WebRTCFactory();
+                RbWebRTCCommunications = Rainbow.WebRTC.WebRTCCommunications.GetOrCreateInstance(RbApplication, RbWebRTCDesktopFactory);
             }
             catch (Exception ex)
             {
@@ -830,7 +828,7 @@ namespace BotVideoOrchestratorAndRemoteControl
             RbInstantMessaging.MessageReceived -= RbInstantMessaging_MessageReceived;
 
             RbWebRTCCommunications.CallUpdated -= RbWebRTCCommunications_CallUpdated;
-            RbWebRTCCommunications.OnLocalVideoError -= RbWebRTCCommunications_OnLocalVideoError;
+            //RbWebRTCCommunications.OnLocalVideoError -= RbWebRTCCommunications_OnLocalVideoError;
         }
 
         /// <summary>
@@ -854,7 +852,7 @@ namespace BotVideoOrchestratorAndRemoteControl
             RbConferences.ConferenceParticipantsUpdated += RbConferences_ConferenceParticipantsUpdated;
 
             RbWebRTCCommunications.CallUpdated += RbWebRTCCommunications_CallUpdated;
-            RbWebRTCCommunications.OnLocalVideoError -= RbWebRTCCommunications_OnLocalVideoError;
+            //RbWebRTCCommunications.OnLocalVideoError -= RbWebRTCCommunications_OnLocalVideoError;
         }
 
         /// <summary>
@@ -891,12 +889,13 @@ namespace BotVideoOrchestratorAndRemoteControl
         {
             _currentConferenceId = confId;
 
-            RbWebRTCCommunications.JoinConference(confId, null, callback =>
+            var emptyAudioTrack = RbWebRTCDesktopFactory.CreateEmptyAudioTrack(); // ALLOW TO USE NO AUDIO DEVICE WHEN JOINING A CONF
+            RbWebRTCCommunications.JoinConference(confId, emptyAudioTrack, callback =>
             {
                 if (!callback.Result.Success)
                 {
                     _currentConferenceId = null;
-                    Util.WriteErrorToConsole($"[{_broadcaster.Name}] Cannot Join Conference - BubbleID:[{confId}] - Error:[{Rainbow.Util.SerializeSdkError(callback.Result)}");
+                    Util.WriteErrorToConsole($"[{_broadcaster.Name}] Cannot Join Conference - BubbleID:[{confId}] - Error:[{callback.Result}");
                 }
             });
             
@@ -1031,7 +1030,9 @@ namespace BotVideoOrchestratorAndRemoteControl
                         return;
                     }
 
-                    if (!RbWebRTCCommunications.ChangeVideo(_currentConferenceId, newStreamToUse))
+                    var videoTrack = RbWebRTCDesktopFactory.CreateVideoTrack(newStreamToUse);
+
+                    if (!RbWebRTCCommunications.ChangeVideo(_currentConferenceId, videoTrack))
                     {
                         videoHasNotBeenSet = true;
                         Util.WriteErrorToConsole($"[{_broadcaster.Name}] Cannot UPDATE Video stream to new URI:[{uri}]");
@@ -1045,7 +1046,8 @@ namespace BotVideoOrchestratorAndRemoteControl
                 }
                 else
                 {
-                    if (!RbWebRTCCommunications.AddVideo(_currentConferenceId, newStreamToUse))
+                    var videoTrack = RbWebRTCDesktopFactory.CreateVideoTrack(newStreamToUse);
+                    if (!RbWebRTCCommunications.AddVideo(_currentConferenceId, videoTrack))
                     {
                         videoHasNotBeenSet = true;
                         Util.WriteErrorToConsole($"[{_broadcaster.Name}] Cannot SET Video stream to new URI:[{uri}]");
@@ -1102,7 +1104,8 @@ namespace BotVideoOrchestratorAndRemoteControl
                         return;
                     }
 
-                    if (!RbWebRTCCommunications.ChangeSharing(_currentConferenceId, newStreamToUse))
+                    var videoTrack = RbWebRTCDesktopFactory.CreateVideoTrack(newStreamToUse);
+                    if (!RbWebRTCCommunications.ChangeSharing(_currentConferenceId, videoTrack))
                     {
                         sharingHasNotBeenSet = true;
                         Util.WriteErrorToConsole($"[{_broadcaster.Name}] Cannot UPDATE Sharing stream to new URI:[{uri}]");
@@ -1116,7 +1119,8 @@ namespace BotVideoOrchestratorAndRemoteControl
                 }
                 else
                 {
-                    if (!RbWebRTCCommunications.AddSharing(_currentConferenceId, newStreamToUse))
+                    var videoTrack = RbWebRTCDesktopFactory.CreateVideoTrack(newStreamToUse);
+                    if (!RbWebRTCCommunications.AddSharing(_currentConferenceId, videoTrack))
                     {
                         sharingHasNotBeenSet = true;
                         Util.WriteErrorToConsole($"[{_broadcaster.Name}] Cannot SET Sharing stream to new URI:[{uri}]");
@@ -1158,8 +1162,7 @@ namespace BotVideoOrchestratorAndRemoteControl
             switch (e.State)
             {
                 case ConnectionState.Connected:
-                    if (RbApplication.IsInitialized())
-                        FireTrigger(Trigger.Connect);
+                    FireTrigger(Trigger.Connect);
                     break;
 
                 case ConnectionState.Disconnected:

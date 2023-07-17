@@ -1,10 +1,10 @@
 {
-  "ffmpegLibFolderPath": "C:\\ffmpeg-4.4.1-full_build-shared\\bin",
+  "ffmpegLibFolderPath": "C:\\ffmpeg-5.1.1-full_build-shared\\bin",
 
   "serverConfig": {
-    "appId": "TO FILL",
-    "appSecret": "TO FILL",
-    "hostname": "TO FILL"
+    "appId": "TO DEFINE",
+    "appSecret": "TO DEFINE",
+    "hostname": "openrainbow.net"
   },
 
   "_comment_botManagers": "Only login can be set here BUT ONLY if the bot manager has been added in the roster of the bot orchestrator OR the jid must be set",
@@ -25,9 +25,9 @@
       "PARAM_pwdAxis": "axis.pwd",
 
       "name": "Axis 1",
-      "login": "TO FILL",
-      "password": "TO FILL",
-      "videoUri": "http://axis1.hostname/",
+      "login": "TO DEFINE",
+      "password": "TO DEFINE",
+      "videoUri": "C:\\media\\Joy_and_Heron.webm",
       "sharingUri": null,
 
       "autoJoinConference": true,

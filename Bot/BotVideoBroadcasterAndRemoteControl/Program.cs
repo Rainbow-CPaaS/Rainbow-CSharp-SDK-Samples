@@ -1,13 +1,11 @@
-﻿using Microsoft.IdentityModel.Tokens;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using NLog.Config;
+﻿using NLog.Config;
+using Rainbow;
+using Rainbow.SimpleJSON;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using WebSocketSharp;
 
 namespace BotVideoOrchestratorAndRemoteControl
 {
@@ -167,7 +165,7 @@ namespace BotVideoOrchestratorAndRemoteControl
             try
             {
                 String jsonConfig = File.ReadAllText(configFilePath);
-                var json = JsonConvert.DeserializeObject<dynamic>(jsonConfig);
+                var json = JSON.Parse(jsonConfig);
 
                 if (json == null)
                 {
@@ -176,7 +174,10 @@ namespace BotVideoOrchestratorAndRemoteControl
                 }
 
                 if (json["ffmpegLibFolderPath"] != null)
-                    RainbowApplicationInfo.ffmpegLibFolderPath = json["ffmpegLibFolderPath"].ToString();
+                {
+                    RainbowApplicationInfo.ffmpegLibFolderPath = UtilJson.AsString(json, "ffmpegLibFolderPath");
+                    Rainbow.Medias.Helper.InitExternalLibraries(RainbowApplicationInfo.ffmpegLibFolderPath);
+                }
 
 
                 if (json["serverConfig"] != null)
@@ -184,60 +185,62 @@ namespace BotVideoOrchestratorAndRemoteControl
                     var jobject = json["serverConfig"];
 
                     RainbowApplicationInfo.serverConfig = new ServerConfig();
-                    RainbowApplicationInfo.serverConfig.AppId = jobject["appId"].ToString();
-                    RainbowApplicationInfo.serverConfig.AppSecretKey = jobject["appSecret"].ToString();
-                    RainbowApplicationInfo.serverConfig.HostName = jobject["hostname"].ToString();
+                    RainbowApplicationInfo.serverConfig.AppId = UtilJson.AsString(jobject, "appId");
+                    RainbowApplicationInfo.serverConfig.AppSecretKey = UtilJson.AsString(jobject, "appSecret");
+                    RainbowApplicationInfo.serverConfig.HostName = UtilJson.AsString(jobject, "hostname");
                 }
 
                 if (json["botManagers"] != null)
                 {
-                    JArray list = (JArray)json["botManagers"];
-                    RainbowApplicationInfo.managers = new List<Manager>();
-
-                    foreach (var item in list)
+                    var list = json["botManagers"];
+                    if (list?.IsArray == true)
                     {
-                        String? email = item["email"]?.ToString();
-                        String? jid = item["jid"]?.ToString();
-                        String? id = item["id"]?.ToString();
+                        RainbowApplicationInfo.managers = new List<Manager>();
 
-                        if (!String.IsNullOrEmpty(email))
-                            RainbowApplicationInfo.managers.Add(new Manager(email, id, jid));
+                        foreach (var item in list)
+                        {
+                            String? email = UtilJson.AsString(item, "email");
+                            String? jid = UtilJson.AsString(item, "jid");
+                            String? id = UtilJson.AsString(item, "id");
+
+                            if (!String.IsNullOrEmpty(email))
+                                RainbowApplicationInfo.managers.Add(new Manager(email, id, jid));
+                        }
                     }
                 }
 
                 if (json["botsVideoBroadcaster"] != null)
                 {
-                    
-                    JArray list = (JArray)json["botsVideoBroadcaster"];
-                    RainbowApplicationInfo.broadcasters = new List<Broadcaster>();
-
-                    foreach (var item in list)
+                    var list = json["botsVideoBroadcaster"];
+                    if (list?.IsArray == true)
                     {
-                        var broadcaster = new Broadcaster();
-                        broadcaster.Name = item["name"]?.ToString();
-                        broadcaster.Login = item["login"]?.ToString();
-                        broadcaster.Pwd = item["password"]?.ToString();
-                        broadcaster.VideoURI = item["videoUri"]?.ToString();
-                        broadcaster.SharingURI = item["sharingUri"]?.ToString();
-                        if (item["autoJoinConference"] != null)
-                            broadcaster.AutoJoinConference = item["autoJoinConference"].Value<Boolean>();
-                        else
-                            broadcaster.AutoJoinConference = false;
-                        broadcaster.OnlyJoinBubbleJid = item["onlyJoinBubbleJid"]?.ToString();
-                     
-                        
-                        if((!String.IsNullOrEmpty(broadcaster.Login)) && (!String.IsNullOrEmpty(broadcaster.Pwd)))
-                        {
-                            RainbowApplicationInfo.broadcasters.Add(broadcaster);
+                        RainbowApplicationInfo.broadcasters = new List<Broadcaster>();
 
-                            broadcaster.ServerConfig = RainbowApplicationInfo.serverConfig;
-                            broadcaster.Managers = RainbowApplicationInfo.managers;
-                            broadcaster.CommandsFromIM = ParseActions(item["commandsFromIM"], item);
-                            broadcaster.CommandsFromAC = ParseActions(item["commandsFromAC"], item);
-                        }
-                        else
+                        foreach (var item in list)
                         {
-                            Util.WriteErrorToConsole($"Cannot create a Broadcaster since login and/or Pwd is null/empty");
+                            var broadcaster = new Broadcaster();
+                            broadcaster.Name = UtilJson.AsString(item, "name");
+                            broadcaster.Login = UtilJson.AsString(item, "login");
+                            broadcaster.Pwd = UtilJson.AsString(item, "password");
+                            broadcaster.VideoURI = UtilJson.AsString(item, "videoUri");
+                            broadcaster.SharingURI = UtilJson.AsString(item, "sharingUri");
+                            broadcaster.AutoJoinConference = UtilJson.AsBoolean(item, "autoJoinConference");
+                            broadcaster.OnlyJoinBubbleJid = UtilJson.AsString(item, "onlyJoinBubbleJid");
+
+
+                            if ((!String.IsNullOrEmpty(broadcaster.Login)) && (!String.IsNullOrEmpty(broadcaster.Pwd)))
+                            {
+                                RainbowApplicationInfo.broadcasters.Add(broadcaster);
+
+                                broadcaster.ServerConfig = RainbowApplicationInfo.serverConfig;
+                                broadcaster.Managers = RainbowApplicationInfo.managers;
+                                broadcaster.CommandsFromIM = ParseActions(item.Value["commandsFromIM"], item.Value);
+                                broadcaster.CommandsFromAC = ParseActions(item.Value["commandsFromAC"], item.Value);
+                            }
+                            else
+                            {
+                                Util.WriteErrorToConsole($"Cannot create a Broadcaster since login and/or Pwd is null/empty");
+                            }
                         }
                     }
                 }
@@ -295,15 +298,15 @@ namespace BotVideoOrchestratorAndRemoteControl
             return result;
         }
 
-        static public List<Action>? ParseActions(JToken? actions, JToken root)
+        static public List<Action>? ParseActions(JSONNode? actions, JSONNode root)
         {
             List<Action>? result = null;
 
             if(actions != null)
             {
-                if(actions is JArray jArray)
+                if(actions.IsArray)
                 {
-                    foreach(var item in jArray)
+                    foreach(var item in actions)
                     {
                         var action = ParseAction(item, root);
                         if(action != null)
@@ -319,13 +322,13 @@ namespace BotVideoOrchestratorAndRemoteControl
             return result;
         }
 
-        static public Action? ParseAction(JToken? action, JToken root)
+        static public Action? ParseAction(JSONNode? action, JSONNode root)
         {
             if (action != null)
             {
                 Action result = new Action();
-                result.Trigger = action["trigger"]?.ToString();
-                result.Type = action["type"]?.ToString();
+                result.Trigger = UtilJson.AsString(action, "trigger");
+                result.Type = UtilJson.AsString(action, "type");
 
                 if ( String.IsNullOrEmpty(result.Type))
                         return null;
@@ -341,37 +344,32 @@ namespace BotVideoOrchestratorAndRemoteControl
             return null;
         }
 
-        static public ActionDetails? ParseDetails(JToken? details, JToken root)
+        static public ActionDetails? ParseDetails(JSONNode? details, JSONNode root)
         {
             ActionDetails result = null;
             if (details != null)
             {
                 foreach (var entry in details)
                 {
-                    var property = entry as JProperty;
-
-                    if (property != null)
+                    if (!String.IsNullOrEmpty(entry.Key))
                     {
-                        if (!String.IsNullOrEmpty(property.Name))
+                        if (entry.Key == "nextAction")
                         {
-                            if (property.Name == "nextAction")
+                            if (result == null)
+                                result = new ActionDetails();
+
+                            result.NextAction = ParseAction(details["nextAction"], root);
+                        }
+                        else
+                        {
+                            var str = UtilJson.AsString(entry, entry.Key);
+                            var value =  ParseValue(entry.Value.Value, root);
+                            if (!String.IsNullOrEmpty(value))
                             {
                                 if (result == null)
                                     result = new ActionDetails();
 
-                                result.NextAction = ParseAction(details["nextAction"], root);
-                            }
-                            else
-                            {
-                                var value = ParseValue(property.Value.ToString(), root);
-
-                                if (!String.IsNullOrEmpty(value))
-                                {
-                                    if (result == null)
-                                        result = new ActionDetails();
-
-                                    result.Info.Add(property.Name, value);
-                                }
+                                result.Info.Add(entry.Key, value);
                             }
                         }
                     }
@@ -381,7 +379,7 @@ namespace BotVideoOrchestratorAndRemoteControl
             return result;
         }
 
-        static public String ParseValue(String value, JToken root)
+        static public String ParseValue(String value, JSONNode root)
         {
             if (!String.IsNullOrEmpty(value))
             { 
