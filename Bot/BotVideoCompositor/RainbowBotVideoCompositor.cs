@@ -1092,9 +1092,6 @@ namespace BotVideoCompositor
             // We want to use always the same resource id when we connect to the event server
             RbApplication.Restrictions.UseSameResourceId = true;
 
-            // We want to auto reconnect in case of network trouble
-            RbApplication.Restrictions.AutoReconnection = true;
-
             // We use XMPP for event mode
             RbApplication.Restrictions.EventMode = Restrictions.SDKEventMode.XMPP;
 
