@@ -141,16 +141,16 @@ namespace RainbowBotBase
 
             // Configure the Connecting state
             _machine.Configure(State.Authenticated)
-                .Permit(Trigger.InitializationPerformed, State.Initialized)
-                .Permit(Trigger.Disconnect, State.AutoReconnection);
-
-            // Configure the Connected state
-            _machine.Configure(State.Initialized)
                 .Permit(Trigger.Connect, State.Connected)
                 .Permit(Trigger.Disconnect, State.AutoReconnection);
 
             // Configure the Connected state
             _machine.Configure(State.Connected)
+                .Permit(Trigger.InitializationPerformed, State.Initialized)
+                .Permit(Trigger.Disconnect, State.AutoReconnection);
+
+            // Configure the Connected state
+            _machine.Configure(State.Initialized)
                 .OnEntry(CheckConnectionInvitationsAndMessages)
 
                 .Permit(Trigger.Disconnect, State.AutoReconnection)
@@ -177,22 +177,22 @@ namespace RainbowBotBase
             // Configure the MessageFromBubble state
             _machine.Configure(State.MessageFromBubble)
                 .OnEntryFrom(_messageReceivedFromBubbleTrigger, AnswerToBubbleMessage)
-                .Permit(Trigger.MessageManaged, State.Connected);
+                .Permit(Trigger.MessageManaged, State.Initialized);
 
             // Configure the MessageFromPeer state
             _machine.Configure(State.MessageFromPeer)
                 .OnEntryFrom(_messageReceivedFromPeerTrigger, AnswerToPeerMessage)
-                .Permit(Trigger.MessageManaged, State.Connected);
+                .Permit(Trigger.MessageManaged, State.Initialized);
 
             // Configure the InvitationReceived state
             _machine.Configure(State.BubbleInvitationReceived)
                 .OnEntryFrom(_bubbleInvitationReceivedTrigger, AnswerToBubbleInvitation)
-                .Permit(Trigger.BubbleInvitationManaged, State.Connected);
+                .Permit(Trigger.BubbleInvitationManaged, State.Initialized);
 
             // Configure the InvitationReceived state
             _machine.Configure(State.InvitationReceived)
                 .OnEntryFrom(_invitationReceivedTrigger, AnswerToInvitation)
-                .Permit(Trigger.InvitationManaged, State.Connected);
+                .Permit(Trigger.InvitationManaged, State.Initialized);
 
             _machine.OnUnhandledTrigger( (state, trigger) => Console.WriteLine($"OnUnhandledTrigger - State: {state} with Trigger: {trigger}"));
             
@@ -310,7 +310,7 @@ namespace RainbowBotBase
         {
             if (bubble != null)
             {
-                Bubble.Member? myself = bubble.Users.Find(member => member.UserId == _currentContact?.Id);
+                BubbleMember? myself = bubble.Users.Find(member => member.UserId == _currentContact?.Id);
 
                 return (myself?.Status == Bubble.MemberStatus.Invited);
             }
@@ -405,15 +405,11 @@ namespace RainbowBotBase
             // We want to use always the same resource id when we connect to the event server
             RbApplication.Restrictions.UseSameResourceId = true;
 
-            // We want to auto reconnect in case of network trouble
-            RbApplication.Restrictions.AutoReconnection = true;
-
             // We use XMPP for event mode
             RbApplication.Restrictions.EventMode = Restrictions.SDKEventMode.XMPP;
 
             // We want to use conference features via API V2
             RbApplication.Restrictions.UseConferences = true; 
-            RbApplication.Restrictions.UseAPIConferenceV2 = true;
         }
 
         /// <summary>
@@ -505,8 +501,7 @@ namespace RainbowBotBase
             switch(e.State)
             {
                 case ConnectionState.Connected:
-                    if(RbApplication.IsInitialized())
-                        FireTrigger(Trigger.Connect);
+                    FireTrigger(Trigger.Connect);
                     break;
 
                 case ConnectionState.Disconnected:
