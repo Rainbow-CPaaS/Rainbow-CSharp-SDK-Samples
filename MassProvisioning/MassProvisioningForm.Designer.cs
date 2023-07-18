@@ -29,213 +29,194 @@ namespace MassProvisioning
         /// </summary>
         private void InitializeComponent()
         {
-            this.labelWarning = new System.Windows.Forms.Label();
-            this.btnLoadData = new System.Windows.Forms.Button();
-            this.btnCreateAll = new System.Windows.Forms.Button();
-            this.tbLog = new System.Windows.Forms.TextBox();
-            this.btnDeleteAll = new System.Windows.Forms.Button();
-            this.btnGenerateFakeData = new System.Windows.Forms.Button();
-            this.label2 = new System.Windows.Forms.Label();
-            this.tbNbStudents = new System.Windows.Forms.TextBox();
-            this.tbNbTeachers = new System.Windows.Forms.TextBox();
-            this.label3 = new System.Windows.Forms.Label();
-            this.tbNbClassroomsByTeacher = new System.Windows.Forms.TextBox();
-            this.label4 = new System.Windows.Forms.Label();
-            this.tbNbStudentsByClassrooms = new System.Windows.Forms.TextBox();
-            this.label5 = new System.Windows.Forms.Label();
-            this.tbCompanyName = new System.Windows.Forms.TextBox();
-            this.label6 = new System.Windows.Forms.Label();
-            this.SuspendLayout();
+            labelWarning = new System.Windows.Forms.Label();
+            btnLoadData = new System.Windows.Forms.Button();
+            btnCreateAll = new System.Windows.Forms.Button();
+            tbLog = new System.Windows.Forms.TextBox();
+            btnDeleteAll = new System.Windows.Forms.Button();
+            btnGenerateFakeData = new System.Windows.Forms.Button();
+            label2 = new System.Windows.Forms.Label();
+            tbNbStudents = new System.Windows.Forms.TextBox();
+            tbNbTeachers = new System.Windows.Forms.TextBox();
+            label3 = new System.Windows.Forms.Label();
+            tbNbClassroomsByTeacher = new System.Windows.Forms.TextBox();
+            label4 = new System.Windows.Forms.Label();
+            tbNbStudentsByClassrooms = new System.Windows.Forms.TextBox();
+            label5 = new System.Windows.Forms.Label();
+            tbCompanyName = new System.Windows.Forms.TextBox();
+            label6 = new System.Windows.Forms.Label();
+            SuspendLayout();
             // 
             // labelWarning
             // 
-            this.labelWarning.AutoSize = true;
-            this.labelWarning.ForeColor = System.Drawing.Color.Maroon;
-            this.labelWarning.Location = new System.Drawing.Point(605, 30);
-            this.labelWarning.Name = "labelWarning";
-            this.labelWarning.Size = new System.Drawing.Size(353, 45);
-            this.labelWarning.TabIndex = 0;
-            this.labelWarning.Text = "It\'s mandatory to specify  in file ApplicationInfo.cs:\r\n - APP_ID, APP_SECRET_KEY" +
-    ", HOST_NAME, \r\n - ORGANIZATION_ADMIN_LOGIN, ORGANIZATION_ADMIN_PWD\r\n";
-            this.labelWarning.UseWaitCursor = true;
+            labelWarning.AutoSize = true;
+            labelWarning.ForeColor = System.Drawing.Color.Maroon;
+            labelWarning.Location = new System.Drawing.Point(605, 30);
+            labelWarning.Name = "labelWarning";
+            labelWarning.Size = new System.Drawing.Size(353, 45);
+            labelWarning.TabIndex = 0;
+            labelWarning.Text = "It's mandatory to specify  in file ApplicationInfo.cs:\r\n - APP_ID, APP_SECRET_KEY, HOST_NAME, \r\n - ORGANIZATION_ADMIN_LOGIN, ORGANIZATION_ADMIN_PWD\r\n";
             // 
             // btnLoadData
             // 
-            this.btnLoadData.Location = new System.Drawing.Point(56, 139);
-            this.btnLoadData.Name = "btnLoadData";
-            this.btnLoadData.Size = new System.Drawing.Size(288, 29);
-            this.btnLoadData.TabIndex = 1;
-            this.btnLoadData.Text = "Load School Data: Company, Teachers, Students";
-            this.btnLoadData.UseVisualStyleBackColor = true;
-            this.btnLoadData.UseWaitCursor = true;
-            this.btnLoadData.Click += new System.EventHandler(this.btnLoadData_Click);
+            btnLoadData.Location = new System.Drawing.Point(56, 139);
+            btnLoadData.Name = "btnLoadData";
+            btnLoadData.Size = new System.Drawing.Size(288, 29);
+            btnLoadData.TabIndex = 1;
+            btnLoadData.Text = "Load School Data: Company, Teachers, Students";
+            btnLoadData.UseVisualStyleBackColor = true;
+            btnLoadData.Click += btnLoadData_Click;
             // 
             // btnCreateAll
             // 
-            this.btnCreateAll.Location = new System.Drawing.Point(350, 139);
-            this.btnCreateAll.Name = "btnCreateAll";
-            this.btnCreateAll.Size = new System.Drawing.Size(272, 29);
-            this.btnCreateAll.TabIndex = 2;
-            this.btnCreateAll.Text = "Create Teachers, Students, Classrooms";
-            this.btnCreateAll.UseVisualStyleBackColor = true;
-            this.btnCreateAll.UseWaitCursor = true;
-            this.btnCreateAll.Click += new System.EventHandler(this.btnCreateAll_Click);
+            btnCreateAll.Location = new System.Drawing.Point(350, 139);
+            btnCreateAll.Name = "btnCreateAll";
+            btnCreateAll.Size = new System.Drawing.Size(272, 29);
+            btnCreateAll.TabIndex = 2;
+            btnCreateAll.Text = "Create Teachers, Students, Classrooms";
+            btnCreateAll.UseVisualStyleBackColor = true;
+            btnCreateAll.Click += btnCreateAll_Click;
             // 
             // tbLog
             // 
-            this.tbLog.Location = new System.Drawing.Point(12, 174);
-            this.tbLog.Multiline = true;
-            this.tbLog.Name = "tbLog";
-            this.tbLog.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.tbLog.Size = new System.Drawing.Size(974, 517);
-            this.tbLog.TabIndex = 3;
-            this.tbLog.UseWaitCursor = true;
+            tbLog.Location = new System.Drawing.Point(12, 174);
+            tbLog.Multiline = true;
+            tbLog.Name = "tbLog";
+            tbLog.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            tbLog.Size = new System.Drawing.Size(974, 517);
+            tbLog.TabIndex = 3;
             // 
             // btnDeleteAll
             // 
-            this.btnDeleteAll.Location = new System.Drawing.Point(628, 139);
-            this.btnDeleteAll.Name = "btnDeleteAll";
-            this.btnDeleteAll.Size = new System.Drawing.Size(272, 29);
-            this.btnDeleteAll.TabIndex = 4;
-            this.btnDeleteAll.Text = "Delete all: Teachers, Students, Classrooms";
-            this.btnDeleteAll.UseVisualStyleBackColor = true;
-            this.btnDeleteAll.UseWaitCursor = true;
-            this.btnDeleteAll.Click += new System.EventHandler(this.btnDeleteAll_Click);
+            btnDeleteAll.Location = new System.Drawing.Point(628, 139);
+            btnDeleteAll.Name = "btnDeleteAll";
+            btnDeleteAll.Size = new System.Drawing.Size(272, 29);
+            btnDeleteAll.TabIndex = 4;
+            btnDeleteAll.Text = "Delete all: Teachers, Students, Classrooms";
+            btnDeleteAll.UseVisualStyleBackColor = true;
+            btnDeleteAll.Click += btnDeleteAll_Click;
             // 
             // btnGenerateFakeData
             // 
-            this.btnGenerateFakeData.Location = new System.Drawing.Point(206, 93);
-            this.btnGenerateFakeData.Name = "btnGenerateFakeData";
-            this.btnGenerateFakeData.Size = new System.Drawing.Size(288, 29);
-            this.btnGenerateFakeData.TabIndex = 5;
-            this.btnGenerateFakeData.Text = "Generate fake data: Company, Teachers, Students";
-            this.btnGenerateFakeData.UseVisualStyleBackColor = true;
-            this.btnGenerateFakeData.UseWaitCursor = true;
-            this.btnGenerateFakeData.Click += new System.EventHandler(this.btnGenerateFakeData_Click);
+            btnGenerateFakeData.Location = new System.Drawing.Point(206, 93);
+            btnGenerateFakeData.Name = "btnGenerateFakeData";
+            btnGenerateFakeData.Size = new System.Drawing.Size(288, 29);
+            btnGenerateFakeData.TabIndex = 5;
+            btnGenerateFakeData.Text = "Generate fake data: Company, Teachers, Students";
+            btnGenerateFakeData.UseVisualStyleBackColor = true;
+            btnGenerateFakeData.Click += btnGenerateFakeData_Click;
             // 
             // label2
             // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(169, 8);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(75, 15);
-            this.label2.TabIndex = 6;
-            this.label2.Text = "Nb Students:";
-            this.label2.UseWaitCursor = true;
+            label2.AutoSize = true;
+            label2.Location = new System.Drawing.Point(169, 8);
+            label2.Name = "label2";
+            label2.Size = new System.Drawing.Size(75, 15);
+            label2.TabIndex = 6;
+            label2.Text = "Nb Students:";
             // 
             // tbNbStudents
             // 
-            this.tbNbStudents.Location = new System.Drawing.Point(250, 5);
-            this.tbNbStudents.Name = "tbNbStudents";
-            this.tbNbStudents.Size = new System.Drawing.Size(35, 23);
-            this.tbNbStudents.TabIndex = 7;
-            this.tbNbStudents.Text = "912";
-            this.tbNbStudents.UseWaitCursor = true;
+            tbNbStudents.Location = new System.Drawing.Point(250, 5);
+            tbNbStudents.Name = "tbNbStudents";
+            tbNbStudents.Size = new System.Drawing.Size(35, 23);
+            tbNbStudents.TabIndex = 7;
+            tbNbStudents.Text = "10";
             // 
             // tbNbTeachers
             // 
-            this.tbNbTeachers.Location = new System.Drawing.Point(250, 35);
-            this.tbNbTeachers.Name = "tbNbTeachers";
-            this.tbNbTeachers.Size = new System.Drawing.Size(35, 23);
-            this.tbNbTeachers.TabIndex = 9;
-            this.tbNbTeachers.Text = "33";
-            this.tbNbTeachers.UseWaitCursor = true;
+            tbNbTeachers.Location = new System.Drawing.Point(250, 35);
+            tbNbTeachers.Name = "tbNbTeachers";
+            tbNbTeachers.Size = new System.Drawing.Size(35, 23);
+            tbNbTeachers.TabIndex = 9;
+            tbNbTeachers.Text = "2";
             // 
             // label3
             // 
-            this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(161, 38);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(73, 15);
-            this.label3.TabIndex = 8;
-            this.label3.Text = "Nb teachers:";
-            this.label3.UseWaitCursor = true;
+            label3.AutoSize = true;
+            label3.Location = new System.Drawing.Point(161, 38);
+            label3.Name = "label3";
+            label3.Size = new System.Drawing.Size(73, 15);
+            label3.TabIndex = 8;
+            label3.Text = "Nb teachers:";
             // 
             // tbNbClassroomsByTeacher
             // 
-            this.tbNbClassroomsByTeacher.Location = new System.Drawing.Point(459, 5);
-            this.tbNbClassroomsByTeacher.Name = "tbNbClassroomsByTeacher";
-            this.tbNbClassroomsByTeacher.Size = new System.Drawing.Size(35, 23);
-            this.tbNbClassroomsByTeacher.TabIndex = 11;
-            this.tbNbClassroomsByTeacher.Text = "6";
-            this.tbNbClassroomsByTeacher.UseWaitCursor = true;
+            tbNbClassroomsByTeacher.Location = new System.Drawing.Point(459, 5);
+            tbNbClassroomsByTeacher.Name = "tbNbClassroomsByTeacher";
+            tbNbClassroomsByTeacher.Size = new System.Drawing.Size(35, 23);
+            tbNbClassroomsByTeacher.TabIndex = 11;
+            tbNbClassroomsByTeacher.Text = "1";
             // 
             // label4
             // 
-            this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(323, 41);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(134, 15);
-            this.label4.TabIndex = 10;
-            this.label4.Text = "Students by classrooms:";
-            this.label4.UseWaitCursor = true;
+            label4.AutoSize = true;
+            label4.Location = new System.Drawing.Point(323, 41);
+            label4.Name = "label4";
+            label4.Size = new System.Drawing.Size(134, 15);
+            label4.TabIndex = 10;
+            label4.Text = "Students by classrooms:";
             // 
             // tbNbStudentsByClassrooms
             // 
-            this.tbNbStudentsByClassrooms.Location = new System.Drawing.Point(459, 38);
-            this.tbNbStudentsByClassrooms.Name = "tbNbStudentsByClassrooms";
-            this.tbNbStudentsByClassrooms.Size = new System.Drawing.Size(35, 23);
-            this.tbNbStudentsByClassrooms.TabIndex = 13;
-            this.tbNbStudentsByClassrooms.Text = "25";
-            this.tbNbStudentsByClassrooms.UseWaitCursor = true;
+            tbNbStudentsByClassrooms.Location = new System.Drawing.Point(459, 38);
+            tbNbStudentsByClassrooms.Name = "tbNbStudentsByClassrooms";
+            tbNbStudentsByClassrooms.Size = new System.Drawing.Size(35, 23);
+            tbNbStudentsByClassrooms.TabIndex = 13;
+            tbNbStudentsByClassrooms.Text = "5";
             // 
             // label5
             // 
-            this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(301, 8);
-            this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(146, 15);
-            this.label5.TabIndex = 12;
-            this.label5.Text = "Nb classrooms by teacher:";
-            this.label5.UseWaitCursor = true;
+            label5.AutoSize = true;
+            label5.Location = new System.Drawing.Point(301, 8);
+            label5.Name = "label5";
+            label5.Size = new System.Drawing.Size(146, 15);
+            label5.TabIndex = 12;
+            label5.Text = "Nb classrooms by teacher:";
             // 
             // tbCompanyName
             // 
-            this.tbCompanyName.Location = new System.Drawing.Point(305, 67);
-            this.tbCompanyName.Name = "tbCompanyName";
-            this.tbCompanyName.Size = new System.Drawing.Size(194, 23);
-            this.tbCompanyName.TabIndex = 15;
-            this.tbCompanyName.Text = "CSharpSDKCompany_MassPro";
-            this.tbCompanyName.UseWaitCursor = true;
+            tbCompanyName.Location = new System.Drawing.Point(305, 67);
+            tbCompanyName.Name = "tbCompanyName";
+            tbCompanyName.Size = new System.Drawing.Size(194, 23);
+            tbCompanyName.TabIndex = 15;
+            tbCompanyName.Text = "CSharpSDKCompany_MassPro";
             // 
             // label6
             // 
-            this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(202, 70);
-            this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(97, 15);
-            this.label6.TabIndex = 14;
-            this.label6.Text = "Company Name:";
-            this.label6.UseWaitCursor = true;
+            label6.AutoSize = true;
+            label6.Location = new System.Drawing.Point(202, 70);
+            label6.Name = "label6";
+            label6.Size = new System.Drawing.Size(97, 15);
+            label6.TabIndex = 14;
+            label6.Text = "Company Name:";
             // 
             // MassProvisioningForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(998, 703);
-            this.Controls.Add(this.tbCompanyName);
-            this.Controls.Add(this.label6);
-            this.Controls.Add(this.tbNbStudentsByClassrooms);
-            this.Controls.Add(this.label5);
-            this.Controls.Add(this.tbNbClassroomsByTeacher);
-            this.Controls.Add(this.label4);
-            this.Controls.Add(this.tbNbTeachers);
-            this.Controls.Add(this.label3);
-            this.Controls.Add(this.tbNbStudents);
-            this.Controls.Add(this.label2);
-            this.Controls.Add(this.btnGenerateFakeData);
-            this.Controls.Add(this.btnDeleteAll);
-            this.Controls.Add(this.tbLog);
-            this.Controls.Add(this.btnCreateAll);
-            this.Controls.Add(this.btnLoadData);
-            this.Controls.Add(this.labelWarning);
-            this.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.Name = "MassProvisioningForm";
-            this.Text = "Mass Provisioning example";
-            this.UseWaitCursor = true;
-            this.ResumeLayout(false);
-            this.PerformLayout();
-
+            AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
+            AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            ClientSize = new System.Drawing.Size(998, 703);
+            Controls.Add(tbCompanyName);
+            Controls.Add(label6);
+            Controls.Add(tbNbStudentsByClassrooms);
+            Controls.Add(label5);
+            Controls.Add(tbNbClassroomsByTeacher);
+            Controls.Add(label4);
+            Controls.Add(tbNbTeachers);
+            Controls.Add(label3);
+            Controls.Add(tbNbStudents);
+            Controls.Add(label2);
+            Controls.Add(btnGenerateFakeData);
+            Controls.Add(btnDeleteAll);
+            Controls.Add(tbLog);
+            Controls.Add(btnCreateAll);
+            Controls.Add(btnLoadData);
+            Controls.Add(labelWarning);
+            ForeColor = System.Drawing.SystemColors.ControlText;
+            Name = "MassProvisioningForm";
+            Text = "Mass Provisioning example";
+            ResumeLayout(false);
+            PerformLayout();
         }
 
         #endregion

@@ -1,15 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
-using System.Drawing;
-using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Xml;
 
 using Rainbow;
 
@@ -23,7 +18,7 @@ namespace MassProvisioning
         private static readonly ILogger log = Rainbow.LogFactory.CreateLogger<MassProvisioningForm>();
 
         // Define objects from the C# SDK
-        private Rainbow.Application rbApplication;
+        private Rainbow.Application rbApplication = null;
         private Rainbow.Administration rbAdministration;
         Rainbow.Model.Company RbCompany = null;
         Rainbow.Model.Contact RbContact = null;
@@ -54,14 +49,14 @@ namespace MassProvisioning
         int nbRbUsersCreatedOrDeletedInSameTime = 25;
 
 
-#region Delegate - to update form elements
+        #region Delegate - to update form elements
 
         // Define delegates to update forms elements from any thread
         //delegate void BoolArgReturningVoidDelegate(bool value);
         //delegate void ImageArgReturningVoidDelegate(System.Drawing.Image value);
         delegate void StringArgReturningVoidDelegate(string value);
 
-#endregion Delegate - to update form elements
+        #endregion Delegate - to update form elements
 
         public MassProvisioningForm()
         {
@@ -157,13 +152,18 @@ namespace MassProvisioning
             AddStatusMessage($"Store Fake Date - START: {HumanizeDateTime(dateTimeStart)}");
 
             DataStorage.StoreCompanyToFile(Company, COMPANY_DATA_FILE_PATH);
-            DataStorage.StoreUserToFile(CompanyAdmin, COMPANY_ADMIN_DATA_FILE_PATH);
-            DataStorage.StoreUsersToFile(TeachersList, TEACHERS_DATA_FILE_PATH);
-            DataStorage.StoreUsersToFile(StudentsList, STUDENTS_DATA_FILE_PATH);
-            DataStorage.StoreClassroomsToFile(ClassroomsList, CLASSROOMS_DATA_FILE_PATH);
+            AddStatusMessage(COMPANY_DATA_FILE_PATH);
 
+            DataStorage.StoreUserToFile(CompanyAdmin, COMPANY_ADMIN_DATA_FILE_PATH);
+            AddStatusMessage(COMPANY_ADMIN_DATA_FILE_PATH);
+
+            DataStorage.StoreUsersToFile(TeachersList, TEACHERS_DATA_FILE_PATH);
             AddStatusMessage(TEACHERS_DATA_FILE_PATH);
+            
+            DataStorage.StoreUsersToFile(StudentsList, STUDENTS_DATA_FILE_PATH);
             AddStatusMessage(STUDENTS_DATA_FILE_PATH);
+
+            DataStorage.StoreClassroomsToFile(ClassroomsList, CLASSROOMS_DATA_FILE_PATH);
             AddStatusMessage(CLASSROOMS_DATA_FILE_PATH);
 
             dateTimeEnd = DateTime.UtcNow;
@@ -254,22 +254,25 @@ namespace MassProvisioning
 
                 AddStatusMessage($"Create all [Company, company admin, Teachers, Students, classroorms] - START: {HumanizeDateTime(startDate)}");
 
-                rbApplication = new Rainbow.Application("./");
-                rbAdministration = rbApplication.GetAdministration();
+                if (rbApplication == null)
+                {
+                    rbApplication = new Rainbow.Application("./");
+                    rbAdministration = rbApplication.GetAdministration();
 
-                // Since we are doing mass provisioning we don't need to create a event pipe with the server
-                rbApplication.Restrictions.EventMode = Restrictions.SDKEventMode.NONE;
+                    // Since we are doing mass provisioning we don't need to create a event pipe with the server
+                    rbApplication.Restrictions.EventMode = Restrictions.SDKEventMode.NONE;
 
-                // Set a timeout to 10 seconds - we will massively access the server to create users so we can have a delay greater for that
-                rbApplication.SetTimeout(10000);
+                    // Set a timeout to 10 seconds - we will massively access the server to create users so we can have a delay greater for that
+                    rbApplication.SetTimeout(20000);
 
-                // Define my application info and the server to use
-                rbApplication.SetApplicationInfo(ApplicationInfo.APP_ID, ApplicationInfo.APP_SECRET_KEY);
-                rbApplication.SetHostInfo(ApplicationInfo.HOST_NAME);
+                    // Define my application info and the server to use
+                    rbApplication.SetApplicationInfo(ApplicationInfo.APP_ID, ApplicationInfo.APP_SECRET_KEY);
+                    rbApplication.SetHostInfo(ApplicationInfo.HOST_NAME);
 
-                // We want to deal with several events of the SDK
-                rbApplication.ConnectionStateChanged += RbApplication_ConnectionStateChanged;
-                rbApplication.InitializationPerformed += RbApplication_InitializationPerformed;
+                    // We want to deal with several events of the SDK
+                    rbApplication.ConnectionStateChanged += RbApplication_ConnectionStateChanged;
+                    rbApplication.InitializationPerformed += RbApplication_InitializationPerformed;
+                }
 
                 if (!CreateCompanyAndCompanyName())
                     return;
@@ -290,7 +293,7 @@ namespace MassProvisioning
                         {
                             if (CreateClassroomsForTeacher(teacher))
                             {
-                                
+
                                 //// Need to have Bubble ID
                                 //List<Rainbow.Model.Bubble> bubbles = GetAllBubbles();
                                 //BubblesIDListByName = bubbles.ToDictionary(x => x.Name, x => x.Id);
@@ -337,7 +340,7 @@ namespace MassProvisioning
                 String outputDelay = GetOutputDelay(endDate.Subtract(startDate));
                 AddStatusMessage($"Create all [Company, company admin, Teachers, Students, classroorms] - END: {HumanizeDateTime(endDate)}");
 
-                
+
                 int NbClassroormsByTeachers = ClassroomsList.Values.ElementAt(0).Count;
                 int NbStudentsByClassrooms = ClassroomsList.Values.ElementAt(0).ElementAt(0).Value.Count;
                 int nbTotalClassrooms = NbClassroormsByTeachers * TeachersList.Count;
@@ -345,7 +348,7 @@ namespace MassProvisioning
 
                 AddStatusMessage("\r\n---------------------------\r\n");
 
-                
+
             });
             task.Start();
         }
@@ -400,7 +403,7 @@ namespace MassProvisioning
             {
                 DateTime startDate = DateTime.UtcNow;
 
-                String message = "";
+                String message;
 
                 // STEPS:
                 // Login as company_admin
@@ -458,7 +461,7 @@ namespace MassProvisioning
                 // Logout from RB 
                 Logout();
 
-               
+
 
                 // --------------------------------------------------------
 
@@ -466,7 +469,7 @@ namespace MassProvisioning
                 String outputDelay = GetOutputDelay(endDate.Subtract(startDate));
 
                 AddStatusMessage($"Use company_admin to delete all users (teachers, students except himself) - END: {HumanizeDateTime(endDate)}");
-                
+
                 int NbClassroormsByTeachers = ClassroomsList.Values.ElementAt(0).Count;
                 int NbStudentsByClassrooms = ClassroomsList.Values.ElementAt(0).ElementAt(0).Value.Count;
                 int nbTotalClassrooms = NbClassroormsByTeachers * TeachersList.Count;
@@ -494,7 +497,7 @@ namespace MassProvisioning
 
             // Get all bubbles of the teacher
             List<Rainbow.Model.Bubble> bubbles = GetAllBubbles();
-            if(bubbles == null)
+            if (bubbles == null)
                 return false;
 
             // Loop on all bubbles(i.e. classrooms) to know which classrooms must be created
@@ -507,7 +510,7 @@ namespace MassProvisioning
             }
             AddStatusMessage($"\t\tCheck classrooms already created - Nb already created:[{bubblesCreated.Count}] - END");
 
-            
+
             String message = "";
             List<String> bubblesNotCreated = new List<string>();
             List<String> bubblesToCreate = new List<string>();
@@ -577,7 +580,7 @@ namespace MassProvisioning
 
                         rbBubbles.CreateBubble(id, "", Rainbow.Model.Bubble.BubbleVisibility.AsPrivate, callback =>
                         {
-                            if(!callback.Result.Success)
+                            if (!callback.Result.Success)
                             {
                                 lock (lockObject)
                                 {
@@ -632,7 +635,7 @@ namespace MassProvisioning
             Rainbow.Bubbles rbBubbles = rbApplication.GetBubbles();
 
             String message = "";
-            
+
             List<String> bubblesMembersSet = new List<string>();
             List<String> bubblesMembersToSet = new List<string>();
 
@@ -702,7 +705,7 @@ namespace MassProvisioning
                         if (!callback.Result.Success)
                         {
                             addMemberError = true;
-                            message = Util.SerializeSdkError(callback.Result);
+                            message = callback.Result.ToString();
 
                             if (callback.Result.IncorrectUseError != null)
                             {
@@ -711,8 +714,8 @@ namespace MassProvisioning
                             }
                         }
 
-                        if(addMemberError)
-                        { 
+                        if (addMemberError)
+                        {
                             log.LogError($"Cannot set members to bubble: BubbleId:[{bubbleId}] -  BubbleName:[{bubbleName}] - Error:[{message}]");
 
                             AddStatusMessage($"\t\t*** ERROR *** - Cannot set members to bubble: BubbleId:[{bubbleId}] -  BubbleName:[{bubbleName}] - Error:[{message}]");
@@ -768,9 +771,9 @@ namespace MassProvisioning
             StudentsIDListByEmail.Clear();
             if (contacts != null)
             {
-                foreach(Rainbow.Model.Contact contactItem in contacts)
+                foreach (Rainbow.Model.Contact contactItem in contacts)
                 {
-                    if(StudentsList.ContainsKey(contactItem.LoginEmail.ToLower()))
+                    if (StudentsList.ContainsKey(contactItem.LoginEmail.ToLower()))
                         StudentsIDListByEmail.Add(contactItem.LoginEmail.ToLower(), contactItem.Id);
                 }
             }
@@ -800,7 +803,7 @@ namespace MassProvisioning
 
             // We need to check if some teachers are already created or not.
             AddStatusMessage("\tCheck teachers already created - START");
-            foreach(Rainbow.Model.Contact contactItem in contacts)
+            foreach (Rainbow.Model.Contact contactItem in contacts)
             {
                 if (TeachersList.ContainsKey(contactItem.LoginEmail.ToLower()))
                     teachersCreated.Add(contactItem.LoginEmail.ToLower());
@@ -873,7 +876,7 @@ namespace MassProvisioning
                             if (!callback.Result.Success)
                             {
                                 userCreationError = true;
-                                message = Util.SerializeSdkError(callback.Result);
+                                message = callback.Result.ToString();
 
                                 if (callback.Result.IncorrectUseError != null)
                                 {
@@ -882,7 +885,7 @@ namespace MassProvisioning
                                 }
                             }
 
-                            if(userCreationError)
+                            if (userCreationError)
                             {
                                 lock (lockObject)
                                 {
@@ -1010,7 +1013,7 @@ namespace MassProvisioning
                             if (!callback.Result.Success)
                             {
                                 userCreationError = true;
-                                message = Util.SerializeSdkError(callback.Result);
+                                message = callback.Result.ToString();
 
                                 if (callback.Result.IncorrectUseError != null)
                                 {
@@ -1071,9 +1074,9 @@ namespace MassProvisioning
 
             // Loop on companies to find the correct one
             AddStatusMessage("\tCheck correct company - START");
-            foreach(Rainbow.Model.Company companyItem in companies)
+            foreach (Rainbow.Model.Company companyItem in companies)
             {
-                if(companyItem.Name.Equals(Company.Name, StringComparison.InvariantCultureIgnoreCase))
+                if (companyItem.Name.Equals(Company.Name, StringComparison.InvariantCultureIgnoreCase))
                 {
                     companyFound = true;
 
@@ -1083,7 +1086,7 @@ namespace MassProvisioning
                 }
             }
 
-            if(!companyFound)
+            if (!companyFound)
                 AddStatusMessage("\tCheck correct company - Company NOT found - END");
             else
             {
@@ -1118,7 +1121,7 @@ namespace MassProvisioning
 
             if (!String.IsNullOrEmpty(message))
                 return false;
-            
+
 
             return true;
         }
@@ -1155,7 +1158,7 @@ namespace MassProvisioning
                     }
                     else
                     {
-                        message = Util.SerializeSdkError(callback.Result);
+                        message = callback.Result.ToString();
                         log.LogError($"Cannot get the list of companies - Error[{message}]");
                     }
                     manualResetEvent.Set();
@@ -1186,7 +1189,7 @@ namespace MassProvisioning
 
             AddStatusMessage("\tGet all contacts - START");
             int offset = 0;
-            int nbAsked = 200; 
+            int nbAsked = 200;
 
             Boolean noMoreUsers = false;
             do
@@ -1208,7 +1211,7 @@ namespace MassProvisioning
                     }
                     else
                     {
-                        message = Util.SerializeSdkError(callback.Result);
+                        message = callback.Result.ToString();
                         log.LogError($"Cannot get the list of users - Error[{message}]");
                     }
                     manualResetEvent.Set();
@@ -1244,15 +1247,18 @@ namespace MassProvisioning
             // Check if the company already exists
             bool companyFound = false;
             AddStatusMessage("\tCheck if company already exists - START");
-            foreach (Rainbow.Model.Company companyItem in companies)
+            if (companies != null)
             {
-                if (companyItem.Name.Equals(Company.Name, StringComparison.InvariantCultureIgnoreCase))
+                foreach (Rainbow.Model.Company companyItem in companies)
                 {
-                    companyFound = true;
+                    if (companyItem.Name.Equals(Company.Name, StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        companyFound = true;
 
-                    // Store company info
-                    RbCompany = companyItem;
-                    break;
+                        // Store company info
+                        RbCompany = companyItem;
+                        break;
+                    }
                 }
             }
 
@@ -1272,7 +1278,7 @@ namespace MassProvisioning
                     if (callback.Result.Success)
                         RbCompany = callback.Data;
                     else
-                        message = Util.SerializeSdkError(callback.Result);
+                        message = callback.Result.ToString();
                     manualResetEvent.Set();
 
                 });
@@ -1318,7 +1324,7 @@ namespace MassProvisioning
                     if (callback.Result.Success)
                         RbContact = callback.Data;
                     else
-                        message = Util.SerializeSdkError(callback.Result);
+                        message = callback.Result.ToString();
                     manualResetEvent.Set();
 
                 });
@@ -1347,7 +1353,7 @@ namespace MassProvisioning
 
             String message = "";
             Object lockObject = new object();
-            
+
             List<String> usersToDelete = new List<string>(usersToDeleteById);
             List<String> usersDeleted = new List<string>();
 
@@ -1382,14 +1388,14 @@ namespace MassProvisioning
                         if (!callback.Result.Success)
                         {
                             userDeletionError = true;
-                            message = Util.SerializeSdkError(callback.Result);
+                            message = callback.Result.ToString();
 
                             if (callback.Result.IncorrectUseError != null)
                             {
                                 if (callback.Result.IncorrectUseError.ErrorCode == 409) // User already deleted
                                     userDeletionError = false;
                             }
-                                
+
                         }
 
                         if (userDeletionError)
@@ -1438,7 +1444,7 @@ namespace MassProvisioning
                 return false;
 
             // Create list of users to delete avoiding company_admin
-            foreach(Rainbow.Model.Contact contactItem in contacts)
+            foreach (Rainbow.Model.Contact contactItem in contacts)
             {
                 if (!contactItem.LoginEmail.Equals(CompanyAdmin.Email, StringComparison.InvariantCultureIgnoreCase))
                 {
@@ -1450,9 +1456,9 @@ namespace MassProvisioning
 
         }
 
-        private List<Rainbow.Model.Bubble.Member> GetAllBubbleMembers(String bubbleId)
+        private List<Rainbow.Model.BubbleMember> GetAllBubbleMembers(String bubbleId)
         {
-            List<Rainbow.Model.Bubble.Member> result = null;
+            List<Rainbow.Model.BubbleMember> result = null;
 
             String message = "";
             ManualResetEvent manualResetEvent = new ManualResetEvent(false);
@@ -1467,7 +1473,7 @@ namespace MassProvisioning
                     result = callback.Data;
                 else
                 {
-                    message = Util.SerializeSdkError(callback.Result);
+                    message = callback.Result.ToString();
                     log.LogError($"Cannot get the list of members - Error[{message}]");
                 }
 
@@ -1500,7 +1506,7 @@ namespace MassProvisioning
                     result = callback.Data;
                 else
                 {
-                    message = Util.SerializeSdkError(callback.Result);
+                    message = callback.Result.ToString();
                     log.LogError($"Cannot get the list of bubbles - Error[{message}]");
                 }
 
@@ -1508,7 +1514,7 @@ namespace MassProvisioning
             });
             manualResetEvent.WaitOne();
 
-            if(result!=null)
+            if (result != null)
                 AddStatusMessage($"\tGet all bubbles - Nb Bubbles[{result.Count}]- START");
             else
                 AddStatusMessage($"\t\t*** ERROR *** - Cannot get the list of bubbles :[{message}");
@@ -1526,7 +1532,7 @@ namespace MassProvisioning
             return LoginAs(CompanyAdmin.Email, CompanyAdmin.Password, "company_admin");
         }
 
-        private Boolean LoginAs(String login, String pwd, String nameForLog )
+        private Boolean LoginAs(String login, String pwd, String nameForLog)
         {
             String message = "";
 
@@ -1535,7 +1541,7 @@ namespace MassProvisioning
             rbApplication.Login(login, pwd, callback =>
             {
                 if (!callback.Result.Success)
-                    message = Util.SerializeSdkError(callback.Result);
+                    message = callback.Result.ToString();
             });
 
             // Login step is a asynchronous call - we need to wait event "InitializationPerformed" or "ConnectionStateChanged" ( with a disconnected state)
@@ -1562,7 +1568,7 @@ namespace MassProvisioning
             rbApplication.Logout(callback =>
             {
                 if (!callback.Result.Success)
-                    message = Util.SerializeSdkError(callback.Result);
+                    message = callback.Result.ToString();
                 manualResetEvent.Set();
 
             });
