@@ -51,7 +51,7 @@
             // 
             this.cb_Webcams.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cb_Webcams.FormattingEnabled = true;
-            this.cb_Webcams.Location = new System.Drawing.Point(97, 12);
+            this.cb_Webcams.Location = new System.Drawing.Point(91, 12);
             this.cb_Webcams.Name = "cb_Webcams";
             this.cb_Webcams.Size = new System.Drawing.Size(174, 23);
             this.cb_Webcams.TabIndex = 146;
@@ -60,7 +60,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(26, 15);
+            this.label2.Location = new System.Drawing.Point(20, 15);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(62, 15);
             this.label2.TabIndex = 145;
@@ -69,9 +69,9 @@
             // pb_VideoStream
             // 
             this.pb_VideoStream.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.pb_VideoStream.Location = new System.Drawing.Point(12, 116);
+            this.pb_VideoStream.Location = new System.Drawing.Point(6, 145);
             this.pb_VideoStream.Name = "pb_VideoStream";
-            this.pb_VideoStream.Size = new System.Drawing.Size(320, 240);
+            this.pb_VideoStream.Size = new System.Drawing.Size(320, 180);
             this.pb_VideoStream.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.pb_VideoStream.TabIndex = 229;
             this.pb_VideoStream.TabStop = false;
@@ -81,7 +81,7 @@
             this.cb_WebcamSize.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cb_WebcamSize.Enabled = false;
             this.cb_WebcamSize.FormattingEnabled = true;
-            this.cb_WebcamSize.Location = new System.Drawing.Point(97, 41);
+            this.cb_WebcamSize.Location = new System.Drawing.Point(91, 41);
             this.cb_WebcamSize.Name = "cb_WebcamSize";
             this.cb_WebcamSize.Size = new System.Drawing.Size(119, 23);
             this.cb_WebcamSize.TabIndex = 230;
@@ -90,7 +90,7 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(64, 44);
+            this.label1.Location = new System.Drawing.Point(58, 44);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(30, 15);
             this.label1.TabIndex = 231;
@@ -100,7 +100,7 @@
             // 
             this.label8.AutoSize = true;
             this.label8.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.label8.Location = new System.Drawing.Point(65, 74);
+            this.label8.Location = new System.Drawing.Point(59, 74);
             this.label8.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label8.Name = "label8";
             this.label8.Size = new System.Drawing.Size(27, 13);
@@ -110,7 +110,7 @@
             // tb_WebcamFps
             // 
             this.tb_WebcamFps.Enabled = false;
-            this.tb_WebcamFps.Location = new System.Drawing.Point(96, 70);
+            this.tb_WebcamFps.Location = new System.Drawing.Point(90, 70);
             this.tb_WebcamFps.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
             this.tb_WebcamFps.Name = "tb_WebcamFps";
             this.tb_WebcamFps.Size = new System.Drawing.Size(43, 23);
@@ -119,7 +119,7 @@
             // lbl_WebcamMaxFps
             // 
             this.lbl_WebcamMaxFps.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.lbl_WebcamMaxFps.Location = new System.Drawing.Point(143, 74);
+            this.lbl_WebcamMaxFps.Location = new System.Drawing.Point(137, 74);
             this.lbl_WebcamMaxFps.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.lbl_WebcamMaxFps.Name = "lbl_WebcamMaxFps";
             this.lbl_WebcamMaxFps.Size = new System.Drawing.Size(72, 13);
@@ -131,7 +131,7 @@
             this.btn_WebcamSet.Enabled = false;
             this.btn_WebcamSet.FlatAppearance.BorderSize = 0;
             this.btn_WebcamSet.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.btn_WebcamSet.Location = new System.Drawing.Point(217, 70);
+            this.btn_WebcamSet.Location = new System.Drawing.Point(211, 70);
             this.btn_WebcamSet.Margin = new System.Windows.Forms.Padding(0);
             this.btn_WebcamSet.Name = "btn_WebcamSet";
             this.btn_WebcamSet.Size = new System.Drawing.Size(54, 23);
@@ -143,7 +143,7 @@
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(49, 365);
+            this.label6.Location = new System.Drawing.Point(10, 121);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(42, 15);
             this.label6.TabIndex = 368;
@@ -151,16 +151,16 @@
             // 
             // tb_NameOfNewInputStream
             // 
-            this.tb_NameOfNewInputStream.Location = new System.Drawing.Point(97, 362);
+            this.tb_NameOfNewInputStream.Location = new System.Drawing.Point(58, 118);
             this.tb_NameOfNewInputStream.Name = "tb_NameOfNewInputStream";
-            this.tb_NameOfNewInputStream.Size = new System.Drawing.Size(158, 23);
+            this.tb_NameOfNewInputStream.Size = new System.Drawing.Size(195, 23);
             this.tb_NameOfNewInputStream.TabIndex = 367;
             // 
             // btn_AddNewInputStream
             // 
-            this.btn_AddNewInputStream.Location = new System.Drawing.Point(261, 362);
+            this.btn_AddNewInputStream.Location = new System.Drawing.Point(259, 118);
             this.btn_AddNewInputStream.Name = "btn_AddNewInputStream";
-            this.btn_AddNewInputStream.Size = new System.Drawing.Size(71, 23);
+            this.btn_AddNewInputStream.Size = new System.Drawing.Size(67, 23);
             this.btn_AddNewInputStream.TabIndex = 366;
             this.btn_AddNewInputStream.Text = "Add";
             this.btn_AddNewInputStream.UseVisualStyleBackColor = true;
@@ -171,7 +171,7 @@
             this.btn_RefreshWebcam.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.btn_RefreshWebcam.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btn_RefreshWebcam.ForeColor = System.Drawing.SystemColors.Control;
-            this.btn_RefreshWebcam.Location = new System.Drawing.Point(316, 16);
+            this.btn_RefreshWebcam.Location = new System.Drawing.Point(310, 16);
             this.btn_RefreshWebcam.Name = "btn_RefreshWebcam";
             this.btn_RefreshWebcam.Size = new System.Drawing.Size(16, 16);
             this.btn_RefreshWebcam.TabIndex = 369;
@@ -184,7 +184,7 @@
             this.btn_StartWebcam.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.btn_StartWebcam.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btn_StartWebcam.ForeColor = System.Drawing.SystemColors.Control;
-            this.btn_StartWebcam.Location = new System.Drawing.Point(276, 16);
+            this.btn_StartWebcam.Location = new System.Drawing.Point(270, 16);
             this.btn_StartWebcam.Name = "btn_StartWebcam";
             this.btn_StartWebcam.Size = new System.Drawing.Size(16, 16);
             this.btn_StartWebcam.TabIndex = 370;
@@ -197,7 +197,7 @@
             this.btn_StopWebcam.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.btn_StopWebcam.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btn_StopWebcam.ForeColor = System.Drawing.SystemColors.Control;
-            this.btn_StopWebcam.Location = new System.Drawing.Point(294, 16);
+            this.btn_StopWebcam.Location = new System.Drawing.Point(288, 16);
             this.btn_StopWebcam.Name = "btn_StopWebcam";
             this.btn_StopWebcam.Size = new System.Drawing.Size(16, 16);
             this.btn_StopWebcam.TabIndex = 371;
@@ -208,7 +208,7 @@
             // 
             this.lbl_Info.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.lbl_Info.ForeColor = System.Drawing.Color.Red;
-            this.lbl_Info.Location = new System.Drawing.Point(12, 100);
+            this.lbl_Info.Location = new System.Drawing.Point(6, 100);
             this.lbl_Info.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.lbl_Info.Name = "lbl_Info";
             this.lbl_Info.Size = new System.Drawing.Size(320, 13);
@@ -220,7 +220,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(346, 393);
+            this.ClientSize = new System.Drawing.Size(331, 330);
             this.Controls.Add(this.lbl_Info);
             this.Controls.Add(this.btn_StartWebcam);
             this.Controls.Add(this.btn_StopWebcam);
@@ -241,6 +241,7 @@
             this.Text = "FormWebcam";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.FormWebcam_FormClosing);
             this.Shown += new System.EventHandler(this.FormWebcam_Shown);
+            this.ClientSizeChanged += new System.EventHandler(this.FormWebcam_ClientSizeChanged);
             ((System.ComponentModel.ISupportInitialize)(this.pb_VideoStream)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();

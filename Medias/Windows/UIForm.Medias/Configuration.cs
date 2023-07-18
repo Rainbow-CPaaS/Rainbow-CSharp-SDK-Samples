@@ -1,9 +1,10 @@
-﻿using System;
-using Newtonsoft.Json;
-using NLog.Config;
-using System.Windows.Forms;
+﻿using NLog.Config;
+using Rainbow;
+using Rainbow.SimpleJSON;
+using System;
 using System.IO;
 using System.Collections.Generic;
+using System.Windows.Forms;
 
 namespace SDK.UIForm.WebRTC
 {
@@ -50,7 +51,7 @@ namespace SDK.UIForm.WebRTC
 
         private Configuration()
         {
-            if (ParseConfigFile() && CheckRainbowInfo() && CheckAccount() && CheckSDL2Libraries() && CheckFFmpegLibraries())
+            if (ParseConfigFile()  && CheckSDL2Libraries() && CheckFFmpegLibraries())
             {
                 _initialized = true;
                 if (!InitLogsWithNLog())
@@ -155,7 +156,7 @@ namespace SDK.UIForm.WebRTC
             try
             {
                 String jsonConfig = File.ReadAllText(configFilePath);
-                var json = JsonConvert.DeserializeObject<dynamic>(jsonConfig);
+                var json = JSON.Parse(jsonConfig);
 
                 if (json == null)
                 {
@@ -165,19 +166,19 @@ namespace SDK.UIForm.WebRTC
 
                 // FFmpeg
                 if (json["ffmpegLibFolderPath"] != null)
-                    _ffmpegLibPath = json["ffmpegLibFolderPath"].ToString();
+                    _ffmpegLibPath = UtilJson.AsString(json, "ffmpegLibFolderPath");
                 else
                     message += $"\r\nCannot read 'ffmpegLibFolderPath' property";
 
                 // NLog
                 if (json["nlogConfigFilePath"] != null)
-                    _nlogConfigFilePath = json["nlogConfigFilePath"].ToString();
+                    _nlogConfigFilePath = UtilJson.AsString(json, "nlogConfigFilePath");
                 else
                     message += $"\r\nCannot read 'nlogConfigFilePath' property";
 
                 // Medias
                 if (json["mediasConfigFilePath"] != null)
-                    _mediasConfigFilePath = json["mediasConfigFilePath"].ToString();
+                    _mediasConfigFilePath = UtilJson.AsString(json, "mediasConfigFilePath");
                 else
                     message += $"\r\nCannot read 'mediasConfigFilePath' property";
 
@@ -187,17 +188,17 @@ namespace SDK.UIForm.WebRTC
                     var jobject = json["serverConfig"];
 
                     if (jobject["appId"] != null)
-                        _appId = jobject["appId"].ToString();
+                        _appId = UtilJson.AsString(jobject, "appId");
                     else
                         message += $"\r\nCannot read 'appId' property in 'serverConfig' object";
 
                     if (jobject["appSecret"] != null)
-                        _appSecret = jobject["appSecret"].ToString();
+                        _appSecret = UtilJson.AsString(jobject, "appSecret");
                     else
                         message += $"\r\nCannot read 'apappSecretpId' property in 'serverConfig' object";
 
                     if (jobject["hostname"] != null)
-                        _hostname = jobject["hostname"].ToString();
+                        _hostname = UtilJson.AsString(jobject, "hostname");
                     else
                         message += $"\r\nCannot read 'hostname' property in 'serverConfig' object";
                 }
@@ -210,17 +211,17 @@ namespace SDK.UIForm.WebRTC
                     var jobject = json["userConfig"];
 
                     if (jobject["login"] != null)
-                        _userLogin = jobject["login"].ToString();
+                        _userLogin = UtilJson.AsString(jobject, "login");
                     else
                         message += $"\r\nCannot read 'appId' property in 'userConfig' object";
 
                     if (jobject["password"] != null)
-                        _userPassword = jobject["password"].ToString();
+                        _userPassword = UtilJson.AsString(jobject, "password");
                     else
                         message += $"\r\nCannot read 'password' property in 'userConfig' object";
 
                     if (jobject["autoLogin"] != null)
-                        _autoLogin = (Boolean)jobject["autoLogin"];
+                        _autoLogin = UtilJson.AsBoolean(jobject, "autoLogin");
                     else
                         message += $"\r\nCannot read 'autoLogin' property in 'userConfig' object";
                 }

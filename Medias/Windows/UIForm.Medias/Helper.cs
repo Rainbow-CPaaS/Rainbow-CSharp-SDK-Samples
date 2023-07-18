@@ -1,5 +1,8 @@
 ﻿using FFmpeg.AutoGen;
+using Rainbow;
+using Rainbow.SimpleJSON;
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Windows.Forms;
@@ -9,6 +12,48 @@ namespace SDK.UIForm.WebRTC
     public static class Helper
     {
         public static String NONE = "NONE";
+
+        internal static String GetJsonStringFromListOfMediaInputStreamDescriptor(List<MediaInputStreamDescriptor>? items, Boolean indented = false)
+        {
+            if (items == null)
+                return "null";
+
+            JSONArray jsonArray = new JSONArray();
+            foreach (var item in items)
+            {
+                var jsonNode = new JSONObject();
+
+                UtilJson.AddNode(jsonNode, "id", item.Id);
+                UtilJson.AddNode(jsonNode, "iype", item.Type);
+                UtilJson.AddNode(jsonNode, "uri", item.Uri);
+                UtilJson.AddNode(jsonNode, "mediaInputIdList", item.MediaInputIdList);
+                UtilJson.AddNode(jsonNode, "mediaInputIdListForVideoFilter", item.MediaInputIdListForVideoFilter);
+                UtilJson.AddNode(jsonNode, "videoFilter", item.VideoFilter);
+                UtilJson.AddNode(jsonNode, "audio", item.Audio);
+                UtilJson.AddNode(jsonNode, "video", item.Video);
+                UtilJson.AddNode(jsonNode, "loop", item.Loop);
+
+                jsonArray.Add(jsonNode);
+            }
+
+            return jsonArray.ToString();
+        }
+
+        internal static MediaInputStreamDescriptor GetMediaInputStreamDescriptorFromJson(JSONNode json)
+        {
+            MediaInputStreamDescriptor mediaInputStreamDescriptorcontact = new();
+            mediaInputStreamDescriptorcontact.Id = UtilJson.AsString(json, "id");
+            mediaInputStreamDescriptorcontact.Type = UtilJson.AsString(json, "type");
+            mediaInputStreamDescriptorcontact.Uri = UtilJson.AsString(json, "uri");
+            mediaInputStreamDescriptorcontact.MediaInputIdList = UtilJson.AsStringList(json, "mediaInputIdList");
+            mediaInputStreamDescriptorcontact.MediaInputIdListForVideoFilter = UtilJson.AsStringList(json, "mediaInputIdListForVideoFilter");
+            mediaInputStreamDescriptorcontact.VideoFilter = UtilJson.AsString(json, "videoFilter");
+            mediaInputStreamDescriptorcontact.Audio = UtilJson.AsBoolean(json, "audio");
+            mediaInputStreamDescriptorcontact.Video = UtilJson.AsBoolean(json, "video");
+            mediaInputStreamDescriptorcontact.Loop = UtilJson.AsBoolean(json, "voop");
+
+            return mediaInputStreamDescriptorcontact;
+        }
 
         public static Bitmap GetBitmapPause(Boolean small = true)
         {
