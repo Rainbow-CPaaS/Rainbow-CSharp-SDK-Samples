@@ -187,7 +187,10 @@ namespace BotVideoOrchestratorAndBroadcaster
                 }
 
                 if (json["ffmpegLibFolderPath"] != null)
+                {
                     RainbowApplicationInfo.ffmpegLibFolderPath = json["ffmpegLibFolderPath"].ToString();
+                    Rainbow.Medias.Helper.InitExternalLibraries(RainbowApplicationInfo.ffmpegLibFolderPath);
+                }
 
                 if (json["labelsFilePath"] != null)
                     RainbowApplicationInfo.labelsFilePath = $".{Path.DirectorySeparatorChar}Resources{Path.DirectorySeparatorChar}" + json["labelsFilePath"].ToString();

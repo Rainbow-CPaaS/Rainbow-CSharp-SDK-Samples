@@ -1,18 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Stateless;
-using Stateless.Graph;
+﻿using AdaptiveCards.Templating;
 using Rainbow;
 using Rainbow.Model;
 using Rainbow.Events;
+using Rainbow.SimpleJSON;
+using Stateless;
+using Stateless.Graph;
+using System;
 using System.Collections.Concurrent;
-using AdaptiveCards.Templating;
-using Newtonsoft.Json;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using System.Linq.Expressions;
-using System.Web;
+
 
 namespace BotVideoOrchestratorAndBroadcaster
 {
@@ -130,6 +128,7 @@ namespace BotVideoOrchestratorAndBroadcaster
         private Rainbow.InstantMessaging RbInstantMessaging;
         private Rainbow.Invitations RbInvitations;
 
+        private Rainbow.WebRTC.Desktop.WebRTCFactory RbWebRTCDesktopFactory;
         private Rainbow.WebRTC.WebRTCCommunications RbWebRTCCommunications;
 
         private int _messageCount = 0;
@@ -169,16 +168,16 @@ namespace BotVideoOrchestratorAndBroadcaster
 
             // Configure the Connecting state
             _machine.Configure(State.Authenticated)
-                .Permit(Trigger.InitializationPerformed, State.Initialized)
-                .Permit(Trigger.Disconnect, State.AutoReconnection);
-
-            // Configure the Connected state
-            _machine.Configure(State.Initialized)
                 .Permit(Trigger.Connect, State.Connected)
                 .Permit(Trigger.Disconnect, State.AutoReconnection);
 
             // Configure the Connected state
             _machine.Configure(State.Connected)
+                .Permit(Trigger.InitializationPerformed, State.Initialized)
+                .Permit(Trigger.Disconnect, State.AutoReconnection);
+
+            // Configure the Connected state
+            _machine.Configure(State.Initialized)
                 .OnEntry(CheckConnectedStateAndDequeudMessages)
 
                 .Permit(Trigger.Disconnect, State.AutoReconnection)
@@ -195,7 +194,7 @@ namespace BotVideoOrchestratorAndBroadcaster
             // Configure the JoinConference state
             _machine.Configure(State.JoinConference)
                 .OnEntry(JoinConference)
-                .Permit(Trigger.ActionDone, State.Connected);
+                .Permit(Trigger.ActionDone, State.Initialized);
 
             // Configure the AutoReconnection state
             _machine.Configure(State.AutoReconnection)
@@ -208,12 +207,12 @@ namespace BotVideoOrchestratorAndBroadcaster
             // Configure the BubbleInvitationReceived state
             _machine.Configure(State.BubbleInvitationReceived)
                 .OnEntryFrom(_bubbleInvitationReceivedTrigger, AnswerToBubbleInvitation)
-                .Permit(Trigger.BubbleInvitationManaged, State.Connected);
+                .Permit(Trigger.BubbleInvitationManaged, State.Initialized);
 
             // Configure the InvitationReceived state
             _machine.Configure(State.UserInvitationReceived)
                 .OnEntryFrom(_userInvitationReceivedTrigger, AnswerToUserInvitation)
-                .Permit(Trigger.UserInvitationManaged, State.Connected);
+                .Permit(Trigger.UserInvitationManaged, State.Initialized);
 
             // Configure the StopMessageReceived state
             _machine.Configure(State.StopMessageReceived)
@@ -223,12 +222,12 @@ namespace BotVideoOrchestratorAndBroadcaster
             // Configure the HelpMessageReceived state
             _machine.Configure(State.HelpMessageReceived)
                 .OnEntryFrom(_helpMessageReceivedTrigger, AnswerToMenuMessage)
-                .Permit(Trigger.MessageManaged, State.Connected);
+                .Permit(Trigger.MessageManaged, State.Initialized);
 
             // Configure the MessageFromPeer state
             _machine.Configure(State.MessageFromPeer)
                 .OnEntryFrom(_messageReceivedFromPeerTrigger, AnswerToPeerMessage)
-                .Permit(Trigger.MessageManaged, State.Connected);
+                .Permit(Trigger.MessageManaged, State.Initialized);
 
             _machine.OnUnhandledTrigger((state, trigger) => Util.WriteWarningToConsole($"[{_botName}] OnUnhandledTrigger - State: {state} with Trigger: {trigger}"));
 
@@ -408,7 +407,7 @@ namespace BotVideoOrchestratorAndBroadcaster
                     }
                     else
                     {
-                        Util.WriteErrorToConsole($"[{_botName}] Cannot UPDATE Adaptive Card in ConversationId:[{key}] - MessageID:[{previousMessageId}] - Exception:[{Rainbow.Util.SerializeSdkError(callback.Result)}]");
+                        Util.WriteErrorToConsole($"[{_botName}] Cannot UPDATE Adaptive Card in ConversationId:[{key}] - MessageID:[{previousMessageId}] - Exception:[{callback.Result}]");
                     }
                 });
             }
@@ -532,9 +531,18 @@ namespace BotVideoOrchestratorAndBroadcaster
 
             foreach (var bot in botVideoBroadcasterInfos)
             {
+                String uri = bot.Uri;
+                if (uri.StartsWith('"'))
+                    uri = bot.Uri.Substring(1);
+                if (uri.EndsWith('"'))
+                    uri = bot.Uri.Substring(0, bot.Uri.Length-1);
+
+                if (String.IsNullOrEmpty(uri))
+                    uri = RainbowApplicationInfo.labelNoVideo;
+
                 String info = "{";
                 info += $"\r\n\"name\": \"{bot.Name}\",";
-                info += $"\r\n\"uri\": \"{bot.Uri.Replace("\\", "\\\\")}\",";
+                info += $"\r\n\"uri\": \"{uri.Replace("\\", "\\\\")}\",";
                 info += $"\r\n\"checked\": \"{(bot.Selected ? "true" : "false")}\"";
                 info += "}";
 
@@ -580,7 +588,7 @@ namespace BotVideoOrchestratorAndBroadcaster
             }
             result += $"\r\n\"sharingStreamSelected\": \"{sharingUri.Replace("\\", "\\\\")}\",";
             result += $"\r\n\"sharingSelected\": \"{sharingSelected}\",";
-            result += $"\r\n\"sharingSelection\": [{String.Join(",", sharingSelection)}],";
+            result += $"\r\n\"sharingSelection\": [{String.Join(",", sharingSelection)}]";
 
             result += "}";
             return result;
@@ -610,8 +618,8 @@ namespace BotVideoOrchestratorAndBroadcaster
 
             alternativeContent = new List<MessageAlternativeContent> { messageAlternativeContent };
             // Get title of the question
-            var json = JsonConvert.DeserializeObject<dynamic>(jsonData);
-            message = json?.GetValue("title").ToObject<string>();
+            var json = JSON.Parse(jsonData);
+            message = UtilJson.AsString(json, "title");
             if (String.IsNullOrEmpty(message))
                 message = " "; // => Due to a bug in WebClient must not be empty/null
 
@@ -660,8 +668,8 @@ namespace BotVideoOrchestratorAndBroadcaster
 
             alternativeContent = new List<MessageAlternativeContent> { messageAlternativeContent };
             // Get title of the question
-            var json = JsonConvert.DeserializeObject<dynamic>(jsonData);
-            message = json?.GetValue("title").ToObject<string>();
+            var json = JSON.Parse(jsonData);
+            message = UtilJson.AsString(json, "title");
             if (String.IsNullOrEmpty(message))
                 message = " "; // => Due to a bug in WebClient must not be empty/null
 
@@ -707,7 +715,7 @@ namespace BotVideoOrchestratorAndBroadcaster
                                     }
                                     else
                                     {
-                                        Util.WriteErrorToConsole($"[{_botName}] MENU Message received from a Bot Manager - Cannot UPDATE Adaptive Card in ConversationId:[{key}] - Exception:[{Rainbow.Util.SerializeSdkError(callback.Result)}]");
+                                        Util.WriteErrorToConsole($"[{_botName}] MENU Message received from a Bot Manager - Cannot UPDATE Adaptive Card in ConversationId:[{key}] - Exception:[{callback.Result}]");
                                     }
                                     pause.Set();
                                 });
@@ -727,7 +735,7 @@ namespace BotVideoOrchestratorAndBroadcaster
                                     }
                                     else
                                     {
-                                        Util.WriteErrorToConsole($"[{_botName}] MENU Message received from a Bot Manager - Cannot SEND Adaptive Card in ConversationId:[{messageEvent.ConversationId}] - Exception:[{Rainbow.Util.SerializeSdkError(callback.Result)}]");
+                                        Util.WriteErrorToConsole($"[{_botName}] MENU Message received from a Bot Manager - Cannot SEND Adaptive Card in ConversationId:[{messageEvent.ConversationId}] - Exception:[{callback.Result}]");
                                     }
                                     pause.Set();
                                 });
@@ -773,13 +781,13 @@ namespace BotVideoOrchestratorAndBroadcaster
                 {
                     Util.WriteDebugToConsole($"[{_botName}] Message received from a Bot Manager using AdaptiveCard");
 
-                    var json = JsonConvert.DeserializeObject<dynamic>(alternateContent);
+                    var json = JSON.Parse(alternateContent);
                     if(json != null)
                     {
                         // Check first if we have to stop or not
                         if ( (json["rainbow"] != null) && (json["rainbow"]["id"] != null) )
                         {
-                            if(json["rainbow"]["id"].ToString() == "stop")
+                            if(json["rainbow"]["id"].Value == "stop")
                             {
                                 FireTrigger(Trigger.MessageManaged);
                                 FireTrigger(Trigger.StopMessage);
@@ -799,11 +807,11 @@ namespace BotVideoOrchestratorAndBroadcaster
                         string sharingStreamChoiceSet = "";
 
                         if (json["Sharing_ChoiceSet"] != null)
-                            sharingChoiceSet = json["Sharing_ChoiceSet"].ToString() ;
+                            sharingChoiceSet = UtilJson.AsString(json, "Sharing_ChoiceSet");
 
                         if (json["SharingStream_ChoiceSet"] != null)
                         {
-                            sharingStreamChoiceSet = json["SharingStream_ChoiceSet"].ToString();
+                            sharingStreamChoiceSet = UtilJson.AsString(json, "SharingStream_ChoiceSet");
                             if (sharingStreamChoiceSet.Equals(RainbowApplicationInfo.labelNoVideo))
                                 sharingStreamChoiceSet = "";
                         }
@@ -811,10 +819,10 @@ namespace BotVideoOrchestratorAndBroadcaster
                         int index = 0;
                         foreach(var bot in botVideoBroadcasterInfos)
                         {
-                            if ((json[$"BOT{index}_Toggle"] != null) && (json[$"BOT{index}_ChoiceSet"] != null))
+                            toggle = UtilJson.AsString(json, $"BOT{index}_Toggle");
+                            choiceSet = UtilJson.AsString(json, $"BOT{index}_ChoiceSet");
+                            if ( (!String.IsNullOrEmpty(toggle)) && (!String.IsNullOrEmpty(choiceSet)) ) 
                             {
-                                toggle = json[$"BOT{index}_Toggle"].ToString();
-                                choiceSet = json[$"BOT{index}_ChoiceSet"].ToString();
                                 if (choiceSet.Equals(RainbowApplicationInfo.labelNoVideo))
                                     choiceSet = "";
 
@@ -845,8 +853,8 @@ namespace BotVideoOrchestratorAndBroadcaster
                                     dataToSend.Add("useName", videoTitle);
                                     dataToSend.Add("videoUri", bot.Uri);
                                     dataToSend.Add("sharingUri", bot.SharingUri);
-
-                                    String dataToSendJsonString = Rainbow.Util.GetJsonStringFromDictionary(dataToSend);
+                                    
+                                    String dataToSendJsonString = UtilJson.JsonStringFromDictionaryOfStringAndObject(dataToSend);
                                     //Console.WriteLine($"[{_botName}] Message to send to [{bot.Name}]: [{dataToSendJsonString}]");
 
                                     var conversation = RbConversations.GetOrCreateConversationFromUserId(bot.Id);
@@ -891,7 +899,7 @@ namespace BotVideoOrchestratorAndBroadcaster
                                     }
                                     else
                                     {
-                                        Util.WriteErrorToConsole($"[{_botName}] MENU Message received from a Bot Manager - Cannot UPDATE Adaptive Card in ConversationId:[{key}] - Exception:[{Rainbow.Util.SerializeSdkError(callback.Result)}]");
+                                        Util.WriteErrorToConsole($"[{_botName}] MENU Message received from a Bot Manager - Cannot UPDATE Adaptive Card in ConversationId:[{key}] - Exception:[{callback.Result}]");
                                     }
                                 });
                             }
@@ -1007,7 +1015,7 @@ namespace BotVideoOrchestratorAndBroadcaster
                                                 {  
                                                     if(!callback.Result.Success)
                                                     {
-                                                        Util.WriteErrorToConsole($"[{_botName}] The bot [{bot.Name}] is not a member of this bubble AND we cannot add it: Exception[{Rainbow.Util.SerializeSdkError(callback.Result)}]");
+                                                        Util.WriteErrorToConsole($"[{_botName}] The bot [{bot.Name}] is not a member of this bubble AND we cannot add it: Exception[{callback.Result}]");
                                                     }
                                                 }, true);
                                             }
@@ -1050,7 +1058,7 @@ namespace BotVideoOrchestratorAndBroadcaster
                     if (!callback.Result.Success)
                     {
                         _currentConferenceId = null;
-                        Util.WriteErrorToConsole($"[{_botName}] Cannot Join Conference - BubbleID:[{_currentConferenceId}] - Error:[{Rainbow.Util.SerializeSdkError(callback.Result)}");
+                        Util.WriteErrorToConsole($"[{_botName}] Cannot Join Conference - BubbleID:[{_currentConferenceId}] - Error:[{callback.Result}");
                     }
                 });
             }
@@ -1086,17 +1094,11 @@ namespace BotVideoOrchestratorAndBroadcaster
             // We want to use always the same resource id when we connect to the event server
             RbApplication.Restrictions.UseSameResourceId = true;
 
-            // We want to auto reconnect in case of network trouble
-            RbApplication.Restrictions.AutoReconnection = true;
-
             // We use XMPP for event mode
             RbApplication.Restrictions.EventMode = Restrictions.SDKEventMode.XMPP;
 
             // We want to use conference features
             RbApplication.Restrictions.UseConferences = true;
-
-            // We want edition / deletion of IM message via API V2
-            RbApplication.Restrictions.UseMessageEditionAndDeletionV2 = true;
 
             // We want to use WebRTC
             RbApplication.Restrictions.UseWebRTC = true;
@@ -1126,7 +1128,8 @@ namespace BotVideoOrchestratorAndBroadcaster
 
             try
             {
-                RbWebRTCCommunications = Rainbow.WebRTC.WebRTCCommunications.GetOrCreateInstance(RbApplication, RainbowApplicationInfo.ffmpegLibFolderPath);
+                RbWebRTCDesktopFactory = new Rainbow.WebRTC.Desktop.WebRTCFactory();
+                RbWebRTCCommunications = Rainbow.WebRTC.WebRTCCommunications.GetOrCreateInstance(RbApplication, RbWebRTCDesktopFactory);
             }
             catch (Exception ex)
             {
@@ -1230,8 +1233,7 @@ namespace BotVideoOrchestratorAndBroadcaster
             switch(e.State)
             {
                 case ConnectionState.Connected:
-                    if(RbApplication.IsInitialized())
-                        FireTrigger(Trigger.Connect);
+                    FireTrigger(Trigger.Connect);
                     break;
 
                 case ConnectionState.Disconnected:
