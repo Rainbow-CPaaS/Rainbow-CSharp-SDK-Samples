@@ -8,6 +8,7 @@ using System.IO;
 using System.Threading;
 using static DirectShowLib.MediaSubType;
 using Microsoft.Extensions.Logging.Abstractions;
+using Rainbow.WebRTC.Abstractions;
 
 namespace SDK.ConsoleApp.WebRTC
 {
@@ -58,6 +59,8 @@ namespace SDK.ConsoleApp.WebRTC
         static Rainbow.Contacts? rbContacts;
         static Rainbow.Bubbles? rbBubbles;
         static Rainbow.Conferences? rbConferences;
+
+        static Rainbow.WebRTC.Desktop.WebRTCFactory? rbWebRTCDesktopFactory;
         static Rainbow.WebRTC.WebRTCCommunications? rbWebRTCCommunications;
 
         // Define devices which will be used in WebRtc Conversation
@@ -114,6 +117,8 @@ namespace SDK.ConsoleApp.WebRTC
             if (!CheckFFmpegLibFolderPath())
                 return;
 
+            Rainbow.Medias.Helper.InitExternalLibraries(ApplicationInfo.FFMPEG_LIB_FOLDER_PATH);
+
             // Create Rainbow.Application
             rbApplication = new Rainbow.Application();
             rbApplication.SetApplicationInfo(ApplicationInfo.APP_ID, ApplicationInfo.APP_SECRET_KEY);
@@ -142,7 +147,8 @@ namespace SDK.ConsoleApp.WebRTC
                 // Do we use audio onyl ?
                 //Rainbow.WebRTC.WebRTCCommunications.USE_ONLY_MICROPHONE_OR_HEADSET = ApplicationInfo.USE_ONLY_MICROPHONE_OR_HEADSET; //  /!\ We have to set this BEFORE TO CREATE rbCommunication object
 
-                rbWebRTCCommunications = Rainbow.WebRTC.WebRTCCommunications.GetOrCreateInstance(rbApplication, ApplicationInfo.FFMPEG_LIB_FOLDER_PATH);
+                rbWebRTCDesktopFactory = new Rainbow.WebRTC.Desktop.WebRTCFactory();
+                rbWebRTCCommunications = Rainbow.WebRTC.WebRTCCommunications.GetOrCreateInstance(rbApplication, rbWebRTCDesktopFactory);
             }
             catch (Exception ex)
             {
@@ -207,11 +213,11 @@ namespace SDK.ConsoleApp.WebRTC
                                 if (callback.Result.Type == Rainbow.SdkError.SdkErrorType.IncorrectUse)
                                 {
                                     Console.WriteLine("User / password are incorrect - you have to set correct credentials. Check also if APP_ID / APP_SECRET_KEY / HOST_NAME are correct.");
-                                    Console.WriteLine($"Exception:[{Rainbow.Util.SerializeSdkError(callback.Result)}]");
+                                    Console.WriteLine($"Exception:[{callback.Result}]");
                                 }
                                 else
                                 {
-                                    Console.WriteLine($"An error occurred\nException:[{Rainbow.Util.SerializeSdkError(callback.Result)}]");
+                                    Console.WriteLine($"An error occurred\nException:[{callback.Result}");
                                 }
                                 quitApp = true;
                             }
@@ -315,7 +321,7 @@ namespace SDK.ConsoleApp.WebRTC
                                 }
                                 else
                                 {
-                                    Console.WriteLine($"An error occurred - try again\nException:[{Rainbow.Util.SerializeSdkError(callback.Result)}]");
+                                    Console.WriteLine($"An error occurred - try again\nException:[{callback.Result}]");
                                     appStep = APP_STEP.SEARCH_USER_TYPING;
                                 }
                             });
@@ -434,12 +440,14 @@ namespace SDK.ConsoleApp.WebRTC
                         // Save presence for future rollback (once the call is over)
                         rbContacts.SavePresenceFromCurrentContactForRollback();
 
-                        Dictionary<int, IMedia> mediaInputs = new Dictionary<int, IMedia>();
+                        Dictionary<int, IMediaStreamTrack?> mediaInputs = new Dictionary<int, IMediaStreamTrack?>();
                         if(Rainbow.Util.MediasWithVideo(mediasUsed) && (videoInputStream != null))
-                                mediaInputs.Add(Call.Media.VIDEO, videoInputStream);
+                                mediaInputs.Add(Call.Media.VIDEO, rbWebRTCDesktopFactory.CreateVideoTrack(videoInputStream));
 
                         if (Rainbow.Util.MediasWithAudio(mediasUsed) && (audioInputStream != null))
-                            mediaInputs.Add(Call.Media.AUDIO, audioInputStream);
+                            mediaInputs.Add(Call.Media.AUDIO, rbWebRTCDesktopFactory.CreateAudioTrack(audioInputStream));
+                        else
+                            mediaInputs.Add(Call.Media.AUDIO, rbWebRTCDesktopFactory.CreateEmptyAudioTrack());
 
                         rbWebRTCCommunications.MakeCall(selectedContact.Id, mediaInputs, null, callback =>
                         {
@@ -450,7 +458,7 @@ namespace SDK.ConsoleApp.WebRTC
                             }
                             else
                             {
-                                Console.WriteLine($"\nCannot perform call: {Rainbow.Util.SerializeSdkError(callback.Result)}");
+                                Console.WriteLine($"\nCannot perform call: {callback.Result}");
                                 Console.WriteLine("\nPress a key to continue");
                                 Console.ReadKey();
                                 appStep = APP_STEP.SEARCH_USER_SELECTED_KNOWN;
@@ -513,11 +521,13 @@ namespace SDK.ConsoleApp.WebRTC
                         {
                             var devices = GetDevicesToUse();
 
-                            Dictionary<int, IMedia> mediaInputs = new Dictionary<int, IMedia>();
-                            if(audioInputStream != null)
-                                mediaInputs.Add(Call.Media.AUDIO, audioInputStream);
+                            IAudioStreamTrack? mediaInput;
+                            if (audioInputStream != null)
+                                mediaInput = rbWebRTCDesktopFactory.CreateAudioTrack(audioInputStream);
+                            else
+                                mediaInput = rbWebRTCDesktopFactory.CreateEmptyAudioTrack();
 
-                            rbWebRTCCommunications.JoinConference(currentConfId, mediaInputs, callbackJoinConference =>
+                            rbWebRTCCommunications.JoinConference(currentConfId, mediaInput, callbackJoinConference =>
                             {
                                 currentCallId = currentConfId;
                             });
@@ -712,7 +722,7 @@ namespace SDK.ConsoleApp.WebRTC
                     {
                         videoInputSelected = new InputStreamDevice(fileName, fileName, filePath, true, audioInputSelected?.Path == filePath, true);
                         videoInputStream = new MediaInput(videoInputSelected);
-                        if (!videoInputStream.Init())
+                        if (!videoInputStream.Init(true))
                         {
                             Console.WriteLine($"\n\n\t => {logVideo} {logInput} file/uri selected:[{filePath}] => Cannot init the stream ....");
                             return false;
@@ -730,7 +740,7 @@ namespace SDK.ConsoleApp.WebRTC
                     {
                         audioInputSelected = new InputStreamDevice(fileName, fileName, filePath, false, true, true);
                         audioInputStream = new MediaInput(audioInputSelected);
-                        if (!audioInputStream.Init())
+                        if (!audioInputStream.Init(true))
                         {
                             Console.WriteLine($"\n\n\t => {logVideo} {logInput} file/uri selected:[{filePath}] => Cannot init the stream ....");
                             return false;
@@ -785,7 +795,7 @@ namespace SDK.ConsoleApp.WebRTC
 
         static void CheckIfAddVideoInConference()
         {
-            if ((currentCall == null) || (rbWebRTCCommunications == null))
+            if ((currentCall == null) || (rbWebRTCCommunications == null) || (rbWebRTCDesktopFactory == null) )
                 return;
 
             if ( (!currentCall.IsConference) || (currentCall.CallStatus != Call.Status.ACTIVE) )
@@ -798,8 +808,8 @@ namespace SDK.ConsoleApp.WebRTC
                     if (videoInputSelected != null)
                     {
                         var video = new MediaInput(videoInputSelected);
-                        if ( (!Rainbow.Util.MediasWithVideo(currentCall.LocalMedias))  && (video.Init()) )
-                            rbWebRTCCommunications.AddVideo(currentCall.Id, video);
+                        if ( (!Rainbow.Util.MediasWithVideo(currentCall.LocalMedias))  && (video.Init(true)) )
+                            rbWebRTCCommunications.AddVideo(currentCall.Id, rbWebRTCDesktopFactory.CreateVideoTrack(video));
                     
                     }
                 });

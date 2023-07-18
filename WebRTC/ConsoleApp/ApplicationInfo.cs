@@ -17,11 +17,11 @@ namespace SDK.ConsoleApp.WebRTC
         // To use an audio file instead of an audio input device - the audio file path can be the same than the video file path
         // If specified (i.e. not nulll/empty) the path must be valid
 
-        static internal readonly String AUDIO_FILE_PATH = DEFAULT_VALUE; //@"c:\media\Joy_and_Heron.webm";
+        static internal readonly String AUDIO_FILE_PATH = DEFAULT_VALUE; //@"C:\media\Joy_and_Heron.webm";
 
         // To use a video file instead of an video input device
         // If specified (i.e. not nulll/empty) the path must be valid
-        static internal readonly String VIDEO_FILE_PATH = DEFAULT_VALUE; //@"c:\media\Joy_and_Heron.webm";
+        static internal readonly String VIDEO_FILE_PATH = DEFAULT_VALUE; //@"C:\media\Joy_and_Heron.webm";
 
 
         // DEFINE YOUR APP_ID,  APP_SECRET_KEY and HOST_NAME used

@@ -46,6 +46,8 @@ namespace Rainbow
             _nbLinesForFooter = 0;
         }
 
+
+
         public void SetSize(int width, int height)
         {
             if (!_useConsole)
@@ -110,11 +112,12 @@ namespace Rainbow
             return result;
         }
 
-        private void MediaFiltered_OnVideoFrame(string mediaId, EmguFFmpeg.MediaFrame mediaFrame)
+
+        private void MediaFiltered_OnVideoFrame(string mediaId, FFmpegSharp.MediaFrame mediaFrame)
         {
             (Boolean done, Boolean needUpdate) = CheckAndUpdateFilterIfNecessary(_mediaInput, _mediaInput.Width, _mediaInput.Height);
             if (done && !needUpdate)
-                DrawAsciiFrame(mediaFrame.AVFrame);
+                DrawAsciiFrame(mediaFrame.Ref);
         }
 
         private void MediaFiltered_OnImage(string mediaId, int width, int height, int stride, IntPtr data, AVPixelFormat pixelFormat)
