@@ -735,7 +735,7 @@ namespace Sample_Telephony
                     }
                     else
                     {
-                        String output = String.Format("Impossible to get Voice Messages - error:[{0}]", Util.SerializeSdkError(callback.Result));
+                        String output = String.Format("Impossible to get Voice Messages - error:[{0}]", callback.Result);
                         AddStateLine(output);
                         log.LogError(output);
                     }
@@ -768,7 +768,7 @@ namespace Sample_Telephony
                 {
                     if (!callback.Result.Success)
                     {
-                        string logLine = String.Format("Impossible to logout:\r\n{0}", Util.SerializeSdkError(callback.Result));
+                        string logLine = String.Format("Impossible to logout:\r\n{0}", callback.Result);
                         AddStateLine(logLine);
                         log.LogWarning(logLine);
                     }
@@ -789,7 +789,7 @@ namespace Sample_Telephony
                     }
                     else
                     {
-                        string logLine = String.Format("Impossible to login:\r\n{0}", Util.SerializeSdkError(callback.Result));
+                        string logLine = String.Format("Impossible to login:\r\n{0}", callback.Result);
                         AddStateLine(logLine);
                         log.LogWarning(logLine);
                     }
@@ -809,7 +809,7 @@ namespace Sample_Telephony
                         output = "Call fwd deactivated";
                     } else
                     {
-                        output = String.Format("Not possible to deactivate call forward - error:[{0}]", Util.SerializeSdkError(callback.Result));
+                        output = String.Format("Not possible to deactivate call forward - error:[{0}]", callback.Result);
                         log.LogError(output);
                     }
                     AddStateLine(output);
@@ -825,7 +825,7 @@ namespace Sample_Telephony
                     }
                     else
                     {
-                        output = String.Format("Not possible to activate call forward to VM - error:[{0}]", Util.SerializeSdkError(callback.Result));
+                        output = String.Format("Not possible to activate call forward to VM - error:[{0}]", callback.Result);
                         log.LogError(output);
                     }
                     AddStateLine(output);
@@ -842,7 +842,7 @@ namespace Sample_Telephony
                     }
                     else
                     {
-                        output = String.Format("Not possible to activate call forward to phone number [{1}] - error:[{0}]", Util.SerializeSdkError(callback.Result), phoneNumber);
+                        output = String.Format("Not possible to activate call forward to phone number [{1}] - error:[{0}]", callback.Result, phoneNumber);
                         log.LogError(output);
                     }
                     AddStateLine(output);
@@ -865,7 +865,7 @@ namespace Sample_Telephony
                     }
                     else
                     {
-                        output = String.Format("Not possible to set Nomadic to Office Phone - error:[{0}]", Util.SerializeSdkError(callback.Result));
+                        output = String.Format("Not possible to set Nomadic to Office Phone - error:[{0}]", callback.Result);
                         log.LogError(output);
                     }
                     AddStateLine(output);
@@ -881,7 +881,7 @@ namespace Sample_Telephony
                     }
                     else
                     {
-                        output = String.Format("Not possible to set Nomadic to Computer - error:[{0}]", Util.SerializeSdkError(callback.Result));
+                        output = String.Format("Not possible to set Nomadic to Computer - error:[{0}]", callback.Result);
                         log.LogError(output);
                     }
                     AddStateLine(output);
@@ -898,7 +898,7 @@ namespace Sample_Telephony
                     }
                     else
                     {
-                    output = String.Format("Not possible to set Nomadic to phone number [{1}] - error:[{0}]", Util.SerializeSdkError(callback.Result), phoneNumber);
+                    output = String.Format("Not possible to set Nomadic to phone number [{1}] - error:[{0}]", callback.Result, phoneNumber);
                         log.LogError(output);
                     }
                     AddStateLine(output);
@@ -946,7 +946,7 @@ namespace Sample_Telephony
                     {
                         if (!callback.Result.Success)
                         {
-                            String output = String.Format("Impossible to Unhold call [{0}] - Error:[{1}]", pbxCall1.Id, Util.SerializeSdkError(callback.Result));
+                            String output = String.Format("Impossible to Unhold call [{0}] - Error:[{1}]", pbxCall1.Id, callback.Result);
                             AddStateLine(output);
                             log.LogError(output);
                         }
@@ -959,7 +959,7 @@ namespace Sample_Telephony
                     {
                         if(!callback.Result.Success)
                         {
-                            String output = String.Format("Impossible to hold call [{0}] - Error:[{1}]", pbxCall1.Id, Util.SerializeSdkError(callback.Result));
+                            String output = String.Format("Impossible to hold call [{0}] - Error:[{1}]", pbxCall1.Id, callback.Result);
                             AddStateLine(output);
                             log.LogError(output);
                         }
@@ -972,7 +972,7 @@ namespace Sample_Telephony
                     {
                         if (!callback.Result.Success)
                         {
-                            String output = String.Format("Impossible to answer call [{0}] - Error:[{1}]", pbxCall1.Id, Util.SerializeSdkError(callback.Result));
+                            String output = String.Format("Impossible to answer call [{0}] - Error:[{1}]", pbxCall1.Id, callback.Result);
                             AddStateLine(output);
                             log.LogError(output);
                         }
@@ -992,7 +992,7 @@ namespace Sample_Telephony
                     {
                         if (!callback.Result.Success)
                         {
-                            String output = String.Format("Impossible to sedn DTMF [{0}] - Error:[{1}]", pbxCall1.Id, Util.SerializeSdkError(callback.Result));
+                            String output = String.Format("Impossible to sedn DTMF [{0}] - Error:[{1}]", pbxCall1.Id, callback.Result);
                             AddStateLine(output);
                             log.LogError(output);
                         }
@@ -1006,7 +1006,7 @@ namespace Sample_Telephony
                     {
                         if (!callback.Result.Success)
                         {
-                            String output = String.Format("Impossible to deflect call to voice mail [{0}] - Error:[{1}]", pbxCall1.Id, Util.SerializeSdkError(callback.Result));
+                            String output = String.Format("Impossible to deflect call to voice mail [{0}] - Error:[{1}]", pbxCall1.Id, callback.Result);
                             AddStateLine(output);
                             log.LogError(output);
                         }
@@ -1024,7 +1024,7 @@ namespace Sample_Telephony
                 {
                     if (!callback.Result.Success)
                     {
-                        String output = String.Format("Impossible to release call [{0}] - Error:[{1}]", pbxCall1.Id, Util.SerializeSdkError(callback.Result));
+                        String output = String.Format("Impossible to release call [{0}] - Error:[{1}]", pbxCall1.Id, callback.Result);
                         AddStateLine(output);
                         log.LogError(output);
                     }
@@ -1043,7 +1043,7 @@ namespace Sample_Telephony
                     {
                         if (!callback.Result.Success)
                         {
-                            String output = String.Format("Impossible to Unhold call [{0}] - Error:[{1}]", pbxCall2.Id, Util.SerializeSdkError(callback.Result));
+                            String output = String.Format("Impossible to Unhold call [{0}] - Error:[{1}]", pbxCall2.Id, callback.Result);
                             AddStateLine(output);
                             log.LogError(output);
                         }
@@ -1056,7 +1056,7 @@ namespace Sample_Telephony
                     {
                         if (!callback.Result.Success)
                         {
-                            String output = String.Format("Impossible to hold call [{0}] - Error:[{1}]", pbxCall2.Id, Util.SerializeSdkError(callback.Result));
+                            String output = String.Format("Impossible to hold call [{0}] - Error:[{1}]", pbxCall2.Id, callback.Result);
                             AddStateLine(output);
                             log.LogError(output);
                         }
@@ -1069,7 +1069,7 @@ namespace Sample_Telephony
                     {
                         if (!callback.Result.Success)
                         {
-                            String output = String.Format("Impossible to answer call [{0}] - Error:[{1}]", pbxCall2.Id, Util.SerializeSdkError(callback.Result));
+                            String output = String.Format("Impossible to answer call [{0}] - Error:[{1}]", pbxCall2.Id, callback.Result);
                             AddStateLine(output);
                             log.LogError(output);
                         }
@@ -1089,7 +1089,7 @@ namespace Sample_Telephony
                     {
                         if (!callback.Result.Success)
                         {
-                            String output = String.Format("Impossible to sedn DTMF [{0}] - Error:[{1}]", pbxCall2.Id, Util.SerializeSdkError(callback.Result));
+                            String output = String.Format("Impossible to sedn DTMF [{0}] - Error:[{1}]", pbxCall2.Id, callback.Result);
                             AddStateLine(output);
                             log.LogError(output);
                         }
@@ -1103,7 +1103,7 @@ namespace Sample_Telephony
                     {
                         if (!callback.Result.Success)
                         {
-                            String output = String.Format("Impossible to deflect call to voice mail [{0}] - Error:[{1}]", pbxCall2.Id, Util.SerializeSdkError(callback.Result));
+                            String output = String.Format("Impossible to deflect call to voice mail [{0}] - Error:[{1}]", pbxCall2.Id, callback.Result);
                             AddStateLine(output);
                             log.LogError(output);
                         }
@@ -1121,7 +1121,7 @@ namespace Sample_Telephony
                 {
                     if (!callback.Result.Success)
                     {
-                        String output = String.Format("Impossible to release call [{0}] - Error:[{1}]", pbxCall2.Id, Util.SerializeSdkError(callback.Result));
+                        String output = String.Format("Impossible to release call [{0}] - Error:[{1}]", pbxCall2.Id, callback.Result);
                         AddStateLine(output);
                         log.LogError(output);
                     }
@@ -1159,7 +1159,7 @@ namespace Sample_Telephony
                     {
                         if (!callback.Result.Success)
                         {
-                            String output = String.Format("Impossible to tranfer the call - Error:[{0}]", Util.SerializeSdkError(callback.Result));
+                            String output = String.Format("Impossible to tranfer the call - Error:[{0}]", callback.Result);
                             AddStateLine(output);
                             log.LogError(output);
                         }
@@ -1198,7 +1198,7 @@ namespace Sample_Telephony
                     {
                         if (!callback.Result.Success)
                         {
-                            String output = String.Format("Impossible to create the conference- Error:[{0}]", Util.SerializeSdkError(callback.Result));
+                            String output = String.Format("Impossible to create the conference- Error:[{0}]", callback.Result);
                             AddStateLine(output);
                             log.LogError(output);
                         }
@@ -1234,7 +1234,7 @@ namespace Sample_Telephony
                     {
                         if (!callback.Result.Success)
                         {
-                            String output = String.Format("Impossible to make a call - Error:[{0}]", Util.SerializeSdkError(callback.Result));
+                            String output = String.Format("Impossible to make a call - Error:[{0}]", callback.Result);
                             AddStateLine(output);
                             log.LogError(output);
                         }
@@ -1247,7 +1247,7 @@ namespace Sample_Telephony
                     {
                         if (!callback.Result.Success)
                         {
-                            String output = String.Format("Impossible to make a call - Error:[{0}]", Util.SerializeSdkError(callback.Result));
+                            String output = String.Format("Impossible to make a call - Error:[{0}]", callback.Result);
                             AddStateLine(output);
                             log.LogError(output);
                         }

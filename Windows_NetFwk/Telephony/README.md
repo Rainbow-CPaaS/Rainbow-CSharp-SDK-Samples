@@ -37,3 +37,13 @@ It's necessary to have an access to a PBX configuration. This kind of configurat
 - To send DTMF
 - To know the status of current calls
 
+You must ensure to set correct information in file **Telephony.cs**:
+- APP_ID
+- APP_SECRET_KEY
+- HOST_NAME
+- LOGIN_USER1
+- PASSWORD_USER1
+
+ ![FormTelephony](./images/FormTelephony.png)
+
+
