@@ -1,9 +1,11 @@
 ﻿using FFmpeg.AutoGen;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
+using Rainbow;
+using Rainbow.SimpleJSON;
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.Text.Json.Nodes;
 using System.Windows.Forms;
 
 namespace SDK.UIForm.WebRTC
@@ -12,25 +14,46 @@ namespace SDK.UIForm.WebRTC
     {
         public static String NONE = "NONE";
 
-        public static String GetJsonStringFromObject<T>(T obj, Boolean indented = false)
+        internal static String GetJsonStringFromListOfMediaInputStreamDescriptor(List<MediaInputStreamDescriptor>? items, Boolean indented = false)
         {
-            if (obj == null)
+            if (items == null)
                 return "null";
 
-            JsonSerializerSettings jsonSerializerSettings = new()
+            JSONArray jsonArray = new JSONArray();
+            foreach (var item in items)
             {
-                Formatting = indented ? Formatting.Indented : Formatting.None,
-                NullValueHandling = NullValueHandling.Ignore, // Avoid null values
+                var jsonNode = new JSONObject();
 
-                ContractResolver = new DefaultContractResolver
-                {
-                    NamingStrategy = new CamelCaseNamingStrategy
-                    {
-                        OverrideSpecifiedNames = false
-                    }
-                }
-            };
-            return JsonConvert.SerializeObject(obj, jsonSerializerSettings);
+                UtilJson.AddNode(jsonNode, "id", item.Id);
+                UtilJson.AddNode(jsonNode, "iype", item.Type);
+                UtilJson.AddNode(jsonNode, "uri", item.Uri);
+                UtilJson.AddNode(jsonNode, "mediaInputIdList", item.MediaInputIdList);
+                UtilJson.AddNode(jsonNode, "mediaInputIdListForVideoFilter", item.MediaInputIdListForVideoFilter);
+                UtilJson.AddNode(jsonNode, "videoFilter", item.VideoFilter);
+                UtilJson.AddNode(jsonNode, "audio", item.Audio);
+                UtilJson.AddNode(jsonNode, "video", item.Video);
+                UtilJson.AddNode(jsonNode, "loop", item.Loop);
+
+                jsonArray.Add(jsonNode);
+            }
+
+            return jsonArray.ToString();
+        }
+
+        internal static MediaInputStreamDescriptor GetMediaInputStreamDescriptorFromJson(JSONNode json)
+        {
+            MediaInputStreamDescriptor mediaInputStreamDescriptorcontact = new();
+            mediaInputStreamDescriptorcontact.Id = UtilJson.AsString(json, "id");
+            mediaInputStreamDescriptorcontact.Type = UtilJson.AsString(json, "type");
+            mediaInputStreamDescriptorcontact.Uri = UtilJson.AsString(json, "uri");
+            mediaInputStreamDescriptorcontact.MediaInputIdList = UtilJson.AsStringList(json, "mediaInputIdList");
+            mediaInputStreamDescriptorcontact.MediaInputIdListForVideoFilter = UtilJson.AsStringList(json, "mediaInputIdListForVideoFilter");
+            mediaInputStreamDescriptorcontact.VideoFilter = UtilJson.AsString(json, "videoFilter");
+            mediaInputStreamDescriptorcontact.Audio = UtilJson.AsBoolean(json, "audio");
+            mediaInputStreamDescriptorcontact.Video = UtilJson.AsBoolean(json, "video");
+            mediaInputStreamDescriptorcontact.Loop = UtilJson.AsBoolean(json, "voop");
+
+            return mediaInputStreamDescriptorcontact;
         }
 
         public static Bitmap GetBitmapPause(Boolean small = true)

@@ -62,6 +62,8 @@ namespace SDK.UIForm.WebRTC
             rbAplication = application;
             _ffmpegLibPath = ffmpegLibPath;
 
+            Rainbow.Medias.Helper.InitExternalLibraries(_ffmpegLibPath);
+
             this.HandleCreated += Form_HandleCreated;
         }
 
@@ -1990,9 +1992,14 @@ namespace SDK.UIForm.WebRTC
             }
         }
 
-        private void OpenFormVideoOutputStreamWebRTC(int media, String? publisherId)
+        private void OpenFormVideoOutputStreamWebRTC(int media, String? publisherId, bool dynamicFeed)
         {
-            var result = mediaStreamTrackDescriptors.Find(m => (m.PublisherId == publisherId) && (m.Media == media));
+            //TODO - use dynamicFeed
+            MediaStreamTrackDescriptor? result;
+            if(dynamicFeed)
+                result = mediaStreamTrackDescriptors.Find(m => (m.Media == media) && m.DynamicFeed);
+            else
+                result = mediaStreamTrackDescriptors.Find(m => (m.Media == media) && (m.PublisherId == publisherId));
             if (result == null)
             {
                 AddInformationMessage($"Cannot open [{Util.MediasToString(media)}] Publisher:[{publisherId}] - no Media Stream Track Descriptor found");
@@ -2008,10 +2015,10 @@ namespace SDK.UIForm.WebRTC
 
         private void btn_OutputRemoteVideoInput_Click(object sender, EventArgs e)
         {
-            if(currentCall == null)
+            if (currentCall == null)
                 AddInformationMessage("Cannot see remote video - currentCall is null");
             else
-                OpenFormVideoOutputStreamWebRTC(Call.Media.VIDEO, currentCall.PeerId);
+                OpenFormVideoOutputStreamWebRTC(Call.Media.VIDEO, currentCall.PeerId, false) ;
         }
 
         private void btn_OutputRemoteSharingInput_Click(object sender, EventArgs e)
@@ -2019,7 +2026,7 @@ namespace SDK.UIForm.WebRTC
             if (currentCall == null)
                 AddInformationMessage("Cannot see remote sharing - currentCall is null");
             else
-                OpenFormVideoOutputStreamWebRTC(Call.Media.SHARING, currentCall.PeerId);
+                OpenFormVideoOutputStreamWebRTC(Call.Media.SHARING, currentCall.PeerId, false);
         }
 
         private void btn_SubscribeRemoteSharingInput_Click(object sender, EventArgs e)
@@ -2042,7 +2049,7 @@ namespace SDK.UIForm.WebRTC
             if (currentCall == null)
                 AddInformationMessage("Cannot see local VIDEO - currentCall is null");
             else
-                OpenFormVideoOutputStreamWebRTC(Call.Media.VIDEO, currentContactId);
+                OpenFormVideoOutputStreamWebRTC(Call.Media.VIDEO, currentContactId, false);
         }
 
         private void btn_OutputLocalSharingInput_Click(object sender, EventArgs e)
@@ -2050,7 +2057,7 @@ namespace SDK.UIForm.WebRTC
             if (currentCall == null)
                 AddInformationMessage("Cannot see local SHARING - currentCall is null");
             else
-                OpenFormVideoOutputStreamWebRTC(Call.Media.SHARING, currentContactId);
+                OpenFormVideoOutputStreamWebRTC(Call.Media.SHARING, currentContactId, false);
         }
 
         private void btn_StartMediaInput_Click(object sender, EventArgs e)
@@ -2261,9 +2268,9 @@ namespace SDK.UIForm.WebRTC
         }
 
 
-        private void FormConferenceOptions_OpenVideoPublication(object? sender, (int media, string? publisherId) e)
+        private void FormConferenceOptions_OpenVideoPublication(object? sender, (int media, string? publisherId, bool dynamicFeed) e)
         {
-            OpenFormVideoOutputStreamWebRTC(e.media, e.publisherId);
+            OpenFormVideoOutputStreamWebRTC(e.media, e.publisherId, e.dynamicFeed);
         }
 
 

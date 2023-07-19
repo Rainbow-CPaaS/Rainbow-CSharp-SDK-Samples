@@ -17,8 +17,6 @@ namespace SDK.UIForm.WebRTC
             // We have to init external libraries
             if (configuration.Initialized)
             {
-                Rainbow.Medias.Helper.InitExternalLibraries(configuration.FFmpegLibPath);
-
                 Application.SetHighDpiMode(HighDpiMode.SystemAware);
                 Application.EnableVisualStyles();
                 Application.SetCompatibleTextRenderingDefault(false);

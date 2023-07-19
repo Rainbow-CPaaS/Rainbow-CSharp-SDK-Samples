@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json;
 using Rainbow.Medias;
 using Rainbow.Events;
 using System.IO;
 using System.Windows.Forms;
 using Rainbow.WebRTC.Abstractions;
+using Rainbow.SimpleJSON;
 
 namespace SDK.UIForm.WebRTC
 {
@@ -256,7 +255,7 @@ namespace SDK.UIForm.WebRTC
             try
             {
                 String jsonConfig = File.ReadAllText(_configFilePath);
-                var json = JsonConvert.DeserializeObject<dynamic>(jsonConfig);
+                var json = JSON.Parse(jsonConfig);
 
                 if (json == null)
                 {
@@ -264,18 +263,17 @@ namespace SDK.UIForm.WebRTC
                     return false;
                 }
 
-                if (json["medias"] != null)
+                if (json["medias"]?.IsArray == true)
                 {
                     var mediaDescriptorList = new List<MediaInputStreamDescriptor>();
 
                     int index = 0;
-                    JArray list = (JArray)json["medias"];
+                    var list = json["medias"];
                     foreach (var item in list)
                     {
                         index++;
 
-                        MediaInputStreamDescriptor? mediaDescriptor = null;
-                        mediaDescriptor = item.ToObject<MediaInputStreamDescriptor>();
+                        MediaInputStreamDescriptor? mediaDescriptor = Helper.GetMediaInputStreamDescriptorFromJson(item);
 
                         if (mediaDescriptor != null)
                         {
@@ -424,7 +422,7 @@ namespace SDK.UIForm.WebRTC
             }
 
 
-            var strContent = Helper.GetJsonStringFromObject(mediaInputStreamDescriptors);
+            var strContent = Helper.GetJsonStringFromListOfMediaInputStreamDescriptor(mediaInputStreamDescriptors);
             strContent = "{\r\n\t\"medias\": " + strContent + "\r\n}";
             File.WriteAllText(_configFilePath, strContent);
         }

@@ -39,6 +39,7 @@ namespace SDK.UIForm.WebRTC
             rbApplication.SetApplicationInfo(configuration.AppId, configuration.AppSecret);
             rbApplication.SetHostInfo(configuration.HostName);
             rbApplication.SetTimeout(20000);
+            rbApplication.Restrictions.LogRestRequest = true;
 
             // Define events we want to manage
             rbApplication.ConnectionStateChanged += RbApplication_ConnectionStateChanged;
@@ -47,7 +48,6 @@ namespace SDK.UIForm.WebRTC
             // Define Restrictions
             rbApplication.Restrictions.UseWebRTC = true; // We want to use WebRTC features
             rbApplication.Restrictions.LogRestRequest = true;
-            rbApplication.Restrictions.AutoReconnection = true;
 
             // Start Login process (if necessary)
             if (configuration.AutoLogin)
@@ -185,23 +185,7 @@ namespace SDK.UIForm.WebRTC
                 btnConnect.Enabled = false;
                 btnConnect.Text = "Connecting";
 
-
-
-                var autoReconnect = rbApplication.GetAutoReconnection();
-
-                autoReconnect.Login(tbLogin.Text, tbPassword.Text);
-
-                //rbApplication.Login(tbLogin.Text, tbPassword.Text, callback =>
-                //{
-                //    if (callback.Result.Success)
-                //        AddInformation($"Login has succeded. Waiting for full initialization ...");
-                //    else
-                //    {
-                //        AddInformation($"Login failed:[{callback.Result}]");
-
-                        
-                //    }
-                //});
+                rbApplication.Login(tbLogin.Text, tbPassword.Text);
             }
         }
 
