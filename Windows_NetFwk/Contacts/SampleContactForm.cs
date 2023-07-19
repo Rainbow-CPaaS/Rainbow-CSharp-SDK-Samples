@@ -22,7 +22,7 @@ namespace Sample_Contacts
         //Define Rainbow Application Id, Secret Key and Host Name
         const string APP_ID = "YOUR APP ID";
         const string APP_SECRET_KEY = "YOUR SECRET KEY";
-        const string HOST_NAME = "sandbox.openrainbow.com";
+        const string HOST_NAME = "sandbox.openrainbow.com"; // SPECIFY THE HOST NAME ACCORDING APP_ID / APP_SECRET_KEY
 
         const string LOGIN_USER1 = "YOUR LOGIN";
         const string PASSWORD_USER1 = "YOUR PASSWORD";
@@ -69,6 +69,7 @@ namespace Sample_Contacts
 
             // EVENTS WE WANT TO MANAGE
             rainbowApplication.ConnectionStateChanged += RainbowApplication_ConnectionStateChanged;
+            rainbowApplication.InitializationPerformed += RainbowApplication_InitializationPerformed;
 
             rainbowContacts.PeerInfoChanged += RainbowContacts_PeerInfoChanged;
 
@@ -83,10 +84,9 @@ namespace Sample_Contacts
             rainbowContactsListFound = new List<Contact>(); ;
         }
 
+    #endregion INIT METHODS
 
-        #endregion INIT METHODS
-
-        #region METHOD TO UPDATE SampleContactForm COMPONEnTS
+    #region METHOD TO UPDATE SampleContactForm COMPONEnTS
 
         /// <summary>
         /// Permits to add a new sting in the text box at the bottom of the form: it permits to log things happening
@@ -316,6 +316,19 @@ namespace Sample_Contacts
             UpdateLoginButton(e.State);
         }
 
+        private void RainbowApplication_InitializationPerformed(object sender, EventArgs e)
+        {
+            AddStateLine("InitializationPerformed");
+
+            // Since we are initialized, we get the current contact object
+            rainbowMyContact = rainbowContacts.GetCurrentContact();
+
+            if (String.IsNullOrEmpty(rainbowMyContact.Timezone))
+                rainbowMyContact.Timezone = "Europe/Paris";
+
+            UpdateMyContactElements();
+        }
+
         private void RainbowContacts_PeerAvatarChanged(object sender, Rainbow.Events.PeerEventArgs e)
         {
             if (e.Peer.Jid == rainbowMyContact.Jid_im)
@@ -366,7 +379,7 @@ namespace Sample_Contacts
                 rainbowApplication.Logout(callback =>
                 {
                     if(!callback.Result.Success)
-                        log.LogInformation("Impossible to logout:\r\n{0}", Util.SerializeSdkError(callback.Result));
+                        log.LogInformation("Impossible to logout:\r\n{0}", callback.Result);
                 });
             }
             else
@@ -377,19 +390,9 @@ namespace Sample_Contacts
                 // We want to login
                 rainbowApplication.Login(login, password, callback =>
                 {
-                    if (callback.Result.Success)
+                    if (!callback.Result.Success)
                     {
-                        // Since we are connected, we get the current contact object
-                        rainbowMyContact = rainbowContacts.GetCurrentContact();
-
-                        if (String.IsNullOrEmpty(rainbowMyContact.Timezone))
-                            rainbowMyContact.Timezone = "Europe/Paris";
-
-                        UpdateMyContactElements();
-                    }
-                    else
-                    {
-                        string logLine = String.Format("Impossible to login:\r\n{0}", Util.SerializeSdkError(callback.Result));
+                        string logLine = String.Format("Impossible to login:\r\n{0}", callback.Result);
                         AddStateLine(logLine);
                         log.LogInformation(logLine);
                     }
@@ -417,7 +420,7 @@ namespace Sample_Contacts
                 }
                 else
                 {
-                    string logLine = String.Format("Impossible to update avatar:\r\n{0}", Util.SerializeSdkError(callback.Result));
+                    string logLine = String.Format("Impossible to update avatar:\r\n{0}", callback.Result);
                     AddStateLine(logLine);
                     log.LogInformation(logLine);
                 }
@@ -443,7 +446,7 @@ namespace Sample_Contacts
                 }
                 else
                 {
-                    string logLine = String.Format("Impossible to update avatar:\r\n{0}", Util.SerializeSdkError(callback.Result));
+                    string logLine = String.Format("Impossible to update avatar:\r\n{0}", callback.Result);
                     AddStateLine(logLine);
                     log.LogInformation(logLine);
                 }
@@ -484,7 +487,7 @@ namespace Sample_Contacts
                                     }
                                     else
                                     {
-                                        string logLine = String.Format("Impossible to update avatar:\r\n{0}", Util.SerializeSdkError(callback.Result));
+                                        string logLine = String.Format("Impossible to update avatar:\r\n{0}", callback.Result);
                                         AddStateLine(logLine);
                                         log.LogInformation(logLine);
                                     }
@@ -543,7 +546,7 @@ namespace Sample_Contacts
                     }
                     else
                     {
-                        string logLine = String.Format("Impossible to get avatar of this contact:\r\n{0}", Util.SerializeSdkError(callback.Result));
+                        string logLine = String.Format("Impossible to get avatar of this contact:\r\n{0}", callback.Result);
                         AddStateLine(logLine);
                         log.LogInformation(logLine);
                     }
@@ -570,7 +573,7 @@ namespace Sample_Contacts
                     }
                     else
                     {
-                        string logLine = String.Format("Impossible to get avatar of this contact:\r\n{0}", Util.SerializeSdkError(callback.Result));
+                        string logLine = String.Format("Impossible to get avatar of this contact:\r\n{0}", callback.Result);
                         AddStateLine(logLine);
                         log.LogInformation(logLine);
                     }
@@ -602,7 +605,7 @@ namespace Sample_Contacts
                     }
                     else
                     {
-                        string logLine = String.Format("Impossible to get info about this contact [{1}]:\r\n{0}", Util.SerializeSdkError(callback.Result), id);
+                        string logLine = String.Format("Impossible to get info about this contact [{1}]:\r\n{0}", callback.Result, id);
                         AddStateLine(logLine);
                         log.LogInformation(logLine);
                     }
@@ -629,7 +632,7 @@ namespace Sample_Contacts
                             AddStateLine($"Invitation sent successfully to this contact [{id}]");
                         else
                         {
-                            string logLine = String.Format("Impossible to send invitation to this contact [{1}]:\r\n{0}", Util.SerializeSdkError(callback.Result), id);
+                            string logLine = String.Format("Impossible to send invitation to this contact [{1}]:\r\n{0}", callback.Result, id);
                             AddStateLine(logLine);
                             log.LogInformation(logLine);
                         }
@@ -644,7 +647,7 @@ namespace Sample_Contacts
                             AddStateLine($"Contact [{id}] has been removed from your roster");
                         else
                         {
-                            string logLine = String.Format("Impossible to remove this contact [{1}] from your roster:\r\n{0}", Util.SerializeSdkError(callback.Result), id);
+                            string logLine = String.Format("Impossible to remove this contact [{1}] from your roster:\r\n{0}", callback.Result, id);
                             AddStateLine(logLine);
                             log.LogInformation(logLine);
                         }
@@ -678,7 +681,7 @@ namespace Sample_Contacts
                 }
                 else
                 {
-                    string logLine = String.Format("Impossible to get avatar of my contact:\r\n{0}", Util.SerializeSdkError(callback.Result));
+                    string logLine = String.Format("Impossible to get avatar of my contact:\r\n{0}", callback.Result);
                     AddStateLine(logLine);
                     log.LogInformation(logLine);
                 }
@@ -700,7 +703,7 @@ namespace Sample_Contacts
                 }
                 else
                 {
-                    string logLine = String.Format("Impossible to get all contacts:\r\n{0}", Util.SerializeSdkError(callback.Result));
+                    string logLine = String.Format("Impossible to get all contacts:\r\n{0}", callback.Result);
                     AddStateLine(logLine);
                     log.LogInformation(logLine);
                 }
@@ -722,7 +725,7 @@ namespace Sample_Contacts
             return result;
         }
 
-        #endregion UTIL METHODS
+    #endregion UTIL METHODS
 
 
     }
