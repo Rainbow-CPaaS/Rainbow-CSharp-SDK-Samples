@@ -25,7 +25,7 @@ namespace SampleChannels
         String? currentContactId = null;
 
         List<Rainbow.Model.Channel>? channelsList = null;
-        List<Rainbow.Model.Channel.Member>? channelMembersList = null;
+        List<Rainbow.Model.ChannelMember>? channelMembersList = null;
         List<Rainbow.Model.Contact>? contactsList = null;
         String? channelIdSelected;
         String? avatarIdSelected;
@@ -167,8 +167,8 @@ namespace SampleChannels
 
                         tbChannelMode.Text = channel.Mode.ToString();
 
-                        tbChannelNbUsers.Text = channel.UsersCount.ToString();
-                        tbChannelNbSubscribers.Text = channel.SubscribersCount.ToString();
+                        tbChannelNbUsers.Text = channel.Users_count.ToString();
+                        tbChannelNbSubscribers.Text = channel.Subscribers_count.ToString();
                         cbChannelMuted.Checked = channel.Mute;
                     }
 
@@ -263,7 +263,7 @@ namespace SampleChannels
             }
         }
 
-        private String GetMemberDisplayName(Rainbow.Model.Channel.Member member)
+        private String GetMemberDisplayName(Rainbow.Model.ChannelMember member)
         {
             string displayName;
             var contact = rbContacts.GetContactFromContactId(member.Id);
@@ -410,7 +410,7 @@ namespace SampleChannels
                         UpdateUIChannelsList();
                     }
                     else
-                        AddInformation($"Pb to get Invited channels: {Rainbow.Util.SerializeSdkError(callback.Result)}");
+                        AddInformation($"Pb to get Invited channels: {callback.Result}");
                 });
             }
             else
@@ -427,7 +427,7 @@ namespace SampleChannels
                         UpdateUIChannelsList();
                     }
                     else
-                        AddInformation($"Pb to get Subscribed channels: {Rainbow.Util.SerializeSdkError(callback.Result)}");
+                        AddInformation($"Pb to get Subscribed channels: {callback.Result}");
                 });
             }
         }
@@ -465,7 +465,7 @@ namespace SampleChannels
                     }
                     else
                     {
-                        AddInformation($"Pb to accept invitation channel: {Rainbow.Util.SerializeSdkError(callback.Result)}");
+                        AddInformation($"Pb to accept invitation channel: {callback.Result}");
                     }
 
                 });
@@ -487,7 +487,7 @@ namespace SampleChannels
                     }
                     else
                     {
-                        AddInformation($"Pb to decline invitation channel: {Rainbow.Util.SerializeSdkError(callback.Result)}");
+                        AddInformation($"Pb to decline invitation channel: {callback.Result}");
                     }
 
                 });
@@ -509,7 +509,7 @@ namespace SampleChannels
                     }
                     else
                     {
-                        AddInformation($"Pb to unsubscribe channel: {Rainbow.Util.SerializeSdkError(callback.Result)}");
+                        AddInformation($"Pb to unsubscribe channel: {callback.Result}");
                     }
 
                 });
@@ -524,8 +524,8 @@ namespace SampleChannels
             channel.Name = tbChannelName.Text;
             channel.Topic = tbChannelTopic.Text;
             channel.Category = tbChannelCategory.Text;
-            channel.MaxItems = 80;
-            channel.MaxPayloadSize = 44000;
+            channel.Max_items = 80;
+            channel.Max_payload_size = 44000;
 
             rbChannels.UpdateChannel(channel, callback =>
             {
@@ -539,7 +539,7 @@ namespace SampleChannels
                 }
                 else
                 {
-                    AddInformation($"Pb to update channel: {Rainbow.Util.SerializeSdkError(callback.Result)}");
+                    AddInformation($"Pb to update channel: {callback.Result}");
                 }
             });
         }
@@ -559,7 +559,7 @@ namespace SampleChannels
                     }
                     else
                     {
-                        AddInformation($"Pb to delete channel: {Rainbow.Util.SerializeSdkError(callback.Result)}");
+                        AddInformation($"Pb to delete channel: {callback.Result}");
                     }
 
                 });
@@ -573,8 +573,8 @@ namespace SampleChannels
             channel.Name = tbChannelName.Text;
             channel.Topic = tbChannelTopic.Text;
             channel.Category = tbChannelCategory.Text;
-            channel.MaxItems = 80;
-            channel.MaxPayloadSize = 44000;
+            channel.Max_items = 80;
+            channel.Max_payload_size = 44000;
 
             if (rbCompanyPublic.Checked)
                 channel.Mode = Rainbow.Model.Channel.ChannelMode.COMPANY_PUBLIC;
@@ -594,7 +594,7 @@ namespace SampleChannels
                     UpdateUIChannelsList(true);
                 }
                 else
-                    AddInformation($"Pb to create channel: {Rainbow.Util.SerializeSdkError(callback.Result)}");
+                    AddInformation($"Pb to create channel: {callback.Result}");
             });
         }
 
@@ -613,7 +613,7 @@ namespace SampleChannels
                     }
                     else
                     {
-                        AddInformation($"Pb to mute / unmute channel: {Rainbow.Util.SerializeSdkError(callback.Result)}");
+                        AddInformation($"Pb to mute / unmute channel: {callback.Result}");
                     }
 
                 });
@@ -641,7 +641,7 @@ namespace SampleChannels
                         }
                     }
                     else
-                        AddInformation($"Pb to get avatar: {Rainbow.Util.SerializeSdkError(callback.Result)}");
+                        AddInformation($"Pb to get avatar: {callback.Result}");
                 });
             }
         }
@@ -658,7 +658,7 @@ namespace SampleChannels
                         AddInformation($"Delete avatar succesfully");
                     }
                     else
-                        AddInformation($"Pb to delete avatar: {Rainbow.Util.SerializeSdkError(callback.Result)}");
+                        AddInformation($"Pb to delete avatar: {callback.Result}");
                 });
             }
         }
@@ -695,7 +695,7 @@ namespace SampleChannels
                                         btnGetAvatar_Click(this, null);
                                     }
                                     else
-                                        AddInformation($"Not possible to update avatar: {Rainbow.Util.SerializeSdkError(callback.Result)}");
+                                        AddInformation($"Not possible to update avatar: {callback.Result}");
                                 });
                             }
                             else
@@ -730,7 +730,7 @@ namespace SampleChannels
                     UpdateMembersList();
                 }
                 else
-                    AddInformation($"Not possible to get members: {Rainbow.Util.SerializeSdkError(callback.Result)}");
+                    AddInformation($"Not possible to get members: {callback.Result}");
             });
         }
 
@@ -744,8 +744,8 @@ namespace SampleChannels
 
             var contactItem = lbContacts.SelectedItem as ListItem;
 
-            List<Rainbow.Model.Channel.Member> members = new List<Rainbow.Model.Channel.Member>();
-            Rainbow.Model.Channel.Member member = new Rainbow.Model.Channel.Member()
+            List<Rainbow.Model.ChannelMember> members = new List<Rainbow.Model.ChannelMember>();
+            Rainbow.Model.ChannelMember member = new Rainbow.Model.ChannelMember()
             {
                 Id = contactItem.Id,
                 Type = cbMemberAsPublisher.Checked ? Rainbow.Model.Channel.MemberType.PUBLISHER : Rainbow.Model.Channel.MemberType.MEMBER
@@ -761,7 +761,7 @@ namespace SampleChannels
                     GetChannels();
                 }
                 else
-                    AddInformation($"Member cannot be added: {Rainbow.Util.SerializeSdkError(callback.Result)}");
+                    AddInformation($"Member cannot be added: {callback.Result}");
             });
         }
 
@@ -775,8 +775,8 @@ namespace SampleChannels
 
             var memberItem = lbMembers.SelectedItem as ListItem;
 
-            List<Rainbow.Model.Channel.Member> members = new List<Rainbow.Model.Channel.Member>();
-            Rainbow.Model.Channel.Member member = new Rainbow.Model.Channel.Member()
+            List<Rainbow.Model.ChannelMember> members = new List<Rainbow.Model.ChannelMember>();
+            Rainbow.Model.ChannelMember member = new Rainbow.Model.ChannelMember()
             {
                 Id = memberItem.Id,
                 Type = Rainbow.Model.Channel.MemberType.NONE
@@ -792,7 +792,7 @@ namespace SampleChannels
                     GetChannels();
                 }
                 else
-                    AddInformation($"Member cannot be removed: {Rainbow.Util.SerializeSdkError(callback.Result)}");
+                    AddInformation($"Member cannot be removed: {callback.Result}");
             });
         }
 
@@ -818,8 +818,8 @@ namespace SampleChannels
             int nbChannelToCreate;
             int maxNbPublishersToAdd;
 
-            List<Rainbow.Model.Channel.Member> membersFullList;
-            Rainbow.Model.Channel.Member member;
+            List<Rainbow.Model.ChannelMember> membersFullList;
+            Rainbow.Model.ChannelMember member;
 
             if (!int.TryParse(tbMassProNbPublishers.Text, out maxNbPublishersToAdd))
             {
@@ -841,12 +841,12 @@ namespace SampleChannels
             }
             else
             {
-                membersFullList = new List<Rainbow.Model.Channel.Member>();
+                membersFullList = new List<Rainbow.Model.ChannelMember>();
                 foreach(var contact in contacts)
                 {
                     if(contact.Id != currentContactId)
                     {
-                        member = new Rainbow.Model.Channel.Member()
+                        member = new Rainbow.Model.ChannelMember()
                         {
                             Id = contact.Id,
                             Type = Rainbow.Model.Channel.MemberType.PUBLISHER
@@ -874,8 +874,8 @@ namespace SampleChannels
                         Name = "Masspro_" + Rainbow.Util.GetGUID(),
                         Topic = "vACD Communication",
                         Category = "Telephony",
-                        MaxItems = 10,
-                        MaxPayloadSize = 30000,
+                        Max_items = 10,
+                        Max_payload_size = 30000,
                         Mode = Rainbow.Model.Channel.ChannelMode.COMPANY_PUBLIC
                     };
 
@@ -902,7 +902,7 @@ namespace SampleChannels
                                         AddInformation($"Masspro - Set Member roles done");
                                     }
                                     else
-                                        AddInformation($"Masspro - Failed to set member roles:[{Rainbow.Util.SerializeSdkError(callback.Result)}]");
+                                        AddInformation($"Masspro - Failed to set member roles:[{callback.Result}]");
 
                                     manualResetEventCreateChannel.Set();
                                 });
@@ -912,7 +912,7 @@ namespace SampleChannels
                             
                         }
                         else
-                            AddInformation($"Masspro - failed to create channel:[{Rainbow.Util.SerializeSdkError(callback.Result)}]");
+                            AddInformation($"Masspro - failed to create channel:[{callback.Result}]");
                         AddInformation($"Masspro - channel creation + member roles - END - Date:[{DateTime.Now.ToString("o")}]");
                         manualResetEventCreateChannel.Set();
                     });
@@ -949,7 +949,7 @@ namespace SampleChannels
                                 channels.RemoveAt(0);
                             }
                             else
-                                AddInformation($"Channel cannot be deleted:[{Rainbow.Util.SerializeSdkError(callbackDelete.Result)}]");
+                                AddInformation($"Channel cannot be deleted:[{callbackDelete.Result}]");
 
                             manualResetEventDeleteChannel.Set();
                         });

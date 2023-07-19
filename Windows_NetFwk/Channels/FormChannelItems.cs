@@ -30,7 +30,7 @@ namespace SampleChannels
         String? currentChannelItemId = null;
         Rainbow.Model.ChannelItem? currentChannelItem = null;
         List<Rainbow.Model.ChannelItem>? currentChannelItemsList = null;
-        List<Rainbow.Model.Channel.UserAppreciation>? currentUserAppreciationsList = null;
+        List<Rainbow.Model.ChannelUserAppreciation>? currentUserAppreciationsList = null;
 
         public FormChannelItems()
         {
@@ -329,7 +329,7 @@ namespace SampleChannels
                         UpdateUIChannelItemsList();
                     }
                     else
-                        AddInformation($"Cannot get more items:[{Rainbow.Util.SerializeSdkResult(callback)}]");
+                        AddInformation($"Cannot get more items:[{callback.Result}]");
                 });
             }
         }
@@ -368,7 +368,7 @@ namespace SampleChannels
                         UpdateUIChannelItemsList();
                     }
                     else
-                        AddInformation($"Cannot delete item:[{Rainbow.Util.SerializeSdkResult(callback)}]");
+                        AddInformation($"Cannot delete item:[{callback.Result}]");
                 });
             }
         }
@@ -399,7 +399,7 @@ namespace SampleChannels
                         UpdateUIChannelItemsList();
                     }
                     else
-                        AddInformation($"Cannot update item:[{Rainbow.Util.SerializeSdkResult(callback)}]");
+                        AddInformation($"Cannot update item:[{callback.Result}]");
                 });
             }
         }
@@ -439,7 +439,7 @@ namespace SampleChannels
                         UpdateUIChannelItemsList();
                     }
                     else
-                        AddInformation($"Cannot add item:[{Rainbow.Util.SerializeSdkResult(callback)}]");
+                        AddInformation($"Cannot add item:[{callback.Result}]");
                 });
             }
         }
@@ -460,7 +460,7 @@ namespace SampleChannels
                         UpdateUIAppreciationsList();
                     }
                     else
-                        AddInformation($"Cannot get Detailed Appreciations:[{Rainbow.Util.SerializeSdkResult(callback)}]");
+                        AddInformation($"Cannot get Detailed Appreciations:[{callback.Result}]");
                 });
             }
         }
@@ -479,7 +479,7 @@ namespace SampleChannels
                         btnChannelItemAppreciationGet_Click(this, null);
                     }
                     else
-                        AddInformation($"Cannot get like item:[{Rainbow.Util.SerializeSdkResult(callback)}]");
+                        AddInformation($"Cannot get like item:[{callback.Result}]");
                 });
             }
         }

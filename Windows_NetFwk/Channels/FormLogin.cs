@@ -277,7 +277,7 @@ namespace SampleChannels
                         AddInformation($"Logout has succeded.");
                     else
                     {
-                        AddInformation($"Logout failed:[{Util.SerializeSdkError(callback.Result)}");
+                        AddInformation($"Logout failed:[{callback.Result}");
 
                         UpdateFormAccodringRainbowConnectionStatus();
                     }
@@ -294,7 +294,7 @@ namespace SampleChannels
                         AddInformation($"Login has succeded. Waiting for full initialization ...");
                     else
                     {
-                        AddInformation($"Login failed:[{Util.SerializeSdkError(callback.Result)}");
+                        AddInformation($"Login failed:[{callback.Result}");
 
                         UpdateFormAccodringRainbowConnectionStatus();
                     }
