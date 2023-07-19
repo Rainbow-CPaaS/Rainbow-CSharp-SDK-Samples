@@ -15,3 +15,12 @@ This simple application permits to understand how :
 - To manage events when a conversation is created / removed
 - To manage events when a favorite is created / removed
 - To manage events when the server connection is updated
+
+You must ensure to set correct information in file **SampleConversation.cs**:
+- APP_ID
+- APP_SECRET_KEY
+- HOST_NAME
+- LOGIN_USER1
+- PASSWORD_USER1
+
+ ![FormConversation](./images/FormConversation.png)

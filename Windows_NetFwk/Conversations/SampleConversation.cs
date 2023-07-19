@@ -22,11 +22,10 @@ namespace Sample_Contacts
         //Define Rainbow Application Id, Secret Key and Host Name
         const string APP_ID = "YOUR APP ID";
         const string APP_SECRET_KEY = "YOUR SECRET KEY";
-        const string HOST_NAME = "sandbox.openrainbow.com";
+        const string HOST_NAME = "sandbox.openrainbow.com"; // SPECIFY THE HOST NAME ACCORDING APP_ID / APP_SECRET_KEY
 
         const string LOGIN_USER1 = "YOUR LOGIN";
         const string PASSWORD_USER1 = "YOUR PASSWORD";
-
 
         // Define Rainbow objects
         Rainbow.Application rainbowApplication;     // To store Rainbow Application object
@@ -74,6 +73,7 @@ namespace Sample_Contacts
 
             // EVENTS WE WANT TO MANAGE
             rainbowApplication.ConnectionStateChanged += RainbowApplication_ConnectionStateChanged;
+            rainbowApplication.InitializationPerformed += RainbowApplication_InitializationPerformed;
 
             rainbowContacts.RosterPeerAdded += RainbowContacts_RosterPeerAdded;
             rainbowContacts.RosterPeerRemoved += RainbowContacts_RosterPeerRemoved;
@@ -86,6 +86,7 @@ namespace Sample_Contacts
 
             rainbowContactsList = new List<Contact>();
         }
+
 
     #endregion INIT METHODS
 
@@ -198,40 +199,42 @@ namespace Sample_Contacts
                 cbFavoritesList.Items.Clear();
 
                 // Fill the combo bow with new elements
-                foreach (Favorite favorite in rainbowFavoritesList)
+                if (rainbowFavoritesList != null)
                 {
-                    string peerId = favorite.PeerId;
-
-                    log.LogDebug("UpdateFavoritesListComboBox - peerID:[{0}] - type:[{1}]", peerId, favorite.Type);
-
-                    // Is-it a favorite with a User ?
-                    if (favorite.Type == Rainbow.Model.FavoriteType.User)
+                    foreach (Favorite favorite in rainbowFavoritesList)
                     {
+                        string peerId = favorite.PeerId;
 
-                        Contact contact = rainbowContacts.GetContactFromContactId(peerId);
-                        if (contact != null)
+                        log.LogDebug("UpdateFavoritesListComboBox - peerID:[{0}] - type:[{1}]", peerId, favorite.Type);
+
+                        // Is-it a favorite with a User ?
+                        if (favorite.Type == Rainbow.Model.Conversation.ConversationType.User)
                         {
-                            string displayName = contact.DisplayName;
-                            if (String.IsNullOrEmpty(displayName))
-                                displayName = $"{contact.LastName} {contact.FirstName}";
-                            ListItem item = new ListItem(displayName, favorite.Id);
-                            cbFavoritesList.Items.Add(item);
+
+                            Contact contact = rainbowContacts.GetContactFromContactId(peerId);
+                            if (contact != null)
+                            {
+                                string displayName = contact.DisplayName;
+                                if (String.IsNullOrEmpty(displayName))
+                                    displayName = $"{contact.LastName} {contact.FirstName}";
+                                ListItem item = new ListItem(displayName, favorite.Id);
+                                cbFavoritesList.Items.Add(item);
+                            }
                         }
-                    }
-                    // Is-it a favorite with a Bubble/Room ?
-                    else if (favorite.Type == Rainbow.Model.FavoriteType.Room)
-                    {
-                        String conversationId = rainbowConversations.GetConversationIdByPeerIdFromCache(peerId);
-                        Conversation conversation = rainbowConversations.GetConversationByIdFromCache(conversationId);
-                        if (conversation != null)
+                        // Is-it a favorite with a Bubble/Room ?
+                        else if (favorite.Type == Rainbow.Model.Conversation.ConversationType.Room)
                         {
-                            string displayName = conversation.Name;
-                            ListItem item = new ListItem(displayName, favorite.Id);
-                            cbFavoritesList.Items.Add(item);
+                            String conversationId = rainbowConversations.GetConversationIdByPeerIdFromCache(peerId);
+                            Conversation conversation = rainbowConversations.GetConversationByIdFromCache(conversationId);
+                            if (conversation != null)
+                            {
+                                string displayName = conversation.Name;
+                                ListItem item = new ListItem(displayName, favorite.Id);
+                                cbFavoritesList.Items.Add(item);
+                            }
                         }
                     }
                 }
-
                 // Select the first item
                 if (cbFavoritesList.Items.Count > 0)
                     cbFavoritesList.SelectedIndex = 0;
@@ -396,24 +399,31 @@ namespace Sample_Contacts
             AddStateLine($"ConnectionStateChanged:{e.State}");
             UpdateLoginButton(e.State);
 
-            if (e.State == Rainbow.Model.ConnectionState.Connected)
+            if (e.State == Rainbow.Model.ConnectionState.Disconnected)
             {
-                GetAllContacts();
-                GetAllFavorites();
-                GetAllConversations();
-            }
-            else if (e.State == Rainbow.Model.ConnectionState.Disconnected)
-            {
-                rainbowContactsList.Clear();
+                rainbowContactsList?.Clear();
                 UpdateContactsListComboBox();
 
-                rainbowConversationsList.Clear();
+                rainbowConversationsList?.Clear();
                 UpdateConversationsListComboBox();
 
-                rainbowFavoritesList.Clear();
+                rainbowFavoritesList?.Clear();
                 UpdateFavoritesListComboBox();
             }
         }
+
+        private void RainbowApplication_InitializationPerformed(object sender, EventArgs e)
+        {
+            AddStateLine("InitializationPerformed");
+
+            // Since we are initialized, we get the current contact object
+            rainbowMyContact = rainbowContacts.GetCurrentContact();
+
+            GetAllContacts();
+            GetAllFavorites();
+            GetAllConversations();
+        }
+
 
         private void RainbowFavorites_FavoriteRemoved(object sender, Rainbow.Events.FavoriteEventArgs e)
         {
@@ -473,7 +483,7 @@ namespace Sample_Contacts
                 {
                     if (!callback.Result.Success)
                     {
-                        string logLine = String.Format("Impossible to logout:\r\n{0}", Util.SerializeSdkError(callback.Result));
+                        string logLine = String.Format("Impossible to logout:\r\n{0}", callback.Result);
                         AddStateLine(logLine);
                         log.LogWarning(logLine);
                     }
@@ -487,14 +497,9 @@ namespace Sample_Contacts
                 // We want to login
                 rainbowApplication.Login(login, password, callback =>
                 {
-                    if (callback.Result.Success)
+                    if (!callback.Result.Success)
                     {
-                        // Since we are connected, we get the current contact object
-                        rainbowMyContact = rainbowContacts.GetCurrentContact();
-                    }
-                    else
-                    {
-                        string logLine = String.Format("Impossible to login:\r\n{0}", Util.SerializeSdkError(callback.Result));
+                        string logLine = String.Format("Impossible to login:\r\n{0}", callback.Result);
                         AddStateLine(logLine);
                         log.LogWarning(logLine);
                     }
@@ -518,7 +523,7 @@ namespace Sample_Contacts
                     }
                     else
                     {
-                        string logLine = String.Format("Impossible to remove conversation[{1}]:\r\n{0}", Util.SerializeSdkError(callback.Result), id);
+                        string logLine = String.Format("Impossible to remove conversation[{1}]:\r\n{0}", callback.Result, id);
                         AddStateLine(logLine);
                         log.LogWarning(logLine);
                     }
@@ -543,7 +548,7 @@ namespace Sample_Contacts
                     }
                     else
                     {
-                        string logLine = String.Format("Impossible to remove favorite[{1}]:\r\n{0}", Util.SerializeSdkError(callback.Result), id);
+                        string logLine = String.Format("Impossible to remove favorite[{1}]:\r\n{0}", callback.Result, id);
                         AddStateLine(logLine);
                         log.LogWarning(logLine);
                     }
@@ -573,7 +578,7 @@ namespace Sample_Contacts
                             }
                             else
                             {
-                                string logLine = String.Format("Impossible to update favorite position [{1}]:\r\n{0}", Util.SerializeSdkError(callback.Result), id);
+                                string logLine = String.Format("Impossible to update favorite position [{1}]:\r\n{0}", callback.Result, id);
                                 AddStateLine(logLine);
                                 log.LogWarning(logLine);
                             }
@@ -603,7 +608,7 @@ namespace Sample_Contacts
                     }
                     else
                     {
-                        string logLine = String.Format("Impossible to create conversation with [{1}]:\r\n{0}", Util.SerializeSdkError(callback.Result), id);
+                        string logLine = String.Format("Impossible to create conversation with [{1}]:\r\n{0}", callback.Result, id);
                         AddStateLine(logLine);
                         log.LogWarning(logLine);
                     }
@@ -617,7 +622,7 @@ namespace Sample_Contacts
             if (item != null)
             {
                 string id = item.Value;
-                rainbowFavorites.CreateFavorite(id, Rainbow.Model.FavoriteType.User, callback =>
+                rainbowFavorites.CreateFavorite(id, Rainbow.Model.Conversation.ConversationType.User, callback =>
                 {
                     if (callback.Result.Success)
                     {
@@ -627,7 +632,7 @@ namespace Sample_Contacts
                     }
                     else
                     {
-                        string logLine = String.Format("Impossible to create favorite with [{1}]:\r\n{0}", Util.SerializeSdkError(callback.Result), id);
+                        string logLine = String.Format("Impossible to create favorite with [{1}]:\r\n{0}", callback.Result, id);
                         AddStateLine(logLine);
                         log.LogWarning(logLine);
                     }
@@ -666,9 +671,9 @@ namespace Sample_Contacts
 
                 String favoriteType;
                 if (conversation.Type == Conversation.ConversationType.User)
-                    favoriteType = Rainbow.Model.FavoriteType.User;
+                    favoriteType = Rainbow.Model.Conversation.ConversationType.User;
                 else
-                    favoriteType = Rainbow.Model.FavoriteType.Room;
+                    favoriteType = Rainbow.Model.Conversation.ConversationType.Room;
 
                 rainbowFavorites.CreateFavorite(peerId, favoriteType, callback =>
                 {
@@ -681,7 +686,7 @@ namespace Sample_Contacts
                     }
                     else
                     {
-                        string logLine = String.Format("Impossible to create favorite with [{1}]:\r\n{0}", Util.SerializeSdkError(callback.Result), conversationId);
+                        string logLine = String.Format("Impossible to create favorite with [{1}]:\r\n{0}", callback.Result, conversationId);
                         AddStateLine(logLine);
                         log.LogWarning(logLine);
                     }
@@ -713,7 +718,7 @@ namespace Sample_Contacts
                 }
                 else
                 {
-                    string logLine = String.Format("Impossible to get all contacts:\r\n{0}", Util.SerializeSdkError(callback.Result));
+                    string logLine = String.Format("Impossible to get all contacts:\r\n{0}", callback.Result);
                     AddStateLine(logLine);
                     log.LogWarning(logLine);
                 }
@@ -749,7 +754,7 @@ namespace Sample_Contacts
                 }
                 else
                 {
-                    string logLine = String.Format("Impossible to get all conversations:\r\n{0}", Util.SerializeSdkError(callback.Result));
+                    string logLine = String.Format("Impossible to get all conversations:\r\n{0}", callback.Result);
                     AddStateLine(logLine);
                     log.LogWarning(logLine);
                 }
