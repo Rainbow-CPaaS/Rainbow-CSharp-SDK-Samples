@@ -14,4 +14,11 @@ This simple application permits to understand how :
 - To manage events when a contact modify its avatar or its details
 - To manage events when the server connection is updated
 
+You must ensure to set correct information in file **SampleContactForm.cs**:
+- APP_ID
+- APP_SECRET_KEY
+- HOST_NAME
+- LOGIN_USER1
+- PASSWORD_USER1
+
  ![SampleContactForm](./images/SampleContactForm.png)
