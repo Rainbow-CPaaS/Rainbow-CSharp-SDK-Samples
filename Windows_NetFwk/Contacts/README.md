@@ -13,3 +13,5 @@ This simple application permits to understand how :
 - To manage events when a contact is added / removed from your roster
 - To manage events when a contact modify its avatar or its details
 - To manage events when the server connection is updated
+
+ ![SampleContactForm](./images/SampleContactForm.png)
