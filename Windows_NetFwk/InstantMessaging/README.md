@@ -19,3 +19,11 @@ This simple application permits to understand how :
 - to manage events when an instant message is received
 - To manage events when the server connection is updated
 
+ You must ensure to set correct information in file **InstantMessaging.cs**:
+- APP_ID
+- APP_SECRET_KEY
+- HOST_NAME
+- LOGIN_USER1
+- PASSWORD_USER1
+ 
+ ![FormIM](./images/FormIM.png)

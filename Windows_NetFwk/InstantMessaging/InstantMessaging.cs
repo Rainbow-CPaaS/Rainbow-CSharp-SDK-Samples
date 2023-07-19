@@ -83,11 +83,13 @@ namespace Sample_Contacts
 
             // EVENTS WE WANT TO MANAGE
             rainbowApplication.ConnectionStateChanged += RainbowApplication_ConnectionStateChanged;
+            rainbowApplication.InitializationPerformed += RainbowApplication_InitializationPerformed;
 
             rainbowContacts.RosterPeerAdded += RainbowContacts_RosterPeerAdded;
             rainbowContacts.RosterPeerRemoved += RainbowContacts_RosterPeerRemoved;
 
             rainbowContacts.ContactPresenceChanged += RainbowContacts_ContactPresenceChanged;
+            rainbowContacts.ContactAggregatedPresenceChanged += RainbowContacts_ContactAggregatedPresenceChanged;
 
             rainbowConversations.ConversationCreated += RainbowConversations_ConversationCreated;
             rainbowConversations.ConversationRemoved += RainbowConversations_ConversationRemoved;
@@ -125,7 +127,7 @@ namespace Sample_Contacts
 
     #endregion INIT METHODS
 
-        #region METHOD TO UPDATE SampleConversationForm COMPONENTS
+    #region METHOD TO UPDATE SampleConversationForm COMPONENTS
 
         /// <summary>
         /// Permits to add a new sting in the text box at the bottom of the form: it permits to log things happening
@@ -306,7 +308,7 @@ namespace Sample_Contacts
                 int i, nb;
                 string str;
 
-                str = Util.SerializePresence(presence);
+                str = SerializePresence(presence);
                 nb = cbPresenceList.Items.Count;
 
                 for(i=0; i<nb; i++)
@@ -343,7 +345,6 @@ namespace Sample_Contacts
                 cbPresenceList.Items.Add(new ListItem("busy-video"));
                 cbPresenceList.Items.Add(new ListItem("busy-sharing"));
                 cbPresenceList.Items.Add(new ListItem("dnd"));
-                cbPresenceList.Items.Add(new ListItem("dnd-presentation"));
                 cbPresenceList.Items.Add(new ListItem("xa"));
             }
         }
@@ -436,9 +437,7 @@ namespace Sample_Contacts
                 {
                     // Get and display contact presence
                     Presence presence = rainbowContacts.GetAggregatedPresenceFromContactId(contactId);
-                    if (presence == null) // It means this user is offline
-                        presence = new Presence(PresenceLevel.Offline, "");
-                    tbContactPresence.Text = Util.SerializePresence(presence);
+                    tbContactPresence.Text = SerializePresence(presence);
                 }
                 else
                     tbContactPresence.Text = "no presence in this context";
@@ -455,12 +454,7 @@ namespace Sample_Contacts
             AddStateLine($"ConnectionStateChanged:{e.State}");
             UpdateLoginButton(e.State);
 
-            if (e.State == Rainbow.Model.ConnectionState.Connected)
-            {
-                GetAllContacts();
-                GetAllConversations();
-            }
-            else if (e.State == Rainbow.Model.ConnectionState.Disconnected)
+            if (e.State == Rainbow.Model.ConnectionState.Disconnected)
             {
                 if (rainbowContactsList != null)
                 {
@@ -476,19 +470,43 @@ namespace Sample_Contacts
             }
         }
 
+        private void RainbowApplication_InitializationPerformed(object sender, EventArgs e)
+        {
+            // Add info about Initialization
+            AddStateLine("InitializationPerformed");
+
+            // Since we are Initialized, we get the current contact object
+            rainbowMyContact = rainbowContacts.GetCurrentContact();
+
+            GetAllContacts();
+            GetAllConversations();
+        }
+
         private void RainbowContacts_ContactPresenceChanged(object sender, Rainbow.Events.PresenceEventArgs e)
         {
-            if (e.Jid == rainbowMyContact.Jid_im)
+            // Same user/contact can use several devices
+
+            // We receive here the presence updated for each of them
+
+            // To get a global presence information you must use the event ContactAggregatedPresenceChanged 
+        }
+
+        private void RainbowContacts_ContactAggregatedPresenceChanged(object sender, Rainbow.Events.PresenceEventArgs e)
+        {
+            // Here we get a global presence information of the presence for a user/contact.
+            // It's created using information of all devices of this contact. Calendar and Telephony status are also taken into account
+
+            if (e.Presence.BasicNodeJid == Util.GetBasicNodeJid(rainbowMyContact.Jid_im))
             {
-                AddStateLine($"Your presence changed to [{Util.SerializePresence(e.Presence)}]");
+                AddStateLine($"Your presence changed to [{SerializePresence(e.Presence)}]");
             }
             else
             {
-                Contact contact = rainbowContacts.GetContactFromContactJid(e.Jid);
-                if(contact == null)
-                    AddStateLine($"Presence changed for [{e.Jid}]: {Util.SerializePresence(e.Presence)}");
+                Contact contact = rainbowContacts.GetContactFromContactJid(e.Presence.BasicNodeJid);
+                if (contact == null)
+                    AddStateLine($"Presence changed for [{e.Presence.BasicNodeJid}]: {SerializePresence(e.Presence)}");
                 else
-                    AddStateLine($"Presence changed for [{GetContactDisplayName(contact)}]: {Util.SerializePresence(e.Presence)}");
+                    AddStateLine($"Presence changed for [{GetContactDisplayName(contact)}]: {SerializePresence(e.Presence)}");
             }
         }
 
@@ -679,7 +697,7 @@ namespace Sample_Contacts
                 {
                     if (!callback.Result.Success)
                     {
-                        string logLine = String.Format("Impossible to logout:\r\n{0}", Util.SerializeSdkError(callback.Result));
+                        string logLine = String.Format("Impossible to logout:\r\n{0}", callback.Result);
                         AddStateLine(logLine);
                         log.LogWarning(logLine);
                     }
@@ -693,14 +711,9 @@ namespace Sample_Contacts
                 // We want to login
                 rainbowApplication.Login(login, password, callback =>
                 {
-                    if (callback.Result.Success)
+                    if (!callback.Result.Success)
                     {
-                        // Since we are connected, we get the current contact object
-                        rainbowMyContact = rainbowContacts.GetCurrentContact();
-                    }
-                    else
-                    {
-                        string logLine = String.Format("Impossible to login:\r\n{0}", Util.SerializeSdkError(callback.Result));
+                        string logLine = String.Format("Impossible to login:\r\n{0}", callback.Result);
                         AddStateLine(logLine);
                         log.LogWarning(logLine);
                     }
@@ -750,7 +763,23 @@ namespace Sample_Contacts
             ListItem item = (ListItem)cbPresenceList.SelectedItem;
             if (item != null)
             {
-                Presence presence = Util.UnserializePresence(item.Text);
+
+                var strPresence = item.Text;
+                String presenceLevel;
+                String presenceDetails;
+                int i = strPresence.IndexOf("-");
+                if (i > 0)
+                {
+                    presenceLevel = strPresence.Substring(0, i);
+                    presenceDetails = strPresence.Substring(i + 1);
+                }
+                else
+                {
+                    presenceLevel = strPresence;
+                    presenceDetails = "";
+                }
+
+                    Presence presence = rainbowContacts.CreatePresence(true, presenceLevel, presenceDetails);
                 if (presence == null)
                 {
                     string logLine = String.Format("Impossible to unserialize presence: [{0}]", item.Text);
@@ -767,7 +796,7 @@ namespace Sample_Contacts
                     }
                     else
                     {
-                        string logLine = String.Format("Impossible to set presence :\r\n{0}", Util.SerializeSdkError(callback.Result));
+                        string logLine = String.Format("Impossible to set presence :\r\n{0}", callback.Result);
                         AddStateLine(logLine);
                         log.LogWarning(logLine);
                     }
@@ -799,7 +828,7 @@ namespace Sample_Contacts
                         }
                         else
                         {
-                            string logLine = String.Format("Impossible to send message to contact [{1}]:\r\n{0}", Util.SerializeSdkError(callback.Result), idSelected);
+                            string logLine = String.Format("Impossible to send message to contact [{1}]:\r\n{0}", callback.Result, idSelected);
                             AddStateLine(logLine);
                             log.LogWarning(logLine);
                         }
@@ -815,7 +844,7 @@ namespace Sample_Contacts
                         }
                         else
                         {
-                            string logLine = String.Format("Impossible to send message to conversation [{1}]:\r\n{0}", Util.SerializeSdkError(callback.Result), idSelected);
+                            string logLine = String.Format("Impossible to send message to conversation [{1}]:\r\n{0}", callback.Result, idSelected);
                             AddStateLine(logLine);
                             log.LogWarning(logLine);
                         }
@@ -843,7 +872,7 @@ namespace Sample_Contacts
                     {
                         if (!callback.Result.Success)
                         {
-                            string logLine = String.Format("Impossible to send 'isTyping' to conversation [{1}]:\r\n{0}", Util.SerializeSdkError(callback.Result), conversationId);
+                            string logLine = String.Format("Impossible to send 'isTyping' to conversation [{1}]:\r\n{0}", callback.Result, conversationId);
                             AddStateLine(logLine);
                             log.LogWarning(logLine);
                         }
@@ -897,7 +926,7 @@ namespace Sample_Contacts
                     {
                         if (!callback.Result.Success)
                         {
-                            string logLine = String.Format("Impossible to mark message [{1}] as read :\r\n{0}", Util.SerializeSdkError(callback.Result), lastMessageIDReceived);
+                            string logLine = String.Format("Impossible to mark message [{1}] as read :\r\n{0}", callback.Result, lastMessageIDReceived);
                             AddStateLine(logLine);
                             log.LogWarning(logLine);
                         }
@@ -984,7 +1013,7 @@ namespace Sample_Contacts
                         }
                         else
                         {
-                            string logLine = String.Format("Impossible to get older messages from conversatiob[{1}] :\r\n{0}", Util.SerializeSdkError(callback.Result), conversation.Id);
+                            string logLine = String.Format("Impossible to get older messages from conversatiob[{1}] :\r\n{0}", callback.Result, conversation.Id);
                             AddStateLine(logLine);
                             log.LogWarning(logLine);
                         }
@@ -996,6 +1025,37 @@ namespace Sample_Contacts
     #endregion EVENTS FIRED BY SampleContactForm ELEMENTS
 
     #region UTIL METHODS
+
+        private string SerializePresence(Presence presence)
+        {
+            string result = "unknown";
+
+            if (presence == null)
+                return result;
+
+            if (presence.PresenceLevel == Rainbow.Model.PresenceLevel.Online)
+            {
+                result = Rainbow.Model.PresenceLevel.Online;
+                if (presence.Resource.StartsWith("mobile_"))
+                    result += "-mobile";
+            }
+            else if (presence.PresenceLevel == Rainbow.Model.PresenceLevel.Offline)
+                result = Rainbow.Model.PresenceLevel.Offline;
+
+            else if (presence.PresenceLevel == Rainbow.Model.PresenceLevel.Xa)
+                result = Rainbow.Model.PresenceLevel.Xa;
+
+            else if ((presence.PresenceLevel == Rainbow.Model.PresenceLevel.Away)
+                || (presence.PresenceLevel == Rainbow.Model.PresenceLevel.Dnd)
+                || (presence.PresenceLevel == Rainbow.Model.PresenceLevel.Busy))
+            {
+                if ((presence?.PresenceDetails.Length > 0))
+                    result = presence.PresenceLevel + "-" + presence.PresenceDetails;
+                else
+                    result = presence.PresenceLevel;
+            }
+            return result;
+        }
 
         private string GetContactDisplayName(Contact contact)
         {
@@ -1024,7 +1084,7 @@ namespace Sample_Contacts
                 }
                 else
                 {
-                    string logLine = String.Format("Impossible to get all contacts:\r\n{0}", Util.SerializeSdkError(callback.Result));
+                    string logLine = String.Format("Impossible to get all contacts:\r\n{0}", callback.Result);
                     AddStateLine(logLine);
                     log.LogWarning(logLine);
                 }
@@ -1046,7 +1106,7 @@ namespace Sample_Contacts
                 }
                 else
                 {
-                    string logLine = String.Format("Impossible to get all conversations:\r\n{0}", Util.SerializeSdkError(callback.Result));
+                    string logLine = String.Format("Impossible to get all conversations:\r\n{0}", callback.Result);
                     AddStateLine(logLine);
                     log.LogWarning(logLine);
                 }
@@ -1061,7 +1121,7 @@ namespace Sample_Contacts
         }
 
 
-        #endregion UTIL METHODS
+    #endregion UTIL METHODS
 
 
     }
