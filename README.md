@@ -14,7 +14,7 @@ You will find here several samples which illustrate how to use the Rainbow CShar
 
 - Advanced sample: (as **`Multiplatform application`**) going deeper in SDK use for **`UWP`**, **`IOS`**, **`Android`** and **`WPF` (experimental)** (All using `Xamarin.Forms`)
 
-- S2S (Server to Server) sample (as **`BOT application`**) to understand how to use S2S event mode - full details about S2S versus XMPP event mode [here](https://hub.openrainbow.com/#/documentation/doc/sdk/csharp/guides/035_events_mode) 
+- S2S (Server to Server) sample (as **`BOT application`**) to understand how to use S2S event mode - full details about S2S versus XMPP event mode [here](https://developers.openrainbow.com/doc/sdk/csharp/core/lts/guides/035_events_mode) 
 
 ## Small samples
 ---
@@ -69,7 +69,7 @@ Some screenshoots of this sample:
 ## Server to server (S2S) sample 
 ---
 
-It's important to read this [guide](https://hub.openrainbow.com/#/documentation/doc/sdk/csharp/core/lts/guides/035_events_mode) first to understand what is a S2S application and the architecture associated.
+It's important to read this [guide](https://developers.openrainbow.com/doc/sdk/csharp/core/lts/guides/035_events_mode) first to understand what is a S2S application and the architecture associated.
 
 This [sample](https://github.com/Rainbow-CPaaS/Rainbow-CSharp-SDK-Samples/tree/master/S2S) permits to understand how to use this SDK in Server to server context. It's better first to understand how the use SDK using small examples.
 
@@ -79,7 +79,7 @@ This [sample](https://github.com/Rainbow-CPaaS/Rainbow-CSharp-SDK-Samples/tree/m
 ## Rainbow API HUB
 ---
 
-This SDK is using the [Rainbow Hub environment](https://hub.openrainbow.com/)
+This SDK is using the [Rainbow environment](https://developers.openrainbow.com/)
  
 This environment is based on the [Rainbow service](https://www.openrainbow.com/) 
 
@@ -88,5 +88,5 @@ This environment is based on the [Rainbow service](https://www.openrainbow.com/)
 ---
 
 To have more info about the SDK:
-- check [Getting started guide](https://hub.openrainbow.com/#/documentation/doc/sdk/csharp/core/lts/guides/001_getting_started)
-- check [API documentation](https://hub.openrainbow.com/#/documentation/doc/sdk/csharp/core/lts/api/Rainbow.Application)
+- check [Getting started guide](https://developers.openrainbow.com/doc/sdk/csharp/core/lts/guides/001_getting_started)
+- check [API documentation](https://developers.openrainbow.com/doc/sdk/csharp/core/lts/api/Rainbow.Application)

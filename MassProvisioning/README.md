@@ -28,7 +28,7 @@ The creation (or deletion) of teachers / students are made in parallel (25 by de
 ## Rainbow API HUB
 ---
 
-This SDK is using the [Rainbow Hub environment](https://hub.openrainbow.com/)
+This SDK is using the [Rainbow environment](https://developers.openrainbow.com/)
  
 This environment is based on the [Rainbow service](https://www.openrainbow.com/) 
 
@@ -37,5 +37,5 @@ This environment is based on the [Rainbow service](https://www.openrainbow.com/)
 ---
 
 To have more info about the SDK:
-- check [Getting started guide](https://hub.openrainbow.com/#/documentation/doc/sdk/csharp/core/lts/guides/001_getting_started)
-- check [API documentation](https://hub.openrainbow.com/#/documentation/doc/sdk/csharp/core/lts/api/Rainbow.Application)
+- check [Getting started guide](https://developers.openrainbow.com/#/documentation/doc/sdk/csharp/core/lts/guides/001_getting_started)
+- check [API documentation](https://developers.openrainbow.com/#/documentation/doc/sdk/csharp/core/lts/api/Rainbow.Application)

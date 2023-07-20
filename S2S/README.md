@@ -6,7 +6,7 @@
 
 This sample demonstrates how to use the CSharp SDK in S2S event mode.
 
-Please read first this [guide](https://hub.openrainbow.com/#/documentation/doc/sdk/csharp/guides/035_events_mode) to understand what the S2S event mode means and the architecture necessary to use it. 
+Please read first this [guide](https://developers.openrainbow.com/doc/sdk/csharp/core/lts/guides/035_events_mode) to understand what the S2S event mode means and the architecture necessary to use it. 
 
 
 ## Based on existing InstantMessaging sample
@@ -23,7 +23,7 @@ This sample, for simplification purpose, use [NGROK](https://ngrok.com/) tool li
 </center>
 <br><br>
 
-**NOTE:** As explained in the [documentation](https://hub.openrainbow.com/#/documentation/doc/sdk/csharp/guides/035_events_mode), NGROK must be used only in test / development step and not in production environment.  
+**NOTE:** As explained in the [documentation](https://developers.openrainbow.com/doc/sdk/csharp/core/lts/guides/035_events_mode), NGROK must be used only in test / development step and not in production environment.  
 
 
 ## Code added/updated

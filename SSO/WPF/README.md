@@ -26,7 +26,7 @@ Then to check if the configuration is correct, you can use the standard web clie
 ## Define an Authentication Redirection URL
 ---
 
-You need now to specify an **Authentication Redirection URL** for your Rainbow Application using the Rainbow Hub Web site: https://hub.openrainbow.com/#/dashboard/applications
+You need now to specify an **Authentication Redirection URL** for your Rainbow Application using the Rainbow Hub Web site: https://developers.openrainbow.com/applications
 
 Use the "Edit" button for your application.
 
