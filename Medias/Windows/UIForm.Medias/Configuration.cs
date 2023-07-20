@@ -5,6 +5,8 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Windows.Forms;
+using Microsoft.Extensions.Logging;
+using NLog.Extensions.Logging;
 
 namespace SDK.UIForm.WebRTC
 {
@@ -258,11 +260,8 @@ namespace SDK.UIForm.WebRTC
                     XmlLoggingConfiguration config = XmlLoggingConfiguration.CreateFromXmlString(logConfigContent);
                     if (config.InitializeSucceeded == true)
                     {
-                        // Set NLog configuration
-                        NLog.LogManager.Configuration = config;
-
                         // Create Logger factory
-                        var factory = new NLog.Extensions.Logging.NLogLoggerFactory();
+                        var factory = LoggerFactory.Create(builder => builder.AddNLog(config));
 
                         // Set Logger factory to Rainbow SDK
                         Rainbow.LogFactory.Set(factory);

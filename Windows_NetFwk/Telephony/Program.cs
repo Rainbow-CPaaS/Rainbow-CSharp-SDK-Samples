@@ -1,4 +1,6 @@
-﻿using NLog.Config;
+﻿using Microsoft.Extensions.Logging;
+using NLog.Config;
+using NLog.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -40,11 +42,8 @@ namespace Sample_Telephony
                     XmlLoggingConfiguration config = XmlLoggingConfiguration.CreateFromXmlString(logConfigContent);
                     if (config.InitializeSucceeded == true)
                     {
-                        // Set NLog configuration
-                        NLog.LogManager.Configuration = config;
-
                         // Create Logger factory
-                        var factory = new NLog.Extensions.Logging.NLogLoggerFactory();
+                        var factory = LoggerFactory.Create(builder => builder.AddNLog(config));
 
                         // Set Logger factory to Rainbow SDK
                         Rainbow.LogFactory.Set(factory);

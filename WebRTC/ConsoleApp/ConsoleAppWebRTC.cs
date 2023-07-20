@@ -9,6 +9,8 @@ using System.Threading;
 using static DirectShowLib.MediaSubType;
 using Microsoft.Extensions.Logging.Abstractions;
 using Rainbow.WebRTC.Abstractions;
+using Microsoft.Extensions.Logging;
+using NLog.Extensions.Logging;
 
 namespace SDK.ConsoleApp.WebRTC
 {
@@ -928,11 +930,8 @@ namespace SDK.ConsoleApp.WebRTC
                 XmlLoggingConfiguration config = XmlLoggingConfiguration.CreateFromXmlString(logConfigContent);
                 if (config.InitializeSucceeded == true)
                 {
-                    // Set NLog configuration
-                    NLog.LogManager.Configuration = config;
-
                     // Create Logger factory
-                    var factory = new NLog.Extensions.Logging.NLogLoggerFactory();
+                    var factory = LoggerFactory.Create(builder => builder.AddNLog(config));
 
                     // Set Logger factory to Rainbow SDK
                     Rainbow.LogFactory.Set(factory);
