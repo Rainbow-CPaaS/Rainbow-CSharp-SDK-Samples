@@ -1,11 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using Microsoft.Extensions.Logging;
 using Rainbow;
@@ -71,6 +66,8 @@ namespace Sample_Telephony
         private void InitializeRainbowSDK()
         {
             rainbowApplication = new Rainbow.Application(); ;
+
+            rainbowApplication.Restrictions.LogRestRequest = true;
 
             // Set Application Id, Secret Key and Host Name
             rainbowApplication.SetApplicationInfo(APP_ID, APP_SECRET_KEY);
@@ -666,11 +663,11 @@ namespace Sample_Telephony
         private void RainbowApplication_ConnectionStateChanged(object sender, Rainbow.Events.ConnectionStateEventArgs e)
         {
             // Add info about connection state
-            AddStateLine($"ConnectionStateChanged:{e.State}");
-            UpdateLoginButton(e.State);
+            AddStateLine($"ConnectionStateChanged:{e.ConnectionState.State}");
+            UpdateLoginButton(e.ConnectionState.State);
 
             // Update layout since we are not connected to the server
-            if (e.State != Rainbow.Model.ConnectionState.Connected)
+            if (e.ConnectionState.State != Rainbow.Model.ConnectionState.Connected)
             {
                 RainbowTelephony_TelephonyStatusUpdated(this, new TelephonyStatusEventArgs(false));
                 
@@ -748,11 +745,15 @@ namespace Sample_Telephony
 
         private void RainbowTelephony_CallFailed(object sender, Rainbow.Events.CallIdEventArgs e)
         {
-            throw new NotImplementedException();
+            var msg = $"Call Failed: {e.CallId}";
+            AddStateLine(msg);
+            log.LogError(msg);
         }
 
         private void RainbowTelephony_CallUpdated(object sender, Rainbow.Events.CallEventArgs e)
         {
+
+
             UpdateCall(e.Call);
         }
 
