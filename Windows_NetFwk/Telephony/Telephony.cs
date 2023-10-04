@@ -16,13 +16,8 @@ namespace Sample_Telephony
         // Define log object
         private static readonly ILogger log = Rainbow.LogFactory.CreateLogger<SampleTelephonyForm>();
 
-        //Define Rainbow Application Id, Secret Key and Host Name
-        const string APP_ID = "YOUR APP ID";
-        const string APP_SECRET_KEY = "YOUR SECRET KEY";
-        const string HOST_NAME = "sandbox.openrainbow.com";
-
-        const string LOGIN_USER1 = "YOUR LOGIN";
-        const string PASSWORD_USER1 = "YOUR PASSWORD";
+        private readonly RainbowServer RainbowServer;
+        private readonly RainbowAccount RainbowAccount;
 
         // Define Rainbow objects
         Rainbow.Application rainbowApplication;     // To store Rainbow Application object
@@ -47,13 +42,16 @@ namespace Sample_Telephony
 
 
     #region INIT METHODS
-        public SampleTelephonyForm()
+        public SampleTelephonyForm(RainbowServer rainbowServer, RainbowAccount rainbowAccount)
         {
             InitializeComponent();
 
+            RainbowServer = rainbowServer;
+            RainbowAccount = rainbowAccount;
+
             // Set default user / pwd
-            tbLogin.Text = LOGIN_USER1;
-            tbPassword.Text = PASSWORD_USER1;
+            tbLogin.Text = RainbowAccount.Login;
+            tbPassword.Text = RainbowAccount.Password;
             cbCall1Dtmf.SelectedIndex = 0;
             cbCall2Dtmf.SelectedIndex = 0;
 
@@ -70,8 +68,8 @@ namespace Sample_Telephony
             rainbowApplication.Restrictions.LogRestRequest = true;
 
             // Set Application Id, Secret Key and Host Name
-            rainbowApplication.SetApplicationInfo(APP_ID, APP_SECRET_KEY);
-            rainbowApplication.SetHostInfo(HOST_NAME);
+            rainbowApplication.SetApplicationInfo(RainbowServer.AppId, RainbowServer.AppKey);
+            rainbowApplication.SetHostInfo(RainbowServer.Hostname);
 
             // Get Rainbow main objects
             rainbowTelephony = rainbowApplication.GetTelephony();

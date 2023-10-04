@@ -8,7 +8,7 @@
             final="true" />
         <logger 
             name="*" 
-            minlevel="Debug" 
+            minlevel="Trace" 
             writeTo="RAINBOW_DEFAULT_LOGGER"
             />
     </rules>

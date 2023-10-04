@@ -1,0 +1,13 @@
+{
+  "nlogConfigFilePath": ".\\NLogConfiguration.xml",
+
+  "serverConfig": {
+    "appId": "TO SPECIFY",
+    "appKey": "TO SPECIFY",
+    "hostname": "sandbox.openrainbow.com"
+  },
+  "userConfig": {
+    "login": "TO SPECIFY",
+    "password": "TO SPECIFY"
+  }
+}
