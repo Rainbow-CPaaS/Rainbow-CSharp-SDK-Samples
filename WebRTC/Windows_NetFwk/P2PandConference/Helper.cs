@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
-using System.Text.Json.Nodes;
 using System.Windows.Forms;
 
 namespace SDK.UIForm.WebRTC
@@ -51,7 +50,7 @@ namespace SDK.UIForm.WebRTC
             mediaInputStreamDescriptorcontact.VideoFilter = UtilJson.AsString(json, "videoFilter");
             mediaInputStreamDescriptorcontact.Audio = UtilJson.AsBoolean(json, "audio");
             mediaInputStreamDescriptorcontact.Video = UtilJson.AsBoolean(json, "video");
-            mediaInputStreamDescriptorcontact.Loop = UtilJson.AsBoolean(json, "voop");
+            mediaInputStreamDescriptorcontact.Loop = UtilJson.AsBoolean(json, "loop");
 
             return mediaInputStreamDescriptorcontact;
         }

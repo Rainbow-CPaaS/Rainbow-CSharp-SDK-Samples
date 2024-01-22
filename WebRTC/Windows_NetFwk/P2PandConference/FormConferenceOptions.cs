@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Security.Policy;
 using System.Windows.Forms;
 using Rainbow;
 using Rainbow.Model;
@@ -29,7 +28,7 @@ namespace SDK.UIForm.WebRTC
 
         public event EventHandler<(int media, String? publisherId, bool dynamicFeed)>? OpenVideoPublication;
 
-#region CONSTRUCTOR
+    #region CONSTRUCTOR
         public FormConferenceOptions()
         {
             this.HandleCreated += Form_HandleCreated;
@@ -132,9 +131,9 @@ namespace SDK.UIForm.WebRTC
             UpdateSubscriptionButtons();
         }
 
-        #endregion CONSTRUCTOR
+    #endregion CONSTRUCTOR
 
-        #region PRIVATE methods
+    #region PRIVATE methods
 
         private void UpdateUIFull()
         {
@@ -287,6 +286,7 @@ namespace SDK.UIForm.WebRTC
             {
                 lb_PublishersVideo.Items.Clear();
                 lb_PublishersSharing.Items.Clear();
+                lb_PublishersDataChannel.Items.Clear();
                 if (_currentConference != null)
                 {
                     List<MediaPublication> mediaPublications;
@@ -304,6 +304,8 @@ namespace SDK.UIForm.WebRTC
                                 lb_PublishersVideo.Items.Add(item);
                             else if (mediaPublication.Media == Call.Media.SHARING)
                                 lb_PublishersSharing.Items.Add(item);
+                            else if (mediaPublication.Media == Call.Media.DATACHANNEL)
+                                lb_PublishersDataChannel.Items.Add(item);
                         }
                     }
                 }
@@ -324,6 +326,7 @@ namespace SDK.UIForm.WebRTC
                 UpdateAudioSubscription();
                 UpdateVideoSubscription();
                 UpdateSharingSubscription();
+                UpdateDataChannelSubscription();
             });
 
             if (this.InvokeRequired)
@@ -444,6 +447,33 @@ namespace SDK.UIForm.WebRTC
             }
         }
 
+        private void UpdateDataChannelSubscription()
+        {
+            if (_canSubscribeToMediaPublication)
+            {
+                btn_SubscribeRemoteDataChannelInput.Visible = true;
+
+                if (lb_PublishersDataChannel.SelectedItem is ListItem item)
+                {
+                    var publisherId = item.Value;
+                    var media = Call.Media.DATACHANNEL;
+                    var subscribed = IsMediaSubscribed(publisherId, media, false);
+
+                    btn_SubscribeRemoteDataChannelInput.Enabled = true;
+                    btn_SubscribeRemoteDataChannelInput.Text = subscribed ? "Unsubscribe" : "Subscribe";
+                    btn_SubscribeRemoteDataChannelInput.ForeColor = subscribed ? System.Drawing.Color.DarkRed : System.Drawing.Color.DarkGreen;
+                }
+                else
+                {
+                    btn_SubscribeRemoteDataChannelInput.Enabled = false;
+                }
+            }
+            else
+            {
+                btn_SubscribeRemoteDataChannelInput.Visible = false;
+            }
+        }
+
         private void AddInformationMessage(string status)
         {
             var action = new Action(() =>
@@ -494,9 +524,9 @@ namespace SDK.UIForm.WebRTC
             OpenVideoPublication?.Invoke(this, (media, publisherId, dynamicFeed));
         }
 
-    #endregion PRIVATE methods
+        #endregion PRIVATE methods
 
-    #region EVENTS from SDK Objects
+        #region EVENTS from SDK Objects
 
         private void Conferences_ConferenceMediaPublicationsUpdated(object? sender, Rainbow.Events.MediaPublicationsEventArgs e)
         {
@@ -727,6 +757,9 @@ namespace SDK.UIForm.WebRTC
         {
             if (_currentConference != null)
             {
+                _rbConferences.ConferenceGetFullSnapshot(_currentConference.Id);
+                return;
+
                 var bubbleId = _rbConferences.GetBubbleIdByConferenceIdFromCache(_currentConference.Id);
                 if (bubbleId == null)
                 {
@@ -847,6 +880,10 @@ namespace SDK.UIForm.WebRTC
             UpdateSharingSubscription();
         }
 
+        private void lb_PublishersDataChannel_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            UpdateDataChannelSubscription();
+        }
 
         private void btn_SubscribeRemoteAudioInput_Click(object sender, EventArgs e)
         {
@@ -893,6 +930,18 @@ namespace SDK.UIForm.WebRTC
             }
         }
 
+        private void btn_SubscribeRemoteDataChannelInput_Click(object sender, EventArgs e)
+        {
+            if (_canSubscribeToMediaPublication)
+            {
+                if (lb_PublishersDataChannel.SelectedItem is ListItem item)
+                {
+                    var subscribed = IsMediaSubscribed(item.Value, Call.Media.DATACHANNEL, false);
+                    OnMediaSubscription?.Raise(this, new MediaPublicationEventArgs(_currentConfId, item.Value, "", Call.Media.DATACHANNEL, false, subscribed ? MediaPublicationStatus.CURRENT_USER_UNSUBSCRIBED : MediaPublicationStatus.CURRENT_USER_SUBSCRIBED));
+                }
+            }
+        }
+
         private void lb_Participants_SelectedIndexChanged(object sender, EventArgs e)
         {
 
@@ -934,7 +983,8 @@ namespace SDK.UIForm.WebRTC
             }
         }
 
-    #endregion EVENTS from FORM elements
+        #endregion EVENTS from FORM elements
+
 
     }
 }

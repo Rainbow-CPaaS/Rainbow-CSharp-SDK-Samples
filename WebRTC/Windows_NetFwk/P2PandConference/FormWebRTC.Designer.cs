@@ -30,962 +30,1027 @@ namespace SDK.UIForm.WebRTC
         /// </summary>
         private void InitializeComponent()
         {
-            this.components = new System.ComponentModel.Container();
-            this.cb_AudioOutputs = new System.Windows.Forms.ComboBox();
-            this.label4 = new System.Windows.Forms.Label();
-            this.cb_AudioInputs = new System.Windows.Forms.ComboBox();
-            this.label1 = new System.Windows.Forms.Label();
-            this.cb_VideoInputs = new System.Windows.Forms.ComboBox();
-            this.label2 = new System.Windows.Forms.Label();
-            this.cb_SharingInputs = new System.Windows.Forms.ComboBox();
-            this.label3 = new System.Windows.Forms.Label();
-            this.label7 = new System.Windows.Forms.Label();
-            this.check_RemoteSharing = new System.Windows.Forms.CheckBox();
-            this.check_RemoteVideo = new System.Windows.Forms.CheckBox();
-            this.check_RemoteAudio = new System.Windows.Forms.CheckBox();
-            this.label6 = new System.Windows.Forms.Label();
-            this.check_LocalSharing = new System.Windows.Forms.CheckBox();
-            this.check_LocalVideo = new System.Windows.Forms.CheckBox();
-            this.check_LocalAudio = new System.Windows.Forms.CheckBox();
-            this.btn_AskToShare = new System.Windows.Forms.Button();
-            this.btn_UnmuteMedia = new System.Windows.Forms.Button();
-            this.btn_MuteMedia = new System.Windows.Forms.Button();
-            this.cb_MuteMedia = new System.Windows.Forms.ComboBox();
-            this.label8 = new System.Windows.Forms.Label();
-            this.tb_Subject = new System.Windows.Forms.TextBox();
-            this.btn_RemoveMedia = new System.Windows.Forms.Button();
-            this.btn_AddMedia = new System.Windows.Forms.Button();
-            this.btn_DeclineCall = new System.Windows.Forms.Button();
-            this.btn_HangUp = new System.Windows.Forms.Button();
-            this.btn_MakeCall = new System.Windows.Forms.Button();
-            this.cb_MakeCallMedias = new System.Windows.Forms.ComboBox();
-            this.label5 = new System.Windows.Forms.Label();
-            this.cb_ContactsList = new System.Windows.Forms.ComboBox();
-            this.lbl_ConferencesInProgress = new System.Windows.Forms.Label();
-            this.btn_StartConf = new System.Windows.Forms.Button();
-            this.label11 = new System.Windows.Forms.Label();
-            this.cb_BubblesList = new System.Windows.Forms.ComboBox();
-            this.btn_JoinConf = new System.Windows.Forms.Button();
-            this.btn_ManageInputStreams = new System.Windows.Forms.Button();
-            this.btn_RefreshAudioOutput = new System.Windows.Forms.Button();
-            this.btn_RefreshAudioInput = new System.Windows.Forms.Button();
-            this.btn_LoadConfig = new System.Windows.Forms.Button();
-            this.btn_OutputVideoInput = new System.Windows.Forms.Button();
-            this.btn_OutputSharingInput = new System.Windows.Forms.Button();
-            this.label9 = new System.Windows.Forms.Label();
-            this.tb_Information = new System.Windows.Forms.TextBox();
-            this.label10 = new System.Windows.Forms.Label();
-            this.lbl_IncomingCall = new System.Windows.Forms.Label();
-            this.lbl_ConversationDetails = new System.Windows.Forms.Label();
-            this.lbl_BubbleInfo = new System.Windows.Forms.Label();
-            this.btn_AnswerCall = new System.Windows.Forms.Button();
-            this.cb_AnswerCallMedias = new System.Windows.Forms.ComboBox();
-            this.cb_RemoveMedia = new System.Windows.Forms.ComboBox();
-            this.cb_AddMedia = new System.Windows.Forms.ComboBox();
-            this.cb_UnmuteMedia = new System.Windows.Forms.ComboBox();
-            this.btn_OutputLocalVideoInput = new System.Windows.Forms.Button();
-            this.btn_OutputLocalSharingInput = new System.Windows.Forms.Button();
-            this.btn_StopVideoInput = new System.Windows.Forms.Button();
-            this.btn_StartVideoInput = new System.Windows.Forms.Button();
-            this.btn_StopSharingInput = new System.Windows.Forms.Button();
-            this.btn_StartSharingInput = new System.Windows.Forms.Button();
-            this.btn_StopAudioInput = new System.Windows.Forms.Button();
-            this.btn_StartAudioInput = new System.Windows.Forms.Button();
-            this.btn_DeclineConf = new System.Windows.Forms.Button();
-            this.btn_ConferenceOptions = new System.Windows.Forms.Button();
-            this.lbl_ConversationInProgress = new System.Windows.Forms.Label();
-            this.cb_ConferencesName = new System.Windows.Forms.ComboBox();
-            this.btn_AddAsParticipant = new System.Windows.Forms.Button();
-            this.btn_OutputRemoteVideoInput = new System.Windows.Forms.Button();
-            this.btn_OutputRemoteSharingInput = new System.Windows.Forms.Button();
-            this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
-            this.btn_SubscribeRemoteAudioInput = new System.Windows.Forms.Button();
-            this.btn_SubscribeRemoteVideoInput = new System.Windows.Forms.Button();
-            this.btn_SubscribeRemoteSharingInput = new System.Windows.Forms.Button();
-            this.btn_Test = new System.Windows.Forms.Button();
-            this.SuspendLayout();
+            components = new System.ComponentModel.Container();
+            cb_AudioOutputs = new ComboBox();
+            label4 = new Label();
+            cb_AudioInputs = new ComboBox();
+            label1 = new Label();
+            cb_VideoInputs = new ComboBox();
+            label2 = new Label();
+            cb_SharingInputs = new ComboBox();
+            label3 = new Label();
+            label7 = new Label();
+            check_RemoteSharing = new CheckBox();
+            check_RemoteVideo = new CheckBox();
+            check_RemoteAudio = new CheckBox();
+            label6 = new Label();
+            check_LocalSharing = new CheckBox();
+            check_LocalVideo = new CheckBox();
+            check_LocalAudio = new CheckBox();
+            btn_AskToShare = new Button();
+            btn_UnmuteMedia = new Button();
+            btn_MuteMedia = new Button();
+            cb_MuteMedia = new ComboBox();
+            label8 = new Label();
+            tb_Subject = new TextBox();
+            btn_RemoveMedia = new Button();
+            btn_AddMedia = new Button();
+            btn_DeclineCall = new Button();
+            btn_HangUp = new Button();
+            btn_MakeCall = new Button();
+            cb_MakeCallMedias = new ComboBox();
+            label5 = new Label();
+            cb_ContactsList = new ComboBox();
+            lbl_ConferencesInProgress = new Label();
+            btn_StartConf = new Button();
+            label11 = new Label();
+            cb_BubblesList = new ComboBox();
+            btn_JoinConf = new Button();
+            btn_ManageInputStreams = new Button();
+            btn_RefreshAudioOutput = new Button();
+            btn_RefreshAudioInput = new Button();
+            btn_LoadConfig = new Button();
+            btn_OutputVideoInput = new Button();
+            btn_OutputSharingInput = new Button();
+            label9 = new Label();
+            tb_Information = new TextBox();
+            label10 = new Label();
+            lbl_IncomingCall = new Label();
+            lbl_ConversationDetails = new Label();
+            lbl_BubbleInfo = new Label();
+            btn_AnswerCall = new Button();
+            cb_AnswerCallMedias = new ComboBox();
+            cb_RemoveMedia = new ComboBox();
+            cb_AddMedia = new ComboBox();
+            cb_UnmuteMedia = new ComboBox();
+            btn_OutputLocalVideoInput = new Button();
+            btn_OutputLocalSharingInput = new Button();
+            btn_StopVideoInput = new Button();
+            btn_StartVideoInput = new Button();
+            btn_StopSharingInput = new Button();
+            btn_StartSharingInput = new Button();
+            btn_StopAudioInput = new Button();
+            btn_StartAudioInput = new Button();
+            btn_DeclineConf = new Button();
+            btn_ConferenceOptions = new Button();
+            lbl_ConversationInProgress = new Label();
+            cb_ConferencesName = new ComboBox();
+            btn_AddAsParticipant = new Button();
+            btn_OutputRemoteVideoInput = new Button();
+            btn_OutputRemoteSharingInput = new Button();
+            toolTip1 = new ToolTip(components);
+            btn_SubscribeRemoteAudioInput = new Button();
+            btn_SubscribeRemoteVideoInput = new Button();
+            btn_SubscribeRemoteSharingInput = new Button();
+            btn_Test = new Button();
+            check_LocalDataChannel = new CheckBox();
+            btn_SubscribeRemoteDataChannelInput = new Button();
+            check_RemoteDataChannel = new CheckBox();
+            tbDataChannel = new TextBox();
+            btn_DataChannelSend = new Button();
+            SuspendLayout();
             // 
             // cb_AudioOutputs
             // 
-            this.cb_AudioOutputs.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cb_AudioOutputs.FormattingEnabled = true;
-            this.cb_AudioOutputs.Location = new System.Drawing.Point(101, 150);
-            this.cb_AudioOutputs.Name = "cb_AudioOutputs";
-            this.cb_AudioOutputs.Size = new System.Drawing.Size(260, 23);
-            this.cb_AudioOutputs.TabIndex = 138;
-            this.cb_AudioOutputs.SelectedIndexChanged += new System.EventHandler(this.cb_AudioOutputList_SelectedIndexChanged);
+            cb_AudioOutputs.DropDownStyle = ComboBoxStyle.DropDownList;
+            cb_AudioOutputs.FormattingEnabled = true;
+            cb_AudioOutputs.Location = new System.Drawing.Point(101, 150);
+            cb_AudioOutputs.Name = "cb_AudioOutputs";
+            cb_AudioOutputs.Size = new System.Drawing.Size(260, 23);
+            cb_AudioOutputs.TabIndex = 138;
+            cb_AudioOutputs.SelectedIndexChanged += cb_AudioOutputList_SelectedIndexChanged;
             // 
             // label4
             // 
-            this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(12, 153);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(83, 15);
-            this.label4.TabIndex = 137;
-            this.label4.Text = "Audio Output:";
+            label4.AutoSize = true;
+            label4.Location = new System.Drawing.Point(12, 153);
+            label4.Name = "label4";
+            label4.Size = new System.Drawing.Size(83, 15);
+            label4.TabIndex = 137;
+            label4.Text = "Audio Output:";
             // 
             // cb_AudioInputs
             // 
-            this.cb_AudioInputs.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cb_AudioInputs.FormattingEnabled = true;
-            this.cb_AudioInputs.Location = new System.Drawing.Point(101, 121);
-            this.cb_AudioInputs.Name = "cb_AudioInputs";
-            this.cb_AudioInputs.Size = new System.Drawing.Size(260, 23);
-            this.cb_AudioInputs.TabIndex = 140;
-            this.cb_AudioInputs.SelectedIndexChanged += new System.EventHandler(this.cb_AudioInputList_SelectedIndexChanged);
+            cb_AudioInputs.DropDownStyle = ComboBoxStyle.DropDownList;
+            cb_AudioInputs.FormattingEnabled = true;
+            cb_AudioInputs.Location = new System.Drawing.Point(101, 121);
+            cb_AudioInputs.Name = "cb_AudioInputs";
+            cb_AudioInputs.Size = new System.Drawing.Size(260, 23);
+            cb_AudioInputs.TabIndex = 140;
+            cb_AudioInputs.SelectedIndexChanged += cb_AudioInputList_SelectedIndexChanged;
             // 
             // label1
             // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(12, 124);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(73, 15);
-            this.label1.TabIndex = 139;
-            this.label1.Text = "Audio Input:";
+            label1.AutoSize = true;
+            label1.Location = new System.Drawing.Point(12, 124);
+            label1.Name = "label1";
+            label1.Size = new System.Drawing.Size(73, 15);
+            label1.TabIndex = 139;
+            label1.Text = "Audio Input:";
             // 
             // cb_VideoInputs
             // 
-            this.cb_VideoInputs.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cb_VideoInputs.FormattingEnabled = true;
-            this.cb_VideoInputs.Location = new System.Drawing.Point(101, 55);
-            this.cb_VideoInputs.Name = "cb_VideoInputs";
-            this.cb_VideoInputs.Size = new System.Drawing.Size(260, 23);
-            this.cb_VideoInputs.TabIndex = 144;
-            this.cb_VideoInputs.SelectedIndexChanged += new System.EventHandler(this.cb_VideoInputs_SelectedIndexChanged);
+            cb_VideoInputs.DropDownStyle = ComboBoxStyle.DropDownList;
+            cb_VideoInputs.FormattingEnabled = true;
+            cb_VideoInputs.Location = new System.Drawing.Point(101, 55);
+            cb_VideoInputs.Name = "cb_VideoInputs";
+            cb_VideoInputs.Size = new System.Drawing.Size(260, 23);
+            cb_VideoInputs.TabIndex = 144;
+            cb_VideoInputs.SelectedIndexChanged += cb_VideoInputs_SelectedIndexChanged;
             // 
             // label2
             // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(12, 58);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(71, 15);
-            this.label2.TabIndex = 143;
-            this.label2.Text = "Video Input:";
+            label2.AutoSize = true;
+            label2.Location = new System.Drawing.Point(12, 58);
+            label2.Name = "label2";
+            label2.Size = new System.Drawing.Size(71, 15);
+            label2.TabIndex = 143;
+            label2.Text = "Video Input:";
             // 
             // cb_SharingInputs
             // 
-            this.cb_SharingInputs.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cb_SharingInputs.FormattingEnabled = true;
-            this.cb_SharingInputs.Location = new System.Drawing.Point(101, 84);
-            this.cb_SharingInputs.Name = "cb_SharingInputs";
-            this.cb_SharingInputs.Size = new System.Drawing.Size(260, 23);
-            this.cb_SharingInputs.TabIndex = 147;
-            this.cb_SharingInputs.SelectedIndexChanged += new System.EventHandler(this.cb_SharingInputs_SelectedIndexChanged);
+            cb_SharingInputs.DropDownStyle = ComboBoxStyle.DropDownList;
+            cb_SharingInputs.FormattingEnabled = true;
+            cb_SharingInputs.Location = new System.Drawing.Point(101, 84);
+            cb_SharingInputs.Name = "cb_SharingInputs";
+            cb_SharingInputs.Size = new System.Drawing.Size(260, 23);
+            cb_SharingInputs.TabIndex = 147;
+            cb_SharingInputs.SelectedIndexChanged += cb_SharingInputs_SelectedIndexChanged;
             // 
             // label3
             // 
-            this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(12, 87);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(81, 15);
-            this.label3.TabIndex = 146;
-            this.label3.Text = "Sharing Input:";
+            label3.AutoSize = true;
+            label3.Location = new System.Drawing.Point(12, 87);
+            label3.Name = "label3";
+            label3.Size = new System.Drawing.Size(81, 15);
+            label3.TabIndex = 146;
+            label3.Text = "Sharing Input:";
             // 
             // label7
             // 
-            this.label7.AutoSize = true;
-            this.label7.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.label7.Location = new System.Drawing.Point(153, 418);
-            this.label7.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
-            this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(141, 13);
-            this.label7.TabIndex = 156;
-            this.label7.Text = "Medias used by remote:";
+            label7.AutoSize = true;
+            label7.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            label7.Location = new System.Drawing.Point(153, 418);
+            label7.Margin = new Padding(2, 0, 2, 0);
+            label7.Name = "label7";
+            label7.Size = new System.Drawing.Size(141, 13);
+            label7.TabIndex = 156;
+            label7.Text = "Medias used by remote:";
             // 
             // check_RemoteSharing
             // 
-            this.check_RemoteSharing.AutoCheck = false;
-            this.check_RemoteSharing.AutoSize = true;
-            this.check_RemoteSharing.Location = new System.Drawing.Point(174, 481);
-            this.check_RemoteSharing.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
-            this.check_RemoteSharing.Name = "check_RemoteSharing";
-            this.check_RemoteSharing.Size = new System.Drawing.Size(66, 19);
-            this.check_RemoteSharing.TabIndex = 155;
-            this.check_RemoteSharing.Text = "Sharing";
-            this.check_RemoteSharing.UseVisualStyleBackColor = true;
+            check_RemoteSharing.AutoCheck = false;
+            check_RemoteSharing.AutoSize = true;
+            check_RemoteSharing.Location = new System.Drawing.Point(174, 481);
+            check_RemoteSharing.Margin = new Padding(2, 3, 2, 3);
+            check_RemoteSharing.Name = "check_RemoteSharing";
+            check_RemoteSharing.Size = new System.Drawing.Size(66, 19);
+            check_RemoteSharing.TabIndex = 155;
+            check_RemoteSharing.Text = "Sharing";
+            check_RemoteSharing.UseVisualStyleBackColor = true;
             // 
             // check_RemoteVideo
             // 
-            this.check_RemoteVideo.AutoCheck = false;
-            this.check_RemoteVideo.AutoSize = true;
-            this.check_RemoteVideo.Location = new System.Drawing.Point(174, 458);
-            this.check_RemoteVideo.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
-            this.check_RemoteVideo.Name = "check_RemoteVideo";
-            this.check_RemoteVideo.Size = new System.Drawing.Size(56, 19);
-            this.check_RemoteVideo.TabIndex = 154;
-            this.check_RemoteVideo.Text = "Video";
-            this.check_RemoteVideo.UseVisualStyleBackColor = true;
+            check_RemoteVideo.AutoCheck = false;
+            check_RemoteVideo.AutoSize = true;
+            check_RemoteVideo.Location = new System.Drawing.Point(174, 456);
+            check_RemoteVideo.Margin = new Padding(2, 3, 2, 3);
+            check_RemoteVideo.Name = "check_RemoteVideo";
+            check_RemoteVideo.Size = new System.Drawing.Size(56, 19);
+            check_RemoteVideo.TabIndex = 154;
+            check_RemoteVideo.Text = "Video";
+            check_RemoteVideo.UseVisualStyleBackColor = true;
             // 
             // check_RemoteAudio
             // 
-            this.check_RemoteAudio.AutoCheck = false;
-            this.check_RemoteAudio.AutoSize = true;
-            this.check_RemoteAudio.Location = new System.Drawing.Point(174, 434);
-            this.check_RemoteAudio.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
-            this.check_RemoteAudio.Name = "check_RemoteAudio";
-            this.check_RemoteAudio.Size = new System.Drawing.Size(58, 19);
-            this.check_RemoteAudio.TabIndex = 153;
-            this.check_RemoteAudio.Text = "Audio";
-            this.check_RemoteAudio.UseVisualStyleBackColor = true;
+            check_RemoteAudio.AutoCheck = false;
+            check_RemoteAudio.AutoSize = true;
+            check_RemoteAudio.Location = new System.Drawing.Point(174, 434);
+            check_RemoteAudio.Margin = new Padding(2, 3, 2, 3);
+            check_RemoteAudio.Name = "check_RemoteAudio";
+            check_RemoteAudio.Size = new System.Drawing.Size(58, 19);
+            check_RemoteAudio.TabIndex = 153;
+            check_RemoteAudio.Text = "Audio";
+            check_RemoteAudio.UseVisualStyleBackColor = true;
             // 
             // label6
             // 
-            this.label6.AutoSize = true;
-            this.label6.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.label6.Location = new System.Drawing.Point(24, 418);
-            this.label6.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
-            this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(82, 13);
-            this.label6.TabIndex = 152;
-            this.label6.Text = "Medias used:";
+            label6.AutoSize = true;
+            label6.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            label6.Location = new System.Drawing.Point(24, 418);
+            label6.Margin = new Padding(2, 0, 2, 0);
+            label6.Name = "label6";
+            label6.Size = new System.Drawing.Size(82, 13);
+            label6.TabIndex = 152;
+            label6.Text = "Medias used:";
             // 
             // check_LocalSharing
             // 
-            this.check_LocalSharing.AutoCheck = false;
-            this.check_LocalSharing.AutoSize = true;
-            this.check_LocalSharing.Location = new System.Drawing.Point(45, 481);
-            this.check_LocalSharing.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
-            this.check_LocalSharing.Name = "check_LocalSharing";
-            this.check_LocalSharing.Size = new System.Drawing.Size(66, 19);
-            this.check_LocalSharing.TabIndex = 151;
-            this.check_LocalSharing.Text = "Sharing";
-            this.check_LocalSharing.UseVisualStyleBackColor = true;
+            check_LocalSharing.AutoCheck = false;
+            check_LocalSharing.AutoSize = true;
+            check_LocalSharing.Location = new System.Drawing.Point(45, 481);
+            check_LocalSharing.Margin = new Padding(2, 3, 2, 3);
+            check_LocalSharing.Name = "check_LocalSharing";
+            check_LocalSharing.Size = new System.Drawing.Size(66, 19);
+            check_LocalSharing.TabIndex = 151;
+            check_LocalSharing.Text = "Sharing";
+            check_LocalSharing.UseVisualStyleBackColor = true;
             // 
             // check_LocalVideo
             // 
-            this.check_LocalVideo.AutoCheck = false;
-            this.check_LocalVideo.AutoSize = true;
-            this.check_LocalVideo.Location = new System.Drawing.Point(45, 458);
-            this.check_LocalVideo.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
-            this.check_LocalVideo.Name = "check_LocalVideo";
-            this.check_LocalVideo.Size = new System.Drawing.Size(56, 19);
-            this.check_LocalVideo.TabIndex = 150;
-            this.check_LocalVideo.Text = "Video";
-            this.check_LocalVideo.UseVisualStyleBackColor = true;
+            check_LocalVideo.AutoCheck = false;
+            check_LocalVideo.AutoSize = true;
+            check_LocalVideo.Location = new System.Drawing.Point(45, 458);
+            check_LocalVideo.Margin = new Padding(2, 3, 2, 3);
+            check_LocalVideo.Name = "check_LocalVideo";
+            check_LocalVideo.Size = new System.Drawing.Size(56, 19);
+            check_LocalVideo.TabIndex = 150;
+            check_LocalVideo.Text = "Video";
+            check_LocalVideo.UseVisualStyleBackColor = true;
             // 
             // check_LocalAudio
             // 
-            this.check_LocalAudio.AutoCheck = false;
-            this.check_LocalAudio.AutoSize = true;
-            this.check_LocalAudio.Location = new System.Drawing.Point(45, 434);
-            this.check_LocalAudio.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
-            this.check_LocalAudio.Name = "check_LocalAudio";
-            this.check_LocalAudio.Size = new System.Drawing.Size(58, 19);
-            this.check_LocalAudio.TabIndex = 149;
-            this.check_LocalAudio.Text = "Audio";
-            this.check_LocalAudio.UseVisualStyleBackColor = true;
+            check_LocalAudio.AutoCheck = false;
+            check_LocalAudio.AutoSize = true;
+            check_LocalAudio.Location = new System.Drawing.Point(45, 434);
+            check_LocalAudio.Margin = new Padding(2, 3, 2, 3);
+            check_LocalAudio.Name = "check_LocalAudio";
+            check_LocalAudio.Size = new System.Drawing.Size(58, 19);
+            check_LocalAudio.TabIndex = 149;
+            check_LocalAudio.Text = "Audio";
+            check_LocalAudio.UseVisualStyleBackColor = true;
             // 
             // btn_AskToShare
             // 
-            this.btn_AskToShare.Enabled = false;
-            this.btn_AskToShare.Location = new System.Drawing.Point(237, 304);
-            this.btn_AskToShare.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
-            this.btn_AskToShare.Name = "btn_AskToShare";
-            this.btn_AskToShare.Size = new System.Drawing.Size(81, 23);
-            this.btn_AskToShare.TabIndex = 178;
-            this.btn_AskToShare.Text = "Ask to Share";
-            this.btn_AskToShare.UseVisualStyleBackColor = true;
-            this.btn_AskToShare.Click += new System.EventHandler(this.btn_AskToShare_Click);
+            btn_AskToShare.Enabled = false;
+            btn_AskToShare.Location = new System.Drawing.Point(237, 304);
+            btn_AskToShare.Margin = new Padding(2, 3, 2, 3);
+            btn_AskToShare.Name = "btn_AskToShare";
+            btn_AskToShare.Size = new System.Drawing.Size(81, 23);
+            btn_AskToShare.TabIndex = 178;
+            btn_AskToShare.Text = "Ask to Share";
+            btn_AskToShare.UseVisualStyleBackColor = true;
+            btn_AskToShare.Click += btn_AskToShare_Click;
             // 
             // btn_UnmuteMedia
             // 
-            this.btn_UnmuteMedia.Location = new System.Drawing.Point(152, 376);
-            this.btn_UnmuteMedia.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
-            this.btn_UnmuteMedia.Name = "btn_UnmuteMedia";
-            this.btn_UnmuteMedia.Size = new System.Drawing.Size(81, 23);
-            this.btn_UnmuteMedia.TabIndex = 177;
-            this.btn_UnmuteMedia.Text = "Unmute";
-            this.btn_UnmuteMedia.UseVisualStyleBackColor = true;
-            this.btn_UnmuteMedia.Click += new System.EventHandler(this.btn_UnmuteMedia_Click);
+            btn_UnmuteMedia.Location = new System.Drawing.Point(152, 376);
+            btn_UnmuteMedia.Margin = new Padding(2, 3, 2, 3);
+            btn_UnmuteMedia.Name = "btn_UnmuteMedia";
+            btn_UnmuteMedia.Size = new System.Drawing.Size(81, 23);
+            btn_UnmuteMedia.TabIndex = 177;
+            btn_UnmuteMedia.Text = "Unmute";
+            btn_UnmuteMedia.UseVisualStyleBackColor = true;
+            btn_UnmuteMedia.Click += btn_UnmuteMedia_Click;
             // 
             // btn_MuteMedia
             // 
-            this.btn_MuteMedia.Location = new System.Drawing.Point(153, 347);
-            this.btn_MuteMedia.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
-            this.btn_MuteMedia.Name = "btn_MuteMedia";
-            this.btn_MuteMedia.Size = new System.Drawing.Size(81, 23);
-            this.btn_MuteMedia.TabIndex = 175;
-            this.btn_MuteMedia.Text = "Mute";
-            this.btn_MuteMedia.UseVisualStyleBackColor = true;
-            this.btn_MuteMedia.Click += new System.EventHandler(this.btn_MuteMedia_Click);
+            btn_MuteMedia.Location = new System.Drawing.Point(153, 347);
+            btn_MuteMedia.Margin = new Padding(2, 3, 2, 3);
+            btn_MuteMedia.Name = "btn_MuteMedia";
+            btn_MuteMedia.Size = new System.Drawing.Size(81, 23);
+            btn_MuteMedia.TabIndex = 175;
+            btn_MuteMedia.Text = "Mute";
+            btn_MuteMedia.UseVisualStyleBackColor = true;
+            btn_MuteMedia.Click += btn_MuteMedia_Click;
             // 
             // cb_MuteMedia
             // 
-            this.cb_MuteMedia.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cb_MuteMedia.FormattingEnabled = true;
-            this.cb_MuteMedia.Location = new System.Drawing.Point(24, 347);
-            this.cb_MuteMedia.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
-            this.cb_MuteMedia.Name = "cb_MuteMedia";
-            this.cb_MuteMedia.Size = new System.Drawing.Size(123, 23);
-            this.cb_MuteMedia.TabIndex = 174;
+            cb_MuteMedia.DropDownStyle = ComboBoxStyle.DropDownList;
+            cb_MuteMedia.FormattingEnabled = true;
+            cb_MuteMedia.Location = new System.Drawing.Point(24, 347);
+            cb_MuteMedia.Margin = new Padding(2, 3, 2, 3);
+            cb_MuteMedia.Name = "cb_MuteMedia";
+            cb_MuteMedia.Size = new System.Drawing.Size(123, 23);
+            cb_MuteMedia.TabIndex = 174;
             // 
             // label8
             // 
-            this.label8.AutoSize = true;
-            this.label8.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.label8.Location = new System.Drawing.Point(452, 67);
-            this.label8.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
-            this.label8.Name = "label8";
-            this.label8.Size = new System.Drawing.Size(46, 13);
-            this.label8.TabIndex = 173;
-            this.label8.Text = "Subject:";
+            label8.AutoSize = true;
+            label8.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            label8.Location = new System.Drawing.Point(452, 67);
+            label8.Margin = new Padding(2, 0, 2, 0);
+            label8.Name = "label8";
+            label8.Size = new System.Drawing.Size(46, 13);
+            label8.TabIndex = 173;
+            label8.Text = "Subject:";
             // 
             // tb_Subject
             // 
-            this.tb_Subject.Location = new System.Drawing.Point(499, 64);
-            this.tb_Subject.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
-            this.tb_Subject.Name = "tb_Subject";
-            this.tb_Subject.Size = new System.Drawing.Size(198, 23);
-            this.tb_Subject.TabIndex = 172;
+            tb_Subject.Location = new System.Drawing.Point(499, 64);
+            tb_Subject.Margin = new Padding(2, 3, 2, 3);
+            tb_Subject.Name = "tb_Subject";
+            tb_Subject.Size = new System.Drawing.Size(198, 23);
+            tb_Subject.TabIndex = 172;
             // 
             // btn_RemoveMedia
             // 
-            this.btn_RemoveMedia.Location = new System.Drawing.Point(155, 275);
-            this.btn_RemoveMedia.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
-            this.btn_RemoveMedia.Name = "btn_RemoveMedia";
-            this.btn_RemoveMedia.Size = new System.Drawing.Size(79, 23);
-            this.btn_RemoveMedia.TabIndex = 171;
-            this.btn_RemoveMedia.Text = "Remove";
-            this.btn_RemoveMedia.UseVisualStyleBackColor = true;
-            this.btn_RemoveMedia.Click += new System.EventHandler(this.btn_RemoveMedia_Click);
+            btn_RemoveMedia.Location = new System.Drawing.Point(155, 275);
+            btn_RemoveMedia.Margin = new Padding(2, 3, 2, 3);
+            btn_RemoveMedia.Name = "btn_RemoveMedia";
+            btn_RemoveMedia.Size = new System.Drawing.Size(79, 23);
+            btn_RemoveMedia.TabIndex = 171;
+            btn_RemoveMedia.Text = "Remove";
+            btn_RemoveMedia.UseVisualStyleBackColor = true;
+            btn_RemoveMedia.Click += btn_RemoveMedia_Click;
             // 
             // btn_AddMedia
             // 
-            this.btn_AddMedia.Location = new System.Drawing.Point(154, 304);
-            this.btn_AddMedia.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
-            this.btn_AddMedia.Name = "btn_AddMedia";
-            this.btn_AddMedia.Size = new System.Drawing.Size(79, 23);
-            this.btn_AddMedia.TabIndex = 169;
-            this.btn_AddMedia.Text = "Add";
-            this.btn_AddMedia.UseVisualStyleBackColor = true;
-            this.btn_AddMedia.Click += new System.EventHandler(this.btn_AddMedia_Click);
+            btn_AddMedia.Location = new System.Drawing.Point(154, 304);
+            btn_AddMedia.Margin = new Padding(2, 3, 2, 3);
+            btn_AddMedia.Name = "btn_AddMedia";
+            btn_AddMedia.Size = new System.Drawing.Size(79, 23);
+            btn_AddMedia.TabIndex = 169;
+            btn_AddMedia.Text = "Add";
+            btn_AddMedia.UseVisualStyleBackColor = true;
+            btn_AddMedia.Click += btn_AddMedia_Click;
             // 
             // btn_DeclineCall
             // 
-            this.btn_DeclineCall.FlatAppearance.BorderSize = 0;
-            this.btn_DeclineCall.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.btn_DeclineCall.Location = new System.Drawing.Point(629, 92);
-            this.btn_DeclineCall.Margin = new System.Windows.Forms.Padding(0);
-            this.btn_DeclineCall.Name = "btn_DeclineCall";
-            this.btn_DeclineCall.Size = new System.Drawing.Size(68, 23);
-            this.btn_DeclineCall.TabIndex = 165;
-            this.btn_DeclineCall.Text = "Decline";
-            this.btn_DeclineCall.UseVisualStyleBackColor = true;
-            this.btn_DeclineCall.Click += new System.EventHandler(this.btn_DeclineCall_Click);
+            btn_DeclineCall.FlatAppearance.BorderSize = 0;
+            btn_DeclineCall.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            btn_DeclineCall.Location = new System.Drawing.Point(629, 92);
+            btn_DeclineCall.Margin = new Padding(0);
+            btn_DeclineCall.Name = "btn_DeclineCall";
+            btn_DeclineCall.Size = new System.Drawing.Size(68, 23);
+            btn_DeclineCall.TabIndex = 165;
+            btn_DeclineCall.Text = "Decline";
+            btn_DeclineCall.UseVisualStyleBackColor = true;
+            btn_DeclineCall.Click += btn_DeclineCall_Click;
             // 
             // btn_HangUp
             // 
-            this.btn_HangUp.Location = new System.Drawing.Point(154, 246);
-            this.btn_HangUp.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
-            this.btn_HangUp.Name = "btn_HangUp";
-            this.btn_HangUp.Size = new System.Drawing.Size(81, 23);
-            this.btn_HangUp.TabIndex = 164;
-            this.btn_HangUp.Text = "Hang Up";
-            this.btn_HangUp.UseVisualStyleBackColor = true;
-            this.btn_HangUp.Click += new System.EventHandler(this.btn_HangUp_Click);
+            btn_HangUp.Location = new System.Drawing.Point(154, 246);
+            btn_HangUp.Margin = new Padding(2, 3, 2, 3);
+            btn_HangUp.Name = "btn_HangUp";
+            btn_HangUp.Size = new System.Drawing.Size(81, 23);
+            btn_HangUp.TabIndex = 164;
+            btn_HangUp.Text = "Hang Up";
+            btn_HangUp.UseVisualStyleBackColor = true;
+            btn_HangUp.Click += btn_HangUp_Click;
             // 
             // btn_MakeCall
             // 
-            this.btn_MakeCall.Location = new System.Drawing.Point(828, 63);
-            this.btn_MakeCall.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
-            this.btn_MakeCall.Name = "btn_MakeCall";
-            this.btn_MakeCall.Size = new System.Drawing.Size(82, 23);
-            this.btn_MakeCall.TabIndex = 163;
-            this.btn_MakeCall.Text = "Make Call";
-            this.btn_MakeCall.UseVisualStyleBackColor = true;
-            this.btn_MakeCall.Click += new System.EventHandler(this.btn_MakeCall_Click);
+            btn_MakeCall.Location = new System.Drawing.Point(828, 63);
+            btn_MakeCall.Margin = new Padding(2, 3, 2, 3);
+            btn_MakeCall.Name = "btn_MakeCall";
+            btn_MakeCall.Size = new System.Drawing.Size(82, 23);
+            btn_MakeCall.TabIndex = 163;
+            btn_MakeCall.Text = "Make Call";
+            btn_MakeCall.UseVisualStyleBackColor = true;
+            btn_MakeCall.Click += btn_MakeCall_Click;
             // 
             // cb_MakeCallMedias
             // 
-            this.cb_MakeCallMedias.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cb_MakeCallMedias.FormattingEnabled = true;
-            this.cb_MakeCallMedias.Location = new System.Drawing.Point(701, 63);
-            this.cb_MakeCallMedias.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
-            this.cb_MakeCallMedias.Name = "cb_MakeCallMedias";
-            this.cb_MakeCallMedias.Size = new System.Drawing.Size(123, 23);
-            this.cb_MakeCallMedias.TabIndex = 162;
+            cb_MakeCallMedias.DropDownStyle = ComboBoxStyle.DropDownList;
+            cb_MakeCallMedias.FormattingEnabled = true;
+            cb_MakeCallMedias.Location = new System.Drawing.Point(701, 63);
+            cb_MakeCallMedias.Margin = new Padding(2, 3, 2, 3);
+            cb_MakeCallMedias.Name = "cb_MakeCallMedias";
+            cb_MakeCallMedias.Size = new System.Drawing.Size(123, 23);
+            cb_MakeCallMedias.TabIndex = 162;
             // 
             // label5
             // 
-            this.label5.AutoSize = true;
-            this.label5.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.label5.Location = new System.Drawing.Point(452, 19);
-            this.label5.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
-            this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(57, 13);
-            this.label5.TabIndex = 161;
-            this.label5.Text = "Contacts";
+            label5.AutoSize = true;
+            label5.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            label5.Location = new System.Drawing.Point(452, 19);
+            label5.Margin = new Padding(2, 0, 2, 0);
+            label5.Name = "label5";
+            label5.Size = new System.Drawing.Size(57, 13);
+            label5.TabIndex = 161;
+            label5.Text = "Contacts";
             // 
             // cb_ContactsList
             // 
-            this.cb_ContactsList.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cb_ContactsList.FormattingEnabled = true;
-            this.cb_ContactsList.Location = new System.Drawing.Point(452, 35);
-            this.cb_ContactsList.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
-            this.cb_ContactsList.Name = "cb_ContactsList";
-            this.cb_ContactsList.Size = new System.Drawing.Size(245, 23);
-            this.cb_ContactsList.TabIndex = 160;
-            this.cb_ContactsList.SelectedIndexChanged += new System.EventHandler(this.cb_ContactsList_SelectedIndexChanged);
+            cb_ContactsList.DropDownStyle = ComboBoxStyle.DropDownList;
+            cb_ContactsList.FormattingEnabled = true;
+            cb_ContactsList.Location = new System.Drawing.Point(452, 35);
+            cb_ContactsList.Margin = new Padding(2, 3, 2, 3);
+            cb_ContactsList.Name = "cb_ContactsList";
+            cb_ContactsList.Size = new System.Drawing.Size(245, 23);
+            cb_ContactsList.TabIndex = 160;
+            cb_ContactsList.SelectedIndexChanged += cb_ContactsList_SelectedIndexChanged;
             // 
             // lbl_ConferencesInProgress
             // 
-            this.lbl_ConferencesInProgress.AutoSize = true;
-            this.lbl_ConferencesInProgress.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.lbl_ConferencesInProgress.ForeColor = System.Drawing.Color.Firebrick;
-            this.lbl_ConferencesInProgress.Location = new System.Drawing.Point(452, 172);
-            this.lbl_ConferencesInProgress.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
-            this.lbl_ConferencesInProgress.Name = "lbl_ConferencesInProgress";
-            this.lbl_ConferencesInProgress.Size = new System.Drawing.Size(74, 13);
-            this.lbl_ConferencesInProgress.TabIndex = 186;
-            this.lbl_ConferencesInProgress.Text = "In progress:";
+            lbl_ConferencesInProgress.AutoSize = true;
+            lbl_ConferencesInProgress.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            lbl_ConferencesInProgress.ForeColor = System.Drawing.Color.Firebrick;
+            lbl_ConferencesInProgress.Location = new System.Drawing.Point(452, 172);
+            lbl_ConferencesInProgress.Margin = new Padding(2, 0, 2, 0);
+            lbl_ConferencesInProgress.Name = "lbl_ConferencesInProgress";
+            lbl_ConferencesInProgress.Size = new System.Drawing.Size(74, 13);
+            lbl_ConferencesInProgress.TabIndex = 186;
+            lbl_ConferencesInProgress.Text = "In progress:";
             // 
             // btn_StartConf
             // 
-            this.btn_StartConf.Location = new System.Drawing.Point(701, 138);
-            this.btn_StartConf.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
-            this.btn_StartConf.Name = "btn_StartConf";
-            this.btn_StartConf.Size = new System.Drawing.Size(82, 23);
-            this.btn_StartConf.TabIndex = 182;
-            this.btn_StartConf.Text = "Start Conf";
-            this.btn_StartConf.UseVisualStyleBackColor = true;
-            this.btn_StartConf.Click += new System.EventHandler(this.btn_StartConf_Click);
+            btn_StartConf.Location = new System.Drawing.Point(701, 138);
+            btn_StartConf.Margin = new Padding(2, 3, 2, 3);
+            btn_StartConf.Name = "btn_StartConf";
+            btn_StartConf.Size = new System.Drawing.Size(82, 23);
+            btn_StartConf.TabIndex = 182;
+            btn_StartConf.Text = "Start Conf";
+            btn_StartConf.UseVisualStyleBackColor = true;
+            btn_StartConf.Click += btn_StartConf_Click;
             // 
             // label11
             // 
-            this.label11.AutoSize = true;
-            this.label11.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.label11.Location = new System.Drawing.Point(452, 122);
-            this.label11.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
-            this.label11.Name = "label11";
-            this.label11.Size = new System.Drawing.Size(52, 13);
-            this.label11.TabIndex = 181;
-            this.label11.Text = "Bubbles";
+            label11.AutoSize = true;
+            label11.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            label11.Location = new System.Drawing.Point(452, 122);
+            label11.Margin = new Padding(2, 0, 2, 0);
+            label11.Name = "label11";
+            label11.Size = new System.Drawing.Size(52, 13);
+            label11.TabIndex = 181;
+            label11.Text = "Bubbles";
             // 
             // cb_BubblesList
             // 
-            this.cb_BubblesList.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cb_BubblesList.FormattingEnabled = true;
-            this.cb_BubblesList.Location = new System.Drawing.Point(452, 138);
-            this.cb_BubblesList.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
-            this.cb_BubblesList.Name = "cb_BubblesList";
-            this.cb_BubblesList.Size = new System.Drawing.Size(245, 23);
-            this.cb_BubblesList.TabIndex = 180;
-            this.cb_BubblesList.SelectedIndexChanged += new System.EventHandler(this.cb_BubblesList_SelectedIndexChanged);
+            cb_BubblesList.DropDownStyle = ComboBoxStyle.DropDownList;
+            cb_BubblesList.FormattingEnabled = true;
+            cb_BubblesList.Location = new System.Drawing.Point(452, 138);
+            cb_BubblesList.Margin = new Padding(2, 3, 2, 3);
+            cb_BubblesList.Name = "cb_BubblesList";
+            cb_BubblesList.Size = new System.Drawing.Size(245, 23);
+            cb_BubblesList.TabIndex = 180;
+            cb_BubblesList.SelectedIndexChanged += cb_BubblesList_SelectedIndexChanged;
             // 
             // btn_JoinConf
             // 
-            this.btn_JoinConf.Location = new System.Drawing.Point(701, 167);
-            this.btn_JoinConf.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
-            this.btn_JoinConf.Name = "btn_JoinConf";
-            this.btn_JoinConf.Size = new System.Drawing.Size(82, 23);
-            this.btn_JoinConf.TabIndex = 179;
-            this.btn_JoinConf.Text = "Join Conf";
-            this.btn_JoinConf.UseVisualStyleBackColor = true;
-            this.btn_JoinConf.Click += new System.EventHandler(this.btn_JoinConf_Click);
+            btn_JoinConf.Location = new System.Drawing.Point(701, 167);
+            btn_JoinConf.Margin = new Padding(2, 3, 2, 3);
+            btn_JoinConf.Name = "btn_JoinConf";
+            btn_JoinConf.Size = new System.Drawing.Size(82, 23);
+            btn_JoinConf.TabIndex = 179;
+            btn_JoinConf.Text = "Join Conf";
+            btn_JoinConf.UseVisualStyleBackColor = true;
+            btn_JoinConf.Click += btn_JoinConf_Click;
             // 
             // btn_ManageInputStreams
             // 
-            this.btn_ManageInputStreams.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.btn_ManageInputStreams.ForeColor = System.Drawing.Color.SaddleBrown;
-            this.btn_ManageInputStreams.Location = new System.Drawing.Point(12, 12);
-            this.btn_ManageInputStreams.Name = "btn_ManageInputStreams";
-            this.btn_ManageInputStreams.Size = new System.Drawing.Size(163, 23);
-            this.btn_ManageInputStreams.TabIndex = 187;
-            this.btn_ManageInputStreams.Text = "Manage Input Streams";
-            this.btn_ManageInputStreams.UseVisualStyleBackColor = true;
-            this.btn_ManageInputStreams.Click += new System.EventHandler(this.btn_ManageInputStreams_Click);
+            btn_ManageInputStreams.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            btn_ManageInputStreams.ForeColor = System.Drawing.Color.SaddleBrown;
+            btn_ManageInputStreams.Location = new System.Drawing.Point(12, 12);
+            btn_ManageInputStreams.Name = "btn_ManageInputStreams";
+            btn_ManageInputStreams.Size = new System.Drawing.Size(163, 23);
+            btn_ManageInputStreams.TabIndex = 187;
+            btn_ManageInputStreams.Text = "Manage Input Streams";
+            btn_ManageInputStreams.UseVisualStyleBackColor = true;
+            btn_ManageInputStreams.Click += btn_ManageInputStreams_Click;
             // 
             // btn_RefreshAudioOutput
             // 
-            this.btn_RefreshAudioOutput.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-            this.btn_RefreshAudioOutput.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btn_RefreshAudioOutput.ForeColor = System.Drawing.SystemColors.Control;
-            this.btn_RefreshAudioOutput.Location = new System.Drawing.Point(362, 153);
-            this.btn_RefreshAudioOutput.Name = "btn_RefreshAudioOutput";
-            this.btn_RefreshAudioOutput.Size = new System.Drawing.Size(16, 16);
-            this.btn_RefreshAudioOutput.TabIndex = 333;
-            this.btn_RefreshAudioOutput.UseVisualStyleBackColor = true;
-            this.btn_RefreshAudioOutput.Click += new System.EventHandler(this.btb_AudioOutputListRefresh_Click);
+            btn_RefreshAudioOutput.BackgroundImageLayout = ImageLayout.Stretch;
+            btn_RefreshAudioOutput.FlatStyle = FlatStyle.Flat;
+            btn_RefreshAudioOutput.ForeColor = System.Drawing.SystemColors.Control;
+            btn_RefreshAudioOutput.Location = new System.Drawing.Point(362, 153);
+            btn_RefreshAudioOutput.Name = "btn_RefreshAudioOutput";
+            btn_RefreshAudioOutput.Size = new System.Drawing.Size(16, 16);
+            btn_RefreshAudioOutput.TabIndex = 333;
+            btn_RefreshAudioOutput.UseVisualStyleBackColor = true;
+            btn_RefreshAudioOutput.Click += btb_AudioOutputListRefresh_Click;
             // 
             // btn_RefreshAudioInput
             // 
-            this.btn_RefreshAudioInput.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-            this.btn_RefreshAudioInput.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btn_RefreshAudioInput.ForeColor = System.Drawing.SystemColors.Control;
-            this.btn_RefreshAudioInput.Location = new System.Drawing.Point(401, 124);
-            this.btn_RefreshAudioInput.Name = "btn_RefreshAudioInput";
-            this.btn_RefreshAudioInput.Size = new System.Drawing.Size(16, 16);
-            this.btn_RefreshAudioInput.TabIndex = 334;
-            this.btn_RefreshAudioInput.UseVisualStyleBackColor = true;
-            this.btn_RefreshAudioInput.Click += new System.EventHandler(this.btb_AudioInputListRefresh_Click);
+            btn_RefreshAudioInput.BackgroundImageLayout = ImageLayout.Stretch;
+            btn_RefreshAudioInput.FlatStyle = FlatStyle.Flat;
+            btn_RefreshAudioInput.ForeColor = System.Drawing.SystemColors.Control;
+            btn_RefreshAudioInput.Location = new System.Drawing.Point(401, 124);
+            btn_RefreshAudioInput.Name = "btn_RefreshAudioInput";
+            btn_RefreshAudioInput.Size = new System.Drawing.Size(16, 16);
+            btn_RefreshAudioInput.TabIndex = 334;
+            btn_RefreshAudioInput.UseVisualStyleBackColor = true;
+            btn_RefreshAudioInput.Click += btb_AudioInputListRefresh_Click;
             // 
             // btn_LoadConfig
             // 
-            this.btn_LoadConfig.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.btn_LoadConfig.ForeColor = System.Drawing.Color.SaddleBrown;
-            this.btn_LoadConfig.Location = new System.Drawing.Point(198, 12);
-            this.btn_LoadConfig.Name = "btn_LoadConfig";
-            this.btn_LoadConfig.Size = new System.Drawing.Size(163, 23);
-            this.btn_LoadConfig.TabIndex = 335;
-            this.btn_LoadConfig.Text = "Load Configuration";
-            this.btn_LoadConfig.UseVisualStyleBackColor = true;
-            this.btn_LoadConfig.Click += new System.EventHandler(this.btn_LoadConfig_Click);
+            btn_LoadConfig.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            btn_LoadConfig.ForeColor = System.Drawing.Color.SaddleBrown;
+            btn_LoadConfig.Location = new System.Drawing.Point(198, 12);
+            btn_LoadConfig.Name = "btn_LoadConfig";
+            btn_LoadConfig.Size = new System.Drawing.Size(163, 23);
+            btn_LoadConfig.TabIndex = 335;
+            btn_LoadConfig.Text = "Load Configuration";
+            btn_LoadConfig.UseVisualStyleBackColor = true;
+            btn_LoadConfig.Click += btn_LoadConfig_Click;
             // 
             // btn_OutputVideoInput
             // 
-            this.btn_OutputVideoInput.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-            this.btn_OutputVideoInput.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btn_OutputVideoInput.ForeColor = System.Drawing.SystemColors.Control;
-            this.btn_OutputVideoInput.Location = new System.Drawing.Point(401, 58);
-            this.btn_OutputVideoInput.Name = "btn_OutputVideoInput";
-            this.btn_OutputVideoInput.Size = new System.Drawing.Size(16, 16);
-            this.btn_OutputVideoInput.TabIndex = 336;
-            this.btn_OutputVideoInput.UseVisualStyleBackColor = true;
-            this.btn_OutputVideoInput.Click += new System.EventHandler(this.btn_OutputVideoInput_Click);
+            btn_OutputVideoInput.BackgroundImageLayout = ImageLayout.Stretch;
+            btn_OutputVideoInput.FlatStyle = FlatStyle.Flat;
+            btn_OutputVideoInput.ForeColor = System.Drawing.SystemColors.Control;
+            btn_OutputVideoInput.Location = new System.Drawing.Point(401, 58);
+            btn_OutputVideoInput.Name = "btn_OutputVideoInput";
+            btn_OutputVideoInput.Size = new System.Drawing.Size(16, 16);
+            btn_OutputVideoInput.TabIndex = 336;
+            btn_OutputVideoInput.UseVisualStyleBackColor = true;
+            btn_OutputVideoInput.Click += btn_OutputVideoInput_Click;
             // 
             // btn_OutputSharingInput
             // 
-            this.btn_OutputSharingInput.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-            this.btn_OutputSharingInput.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btn_OutputSharingInput.ForeColor = System.Drawing.SystemColors.Control;
-            this.btn_OutputSharingInput.Location = new System.Drawing.Point(401, 87);
-            this.btn_OutputSharingInput.Name = "btn_OutputSharingInput";
-            this.btn_OutputSharingInput.Size = new System.Drawing.Size(16, 16);
-            this.btn_OutputSharingInput.TabIndex = 337;
-            this.btn_OutputSharingInput.UseVisualStyleBackColor = true;
-            this.btn_OutputSharingInput.Click += new System.EventHandler(this.btn_OutputSharingInput_Click);
+            btn_OutputSharingInput.BackgroundImageLayout = ImageLayout.Stretch;
+            btn_OutputSharingInput.FlatStyle = FlatStyle.Flat;
+            btn_OutputSharingInput.ForeColor = System.Drawing.SystemColors.Control;
+            btn_OutputSharingInput.Location = new System.Drawing.Point(401, 87);
+            btn_OutputSharingInput.Name = "btn_OutputSharingInput";
+            btn_OutputSharingInput.Size = new System.Drawing.Size(16, 16);
+            btn_OutputSharingInput.TabIndex = 337;
+            btn_OutputSharingInput.UseVisualStyleBackColor = true;
+            btn_OutputSharingInput.Click += btn_OutputSharingInput_Click;
             // 
             // label9
             // 
-            this.label9.AutoSize = true;
-            this.label9.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.label9.Location = new System.Drawing.Point(454, 206);
-            this.label9.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
-            this.label9.Name = "label9";
-            this.label9.Size = new System.Drawing.Size(74, 13);
-            this.label9.TabIndex = 339;
-            this.label9.Text = "Information:";
+            label9.AutoSize = true;
+            label9.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            label9.Location = new System.Drawing.Point(454, 206);
+            label9.Margin = new Padding(2, 0, 2, 0);
+            label9.Name = "label9";
+            label9.Size = new System.Drawing.Size(74, 13);
+            label9.TabIndex = 339;
+            label9.Text = "Information:";
             // 
             // tb_Information
             // 
-            this.tb_Information.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.tb_Information.Location = new System.Drawing.Point(452, 222);
-            this.tb_Information.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
-            this.tb_Information.Multiline = true;
-            this.tb_Information.Name = "tb_Information";
-            this.tb_Information.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.tb_Information.Size = new System.Drawing.Size(480, 337);
-            this.tb_Information.TabIndex = 338;
+            tb_Information.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            tb_Information.Location = new System.Drawing.Point(452, 222);
+            tb_Information.Margin = new Padding(2, 3, 2, 3);
+            tb_Information.Multiline = true;
+            tb_Information.Name = "tb_Information";
+            tb_Information.ScrollBars = ScrollBars.Vertical;
+            tb_Information.Size = new System.Drawing.Size(480, 337);
+            tb_Information.TabIndex = 338;
             // 
             // label10
             // 
-            this.label10.AutoSize = true;
-            this.label10.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.label10.Location = new System.Drawing.Point(12, 201);
-            this.label10.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
-            this.label10.Name = "label10";
-            this.label10.Size = new System.Drawing.Size(85, 13);
-            this.label10.TabIndex = 340;
-            this.label10.Text = "Conversation:";
+            label10.AutoSize = true;
+            label10.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            label10.Location = new System.Drawing.Point(12, 201);
+            label10.Margin = new Padding(2, 0, 2, 0);
+            label10.Name = "label10";
+            label10.Size = new System.Drawing.Size(85, 13);
+            label10.TabIndex = 340;
+            label10.Text = "Conversation:";
             // 
             // lbl_IncomingCall
             // 
-            this.lbl_IncomingCall.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.lbl_IncomingCall.ForeColor = System.Drawing.Color.Firebrick;
-            this.lbl_IncomingCall.Location = new System.Drawing.Point(452, 96);
-            this.lbl_IncomingCall.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
-            this.lbl_IncomingCall.Name = "lbl_IncomingCall";
-            this.lbl_IncomingCall.Size = new System.Drawing.Size(175, 18);
-            this.lbl_IncomingCall.TabIndex = 342;
-            this.lbl_IncomingCall.Text = "Incoming call";
-            this.lbl_IncomingCall.TextAlign = System.Drawing.ContentAlignment.TopCenter;
+            lbl_IncomingCall.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            lbl_IncomingCall.ForeColor = System.Drawing.Color.Firebrick;
+            lbl_IncomingCall.Location = new System.Drawing.Point(452, 96);
+            lbl_IncomingCall.Margin = new Padding(2, 0, 2, 0);
+            lbl_IncomingCall.Name = "lbl_IncomingCall";
+            lbl_IncomingCall.Size = new System.Drawing.Size(175, 18);
+            lbl_IncomingCall.TabIndex = 342;
+            lbl_IncomingCall.Text = "Incoming call";
+            lbl_IncomingCall.TextAlign = System.Drawing.ContentAlignment.TopCenter;
             // 
             // lbl_ConversationDetails
             // 
-            this.lbl_ConversationDetails.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.lbl_ConversationDetails.ForeColor = System.Drawing.Color.Blue;
-            this.lbl_ConversationDetails.Location = new System.Drawing.Point(12, 219);
-            this.lbl_ConversationDetails.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
-            this.lbl_ConversationDetails.Name = "lbl_ConversationDetails";
-            this.lbl_ConversationDetails.Size = new System.Drawing.Size(349, 16);
-            this.lbl_ConversationDetails.TabIndex = 344;
-            this.lbl_ConversationDetails.Text = "details";
+            lbl_ConversationDetails.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            lbl_ConversationDetails.ForeColor = System.Drawing.Color.Blue;
+            lbl_ConversationDetails.Location = new System.Drawing.Point(12, 219);
+            lbl_ConversationDetails.Margin = new Padding(2, 0, 2, 0);
+            lbl_ConversationDetails.Name = "lbl_ConversationDetails";
+            lbl_ConversationDetails.Size = new System.Drawing.Size(349, 16);
+            lbl_ConversationDetails.TabIndex = 344;
+            lbl_ConversationDetails.Text = "details";
             // 
             // lbl_BubbleInfo
             // 
-            this.lbl_BubbleInfo.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.lbl_BubbleInfo.Location = new System.Drawing.Point(787, 143);
-            this.lbl_BubbleInfo.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
-            this.lbl_BubbleInfo.Name = "lbl_BubbleInfo";
-            this.lbl_BubbleInfo.Size = new System.Drawing.Size(145, 17);
-            this.lbl_BubbleInfo.TabIndex = 346;
-            this.lbl_BubbleInfo.Text = "bubble info";
+            lbl_BubbleInfo.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            lbl_BubbleInfo.Location = new System.Drawing.Point(787, 143);
+            lbl_BubbleInfo.Margin = new Padding(2, 0, 2, 0);
+            lbl_BubbleInfo.Name = "lbl_BubbleInfo";
+            lbl_BubbleInfo.Size = new System.Drawing.Size(145, 17);
+            lbl_BubbleInfo.TabIndex = 346;
+            lbl_BubbleInfo.Text = "bubble info";
             // 
             // btn_AnswerCall
             // 
-            this.btn_AnswerCall.Location = new System.Drawing.Point(828, 92);
-            this.btn_AnswerCall.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
-            this.btn_AnswerCall.Name = "btn_AnswerCall";
-            this.btn_AnswerCall.Size = new System.Drawing.Size(82, 23);
-            this.btn_AnswerCall.TabIndex = 347;
-            this.btn_AnswerCall.Text = "Answer";
-            this.btn_AnswerCall.UseVisualStyleBackColor = true;
-            this.btn_AnswerCall.Click += new System.EventHandler(this.btn_AnswerCall_Click);
+            btn_AnswerCall.Location = new System.Drawing.Point(828, 92);
+            btn_AnswerCall.Margin = new Padding(2, 3, 2, 3);
+            btn_AnswerCall.Name = "btn_AnswerCall";
+            btn_AnswerCall.Size = new System.Drawing.Size(82, 23);
+            btn_AnswerCall.TabIndex = 347;
+            btn_AnswerCall.Text = "Answer";
+            btn_AnswerCall.UseVisualStyleBackColor = true;
+            btn_AnswerCall.Click += btn_AnswerCall_Click;
             // 
             // cb_AnswerCallMedias
             // 
-            this.cb_AnswerCallMedias.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cb_AnswerCallMedias.FormattingEnabled = true;
-            this.cb_AnswerCallMedias.Location = new System.Drawing.Point(701, 92);
-            this.cb_AnswerCallMedias.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
-            this.cb_AnswerCallMedias.Name = "cb_AnswerCallMedias";
-            this.cb_AnswerCallMedias.Size = new System.Drawing.Size(123, 23);
-            this.cb_AnswerCallMedias.TabIndex = 348;
+            cb_AnswerCallMedias.DropDownStyle = ComboBoxStyle.DropDownList;
+            cb_AnswerCallMedias.FormattingEnabled = true;
+            cb_AnswerCallMedias.Location = new System.Drawing.Point(701, 92);
+            cb_AnswerCallMedias.Margin = new Padding(2, 3, 2, 3);
+            cb_AnswerCallMedias.Name = "cb_AnswerCallMedias";
+            cb_AnswerCallMedias.Size = new System.Drawing.Size(123, 23);
+            cb_AnswerCallMedias.TabIndex = 348;
             // 
             // cb_RemoveMedia
             // 
-            this.cb_RemoveMedia.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cb_RemoveMedia.FormattingEnabled = true;
-            this.cb_RemoveMedia.Location = new System.Drawing.Point(24, 276);
-            this.cb_RemoveMedia.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
-            this.cb_RemoveMedia.Name = "cb_RemoveMedia";
-            this.cb_RemoveMedia.Size = new System.Drawing.Size(123, 23);
-            this.cb_RemoveMedia.TabIndex = 350;
+            cb_RemoveMedia.DropDownStyle = ComboBoxStyle.DropDownList;
+            cb_RemoveMedia.FormattingEnabled = true;
+            cb_RemoveMedia.Location = new System.Drawing.Point(24, 276);
+            cb_RemoveMedia.Margin = new Padding(2, 3, 2, 3);
+            cb_RemoveMedia.Name = "cb_RemoveMedia";
+            cb_RemoveMedia.Size = new System.Drawing.Size(123, 23);
+            cb_RemoveMedia.TabIndex = 350;
+            cb_RemoveMedia.SelectedIndexChanged += cb_RemoveMedia_SelectedIndexChanged;
             // 
             // cb_AddMedia
             // 
-            this.cb_AddMedia.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cb_AddMedia.FormattingEnabled = true;
-            this.cb_AddMedia.Location = new System.Drawing.Point(24, 305);
-            this.cb_AddMedia.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
-            this.cb_AddMedia.Name = "cb_AddMedia";
-            this.cb_AddMedia.Size = new System.Drawing.Size(123, 23);
-            this.cb_AddMedia.TabIndex = 349;
-            this.cb_AddMedia.SelectedIndexChanged += new System.EventHandler(this.cb_AddMedia_SelectedIndexChanged);
+            cb_AddMedia.DropDownStyle = ComboBoxStyle.DropDownList;
+            cb_AddMedia.FormattingEnabled = true;
+            cb_AddMedia.Location = new System.Drawing.Point(24, 305);
+            cb_AddMedia.Margin = new Padding(2, 3, 2, 3);
+            cb_AddMedia.Name = "cb_AddMedia";
+            cb_AddMedia.Size = new System.Drawing.Size(123, 23);
+            cb_AddMedia.TabIndex = 349;
+            cb_AddMedia.SelectedIndexChanged += cb_AddMedia_SelectedIndexChanged;
             // 
             // cb_UnmuteMedia
             // 
-            this.cb_UnmuteMedia.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cb_UnmuteMedia.FormattingEnabled = true;
-            this.cb_UnmuteMedia.Location = new System.Drawing.Point(24, 376);
-            this.cb_UnmuteMedia.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
-            this.cb_UnmuteMedia.Name = "cb_UnmuteMedia";
-            this.cb_UnmuteMedia.Size = new System.Drawing.Size(123, 23);
-            this.cb_UnmuteMedia.TabIndex = 353;
+            cb_UnmuteMedia.DropDownStyle = ComboBoxStyle.DropDownList;
+            cb_UnmuteMedia.FormattingEnabled = true;
+            cb_UnmuteMedia.Location = new System.Drawing.Point(24, 376);
+            cb_UnmuteMedia.Margin = new Padding(2, 3, 2, 3);
+            cb_UnmuteMedia.Name = "cb_UnmuteMedia";
+            cb_UnmuteMedia.Size = new System.Drawing.Size(123, 23);
+            cb_UnmuteMedia.TabIndex = 353;
             // 
             // btn_OutputLocalVideoInput
             // 
-            this.btn_OutputLocalVideoInput.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-            this.btn_OutputLocalVideoInput.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btn_OutputLocalVideoInput.ForeColor = System.Drawing.SystemColors.Control;
-            this.btn_OutputLocalVideoInput.Location = new System.Drawing.Point(106, 459);
-            this.btn_OutputLocalVideoInput.Name = "btn_OutputLocalVideoInput";
-            this.btn_OutputLocalVideoInput.Size = new System.Drawing.Size(16, 16);
-            this.btn_OutputLocalVideoInput.TabIndex = 356;
-            this.btn_OutputLocalVideoInput.UseVisualStyleBackColor = true;
-            this.btn_OutputLocalVideoInput.Click += new System.EventHandler(this.btn_OutputLocalVideoInput_Click);
+            btn_OutputLocalVideoInput.BackgroundImageLayout = ImageLayout.Stretch;
+            btn_OutputLocalVideoInput.FlatStyle = FlatStyle.Flat;
+            btn_OutputLocalVideoInput.ForeColor = System.Drawing.SystemColors.Control;
+            btn_OutputLocalVideoInput.Location = new System.Drawing.Point(106, 459);
+            btn_OutputLocalVideoInput.Name = "btn_OutputLocalVideoInput";
+            btn_OutputLocalVideoInput.Size = new System.Drawing.Size(16, 16);
+            btn_OutputLocalVideoInput.TabIndex = 356;
+            btn_OutputLocalVideoInput.UseVisualStyleBackColor = true;
+            btn_OutputLocalVideoInput.Click += btn_OutputLocalVideoInput_Click;
             // 
             // btn_OutputLocalSharingInput
             // 
-            this.btn_OutputLocalSharingInput.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-            this.btn_OutputLocalSharingInput.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btn_OutputLocalSharingInput.ForeColor = System.Drawing.SystemColors.Control;
-            this.btn_OutputLocalSharingInput.Location = new System.Drawing.Point(107, 482);
-            this.btn_OutputLocalSharingInput.Name = "btn_OutputLocalSharingInput";
-            this.btn_OutputLocalSharingInput.Size = new System.Drawing.Size(16, 16);
-            this.btn_OutputLocalSharingInput.TabIndex = 357;
-            this.btn_OutputLocalSharingInput.UseVisualStyleBackColor = true;
-            this.btn_OutputLocalSharingInput.Click += new System.EventHandler(this.btn_OutputLocalSharingInput_Click);
+            btn_OutputLocalSharingInput.BackgroundImageLayout = ImageLayout.Stretch;
+            btn_OutputLocalSharingInput.FlatStyle = FlatStyle.Flat;
+            btn_OutputLocalSharingInput.ForeColor = System.Drawing.SystemColors.Control;
+            btn_OutputLocalSharingInput.Location = new System.Drawing.Point(107, 482);
+            btn_OutputLocalSharingInput.Name = "btn_OutputLocalSharingInput";
+            btn_OutputLocalSharingInput.Size = new System.Drawing.Size(16, 16);
+            btn_OutputLocalSharingInput.TabIndex = 357;
+            btn_OutputLocalSharingInput.UseVisualStyleBackColor = true;
+            btn_OutputLocalSharingInput.Click += btn_OutputLocalSharingInput_Click;
             // 
             // btn_StopVideoInput
             // 
-            this.btn_StopVideoInput.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-            this.btn_StopVideoInput.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btn_StopVideoInput.ForeColor = System.Drawing.SystemColors.Control;
-            this.btn_StopVideoInput.Location = new System.Drawing.Point(381, 58);
-            this.btn_StopVideoInput.Name = "btn_StopVideoInput";
-            this.btn_StopVideoInput.Size = new System.Drawing.Size(16, 16);
-            this.btn_StopVideoInput.TabIndex = 359;
-            this.btn_StopVideoInput.UseVisualStyleBackColor = true;
-            this.btn_StopVideoInput.Click += new System.EventHandler(this.btn_StoptMediaInput_Click);
+            btn_StopVideoInput.BackgroundImageLayout = ImageLayout.Stretch;
+            btn_StopVideoInput.FlatStyle = FlatStyle.Flat;
+            btn_StopVideoInput.ForeColor = System.Drawing.SystemColors.Control;
+            btn_StopVideoInput.Location = new System.Drawing.Point(381, 58);
+            btn_StopVideoInput.Name = "btn_StopVideoInput";
+            btn_StopVideoInput.Size = new System.Drawing.Size(16, 16);
+            btn_StopVideoInput.TabIndex = 359;
+            btn_StopVideoInput.UseVisualStyleBackColor = true;
+            btn_StopVideoInput.Click += btn_StoptMediaInput_Click;
             // 
             // btn_StartVideoInput
             // 
-            this.btn_StartVideoInput.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-            this.btn_StartVideoInput.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btn_StartVideoInput.ForeColor = System.Drawing.SystemColors.Control;
-            this.btn_StartVideoInput.Location = new System.Drawing.Point(362, 58);
-            this.btn_StartVideoInput.Name = "btn_StartVideoInput";
-            this.btn_StartVideoInput.Size = new System.Drawing.Size(16, 16);
-            this.btn_StartVideoInput.TabIndex = 358;
-            this.btn_StartVideoInput.UseVisualStyleBackColor = true;
-            this.btn_StartVideoInput.Click += new System.EventHandler(this.btn_StartMediaInput_Click);
+            btn_StartVideoInput.BackgroundImageLayout = ImageLayout.Stretch;
+            btn_StartVideoInput.FlatStyle = FlatStyle.Flat;
+            btn_StartVideoInput.ForeColor = System.Drawing.SystemColors.Control;
+            btn_StartVideoInput.Location = new System.Drawing.Point(362, 58);
+            btn_StartVideoInput.Name = "btn_StartVideoInput";
+            btn_StartVideoInput.Size = new System.Drawing.Size(16, 16);
+            btn_StartVideoInput.TabIndex = 358;
+            btn_StartVideoInput.UseVisualStyleBackColor = true;
+            btn_StartVideoInput.Click += btn_StartMediaInput_Click;
             // 
             // btn_StopSharingInput
             // 
-            this.btn_StopSharingInput.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-            this.btn_StopSharingInput.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btn_StopSharingInput.ForeColor = System.Drawing.SystemColors.Control;
-            this.btn_StopSharingInput.Location = new System.Drawing.Point(381, 87);
-            this.btn_StopSharingInput.Name = "btn_StopSharingInput";
-            this.btn_StopSharingInput.Size = new System.Drawing.Size(16, 16);
-            this.btn_StopSharingInput.TabIndex = 361;
-            this.btn_StopSharingInput.UseVisualStyleBackColor = true;
-            this.btn_StopSharingInput.Click += new System.EventHandler(this.btn_StoptMediaInput_Click);
+            btn_StopSharingInput.BackgroundImageLayout = ImageLayout.Stretch;
+            btn_StopSharingInput.FlatStyle = FlatStyle.Flat;
+            btn_StopSharingInput.ForeColor = System.Drawing.SystemColors.Control;
+            btn_StopSharingInput.Location = new System.Drawing.Point(381, 87);
+            btn_StopSharingInput.Name = "btn_StopSharingInput";
+            btn_StopSharingInput.Size = new System.Drawing.Size(16, 16);
+            btn_StopSharingInput.TabIndex = 361;
+            btn_StopSharingInput.UseVisualStyleBackColor = true;
+            btn_StopSharingInput.Click += btn_StoptMediaInput_Click;
             // 
             // btn_StartSharingInput
             // 
-            this.btn_StartSharingInput.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-            this.btn_StartSharingInput.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btn_StartSharingInput.ForeColor = System.Drawing.SystemColors.Control;
-            this.btn_StartSharingInput.Location = new System.Drawing.Point(362, 87);
-            this.btn_StartSharingInput.Name = "btn_StartSharingInput";
-            this.btn_StartSharingInput.Size = new System.Drawing.Size(16, 16);
-            this.btn_StartSharingInput.TabIndex = 360;
-            this.btn_StartSharingInput.UseVisualStyleBackColor = true;
-            this.btn_StartSharingInput.Click += new System.EventHandler(this.btn_StartMediaInput_Click);
+            btn_StartSharingInput.BackgroundImageLayout = ImageLayout.Stretch;
+            btn_StartSharingInput.FlatStyle = FlatStyle.Flat;
+            btn_StartSharingInput.ForeColor = System.Drawing.SystemColors.Control;
+            btn_StartSharingInput.Location = new System.Drawing.Point(362, 87);
+            btn_StartSharingInput.Name = "btn_StartSharingInput";
+            btn_StartSharingInput.Size = new System.Drawing.Size(16, 16);
+            btn_StartSharingInput.TabIndex = 360;
+            btn_StartSharingInput.UseVisualStyleBackColor = true;
+            btn_StartSharingInput.Click += btn_StartMediaInput_Click;
             // 
             // btn_StopAudioInput
             // 
-            this.btn_StopAudioInput.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-            this.btn_StopAudioInput.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btn_StopAudioInput.ForeColor = System.Drawing.SystemColors.Control;
-            this.btn_StopAudioInput.Location = new System.Drawing.Point(381, 124);
-            this.btn_StopAudioInput.Name = "btn_StopAudioInput";
-            this.btn_StopAudioInput.Size = new System.Drawing.Size(16, 16);
-            this.btn_StopAudioInput.TabIndex = 363;
-            this.btn_StopAudioInput.UseVisualStyleBackColor = true;
-            this.btn_StopAudioInput.Click += new System.EventHandler(this.btn_StoptMediaInput_Click);
+            btn_StopAudioInput.BackgroundImageLayout = ImageLayout.Stretch;
+            btn_StopAudioInput.FlatStyle = FlatStyle.Flat;
+            btn_StopAudioInput.ForeColor = System.Drawing.SystemColors.Control;
+            btn_StopAudioInput.Location = new System.Drawing.Point(381, 124);
+            btn_StopAudioInput.Name = "btn_StopAudioInput";
+            btn_StopAudioInput.Size = new System.Drawing.Size(16, 16);
+            btn_StopAudioInput.TabIndex = 363;
+            btn_StopAudioInput.UseVisualStyleBackColor = true;
+            btn_StopAudioInput.Click += btn_StoptMediaInput_Click;
             // 
             // btn_StartAudioInput
             // 
-            this.btn_StartAudioInput.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-            this.btn_StartAudioInput.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btn_StartAudioInput.ForeColor = System.Drawing.SystemColors.Control;
-            this.btn_StartAudioInput.Location = new System.Drawing.Point(362, 124);
-            this.btn_StartAudioInput.Name = "btn_StartAudioInput";
-            this.btn_StartAudioInput.Size = new System.Drawing.Size(16, 16);
-            this.btn_StartAudioInput.TabIndex = 362;
-            this.btn_StartAudioInput.UseVisualStyleBackColor = true;
-            this.btn_StartAudioInput.Click += new System.EventHandler(this.btn_StartMediaInput_Click);
+            btn_StartAudioInput.BackgroundImageLayout = ImageLayout.Stretch;
+            btn_StartAudioInput.FlatStyle = FlatStyle.Flat;
+            btn_StartAudioInput.ForeColor = System.Drawing.SystemColors.Control;
+            btn_StartAudioInput.Location = new System.Drawing.Point(362, 124);
+            btn_StartAudioInput.Name = "btn_StartAudioInput";
+            btn_StartAudioInput.Size = new System.Drawing.Size(16, 16);
+            btn_StartAudioInput.TabIndex = 362;
+            btn_StartAudioInput.UseVisualStyleBackColor = true;
+            btn_StartAudioInput.Click += btn_StartMediaInput_Click;
             // 
             // btn_DeclineConf
             // 
-            this.btn_DeclineConf.FlatAppearance.BorderSize = 0;
-            this.btn_DeclineConf.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.btn_DeclineConf.Location = new System.Drawing.Point(787, 167);
-            this.btn_DeclineConf.Margin = new System.Windows.Forms.Padding(0);
-            this.btn_DeclineConf.Name = "btn_DeclineConf";
-            this.btn_DeclineConf.Size = new System.Drawing.Size(68, 23);
-            this.btn_DeclineConf.TabIndex = 364;
-            this.btn_DeclineConf.Text = "Decline";
-            this.btn_DeclineConf.UseVisualStyleBackColor = true;
-            this.btn_DeclineConf.Click += new System.EventHandler(this.btn_DeclineConf_Click);
+            btn_DeclineConf.FlatAppearance.BorderSize = 0;
+            btn_DeclineConf.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            btn_DeclineConf.Location = new System.Drawing.Point(787, 167);
+            btn_DeclineConf.Margin = new Padding(0);
+            btn_DeclineConf.Name = "btn_DeclineConf";
+            btn_DeclineConf.Size = new System.Drawing.Size(68, 23);
+            btn_DeclineConf.TabIndex = 364;
+            btn_DeclineConf.Text = "Decline";
+            btn_DeclineConf.UseVisualStyleBackColor = true;
+            btn_DeclineConf.Click += btn_DeclineConf_Click;
             // 
             // btn_ConferenceOptions
             // 
-            this.btn_ConferenceOptions.Enabled = false;
-            this.btn_ConferenceOptions.Location = new System.Drawing.Point(174, 506);
-            this.btn_ConferenceOptions.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
-            this.btn_ConferenceOptions.Name = "btn_ConferenceOptions";
-            this.btn_ConferenceOptions.Size = new System.Drawing.Size(144, 23);
-            this.btn_ConferenceOptions.TabIndex = 365;
-            this.btn_ConferenceOptions.Text = "Conference options ...";
-            this.btn_ConferenceOptions.UseVisualStyleBackColor = true;
-            this.btn_ConferenceOptions.Click += new System.EventHandler(this.btn_ConferenceOptions_Click);
+            btn_ConferenceOptions.Enabled = false;
+            btn_ConferenceOptions.Location = new System.Drawing.Point(173, 531);
+            btn_ConferenceOptions.Margin = new Padding(2, 3, 2, 3);
+            btn_ConferenceOptions.Name = "btn_ConferenceOptions";
+            btn_ConferenceOptions.Size = new System.Drawing.Size(144, 23);
+            btn_ConferenceOptions.TabIndex = 365;
+            btn_ConferenceOptions.Text = "Conference options ...";
+            btn_ConferenceOptions.UseVisualStyleBackColor = true;
+            btn_ConferenceOptions.Click += btn_ConferenceOptions_Click;
             // 
             // lbl_ConversationInProgress
             // 
-            this.lbl_ConversationInProgress.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.lbl_ConversationInProgress.ForeColor = System.Drawing.Color.Firebrick;
-            this.lbl_ConversationInProgress.Location = new System.Drawing.Point(101, 201);
-            this.lbl_ConversationInProgress.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
-            this.lbl_ConversationInProgress.Name = "lbl_ConversationInProgress";
-            this.lbl_ConversationInProgress.Size = new System.Drawing.Size(82, 18);
-            this.lbl_ConversationInProgress.TabIndex = 1299;
-            this.lbl_ConversationInProgress.Text = "In progress";
-            this.lbl_ConversationInProgress.TextAlign = System.Drawing.ContentAlignment.TopCenter;
+            lbl_ConversationInProgress.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            lbl_ConversationInProgress.ForeColor = System.Drawing.Color.Firebrick;
+            lbl_ConversationInProgress.Location = new System.Drawing.Point(101, 201);
+            lbl_ConversationInProgress.Margin = new Padding(2, 0, 2, 0);
+            lbl_ConversationInProgress.Name = "lbl_ConversationInProgress";
+            lbl_ConversationInProgress.Size = new System.Drawing.Size(82, 18);
+            lbl_ConversationInProgress.TabIndex = 1299;
+            lbl_ConversationInProgress.Text = "In progress";
+            lbl_ConversationInProgress.TextAlign = System.Drawing.ContentAlignment.TopCenter;
             // 
             // cb_ConferencesName
             // 
-            this.cb_ConferencesName.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cb_ConferencesName.FormattingEnabled = true;
-            this.cb_ConferencesName.Location = new System.Drawing.Point(530, 168);
-            this.cb_ConferencesName.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
-            this.cb_ConferencesName.Name = "cb_ConferencesName";
-            this.cb_ConferencesName.Size = new System.Drawing.Size(167, 23);
-            this.cb_ConferencesName.TabIndex = 1300;
+            cb_ConferencesName.DropDownStyle = ComboBoxStyle.DropDownList;
+            cb_ConferencesName.FormattingEnabled = true;
+            cb_ConferencesName.Location = new System.Drawing.Point(530, 168);
+            cb_ConferencesName.Margin = new Padding(2, 3, 2, 3);
+            cb_ConferencesName.Name = "cb_ConferencesName";
+            cb_ConferencesName.Size = new System.Drawing.Size(167, 23);
+            cb_ConferencesName.TabIndex = 1300;
             // 
             // btn_AddAsParticipant
             // 
-            this.btn_AddAsParticipant.Enabled = false;
-            this.btn_AddAsParticipant.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.btn_AddAsParticipant.Location = new System.Drawing.Point(702, 35);
-            this.btn_AddAsParticipant.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
-            this.btn_AddAsParticipant.Name = "btn_AddAsParticipant";
-            this.btn_AddAsParticipant.Size = new System.Drawing.Size(122, 23);
-            this.btn_AddAsParticipant.TabIndex = 1301;
-            this.btn_AddAsParticipant.Text = "Add as participant";
-            this.btn_AddAsParticipant.UseVisualStyleBackColor = true;
+            btn_AddAsParticipant.Enabled = false;
+            btn_AddAsParticipant.ForeColor = System.Drawing.SystemColors.ControlText;
+            btn_AddAsParticipant.Location = new System.Drawing.Point(702, 35);
+            btn_AddAsParticipant.Margin = new Padding(2, 3, 2, 3);
+            btn_AddAsParticipant.Name = "btn_AddAsParticipant";
+            btn_AddAsParticipant.Size = new System.Drawing.Size(122, 23);
+            btn_AddAsParticipant.TabIndex = 1301;
+            btn_AddAsParticipant.Text = "Add as participant";
+            btn_AddAsParticipant.UseVisualStyleBackColor = true;
             // 
             // btn_OutputRemoteVideoInput
             // 
-            this.btn_OutputRemoteVideoInput.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-            this.btn_OutputRemoteVideoInput.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btn_OutputRemoteVideoInput.ForeColor = System.Drawing.SystemColors.Control;
-            this.btn_OutputRemoteVideoInput.Location = new System.Drawing.Point(320, 459);
-            this.btn_OutputRemoteVideoInput.Name = "btn_OutputRemoteVideoInput";
-            this.btn_OutputRemoteVideoInput.Size = new System.Drawing.Size(16, 16);
-            this.btn_OutputRemoteVideoInput.TabIndex = 1302;
-            this.btn_OutputRemoteVideoInput.UseVisualStyleBackColor = true;
-            this.btn_OutputRemoteVideoInput.Click += new System.EventHandler(this.btn_OutputRemoteVideoInput_Click);
+            btn_OutputRemoteVideoInput.BackgroundImageLayout = ImageLayout.Stretch;
+            btn_OutputRemoteVideoInput.FlatStyle = FlatStyle.Flat;
+            btn_OutputRemoteVideoInput.ForeColor = System.Drawing.SystemColors.Control;
+            btn_OutputRemoteVideoInput.Location = new System.Drawing.Point(342, 459);
+            btn_OutputRemoteVideoInput.Name = "btn_OutputRemoteVideoInput";
+            btn_OutputRemoteVideoInput.Size = new System.Drawing.Size(16, 16);
+            btn_OutputRemoteVideoInput.TabIndex = 1302;
+            btn_OutputRemoteVideoInput.UseVisualStyleBackColor = true;
+            btn_OutputRemoteVideoInput.Click += btn_OutputRemoteVideoInput_Click;
             // 
             // btn_OutputRemoteSharingInput
             // 
-            this.btn_OutputRemoteSharingInput.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-            this.btn_OutputRemoteSharingInput.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btn_OutputRemoteSharingInput.ForeColor = System.Drawing.SystemColors.Control;
-            this.btn_OutputRemoteSharingInput.Location = new System.Drawing.Point(320, 482);
-            this.btn_OutputRemoteSharingInput.Name = "btn_OutputRemoteSharingInput";
-            this.btn_OutputRemoteSharingInput.Size = new System.Drawing.Size(16, 16);
-            this.btn_OutputRemoteSharingInput.TabIndex = 1303;
-            this.btn_OutputRemoteSharingInput.UseVisualStyleBackColor = true;
-            this.btn_OutputRemoteSharingInput.Click += new System.EventHandler(this.btn_OutputRemoteSharingInput_Click);
+            btn_OutputRemoteSharingInput.BackgroundImageLayout = ImageLayout.Stretch;
+            btn_OutputRemoteSharingInput.FlatStyle = FlatStyle.Flat;
+            btn_OutputRemoteSharingInput.ForeColor = System.Drawing.SystemColors.Control;
+            btn_OutputRemoteSharingInput.Location = new System.Drawing.Point(342, 482);
+            btn_OutputRemoteSharingInput.Name = "btn_OutputRemoteSharingInput";
+            btn_OutputRemoteSharingInput.Size = new System.Drawing.Size(16, 16);
+            btn_OutputRemoteSharingInput.TabIndex = 1303;
+            btn_OutputRemoteSharingInput.UseVisualStyleBackColor = true;
+            btn_OutputRemoteSharingInput.Click += btn_OutputRemoteSharingInput_Click;
             // 
             // btn_SubscribeRemoteAudioInput
             // 
-            this.btn_SubscribeRemoteAudioInput.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.btn_SubscribeRemoteAudioInput.ForeColor = System.Drawing.Color.DarkGreen;
-            this.btn_SubscribeRemoteAudioInput.Location = new System.Drawing.Point(244, 433);
-            this.btn_SubscribeRemoteAudioInput.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
-            this.btn_SubscribeRemoteAudioInput.Name = "btn_SubscribeRemoteAudioInput";
-            this.btn_SubscribeRemoteAudioInput.Size = new System.Drawing.Size(73, 20);
-            this.btn_SubscribeRemoteAudioInput.TabIndex = 1305;
-            this.btn_SubscribeRemoteAudioInput.Text = "Unsubscribe";
-            this.btn_SubscribeRemoteAudioInput.UseVisualStyleBackColor = true;
-            this.btn_SubscribeRemoteAudioInput.Click += new System.EventHandler(this.btn_SubscribeRemoteAudioInput_Click);
+            btn_SubscribeRemoteAudioInput.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            btn_SubscribeRemoteAudioInput.ForeColor = System.Drawing.Color.DarkGreen;
+            btn_SubscribeRemoteAudioInput.Location = new System.Drawing.Point(266, 433);
+            btn_SubscribeRemoteAudioInput.Margin = new Padding(4, 3, 4, 3);
+            btn_SubscribeRemoteAudioInput.Name = "btn_SubscribeRemoteAudioInput";
+            btn_SubscribeRemoteAudioInput.Size = new System.Drawing.Size(73, 20);
+            btn_SubscribeRemoteAudioInput.TabIndex = 1305;
+            btn_SubscribeRemoteAudioInput.Text = "Unsubscribe";
+            btn_SubscribeRemoteAudioInput.UseVisualStyleBackColor = true;
+            btn_SubscribeRemoteAudioInput.Click += btn_SubscribeRemoteAudioInput_Click;
             // 
             // btn_SubscribeRemoteVideoInput
             // 
-            this.btn_SubscribeRemoteVideoInput.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.btn_SubscribeRemoteVideoInput.Location = new System.Drawing.Point(244, 457);
-            this.btn_SubscribeRemoteVideoInput.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
-            this.btn_SubscribeRemoteVideoInput.Name = "btn_SubscribeRemoteVideoInput";
-            this.btn_SubscribeRemoteVideoInput.Size = new System.Drawing.Size(73, 20);
-            this.btn_SubscribeRemoteVideoInput.TabIndex = 1306;
-            this.btn_SubscribeRemoteVideoInput.Text = "Unsubscribe";
-            this.btn_SubscribeRemoteVideoInput.UseVisualStyleBackColor = true;
-            this.btn_SubscribeRemoteVideoInput.Click += new System.EventHandler(this.btn_SubscribeRemoteVideoInput_Click);
+            btn_SubscribeRemoteVideoInput.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            btn_SubscribeRemoteVideoInput.Location = new System.Drawing.Point(266, 457);
+            btn_SubscribeRemoteVideoInput.Margin = new Padding(4, 3, 4, 3);
+            btn_SubscribeRemoteVideoInput.Name = "btn_SubscribeRemoteVideoInput";
+            btn_SubscribeRemoteVideoInput.Size = new System.Drawing.Size(73, 20);
+            btn_SubscribeRemoteVideoInput.TabIndex = 1306;
+            btn_SubscribeRemoteVideoInput.Text = "Unsubscribe";
+            btn_SubscribeRemoteVideoInput.UseVisualStyleBackColor = true;
+            btn_SubscribeRemoteVideoInput.Click += btn_SubscribeRemoteVideoInput_Click;
             // 
             // btn_SubscribeRemoteSharingInput
             // 
-            this.btn_SubscribeRemoteSharingInput.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.btn_SubscribeRemoteSharingInput.Location = new System.Drawing.Point(244, 480);
-            this.btn_SubscribeRemoteSharingInput.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
-            this.btn_SubscribeRemoteSharingInput.Name = "btn_SubscribeRemoteSharingInput";
-            this.btn_SubscribeRemoteSharingInput.Size = new System.Drawing.Size(73, 20);
-            this.btn_SubscribeRemoteSharingInput.TabIndex = 1307;
-            this.btn_SubscribeRemoteSharingInput.Text = "Unsubscribe";
-            this.btn_SubscribeRemoteSharingInput.UseVisualStyleBackColor = true;
-            this.btn_SubscribeRemoteSharingInput.Click += new System.EventHandler(this.btn_SubscribeRemoteSharingInput_Click);
+            btn_SubscribeRemoteSharingInput.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            btn_SubscribeRemoteSharingInput.Location = new System.Drawing.Point(266, 480);
+            btn_SubscribeRemoteSharingInput.Margin = new Padding(4, 3, 4, 3);
+            btn_SubscribeRemoteSharingInput.Name = "btn_SubscribeRemoteSharingInput";
+            btn_SubscribeRemoteSharingInput.Size = new System.Drawing.Size(73, 20);
+            btn_SubscribeRemoteSharingInput.TabIndex = 1307;
+            btn_SubscribeRemoteSharingInput.Text = "Unsubscribe";
+            btn_SubscribeRemoteSharingInput.UseVisualStyleBackColor = true;
+            btn_SubscribeRemoteSharingInput.Click += btn_SubscribeRemoteSharingInput_Click;
             // 
             // btn_Test
             // 
-            this.btn_Test.Location = new System.Drawing.Point(280, 196);
-            this.btn_Test.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
-            this.btn_Test.Name = "btn_Test";
-            this.btn_Test.Size = new System.Drawing.Size(81, 23);
-            this.btn_Test.TabIndex = 1308;
-            this.btn_Test.Text = "Test";
-            this.btn_Test.UseVisualStyleBackColor = true;
-            this.btn_Test.Visible = false;
-            this.btn_Test.Click += new System.EventHandler(this.btn_Test_Click);
+            btn_Test.Location = new System.Drawing.Point(280, 196);
+            btn_Test.Margin = new Padding(2, 3, 2, 3);
+            btn_Test.Name = "btn_Test";
+            btn_Test.Size = new System.Drawing.Size(81, 23);
+            btn_Test.TabIndex = 1308;
+            btn_Test.Text = "Test";
+            btn_Test.UseVisualStyleBackColor = true;
+            btn_Test.Visible = false;
+            btn_Test.Click += btn_Test_Click;
+            // 
+            // check_LocalDataChannel
+            // 
+            check_LocalDataChannel.AutoCheck = false;
+            check_LocalDataChannel.AutoSize = true;
+            check_LocalDataChannel.Location = new System.Drawing.Point(45, 506);
+            check_LocalDataChannel.Margin = new Padding(2, 3, 2, 3);
+            check_LocalDataChannel.Name = "check_LocalDataChannel";
+            check_LocalDataChannel.Size = new System.Drawing.Size(94, 19);
+            check_LocalDataChannel.TabIndex = 1309;
+            check_LocalDataChannel.Text = "DataChannel";
+            check_LocalDataChannel.UseVisualStyleBackColor = true;
+            // 
+            // btn_SubscribeRemoteDataChannelInput
+            // 
+            btn_SubscribeRemoteDataChannelInput.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            btn_SubscribeRemoteDataChannelInput.Location = new System.Drawing.Point(266, 503);
+            btn_SubscribeRemoteDataChannelInput.Margin = new Padding(4, 3, 4, 3);
+            btn_SubscribeRemoteDataChannelInput.Name = "btn_SubscribeRemoteDataChannelInput";
+            btn_SubscribeRemoteDataChannelInput.Size = new System.Drawing.Size(73, 20);
+            btn_SubscribeRemoteDataChannelInput.TabIndex = 1311;
+            btn_SubscribeRemoteDataChannelInput.Text = "Unsubscribe";
+            btn_SubscribeRemoteDataChannelInput.UseVisualStyleBackColor = true;
+            // 
+            // check_RemoteDataChannel
+            // 
+            check_RemoteDataChannel.AutoCheck = false;
+            check_RemoteDataChannel.AutoSize = true;
+            check_RemoteDataChannel.Location = new System.Drawing.Point(174, 506);
+            check_RemoteDataChannel.Margin = new Padding(2, 3, 2, 3);
+            check_RemoteDataChannel.Name = "check_RemoteDataChannel";
+            check_RemoteDataChannel.Size = new System.Drawing.Size(94, 19);
+            check_RemoteDataChannel.TabIndex = 1310;
+            check_RemoteDataChannel.Text = "DataChannel";
+            check_RemoteDataChannel.UseVisualStyleBackColor = true;
+            // 
+            // tbDataChannel
+            // 
+            tbDataChannel.Location = new System.Drawing.Point(237, 276);
+            tbDataChannel.Margin = new Padding(4, 3, 4, 3);
+            tbDataChannel.Name = "tbDataChannel";
+            tbDataChannel.Size = new System.Drawing.Size(160, 23);
+            tbDataChannel.TabIndex = 1312;
+            // 
+            // btn_DataChannelSend
+            // 
+            btn_DataChannelSend.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            btn_DataChannelSend.Location = new System.Drawing.Point(405, 278);
+            btn_DataChannelSend.Margin = new Padding(4, 3, 4, 3);
+            btn_DataChannelSend.Name = "btn_DataChannelSend";
+            btn_DataChannelSend.Size = new System.Drawing.Size(41, 20);
+            btn_DataChannelSend.TabIndex = 1313;
+            btn_DataChannelSend.Text = "Send";
+            btn_DataChannelSend.UseVisualStyleBackColor = true;
+            btn_DataChannelSend.Click += btn_DataChannelSend_Click;
             // 
             // FormWebRTC
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(943, 566);
-            this.Controls.Add(this.btn_Test);
-            this.Controls.Add(this.btn_SubscribeRemoteSharingInput);
-            this.Controls.Add(this.btn_SubscribeRemoteVideoInput);
-            this.Controls.Add(this.btn_SubscribeRemoteAudioInput);
-            this.Controls.Add(this.btn_OutputRemoteSharingInput);
-            this.Controls.Add(this.btn_OutputRemoteVideoInput);
-            this.Controls.Add(this.btn_AddAsParticipant);
-            this.Controls.Add(this.cb_ConferencesName);
-            this.Controls.Add(this.lbl_ConversationInProgress);
-            this.Controls.Add(this.btn_ConferenceOptions);
-            this.Controls.Add(this.btn_DeclineConf);
-            this.Controls.Add(this.btn_StopAudioInput);
-            this.Controls.Add(this.btn_StartAudioInput);
-            this.Controls.Add(this.btn_StopSharingInput);
-            this.Controls.Add(this.btn_StartSharingInput);
-            this.Controls.Add(this.btn_StopVideoInput);
-            this.Controls.Add(this.btn_StartVideoInput);
-            this.Controls.Add(this.btn_OutputLocalSharingInput);
-            this.Controls.Add(this.btn_OutputLocalVideoInput);
-            this.Controls.Add(this.cb_UnmuteMedia);
-            this.Controls.Add(this.cb_RemoveMedia);
-            this.Controls.Add(this.cb_AddMedia);
-            this.Controls.Add(this.cb_AnswerCallMedias);
-            this.Controls.Add(this.btn_AnswerCall);
-            this.Controls.Add(this.lbl_BubbleInfo);
-            this.Controls.Add(this.lbl_ConversationDetails);
-            this.Controls.Add(this.lbl_IncomingCall);
-            this.Controls.Add(this.label10);
-            this.Controls.Add(this.label9);
-            this.Controls.Add(this.tb_Information);
-            this.Controls.Add(this.btn_OutputSharingInput);
-            this.Controls.Add(this.btn_OutputVideoInput);
-            this.Controls.Add(this.btn_LoadConfig);
-            this.Controls.Add(this.btn_RefreshAudioInput);
-            this.Controls.Add(this.btn_RefreshAudioOutput);
-            this.Controls.Add(this.btn_ManageInputStreams);
-            this.Controls.Add(this.lbl_ConferencesInProgress);
-            this.Controls.Add(this.btn_StartConf);
-            this.Controls.Add(this.label11);
-            this.Controls.Add(this.cb_BubblesList);
-            this.Controls.Add(this.btn_JoinConf);
-            this.Controls.Add(this.btn_AskToShare);
-            this.Controls.Add(this.btn_UnmuteMedia);
-            this.Controls.Add(this.btn_MuteMedia);
-            this.Controls.Add(this.cb_MuteMedia);
-            this.Controls.Add(this.label8);
-            this.Controls.Add(this.tb_Subject);
-            this.Controls.Add(this.btn_RemoveMedia);
-            this.Controls.Add(this.btn_AddMedia);
-            this.Controls.Add(this.btn_DeclineCall);
-            this.Controls.Add(this.btn_HangUp);
-            this.Controls.Add(this.btn_MakeCall);
-            this.Controls.Add(this.cb_MakeCallMedias);
-            this.Controls.Add(this.label5);
-            this.Controls.Add(this.cb_ContactsList);
-            this.Controls.Add(this.label7);
-            this.Controls.Add(this.check_RemoteSharing);
-            this.Controls.Add(this.check_RemoteVideo);
-            this.Controls.Add(this.check_RemoteAudio);
-            this.Controls.Add(this.label6);
-            this.Controls.Add(this.check_LocalSharing);
-            this.Controls.Add(this.check_LocalVideo);
-            this.Controls.Add(this.check_LocalAudio);
-            this.Controls.Add(this.cb_SharingInputs);
-            this.Controls.Add(this.label3);
-            this.Controls.Add(this.cb_VideoInputs);
-            this.Controls.Add(this.label2);
-            this.Controls.Add(this.cb_AudioInputs);
-            this.Controls.Add(this.label1);
-            this.Controls.Add(this.cb_AudioOutputs);
-            this.Controls.Add(this.label4);
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
-            this.MaximizeBox = false;
-            this.MinimizeBox = false;
-            this.Name = "FormWebRTC";
-            this.Text = "WebRtcForm";
-            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.FormWebRTC_FormClosing);
-            this.ResumeLayout(false);
-            this.PerformLayout();
-
+            AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
+            AutoScaleMode = AutoScaleMode.Font;
+            ClientSize = new System.Drawing.Size(943, 566);
+            Controls.Add(btn_DataChannelSend);
+            Controls.Add(tbDataChannel);
+            Controls.Add(btn_SubscribeRemoteDataChannelInput);
+            Controls.Add(check_RemoteDataChannel);
+            Controls.Add(check_LocalDataChannel);
+            Controls.Add(btn_Test);
+            Controls.Add(btn_SubscribeRemoteSharingInput);
+            Controls.Add(btn_SubscribeRemoteVideoInput);
+            Controls.Add(btn_SubscribeRemoteAudioInput);
+            Controls.Add(btn_OutputRemoteSharingInput);
+            Controls.Add(btn_OutputRemoteVideoInput);
+            Controls.Add(btn_AddAsParticipant);
+            Controls.Add(cb_ConferencesName);
+            Controls.Add(lbl_ConversationInProgress);
+            Controls.Add(btn_ConferenceOptions);
+            Controls.Add(btn_DeclineConf);
+            Controls.Add(btn_StopAudioInput);
+            Controls.Add(btn_StartAudioInput);
+            Controls.Add(btn_StopSharingInput);
+            Controls.Add(btn_StartSharingInput);
+            Controls.Add(btn_StopVideoInput);
+            Controls.Add(btn_StartVideoInput);
+            Controls.Add(btn_OutputLocalSharingInput);
+            Controls.Add(btn_OutputLocalVideoInput);
+            Controls.Add(cb_UnmuteMedia);
+            Controls.Add(cb_RemoveMedia);
+            Controls.Add(cb_AddMedia);
+            Controls.Add(cb_AnswerCallMedias);
+            Controls.Add(btn_AnswerCall);
+            Controls.Add(lbl_BubbleInfo);
+            Controls.Add(lbl_ConversationDetails);
+            Controls.Add(lbl_IncomingCall);
+            Controls.Add(label10);
+            Controls.Add(label9);
+            Controls.Add(tb_Information);
+            Controls.Add(btn_OutputSharingInput);
+            Controls.Add(btn_OutputVideoInput);
+            Controls.Add(btn_LoadConfig);
+            Controls.Add(btn_RefreshAudioInput);
+            Controls.Add(btn_RefreshAudioOutput);
+            Controls.Add(btn_ManageInputStreams);
+            Controls.Add(lbl_ConferencesInProgress);
+            Controls.Add(btn_StartConf);
+            Controls.Add(label11);
+            Controls.Add(cb_BubblesList);
+            Controls.Add(btn_JoinConf);
+            Controls.Add(btn_AskToShare);
+            Controls.Add(btn_UnmuteMedia);
+            Controls.Add(btn_MuteMedia);
+            Controls.Add(cb_MuteMedia);
+            Controls.Add(label8);
+            Controls.Add(tb_Subject);
+            Controls.Add(btn_RemoveMedia);
+            Controls.Add(btn_AddMedia);
+            Controls.Add(btn_DeclineCall);
+            Controls.Add(btn_HangUp);
+            Controls.Add(btn_MakeCall);
+            Controls.Add(cb_MakeCallMedias);
+            Controls.Add(label5);
+            Controls.Add(cb_ContactsList);
+            Controls.Add(label7);
+            Controls.Add(check_RemoteSharing);
+            Controls.Add(check_RemoteVideo);
+            Controls.Add(check_RemoteAudio);
+            Controls.Add(label6);
+            Controls.Add(check_LocalSharing);
+            Controls.Add(check_LocalVideo);
+            Controls.Add(check_LocalAudio);
+            Controls.Add(cb_SharingInputs);
+            Controls.Add(label3);
+            Controls.Add(cb_VideoInputs);
+            Controls.Add(label2);
+            Controls.Add(cb_AudioInputs);
+            Controls.Add(label1);
+            Controls.Add(cb_AudioOutputs);
+            Controls.Add(label4);
+            FormBorderStyle = FormBorderStyle.FixedSingle;
+            MaximizeBox = false;
+            MinimizeBox = false;
+            Name = "FormWebRTC";
+            Text = "WebRtcForm";
+            FormClosing += FormWebRTC_FormClosing;
+            ResumeLayout(false);
+            PerformLayout();
         }
 
         #endregion
@@ -1062,5 +1127,10 @@ namespace SDK.UIForm.WebRTC
         private Button btn_SubscribeRemoteVideoInput;
         private Button btn_SubscribeRemoteSharingInput;
         private Button btn_Test;
+        private CheckBox check_LocalDataChannel;
+        private Button btn_SubscribeRemoteDataChannelInput;
+        private CheckBox check_RemoteDataChannel;
+        private TextBox tbDataChannel;
+        private Button btn_DataChannelSend;
     }
 }

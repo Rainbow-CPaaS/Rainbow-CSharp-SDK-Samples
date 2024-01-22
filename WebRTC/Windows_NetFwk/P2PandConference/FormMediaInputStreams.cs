@@ -746,8 +746,6 @@ namespace SDK.UIForm.WebRTC
                 // Store new one with event
                 _currentAudioInput = _mediaAudioDeviceManager.AudioInputDevice;
                 _currentAudioInput.OnAudioSample += MediaAudio_OnAudioSample;
-
-                // TODO - need to update display
             }
             
         }

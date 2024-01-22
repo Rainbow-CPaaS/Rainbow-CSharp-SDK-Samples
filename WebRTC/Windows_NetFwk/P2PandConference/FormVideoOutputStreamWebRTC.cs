@@ -220,11 +220,17 @@ namespace SDK.UIForm.WebRTC
                         if (Util.MediasWithSharing(_currentCall.LocalMedias))
                             _publicationsList.Add((false, Call.Media.SHARING, _currentContactId));
 
+                        if (Util.MediasWithDataChannel(_currentCall.LocalMedias))
+                            _publicationsList.Add((false, Call.Media.DATACHANNEL, _currentContactId));
+
                         if (Util.MediasWithVideo(_currentCall.RemoteMedias))
                             _publicationsList.Add((true, Call.Media.VIDEO, _currentCall.Participants[0].UserId));
 
                         if (Util.MediasWithSharing(_currentCall.RemoteMedias))
                             _publicationsList.Add((true, Call.Media.SHARING, _currentCall.Participants[0].UserId));
+
+                        if (Util.MediasWithDataChannel(_currentCall.RemoteMedias))
+                            _publicationsList.Add((true, Call.Media.DATACHANNEL, _currentCall.Participants[0].UserId));
                     }
                 }
             }
@@ -261,8 +267,7 @@ namespace SDK.UIForm.WebRTC
                 if (!e.Call.IsInProgress())
                 {
                     _initDone = false;
-                    this.Close();
-                    return;
+                    this.BeginInvoke( () => Close() );
                 }
                 else
                 {

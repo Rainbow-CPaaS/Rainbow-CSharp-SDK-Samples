@@ -421,10 +421,24 @@ namespace SDK.UIForm.WebRTC
                 }
             }
 
-
             var strContent = Helper.GetJsonStringFromListOfMediaInputStreamDescriptor(mediaInputStreamDescriptors);
             strContent = "{\r\n\t\"medias\": " + strContent + "\r\n}";
             File.WriteAllText(_configFilePath, strContent);
+        }
+
+        public IAudioStreamTrack? CreateAudioMediaStreamTrack(IMedia? media)
+        {
+            IAudioStreamTrack? result = null;
+            try
+            {
+                if (media != null)
+                    result = rbWebRTCDesktopFactory.CreateAudioTrack(media);
+            }
+            catch
+            {
+
+            }
+            return result;
         }
 
         public IAudioStreamTrack? GetAudioMediaStreamTrack(string? id)
@@ -435,8 +449,8 @@ namespace SDK.UIForm.WebRTC
             {
                 if (media != null)
                     result = rbWebRTCDesktopFactory.CreateAudioTrack(media);
-                else
-                    result = rbWebRTCDesktopFactory.CreateEmptyAudioTrack();
+                //else
+                //    result = rbWebRTCDesktopFactory.CreateEmptyAudioTrack();
             }
             catch
             {

@@ -59,6 +59,12 @@
             btn_SubscribeRemoteAudioInput = new System.Windows.Forms.Button();
             btn_SubscribeDynamicFeedInput = new System.Windows.Forms.Button();
             btn_OutputDynamicFeedInput = new System.Windows.Forms.Button();
+            btn_SubscribeRemoteDataChannelInput = new System.Windows.Forms.Button();
+            lb_PublishersDataChannel = new System.Windows.Forms.ListBox();
+            label6 = new System.Windows.Forms.Label();
+            btn_DataChannelSend = new System.Windows.Forms.Button();
+            label8 = new System.Windows.Forms.Label();
+            tbDataChannel = new System.Windows.Forms.TextBox();
             SuspendLayout();
             // 
             // btn_ParticipantDelegate
@@ -89,10 +95,10 @@
             // 
             lb_PublishersVideo.Font = new System.Drawing.Font("Segoe UI", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             lb_PublishersVideo.FormattingEnabled = true;
-            lb_PublishersVideo.Location = new System.Drawing.Point(15, 247);
+            lb_PublishersVideo.Location = new System.Drawing.Point(15, 245);
             lb_PublishersVideo.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             lb_PublishersVideo.Name = "lb_PublishersVideo";
-            lb_PublishersVideo.Size = new System.Drawing.Size(200, 147);
+            lb_PublishersVideo.Size = new System.Drawing.Size(200, 43);
             lb_PublishersVideo.TabIndex = 1279;
             lb_PublishersVideo.SelectedIndexChanged += lb_PublishersVideo_SelectedIndexChanged;
             // 
@@ -137,7 +143,7 @@
             // 
             label1.AutoSize = true;
             label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            label1.Location = new System.Drawing.Point(11, 231);
+            label1.Location = new System.Drawing.Point(12, 229);
             label1.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             label1.Name = "label1";
             label1.Size = new System.Drawing.Size(113, 13);
@@ -159,7 +165,7 @@
             // 
             label2.AutoSize = true;
             label2.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            label2.Location = new System.Drawing.Point(13, 126);
+            label2.Location = new System.Drawing.Point(14, 126);
             label2.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             label2.Name = "label2";
             label2.Size = new System.Drawing.Size(93, 13);
@@ -170,7 +176,7 @@
             // 
             lb_PublishersSharing.Font = new System.Drawing.Font("Segoe UI", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             lb_PublishersSharing.FormattingEnabled = true;
-            lb_PublishersSharing.Location = new System.Drawing.Point(15, 449);
+            lb_PublishersSharing.Location = new System.Drawing.Point(15, 453);
             lb_PublishersSharing.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             lb_PublishersSharing.Name = "lb_PublishersSharing";
             lb_PublishersSharing.Size = new System.Drawing.Size(201, 30);
@@ -181,7 +187,7 @@
             // 
             label3.AutoSize = true;
             label3.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            label3.Location = new System.Drawing.Point(11, 433);
+            label3.Location = new System.Drawing.Point(12, 437);
             label3.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             label3.Name = "label3";
             label3.Size = new System.Drawing.Size(124, 13);
@@ -239,7 +245,7 @@
             tbInformation.Multiline = true;
             tbInformation.Name = "tbInformation";
             tbInformation.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            tbInformation.Size = new System.Drawing.Size(329, 476);
+            tbInformation.Size = new System.Drawing.Size(329, 388);
             tbInformation.TabIndex = 1290;
             // 
             // btnConferenceLock
@@ -343,7 +349,7 @@
             btn_OutputRemoteVideoInput.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             btn_OutputRemoteVideoInput.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             btn_OutputRemoteVideoInput.ForeColor = System.Drawing.SystemColors.Control;
-            btn_OutputRemoteVideoInput.Location = new System.Drawing.Point(151, 397);
+            btn_OutputRemoteVideoInput.Location = new System.Drawing.Point(151, 291);
             btn_OutputRemoteVideoInput.Name = "btn_OutputRemoteVideoInput";
             btn_OutputRemoteVideoInput.Size = new System.Drawing.Size(16, 16);
             btn_OutputRemoteVideoInput.TabIndex = 1303;
@@ -355,7 +361,7 @@
             btn_OutputRemoteSharingInput.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             btn_OutputRemoteSharingInput.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             btn_OutputRemoteSharingInput.ForeColor = System.Drawing.SystemColors.Control;
-            btn_OutputRemoteSharingInput.Location = new System.Drawing.Point(151, 483);
+            btn_OutputRemoteSharingInput.Location = new System.Drawing.Point(151, 487);
             btn_OutputRemoteSharingInput.Name = "btn_OutputRemoteSharingInput";
             btn_OutputRemoteSharingInput.Size = new System.Drawing.Size(16, 16);
             btn_OutputRemoteSharingInput.TabIndex = 1304;
@@ -367,7 +373,7 @@
             btn_SubscribeRemoteVideoInput.Enabled = false;
             btn_SubscribeRemoteVideoInput.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             btn_SubscribeRemoteVideoInput.ForeColor = System.Drawing.Color.DarkGreen;
-            btn_SubscribeRemoteVideoInput.Location = new System.Drawing.Point(72, 394);
+            btn_SubscribeRemoteVideoInput.Location = new System.Drawing.Point(72, 289);
             btn_SubscribeRemoteVideoInput.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             btn_SubscribeRemoteVideoInput.Name = "btn_SubscribeRemoteVideoInput";
             btn_SubscribeRemoteVideoInput.Size = new System.Drawing.Size(73, 20);
@@ -381,7 +387,7 @@
             btn_SubscribeRemoteSharingInput.Enabled = false;
             btn_SubscribeRemoteSharingInput.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             btn_SubscribeRemoteSharingInput.ForeColor = System.Drawing.Color.DarkGreen;
-            btn_SubscribeRemoteSharingInput.Location = new System.Drawing.Point(72, 481);
+            btn_SubscribeRemoteSharingInput.Location = new System.Drawing.Point(72, 484);
             btn_SubscribeRemoteSharingInput.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             btn_SubscribeRemoteSharingInput.Name = "btn_SubscribeRemoteSharingInput";
             btn_SubscribeRemoteSharingInput.Size = new System.Drawing.Size(73, 20);
@@ -409,7 +415,7 @@
             btn_SubscribeDynamicFeedInput.Enabled = false;
             btn_SubscribeDynamicFeedInput.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             btn_SubscribeDynamicFeedInput.ForeColor = System.Drawing.Color.DarkGreen;
-            btn_SubscribeDynamicFeedInput.Location = new System.Drawing.Point(41, 413);
+            btn_SubscribeDynamicFeedInput.Location = new System.Drawing.Point(41, 308);
             btn_SubscribeDynamicFeedInput.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             btn_SubscribeDynamicFeedInput.Name = "btn_SubscribeDynamicFeedInput";
             btn_SubscribeDynamicFeedInput.Size = new System.Drawing.Size(140, 22);
@@ -423,18 +429,94 @@
             btn_OutputDynamicFeedInput.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             btn_OutputDynamicFeedInput.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             btn_OutputDynamicFeedInput.ForeColor = System.Drawing.SystemColors.Control;
-            btn_OutputDynamicFeedInput.Location = new System.Drawing.Point(186, 416);
+            btn_OutputDynamicFeedInput.Location = new System.Drawing.Point(186, 310);
             btn_OutputDynamicFeedInput.Name = "btn_OutputDynamicFeedInput";
             btn_OutputDynamicFeedInput.Size = new System.Drawing.Size(16, 16);
             btn_OutputDynamicFeedInput.TabIndex = 1310;
             btn_OutputDynamicFeedInput.UseVisualStyleBackColor = true;
             btn_OutputDynamicFeedInput.Click += btn_OutputDynamicFeedInput_Click;
             // 
+            // btn_SubscribeRemoteDataChannelInput
+            // 
+            btn_SubscribeRemoteDataChannelInput.Enabled = false;
+            btn_SubscribeRemoteDataChannelInput.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            btn_SubscribeRemoteDataChannelInput.ForeColor = System.Drawing.Color.DarkGreen;
+            btn_SubscribeRemoteDataChannelInput.Location = new System.Drawing.Point(72, 400);
+            btn_SubscribeRemoteDataChannelInput.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            btn_SubscribeRemoteDataChannelInput.Name = "btn_SubscribeRemoteDataChannelInput";
+            btn_SubscribeRemoteDataChannelInput.Size = new System.Drawing.Size(73, 20);
+            btn_SubscribeRemoteDataChannelInput.TabIndex = 1314;
+            btn_SubscribeRemoteDataChannelInput.Text = "Subscribe";
+            btn_SubscribeRemoteDataChannelInput.UseVisualStyleBackColor = true;
+            btn_SubscribeRemoteDataChannelInput.Click += btn_SubscribeRemoteDataChannelInput_Click;
+            // 
+            // lb_PublishersDataChannel
+            // 
+            lb_PublishersDataChannel.Font = new System.Drawing.Font("Segoe UI", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            lb_PublishersDataChannel.FormattingEnabled = true;
+            lb_PublishersDataChannel.Location = new System.Drawing.Point(15, 355);
+            lb_PublishersDataChannel.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            lb_PublishersDataChannel.Name = "lb_PublishersDataChannel";
+            lb_PublishersDataChannel.Size = new System.Drawing.Size(200, 43);
+            lb_PublishersDataChannel.TabIndex = 1312;
+            lb_PublishersDataChannel.SelectedIndexChanged += lb_PublishersDataChannel_SelectedIndexChanged;
+            // 
+            // label6
+            // 
+            label6.AutoSize = true;
+            label6.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            label6.Location = new System.Drawing.Point(12, 339);
+            label6.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
+            label6.Name = "label6";
+            label6.Size = new System.Drawing.Size(154, 13);
+            label6.TabIndex = 1311;
+            label6.Text = "Publishers - DataChannel:";
+            // 
+            // btn_DataChannelSend
+            // 
+            btn_DataChannelSend.Enabled = false;
+            btn_DataChannelSend.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            btn_DataChannelSend.Location = new System.Drawing.Point(570, 476);
+            btn_DataChannelSend.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            btn_DataChannelSend.Name = "btn_DataChannelSend";
+            btn_DataChannelSend.Size = new System.Drawing.Size(58, 27);
+            btn_DataChannelSend.TabIndex = 1316;
+            btn_DataChannelSend.Text = "Send";
+            btn_DataChannelSend.UseVisualStyleBackColor = true;
+            // 
+            // label8
+            // 
+            label8.AutoSize = true;
+            label8.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            label8.Location = new System.Drawing.Point(438, 414);
+            label8.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
+            label8.Name = "label8";
+            label8.Size = new System.Drawing.Size(84, 13);
+            label8.TabIndex = 1317;
+            label8.Text = "DataChannel:";
+            // 
+            // tbDataChannel
+            // 
+            tbDataChannel.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            tbDataChannel.Location = new System.Drawing.Point(440, 430);
+            tbDataChannel.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
+            tbDataChannel.Multiline = true;
+            tbDataChannel.Name = "tbDataChannel";
+            tbDataChannel.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            tbDataChannel.Size = new System.Drawing.Size(329, 42);
+            tbDataChannel.TabIndex = 1318;
+            // 
             // FormConferenceOptions
             // 
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             ClientSize = new System.Drawing.Size(780, 513);
+            Controls.Add(tbDataChannel);
+            Controls.Add(label8);
+            Controls.Add(btn_DataChannelSend);
+            Controls.Add(btn_SubscribeRemoteDataChannelInput);
+            Controls.Add(lb_PublishersDataChannel);
+            Controls.Add(label6);
             Controls.Add(btn_OutputDynamicFeedInput);
             Controls.Add(btn_SubscribeDynamicFeedInput);
             Controls.Add(btn_SubscribeRemoteAudioInput);
@@ -509,5 +591,11 @@
         private System.Windows.Forms.Button btn_SubscribeRemoteAudioInput;
         private System.Windows.Forms.Button btn_SubscribeDynamicFeedInput;
         private System.Windows.Forms.Button btn_OutputDynamicFeedInput;
+        private System.Windows.Forms.Button btn_SubscribeRemoteDataChannelInput;
+        private System.Windows.Forms.ListBox lb_PublishersDataChannel;
+        private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.Button btn_DataChannelSend;
+        private System.Windows.Forms.Label label8;
+        private System.Windows.Forms.TextBox tbDataChannel;
     }
 }

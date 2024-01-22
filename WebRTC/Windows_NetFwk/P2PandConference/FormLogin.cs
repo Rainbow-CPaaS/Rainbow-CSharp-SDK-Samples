@@ -152,7 +152,7 @@ namespace SDK.UIForm.WebRTC
 
         private void RbApplication_ConnectionStateChanged(object? sender, Rainbow.Events.ConnectionStateEventArgs e)
         {
-            AddInformation($"ConnectionStateChanged[{e.State}]");
+            AddInformation($"ConnectionStateChanged[{e.ConnectionState.State}]");
 
             UpdateFormAccodringRainbowConnectionStatus();
         }
