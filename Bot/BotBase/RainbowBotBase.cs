@@ -498,7 +498,7 @@ namespace RainbowBotBase
         private void RbApplication_ConnectionStateChanged(object? sender, ConnectionStateEventArgs e)
         {
 
-            switch(e.State)
+            switch(e.ConnectionState.State)
             {
                 case ConnectionState.Connected:
                     FireTrigger(Trigger.Connect);
