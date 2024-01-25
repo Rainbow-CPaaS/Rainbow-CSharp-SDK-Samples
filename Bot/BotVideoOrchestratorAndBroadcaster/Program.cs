@@ -189,6 +189,7 @@ namespace BotVideoOrchestratorAndBroadcaster
                 {
                     RainbowApplicationInfo.ffmpegLibFolderPath = json["ffmpegLibFolderPath"].ToString();
                     Rainbow.Medias.Helper.InitExternalLibraries(RainbowApplicationInfo.ffmpegLibFolderPath);
+                    //Rainbow.Medias.Helper.SetDefaultWebRTCVideoFormat(FFmpeg.AutoGen.AVCodecID.AV_CODEC_ID_H264);
                 }
 
                 if (json["labelsFilePath"] != null)
