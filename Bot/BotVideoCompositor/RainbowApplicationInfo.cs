@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using Rainbow.Medias;
 
 namespace BotVideoCompositor
 {
@@ -11,9 +10,8 @@ namespace BotVideoCompositor
         static internal readonly string DEFAULT_VALUE = "TO DEFINE";  // /!\ DON'T MODIFY THIS
 
         static internal String ffmpegLibFolderPath = DEFAULT_VALUE;
-        static internal List<String>? videosUri = null;
+        static internal List<Video> videos = new List<Video>();
         static internal String labels = DEFAULT_VALUE;
-
 
         // NLog configuration file used to log SDK debug information
         static internal readonly String NLOG_CONFIG_FILE_PATH = $".{Path.DirectorySeparatorChar}Resources{Path.DirectorySeparatorChar}NLogConfiguration.xml";

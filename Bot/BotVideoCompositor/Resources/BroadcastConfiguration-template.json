@@ -66,16 +66,24 @@
               "isVisible": false
             },
             {
-              "elementId": "SizeTextBlock",
-              "isVisible": true
+              "elementId": "FpsTextBlock",
+              "isVisible": false
             },
             {
-              "elementId": "LayoutTextBlock",
+              "elementId": "Fps",
+              "isVisible": false
+            },
+            {
+              "elementId": "SizeTextBlock",
               "isVisible": false
             },
             {
               "elementId": "Size",
-              "isVisible": true
+              "isVisible": false
+            },
+            {
+              "elementId": "LayoutTextBlock",
+              "isVisible": false
             },
             {
               "elementId": "ContainerLayout",
@@ -132,15 +140,23 @@
               "isVisible": true
             },
             {
+              "elementId": "Fps",
+              "isVisible": true
+            },
+            {
+              "elementId": "FpsTextBlock",
+              "isVisible": true
+            },
+            {
+              "elementId": "Size",
+              "isVisible": true
+            },
+            {
               "elementId": "SizeTextBlock",
               "isVisible": true
             },
             {
               "elementId": "LayoutTextBlock",
-              "isVisible": true
-            },
-            {
-              "elementId": "Size",
               "isVisible": true
             },
             {
@@ -276,6 +292,8 @@
               "horizontalAlignment": "right",
               "items": [
                 {
+                  "id": "FpsTextBlock",
+                  "isVisible": "${RB_oneStreamIsNotVisible}",
                   "type": "TextBlock",
                   "text": "${fps}"
                 },
@@ -295,6 +313,7 @@
                 {
                   "type": "Input.ChoiceSet",
                   "id": "Fps",
+                  "isVisible": "${RB_oneStreamIsNotVisible}",
                   "value": "${RB_currentFps}",
                   "style": "compact",
                   "isMultiSelect": false,
@@ -331,7 +350,7 @@
               "items": [
                 {
                   "id": "SizeTextBlock",
-                  "isVisible": "${RB_SizeTextBlockIsVisible}",
+                  "isVisible": "${RB_SizeIsVisible}",
                   "type": "TextBlock",
                   "text": "${size}"
                 },
@@ -403,6 +422,34 @@
                 }
               ],
               "width": "auto"
+            }
+          ]
+        },
+        {
+          "type": "ColumnSet",
+          "columns": [
+            {
+              "type": "Column",
+              "verticalContentAlignment": "center",
+              "items": [
+                {
+                  "type": "TextBlock",
+                  "text": "<b>Bit Rate (kbs):</b>"
+                }
+              ],
+              "width": "auto"
+            },
+            {
+              "type": "Column",
+              "verticalContentAlignment": "center",
+              "items": [
+                {
+                  "id": "BitRate",
+                  "type": "Input.Text",
+                  "value": "${RB_currentBitRate}"
+                }
+              ],
+              "width": "50px"
             }
           ]
         },

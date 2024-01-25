@@ -21,6 +21,10 @@ namespace BotVideoCompositor
         public static readonly String AUTOJOIN_BUBBLE_ID = "AUTOJOIN_BUBBLE_ID";
         public static readonly String INVALID_BUBBLE_ID = "INVALID_BUBBLE_ID";
 
+        public const String ONE_STREAM = "OneStream";
+        public const String MOSAIC = "Mosaic";
+        public const String OVERLAY = "Overlay";
+
         /// <summary>
         /// State list used by this bot
         /// </summary>
@@ -125,6 +129,9 @@ namespace BotVideoCompositor
 
         private Boolean _needToAddSharingStreamInConference = false;
         private Boolean _addingSharingStreamInConference = false;
+
+        private Boolean _needToUpdateSharingStreamInConference = false;
+        private Boolean _updatingSharingStreamInConference = false;
 
         private Boolean _needToRemoveSharingStreamInConference = false;
         private Boolean _removingSharingStreamInConference = false;
@@ -418,13 +425,21 @@ namespace BotVideoCompositor
                     else
                         configError = true;
 
-                    if (json["Fps"] != null)
-                        newConfiguration.Fps = int.Parse(UtilJson.AsString(json, "Fps"));
-                    else
-                        configError = true;
+                    if (newConfiguration.Mode != ONE_STREAM)
+                    {
+                        if (json["Fps"] != null)
+                            newConfiguration.Fps = int.Parse(UtilJson.AsString(json, "Fps"));
+                        else
+                            configError = true;
+                    }
 
                     if (json["Size"] != null)
                         newConfiguration.Size = UtilJson.AsString(json, "Size");
+                    else
+                        configError = true;
+
+                    if (json["BitRate"] != null)
+                        newConfiguration.BitRate = UtilJson.AsInt(json, "BitRate");
                     else
                         configError = true;
 
@@ -439,7 +454,7 @@ namespace BotVideoCompositor
 
                     switch (newConfiguration.Mode)
                     {
-                        case "Overlay":
+                        case OVERLAY:
                             if (json["OverlayLayout"] != null)
                                 newConfiguration.Layout = UtilJson.AsString(json, "OverlayLayout");
                             else
@@ -454,7 +469,7 @@ namespace BotVideoCompositor
                                 configError = true;
                             break;
 
-                        case "Mosaic":
+                        case MOSAIC:
                             if (json["MosaicLayout"] != null)
                                 newConfiguration.Layout = UtilJson.AsString(json, "MosaicLayout");
                             else
@@ -470,7 +485,7 @@ namespace BotVideoCompositor
                                 configError = true;
                             break;
 
-                        case "OneStream":
+                        case ONE_STREAM:
                             if (newConfiguration.StreamsSelected.Count != 1)
                                 configError = true;
                             break;
@@ -515,16 +530,18 @@ namespace BotVideoCompositor
                 // Create filter
                 switch (newConfiguration.Mode)
                 {
-                    case "OneStream":
-                        srcSize = Util.GetMediaInputSize(newConfiguration.StreamsSelected[0]);
-                        dstSize = new Size(newConfiguration.Size);
-                        if ((srcSize == null) || (dstSize == null))
-                            configError = true;
-                        else
-                            filterToUse = Util.FilterToScaleSize(srcSize, dstSize, newConfiguration.Fps);
+                    case ONE_STREAM:
+                        //srcSize = Util.GetMediaInputSize(newConfiguration.StreamsSelected[0]);
+                        //dstSize = new Size(newConfiguration.Size);
+                        //if ((srcSize == null) || (dstSize == null))
+                        //    configError = true;
+                        //else
+                        //    filterToUse = Util.FilterToScaleSize(srcSize, dstSize, newConfiguration.Fps);
+
+                        // NOTHING TO DO - Don't use filter
                         break;
 
-                    case "Overlay":
+                    case OVERLAY:
                         srcSize = Util.GetMediaInputSize(newConfiguration.StreamsSelected[0]);
                         dstSize = new Size(newConfiguration.Size);
                         srcOverlaySize = Util.GetMediaInputSize(newConfiguration.StreamsSelected[1]);
@@ -536,7 +553,7 @@ namespace BotVideoCompositor
                             filterToUse = Util.FilterToOverlay(srcSize, srcOverlaySize, dstSize, dstVignetteSize, newConfiguration.Layout, newConfiguration.Fps);
                         break;
 
-                    case "Mosaic":
+                    case MOSAIC:
                         List<Size> srcVideoSize = new List<Size>();
 
                         foreach (string id in newConfiguration.StreamsSelected)
@@ -561,7 +578,7 @@ namespace BotVideoCompositor
                         break;
                 }
 
-                if (String.IsNullOrEmpty(filterToUse))
+                if ( (newConfiguration.Mode != ONE_STREAM) && String.IsNullOrEmpty(filterToUse))
                     configError = true;
 
 
@@ -571,14 +588,41 @@ namespace BotVideoCompositor
                     Util.WriteBlueToConsole($"[{_botName}] Filter to use:\r\n{filterToUse}\r\n");
 
                     // Create MediaFiltered if necessary.
-                    if (RainbowApplicationInfo.BroadcastConfiguration.MediaFiltered == null)
+                    if ( (RainbowApplicationInfo.BroadcastConfiguration.MediaFiltered == null)
+                        && ( newConfiguration.Mode != ONE_STREAM) )
                     {
                         RainbowApplicationInfo.BroadcastConfiguration.MediaFiltered = new MediaFiltered("mediaFiltered", RainbowApplicationInfo.BroadcastConfiguration.MediaInputCollections.Values.ToList());
                         RainbowApplicationInfo.BroadcastConfiguration.MediaFiltered.OnError += MediaFiltered_OnError;
                         RainbowApplicationInfo.BroadcastConfiguration.MediaFiltered.Init(true);
                     }
 
-                    RainbowApplicationInfo.BroadcastConfiguration.VideoStreamTrack ??= RbWebRTCDesktopFactory.CreateVideoTrack(RainbowApplicationInfo.BroadcastConfiguration.MediaFiltered);
+                    Boolean needUpdate = (RainbowApplicationInfo.BroadcastConfiguration.VideoStreamTrack != null);
+
+                    if (newConfiguration.Mode != ONE_STREAM)
+                    {
+                        RainbowApplicationInfo.BroadcastConfiguration.VideoStreamTrack = RbWebRTCDesktopFactory.CreateVideoTrack(RainbowApplicationInfo.BroadcastConfiguration.MediaFiltered);
+                    }
+                    else
+                    {
+                        foreach (var item in RainbowApplicationInfo.BroadcastConfiguration.MediaInputCollections)
+                        {
+                            string id = item.Key;
+                            var mediaInput = item.Value;
+                            if (RainbowApplicationInfo.BroadcastConfiguration.StreamsSelected.Contains(id))
+                            {
+                                RainbowApplicationInfo.BroadcastConfiguration.VideoStreamTrack = RbWebRTCDesktopFactory.CreateVideoTrack(mediaInput);
+                                mediaInput.SetVideoBitRate(RainbowApplicationInfo.BroadcastConfiguration.BitRate * 1000);
+                                try
+                                {
+                                    mediaInput.Start();
+                                }
+                                catch 
+                                { 
+                                }
+                            }
+                        }
+                    }
+
 
                     // Loop on all Media Input to start or stop them
                     foreach (var item in RainbowApplicationInfo.BroadcastConfiguration.MediaInputCollections)
@@ -640,14 +684,19 @@ namespace BotVideoCompositor
                         }
                     }
 
-                    if (RainbowApplicationInfo.BroadcastConfiguration.MediaFiltered.SetVideoFilter(RainbowApplicationInfo.BroadcastConfiguration.StreamsSelected, filterToUse))
+                    if (newConfiguration.Mode != ONE_STREAM)
                     {
-                        RainbowApplicationInfo.BroadcastConfiguration.MediaFiltered.Start();
+                        if (RainbowApplicationInfo.BroadcastConfiguration.MediaFiltered.SetVideoFilter(RainbowApplicationInfo.BroadcastConfiguration.StreamsSelected, filterToUse))
+                        {
+                            RainbowApplicationInfo.BroadcastConfiguration.MediaFiltered.Start();
+                        }
+                        else
+                        {
+                            configError = true;
+                        }
                     }
-                    else
-                    {
-                        configError = true;
-                    }
+
+                    
                 }
             }
 
@@ -781,7 +830,7 @@ namespace BotVideoCompositor
               ${RB_overlayLayoutIsVisible}      => "true" if config is Overlay
               ${RB_mosaicLayoutIsVisible}       => "true" if config is Mosaic
 
-              ${RB_SizeTextBlockIsVisible}      => "true" if config is not Mosaic
+              ${RB_SizeIsVisible}               => "true" if config is not Mosaic
               ${RB_SizeIsVisible}               => "true" if config is not Mosaic
 
               ${RB_startBroadcast}              => "true" if broadcast is started
@@ -798,11 +847,13 @@ namespace BotVideoCompositor
             
             configurationInfoToUpdate.Add("${RB_streamsSelected}",          String.Join(",", broadcastConfiguration.StreamsSelected));
 
+            configurationInfoToUpdate.Add("${RB_currentBitRate}",           broadcastConfiguration.BitRate.ToString());
+
             String currentLayoutOverlay;
             String currentLayoutMosaic;
             switch (broadcastConfiguration.Mode)
             {
-                case "Overlay":
+                case OVERLAY:
                     currentLayoutOverlay = broadcastConfiguration.Layout;
                     currentLayoutMosaic = Util.GetDefaultLayoutValue(false);
 
@@ -815,12 +866,11 @@ namespace BotVideoCompositor
                     configurationInfoToUpdate.Add("${RB_overlayLayoutIsVisible}", "true");
                     configurationInfoToUpdate.Add("${RB_mosaicLayoutIsVisible}", "false");
 
-                    configurationInfoToUpdate.Add("${RB_SizeTextBlockIsVisible}", "true");
                     configurationInfoToUpdate.Add("${RB_SizeIsVisible}", "true");
 
                     break;
 
-                case "Mosaic":
+                case MOSAIC:
                     currentLayoutOverlay = Util.GetDefaultLayoutValue(true);
                     currentLayoutMosaic = broadcastConfiguration.Layout;
 
@@ -833,7 +883,6 @@ namespace BotVideoCompositor
                     configurationInfoToUpdate.Add("${RB_overlayLayoutIsVisible}", "false");
                     configurationInfoToUpdate.Add("${RB_mosaicLayoutIsVisible}", "true");
 
-                    configurationInfoToUpdate.Add("${RB_SizeTextBlockIsVisible}", "false");
                     configurationInfoToUpdate.Add("${RB_SizeIsVisible}", "false");
                     break;
 
@@ -850,8 +899,7 @@ namespace BotVideoCompositor
                     configurationInfoToUpdate.Add("${RB_overlayLayoutIsVisible}", "false");
                     configurationInfoToUpdate.Add("${RB_mosaicLayoutIsVisible}", "false");
 
-                    configurationInfoToUpdate.Add("${RB_SizeTextBlockIsVisible}", "true");
-                    configurationInfoToUpdate.Add("${RB_SizeIsVisible}", "true");
+                    configurationInfoToUpdate.Add("${RB_SizeIsVisible}", "false");
                     break;
             }
             configurationInfoToUpdate.Add("${RB_currentLayoutOverlay}", currentLayoutOverlay);
@@ -1205,7 +1253,7 @@ namespace BotVideoCompositor
 
                 if ((!_addingSharingStreamInConference) 
                     && (!Rainbow.Util.MediasWithSharing(_currentCall.LocalMedias)) )
-                    _needToAddSharingStreamInConference = (RainbowApplicationInfo.BroadcastConfiguration.MediaFiltered?.IsStarted == true) 
+                    _needToAddSharingStreamInConference = (RainbowApplicationInfo.BroadcastConfiguration.VideoStreamTrack?.ReadyState == Rainbow.WebRTC.Abstractions.ReadyState.Live)
                                                 && RainbowApplicationInfo.BroadcastConfiguration.StartBroadcast;
             }
         }
@@ -1328,7 +1376,7 @@ namespace BotVideoCompositor
             _needToAddVideoStreamInConference = false;
             _addingVideoStreamInConference = true;
 
-            if (RainbowApplicationInfo.BroadcastConfiguration.MediaFiltered != null)
+            if (RainbowApplicationInfo.BroadcastConfiguration.VideoStreamTrack != null)
             {
                 Rainbow.CancelableDelay.StartAfter(500, () =>
                 {
@@ -1346,7 +1394,7 @@ namespace BotVideoCompositor
             _needToAddSharingStreamInConference = false;
             _addingSharingStreamInConference = true;
 
-            if ( (RainbowApplicationInfo.BroadcastConfiguration.MediaFiltered != null) 
+            if ( (RainbowApplicationInfo.BroadcastConfiguration.VideoStreamTrack != null) 
                 && (RainbowApplicationInfo.BroadcastConfiguration.StartBroadcast) )
             {
                 Rainbow.CancelableDelay.StartAfter(500, () =>
@@ -1414,7 +1462,7 @@ namespace BotVideoCompositor
         private void RbApplication_ConnectionStateChanged(object? sender, ConnectionStateEventArgs e)
         {
 
-            switch (e.State)
+            switch (e.ConnectionState.State)
             {
                 case ConnectionState.Connected:
                     if (RbApplication.IsInitialized())

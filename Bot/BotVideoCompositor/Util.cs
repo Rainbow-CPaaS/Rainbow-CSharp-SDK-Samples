@@ -8,7 +8,6 @@ using FFmpeg.AutoGen;
 using Microsoft.Extensions.Logging;
 using Rainbow.SimpleJSON;
 using Rainbow;
-using Rainbow.Model;
 
 namespace BotVideoCompositor
 {
@@ -104,8 +103,7 @@ namespace BotVideoCompositor
         {
             List<Item> items = new List<Item>();
 
-            // -- Create data about streams
-            Rainbow.Medias.Helper.InitExternalLibraries(RainbowApplicationInfo.ffmpegLibFolderPath);
+            
 
             //_logCallback = (p0, level, format, vl) =>
             //{
@@ -133,20 +131,22 @@ namespace BotVideoCompositor
                 int index = 0;
                 MediaInput mediaInput;
                 int maxLength = 0;
-                foreach (var uri in RainbowApplicationInfo.videosUri)
+                foreach (var video in RainbowApplicationInfo.videos)
                 {
                     string val;
                     string key;
                     string info;
                     int fps;
 
-                    key = uri.ToString();
+                    key = video.Uri;
                     if (streamsName.Count > index)
                         val = streamsName[index];
                     else
                         val = $"Stream {index + 1}";
 
-                    mediaInput = new Rainbow.Medias.MediaInput(new InputStreamDevice(index.ToString(), val, key, withVideo: true, withAudio: false, loop: true), loggerPrefix: "");
+                    mediaInput = new Rainbow.Medias.MediaInput(new InputStreamDevice(index.ToString(), val, key, withVideo: true, withAudio: false, loop: true, options: video.Settings), loggerPrefix: "");
+                    mediaInput.SetVideoBitRate(1024 * 1000);
+
                     Util.WriteBlueToConsole($"\r\nStart initialization of [{val}] using [{key}].");
                     // Init stream and start it if possible
                     if (mediaInput.Init(true))
@@ -215,7 +215,7 @@ namespace BotVideoCompositor
                 || (RainbowApplicationInfo.fps == null)
                 || (RainbowApplicationInfo.outputs == null)
                 || (RainbowApplicationInfo.vignettes == null)
-                || (RainbowApplicationInfo.videosUri == null))
+                || (RainbowApplicationInfo.videos == null))
                 return null;
 
             try

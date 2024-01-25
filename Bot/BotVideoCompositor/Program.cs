@@ -5,6 +5,7 @@ using Rainbow;
 using Rainbow.SimpleJSON;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Threading;
 
@@ -146,12 +147,28 @@ namespace BotVideoCompositor
 
                 RainbowApplicationInfo.ffmpegLibFolderPath = UtilJson.AsString(json, "ffmpegLibFolderPath");
 
-                if (json["videosUri"]?.IsArray == true)
+                // -- Create data about streams
+                Rainbow.Medias.Helper.InitExternalLibraries(RainbowApplicationInfo.ffmpegLibFolderPath);
+
+                if (json["videos"]?.IsArray == true)
                 {
-                    var  list = UtilJson.AsStringList(json, "videosUri");
-                    RainbowApplicationInfo.videosUri = new List<String>();
-                    foreach (var item in list)
-                        RainbowApplicationInfo.videosUri.Add(item.ToString());
+                    RainbowApplicationInfo.videos = new List<Video>();
+                    foreach (var video_json in json["videos"])
+                    {
+                        var video = new Video();
+                        video.Uri = UtilJson.AsString(video_json, "uri");
+
+                        var settings = UtilJson.AsDictionaryOfStringAndObject(video_json, "settings");
+                        foreach(var key in settings.Keys)
+                        { 
+                            var value = settings[key];
+                            if (value is String str)
+                                video.Settings[key] = str;
+                            else if (value is Double dbl)
+                                video.Settings[key] = dbl.ToString(CultureInfo.InvariantCulture);
+                        }
+                        RainbowApplicationInfo.videos.Add(video);
+                    }
                 }
 
                 if (json["serverConfig"]?.IsObject == true)
@@ -351,7 +368,7 @@ namespace BotVideoCompositor
                 result = false;
             }
 
-            if (RainbowApplicationInfo.videosUri == null)
+            if (RainbowApplicationInfo.videos == null)
             {
                 message += "\r\n\t videosUri has not been defined";
                 result = false;

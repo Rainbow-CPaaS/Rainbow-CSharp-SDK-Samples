@@ -2,6 +2,18 @@
 <nlog xmlns="http://www.nlog-project.org/schemas/NLog.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <rules>
         <logger 
+            name="BotVideoCompositor_WEBRTC" 
+            minlevel="Debug" 
+            writeTo="RAINBOW_WEBRTC_LOGGER"
+            final="true" />
+        <logger 
+            name="BotVideoCompositor_*" 
+            minlevel="Debug" 
+            writeTo="RAINBOW_DEFAULT_LOGGER"
+            />
+            
+      <!-- DEFINE default loggers -->
+        <logger 
             name="WEBRTC" 
             minlevel="Debug" 
             writeTo="RAINBOW_WEBRTC_LOGGER"

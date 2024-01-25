@@ -28,6 +28,8 @@ namespace BotVideoCompositor
 
         public int Fps; // 25 for example
 
+        public int BitRate; // 512 (kps) for example
+
         public String Layout; // For Overlay: TL, TR, BR, BL.   For Mosaic: G, H, V, H-M+2v, V-M+2v, W 
 
         public Boolean ConfigError;
@@ -48,6 +50,7 @@ namespace BotVideoCompositor
             VignetteSize = "800x640";
             Fps = 5;
             Layout = "TR";
+            BitRate = 512;
         }
 
         public void Init()
