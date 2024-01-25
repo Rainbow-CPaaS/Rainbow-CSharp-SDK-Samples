@@ -1,6 +1,6 @@
 {
-	"_comment_ffmpegLibFolderPath": "A valide where FFMpeg libraries are stored according your system",
-	"ffmpegLibFolderPath": "C:\\ffmpeg-5.1.1-full_build-shared\\bin",
+	"_comment_ffmpegLibFolderPath": "A valid path where FFMpeg libraries are stored according your system",
+	"ffmpegLibFolderPath": "C:\\ffmpeg-6.0-full_build-shared\\bin",
 
 	"labelsFilePath": "labels_EN.json",
 
