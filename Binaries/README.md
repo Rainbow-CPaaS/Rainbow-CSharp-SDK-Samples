@@ -12,7 +12,7 @@ They are mandatory if you use [Rainbow.CSharp.WebRTC](https://www.nuget.org/pack
 
 Info about [FFmpeg](https://www.ffmpeg.org/) libraries and [SDL2](https://www.libsdl.org) libraries. 
 
-For **FFmpeg** version 5.1.1 or more must be used.
+For **FFmpeg** version 6.0 or more must be used.
 
 For **SDL2** version 2.0.22 or more must be used.
 
@@ -30,15 +30,15 @@ Then they must be installed in the same folder that your executable using this S
 
 #### FFmpeg libraries:
 
-Download X64 libraries from here: https://github.com/GyanD/codexffmpeg/releases/download/5.1.1/ffmpeg-5.1.1-full_build-shared.zip
+Download X64 libraries from here: https://github.com/GyanD/codexffmpeg/releases/download/6.0/ffmpeg-6.0-full_build-shared.zip
 
-They are available also [here](./Windows/ffmpeg-5.1.1-full_build-shared)
+They are available also [here](./Windows/ffmpeg-6.0-full_build-shared)
 
 From this ZIP file only files in folder **bin** are used by the SDK. You can store them on your system where you want but you need to specify this folder when you create an instance of **WebRTCCommunications** object.
 
 Example:
 ``` csharp
-String FFMPEG_LIB_PATH = @"C:\ffmpeg-5.1.1-full_build-shared\bin";
+String FFMPEG_LIB_PATH = @"C:\ffmpeg-6.0-full_build-shared\bin";
 
 Rainbow.Application rbApplication = new Rainbow.Application();
 Rainbow.WebRTCCommunications rbWebRTCCommunications =  WebRTCCommunications.CreateInstance(rbApplication, FFMPEG_LIB_PATH); 
