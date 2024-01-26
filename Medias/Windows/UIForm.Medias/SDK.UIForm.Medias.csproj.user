@@ -8,6 +8,9 @@
     <Compile Update="FormMediaInputStreams.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Update="FormScreen.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Update="FormVideoOutputStream.cs">
       <SubType>Form</SubType>
     </Compile>

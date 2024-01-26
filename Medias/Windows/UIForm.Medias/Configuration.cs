@@ -122,7 +122,7 @@ namespace SDK.UIForm.WebRTC
             if (Directory.Exists(folderPath))
             {
                 // TODO - enhance FFmpeg libraries check on other platforms 
-                var files = new List<String>() { "avcodec-59.dll", "avdevice-59.dll", "avfilter-8.dll", "avformat-59.dll", "avutil-57.dll", "postproc-56.dll", "swresample-4.dll", "swscale-6.dll"};
+                var files = new List<String>() { "avcodec-60.dll", "avdevice-60.dll", "avfilter-9.dll", "avformat-60.dll", "avutil-58.dll", "postproc-57.dll", "swresample-4.dll", "swscale-7.dll" };
                 foreach (var file in files)
                 {
                     if(!File.Exists(Path.Combine(folderPath, file)))
