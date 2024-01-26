@@ -1593,7 +1593,7 @@ namespace MassProvisioning
         private void RbApplication_ConnectionStateChanged(object sender, Rainbow.Events.ConnectionStateEventArgs e)
         {
             // If the connection is lost we need also to be informed  - so we set "manualResetInitialization"
-            if (e.State == Rainbow.Model.ConnectionState.Disconnected)
+            if (e.ConnectionState.State == Rainbow.Model.ConnectionState.Disconnected)
                 manualResetInitialization.Set();
         }
     }
