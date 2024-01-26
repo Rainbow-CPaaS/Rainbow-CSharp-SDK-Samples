@@ -396,10 +396,10 @@ namespace Sample_Contacts
         private void RainbowApplication_ConnectionStateChanged(object sender, Rainbow.Events.ConnectionStateEventArgs e)
         {
             // Add info about connection state
-            AddStateLine($"ConnectionStateChanged:{e.State}");
-            UpdateLoginButton(e.State);
+            AddStateLine($"ConnectionStateChanged:{e.ConnectionState.State}");
+            UpdateLoginButton(e.ConnectionState.State);
 
-            if (e.State == Rainbow.Model.ConnectionState.Disconnected)
+            if (e.ConnectionState.State == Rainbow.Model.ConnectionState.Disconnected)
             {
                 rainbowContactsList?.Clear();
                 UpdateContactsListComboBox();

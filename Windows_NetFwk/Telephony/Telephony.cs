@@ -386,7 +386,11 @@ namespace Sample_Telephony
                         {
                             if (nb > 1)
                                 output += "\r\n";
-                            output += nb + ") " +participant.DisplayName + " - " + participant.PhoneNumber;
+
+                            if (participant.DisplayName == participant.PhoneNumber)
+                                output += nb + ") " + participant.DisplayName;
+                            else
+                                output += nb + ") " + participant.DisplayName + " - " + participant.PhoneNumber;
                             nb++;
                         }
                         tbCall1Participants.Text = output;
@@ -511,7 +515,11 @@ namespace Sample_Telephony
                         {
                             if (nb > 1)
                                 output += "\r\n";
-                            output += nb + ") " + participant.DisplayName + " - " + participant.PhoneNumber;
+
+                            if(participant.DisplayName == participant.PhoneNumber)
+                                output += nb + ") " + participant.DisplayName;
+                            else
+                                output += nb + ") " + participant.DisplayName + " - " + participant.PhoneNumber;
                             nb++;
                         }
                         tbCall2Participants.Text = output;
