@@ -88,6 +88,7 @@ namespace Sample_InstantMessaging
 
             // EVENTS WE WANT TO MANAGE
             rainbowApplication.ConnectionStateChanged += RainbowApplication_ConnectionStateChanged;
+            rainbowApplication.InitializationPerformed += RainbowApplication_InitializationPerformed;
 
             rainbowContacts.RosterPeerAdded += RainbowContacts_RosterPeerAdded;
             rainbowContacts.RosterPeerRemoved += RainbowContacts_RosterPeerRemoved;
@@ -104,10 +105,9 @@ namespace Sample_InstantMessaging
             rainbowContactsList = new List<Contact>();
         }
 
+        #endregion INIT METHODS
 
-    #endregion INIT METHODS
-
-    #region METHOD TO UPDATE SampleConversationForm COMPONENTS
+        #region METHOD TO UPDATE SampleConversationForm COMPONENTS
 
         /// <summary>
         /// Permits to add a new sting in the text box at the bottom of the form: it permits to log things happening
@@ -288,7 +288,7 @@ namespace Sample_InstantMessaging
                 int i, nb;
                 string str;
 
-                str = Util.SerializePresence(presence);
+                str = PresenceToString(presence);
                 nb = cbPresenceList.Items.Count;
 
                 for(i=0; i<nb; i++)
@@ -321,11 +321,10 @@ namespace Sample_InstantMessaging
 
                 cbPresenceList.Items.Add(new ListItem("online"));
                 cbPresenceList.Items.Add(new ListItem("away"));
-                cbPresenceList.Items.Add(new ListItem("busy-audio"));
-                cbPresenceList.Items.Add(new ListItem("busy-video"));
-                cbPresenceList.Items.Add(new ListItem("busy-sharing"));
+                cbPresenceList.Items.Add(new ListItem("busy[audio]"));
+                cbPresenceList.Items.Add(new ListItem("busy[video]"));
+                cbPresenceList.Items.Add(new ListItem("busy[sharing]"));
                 cbPresenceList.Items.Add(new ListItem("dnd"));
-                cbPresenceList.Items.Add(new ListItem("dnd-presentation"));
                 cbPresenceList.Items.Add(new ListItem("xa"));
             }
         }
@@ -419,8 +418,8 @@ namespace Sample_InstantMessaging
                     // Get and display contact presence
                     Presence presence = rainbowContacts.GetAggregatedPresenceFromContactId(contactId);
                     if (presence == null) // It means this user is offline
-                        presence = new Presence(PresenceLevel.Offline, "");
-                    tbContactPresence.Text = Util.SerializePresence(presence);
+                        presence = rainbowContacts.CreatePresence(false, PresenceLevel.Offline, "");
+                    tbContactPresence.Text = PresenceToString(presence);
                 }
                 else
                     tbContactPresence.Text = "no presence in this context";
@@ -434,15 +433,14 @@ namespace Sample_InstantMessaging
         private void RainbowApplication_ConnectionStateChanged(object sender, Rainbow.Events.ConnectionStateEventArgs e)
         {
             // Add info about connection state
-            AddStateLine($"ConnectionStateChanged:{e.State}");
-            UpdateLoginButton(e.State);
+            AddStateLine($"ConnectionStateChanged:{e.ConnectionState.State}");
+            UpdateLoginButton(e.ConnectionState.State);
 
-            if (e.State == Rainbow.Model.ConnectionState.Connected)
+            if (e.ConnectionState.State == Rainbow.Model.ConnectionState.Connected)
             {
-                GetAllContacts();
-                GetAllBubbles();
+               // Need to wait the end of the init step
             }
-            else if (e.State == Rainbow.Model.ConnectionState.Disconnected)
+            else if (e.ConnectionState.State == Rainbow.Model.ConnectionState.Disconnected)
             {
                 if (rainbowContactsList != null)
                 {
@@ -458,19 +456,26 @@ namespace Sample_InstantMessaging
             }
         }
 
+        private void RainbowApplication_InitializationPerformed(object sender, EventArgs e)
+        {
+            GetAllContacts();
+            GetAllBubbles();
+        }
+
+
         private void RainbowContacts_ContactPresenceChanged(object sender, Rainbow.Events.PresenceEventArgs e)
         {
-            if (e.Jid == rainbowMyContact?.Jid_im)
+            if (e.Presence.BasicNodeJid == Util.GetBasicNodeJid(rainbowMyContact?.Jid_im))
             {
-                AddStateLine($"Your presence changed to [{Util.SerializePresence(e.Presence)}]");
+                AddStateLine($"Your presence changed to [{PresenceToString(e.Presence)}]");
             }
             else
             {
-                Contact contact = rainbowContacts.GetContactFromContactJid(e.Jid);
+                Contact contact = rainbowContacts.GetContactFromContactJid(e.Presence.BasicNodeJid);
                 if(contact == null)
-                    AddStateLine($"Presence changed for [{e.Jid}]: {Util.SerializePresence(e.Presence)}");
+                    AddStateLine($"Presence changed for [{e.Presence.BasicNodeJid}]: {PresenceToString(e.Presence)}");
                 else
-                    AddStateLine($"Presence changed for [{GetContactDisplayName(contact)}]: {Util.SerializePresence(e.Presence)}");
+                    AddStateLine($"Presence changed for [{GetContactDisplayName(contact)}]: {PresenceToString(e.Presence)}");
             }
         }
 
@@ -646,7 +651,7 @@ namespace Sample_InstantMessaging
                 {
                     if (!callback.Result.Success)
                     {
-                        string logLine = String.Format("Impossible to logout:\r\n{0}", Util.SerializeSdkError(callback.Result));
+                        string logLine = String.Format("Impossible to logout:\r\n{0}", (callback.Result));
                         AddStateLine(logLine);
                         log.LogWarning(logLine);
                     }
@@ -691,7 +696,7 @@ namespace Sample_InstantMessaging
                     }
                     else
                     {
-                        string logLine = String.Format("Impossible to login:\r\n{0}", Util.SerializeSdkError(callback.Result));
+                        string logLine = String.Format("Impossible to login:\r\n{0}", (callback.Result));
                         AddStateLine(logLine);
                         log.LogWarning(logLine);
                     }
@@ -741,7 +746,7 @@ namespace Sample_InstantMessaging
             ListItem item = (ListItem)cbPresenceList.SelectedItem;
             if (item != null)
             {
-                Presence presence = Util.UnserializePresence(item.Text);
+                Presence presence = StringToPresence(item.Text);
                 if (presence == null)
                 {
                     string logLine = String.Format("Impossible to unserialize presence: [{0}]", item.Text);
@@ -758,7 +763,7 @@ namespace Sample_InstantMessaging
                     }
                     else
                     {
-                        string logLine = String.Format("Impossible to set presence :\r\n{0}", Util.SerializeSdkError(callback.Result));
+                        string logLine = String.Format("Impossible to set presence :\r\n{0}", (callback.Result));
                         AddStateLine(logLine);
                         log.LogWarning(logLine);
                     }
@@ -801,7 +806,7 @@ namespace Sample_InstantMessaging
                                 }
                                 else
                                 {
-                                    string logLine = String.Format("Impossible to upload file [{1}]:\r\n{0}", Util.SerializeSdkError(callbackFileDescriptor.Result), idSelected);
+                                    string logLine = String.Format("Impossible to upload file [{1}]:\r\n{0}", (callbackFileDescriptor.Result), idSelected);
                                     AddStateLine(logLine);
                                     log.LogWarning(logLine);
                                 }
@@ -814,7 +819,7 @@ namespace Sample_InstantMessaging
                                 }
                                 else
                                 {
-                                    string logLine = String.Format("Impossible to send message to contact [{1}]:\r\n{0}", Util.SerializeSdkError(callbackMessage.Result), idSelected);
+                                    string logLine = String.Format("Impossible to send message to contact [{1}]:\r\n{0}", (callbackMessage.Result), idSelected);
                                     AddStateLine(logLine);
                                     log.LogWarning(logLine);
                                 }
@@ -834,7 +839,7 @@ namespace Sample_InstantMessaging
                                     }
                                     else
                                     {
-                                        string logLine = String.Format("Impossible to upload file [{1}]:\r\n{0}", Util.SerializeSdkError(callbackFileDescriptor.Result), idSelected);
+                                        string logLine = String.Format("Impossible to upload file [{1}]:\r\n{0}", (callbackFileDescriptor.Result), idSelected);
                                         AddStateLine(logLine);
                                         log.LogWarning(logLine);
                                     }
@@ -847,7 +852,7 @@ namespace Sample_InstantMessaging
                                     }
                                     else
                                     {
-                                        string logLine = String.Format("Impossible to send message to contact [{1}]:\r\n{0}", Util.SerializeSdkError(callbackMEssage.Result), idSelected);
+                                        string logLine = String.Format("Impossible to send message to contact [{1}]:\r\n{0}", (callbackMEssage.Result), idSelected);
                                         AddStateLine(logLine);
                                         log.LogWarning(logLine);
                                     }
@@ -864,7 +869,7 @@ namespace Sample_InstantMessaging
                                 }
                                 else
                                 {
-                                    string logLine = String.Format("Impossible to send message to contact [{1}]:\r\n{0}", Util.SerializeSdkError(callback.Result), idSelected);
+                                    string logLine = String.Format("Impossible to send message to contact [{1}]:\r\n{0}", (callback.Result), idSelected);
                                     AddStateLine(logLine);
                                     log.LogWarning(logLine);
                                 }
@@ -882,7 +887,7 @@ namespace Sample_InstantMessaging
                         }
                         else
                         {
-                            string logLine = String.Format("Impossible to send message to conversation [{1}]:\r\n{0}", Util.SerializeSdkError(callback.Result), idSelected);
+                            string logLine = String.Format("Impossible to send message to conversation [{1}]:\r\n{0}", (callback.Result), idSelected);
                             AddStateLine(logLine);
                             log.LogWarning(logLine);
                         }
@@ -910,7 +915,7 @@ namespace Sample_InstantMessaging
                     {
                         if (!callback.Result.Success)
                         {
-                            string logLine = String.Format("Impossible to send 'isTyping' to conversation [{1}]:\r\n{0}", Util.SerializeSdkError(callback.Result), conversationId);
+                            string logLine = String.Format("Impossible to send 'isTyping' to conversation [{1}]:\r\n{0}", (callback.Result), conversationId);
                             AddStateLine(logLine);
                             log.LogWarning(logLine);
                         }
@@ -964,7 +969,7 @@ namespace Sample_InstantMessaging
                     {
                         if (!callback.Result.Success)
                         {
-                            string logLine = String.Format("Impossible to mark message [{1}] as read :\r\n{0}", Util.SerializeSdkError(callback.Result), lastMessageIDReceived);
+                            string logLine = String.Format("Impossible to mark message [{1}] as read :\r\n{0}", (callback.Result), lastMessageIDReceived);
                             AddStateLine(logLine);
                             log.LogWarning(logLine);
                         }
@@ -1051,7 +1056,7 @@ namespace Sample_InstantMessaging
                         }
                         else
                         {
-                            string logLine = String.Format("Impossible to get older messages from conversatiob[{1}] :\r\n{0}", Util.SerializeSdkError(callback.Result), conversation.Id);
+                            string logLine = String.Format("Impossible to get older messages from conversatiob[{1}] :\r\n{0}", (callback.Result), conversation.Id);
                             AddStateLine(logLine);
                             log.LogWarning(logLine);
                         }
@@ -1095,7 +1100,7 @@ namespace Sample_InstantMessaging
                 }
                 else
                 {
-                    string logLine = String.Format("Impossible to get all contacts:\r\n{0}", Util.SerializeSdkError(callback.Result));
+                    string logLine = String.Format("Impossible to get all contacts:\r\n{0}", (callback.Result));
                     AddStateLine(logLine);
                     log.LogWarning(logLine);
                 }
@@ -1117,7 +1122,7 @@ namespace Sample_InstantMessaging
                 }
                 else
                 {
-                    string logLine = String.Format("Impossible to get all bubbles:\r\n{0}", Util.SerializeSdkError(callback.Result));
+                    string logLine = String.Format("Impossible to get all bubbles:\r\n{0}", (callback.Result));
                     AddStateLine(logLine);
                     log.LogWarning(logLine);
                 }
@@ -1139,7 +1144,7 @@ namespace Sample_InstantMessaging
                 }
                 else
                 {
-                    string logLine = String.Format("Impossible to get all conversations:\r\n{0}", Util.SerializeSdkError(callback.Result));
+                    string logLine = String.Format("Impossible to get all conversations:\r\n{0}", (callback.Result));
                     AddStateLine(logLine);
                     log.LogWarning(logLine);
                 }
@@ -1153,7 +1158,7 @@ namespace Sample_InstantMessaging
                         .ToString("yyyy-MM-ddTHH:mm:ssZ");
         }
 
-        public WebServer CreateWebServer(string url, String callbackUrl)
+        private WebServer CreateWebServer(string url, String callbackUrl)
         {
             Uri uri = new Uri(callbackUrl);
             String callbackAbsolutePath = uri.AbsolutePath;
@@ -1180,7 +1185,53 @@ namespace Sample_InstantMessaging
             return server;
         }
 
-    #endregion UTIL METHODS
+        private String PresenceToString(Presence presence)
+        {
+            if (presence.PresenceLevel == PresenceLevel.Online)
+                return "Online";
+            else if (presence.PresenceLevel == PresenceLevel.Xa)
+                return "Offline";
+            else if (presence.PresenceLevel == PresenceLevel.Away)
+                return "Away";
+            else if (presence.PresenceLevel == PresenceLevel.Dnd)
+                return "Dnd";
+
+            else if (presence.PresenceLevel == PresenceLevel.Busy)
+            {
+                if (presence?.PresenceDetails.Length > 0)
+                    return $"Busy[{presence.PresenceDetails}]";
+                return "Busy";
+            }
+
+            // Set Offline by default
+            return "Offline";
+        }
+
+        private Presence StringToPresence(String strPresence)
+        {
+            if (String.IsNullOrEmpty(strPresence))
+                return rainbowContacts.CreatePresence(false, PresenceLevel.Offline, "");
+
+            String presenceLevel;
+            String presenceDetails;
+            int index = strPresence.IndexOf("[");
+            if (index > 0)
+            {
+                presenceLevel = strPresence.Substring(0, index);
+                presenceDetails = strPresence.Substring(index + 1, strPresence.Length - 1 - (index + 1));
+            }
+            else
+            {
+                presenceLevel = strPresence.ToLower();
+                presenceDetails = "";
+            }
+
+            return rainbowContacts.CreatePresence(false, presenceLevel, presenceDetails);
+        }
+
+
+
+        #endregion UTIL METHODS
 
 
     }
