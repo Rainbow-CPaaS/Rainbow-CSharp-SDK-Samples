@@ -1141,7 +1141,7 @@ namespace MassProvisioning
             do
             {
                 manualResetEvent.Reset();
-                rbAdministration.GetCompanies(Rainbow.Model.Contact.Details.Small, offset, nbAsked, null, callback =>
+                rbAdministration.GetCompanies(Rainbow.Model.Contact.Details.Small, offset, nbAsked, null, null, callback =>
                 {
 
                     if (callback.Result.Success)
@@ -1273,7 +1273,7 @@ namespace MassProvisioning
                 AddStatusMessage("\tCreate company - START");
                 manualResetEvent.Reset();
                 message = "";
-                rbAdministration.CreateCompany(Company.Name, Company.Country, Company.State, callback =>
+                rbAdministration.CreateCompany(Company.Name, Company.Country, Company.State, Rainbow.Model.CompanyOfferType.FREEMIUM, callback =>
                 {
                     if (callback.Result.Success)
                         RbCompany = callback.Data;
