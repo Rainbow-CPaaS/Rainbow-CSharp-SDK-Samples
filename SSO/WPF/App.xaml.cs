@@ -44,7 +44,7 @@ namespace WpfSSOSamples
 
             RbApplication.SetApplicationInfo(AppConfiguration.APP_ID, AppConfiguration.APP_SECRET_KEY);
             RbApplication.SetHostInfo(AppConfiguration.HOST_NAME);
-            RbApplication.SetWebProxyInfo(null);
+            RbApplication.SetWebProxy(null);
 
             LoginWindow = new LoginView();
             LoginWindow.Show();

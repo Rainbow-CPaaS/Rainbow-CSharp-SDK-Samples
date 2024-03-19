@@ -182,7 +182,7 @@ namespace WpfSSOSamples.ViewModel
 
         private void RbApplication_ConnectionStateChanged(object sender, Rainbow.Events.ConnectionStateEventArgs e)
         {
-            switch (e.State)
+            switch (e.ConnectionState.State)
             {
                 case ConnectionState.Connected: // We need to wait also  "InitializationPErformed" event to be sure to be fully connected/ready
                 case ConnectionState.Connecting:
