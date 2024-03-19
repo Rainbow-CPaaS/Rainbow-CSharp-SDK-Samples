@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace SDK.UIForm.Medias.Properties {
+namespace SDK.UIForm.WebRTC.Properties {
     using System;
     
     

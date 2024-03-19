@@ -5,7 +5,6 @@ using Rainbow.Medias;
 using Rainbow.Events;
 using System.IO;
 using System.Windows.Forms;
-using Rainbow.WebRTC.Abstractions;
 using Rainbow.SimpleJSON;
 
 namespace SDK.UIForm.WebRTC
@@ -14,8 +13,6 @@ namespace SDK.UIForm.WebRTC
     {
         private static MediaInputStreamsManager? _instance = null;
 
-        private Rainbow.WebRTC.Desktop.WebRTCFactory rbWebRTCDesktopFactory;
-
         private String _configFilePath;
         private readonly Dictionary<String, MediaInput> _simpleMediaStreams;
         private readonly Dictionary<String, MediaFiltered> _filteredMediaStreams;
@@ -23,9 +20,6 @@ namespace SDK.UIForm.WebRTC
         private FormMediaInputStreams? _formMediaInputStreams = null;
         private FormWebcam? _formWebcam = null;
         private FormScreen? _formScreen = null;
-
-
-        public Rainbow.WebRTC.Desktop.WebRTCFactory WebRTCFactory { get => rbWebRTCDesktopFactory; }
 
 #region EVENT(S)
 
@@ -229,7 +223,6 @@ namespace SDK.UIForm.WebRTC
         public Boolean LoadConfiguration()
         {
             String message = "";
-            String subMessage = "";
 
             Boolean needtoRaiseForFiltered = false;
             Boolean needtoRaiseForSimple = false;
@@ -421,44 +414,9 @@ namespace SDK.UIForm.WebRTC
                 }
             }
 
-
             var strContent = Helper.GetJsonStringFromListOfMediaInputStreamDescriptor(mediaInputStreamDescriptors);
             strContent = "{\r\n\t\"medias\": " + strContent + "\r\n}";
             File.WriteAllText(_configFilePath, strContent);
-        }
-
-        public IAudioStreamTrack? GetAudioMediaStreamTrack(string? id)
-        {
-            var media = GetMediaStream(id);
-            IAudioStreamTrack? result = null;
-            try
-            {
-                if (media != null)
-                    result = rbWebRTCDesktopFactory.CreateAudioTrack(media);
-                else
-                    result = rbWebRTCDesktopFactory.CreateEmptyAudioTrack();
-            }
-            catch
-            {
-
-            }
-            return result;
-        }
-
-        public IVideoStreamTrack? GetVideoMediaStreamTrack(string? id)
-        {
-            var media = GetMediaStream(id);
-            IVideoStreamTrack? result = null;
-            try
-            {
-                if (media != null)
-                    result = rbWebRTCDesktopFactory.CreateVideoTrack(media);
-            }
-            catch
-            {
-
-            }
-            return result;
         }
 
         public IMedia? GetMediaStream(string? id)
@@ -554,8 +512,6 @@ namespace SDK.UIForm.WebRTC
             _configFilePath = $".{Path.DirectorySeparatorChar}Resources{Path.DirectorySeparatorChar}medias.json";
             _simpleMediaStreams = new Dictionary<string, MediaInput>();
             _filteredMediaStreams = new Dictionary<string, MediaFiltered>();
-
-            rbWebRTCDesktopFactory = new Rainbow.WebRTC.Desktop.WebRTCFactory();
         }
 
 #endregion PRIVATE API

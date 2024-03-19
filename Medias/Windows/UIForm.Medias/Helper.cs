@@ -50,7 +50,7 @@ namespace SDK.UIForm.WebRTC
             mediaInputStreamDescriptorcontact.VideoFilter = UtilJson.AsString(json, "videoFilter");
             mediaInputStreamDescriptorcontact.Audio = UtilJson.AsBoolean(json, "audio");
             mediaInputStreamDescriptorcontact.Video = UtilJson.AsBoolean(json, "video");
-            mediaInputStreamDescriptorcontact.Loop = UtilJson.AsBoolean(json, "voop");
+            mediaInputStreamDescriptorcontact.Loop = UtilJson.AsBoolean(json, "loop");
 
             return mediaInputStreamDescriptorcontact;
         }
@@ -58,38 +58,38 @@ namespace SDK.UIForm.WebRTC
         public static Bitmap GetBitmapPause(Boolean small = true)
         {
             if (small)
-                return global::SDK.UIForm.Medias.Properties.Resources.Pause_simple_16x16;
-            return global::SDK.UIForm.Medias.Properties.Resources.Pause_simple;
+                return global::SDK.UIForm.WebRTC.Properties.Resources.Pause_simple_16x16;
+            return global::SDK.UIForm.WebRTC.Properties.Resources.Pause_simple;
         }
 
         public static Bitmap GetBitmapPlay()
         {
-            return global::SDK.UIForm.Medias.Properties.Resources.Play_simple_16x16;
+            return global::SDK.UIForm.WebRTC.Properties.Resources.Play_simple_16x16;
         }
 
         public static Bitmap GetBitmapStop()
         {
-            return global::SDK.UIForm.Medias.Properties.Resources.Stop_simple_16x16;
+            return global::SDK.UIForm.WebRTC.Properties.Resources.Stop_simple_16x16;
         }
 
         public static Bitmap GetBitmapRefresh()
         {
-            return global::SDK.UIForm.Medias.Properties.Resources.Refresh_16x16;
+            return global::SDK.UIForm.WebRTC.Properties.Resources.Refresh_16x16;
         }
 
         public static Bitmap GetBitmapOutput()
         {
-            return global::SDK.UIForm.Medias.Properties.Resources.Output_simple_16x16;
+            return global::SDK.UIForm.WebRTC.Properties.Resources.Output_simple_16x16;
         }
 
         public static Bitmap GetBitmapViewOff()
         {
-            return global::SDK.UIForm.Medias.Properties.Resources.View_off_16x16;
+            return global::SDK.UIForm.WebRTC.Properties.Resources.View_off_16x16;
         }
 
         public static Bitmap GetBitmapViewOn()
         {
-            return global::SDK.UIForm.Medias.Properties.Resources.View_on_16x16;
+            return global::SDK.UIForm.WebRTC.Properties.Resources.View_on_16x16;
         }
 
         public static Bitmap? BitmapFromImageData(int width, int height, int stride, IntPtr data, AVPixelFormat avPixelFormat)
