@@ -1,0 +1,13 @@
+<!-- DEFINE logger (webrtc + other) -->
+<logger
+    name="[$PREFIX_WEBRTC]WEBRTC"
+    minlevel="Debug"
+    writeTo="[$PREFIX_WEBRTC]RAINBOW_WEBRTC_LOGGER"
+    final="true" />
+<logger
+    name="[$PREFIX]*"
+    minlevel="Debug"
+    writeTo="[$PREFIX]RAINBOW_DEFAULT_LOGGER"
+    final="true" />
+
+

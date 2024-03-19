@@ -1,9 +1,13 @@
 {
 	"ffmpegLibFolderPath": "C:\\ffmpeg-6.0-full_build-shared\\bin",
 
+	"useOnlyOneStream": false,
+
+	"createDataChannel": false,
+
 	"videosUri": [
 		"C:\\media\\sample_960x400_ocean_with_audio.mp4",
-		"C:\\media\\Joy_and_Heron.webm"
+		"C:\\media\\mandalas-375x250.png"
 	],
 
 	"serverConfig": {

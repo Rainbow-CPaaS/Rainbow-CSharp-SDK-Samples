@@ -9,6 +9,9 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using Rainbow.WebRTC.Abstractions;
+using Rainbow.WebRTC;
+using System.Threading;
 
 
 namespace BotVideoBroadcaster
@@ -44,7 +47,8 @@ namespace BotVideoBroadcaster
             StopMessageReceived,
 
             AddVideoStream,
-            AddSharingStream
+            AddSharingStream,
+            AddDataChannel
         }
 
         /// <summary>
@@ -77,6 +81,7 @@ namespace BotVideoBroadcaster
 
             VideoStreamAvailable,
             SharingStreamAvailable,
+            DataChannelAvailable,
         }
 
         private readonly StateMachine<State, Trigger> _machine;
@@ -113,6 +118,12 @@ namespace BotVideoBroadcaster
         private MediaInput? _sharingStream = null;
         private String? _sharingStreamUri = null;
 
+        private DataChannel? dataChannel = null;
+        private DateTime lastDCMessage;
+        private int delayBetweenDCMessage = 2000; // 2000ms = 2s
+
+        private IVideoStreamTrack? _videoStreamTrackToUse = null;
+
         private String? _monitoredBubbleId = null;
         private String? _currentConferenceId = null;
         private Boolean _autoJoinConference = false;
@@ -124,6 +135,9 @@ namespace BotVideoBroadcaster
 
         private Boolean _needToAddSharingStreamInConference = false;
         private Boolean _addingSharingStreamInConference = false;
+
+        private Boolean _needToAddDataChannelInConference = false;
+        private Boolean _addingDataChannelInConference = false;
 
         private readonly List<String> _conferencesInProgress = new List<string>();
 
@@ -161,7 +175,7 @@ namespace BotVideoBroadcaster
 
             // Configure the Connecting state
             _machine.Configure(State.Connecting)
-                .Permit(Trigger.Disconnect, State.ConnectionFailed)
+                .Permit(Trigger.Disconnect, State.AutoReconnection)
                 .Permit(Trigger.AuthenticationSucceeded, State.Authenticated);
 
             // Configure the Connecting state
@@ -190,6 +204,7 @@ namespace BotVideoBroadcaster
 
                 .Permit(Trigger.VideoStreamAvailable, State.AddVideoStream)
                 .Permit(Trigger.SharingStreamAvailable, State.AddSharingStream)
+                .Permit(Trigger.DataChannelAvailable, State.AddDataChannel)
 
                 .PermitIf(_messageReceivedFromPeerTrigger, State.MessageFromPeer)
                 .PermitIf(_bubbleInvitationReceivedTrigger, State.BubbleInvitationReceived)
@@ -206,6 +221,11 @@ namespace BotVideoBroadcaster
                 .OnEntry(AddSharingStream)
                 .Permit(Trigger.ActionDone, State.Initialized);
 
+            // Configure the AddSharingStream state
+            _machine.Configure(State.AddDataChannel)
+                .OnEntry(AddDataChannel)
+                .Permit(Trigger.ActionDone, State.Initialized);
+
             // Configure the JoinConference state
             _machine.Configure(State.JoinConference)
                 .OnEntryFrom(_conferenceAvailableTrigger, JoinConference)
@@ -219,10 +239,12 @@ namespace BotVideoBroadcaster
             // Configure the AutoReconnection state
             _machine.Configure(State.AutoReconnection)
                 .PermitReentry(Trigger.Disconnect)
+                .Permit(Trigger.Connect, State.Connected)
                 .Permit(Trigger.TooManyAttempts, State.NotConnected)
                 .Permit(Trigger.IncorrectCredentials, State.Created)
-                .Permit(Trigger.InitializationPerformed, State.Connected)
-                .Permit(Trigger.AuthenticationSucceeded, State.Authenticated);
+                .Permit(Trigger.InitializationPerformed, State.Initialized)
+                .Permit(Trigger.AuthenticationSucceeded, State.Authenticated)
+                .Permit(Trigger.StartLogin, State.Connecting);
 
             // Configure the InvitationReceived state
             _machine.Configure(State.BubbleInvitationReceived)
@@ -380,7 +402,12 @@ namespace BotVideoBroadcaster
                 }
                 else
                 {
-                    Util.WriteWarningToConsole($"[{_botName}] Message received from a Bot Manager but it's not managed");
+                    if ( (messageEvent.Message.Content == "conferenceRemove") || (messageEvent.Message.Content == "conferenceAdd"))
+                    {
+                        // We do nothing specific
+                    }
+                    else
+                        Util.WriteWarningToConsole($"[{_botName}] Message received from a Bot Manager but it's not managed");
                 }
             }
             FireTrigger(Trigger.MessageManaged);
@@ -447,9 +474,9 @@ namespace BotVideoBroadcaster
             }
 
             // If we are a participant in a conference, check if video and/or sharing stream must be added
-            CheckIfVideoAndSharingMustBeAdded();
             if (!String.IsNullOrEmpty(_currentConferenceId))
             {
+                CheckIfVideoAndSharingMustBeAdded();
                 if (_needToAddVideoStreamInConference && !_addingVideoStreamInConference)
                 {
                     _machine.Fire(Trigger.VideoStreamAvailable);
@@ -464,6 +491,30 @@ namespace BotVideoBroadcaster
                         _machine.Fire(Trigger.SharingStreamAvailable);
                         return;
                     }
+                }
+
+                CheckIfDataChannelMustBeAdded();
+                if (_needToAddDataChannelInConference && !_addingDataChannelInConference)
+                {
+                    _machine.Fire(Trigger.DataChannelAvailable);
+                    return;
+                }
+
+                // /!\ Use to send every X ms the same msg using DataChannel
+                if (dataChannel != null && ((DateTime.UtcNow - lastDCMessage).TotalMilliseconds >= delayBetweenDCMessage))
+                {
+                    try
+                    {
+                        lastDCMessage = DateTime.UtcNow;
+                        dataChannel.Send($"{BotName} msg");
+
+                        // TO TEST BINARY MSG
+                        //Random rnd = new Random();
+                        //Byte[] b = new Byte[50];
+                        //rnd.NextBytes(b);
+                        //dataChannel.Send(b);
+                    }
+                    catch { }
                 }
             }
 
@@ -499,16 +550,25 @@ namespace BotVideoBroadcaster
                 }
             }
 
-            CancelableDelay.StartAfter(10, CheckConnectionConferenceAndMessages);
+            CancelableDelay.StartAfter(30, CheckConnectionConferenceAndMessages);
         }
 
         /// <summary>
         /// To stop  the bot 
         /// </summary>
-        private void StopBot()
+        public void StopBot()
         {
             HangUp();
-            CancelableDelay.StartAfter(500, () => RbApplication.Logout());
+
+            Thread.Sleep(500);
+
+            ManualResetEvent manualResetEvent = new ManualResetEvent(false);
+            RbApplication.Logout(callback =>
+            {
+                manualResetEvent.Set();
+
+            });
+            manualResetEvent.WaitOne();
         }
 
         /// <summary>
@@ -538,6 +598,9 @@ namespace BotVideoBroadcaster
         /// </summary>
         private void SetRainbowRestrictions()
         {
+            RbApplication.Restrictions.LogRestRequest = true;
+            RbApplication.Restrictions.MaxConnectionsPerServer = 50;
+
             // We want to let MCQ message visible to the end user
             RbApplication.Restrictions.MessageStorageMode = Restrictions.SDKMessageStorageMode.Store;
 
@@ -611,6 +674,7 @@ namespace BotVideoBroadcaster
             RbInstantMessaging.MessageReceived -= RbInstantMessaging_MessageReceived;
 
             RbWebRTCCommunications.CallUpdated -= RbWebRTCCommunications_CallUpdated;
+            RbWebRTCCommunications.OnDataChannel -= RbWebRTCCommunications_OnDataChannel;
             //RbWebRTCCommunications.OnLocalVideoError -= RbWebRTCCommunications_OnLocalVideoError;
         }
 
@@ -635,6 +699,8 @@ namespace BotVideoBroadcaster
             RbConferences.ConferenceParticipantsUpdated += RbConferences_ConferenceParticipantsUpdated;
 
             RbWebRTCCommunications.CallUpdated += RbWebRTCCommunications_CallUpdated;
+            RbWebRTCCommunications.OnDataChannel += RbWebRTCCommunications_OnDataChannel;
+
             //RbWebRTCCommunications.OnLocalVideoError += RbWebRTCCommunications_OnLocalVideoError;
         }
 
@@ -663,8 +729,24 @@ namespace BotVideoBroadcaster
                 if( (!_addingVideoStreamInConference) && (!Rainbow.Util.MediasWithVideo(_currentCall.LocalMedias)) )
                     _needToAddVideoStreamInConference = true;
 
-                if ((!_addingSharingStreamInConference) && (!Rainbow.Util.MediasWithSharing(_currentCall.LocalMedias)) )
+                if ((!String.IsNullOrEmpty(_sharingStreamUri)) && (!_addingSharingStreamInConference) && (!Rainbow.Util.MediasWithSharing(_currentCall.LocalMedias)) )
                     _needToAddSharingStreamInConference = true;
+            }
+        }
+
+        private void CheckIfDataChannelMustBeAdded()
+        {
+            if (RainbowApplicationInfo.createDataChannel)
+            {
+                if ((_currentCall != null) && (_currentCall.CallStatus == Call.Status.ACTIVE))
+                {
+                    if (_needToAddVideoStreamInConference || _addingVideoStreamInConference 
+                        || _needToAddSharingStreamInConference || _addingSharingStreamInConference)
+                        _needToAddDataChannelInConference = false;
+
+                    else if ((!_addingDataChannelInConference) && (!Rainbow.Util.MediasWithDataChannel(_currentCall.LocalMedias)))
+                        _needToAddDataChannelInConference= true;
+                }
             }
         }
 
@@ -742,6 +824,20 @@ namespace BotVideoBroadcaster
             FireTrigger(Trigger.ActionDone);
         }
 
+        public void AddDataChannel()
+        {
+            _needToAddDataChannelInConference = false;
+            _addingDataChannelInConference = true;
+
+            Rainbow.CancelableDelay.StartAfter(500, () =>
+            {
+                UpdateDataChannel();
+                _addingDataChannelInConference = false;
+
+            });
+            FireTrigger(Trigger.ActionDone);
+        }
+
         private void SetNewVideoOrSharingStream(ref MediaInput? internalStream, MediaInput? newSharingStream)
         {
             if (internalStream == null)
@@ -786,64 +882,106 @@ namespace BotVideoBroadcaster
             }
 
             // Are we currently in a conference ?
-            if ((_currentCall != null) && (_currentCall.CallStatus == Call.Status.ACTIVE))
+            if (_currentCall != null) 
             {
-                MediaInput newStreamToUse;
 
-                if (_videoStream?.Path == uri)
+                if (_currentCall.CallStatus != Call.Status.ACTIVE)
                 {
-                    newStreamToUse = _videoStream;
+                    CancelableDelay.StartAfter(200, () => UpdateVideoStream(uri));
+                    return;
                 }
-                else
-                {
-                    var uriDevice = new InputStreamDevice("videoStream", "videoStream", uri, true, false, true);
-                    newStreamToUse = new MediaInput(uriDevice);
-                    if (!newStreamToUse.Init(true))
-                    {
-                        Util.WriteErrorToConsole($"[{_botName}] Canno init Video Stream using this URI:{uri}].");
-                        return;
-                    }
-                }
-
-                Util.WriteWarningToConsole($"[{_botName}] For Video Stream trying to use this URI:{uri}].");
 
                 Boolean videoHasNotBeenSet = false;
 
-                if (Rainbow.Util.MediasWithVideo(_currentCall.LocalMedias))
+                if (_videoStreamTrackToUse != null)
                 {
-                    if (newStreamToUse.Path == _videoStream?.Path)
+                    if (Rainbow.Util.MediasWithVideo(_currentCall.LocalMedias))
                     {
-                        Util.WriteWarningToConsole($"[{_botName}] For Video, We alreayd use this URI:[{uri}]");
-                        return;
-                    }
+                        if (!RbWebRTCCommunications.ChangeVideo(_currentConferenceId, _videoStreamTrackToUse))
+                        {
+                            videoHasNotBeenSet = true;
+                            Util.WriteErrorToConsole($"[{_botName}] Cannot UPDATE Video stream to the common video stream track");
 
-                    if (!RbWebRTCCommunications.ChangeVideo(_currentConferenceId, RbWebRTCFactory.CreateVideoTrack(newStreamToUse)))
-                    {
-                        videoHasNotBeenSet = true;
-                        Util.WriteErrorToConsole($"[{_botName}] Cannot UPDATE Video stream to new URI:[{uri}]");
-
-                        RbWebRTCCommunications.RemoveVideo(_currentConferenceId);
+                            RbWebRTCCommunications.RemoveVideo(_currentConferenceId);
+                        }
+                        else
+                        {
+                            Util.WriteWarningToConsole($"[{_botName}] Common video stream track used");
+                        }
                     }
                     else
                     {
-                        Util.WriteWarningToConsole($"[{_botName}] Video stream using URI:[{uri}]");
+                        if (!RbWebRTCCommunications.AddVideo(_currentConferenceId, _videoStreamTrackToUse))
+                        {
+                            videoHasNotBeenSet = true;
+                            Util.WriteErrorToConsole($"[{_botName}] Cannot SET Video stream to the common video stream track");
+                        }
+                        else
+                        {
+                            Util.WriteWarningToConsole($"[{_botName}] Common video stream track used");
+                        }
                     }
                 }
                 else
                 {
-                    if (!RbWebRTCCommunications.AddVideo(_currentConferenceId, RbWebRTCFactory.CreateVideoTrack(newStreamToUse)))
+
+                    MediaInput newStreamToUse;
+
+                    if (_videoStream?.Path == uri)
                     {
-                        videoHasNotBeenSet = true;
-                        Util.WriteErrorToConsole($"[{_botName}] Cannot SET Video stream to new URI:[{uri}]");
+                        newStreamToUse = _videoStream;
                     }
                     else
                     {
-                        Util.WriteWarningToConsole($"[{_botName}] Video stream using URI:[{uri}]");
+                        var uriDevice = new InputStreamDevice("videoStream", "videoStream", uri, true, false, true);
+                        newStreamToUse = new MediaInput(uriDevice);
+                        if (!newStreamToUse.Init(true))
+                        {
+                            Util.WriteErrorToConsole($"[{_botName}] Canno init Video Stream using this URI:{uri}].");
+                            return;
+                        }
                     }
-                }
 
-                if (!videoHasNotBeenSet)
-                    SetNewVideoStream(newStreamToUse);
+                    Util.WriteWarningToConsole($"[{_botName}] For Video Stream trying to use this URI:{uri}].");
+
+                    
+
+                    if (Rainbow.Util.MediasWithVideo(_currentCall.LocalMedias))
+                    {
+                        if (newStreamToUse.Path == _videoStream?.Path)
+                        {
+                            Util.WriteWarningToConsole($"[{_botName}] For Video, We alreayd use this URI:[{uri}]");
+                            return;
+                        }
+
+                        if (!RbWebRTCCommunications.ChangeVideo(_currentConferenceId, RbWebRTCFactory.CreateVideoTrack(newStreamToUse)))
+                        {
+                            videoHasNotBeenSet = true;
+                            Util.WriteErrorToConsole($"[{_botName}] Cannot UPDATE Video stream to new URI:[{uri}]");
+
+                            RbWebRTCCommunications.RemoveVideo(_currentConferenceId);
+                        }
+                        else
+                        {
+                            Util.WriteWarningToConsole($"[{_botName}] Video stream using URI:[{uri}]");
+                        }
+                    }
+                    else
+                    {
+                        if (!RbWebRTCCommunications.AddVideo(_currentConferenceId, RbWebRTCFactory.CreateVideoTrack(newStreamToUse)))
+                        {
+                            videoHasNotBeenSet = true;
+                            Util.WriteErrorToConsole($"[{_botName}] Cannot SET Video stream to new URI:[{uri}]");
+                        }
+                        else
+                        {
+                            Util.WriteWarningToConsole($"[{_botName}] Video stream using URI:[{uri}]");
+                        }
+                    }
+
+                    if (!videoHasNotBeenSet)
+                        SetNewVideoStream(newStreamToUse);
+                }
             }
         }
 
@@ -917,7 +1055,30 @@ namespace BotVideoBroadcaster
                     SetNewSharingStream(newStreamToUse);
             }
         }
-        
+
+        public void UpdateDataChannel()
+        {
+            // Are we currently in a conference ?
+            if ((_currentConferenceId != null) && (_currentCall != null))
+            {
+                if (Rainbow.Util.MediasWithDataChannel(_currentCall.LocalMedias))
+                {
+                    Util.WriteWarningToConsole($"[{_botName}] We already use a Data Channel");
+                    return;
+                }
+
+                var dc = RbWebRTCCommunications.AddDataChannel(_currentConferenceId, $"DC_{_botName}]");
+                if (dc == null)
+                {
+                    Util.WriteErrorToConsole($"[{_botName}] Cannot add Data Channel");
+                }
+                else
+                {
+                    Util.WriteWarningToConsole($"[{_botName}] Data Channel added");
+                }
+            }
+        }
+
         private Boolean IsSharingNotUsedByPeer()
         {
             return (_currentCall != null) && !Rainbow.Util.MediasWithSharing(_currentCall.RemoteMedias);
@@ -958,6 +1119,31 @@ namespace BotVideoBroadcaster
 
         }
 
+        private void GetAllBubbles()
+        {
+            // Get list of bubbles - it's mandatory to be informed when a conference is started in one of this bubble
+            RbBubbles.GetAllBubbles(callback =>
+            {
+                if (callback.Result.Success)
+                {
+                    // We need to accept any invitation available from bubbles
+                    var bubbles = callback.Data;
+                    foreach (var bubble in bubbles)
+                    {
+                        if (RbBubbles.IsInvited(bubble) == true)
+                        {
+                            if (!_bubbleInvitationInProgress.Contains(bubble.Id))
+                                _bubbleInvitationQueue.Enqueue(bubble.Id);
+                        }
+                    }
+                }
+                else
+                {
+                    CancelableDelay.StartAfter(100, GetAllBubbles);
+                }
+            });
+        }
+
         /// <summary>
         /// Raised when initialization process has been performed (after authentication has succeeded and just before the status connected is raised)
         /// </summary>
@@ -967,25 +1153,9 @@ namespace BotVideoBroadcaster
             _currentContact = RbContacts.GetCurrentContact();
 
             // Update the name using _botName
-            UpdateName();
+            //UpdateName();
 
-            // Get list of bubbles - it's mandatory to be informed when a conference is started in one of this bubble
-            RbBubbles.GetAllBubbles(callback =>
-            {
-                if(callback.Result.Success)
-                {
-                    // We need to accept any invitation available from bubbles
-                    var bubbles = callback.Data;
-                    foreach(var bubble in bubbles)
-                    {
-                        if(RbBubbles.IsInvited(bubble) == true)
-                        {
-                            if (!_bubbleInvitationInProgress.Contains(bubble.Id))
-                                _bubbleInvitationQueue.Enqueue(bubble.Id);
-                        }
-                    }
-                }
-            });
+            GetAllBubbles();
 
 
             // Check for each bot manager if it's known. If it's not the case, we send an invitation
@@ -1028,12 +1198,18 @@ namespace BotVideoBroadcaster
         /// <summary>
         /// Raised when the auto reconnection service has beend cancelled
         /// </summary>
-        private void RbAutoReconnection_Cancelled(object? sender, EventArgs e)
+        private void RbAutoReconnection_Cancelled(object? sender, StringEventArgs e)
         {
-            if (RbAutoReconnection.CurrentNbAttempts < RbAutoReconnection.MaxNbAttempts)
+            if(e.Value == "InvalidCredentials")
             {
                 if (_machine.IsInState(State.AutoReconnection))
                     FireTrigger(Trigger.IncorrectCredentials);
+            }
+            else if (e.Value == "DisconnectedByServer")
+            {
+                var connectionState = RbAutoReconnection.GetServerDisconnectionInformation();
+                if( (connectionState.Criticality == "fatal") && _machine.IsInState(State.AutoReconnection))
+                        FireTrigger(Trigger.IncorrectCredentials);
             }
         }
 
@@ -1110,15 +1286,35 @@ namespace BotVideoBroadcaster
 
                 if (e.Call.IsInProgress())
                 {
-                    if (!e.Call.IsRinging())
-                    {
+                    //if (!e.Call.IsRinging())
                         RbContacts?.SetBusyPresenceAccordingMedias(e.Call.LocalMedias);
-                    }
                 }
                 else
                 {
                     RbContacts.SetPresenceLevel(RbContacts.CreatePresence(true, "online", ""));
+                    dataChannel = null;
+
+                    if(!e.Call.IsConnecting())
+                    {
+                        if (!String.IsNullOrEmpty(_currentConferenceId))
+                        {
+                            Util.WriteDebugToConsole($"[{_botName}] Need perhaps to reconnect to Conference");
+                            CancelableDelay.StartAfter(1000, () =>
+                            {
+                                _currentConferenceId = null;
+                            });
+                        }
+                    }
                 }
+            }
+        }
+
+        private void RbWebRTCCommunications_OnDataChannel(string callId, DataChannelDescriptor dataChannelDescriptor)
+        {
+            if (callId == _currentConferenceId)
+            {
+                this.dataChannel = dataChannelDescriptor.DataChannel;
+                lastDCMessage = DateTime.UtcNow;
             }
         }
 
@@ -1153,7 +1349,6 @@ namespace BotVideoBroadcaster
             }
         }
 
-        
     #endregion EVENTS RAISED FROM RAINBOW OBJECTS
 
 #endregion PRIVATE API
@@ -1261,7 +1456,7 @@ namespace BotVideoBroadcaster
         /// <param name="iniFolderFullPathName">[optional]Full Folder path to ini file</param>
         /// <param name="iniFileName">[optional]ini file name</param>
         /// <returns>True if configuration has been done</returns>
-        public Boolean Configure(String appId, String appSecretKey, String hostname, String login, String pwd, String botName, List<BotManager>? botManagers, String stopMessage, String? monitoredBubbleId, String? videoStreamUri, String? sharingStreamUri, String? iniFolderFullPathName = null, String? iniFileName = null)
+        public Boolean Configure(String appId, String appSecretKey, String hostname, String login, String pwd, String botName, List<BotManager>? botManagers, String stopMessage, String? monitoredBubbleId, String? videoStreamUri, String? sharingStreamUri, IVideoStreamTrack? videoStreamTrackToUse = null, String? iniFolderFullPathName = null, String? iniFileName = null)
         {
             // Check that the trigger can be used
             Trigger triggerToUse = Trigger.Configure;
@@ -1275,7 +1470,7 @@ namespace BotVideoBroadcaster
             RbApplication.SetApplicationInfo(appId, appSecretKey);
             RbApplication.SetHostInfo(hostname);
 
-            RbApplication.SetTimeout(10000);
+            RbApplication.SetTimeout(180000);
 
             // Set restrictions
             SetRainbowRestrictions();
@@ -1299,6 +1494,7 @@ namespace BotVideoBroadcaster
             // Store Video / Sharing Stream Uri
             _videoStreamUri = videoStreamUri;
             _sharingStreamUri = sharingStreamUri;
+            _videoStreamTrackToUse = videoStreamTrackToUse;
             UpdateVideoStream(videoStreamUri);
             UpdateSharingStream(sharingStreamUri);
 
@@ -1320,8 +1516,8 @@ namespace BotVideoBroadcaster
 
             // Check that the trigger can be used
             Trigger triggerToUse = Trigger.StartLogin;
-            if (!_machine.CanFire(triggerToUse))
-                return false;
+            //if (!_machine.CanFire(triggerToUse))
+            //    return false;
 
 
             if (FireTrigger(triggerToUse))

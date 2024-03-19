@@ -1,11 +1,15 @@
 ﻿using Microsoft.Extensions.Logging;
 using NLog.Config;
 using NLog.Extensions.Logging;
+using Org.BouncyCastle.Asn1.X509;
 using Rainbow;
+using Rainbow.Medias;
 using Rainbow.SimpleJSON;
+using Rainbow.WebRTC.Abstractions;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 
 namespace BotVideoBroadcaster
@@ -13,11 +17,15 @@ namespace BotVideoBroadcaster
     internal class Program
     {
         private static List<BotVideoBroadcasterInfo>? botVideoBroadcasterInfos;
+        private static Boolean TestLoginAndInitializationStepsOnly = false;
 
         static void Main()
         {
+            int iteration = 0;
 
             Util.WriteDebugToConsole($"{Global.ProductName()} v{Global.FileVersion()}");
+
+            DeleteUnnecessaryFiles();
 
             // Check done on values defined in file RainbowApplicationInfo.cs AND in config.json
             if (!CheckApplicationInfoValues())
@@ -25,6 +33,26 @@ namespace BotVideoBroadcaster
 
             // Init log configuration
             InitLogsWithNLog();
+
+            var mechanisms = new List<String>() {
+            { "SCRAM-SHA-512" } };
+            Application.SetXMPPAuthenticationMechanisms(mechanisms);
+
+            IVideoStreamTrack? videoStreamTrackToUse = null;
+            if (RainbowApplicationInfo.useOnlyOneStream && RainbowApplicationInfo.videosUri?.Count > 0)
+            {
+                var uri = RainbowApplicationInfo.videosUri[0];
+                var uriDevice = new InputStreamDevice("videoStream", "videoStream", uri, true, false, true);
+                var RbWebRTCFactory = new Rainbow.WebRTC.Desktop.WebRTCFactory();
+                var streamToUse = new MediaInput(uriDevice);
+                if (!streamToUse.Init(true))
+                {
+                    Util.WriteErrorToConsole($"Cannot init COMMON Video Stream using this URI:{uri}].");
+                    return;
+                }
+                videoStreamTrackToUse = RbWebRTCFactory.CreateVideoTrack(streamToUse);
+            }
+
 
             // Create BotVideoBroadcaster 01 && 02
             RainbowBotVideoBroadcaster botVideoBroadcaster = new RainbowBotVideoBroadcaster();
@@ -35,10 +63,11 @@ namespace BotVideoBroadcaster
 
             botVideoBroadcasterInfos = new List<BotVideoBroadcasterInfo>();
             int index = 0;
+            int nbBots = 0;
             foreach (var account in RainbowApplicationInfo.botsVideoBroadcaster)
             {
-                var botVideoBroadcasterInfo = new BotVideoBroadcasterInfo(account.Login, account.Password);
-                botVideoBroadcasterInfo.Name = $"CCTV {index + 1}";
+                var botVideoBroadcasterInfo = new BotVideoBroadcasterInfo(account.Login, account.Password, videoStreamTrackToUse);
+                botVideoBroadcasterInfo.Name = $"BOT{(index + 1).ToString("00")}";
 
                 // Set Both default URI
                 if (RainbowApplicationInfo.videosUri?.Count > 0)
@@ -54,53 +83,114 @@ namespace BotVideoBroadcaster
                 if ((RainbowApplicationInfo.nbMaxVideoBroadcaster > 0) && (index == RainbowApplicationInfo.nbMaxVideoBroadcaster))
                     break;
             }
+            nbBots = index;
+
+            RainbowBotVideoBroadcaster.State botState;
+            Boolean botCanContinue;
+            String botMessage;
 
 
+        START_BOT:
+
+            if (TestLoginAndInitializationStepsOnly)
+                Util.WriteErrorToConsole($"[{DateTime.Now.ToString("o")}]  STARTING ITERATION: [{++iteration}]");
+                
+            // Check if a Bot has not been started / Created
+            foreach (var bot in botVideoBroadcasterInfos)
+            {
+                (botState, botCanContinue, botMessage) = bot.CheckBotStatus();
+
+                // If a bot has just been created, we configure it and start login
+                if (botState == RainbowBotVideoBroadcaster.State.Created)
+                {
+                    bot.Configure(RainbowApplicationInfo.commandStop, RainbowApplicationInfo.botManagers);
+
+                    Thread.Sleep(30);
+                    //do
+                    //{
+                    //    Thread.Sleep(30);
+                    //    (botState, botCanContinue, botMessage) = bot.CheckBotStatus();
+                    //    if (!botCanContinue)
+                    //    {
+                    //        Util.WriteErrorToConsole($"[{bot.Name}] Cannot connect to the server ...");
+                    //        return;
+                    //    }
+                    //    else
+                    //    {
+                    //        if (botState == RainbowBotVideoBroadcaster.State.Initialized)
+                    //            break;
+                    //    }
+
+                    //} while (true);
+                }
+                else if (botState == RainbowBotVideoBroadcaster.State.AutoReconnection)
+                {
+                    bot.StartLogin();
+                    Thread.Sleep(30);
+                }
+            }
+
+            Boolean canContinue = true;
             do
             {
-
-                // Check if a Bot has not been started / Created
+                index = 0;
                 foreach (var bot in botVideoBroadcasterInfos)
                 {
-                    RainbowBotVideoBroadcaster.State botState;
-                    Boolean botCanContinue;
-                    String botMessage;
-
                     (botState, botCanContinue, botMessage) = bot.CheckBotStatus();
 
-                    // If a bot has just been created, we configure it and start login
-                    if (botState == RainbowBotVideoBroadcaster.State.Created)
+                    if (TestLoginAndInitializationStepsOnly && (botState == RainbowBotVideoBroadcaster.State.Initialized))
                     {
-                        bot.Configure(RainbowApplicationInfo.commandStop, RainbowApplicationInfo.botManagers);
-
-                        do
+                        index++;
+                        if (index == nbBots)
                         {
-                            Thread.Sleep(20);
-                            (botState, botCanContinue, botMessage) = bot.CheckBotStatus();
-                            if(!botCanContinue)
-                            {
-                                Util.WriteErrorToConsole($"[{bot.Name}] Cannot connect to the server ...");
-                                return;
-                            }
-                            else
-                            {
-                                if (botState == RainbowBotVideoBroadcaster.State.Connected)
-                                    break;
-                            }
-
-                        } while (true);
-                    }
-                    // If this bot is not already connected, we don't try to check another one
-                    else if (botState != RainbowBotVideoBroadcaster.State.Connected)
-                    {
-                        break;
+                            canContinue = false;
+                            Util.WriteErrorToConsole($"ALL BOTS ARE CONNECTED / INITIALIZED");
+                        }
                     }
                 }
 
-                // Here all bots are connected
-                Thread.Sleep(20);
+                Thread.Sleep(30);
 
-            } while (true);
+            } while (canContinue);
+
+            if (TestLoginAndInitializationStepsOnly)
+            {
+
+                foreach (var bot in botVideoBroadcasterInfos)
+                {
+                    bot.StopBot();
+                }
+
+                do
+                {
+                    index = 0;
+                    foreach (var bot in botVideoBroadcasterInfos)
+                    {
+                        (botState, botCanContinue, botMessage) = bot.CheckBotStatus();
+
+                        if (botState == RainbowBotVideoBroadcaster.State.AutoReconnection)
+                        {
+                            index++;
+                            if (index == nbBots)
+                                canContinue = false;
+                        }
+                        else
+                        {
+
+                        }
+                    }
+
+                    Thread.Sleep(30);
+
+                } while (canContinue);
+
+
+                if (TestLoginAndInitializationStepsOnly)
+                    Util.WriteErrorToConsole($"END ITERATION: [{iteration}]");
+                //Thread.Sleep(2000);
+
+                goto START_BOT;
+            }
         }
 
         static Boolean CheckBotStatus(RainbowBotVideoBroadcaster botVideoBroadcaster)
@@ -160,11 +250,46 @@ namespace BotVideoBroadcaster
             try
             {
                 string logConfigFilePath = RainbowApplicationInfo.NLOG_CONFIG_FILE_PATH;
+                string logLoggerFilePath = RainbowApplicationInfo.NLOG_CONFIG_FILE_LOGGER;
+                string logTargetFilePath = RainbowApplicationInfo.NLOG_CONFIG_FILE_TARGET;
 
                 if (File.Exists(logConfigFilePath))
                 {
                     // Get content of the log file configuration
                     String logConfigContent = File.ReadAllText(logConfigFilePath, System.Text.Encoding.UTF8);
+                    String logLoggerContent = File.ReadAllText(logLoggerFilePath, System.Text.Encoding.UTF8);
+                    String logTargetContent = File.ReadAllText(logTargetFilePath, System.Text.Encoding.UTF8);
+
+                    string loggers = "";
+                    string targets = "";
+
+                    if (RainbowApplicationInfo.botsVideoBroadcaster?.Count > 0)
+                    {
+                        int nb = RainbowApplicationInfo.botsVideoBroadcaster.Count;
+                        for (int i = 1; i<=nb; i++)
+                        {
+                            loggers += logLoggerContent.Replace("[$PREFIX_WEBRTC]", $"BOT{i.ToString("00")}_")
+                                        .Replace("[$PREFIX]", $"BOT{i.ToString("00")}_")
+                                        + "\r\n";
+
+                            targets += logTargetContent.Replace("[$PREFIX_WEBRTC]", $"BOT{i.ToString("00")}_")
+                                        .Replace("[$PREFIX]", $"BOT{i.ToString("00")}_")
+                                        + "\r\n";
+                        }
+                    }
+
+                    // ADD DEFAULT Loggers and Targets
+                    loggers += logLoggerContent.Replace("[$PREFIX_WEBRTC]", "")
+                                        .Replace("[$PREFIX]", $"Rainbow")
+                                        .Replace("RainbowRAINBOW_DEFAULT_LOGGER", "RAINBOW_DEFAULT_LOGGER")
+                                        + "\r\n";
+
+                    targets += logTargetContent.Replace("[$PREFIX_WEBRTC]", "")
+                                .Replace("[$PREFIX]", "")
+                                + "\r\n";
+
+                    logConfigContent = logConfigContent.Replace("<!--RULES-->", loggers)
+                                        .Replace("<!--TARGETS-->", targets);
 
                     // Create NLog configuration using XML file content
                     XmlLoggingConfiguration config = XmlLoggingConfiguration.CreateFromXmlString(logConfigContent);
@@ -211,6 +336,10 @@ namespace BotVideoBroadcaster
 
                 if (json["ffmpegLibFolderPath"] != null)
                     RainbowApplicationInfo.ffmpegLibFolderPath = UtilJson.AsString(json, "ffmpegLibFolderPath");
+
+                RainbowApplicationInfo.useOnlyOneStream = UtilJson.AsBoolean(json, "useOnlyOneStream", false);
+
+                RainbowApplicationInfo.createDataChannel = UtilJson.AsBoolean(json, "createDataChannel", false);
 
                 if (json["videosUri"] != null)
                 {
@@ -355,6 +484,24 @@ namespace BotVideoBroadcaster
                 return false;
 
             return true;
+        }
+
+        static private void DeleteUnnecessaryFiles()
+        {
+            var oldLogFiles = Directory.GetFiles(".\\", "BOT??_*.log");
+            var oldIniFiles = Directory.GetFiles(".\\", "BOT??.ini");
+            var oldSdpFiles = Directory.GetFiles(".\\", "SDK_CSHARP_SDP_TEMPORARY_FILE_*.txt");
+
+            var oldFiles = oldLogFiles.Concat(oldIniFiles).Concat(oldSdpFiles);
+
+            foreach (var oldFile in oldFiles)
+            {
+                try
+                {
+                    File.Delete(oldFile);
+                }
+                catch { }
+            }
         }
     }
 }

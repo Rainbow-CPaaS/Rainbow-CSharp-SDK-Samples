@@ -1,0 +1,22 @@
+<!-- DEFINE BOT01 Targets -->
+<target
+    xsi:type="File"
+    encoding="utf-8"
+    name="[$PREFIX_WEBRTC]RAINBOW_WEBRTC_LOGGER"
+    fileName=".\[$PREFIX_WEBRTC]RainbowSdk_WebRTC.log"
+    archiveFileName=".\[$PREFIX_WEBRTC]RainbowSdk_WebRTC_{###}.log"
+    archiveAboveSize="5242880"
+    maxArchiveFiles="10"
+    layout="${longdate} | ${level:uppercase=true:padding=-5} | ${threadid:padding=-3} | ${callsite:className=True:fileName=False:includeSourcePath=False:methodName=True:padding=70:fixedLength=True:alignmentOnTruncation=Right}: ${callsite-linenumber:padding=-4} | ${message}"
+    />
+
+<target
+    xsi:type="File"
+    encoding="utf-8"
+    name="[$PREFIX]RAINBOW_DEFAULT_LOGGER"
+    fileName=".\[$PREFIX]RainbowSdk.log"
+    archiveFileName=".\[$PREFIX]RainbowSdk_{###}.log"
+    archiveAboveSize="5242880"
+    maxArchiveFiles="10"
+    layout="${longdate} | ${level:uppercase=true:padding=-5} | ${threadid:padding=-3} | ${callsite:className=True:fileName=False:includeSourcePath=False:methodName=True:padding=70:fixedLength=True:alignmentOnTruncation=Right}: ${callsite-linenumber:padding=-4} | ${message}"
+    />

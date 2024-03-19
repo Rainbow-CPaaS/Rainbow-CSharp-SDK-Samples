@@ -7,14 +7,20 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="NLog.Extensions.Logging" Version="5.3.2" />
-    <PackageReference Include="Rainbow.CSharp.SDK.WebRTC" Version="0.0.13-sts" />
-    <PackageReference Include="Rainbow.CSharp.SDK.WebRTC.Desktop" Version="0.0.4.1-sts" />
+    <PackageReference Include="NLog.Extensions.Logging" Version="5.3.8" />
+    <PackageReference Include="Rainbow.CSharp.SDK.WebRTC" Version="0.0.14-sts" />
+    <PackageReference Include="Rainbow.CSharp.SDK.WebRTC.Desktop" Version="0.0.5-sts" />
     <PackageReference Include="stateless" Version="5.13.0" />
   </ItemGroup>
 
   <ItemGroup>
     <None Update="Resources\config.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\NLogConfiguration-logger.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\NLogConfiguration-target.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Resources\NLogConfiguration.xml">

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Rainbow.WebRTC.Abstractions;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Threading;
@@ -27,7 +28,9 @@ namespace BotVideoBroadcaster
 
         public string SharingUri; // Uri of the stream to use in sharing stream (distant or local)
 
-        public BotVideoBroadcasterInfo(string login, string pwd)
+        public IVideoStreamTrack? VideoStreamTrackToUse;
+
+        public BotVideoBroadcasterInfo(string login, string pwd, IVideoStreamTrack? videoStreamTrackToUse)
         {
             Login = login;
             Pwd = pwd;
@@ -36,6 +39,7 @@ namespace BotVideoBroadcaster
             Uri = "";
             Selected = false;
             SharingUri = "";
+            VideoStreamTrackToUse = videoStreamTrackToUse;
 
             botVideoBroadcaster = new RainbowBotVideoBroadcaster();
         }
@@ -61,6 +65,7 @@ namespace BotVideoBroadcaster
                     RainbowBotVideoBroadcaster.AUTOJOIN_BUBBLE_ID,
                     Uri,
                     SharingUri,
+                    VideoStreamTrackToUse,
                     "./",
                     Name + ".ini"
                     ))
@@ -78,7 +83,7 @@ namespace BotVideoBroadcaster
             // We loop until we cannot continue
             while (canContinue)
             {
-                Thread.Sleep(20);
+                Thread.Sleep(30);
 
                 (state, canContinue, message) = CheckBotStatus();
 
@@ -93,6 +98,8 @@ namespace BotVideoBroadcaster
                     }
                 }
             }
+
+            Util.WriteErrorToConsole($"[{Name} Bot has stopped");
         }
 
         public void Configure(string stopMessage, List<BotManager> botManagers)
@@ -112,6 +119,16 @@ namespace BotVideoBroadcaster
             {
                 backgroundWorker.RunWorkerAsync();
             }
+        }
+
+        public void StartLogin()
+        {
+            botVideoBroadcaster.StartLogin();
+        }
+
+        public void StopBot()
+        {
+            botVideoBroadcaster.StopBot();
         }
 
         public (RainbowBotVideoBroadcaster.State state, Boolean canContinue, String message) CheckBotStatus()

@@ -11,12 +11,16 @@ namespace BotVideoBroadcaster
 
         // NLog configuration file used to log SDK debug information
         static internal readonly String NLOG_CONFIG_FILE_PATH = $".{Path.DirectorySeparatorChar}Resources{Path.DirectorySeparatorChar}NLogConfiguration.xml";
+        static internal readonly String NLOG_CONFIG_FILE_LOGGER = $".{Path.DirectorySeparatorChar}Resources{Path.DirectorySeparatorChar}NLogConfiguration-logger.txt";
+        static internal readonly String NLOG_CONFIG_FILE_TARGET = $".{Path.DirectorySeparatorChar}Resources{Path.DirectorySeparatorChar}NLogConfiguration-target.txt";
 
         static internal String ffmpegLibFolderPath = DEFAULT_VALUE;
 
         static internal List<BotManager>? botManagers = null;
         static internal String commandStop = DEFAULT_VALUE;
 
+        static internal Boolean useOnlyOneStream = false;
+        static internal Boolean createDataChannel = true;
 
         static internal List<String>? videosUri = null;
 
