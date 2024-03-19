@@ -30,81 +30,94 @@ namespace SDK.UIForm.WebRTC
         /// </summary>
         private void InitializeComponent()
         {
-            this.pb_VideoStream = new System.Windows.Forms.PictureBox();
-            this.label1 = new System.Windows.Forms.Label();
-            this.cb_ListOfInputStreams = new System.Windows.Forms.ComboBox();
-            this.btn_Subscribe = new System.Windows.Forms.Button();
-            ((System.ComponentModel.ISupportInitialize)(this.pb_VideoStream)).BeginInit();
-            this.SuspendLayout();
+            pb_VideoStream = new PictureBox();
+            label1 = new Label();
+            lbl_VideoStreamTrack = new Label();
+            btn_Hold = new Button();
+            btn_Unhold = new Button();
+            ((System.ComponentModel.ISupportInitialize)pb_VideoStream).BeginInit();
+            SuspendLayout();
             // 
             // pb_VideoStream
             // 
-            this.pb_VideoStream.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.pb_VideoStream.Location = new System.Drawing.Point(12, 39);
-            this.pb_VideoStream.Name = "pb_VideoStream";
-            this.pb_VideoStream.Size = new System.Drawing.Size(640, 360);
-            this.pb_VideoStream.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
-            this.pb_VideoStream.TabIndex = 228;
-            this.pb_VideoStream.TabStop = false;
+            pb_VideoStream.BorderStyle = BorderStyle.FixedSingle;
+            pb_VideoStream.Location = new System.Drawing.Point(12, 39);
+            pb_VideoStream.Name = "pb_VideoStream";
+            pb_VideoStream.Size = new System.Drawing.Size(640, 360);
+            pb_VideoStream.SizeMode = PictureBoxSizeMode.Zoom;
+            pb_VideoStream.TabIndex = 228;
+            pb_VideoStream.TabStop = false;
             // 
             // label1
             // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(10, 15);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(28, 15);
-            this.label1.TabIndex = 230;
-            this.label1.Text = "List:";
+            label1.AutoSize = true;
+            label1.Location = new System.Drawing.Point(10, 15);
+            label1.Name = "label1";
+            label1.Size = new System.Drawing.Size(110, 15);
+            label1.TabIndex = 230;
+            label1.Text = "Video Stream Track:";
             // 
-            // cb_ListOfInputStreams
+            // lbl_VideoStreamTrack
             // 
-            this.cb_ListOfInputStreams.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cb_ListOfInputStreams.Font = new System.Drawing.Font("Segoe UI", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.cb_ListOfInputStreams.FormattingEnabled = true;
-            this.cb_ListOfInputStreams.Location = new System.Drawing.Point(44, 12);
-            this.cb_ListOfInputStreams.Name = "cb_ListOfInputStreams";
-            this.cb_ListOfInputStreams.Size = new System.Drawing.Size(459, 21);
-            this.cb_ListOfInputStreams.TabIndex = 229;
-            this.cb_ListOfInputStreams.SelectedIndexChanged += new System.EventHandler(this.cb_ListOfInputStreams_SelectedIndexChanged);
+            lbl_VideoStreamTrack.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F);
+            lbl_VideoStreamTrack.ForeColor = System.Drawing.Color.Blue;
+            lbl_VideoStreamTrack.Location = new System.Drawing.Point(125, 16);
+            lbl_VideoStreamTrack.Margin = new Padding(2, 0, 2, 0);
+            lbl_VideoStreamTrack.Name = "lbl_VideoStreamTrack";
+            lbl_VideoStreamTrack.Size = new System.Drawing.Size(384, 20);
+            lbl_VideoStreamTrack.TabIndex = 345;
+            lbl_VideoStreamTrack.Text = "details";
             // 
-            // btn_Subscribe
+            // btn_Hold
             // 
-            this.btn_Subscribe.Enabled = false;
-            this.btn_Subscribe.FlatAppearance.BorderSize = 0;
-            this.btn_Subscribe.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.btn_Subscribe.Location = new System.Drawing.Point(506, 11);
-            this.btn_Subscribe.Margin = new System.Windows.Forms.Padding(0);
-            this.btn_Subscribe.Name = "btn_Subscribe";
-            this.btn_Subscribe.Size = new System.Drawing.Size(146, 23);
-            this.btn_Subscribe.TabIndex = 365;
-            this.btn_Subscribe.Text = "Subscribe / Unsubscribe";
-            this.btn_Subscribe.UseVisualStyleBackColor = true;
+            btn_Hold.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F);
+            btn_Hold.Location = new System.Drawing.Point(539, 13);
+            btn_Hold.Margin = new Padding(4, 3, 4, 3);
+            btn_Hold.Name = "btn_Hold";
+            btn_Hold.Size = new System.Drawing.Size(56, 20);
+            btn_Hold.TabIndex = 1307;
+            btn_Hold.Text = "Hold";
+            btn_Hold.UseVisualStyleBackColor = true;
+            btn_Hold.Click += btn_Hold_Click;
+            // 
+            // btn_Unhold
+            // 
+            btn_Unhold.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F);
+            btn_Unhold.Location = new System.Drawing.Point(598, 13);
+            btn_Unhold.Margin = new Padding(4, 3, 4, 3);
+            btn_Unhold.Name = "btn_Unhold";
+            btn_Unhold.Size = new System.Drawing.Size(56, 20);
+            btn_Unhold.TabIndex = 1308;
+            btn_Unhold.Text = "Unhold";
+            btn_Unhold.UseVisualStyleBackColor = true;
+            btn_Unhold.Click += btn_Unhold_Click;
             // 
             // FormVideoOutputStreamWebRTC
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(667, 406);
-            this.Controls.Add(this.btn_Subscribe);
-            this.Controls.Add(this.label1);
-            this.Controls.Add(this.cb_ListOfInputStreams);
-            this.Controls.Add(this.pb_VideoStream);
-            this.MinimumSize = new System.Drawing.Size(683, 445);
-            this.Name = "FormVideoOutputStreamWebRTC";
-            this.Text = "FormVideoOutputStreamWebRTC";
-            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.FormVideoOutputStreamWebRTC_FormClosing);
-            this.ClientSizeChanged += new System.EventHandler(this.FormVideoOutputStreamWebRTC_ClientSizeChanged);
-            ((System.ComponentModel.ISupportInitialize)(this.pb_VideoStream)).EndInit();
-            this.ResumeLayout(false);
-            this.PerformLayout();
-
+            AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
+            AutoScaleMode = AutoScaleMode.Font;
+            ClientSize = new System.Drawing.Size(667, 406);
+            Controls.Add(btn_Unhold);
+            Controls.Add(btn_Hold);
+            Controls.Add(lbl_VideoStreamTrack);
+            Controls.Add(label1);
+            Controls.Add(pb_VideoStream);
+            MinimumSize = new System.Drawing.Size(683, 445);
+            Name = "FormVideoOutputStreamWebRTC";
+            Text = "FormVideoOutputStreamWebRTC";
+            FormClosing += FormVideoOutputStreamWebRTC_FormClosing;
+            ClientSizeChanged += FormVideoOutputStreamWebRTC_ClientSizeChanged;
+            ((System.ComponentModel.ISupportInitialize)pb_VideoStream).EndInit();
+            ResumeLayout(false);
+            PerformLayout();
         }
 
         #endregion
 
         private PictureBox pb_VideoStream;
         private Label label1;
-        private ComboBox cb_ListOfInputStreams;
-        private Button btn_Subscribe;
+        private Label lbl_VideoStreamTrack;
+        private Button btn_Hold;
+        private Button btn_Unhold;
     }
 }

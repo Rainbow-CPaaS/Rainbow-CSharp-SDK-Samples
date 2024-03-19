@@ -3,7 +3,6 @@ using Rainbow.Model;
 using Rainbow.WebRTC;
 using Rainbow.WebRTC.Desktop;
 using System;
-using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
 
@@ -11,35 +10,23 @@ namespace SDK.UIForm.WebRTC
 {
     public partial class FormVideoOutputStreamWebRTC : Form
     {
-        private static String SEPARATOR = "-|-";
-        private static String NONE = "NONE";
-
-
         private Rainbow.Application? _rbApplication = null;
         private Rainbow.Contacts? _rbContacts = null;
 
         private Object lockAboutImageManagement = new Object();
-        
+
         private int _diffWidth = 0;
         private int _diffHeight = 0;
         private float _ratio = 0;
 
         private Rainbow.WebRTC.WebRTCCommunications? _webRTCCommunications = null;
         private MediaStreamTrackDescriptor? mediaInputStreamDescriptor;
+        private MediaPublication? mediaPublication;
+        private MediaService? mediaService;
         private VideoStreamTrack? videoStreamTrack = null;
 
-        private List<(Boolean remote, int media, String publisherId)> _publicationsList = new();
-        private DateTime _firstCheckDateTime = DateTime.MinValue;
-        private int _delay = 1000;
-
         private String? _currentCallId = null;
-        private Call? _currentCall = null;
-
         private String? _currentContactId = null;
-        Boolean _currentRemote = false;
-        private int _currentMedia = 0;
-        private String? _currentPublisherId = null;
-
         Boolean _initDone = false;
 
         public FormVideoOutputStreamWebRTC()
@@ -69,15 +56,15 @@ namespace SDK.UIForm.WebRTC
                 if (_webRTCCommunications != null)
                 {
                     _currentCallId = callId;
-                    _currentCall = _webRTCCommunications.GetCall(_currentCallId);
+
+                    // Show only Hold / Unhold in Conference
+                    var call = _webRTCCommunications.GetCall(callId);
+                    btn_Hold.Visible = (call?.IsConference == true);
+                    btn_Unhold.Visible = (call?.IsConference == true);
 
                     _webRTCCommunications.CallUpdated += WebRTCCommunications_CallUpdated;
-
-                    // TODO - manage local and remote video
-                    //_webRTCCommunications.OnLocalVideo += WebRTCCommunications_OnLocalVideo;
-                    //_webRTCCommunications.OnRemoteVideo += WebRTCCommunications_OnRemoteVideo;
-
                     _webRTCCommunications.OnMediaPublicationUpdated += WebRTCCommunications_OnMediaPublicationUpdated;
+                    _webRTCCommunications.OnMediaServiceUpdated += WebRTCCommunications_OnMediaServiceUpdated;
                 }
             }
         }
@@ -96,6 +83,23 @@ namespace SDK.UIForm.WebRTC
 
             mediaInputStreamDescriptor = newMediaInputStreamDescriptor;
 
+
+            if(mediaInputStreamDescriptor.IsMediaService)
+            {
+                mediaPublication = null;
+
+                var mediaServices = _webRTCCommunications.GetMediaServicesAvailable(_currentCallId);
+                mediaService = mediaServices.Find(ms => (ms.ServiceId == mediaInputStreamDescriptor.PublisherId));
+            }
+            else
+            {
+                mediaService = null;
+
+                var mediaPublications = _webRTCCommunications.GetMediaPublicationsSubscribed(_currentCallId);
+                mediaPublication = mediaPublications.Find(mp => (mp.PublisherId == mediaInputStreamDescriptor.PublisherId) && (mp.Media == mediaInputStreamDescriptor.Media));
+            }
+
+
             if (newMediaInputStreamDescriptor.MediaStreamTrack != null)
             {
                 videoStreamTrack = (VideoStreamTrack)newMediaInputStreamDescriptor.MediaStreamTrack;
@@ -104,11 +108,26 @@ namespace SDK.UIForm.WebRTC
 
             if (_webRTCCommunications != null)
                 _initDone = true;
-        }
 
-        private void VideoStreamTrack_OnImage(string mediaId, int width, int height, int stride, IntPtr data, FFmpeg.AutoGen.AVPixelFormat pixelFormat)
-        {
-            UpdatePictureBox(width, height, stride, data, pixelFormat);
+            this.BeginInvoke(() =>
+            {
+                String name;
+                if (mediaInputStreamDescriptor.IsMediaService)
+                {
+                    name = "Video compositor";
+                }
+                else
+                {
+                    if (mediaInputStreamDescriptor.DynamicFeed)
+                        name = "Dynamic feed";
+                    else
+                        name = GetPublisherNameFromId(mediaInputStreamDescriptor.PublisherId);
+                }
+
+                String media = mediaInputStreamDescriptor.Media == Call.Media.VIDEO ? "VIDEO" : "SHARING";
+
+                lbl_VideoStreamTrack.Text = $"{media} - {name}";
+            });
         }
 
         private String GetPublisherNameFromId(String id)
@@ -129,65 +148,6 @@ namespace SDK.UIForm.WebRTC
             return result;
         }
 
-        private void UpdateComboBox()
-        {
-            int currentSelectedIndex = cb_ListOfInputStreams.SelectedIndex;
-            int selectedIndex = 0;
-
-            lock (lockAboutImageManagement)
-            {
-                if (_currentCall == null)
-                    return;
-
-                cb_ListOfInputStreams.Items.Clear();
-                int index = 0;
-                
-
-                foreach ((Boolean remote, int media, String publisherId) in _publicationsList)
-                {
-                    String text;
-                    String value;
-
-
-                    if (remote)
-                    {
-                        text = $"REMOTE - {((media == Call.Media.VIDEO) ? "VIDEO" : "SHARING")} - {GetPublisherNameFromId(publisherId)}";
-                    }
-                    else
-                    {
-                        text = $"LOCAL - {((media == Call.Media.VIDEO) ? "VIDEO" : "SHARING")} - YOU";
-                    }
-
-                    value = $"{(remote ? "true" : "false")}{SEPARATOR}{media}{SEPARATOR}{publisherId}";
-
-                    ListItem item = new ListItem(text, value);
-                    cb_ListOfInputStreams.Items.Add(item);
-
-                    if ((_currentRemote == remote) && (_currentMedia == media))
-                    {
-                        if ((_currentPublisherId == null) && remote)
-                        {
-                            _currentPublisherId = publisherId;
-                            selectedIndex = index;
-                        }
-                        else if(_currentPublisherId == publisherId)
-                            selectedIndex = index;
-                    }
-
-                    index++;
-                }
-            }
-
-            if (cb_ListOfInputStreams.Items.Count > 0)
-                cb_ListOfInputStreams.SelectedIndex = selectedIndex;
-            else
-            {
-                cb_ListOfInputStreams.Items.Add(NONE);
-                cb_ListOfInputStreams.SelectedIndex = 0;
-                Helper.UpdatePictureBox(pb_VideoStream, null);
-            }
-        }
-
         private void UpdatePictureBox(int width, int height, int stride, IntPtr data, FFmpeg.AutoGen.AVPixelFormat pixelFormat)
         {
             if (!_initDone)
@@ -200,60 +160,38 @@ namespace SDK.UIForm.WebRTC
             }
         }
 
-        private void UpdateListOfPublications()
+    #region Events from WebRTCCommunications
+
+        private void VideoStreamTrack_OnImage(string mediaId, int width, int height, int stride, IntPtr data, FFmpeg.AutoGen.AVPixelFormat pixelFormat)
         {
-            lock (lockAboutImageManagement)
-            {
-                if ( (_currentCall != null) && (_currentContactId != null) )
-                {
-                    _publicationsList.Clear();
-
-                    if (_currentCall.IsConference)
-                    {
-
-                    }
-                    else
-                    {
-                        if (Util.MediasWithVideo(_currentCall.LocalMedias))
-                            _publicationsList.Add((false, Call.Media.VIDEO, _currentContactId));
-
-                        if (Util.MediasWithSharing(_currentCall.LocalMedias))
-                            _publicationsList.Add((false, Call.Media.SHARING, _currentContactId));
-
-                        if (Util.MediasWithDataChannel(_currentCall.LocalMedias))
-                            _publicationsList.Add((false, Call.Media.DATACHANNEL, _currentContactId));
-
-                        if (Util.MediasWithVideo(_currentCall.RemoteMedias))
-                            _publicationsList.Add((true, Call.Media.VIDEO, _currentCall.Participants[0].UserId));
-
-                        if (Util.MediasWithSharing(_currentCall.RemoteMedias))
-                            _publicationsList.Add((true, Call.Media.SHARING, _currentCall.Participants[0].UserId));
-
-                        if (Util.MediasWithDataChannel(_currentCall.RemoteMedias))
-                            _publicationsList.Add((true, Call.Media.DATACHANNEL, _currentCall.Participants[0].UserId));
-                    }
-                }
-            }
-
-            this.BeginInvoke(() => UpdateComboBox());
+            UpdatePictureBox(width, height, stride, data, pixelFormat);
         }
-
-#region Events from WebRTCCommunications
 
         private void WebRTCCommunications_OnMediaPublicationUpdated(object? sender, MediaPublicationEventArgs e)
         {
-        }
-
-        private void OnVideo(Boolean remote, string callId, string userId, int media, string mediaId, int width, int height, int stride, IntPtr data, FFmpeg.AutoGen.AVPixelFormat pixelFormat)
-        {
-            if (!_initDone)
+            if (mediaPublication == null)
                 return;
 
-            if ((_currentCallId == callId) && (_currentMedia == media) && (_currentPublisherId == userId))
-                UpdatePictureBox(width, height, stride, data, pixelFormat);
+            if ((e.MediaPublication.PublisherId == mediaPublication.PublisherId)
+                && (e.MediaPublication.Media == mediaPublication.Media)
+                && (e.Status == MediaPublicationStatus.PEER_STOPPED) )
+            {
+                this.BeginInvoke(() => Close());
+            }
         }
 
-         private void WebRTCCommunications_CallUpdated(object? sender, Rainbow.Events.CallEventArgs e)
+        private void WebRTCCommunications_OnMediaServiceUpdated(object? sender, MediaServiceEventArgs e)
+        {
+            if (mediaService == null)
+                return;
+
+            if (e.MediaService.ServiceId == mediaService.ServiceId)
+            {
+                this.BeginInvoke(() => Close());
+            }
+        }
+
+        private void WebRTCCommunications_CallUpdated(object? sender, Rainbow.Events.CallEventArgs e)
         {
             if (!_initDone)
                 return;
@@ -263,23 +201,17 @@ namespace SDK.UIForm.WebRTC
 
             if (e.Call.Id == _currentCallId)
             {
-
                 if (!e.Call.IsInProgress())
                 {
                     _initDone = false;
-                    this.BeginInvoke( () => Close() );
-                }
-                else
-                {
-                    _currentCall = e.Call;
-                    UpdateListOfPublications();
+                    this.BeginInvoke(() => Close());
                 }
             }
         }
 
-#endregion Events from WebRTCCommunications
+    #endregion Events from WebRTCCommunications
 
-#region Events from Form elements
+    #region Events from Form elements
 
         private void FormVideoOutputStreamWebRTC_FormClosing(object sender, FormClosingEventArgs e)
         {
@@ -287,12 +219,8 @@ namespace SDK.UIForm.WebRTC
             if (_webRTCCommunications != null)
             {
                 _webRTCCommunications.CallUpdated -= WebRTCCommunications_CallUpdated;
-
-                // TODO - manage local and remote video
-                //_webRTCCommunications.OnLocalVideo -= WebRTCCommunications_OnLocalVideo;
-                //_webRTCCommunications.OnRemoteVideo -= WebRTCCommunications_OnRemoteVideo;
-
-                _webRTCCommunications.OnMediaPublicationUpdated += WebRTCCommunications_OnMediaPublicationUpdated;
+                _webRTCCommunications.OnMediaPublicationUpdated -= WebRTCCommunications_OnMediaPublicationUpdated;
+                _webRTCCommunications.OnMediaServiceUpdated -= WebRTCCommunications_OnMediaServiceUpdated;
 
                 _webRTCCommunications = null;
             }
@@ -320,23 +248,23 @@ namespace SDK.UIForm.WebRTC
             pb_VideoStream.SetBounds(x, y, width, height);
         }
 
-        private void cb_ListOfInputStreams_SelectedIndexChanged(object sender, EventArgs e)
+        private void btn_Unhold_Click(object sender, EventArgs e)
         {
-            // Get the selectedItem (if any)
-            if(cb_ListOfInputStreams.SelectedItem is ListItem item)
-            {
-                var info = item.Value.Split(SEPARATOR);
-                lock (lockAboutImageManagement)
-                {
-                    _currentRemote = info[0] == "true";
-                    _currentMedia = int.Parse(info[1]);
-                    _currentPublisherId = info[2];
-
-                    Helper.UpdatePictureBox(pb_VideoStream, null);
-                }
-            }
+            if (mediaPublication != null)
+                _webRTCCommunications.HoldMediaPublication(mediaPublication, false, null);
+            else if (mediaService != null)
+                _webRTCCommunications.HoldMediaService(mediaService, false, null);
         }
 
-#endregion Events from Form elements
+        private void btn_Hold_Click(object sender, EventArgs e)
+        {
+            if (mediaPublication != null)
+                _webRTCCommunications.HoldMediaPublication(mediaPublication, true, null);
+            else if (mediaService != null)
+                _webRTCCommunications.HoldMediaService(mediaService, true, null);
+        }
+
+    #endregion Events from Form elements
+
     }
 }

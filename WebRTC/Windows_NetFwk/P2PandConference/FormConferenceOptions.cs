@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows.Forms;
 using Rainbow;
 using Rainbow.Model;
@@ -15,20 +16,32 @@ namespace SDK.UIForm.WebRTC
         private Rainbow.Conferences _rbConferences;
 
         private String? _currentUserJid = null;
+        private String? _currentUserId = null;
+
         private Boolean _participantOfConference = false;
         private Conference? _currentConference = null;
         private String? _currentConfId = null;
 
-        private Boolean _canSubscribeToMediaPublication = false;
+        private Boolean _canSubscribeToMedias = false;
+        private Object _lockUI = new object();
+        private Boolean _updatingUI = false;
+
+        List<ListItem> _participantsList = new List<ListItem>();
 
         private List<MediaPublication> _mediaPublicationsSubscribed = new List<MediaPublication>();
+        private List<MediaService> _mediaServicesSubscribed = new List<MediaService>();
 
+        private List<String> _unknownContactsById = new List<String>();
+        private CancelableDelay? _cancelableDelayForUnknowContacts = null;
 
-        public event EventHandler<MediaPublicationEventArgs>? OnMediaSubscription;
+        public event EventHandler<MediaPublicationEventArgs>? OnCloseDataChannel;
+        public event EventHandler<MediaPublicationEventArgs>? OnMediaPublicationSubscription;
+        public event EventHandler<MediaServiceEventArgs>? OnMediaServiceSubscription;
 
         public event EventHandler<(int media, String? publisherId, bool dynamicFeed)>? OpenVideoPublication;
+        public event EventHandler<String>? OpenMediaService;
 
-    #region CONSTRUCTOR
+        #region CONSTRUCTOR
         public FormConferenceOptions()
         {
             this.HandleCreated += Form_HandleCreated;
@@ -40,6 +53,9 @@ namespace SDK.UIForm.WebRTC
             btn_OutputRemoteVideoInput.BackgroundImage = Helper.GetBitmapOutput();
             btn_OutputRemoteSharingInput.BackgroundImage = Helper.GetBitmapOutput();
             btn_OutputDynamicFeedInput.BackgroundImage = Helper.GetBitmapOutput();
+            btn_OutputMediaServiceInput.BackgroundImage = Helper.GetBitmapOutput();
+
+            btn_CloseRemoteDataChannelInput.BackgroundImage = Helper.GetBitmapStop();
         }
 
         public void Initialize(Rainbow.Application application, Boolean canSubscribeToMediaPublication)
@@ -51,10 +67,14 @@ namespace SDK.UIForm.WebRTC
             _rbConferences = _rbApplication.GetConferences();
 
             _currentUserJid = _rbContacts.GetCurrentContactJid();
+            _currentUserId = _rbContacts.GetCurrentContactId();
 
             // Events related to Rainbow SDK
+            _rbBubbles.BubbleMemberUpdated += Bubbles_BubbleMemberUpdated;
+
             _rbConferences.ConferenceUpdated += Conferences_ConferenceUpdated;
             _rbConferences.ConferenceRemoved += Conferences_ConferenceRemoved;
+            _rbConferences.ConferenceRaisedHandUpdated += Conferences_ConferenceRaisedHandUpdated;
             _rbConferences.ConferenceParticipantsUpdated += Conferences_ConferenceParticipantsUpdated;
             _rbConferences.ConferenceTalkersUpdated += Conferences_ConferenceTalkersUpdated;
             _rbConferences.ConferenceMediaPublicationsUpdated += Conferences_ConferenceMediaPublicationsUpdated;
@@ -64,7 +84,7 @@ namespace SDK.UIForm.WebRTC
 
         public void CanSubscribe(Boolean canSubscribeToMediaPublication)
         {
-            _canSubscribeToMediaPublication = canSubscribeToMediaPublication;
+            _canSubscribeToMedias = canSubscribeToMediaPublication;
         }
 
         public void SetConferenceInfo(String confId)
@@ -89,7 +109,7 @@ namespace SDK.UIForm.WebRTC
             UpdateUIFull();
         }
 
-        private Boolean IsMediaSubscribed(String publisherId, int media, bool dynamicFeed)
+        private Boolean IsMediaPublicationSubscribed(String publisherId, int media, bool dynamicFeed)
         {
             Boolean result = false;
             if (media == Call.Media.AUDIO)
@@ -101,7 +121,30 @@ namespace SDK.UIForm.WebRTC
             return result;
         }
 
-        private void RemoveMediaSubscribed(String publisherId, int media, bool dynamicFeed)
+        private MediaService? GetMediaService(String serviceId)
+        {
+            if (_currentConfId != null)
+            {
+                var msList = _rbConferences.ConferenceGetMediaServicesFromCache(_currentConfId);
+                return msList.Find(ms => ms.ServiceId == serviceId);
+            }
+            return null;
+        }
+
+        private Boolean IsMediaServiceSubscribed(String serviceId)
+        {
+            Boolean result = false;
+            result = _mediaServicesSubscribed.Exists(ms => ms.ServiceId == serviceId);
+
+            return result;
+        }
+
+        private void RemoveMediaServiceSubscribed(String serviceId)
+        {
+            _mediaServicesSubscribed.RemoveAll(ms => ms.ServiceId == serviceId);
+        }
+
+        private void RemoveMediaPublicationSubscribed(String publisherId, int media, bool dynamicFeed)
         {
             if (media == Call.Media.AUDIO)
                 _mediaPublicationsSubscribed.RemoveAll(m => m.Media == media);
@@ -119,33 +162,64 @@ namespace SDK.UIForm.WebRTC
 
             if (subscribed)
             {
-                if (!IsMediaSubscribed(mediaPublication.PublisherId, mediaPublication.Media, mediaPublication.DynamicFeed))
+                if (!IsMediaPublicationSubscribed(mediaPublication.PublisherId, mediaPublication.Media, mediaPublication.DynamicFeed))
                     _mediaPublicationsSubscribed.Add(mediaPublication);
             }
             else
             {
-                if (IsMediaSubscribed(mediaPublication.PublisherId, mediaPublication.Media, mediaPublication.DynamicFeed))
-                    RemoveMediaSubscribed(mediaPublication.PublisherId, mediaPublication.Media, mediaPublication.DynamicFeed);
+                if (IsMediaPublicationSubscribed(mediaPublication.PublisherId, mediaPublication.Media, mediaPublication.DynamicFeed))
+                    RemoveMediaPublicationSubscribed(mediaPublication.PublisherId, mediaPublication.Media, mediaPublication.DynamicFeed);
             }
 
-            UpdateSubscriptionButtons();
+            UpdateUIFull();
         }
 
-    #endregion CONSTRUCTOR
+        public void UpdateMediaServiceSubscription(Boolean subscribed, MediaService mediaService)
+        {
+            if (mediaService.CallId != _currentConfId)
+                return;
 
-    #region PRIVATE methods
+            if (subscribed)
+            {
+                if (!IsMediaServiceSubscribed(mediaService.ServiceId))
+                    _mediaServicesSubscribed.Add(mediaService);
+            }
+            else
+            {
+                if (IsMediaServiceSubscribed(mediaService.ServiceId))
+                    RemoveMediaServiceSubscribed(mediaService.ServiceId);
+            }
+
+            UpdateUIFull();
+        }
+
+        #endregion CONSTRUCTOR
+
+        #region PRIVATE methods
 
         private void UpdateUIFull()
         {
             var action = new Action(() =>
             {
-                UpdateUIConferenceInfo();
+                lock (_lockUI)
+                {
+                    if (_updatingUI)
+                        return;
+                    _updatingUI = true;
 
-                UpdateUIParticipants();
-                UpdateUIPublishers();
-                UpdateUITalkers();
+                    UpdateUIConferenceInfo();
 
-                UpdateSubscriptionButtons();
+                    UpdateUIParticipants();
+                    UpdateUIMembers();
+                    UpdateUIPublishers();
+                    UpdateUITalkers();
+
+                    UpdateUIMainButtons();
+
+                    UpdateSubscriptionButtons();
+
+                    _updatingUI = false;
+                }
             });
 
             if (this.InvokeRequired)
@@ -162,28 +236,96 @@ namespace SDK.UIForm.WebRTC
             btnConferenceLock.Enabled = enabled;
             btnConferenceRecordingStart.Enabled = enabled;
             btnConferenceRecordingPause.Enabled = enabled;
-
-            UpdateSubscriptionButtons();
         }
 
         private void UpdateUIConferenceInfo()
         {
+            if (_currentConference != null)
+            {
+                lbl_ConferenceInProgress.Visible = true;
+
+                var bubble = _rbBubbles.GetBubbleByIdFromCache(_currentConference.Id);
+                if (bubble != null)
+                    lbl_ConferenceDetails.Text = bubble.Name;
+                else
+                    lbl_ConferenceDetails.Text = _currentConference.Id;
+            }
+            else
+            {
+                lbl_ConferenceInProgress.Visible = false;
+                lbl_ConferenceDetails.Text = "";
+            }
+        }
+
+        private void UpdateUIMembers()
+        {
             var action = new Action(() =>
             {
+                lb_Members.Items.Clear();
                 if (_currentConference != null)
                 {
-                    lbl_ConferenceInProgress.Visible = true;
+                    List<BubbleMember> members;
+                    members = _rbBubbles.GetMembersFromCache(_currentConference.Id);
 
-                    var bubble = _rbBubbles.GetBubbleByIdFromCache(_currentConference.Id);
-                    if (bubble != null)
-                        lbl_ConferenceDetails.Text = bubble.Name;
-                    else
-                        lbl_ConferenceDetails.Text = _currentConference.Id;
-                }
-                else
-                {
-                    lbl_ConferenceInProgress.Visible = false;
-                    lbl_ConferenceDetails.Text = "";
+                    if (members?.Count > 0)
+                    {
+                        ListItem? currentUserItem = null;
+                        ListItem? owner = null;
+                        List<ListItem> moderators = new List<ListItem>();
+                        List<ListItem> users = new List<ListItem>();
+
+                        //if (_rbConferences.IsParticipantUsingJid(_currentUserJid, participants))
+                        {
+                            foreach (var member in members)
+                            {
+                                // Avoid to display a participant in the conf
+                                if (_participantsList.Exists(p => p.Value == member.UserId))
+                                    continue;
+
+                                String displayName = "";
+                                var contact = _rbContacts.GetContactFromContactId(member.UserId);
+                                if (contact?.IsTv == true)
+                                    displayName = "📺";
+
+                                if (member.Privilege == Bubble.MemberPrivilege.Owner)
+                                    displayName += $"💎";
+                                else if (member.Privilege == Bubble.MemberPrivilege.Moderator)
+                                    displayName += $"👑";
+                                else if ((member.Privilege == Bubble.MemberPrivilege.User) || (member.Privilege == Bubble.MemberPrivilege.Member))
+                                    displayName += $"🙂";
+                                else //if (participant.Privilege == Bubble.MemberPrivilege.Guest)
+                                    displayName += $"❓";
+
+                                displayName += GetDisplayName(member.UserId, "");
+
+                                ListItem item = new ListItem(displayName, member.UserId);
+
+                                if (member.UserId == _currentUserId)
+                                    currentUserItem = item;
+                                else
+                                {
+                                    if (member.Privilege == Bubble.MemberPrivilege.Owner)
+                                        owner = item;
+                                    else if (member.Privilege == Bubble.MemberPrivilege.Moderator)
+                                        moderators.Add(item);
+                                    else
+                                        users.Add(item);
+                                }
+                            }
+
+                            moderators.Sort((i1, i2) => i1.Text.CompareTo(i2.Text));
+                            users.Sort((i1, i2) => i1.Text.CompareTo(i2.Text));
+
+                            if (currentUserItem != null)
+                                lb_Members.Items.Add(currentUserItem);
+                            if (owner != null)
+                                lb_Members.Items.Add(owner);
+
+                            lb_Members.Items.AddRange(moderators.ToArray());
+                            lb_Members.Items.AddRange(users.ToArray());
+                        }
+                    }
+
                 }
             });
             if (this.InvokeRequired)
@@ -194,150 +336,197 @@ namespace SDK.UIForm.WebRTC
 
         private void UpdateUIParticipants()
         {
-            var action = new Action(() =>
+            lb_Participants.Items.Clear();
+            _participantsList.Clear();
+            if (_currentConference != null)
             {
-                lb_Participants.Items.Clear();
-                if (_currentConference != null)
+                var participants = _rbConferences.ConferenceGetParticipantsFromCache(_currentConference.Id);
+                var participantsRaisedHands = _rbConferences.ConferenceGetRaisedHandsFromCache(_currentConference.Id);
+
+                _participantOfConference = false;
+                if (participants?.Count > 0)
                 {
-                    Dictionary<String, Participant> participants;
-                    participants = _rbConferences.ConferenceGetParticipantsFromCache(_currentConference.Id);
 
-                    _participantOfConference = false;
-                    if (participants?.Count > 0)
+                    ListItem? currentUserItem = null;
+                    ListItem? owner = null;
+                    List<ListItem> moderators = new List<ListItem>();
+                    List<ListItem> users = new List<ListItem>();
+
+                    //if (_rbConferences.IsParticipantUsingJid(_currentUserJid, participants))
                     {
-                        //if (_rbConferences.IsParticipantUsingJid(_currentUserJid, participants))
+                        foreach (var participant in participants.Values)
                         {
-                            foreach (var participant in participants.Values)
+                            // Check if we are a member of this conference
+                            if (!_participantOfConference)
+                                _participantOfConference = participant.Jid_im == _currentUserJid;
+
+                            String displayName = "";
+                            var contact = _rbContacts.GetContactFromContactId(participant.Id);
+                            if (contact?.IsTv == true)
+                                displayName = "📺";
+
+                            if (participant.Privilege == Bubble.MemberPrivilege.Owner)
+                                displayName += $"💎";
+                            else if (participant.Privilege == Bubble.MemberPrivilege.Moderator)
+                                displayName += $"👑";
+                            else if ( (participant.Privilege == Bubble.MemberPrivilege.User) || (participant.Privilege == Bubble.MemberPrivilege.Member) )
+                                displayName += $"🙂";
+                            else //if (participant.Privilege == Bubble.MemberPrivilege.Guest)
+                                displayName += $"❓";
+
+                            displayName += participant.Muted ? "🔇" : "🔈";
+                            displayName += participant.Hold ? "⌛" : "";
+
+                            if (participantsRaisedHands?.Contains(participant.Id) == true)
+                                displayName += "🖐️";
+                            else
+                                displayName += "";
+
+                            displayName += GetDisplayName(participant.Id, participant.Jid_im, participant.PhoneNumber);
+                            displayName += String.IsNullOrEmpty(participant.PhoneNumber) ? "" : $" [{participant.PhoneNumber}]";
+
+                            ListItem item = new ListItem(displayName, participant.Id);
+
+                            if (participant.Jid_im == _currentUserJid)
+                                currentUserItem = item;
+                            else
                             {
-                                // Check if we are a member of this conference
-                                if (!_participantOfConference)
-                                    _participantOfConference = participant.Jid_im == _currentUserJid;
-
-                                String displayName = GetDisplayName(participant.Id, participant.Jid_im, participant.PhoneNumber);
-
-                                displayName += $" [{participant.Privilege}]";
-                                displayName += String.IsNullOrEmpty(participant.PhoneNumber) ? "" : $" [{participant.PhoneNumber}]";
-                                displayName += participant.Muted ? " [MUTED]" : "";
-                                displayName += participant.Hold ? " [HOLD]" : "";
-
-                                ListItem item = new ListItem(displayName, participant.Id);
-
-                                lb_Participants.Items.Add(item);
+                                if (participant.Privilege == Bubble.MemberPrivilege.Owner)
+                                    owner = item;
+                                else if (participant.Privilege == Bubble.MemberPrivilege.Moderator)
+                                    moderators.Add(item);
+                                else
+                                    users.Add(item);
                             }
-                        }
-                    }
 
-                    if (!_participantOfConference)
-                        _mediaPublicationsSubscribed.Clear();
+                        }
+
+                        moderators.Sort((i1, i2) => i1.Text.CompareTo(i2.Text));
+                        users.Sort((i1, i2) => i1.Text.CompareTo(i2.Text));
+
+                        if (currentUserItem != null)
+                            _participantsList.Add(currentUserItem);
+                        if (owner != null)
+                            _participantsList.Add(owner);
+
+                        _participantsList.AddRange(moderators.ToArray());
+                        _participantsList.AddRange(users.ToArray());
+                        lb_Participants.Items.AddRange(_participantsList.ToArray());
+                    }
                 }
 
-                var enabled = lb_Participants.Items.Count > 0;
-                btn_ParticipantMute.Enabled = enabled;
-                btn_ParticipantDelegate.Enabled = enabled;
-                btn_ParticipantDrop.Enabled = enabled;
+                if (!_participantOfConference)
+                {
+                    _mediaPublicationsSubscribed.Clear();
+                    _mediaServicesSubscribed.Clear();
 
-                UpdateUIMainButtons();
+                    _currentConference = null;
+                    UpdateUIFull();
+                }
+            }
 
+            var enabled = lb_Participants.Items.Count > 0;
+            btn_ParticipantMute.Enabled = enabled;
+            btn_ParticipantDelegate.Enabled = enabled;
+            btn_ParticipantDrop.Enabled = enabled;
 
-            });
-            if (this.InvokeRequired)
-                this.BeginInvoke(action);
-            else
-                action.Invoke();
-
-
+            btn_ParticipantLowerAllHands.Enabled = enabled;
+            btn_ParticipantLowerHand.Enabled = enabled;
+            btn_RaiseHand.Enabled = enabled;
         }
 
         private void UpdateUITalkers()
         {
-            var action = new Action(() =>
+            lb_ActiveTalkers.Items.Clear();
+            if (_currentConference != null)
             {
-                lb_ActiveTalkers.Items.Clear();
-                if (_currentConference != null)
+                Dictionary<String, Talker> talkers;
+                talkers = _rbConferences.ConferenceGetTalkersFromCache(_currentConference.Id);
+
+                List<ListItem> list = new List<ListItem>();
+                if (talkers?.Count > 0)
                 {
-                    Dictionary<String, Talker> talkers;
-                    talkers = _rbConferences.ConferenceGetTalkersFromCache(_currentConference.Id);
-
-                    if (talkers?.Count > 0)
+                    foreach (var talker in talkers.Values)
                     {
-                        foreach (var talker in talkers.Values)
-                        {
-                            String displayName = GetDisplayName(talker.Id, talker.Jid_im, talker.PhoneNumber);
-
-                            displayName += String.IsNullOrEmpty(talker.PhoneNumber) ? "" : $" [{talker.PhoneNumber}]";
-
-                            ListItem item = new ListItem(displayName, talker.Id);
-
-                            lb_ActiveTalkers.Items.Add(item);
-                        }
+                        String displayName = GetDisplayName(talker.Id, talker.Jid_im, talker.PhoneNumber);
+                        displayName += String.IsNullOrEmpty(talker.PhoneNumber) ? "" : $" [{talker.PhoneNumber}]";
+                        list.Add(new ListItem(displayName, talker.Id));
                     }
-                }
-            });
+                    list.Sort((i1, i2) => i1.Text.CompareTo(i2.Text));
 
-            if (this.InvokeRequired)
-                this.BeginInvoke(action);
-            else
-                action.Invoke();
+                    lb_ActiveTalkers.Items.AddRange(list.ToArray());
+                }
+            }
         }
 
         private void UpdateUIPublishers()
         {
-            var action = new Action(() =>
+
+            lb_PublishersVideo.Items.Clear();
+            lb_PublishersSharing.Items.Clear();
+            lb_PublishersDataChannel.Items.Clear();
+            lb_MediaService.Items.Clear();
+            if (_currentConference != null)
             {
-                lb_PublishersVideo.Items.Clear();
-                lb_PublishersSharing.Items.Clear();
-                lb_PublishersDataChannel.Items.Clear();
-                if (_currentConference != null)
+                List<MediaPublication> mediaPublications = _rbConferences.ConferenceGetMediaPublicationsFromCache(_currentConference.Id);
+                if (mediaPublications?.Count > 0)
                 {
-                    List<MediaPublication> mediaPublications;
-                    mediaPublications = _rbConferences.ConferenceGetMediaPublicationsFromCache(_currentConference.Id);
-
-                    if (mediaPublications?.Count > 0)
+                    List<ListItem> videoPublishers = new List<ListItem>();
+                    List<ListItem> sharingPublishers = new List<ListItem>();
+                    List<ListItem> dataChannelPublishers = new List<ListItem>();
+                    foreach (var mediaPublication in mediaPublications)
                     {
-                        foreach (var mediaPublication in mediaPublications)
-                        {
-                            String displayName = GetDisplayName(mediaPublication.PublisherId, mediaPublication.PublisherJid_im);
+                        String displayName = GetDisplayName(mediaPublication.PublisherId, mediaPublication.PublisherJid_im);
 
-                            ListItem item = new ListItem(displayName, mediaPublication.PublisherId);
+                        ListItem item = new ListItem(displayName, mediaPublication.PublisherId);
 
-                            if (mediaPublication.Media == Call.Media.VIDEO)
-                                lb_PublishersVideo.Items.Add(item);
-                            else if (mediaPublication.Media == Call.Media.SHARING)
-                                lb_PublishersSharing.Items.Add(item);
-                            else if (mediaPublication.Media == Call.Media.DATACHANNEL)
-                                lb_PublishersDataChannel.Items.Add(item);
-                        }
+                        if (mediaPublication.Media == Call.Media.VIDEO)
+                            videoPublishers.Add(item);
+                        else if (mediaPublication.Media == Call.Media.SHARING)
+                            sharingPublishers.Add(item);
+                        else if (mediaPublication.Media == Call.Media.DATACHANNEL)
+                            dataChannelPublishers.Add(item);
                     }
+
+                    videoPublishers.Sort((i1, i2) => i1.Text.CompareTo(i2.Text));
+                    sharingPublishers.Sort((i1, i2) => i1.Text.CompareTo(i2.Text));
+                    dataChannelPublishers.Sort((i1, i2) => i1.Text.CompareTo(i2.Text));
+
+
+                    lb_PublishersVideo.Items.AddRange(videoPublishers.ToArray());
+                    lb_PublishersSharing.Items.AddRange(sharingPublishers.ToArray());
+                    lb_PublishersDataChannel.Items.AddRange(dataChannelPublishers.ToArray());
                 }
 
-                UpdateSubscriptionButtons();
-            });
+                List<MediaService> mediaServices = _rbConferences.ConferenceGetMediaServicesFromCache(_currentConference.Id);
+                if (mediaServices?.Count > 0)
+                {
+                    List<ListItem> mediaServicePublishers = new List<ListItem>();
+                    foreach (var mediaService in mediaServices)
+                    {
+                        String displayName = $"{mediaService.ServiceId} - {mediaService.ServiceType}";
 
-            if (this.InvokeRequired)
-                this.BeginInvoke(action);
-            else
-                action.Invoke();
+                        ListItem item = new ListItem(displayName, mediaService.ServiceId);
+                        mediaServicePublishers.Add(item);
+                    }
+
+                    lb_MediaService.Items.AddRange(mediaServicePublishers.ToArray());
+                }
+            }
         }
 
         private void UpdateSubscriptionButtons()
         {
-            var action = new Action(() =>
-            {
-                UpdateAudioSubscription();
-                UpdateVideoSubscription();
-                UpdateSharingSubscription();
-                UpdateDataChannelSubscription();
-            });
-
-            if (this.InvokeRequired)
-                this.BeginInvoke(action);
-            else
-                action.Invoke();
+            UpdateAudioSubscription();
+            UpdateVideoSubscription();
+            UpdateSharingSubscription();
+            UpdateDataChannelSubscription();
+            UpdateMediaServiceSubscription();
         }
 
         private void UpdateAudioSubscription()
         {
-            if (_canSubscribeToMediaPublication)
+            if (_canSubscribeToMedias)
             {
                 btn_SubscribeRemoteAudioInput.Visible = true;
 
@@ -348,7 +537,7 @@ namespace SDK.UIForm.WebRTC
 
                     var publisherId = _currentConfId;
                     var media = Call.Media.AUDIO;
-                    subscribed = IsMediaSubscribed(publisherId, media, false);
+                    subscribed = IsMediaPublicationSubscribed(publisherId, media, false);
                 }
                 else
                 {
@@ -366,7 +555,7 @@ namespace SDK.UIForm.WebRTC
 
         private void UpdateVideoSubscription()
         {
-            if (_canSubscribeToMediaPublication)
+            if (_canSubscribeToMedias)
             {
                 btn_SubscribeRemoteVideoInput.Visible = true;
                 var media = Call.Media.VIDEO;
@@ -375,7 +564,7 @@ namespace SDK.UIForm.WebRTC
                 if (lb_PublishersVideo.SelectedItem is ListItem item)
                 {
                     var publisherId = item.Value;
-                    var subscribed = IsMediaSubscribed(publisherId, media, false);
+                    var subscribed = IsMediaPublicationSubscribed(publisherId, media, false);
 
                     btn_SubscribeRemoteVideoInput.Enabled = true;
                     btn_SubscribeRemoteVideoInput.Text = subscribed ? "Unsubscribe" : "Subscribe";
@@ -393,7 +582,7 @@ namespace SDK.UIForm.WebRTC
                 if (lb_PublishersVideo.SelectedItem is ListItem item2)
                 {
                     var publisherId = item2.Value;
-                    var subscribed = IsMediaSubscribed(publisherId, media, true);
+                    var subscribed = IsMediaPublicationSubscribed(publisherId, media, true);
 
                     btn_SubscribeDynamicFeedInput.Enabled = true;
                     btn_SubscribeDynamicFeedInput.Text = (subscribed ? "Unsubscribe" : "Subscribe") + " Dynamic Feed";
@@ -417,7 +606,7 @@ namespace SDK.UIForm.WebRTC
 
         private void UpdateSharingSubscription()
         {
-            if (_canSubscribeToMediaPublication)
+            if (_canSubscribeToMedias)
             {
                 btn_SubscribeRemoteSharingInput.Visible = true;
 
@@ -425,7 +614,7 @@ namespace SDK.UIForm.WebRTC
                 {
                     var publisherId = item.Value;
                     var media = Call.Media.SHARING;
-                    var subscribed = IsMediaSubscribed(publisherId, media, false);
+                    var subscribed = IsMediaPublicationSubscribed(publisherId, media, false);
 
                     btn_SubscribeRemoteSharingInput.Enabled = true;
                     btn_SubscribeRemoteSharingInput.Text = subscribed ? "Unsubscribe" : "Subscribe";
@@ -449,7 +638,7 @@ namespace SDK.UIForm.WebRTC
 
         private void UpdateDataChannelSubscription()
         {
-            if (_canSubscribeToMediaPublication)
+            if (_canSubscribeToMedias)
             {
                 btn_SubscribeRemoteDataChannelInput.Visible = true;
 
@@ -457,20 +646,54 @@ namespace SDK.UIForm.WebRTC
                 {
                     var publisherId = item.Value;
                     var media = Call.Media.DATACHANNEL;
-                    var subscribed = IsMediaSubscribed(publisherId, media, false);
+                    var subscribed = IsMediaPublicationSubscribed(publisherId, media, false);
 
                     btn_SubscribeRemoteDataChannelInput.Enabled = true;
                     btn_SubscribeRemoteDataChannelInput.Text = subscribed ? "Unsubscribe" : "Subscribe";
                     btn_SubscribeRemoteDataChannelInput.ForeColor = subscribed ? System.Drawing.Color.DarkRed : System.Drawing.Color.DarkGreen;
+
+                    btn_CloseRemoteDataChannelInput.Visible = subscribed;
                 }
                 else
                 {
                     btn_SubscribeRemoteDataChannelInput.Enabled = false;
+                    btn_CloseRemoteDataChannelInput.Visible = false;
                 }
             }
             else
             {
                 btn_SubscribeRemoteDataChannelInput.Visible = false;
+                btn_CloseRemoteDataChannelInput.Visible = false;
+            }
+        }
+
+        private void UpdateMediaServiceSubscription()
+        {
+            if (_canSubscribeToMedias)
+            {
+                btn_SubscribeMediaServiceInput.Visible = true;
+
+                if (lb_MediaService.SelectedItem is ListItem item)
+                {
+                    var serviceId = item.Value;
+                    var subscribed = IsMediaServiceSubscribed(serviceId);
+
+                    btn_SubscribeMediaServiceInput.Enabled = true;
+                    btn_SubscribeMediaServiceInput.Text = subscribed ? "Unsubscribe" : "Subscribe";
+                    btn_SubscribeMediaServiceInput.ForeColor = subscribed ? System.Drawing.Color.DarkRed : System.Drawing.Color.DarkGreen;
+
+                    btn_OutputMediaServiceInput.Visible = subscribed;
+                }
+                else
+                {
+                    btn_SubscribeMediaServiceInput.Enabled = false;
+                    btn_OutputMediaServiceInput.Visible = false;
+                }
+            }
+            else
+            {
+                btn_SubscribeMediaServiceInput.Visible = false;
+                btn_OutputMediaServiceInput.Visible = false;
             }
         }
 
@@ -492,6 +715,29 @@ namespace SDK.UIForm.WebRTC
                 action.Invoke();
         }
 
+        public void AskInfoAboutContactId(String userId)
+        {
+            lock (_unknownContactsById)
+            {
+                if (_unknownContactsById.Contains(userId))
+                    return;
+                _unknownContactsById.Add(userId);
+                _rbContacts.GetContactFromContactIdFromServer(userId, callback =>
+                {
+                    if (callback.Result.Success)
+                    {
+                        if (_cancelableDelayForUnknowContacts == null)
+                            _cancelableDelayForUnknowContacts = CancelableDelay.StartAfter(2000, UpdateUIFull);
+                        else
+                            _cancelableDelayForUnknowContacts.PostPone();
+                    }
+
+                    lock (_unknownContactsById)
+                        _unknownContactsById.Remove(userId);
+                });
+            }
+        }
+
         private String GetDisplayName(String participantId, String participantJid, String participantPhoneNumber = null)
         {
             String result = "";
@@ -502,19 +748,30 @@ namespace SDK.UIForm.WebRTC
             }
             else if (!String.IsNullOrEmpty(participantJid))
             {
+                if (participantJid == _rbContacts.GetCurrentContactJid())
+                    return "[ ME ]";
+
                 var contact = _rbContacts.GetContactFromContactJid(participantJid);
                 if (contact != null)
                     result = Rainbow.Util.GetContactDisplayName(contact);
             }
             else if (!String.IsNullOrEmpty(participantId))
             {
+                if (participantId == _rbContacts.GetCurrentContactId())
+                    return "[ ME ]";
+
                 var contact = _rbContacts.GetContactFromContactId(participantId);
                 if (contact != null)
                     result = Rainbow.Util.GetContactDisplayName(contact);
             }
 
             if (String.IsNullOrEmpty(result))
+            {
+                if (!String.IsNullOrEmpty(participantId))
+                    AskInfoAboutContactId(participantId);
+
                 result = participantId;
+            }
 
             return result;
         }
@@ -524,26 +781,49 @@ namespace SDK.UIForm.WebRTC
             OpenVideoPublication?.Invoke(this, (media, publisherId, dynamicFeed));
         }
 
-        #endregion PRIVATE methods
+        private void OpenFormMediaServiceStreamWebRTC(String serviceId)
+        {
+            OpenMediaService?.Invoke(this, serviceId);
+        }
 
-        #region EVENTS from SDK Objects
+    #endregion PRIVATE methods
+
+    #region EVENTS from SDK Objects
 
         private void Conferences_ConferenceMediaPublicationsUpdated(object? sender, Rainbow.Events.MediaPublicationsEventArgs e)
         {
             if (_currentConference?.Id == e.ConferenceId)
-                UpdateUIPublishers();
+                UpdateUIFull();
         }
 
         private void Conferences_ConferenceTalkersUpdated(object sender, Rainbow.Events.ConferenceTalkersEventArgs e)
         {
             if (_currentConference?.Id == e.ConferenceId)
-                UpdateUITalkers();
+                UpdateUIFull();
         }
 
         private void Conferences_ConferenceParticipantsUpdated(object sender, Rainbow.Events.ConferenceParticipantsEventArgs e)
         {
             if (_currentConference?.Id == e.ConferenceId)
-                UpdateUIParticipants();
+            {
+                UpdateUIFull();
+            }
+        }
+
+        private void Conferences_ConferenceRaisedHandUpdated(object? sender, Rainbow.Events.ConferenceRaisedHandsEventArgs e)
+        {
+            if (_currentConference?.Id == e.ConferenceId)
+            {
+                UpdateUIFull();
+            }
+        }
+
+        private void Bubbles_BubbleMemberUpdated(object? sender, Rainbow.Events.BubbleMemberEventArgs e)
+        {
+            if (_currentConference?.Id == e.BubbleId)
+            {
+                UpdateUIFull();
+            }
         }
 
         private void Conferences_ConferenceRemoved(object sender, Rainbow.Events.IdEventArgs e)
@@ -552,6 +832,7 @@ namespace SDK.UIForm.WebRTC
             {
                 _currentConference = null;
                 _mediaPublicationsSubscribed.Clear();
+                _mediaServicesSubscribed.Clear();
             }
 
             UpdateUIFull();
@@ -569,19 +850,72 @@ namespace SDK.UIForm.WebRTC
             {
                 _currentConference = null;
                 _mediaPublicationsSubscribed.Clear();
+                _mediaServicesSubscribed.Clear();
             }
 
             UpdateUIFull();
         }
 
-        #endregion EVENTS from SDK Objects
+#endregion EVENTS from SDK Objects
 
-        #region EVENTS from FORM elements
+#region EVENTS from FORM elements
 
         private void FormConferenceOptions_FormClosing(object sender, FormClosingEventArgs e)
         {
             e.Cancel = true;
             this.Hide();
+        }
+
+
+        private void btn_ParticipantLowerHand_Click(object sender, EventArgs e)
+        {
+            String participantId = null;
+
+            // Get participant Id
+            if (lb_Participants.SelectedItem != null)
+            {
+                ListItem item = lb_Participants.SelectedItem as ListItem;
+                participantId = item.Value;
+            }
+
+            if (_currentConference == null)
+                return;
+
+            _rbConferences.ConferenceLowerHand(_currentConference.Id, participantId, callback =>
+            {
+                if (callback.Result.Success)
+                    AddInformationMessage($"Conference - Hands lowered");
+                else
+                    AddInformationMessage($"Conference - Hands lowered - Pb:[{callback.Result}]");
+            });
+        }
+
+        private void btn_ParticipantLowerAllHands_Click(object sender, EventArgs e)
+        {
+            if (_currentConference == null)
+                return;
+
+            _rbConferences.ConferenceLowerAllHands(_currentConference.Id, callback =>
+            {
+                if (callback.Result.Success)
+                    AddInformationMessage($"Conference - All Hands lowered");
+                else
+                    AddInformationMessage($"Conference - All Hands lowered - Pb:[{callback.Result}]");
+            });
+        }
+
+        private void btn_RaiseHand_Click(object sender, EventArgs e)
+        {
+            if (_currentConference == null)
+                return;
+
+            _rbConferences.ConferenceRaiseHand(_currentConference.Id, callback =>
+            {
+                if (callback.Result.Success)
+                    AddInformationMessage($"Conference - Hand Raised");
+                else
+                    AddInformationMessage($"Conference - Hand Raised - Pb:[{callback.Result}]");
+            });
         }
 
         private void btn_ParticipantMute_Click(object sender, EventArgs e)
@@ -885,59 +1219,90 @@ namespace SDK.UIForm.WebRTC
             UpdateDataChannelSubscription();
         }
 
+        private void lb_MediaService_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            UpdateMediaServiceSubscription();
+        }
+
         private void btn_SubscribeRemoteAudioInput_Click(object sender, EventArgs e)
         {
-            if (_canSubscribeToMediaPublication)
+            if (_canSubscribeToMedias)
             {
-                var subscribed = IsMediaSubscribed("", Call.Media.AUDIO, false);
-                OnMediaSubscription?.Raise(this, new MediaPublicationEventArgs(_currentConfId, "", "", Call.Media.AUDIO, false, subscribed ? MediaPublicationStatus.CURRENT_USER_UNSUBSCRIBED : MediaPublicationStatus.CURRENT_USER_SUBSCRIBED));
+                var subscribed = IsMediaPublicationSubscribed("", Call.Media.AUDIO, false);
+                OnMediaPublicationSubscription?.Raise(this, new MediaPublicationEventArgs(_currentConfId, "", "", Call.Media.AUDIO, false, subscribed ? MediaPublicationStatus.CURRENT_USER_UNSUBSCRIBED : MediaPublicationStatus.CURRENT_USER_SUBSCRIBED));
             }
         }
 
         private void btn_SubscribeRemoteVideoInput_Click(object sender, EventArgs e)
         {
-            if (_canSubscribeToMediaPublication)
+            if (_canSubscribeToMedias)
             {
                 if (lb_PublishersVideo.SelectedItem is ListItem item)
                 {
-                    var subscribed = IsMediaSubscribed(item.Value, Call.Media.VIDEO, false);
-                    OnMediaSubscription?.Raise(this, new MediaPublicationEventArgs(_currentConfId, item.Value, "", Call.Media.VIDEO, false, subscribed ? MediaPublicationStatus.CURRENT_USER_UNSUBSCRIBED : MediaPublicationStatus.CURRENT_USER_SUBSCRIBED));
+                    var subscribed = IsMediaPublicationSubscribed(item.Value, Call.Media.VIDEO, false);
+                    OnMediaPublicationSubscription?.Raise(this, new MediaPublicationEventArgs(_currentConfId, item.Value, "", Call.Media.VIDEO, false, subscribed ? MediaPublicationStatus.CURRENT_USER_UNSUBSCRIBED : MediaPublicationStatus.CURRENT_USER_SUBSCRIBED));
+                }
+            }
+        }
+
+        private void btn_SubscribeMediaServiceInput_Click(object sender, EventArgs e)
+        {
+            if (_canSubscribeToMedias)
+            {
+                if (lb_MediaService.SelectedItem is ListItem item)
+                {
+                    var subscribed = IsMediaServiceSubscribed(item.Value);
+                    var ms = GetMediaService(item.Value);
+                    if (ms != null)
+                        OnMediaServiceSubscription?.Raise(this, new MediaServiceEventArgs(ms, subscribed ? MediaPublicationStatus.CURRENT_USER_UNSUBSCRIBED : MediaPublicationStatus.CURRENT_USER_SUBSCRIBED));
                 }
             }
         }
 
         private void btn_SubscribeDynamicFeedInput_Click(object sender, EventArgs e)
         {
-            if (_canSubscribeToMediaPublication)
+            if (_canSubscribeToMedias)
             {
                 if (lb_PublishersVideo.SelectedItem is ListItem item)
                 {
-                    var subscribed = IsMediaSubscribed(item.Value, Call.Media.VIDEO, true);
-                    OnMediaSubscription?.Raise(this, new MediaPublicationEventArgs(_currentConfId, item.Value, "", Call.Media.VIDEO, true, subscribed ? MediaPublicationStatus.CURRENT_USER_UNSUBSCRIBED : MediaPublicationStatus.CURRENT_USER_SUBSCRIBED));
+                    var subscribed = IsMediaPublicationSubscribed(item.Value, Call.Media.VIDEO, true);
+                    OnMediaPublicationSubscription?.Raise(this, new MediaPublicationEventArgs(_currentConfId, item.Value, "", Call.Media.VIDEO, true, subscribed ? MediaPublicationStatus.CURRENT_USER_UNSUBSCRIBED : MediaPublicationStatus.CURRENT_USER_SUBSCRIBED));
                 }
             }
         }
 
         private void btn_SubscribeRemoteSharingInput_Click(object sender, EventArgs e)
         {
-            if (_canSubscribeToMediaPublication)
+            if (_canSubscribeToMedias)
             {
                 if (lb_PublishersSharing.SelectedItem is ListItem item)
                 {
-                    var subscribed = IsMediaSubscribed(item.Value, Call.Media.SHARING, false);
-                    OnMediaSubscription?.Raise(this, new MediaPublicationEventArgs(_currentConfId, item.Value, "", Call.Media.SHARING, false, subscribed ? MediaPublicationStatus.CURRENT_USER_UNSUBSCRIBED : MediaPublicationStatus.CURRENT_USER_SUBSCRIBED));
+                    var subscribed = IsMediaPublicationSubscribed(item.Value, Call.Media.SHARING, false);
+                    OnMediaPublicationSubscription?.Raise(this, new MediaPublicationEventArgs(_currentConfId, item.Value, "", Call.Media.SHARING, false, subscribed ? MediaPublicationStatus.CURRENT_USER_UNSUBSCRIBED : MediaPublicationStatus.CURRENT_USER_SUBSCRIBED));
                 }
             }
         }
 
         private void btn_SubscribeRemoteDataChannelInput_Click(object sender, EventArgs e)
         {
-            if (_canSubscribeToMediaPublication)
+            if (_canSubscribeToMedias)
             {
                 if (lb_PublishersDataChannel.SelectedItem is ListItem item)
                 {
-                    var subscribed = IsMediaSubscribed(item.Value, Call.Media.DATACHANNEL, false);
-                    OnMediaSubscription?.Raise(this, new MediaPublicationEventArgs(_currentConfId, item.Value, "", Call.Media.DATACHANNEL, false, subscribed ? MediaPublicationStatus.CURRENT_USER_UNSUBSCRIBED : MediaPublicationStatus.CURRENT_USER_SUBSCRIBED));
+                    var subscribed = IsMediaPublicationSubscribed(item.Value, Call.Media.DATACHANNEL, false);
+                    OnMediaPublicationSubscription?.Raise(this, new MediaPublicationEventArgs(_currentConfId, item.Value, "", Call.Media.DATACHANNEL, false, subscribed ? MediaPublicationStatus.CURRENT_USER_UNSUBSCRIBED : MediaPublicationStatus.CURRENT_USER_SUBSCRIBED));
+                }
+            }
+        }
+
+        private void btn_CloseRemoteDataChannelInput_Click(object sender, EventArgs e)
+        {
+            if (_canSubscribeToMedias)
+            {
+                if (lb_PublishersDataChannel.SelectedItem is ListItem item)
+                {
+                    var subscribed = IsMediaPublicationSubscribed(item.Value, Call.Media.DATACHANNEL, false);
+                    OnCloseDataChannel?.Raise(this, new MediaPublicationEventArgs(_currentConfId, item.Value, "", Call.Media.DATACHANNEL, false, subscribed ? MediaPublicationStatus.CURRENT_USER_UNSUBSCRIBED : MediaPublicationStatus.CURRENT_USER_SUBSCRIBED));
                 }
             }
         }
@@ -949,7 +1314,7 @@ namespace SDK.UIForm.WebRTC
 
         private void btn_OutputRemoteVideoInput_Click(object sender, EventArgs e)
         {
-            if (_canSubscribeToMediaPublication)
+            if (_canSubscribeToMedias)
             {
                 if (lb_PublishersVideo.SelectedItem is ListItem item)
                 {
@@ -961,9 +1326,23 @@ namespace SDK.UIForm.WebRTC
             }
         }
 
+        private void btn_OutputMediaServiceInput_Click(object sender, EventArgs e)
+        {
+            if (_canSubscribeToMedias)
+            {
+                if (lb_MediaService.SelectedItem is ListItem item)
+                {
+                    var publisherId = item.Value;
+                    var media = Call.Media.VIDEO;
+
+                    OpenFormMediaServiceStreamWebRTC(publisherId);
+                }
+            }
+        }
+
         private void btn_OutputDynamicFeedInput_Click(object sender, EventArgs e)
         {
-            if (_canSubscribeToMediaPublication)
+            if (_canSubscribeToMedias)
             {
                 var media = Call.Media.VIDEO;
                 OpenFormVideoOutputStreamWebRTC(media, "", true);
@@ -972,7 +1351,7 @@ namespace SDK.UIForm.WebRTC
 
         private void btn_OutputRemoteSharingInput_Click(object sender, EventArgs e)
         {
-            if (_canSubscribeToMediaPublication)
+            if (_canSubscribeToMedias)
             {
                 if (lb_PublishersSharing.SelectedItem is ListItem item)
                 {
@@ -983,8 +1362,7 @@ namespace SDK.UIForm.WebRTC
             }
         }
 
-        #endregion EVENTS from FORM elements
 
-
+#endregion EVENTS from FORM elements
     }
 }

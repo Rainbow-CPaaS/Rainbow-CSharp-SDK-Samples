@@ -28,7 +28,7 @@ namespace Rainbow
         private Boolean _useConsole;
         private Boolean _filterSetOnce = false;
 
-        public event EventHandler<Rainbow.Events.StringEventArgs> OnAsciiFrame;
+        public event EventHandler<String> OnAsciiFrame;
 
         public AsciiFrame(Boolean useConsole, int nbLinesForFooter = 0, MediaInput? mediaInput = null)
         {
@@ -118,7 +118,7 @@ namespace Rainbow
             {
                 var asciiFrame = CreateAsciiFrame(mediaFrame.Ref);
                 DrawAsciiFrame(asciiFrame);
-                OnAsciiFrame?.Invoke(this, new Rainbow.Events.StringEventArgs(asciiFrame));
+                OnAsciiFrame?.Invoke(this, asciiFrame);
 
                 
             }
@@ -158,7 +158,7 @@ namespace Rainbow
                         }
                         var asciiFrame = CreateAsciiFrame(array);
                         DrawAsciiFrame(asciiFrame);
-                        OnAsciiFrame?.Invoke(this, new Rainbow.Events.StringEventArgs(asciiFrame));
+                        OnAsciiFrame?.Invoke(this, asciiFrame);
 
                     }
 

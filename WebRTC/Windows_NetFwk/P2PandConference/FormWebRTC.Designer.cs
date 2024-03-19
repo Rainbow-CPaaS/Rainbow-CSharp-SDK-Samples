@@ -102,12 +102,13 @@ namespace SDK.UIForm.WebRTC
             btn_SubscribeRemoteAudioInput = new Button();
             btn_SubscribeRemoteVideoInput = new Button();
             btn_SubscribeRemoteSharingInput = new Button();
-            btn_Test = new Button();
+            btn_Details = new Button();
             check_LocalDataChannel = new CheckBox();
             btn_SubscribeRemoteDataChannelInput = new Button();
             check_RemoteDataChannel = new CheckBox();
             tbDataChannel = new TextBox();
             btn_DataChannelSend = new Button();
+            btn_InformationClear = new Button();
             SuspendLayout();
             // 
             // cb_AudioOutputs
@@ -189,7 +190,7 @@ namespace SDK.UIForm.WebRTC
             // label7
             // 
             label7.AutoSize = true;
-            label7.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            label7.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Bold);
             label7.Location = new System.Drawing.Point(153, 418);
             label7.Margin = new Padding(2, 0, 2, 0);
             label7.Name = "label7";
@@ -236,7 +237,7 @@ namespace SDK.UIForm.WebRTC
             // label6
             // 
             label6.AutoSize = true;
-            label6.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            label6.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Bold);
             label6.Location = new System.Drawing.Point(24, 418);
             label6.Margin = new Padding(2, 0, 2, 0);
             label6.Name = "label6";
@@ -327,7 +328,7 @@ namespace SDK.UIForm.WebRTC
             // label8
             // 
             label8.AutoSize = true;
-            label8.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            label8.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F);
             label8.Location = new System.Drawing.Point(452, 67);
             label8.Margin = new Padding(2, 0, 2, 0);
             label8.Name = "label8";
@@ -368,7 +369,7 @@ namespace SDK.UIForm.WebRTC
             // btn_DeclineCall
             // 
             btn_DeclineCall.FlatAppearance.BorderSize = 0;
-            btn_DeclineCall.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            btn_DeclineCall.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F);
             btn_DeclineCall.Location = new System.Drawing.Point(629, 92);
             btn_DeclineCall.Margin = new Padding(0);
             btn_DeclineCall.Name = "btn_DeclineCall";
@@ -413,7 +414,7 @@ namespace SDK.UIForm.WebRTC
             // label5
             // 
             label5.AutoSize = true;
-            label5.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            label5.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Bold);
             label5.Location = new System.Drawing.Point(452, 19);
             label5.Margin = new Padding(2, 0, 2, 0);
             label5.Name = "label5";
@@ -435,7 +436,7 @@ namespace SDK.UIForm.WebRTC
             // lbl_ConferencesInProgress
             // 
             lbl_ConferencesInProgress.AutoSize = true;
-            lbl_ConferencesInProgress.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            lbl_ConferencesInProgress.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Bold);
             lbl_ConferencesInProgress.ForeColor = System.Drawing.Color.Firebrick;
             lbl_ConferencesInProgress.Location = new System.Drawing.Point(452, 172);
             lbl_ConferencesInProgress.Margin = new Padding(2, 0, 2, 0);
@@ -458,7 +459,7 @@ namespace SDK.UIForm.WebRTC
             // label11
             // 
             label11.AutoSize = true;
-            label11.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            label11.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Bold);
             label11.Location = new System.Drawing.Point(452, 122);
             label11.Margin = new Padding(2, 0, 2, 0);
             label11.Name = "label11";
@@ -490,7 +491,7 @@ namespace SDK.UIForm.WebRTC
             // 
             // btn_ManageInputStreams
             // 
-            btn_ManageInputStreams.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            btn_ManageInputStreams.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
             btn_ManageInputStreams.ForeColor = System.Drawing.Color.SaddleBrown;
             btn_ManageInputStreams.Location = new System.Drawing.Point(12, 12);
             btn_ManageInputStreams.Name = "btn_ManageInputStreams";
@@ -526,7 +527,7 @@ namespace SDK.UIForm.WebRTC
             // 
             // btn_LoadConfig
             // 
-            btn_LoadConfig.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            btn_LoadConfig.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
             btn_LoadConfig.ForeColor = System.Drawing.Color.SaddleBrown;
             btn_LoadConfig.Location = new System.Drawing.Point(198, 12);
             btn_LoadConfig.Name = "btn_LoadConfig";
@@ -563,7 +564,7 @@ namespace SDK.UIForm.WebRTC
             // label9
             // 
             label9.AutoSize = true;
-            label9.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            label9.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Bold);
             label9.Location = new System.Drawing.Point(454, 206);
             label9.Margin = new Padding(2, 0, 2, 0);
             label9.Name = "label9";
@@ -573,7 +574,7 @@ namespace SDK.UIForm.WebRTC
             // 
             // tb_Information
             // 
-            tb_Information.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            tb_Information.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F);
             tb_Information.Location = new System.Drawing.Point(452, 222);
             tb_Information.Margin = new Padding(2, 3, 2, 3);
             tb_Information.Multiline = true;
@@ -585,7 +586,7 @@ namespace SDK.UIForm.WebRTC
             // label10
             // 
             label10.AutoSize = true;
-            label10.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            label10.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Bold);
             label10.Location = new System.Drawing.Point(12, 201);
             label10.Margin = new Padding(2, 0, 2, 0);
             label10.Name = "label10";
@@ -595,7 +596,7 @@ namespace SDK.UIForm.WebRTC
             // 
             // lbl_IncomingCall
             // 
-            lbl_IncomingCall.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            lbl_IncomingCall.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Bold);
             lbl_IncomingCall.ForeColor = System.Drawing.Color.Firebrick;
             lbl_IncomingCall.Location = new System.Drawing.Point(452, 96);
             lbl_IncomingCall.Margin = new Padding(2, 0, 2, 0);
@@ -607,7 +608,7 @@ namespace SDK.UIForm.WebRTC
             // 
             // lbl_ConversationDetails
             // 
-            lbl_ConversationDetails.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            lbl_ConversationDetails.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F);
             lbl_ConversationDetails.ForeColor = System.Drawing.Color.Blue;
             lbl_ConversationDetails.Location = new System.Drawing.Point(12, 219);
             lbl_ConversationDetails.Margin = new Padding(2, 0, 2, 0);
@@ -618,7 +619,7 @@ namespace SDK.UIForm.WebRTC
             // 
             // lbl_BubbleInfo
             // 
-            lbl_BubbleInfo.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            lbl_BubbleInfo.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F);
             lbl_BubbleInfo.Location = new System.Drawing.Point(787, 143);
             lbl_BubbleInfo.Margin = new Padding(2, 0, 2, 0);
             lbl_BubbleInfo.Name = "lbl_BubbleInfo";
@@ -778,7 +779,7 @@ namespace SDK.UIForm.WebRTC
             // btn_DeclineConf
             // 
             btn_DeclineConf.FlatAppearance.BorderSize = 0;
-            btn_DeclineConf.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            btn_DeclineConf.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F);
             btn_DeclineConf.Location = new System.Drawing.Point(787, 167);
             btn_DeclineConf.Margin = new Padding(0);
             btn_DeclineConf.Name = "btn_DeclineConf";
@@ -802,7 +803,7 @@ namespace SDK.UIForm.WebRTC
             // 
             // lbl_ConversationInProgress
             // 
-            lbl_ConversationInProgress.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            lbl_ConversationInProgress.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Bold);
             lbl_ConversationInProgress.ForeColor = System.Drawing.Color.Firebrick;
             lbl_ConversationInProgress.Location = new System.Drawing.Point(101, 201);
             lbl_ConversationInProgress.Margin = new Padding(2, 0, 2, 0);
@@ -860,7 +861,7 @@ namespace SDK.UIForm.WebRTC
             // 
             // btn_SubscribeRemoteAudioInput
             // 
-            btn_SubscribeRemoteAudioInput.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            btn_SubscribeRemoteAudioInput.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F);
             btn_SubscribeRemoteAudioInput.ForeColor = System.Drawing.Color.DarkGreen;
             btn_SubscribeRemoteAudioInput.Location = new System.Drawing.Point(266, 433);
             btn_SubscribeRemoteAudioInput.Margin = new Padding(4, 3, 4, 3);
@@ -873,7 +874,7 @@ namespace SDK.UIForm.WebRTC
             // 
             // btn_SubscribeRemoteVideoInput
             // 
-            btn_SubscribeRemoteVideoInput.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            btn_SubscribeRemoteVideoInput.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F);
             btn_SubscribeRemoteVideoInput.Location = new System.Drawing.Point(266, 457);
             btn_SubscribeRemoteVideoInput.Margin = new Padding(4, 3, 4, 3);
             btn_SubscribeRemoteVideoInput.Name = "btn_SubscribeRemoteVideoInput";
@@ -885,7 +886,7 @@ namespace SDK.UIForm.WebRTC
             // 
             // btn_SubscribeRemoteSharingInput
             // 
-            btn_SubscribeRemoteSharingInput.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            btn_SubscribeRemoteSharingInput.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F);
             btn_SubscribeRemoteSharingInput.Location = new System.Drawing.Point(266, 480);
             btn_SubscribeRemoteSharingInput.Margin = new Padding(4, 3, 4, 3);
             btn_SubscribeRemoteSharingInput.Name = "btn_SubscribeRemoteSharingInput";
@@ -895,17 +896,16 @@ namespace SDK.UIForm.WebRTC
             btn_SubscribeRemoteSharingInput.UseVisualStyleBackColor = true;
             btn_SubscribeRemoteSharingInput.Click += btn_SubscribeRemoteSharingInput_Click;
             // 
-            // btn_Test
+            // btn_Details
             // 
-            btn_Test.Location = new System.Drawing.Point(280, 196);
-            btn_Test.Margin = new Padding(2, 3, 2, 3);
-            btn_Test.Name = "btn_Test";
-            btn_Test.Size = new System.Drawing.Size(81, 23);
-            btn_Test.TabIndex = 1308;
-            btn_Test.Text = "Test";
-            btn_Test.UseVisualStyleBackColor = true;
-            btn_Test.Visible = false;
-            btn_Test.Click += btn_Test_Click;
+            btn_Details.Location = new System.Drawing.Point(280, 196);
+            btn_Details.Margin = new Padding(2, 3, 2, 3);
+            btn_Details.Name = "btn_Details";
+            btn_Details.Size = new System.Drawing.Size(81, 23);
+            btn_Details.TabIndex = 1308;
+            btn_Details.Text = "Get details";
+            btn_Details.UseVisualStyleBackColor = true;
+            btn_Details.Click += btn_Details_Click;
             // 
             // check_LocalDataChannel
             // 
@@ -921,7 +921,7 @@ namespace SDK.UIForm.WebRTC
             // 
             // btn_SubscribeRemoteDataChannelInput
             // 
-            btn_SubscribeRemoteDataChannelInput.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            btn_SubscribeRemoteDataChannelInput.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F);
             btn_SubscribeRemoteDataChannelInput.Location = new System.Drawing.Point(266, 503);
             btn_SubscribeRemoteDataChannelInput.Margin = new Padding(4, 3, 4, 3);
             btn_SubscribeRemoteDataChannelInput.Name = "btn_SubscribeRemoteDataChannelInput";
@@ -952,7 +952,7 @@ namespace SDK.UIForm.WebRTC
             // 
             // btn_DataChannelSend
             // 
-            btn_DataChannelSend.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            btn_DataChannelSend.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F);
             btn_DataChannelSend.Location = new System.Drawing.Point(405, 278);
             btn_DataChannelSend.Margin = new Padding(4, 3, 4, 3);
             btn_DataChannelSend.Name = "btn_DataChannelSend";
@@ -962,17 +962,30 @@ namespace SDK.UIForm.WebRTC
             btn_DataChannelSend.UseVisualStyleBackColor = true;
             btn_DataChannelSend.Click += btn_DataChannelSend_Click;
             // 
+            // btn_InformationClear
+            // 
+            btn_InformationClear.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F);
+            btn_InformationClear.Location = new System.Drawing.Point(534, 201);
+            btn_InformationClear.Margin = new Padding(4, 3, 4, 3);
+            btn_InformationClear.Name = "btn_InformationClear";
+            btn_InformationClear.Size = new System.Drawing.Size(39, 20);
+            btn_InformationClear.TabIndex = 1314;
+            btn_InformationClear.Text = "Clear";
+            btn_InformationClear.UseVisualStyleBackColor = true;
+            btn_InformationClear.Click += btn_InformationClear_Click;
+            // 
             // FormWebRTC
             // 
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new System.Drawing.Size(943, 566);
+            Controls.Add(btn_InformationClear);
             Controls.Add(btn_DataChannelSend);
             Controls.Add(tbDataChannel);
             Controls.Add(btn_SubscribeRemoteDataChannelInput);
             Controls.Add(check_RemoteDataChannel);
             Controls.Add(check_LocalDataChannel);
-            Controls.Add(btn_Test);
+            Controls.Add(btn_Details);
             Controls.Add(btn_SubscribeRemoteSharingInput);
             Controls.Add(btn_SubscribeRemoteVideoInput);
             Controls.Add(btn_SubscribeRemoteAudioInput);
@@ -1132,5 +1145,7 @@ namespace SDK.UIForm.WebRTC
         private CheckBox check_RemoteDataChannel;
         private TextBox tbDataChannel;
         private Button btn_DataChannelSend;
+        private Button btn_InformationClear;
+        private Button btn_Details;
     }
 }

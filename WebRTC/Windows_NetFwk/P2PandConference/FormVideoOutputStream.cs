@@ -396,13 +396,13 @@ namespace SDK.UIForm.WebRTC
 
 #endregion Events from Form elements
 
-        private void AsciiFrame_OnAsciiFrame(object? sender, Rainbow.Events.StringEventArgs e)
+        private void AsciiFrame_OnAsciiFrame(object? sender, String value)
         {
             lock (tb_AsciiFrame)
             {
                 this.BeginInvoke(new Action(() =>
                 {
-                    tb_AsciiFrame.Text = e.Value;
+                    tb_AsciiFrame.Text = value;
                 }));
             }
         }
