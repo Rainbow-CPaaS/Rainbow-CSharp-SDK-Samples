@@ -1,8 +1,27 @@
 {
   "ffmpegLibFolderPath": "C:\\ffmpeg-6.0-full_build-shared\\bin",
 
-  "videosUri": [
-    "TO DEFINE"
+  "videos": [
+    {
+      "uri": "C:\\media\\Joy_and_Heron.webm",
+      "settings": {
+      }
+    },
+    {
+      "uri": "C:\\media\\big_buck_bunny.mp4",
+      "settings": {
+      }
+    },
+    {
+      "uri": "C:\\media\\TOEFLTest.mp4",
+      "settings": {
+      }
+    },
+    {
+      "uri": "C:\\media\\sample_960x400_ocean_with_audio.mp4",
+      "settings": {
+      }
+    }
   ],
 
   "labels": "labels_EN.json",
@@ -23,7 +42,7 @@
   "serverConfig": {
     "appId": "TO DEFINE",
     "appSecret": "TO DEFINE",
-    "hostname": "openrainbow.net"
+    "hostname": "TO DEFINE"
   },
 
   "_comment_botVideoCompositor": "Login / password to use for the Video Compositor",
