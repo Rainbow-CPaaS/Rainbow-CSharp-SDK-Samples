@@ -1,8 +1,9 @@
 ﻿using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NLog.Config;
 using NLog.Extensions.Logging;
+using Rainbow;
+using Rainbow.SimpleJSON;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -177,66 +178,43 @@ namespace BotVideoOrchestratorAndBroadcaster
             try
             {
                 String jsonConfig = File.ReadAllText(configFilePath);
-                var json = JsonConvert.DeserializeObject<dynamic>(jsonConfig);
+                var jsonNode = JSON.Parse(jsonConfig);
 
-                if (json == null)
+                if (jsonNode == null)
                 {
                     Util.WriteErrorToConsole($"Cannot get JSON data from file '{configFilePath}'.");
                     return false;
                 }
 
-                if (json["ffmpegLibFolderPath"] != null)
+                RainbowApplicationInfo.ffmpegLibFolderPath = UtilJson.AsString(jsonNode, "ffmpegLibFolderPath");
+                Rainbow.Medias.Helper.InitExternalLibraries(RainbowApplicationInfo.ffmpegLibFolderPath);
+
+                if (jsonNode["labelsFilePath"] != null)
+                    RainbowApplicationInfo.labelsFilePath = $".{Path.DirectorySeparatorChar}Resources{Path.DirectorySeparatorChar}" + UtilJson.AsString(jsonNode, "labelsFilePath");
+
+                if (jsonNode["videosUri"] != null)
+                    RainbowApplicationInfo.videosUri = UtilJson.AsStringList(jsonNode, "videosUri");
+
+                if (jsonNode["serverConfig"]?.IsObject == true)
                 {
-                    RainbowApplicationInfo.ffmpegLibFolderPath = json["ffmpegLibFolderPath"].ToString();
-                    Rainbow.Medias.Helper.InitExternalLibraries(RainbowApplicationInfo.ffmpegLibFolderPath);
-                    //Rainbow.Medias.Helper.SetDefaultWebRTCVideoFormat(FFmpeg.AutoGen.AVCodecID.AV_CODEC_ID_H264);
+                    var jobject = jsonNode["serverConfig"];
+                    RainbowApplicationInfo.appId = UtilJson.AsString(jobject, "appId");
+                    RainbowApplicationInfo.appSecret = UtilJson.AsString(jobject, "appSecret");
+                    RainbowApplicationInfo.hostname = UtilJson.AsString(jobject, "hostname");
                 }
 
-                if (json["labelsFilePath"] != null)
-                    RainbowApplicationInfo.labelsFilePath = $".{Path.DirectorySeparatorChar}Resources{Path.DirectorySeparatorChar}" + json["labelsFilePath"].ToString();
-
-                if (json["videosUri"] != null)
-                {
-                    JArray list = (JArray)json["videosUri"];
-                    RainbowApplicationInfo.videosUri = new List<String>();
-                    foreach (var item in list)
-                        RainbowApplicationInfo.videosUri.Add(item.ToString());
-                }
-
-                if (json["serverConfig"] != null)
-                {
-                    var jobject = json["serverConfig"];
-                    if (jobject["appId"] != null)
-                        RainbowApplicationInfo.appId = jobject["appId"].ToString();
-
-                    if (jobject["appSecret"] != null)
-                        RainbowApplicationInfo.appSecret = jobject["appSecret"].ToString();
-
-                    if (jobject["hostname"] != null)
-                        RainbowApplicationInfo.hostname = jobject["hostname"].ToString();
-                }
-
-                if (json["botVideoOrchestrator"] != null)
+                if (jsonNode["botVideoOrchestrator"]?.IsObject == true)
                 {
                     String login = "";
                     String pwd = "";
 
-                    var jobject = json["botVideoOrchestrator"];
-                    if (jobject["login"] != null)
-                        login = jobject["login"].ToString();
+                    var jobject = jsonNode["botVideoOrchestrator"];
+                    login = UtilJson.AsString(jobject, "login");
+                    pwd = UtilJson.AsString(jobject, "password");
 
-                    if (jobject["password"] != null)
-                        pwd = jobject["password"].ToString();
-
-                    if (jobject["autoJoinConference"] != null)
-                        RainbowApplicationInfo.botVideoOrchestratorAutoJoinConference = (Boolean)jobject["autoJoinConference"];
-
-                    if (jobject["commandMenu"] != null)
-                        RainbowApplicationInfo.commandMenu = jobject["commandMenu"].ToString();
-
-                    if (jobject["commandStop"] != null)
-                        RainbowApplicationInfo.commandStop = jobject["commandStop"].ToString();
-
+                    RainbowApplicationInfo.botVideoOrchestratorAutoJoinConference = UtilJson.AsBoolean(jobject, "autoJoinConference");
+                    RainbowApplicationInfo.commandMenu = UtilJson.AsString(jobject, "commandMenu");
+                    RainbowApplicationInfo.commandStop = UtilJson.AsString(jobject, "commandStop");
 
                     if ((!String.IsNullOrEmpty(login)) && (!String.IsNullOrEmpty(pwd)))
                     {
@@ -244,35 +222,34 @@ namespace BotVideoOrchestratorAndBroadcaster
                     }
                 }
 
-                if (json["nbMaxVideoBroadcaster"] != null)
-                    RainbowApplicationInfo.nbMaxVideoBroadcaster = (int)json["nbMaxVideoBroadcaster"];
+                RainbowApplicationInfo.nbMaxVideoBroadcaster = UtilJson.AsInt(jsonNode, "nbMaxVideoBroadcaster");
 
 
-                if (json["botManagers"] != null)
+                if (jsonNode["botManagers"]?.IsArray == true)
                 {
-                    JArray list = (JArray)json["botManagers"];
+                    var list = jsonNode["botManagers"];
                     RainbowApplicationInfo.botManagers = new List<BotManager>();
 
                     foreach (var item in list)
                     {
-                        String? login = item["login"]?.ToString();
-                        String? jid = item["jid"]?.ToString();
-                        String? id = item["id"]?.ToString();
+                        String? login = UtilJson.AsString(item, "login");
+                        String? jid = UtilJson.AsString(item, "jid");
+                        String? id = UtilJson.AsString(item, "id");
 
                         if (!String.IsNullOrEmpty(login))
                             RainbowApplicationInfo.botManagers.Add(new BotManager(login, id, jid));
                     }
                 }
 
-                if (json["botsVideoBroadcaster"] != null)
+                if (jsonNode["botsVideoBroadcaster"]?.IsArray == true)
                 {
-                    JArray list = (JArray)json["botsVideoBroadcaster"];
+                    var  list = jsonNode["botsVideoBroadcaster"];
                     RainbowApplicationInfo.botsVideoBroadcaster = new List<Account>();
 
                     foreach (var item in list)
                     {
-                        String? login = item["login"]?.ToString();
-                        String? pwd = item["password"]?.ToString();
+                        String? login = UtilJson.AsString(item, "login");
+                        String? pwd = UtilJson.AsString(item, "password");
 
                         if ((!String.IsNullOrEmpty(login)) && (!String.IsNullOrEmpty(pwd)))
                             RainbowApplicationInfo.botsVideoBroadcaster.Add(new Account(login, pwd));
@@ -376,7 +353,7 @@ namespace BotVideoOrchestratorAndBroadcaster
             try
             {
                 String jsonConfig = File.ReadAllText(filepath);
-                var json = JsonConvert.DeserializeObject<dynamic>(jsonConfig);
+                var json = JSON.Parse(jsonConfig);
 
                 if (json == null)
                 {
@@ -384,51 +361,16 @@ namespace BotVideoOrchestratorAndBroadcaster
                     return false;
                 }
 
-                if (json["labelTitle"] != null)
-                    RainbowApplicationInfo.labelTitle = json["labelTitle"];
-
-                if (json["labelTitleEnd"] != null)
-                    RainbowApplicationInfo.labelTitleEnd = json["labelTitleEnd"];
-
-                if (json["labelSet"] != null)
-                    RainbowApplicationInfo.labelSet = json["labelSet"];
-
-                if (json["labelStop"] != null)
-                    RainbowApplicationInfo.labelStop = json["labelStop"];
-                
-                if (json["labelNone"] != null)
-                    RainbowApplicationInfo.labelNone = json["labelNone"];
-
-                if (json["labelNoVideo"] != null)
-                    RainbowApplicationInfo.labelNoVideo = "**"+json["labelNoVideo"]+"**";
-
-                if (json["labelNoConferenceInProgress"] != null)
-                    RainbowApplicationInfo.labelNoConferenceInProgress = json["labelNoConferenceInProgress"];
-
-                if (json["labelUseSharingStream"] != null)
-                    RainbowApplicationInfo.labelUseSharingStream = json["labelUseSharingStream"];
-
-                if (json["labelVideosUriName"] != null)
-                {
-                    JArray list = (JArray)json["labelVideosUriName"];
-                    RainbowApplicationInfo.labelVideosUriName = new List<String>();
-
-                    foreach (var item in list)
-                    {
-                        RainbowApplicationInfo.labelVideosUriName.Add(item.ToString());
-                    }
-                }
-
-                if (json["labelBotsVideoBroadcasterName"] != null)
-                {
-                    JArray list = (JArray)json["labelBotsVideoBroadcasterName"];
-                    RainbowApplicationInfo.labelBotsVideoBroadcasterName = new List<String>();
-
-                    foreach (var item in list)
-                    {
-                        RainbowApplicationInfo.labelBotsVideoBroadcasterName.Add(item.ToString());
-                    }
-                }
+                RainbowApplicationInfo.labelTitle = UtilJson.AsString(json, "labelTitle");
+                RainbowApplicationInfo.labelTitleEnd = UtilJson.AsString(json, "labelTitleEnd");
+                RainbowApplicationInfo.labelSet = UtilJson.AsString(json, "labelSet");
+                RainbowApplicationInfo.labelStop = UtilJson.AsString(json, "labelStop");
+                RainbowApplicationInfo.labelNone = UtilJson.AsString(json, "labelNone");
+                RainbowApplicationInfo.labelNoVideo = "**"+ UtilJson.AsString(json, "labelNoVideo") + "**";
+                RainbowApplicationInfo.labelNoConferenceInProgress = UtilJson.AsString(json, "labelNoConferenceInProgress");
+                RainbowApplicationInfo.labelUseSharingStream = UtilJson.AsString(json, "labelUseSharingStream");
+                RainbowApplicationInfo.labelVideosUriName = UtilJson.AsStringList(json, "labelVideosUriName");
+                RainbowApplicationInfo.labelBotsVideoBroadcasterName = UtilJson.AsStringList(json, "labelBotsVideoBroadcasterName");
             }
             catch (Exception exc)
             {
