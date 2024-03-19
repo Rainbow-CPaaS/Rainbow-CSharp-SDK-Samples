@@ -1,15 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Stateless;
-using Stateless.Graph;
+﻿using AdaptiveCards.Templating;
 using Rainbow;
+using Rainbow.SimpleJSON;
 using Rainbow.Model;
 using Rainbow.Events;
+using Stateless;
+using Stateless.Graph;
+using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Threading;
-using AdaptiveCards.Templating;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace BotAdaptiveCards
@@ -295,14 +294,15 @@ namespace BotAdaptiveCards
                     {
                         isAdaptiveCardAnswer = true;
                         var content = alternativeContent.Content;
-                        var json = JsonConvert.DeserializeObject<dynamic>(content);
-                        var questionId = json?.GetValue("questionId")?.ToString();
-                        
+
+                        var jsonNode = JSON.Parse(content);
+                        var questionId = UtilJson.AsString(jsonNode, "questionId");
+
                         // For the first question, we set a default answer
                         if (questionId == "00")
                             answer = " ";
                         else
-                            answer = json?.GetValue("MCQSelection")?.ToString();
+                            answer = UtilJson.AsString(jsonNode, "MCQSelection");
                         break;
                     }
 
@@ -344,8 +344,9 @@ namespace BotAdaptiveCards
                     }
 
                     // Get title of the question
-                    var json = JsonConvert.DeserializeObject<dynamic>(jsonData);
-                    message = json?.GetValue("title").ToObject<string>();
+                    var jsonNode = JSON.Parse(jsonData);
+                    message = UtilJson.AsString(jsonNode, "title");
+
                     if (message == null)
                         message = " "; // => Due to a bug in WebClient must not be empty/null
 
@@ -959,35 +960,33 @@ namespace BotAdaptiveCards
                 }
 
                 // Get Json
-                var json = JsonConvert.DeserializeObject<dynamic>(jsonData);
-                if (json == null)
+                var jsonNode = JSON.Parse(jsonData);
+                if (jsonNode?.IsObject != true)
                 {
                     Console.WriteLine($"Info about the question [{index}] is not a valid JSON... Configuration cannot be done");
                     return false;
                 }
 
                 // Get the question
-                question = json.GetValue("question").ToString();
+                question = UtilJson.AsString(jsonNode, "question");
                 List<MCQEntry> entries = new List<MCQEntry>();
 
                 // Get items - to get list of possible answers
-                var items = (JArray)json["items"];
-                if(items == null)
+                var items = jsonNode["items"];
+                if (items == null)
                 {
                     Console.WriteLine($"Info about the question [{index}] is not correct - cannot get items... Configuration cannot be done");
                     return false;
                 }
 
                 // Loop on each item
-                foreach (JToken jToken in items)
+                foreach (var item in items)
                 {
-                    var item = (JObject)jToken;
+                    var choice = UtilJson.AsString(item, "choice");
+                    var value = UtilJson.AsString(item, "value");
+                    var isCorrect = UtilJson.AsBoolean(item, "correct");
 
-                    var choice = item.GetValue("choice")?.ToString();
-                    var value = item.GetValue("value")?.ToString();
-                    var isCorrect = item.GetValue("correct")?.ToObject<Boolean>();
-
-                    if( (choice == null) || (value == null) )
+                    if ( (choice == null) || (value == null) )
                     {
                         Console.WriteLine($"Info about the question [{index}] is not correct - cannot get item info ... Configuration cannot be done");
                         return false;
@@ -996,7 +995,7 @@ namespace BotAdaptiveCards
                     {
                         Choice = choice,
                         Value = value,
-                        IsCorrect = (isCorrect != null) ? isCorrect.Value : false
+                        IsCorrect = isCorrect,
                     };
                     entries.Add(entry);
                 }
