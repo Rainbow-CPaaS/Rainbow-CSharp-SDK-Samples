@@ -11,6 +11,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Rainbow.WebRTC.Abstractions;
 using Microsoft.Extensions.Logging;
 using NLog.Extensions.Logging;
+using Rainbow.WebRTC.Desktop;
 
 namespace SDK.ConsoleApp.WebRTC
 {
@@ -69,10 +70,12 @@ namespace SDK.ConsoleApp.WebRTC
         static Rainbow.Medias.Device? videoInputSelected = null;
         static Rainbow.Medias.Device? audioInputSelected = null;
 
-        static Rainbow.Medias.MediaInput? videoInputStream = null;
-        static Rainbow.Medias.MediaInput? audioInputStream = null;
+        static Rainbow.Medias.IMediaVideo? videoInputStream = null;
+        static Rainbow.Medias.IMediaAudio? audioInputStream = null;
 
         static Rainbow.Medias.Device? audioOutputSelected = null;
+        static AudioStreamTrack? audioStreamTrack = null;
+        static Rainbow.Medias.SDL2AudioOutput? audioOutputStream = null;
 
         // Define Contacts objects: current user and the peer used in the WebRtc Conversation
         static Rainbow.Model.Contact? currentContact = null;
@@ -120,6 +123,7 @@ namespace SDK.ConsoleApp.WebRTC
                 return;
 
             Rainbow.Medias.Helper.InitExternalLibraries(ApplicationInfo.FFMPEG_LIB_FOLDER_PATH);
+            Rainbow.Medias.Helper.SetFFmpegLog(null, LogLevel.None);
 
             // Create Rainbow.Application
             rbApplication = new Rainbow.Application();
@@ -146,9 +150,6 @@ namespace SDK.ConsoleApp.WebRTC
 
             try
             {
-                // Do we use audio onyl ?
-                //Rainbow.WebRTC.WebRTCCommunications.USE_ONLY_MICROPHONE_OR_HEADSET = ApplicationInfo.USE_ONLY_MICROPHONE_OR_HEADSET; //  /!\ We have to set this BEFORE TO CREATE rbCommunication object
-
                 rbWebRTCDesktopFactory = new Rainbow.WebRTC.Desktop.WebRTCFactory();
                 rbWebRTCCommunications = Rainbow.WebRTC.WebRTCCommunications.GetOrCreateInstance(rbApplication, rbWebRTCDesktopFactory);
             }
@@ -171,11 +172,7 @@ namespace SDK.ConsoleApp.WebRTC
                 return;
             }
 
-            //if (!SelectAudioOutputDevice())
-            //{
-            //    Console.WriteLine("\nIt's mandatory in this sample to create a P2P call.");
-            //    return;
-            //}
+            SelectAudioOutputDevice(); // Not mandatory to have a Audio Output device: in this case we will not hear the remote
 
             SelectVideoInputDevice(); // Not mandatory to have a Video Input device: in this case only audio will be possible
 
@@ -185,6 +182,8 @@ namespace SDK.ConsoleApp.WebRTC
 
             // Define Rainbow.WebRTC.Communication events callback we want to manage
             rbWebRTCCommunications.CallUpdated += RbWebRTCCommunications_CallUpdated;
+            rbWebRTCCommunications.OnMediaPublicationUpdated += RbWebRTCCommunications_OnMediaPublicationUpdated;
+            rbWebRTCCommunications.OnTrack += RbWebRTCCommunications_OnTrack;
 
             rbConferences.ConferenceRemoved += RbConferences_ConferenceRemoved;
             rbConferences.ConferenceUpdated += RbConferences_ConferenceUpdated;
@@ -629,6 +628,36 @@ namespace SDK.ConsoleApp.WebRTC
             }
         }
 
+        private static void RbWebRTCCommunications_OnTrack(string callId, MediaStreamTrackDescriptor mediaStreamTrackDescriptor)
+        {
+            //IF a track is available for Audio, we use it to have the remote audio
+            if(mediaStreamTrackDescriptor.Media == Call.Media.AUDIO)
+            {
+                audioStreamTrack = mediaStreamTrackDescriptor.MediaStreamTrack as AudioStreamTrack;
+                if (audioStreamTrack != null)
+                {
+                    audioStreamTrack.OnAudioSample += AudioStreamTrack_OnAudioSample;
+                }
+            }
+        }
+
+        private static void AudioStreamTrack_OnAudioSample(string mediaId, uint duration, byte[] sample)
+        {
+            audioOutputStream?.QueueSample(sample);
+        }
+
+        private static void RbWebRTCCommunications_OnMediaPublicationUpdated(object? sender, MediaPublicationEventArgs e)
+        {
+            // We want to subscribe to the remote audio
+            if (e.MediaPublication.Media == Call.Media.AUDIO)
+            {
+                if(e.Status == MediaPublicationStatus.PEER_STARTED)
+                {
+                    rbWebRTCCommunications.SubscribeToMediaPublication(e.MediaPublication);
+                }
+            }
+        }
+
     #endregion Rainbow.WebRTC.Communication events
 
 
@@ -636,9 +665,9 @@ namespace SDK.ConsoleApp.WebRTC
 
         private static void RbApplication_ConnectionStateChanged(object? sender, Rainbow.Events.ConnectionStateEventArgs e)
         {
-            Console.WriteLine($"Connection State Changed:[{e.State}]");
+            Console.WriteLine($"Connection State Changed:[{e.ConnectionState.State}]");
 
-            if (e.State == Rainbow.Model.ConnectionState.Disconnected)
+            if (e.ConnectionState.State == Rainbow.Model.ConnectionState.Disconnected)
             {
                 Console.WriteLine($"We have been discconected - We quit the application");
                 quitApp = true;
@@ -667,7 +696,7 @@ namespace SDK.ConsoleApp.WebRTC
 
             if (isVideo)
             {
-                var list  = Devices.GetWebcamDevices();
+                var list = Devices.GetWebcamDevices();
                 if (list != null)
                 {
                     devices = new List<Device>();
@@ -683,7 +712,7 @@ namespace SDK.ConsoleApp.WebRTC
                 devices = Devices.GetAudioOutputDevices();
 
 
-            if ( (devices == null) || (devices.Count == 0) )
+            if ((devices == null) || (devices.Count == 0))
                 Console.WriteLine($"You don't have an {logVideo} {logInput} device (Physical or emulated) ...");
 
             int keyValue = 0;
@@ -735,7 +764,8 @@ namespace SDK.ConsoleApp.WebRTC
                         {
                             if (audioInputStream != null)
                                 audioInputStream.Dispose();
-                            audioInputStream = videoInputStream;
+                            // TODO
+                            //audioInputStream = videoInputStream;
                         }
                     }
                     else
@@ -757,9 +787,9 @@ namespace SDK.ConsoleApp.WebRTC
                 }
             }
 
-            Device ? deviceSelected = null;
+            Device? deviceSelected = null;
 
-            if ( (keyValue != 0) && (devices != null) )
+            if ((keyValue != 0) && (devices != null))
             {
                 deviceSelected = devices[keyValue - 1];
                 Console.WriteLine($"\n\n\t => {logVideo} {logInput} device selected:[{deviceSelected.Name}]");
@@ -768,11 +798,45 @@ namespace SDK.ConsoleApp.WebRTC
                 Console.WriteLine($"\n\n\t => {logVideo} {logInput} device selected:[NONE]");
 
             if (isVideo)
+            {
+                // TODO - here we are using a webcam
                 videoInputSelected = deviceSelected;
+                videoInputStream = new MediaInput(videoInputSelected);
+                if (!(videoInputStream.Init() && videoInputStream.Start()))
+                {
+                    videoInputStream.Stop();
+                    videoInputStream.Dispose();
+                    videoInputStream = null;
+                    Console.WriteLine($"\n\n\t => {logVideo} {logInput} device selected:[{deviceSelected.Name}] CANNOT INITIALIZED IT. ENSURE IS NOT ALREADY USED BY ANTOHER PROCESS");
+                    return false;
+                }
+            }
             else if (isInput)
+            {
                 audioInputSelected = deviceSelected;
+                audioInputStream = new SDL2AudioInput(audioInputSelected.Id, audioInputSelected.Name, rbApplication.LoggerPrefix);
+                if (!(audioInputStream.Init() && audioInputStream.Start()))
+                {
+                    audioInputStream.Stop();
+                    audioInputStream.Dispose();
+                    audioInputStream = null;
+                    Console.WriteLine($"\n\n\t => {logVideo} {logInput} device selected:[{deviceSelected.Name}] CANNOT INITIALIZED IT. ENSURE IS NOT ALREADY USED BY ANTOHER PROCESS");
+                    return false;
+                }
+            }
             else
+            {
                 audioOutputSelected = deviceSelected;
+                audioOutputStream = new SDL2AudioOutput(audioOutputSelected.Id, audioOutputSelected.Name, rbApplication.LoggerPrefix);
+                if (!(audioOutputStream.Init() && audioOutputStream.Start()))
+                {
+                    audioOutputStream.Stop();
+                    audioOutputStream.Dispose();
+                    audioOutputStream = null;
+                    Console.WriteLine($"\n\n\t => {logVideo} {logInput} device selected:[{deviceSelected.Name}] CANNOT INITIALIZED IT. ENSURE IS NOT ALREADY USED BY ANTOHER PROCESS");
+                    return false;
+                }
+            }
 
             return true;
 
