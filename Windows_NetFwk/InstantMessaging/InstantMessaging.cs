@@ -19,18 +19,20 @@ namespace Sample_Contacts
         private static readonly ILogger log = Rainbow.LogFactory.CreateLogger<SampleInstantMessagingForm>();
 
         //Define Rainbow Application Id, Secret Key and Host Name
-        const string APP_ID = "YOUR APP ID";
-        const string APP_SECRET_KEY = "YOUR SECRET KEY";
-        const string HOST_NAME = "sandbox.openrainbow.com";
+        static internal string APP_ID = "TO DEFINE";
+        static internal string APP_SECRET_KEY = "TO DEFINE";
+        static internal string HOST_NAME = "TO DEFINE";
 
-        const string LOGIN_USER1 = "YOUR LOGIN";
-        const string PASSWORD_USER1 = "YOUR PASSWORD";
+        static internal string LOGIN_USER1 = "TO DEFINE";
+        static internal string PASSWORD_USER1 = "TO DEFINE";
+
 
         // Define Rainbow objects
         Rainbow.Application rainbowApplication;     // To store Rainbow Application object
         Contacts rainbowContacts;                   // To store Rainbow Contacts object
         Conversations rainbowConversations;         // To store Rainbow Conversations object
         InstantMessaging rainbowInstantMessaging;   // To store Rainbow InstantMessaging object
+        FileStorage rainbowFileStorage;             // To store Rainbow FileStorage object
 
         Contact rainbowMyContact;                   // To store My contact (i.e. the one connected to Rainbow Server)
         List<Contact> rainbowContactsList;          // To store contacts list of my roster
@@ -43,6 +45,10 @@ namespace Sample_Contacts
         String idSelected = null;
         bool selectionCorrect = false;
         string lastMessageIDReceived = null;
+        
+        string filePath = null;
+        Boolean fileUploadInprogress = false;
+        FileDescriptor fileDescriptor;
 
         // Define delegate to update SampleContactForm components
         delegate void StringArgReturningVoidDelegate(string value);
@@ -80,6 +86,7 @@ namespace Sample_Contacts
             rainbowContacts = rainbowApplication.GetContacts();
             rainbowConversations = rainbowApplication.GetConversations();
             rainbowInstantMessaging = rainbowApplication.GetInstantMessaging();
+            rainbowFileStorage = rainbowApplication.GetFileStorage();
 
             // EVENTS WE WANT TO MANAGE
             rainbowApplication.ConnectionStateChanged += RainbowApplication_ConnectionStateChanged;
@@ -97,6 +104,8 @@ namespace Sample_Contacts
             rainbowInstantMessaging.MessageReceived += RainbowInstantMessaging_MessageReceived;
             rainbowInstantMessaging.ReceiptReceived += RainbowInstantMessaging_ReceiptReceived;
             rainbowInstantMessaging.UserTypingChanged += RainbowInstantMessaging_UserTypingChanged;
+
+            rainbowFileStorage.FileUploadUpdated += RainbowFileStorage_FileUploadUpdated;
 
             rainbowContactsList = new List<Contact>();
 
@@ -456,6 +465,8 @@ namespace Sample_Contacts
 
             if (e.ConnectionState.State == Rainbow.Model.ConnectionState.Disconnected)
             {
+                fileUploadInprogress = false;
+
                 if (rainbowContactsList != null)
                 {
                     rainbowContactsList.Clear();
@@ -495,6 +506,9 @@ namespace Sample_Contacts
         {
             // Here we get a global presence information of the presence for a user/contact.
             // It's created using information of all devices of this contact. Calendar and Telephony status are also taken into account
+
+            if (rainbowMyContact == null)
+                return;
 
             if (e.Presence.BasicNodeJid == Util.GetBasicNodeJid(rainbowMyContact.Jid_im))
             {
@@ -674,6 +688,28 @@ namespace Sample_Contacts
             }
         }
 
+        private void RainbowFileStorage_FileUploadUpdated(object sender, Rainbow.Events.FileUploadEventArgs e)
+        {
+            // Check if this event is related to the FileDescriptor we have
+            if(fileDescriptor?.Id == e.FileDescriptor.Id)
+            {
+                fileUploadInprogress = e.InProgress;
+
+                if(e.InProgress)
+                {
+                    AddStateLine($"[{e.FileDescriptor.FileName}] SizeUploaded:[{e.SizeUploaded}]");
+                }
+                else
+                {
+                    if(e.Completed)
+                        AddStateLine($"[{e.FileDescriptor.FileName}] Upload done successfully");
+                    else
+                        AddStateLine($"[{e.FileDescriptor.FileName}] Upload failed");
+                }
+            }
+        }
+
+
     #endregion EVENTS FIRED BY RAINBOW SDK
 
     #region EVENTS FIRED BY SampleContactForm ELEMENTS
@@ -815,40 +851,142 @@ namespace Sample_Contacts
 
             if (selectionCorrect)
             {
+                if (contactSelected)
+                {
+                    // Ensure to have / create a conversation with it
+                    var conversation = rainbowConversations.GetOrCreateConversationFromUserId(idSelected);
+                    if(conversation == null)
+                    {
+                        AddStateLine($"Cannot create a conversation with the contact specified. No message sent");
+                        return;
+                    }
+                }
+
+
                 string textToSend = tbMessage.Text;
                 tbMessage.Text = "";
 
-                if (contactSelected)
+                if (cb_IncludeFile.Checked)
                 {
-                    rainbowInstantMessaging.SendMessageToContactId(idSelected, textToSend, UrgencyType.Std, null, callback =>
+                    if (!File.Exists(filePath ?? ""))
                     {
-                        if (callback.Result.Success)
+                        AddStateLine($"No file found. Check or choose a correct file.");
+                        return;
+                    }
+
+                    if(fileUploadInprogress)
+                    {
+                        AddStateLine($"A file is currently uploading. Try again once it's finished.");
+                        return;
+                    }
+
+                    if (contactSelected)
+                    {
+                        fileUploadInprogress = true;
+
+                        rainbowInstantMessaging.SendMessageWithFileToContactId(idSelected, textToSend, filePath, UrgencyType.Std, null, 
+                        callbackFileDescriptor =>
                         {
-                            AddStateLine($"Message sent successfully to contact [{idSelected}]");
-                        }
-                        else
+                            if (callbackFileDescriptor.Result.Success)
+                            {
+                                fileDescriptor = callbackFileDescriptor.Data;
+                                AddStateLine($"FileDescriptor has been created for [{fileDescriptor.FileName}]");
+                            }
+                            else
+                            {
+                                fileUploadInprogress = false;
+
+                                string logLine = String.Format("Message not sent - Impossible to create a FileDescriptor [{1}]:\r\n{0}", callbackFileDescriptor.Result, idSelected);
+                                AddStateLine(logLine);
+                                log.LogWarning(logLine);
+                            }
+                        },
+                        callbackMessage =>
                         {
-                            string logLine = String.Format("Impossible to send message to contact [{1}]:\r\n{0}", callback.Result, idSelected);
-                            AddStateLine(logLine);
-                            log.LogWarning(logLine);
-                        }
-                    });
+                            fileUploadInprogress = false;
+                            if (callbackMessage.Result.Success)
+                            {
+                                AddStateLine($"Message sent successfully to contact [{idSelected}] (including the file)");
+                            }
+                            else
+                            {
+                                string logLine = String.Format("Impossible to send message to contact [{1}]:\r\n{0}", callbackMessage.Result, idSelected);
+                                AddStateLine(logLine);
+                                log.LogWarning(logLine);
+                            }
+                        });
+                    }
+                    else
+                    {
+                        fileUploadInprogress = true;
+
+                        rainbowInstantMessaging.SendMessageWithFileToConversationId(idSelected, textToSend, filePath, null, UrgencyType.Std, null,
+                        callbackFileDescriptor =>
+                        {
+                            if (callbackFileDescriptor.Result.Success)
+                            {
+                                fileDescriptor = callbackFileDescriptor.Data;
+                                AddStateLine($"FileDescriptor has been created for [{fileDescriptor.FileName}]");
+                            }
+                            else
+                            {
+                                fileUploadInprogress = false;
+
+                                string logLine = String.Format("Message not sent - Impossible to create a FileDescriptor [{1}]:\r\n{0}", callbackFileDescriptor.Result, idSelected);
+                                AddStateLine(logLine);
+                                log.LogWarning(logLine);
+                            }
+                        },
+                        callbackMessage =>
+                        {
+                            fileUploadInprogress = false;
+                            if (callbackMessage.Result.Success)
+                            {
+                                AddStateLine($"Message sent successfully to conversation [{idSelected}] (including the file)");
+                            }
+                            else
+                            {
+                                string logLine = String.Format("Impossible to send message to conversation [{1}]:\r\n{0}", callbackMessage.Result, idSelected);
+                                AddStateLine(logLine);
+                                log.LogWarning(logLine);
+                            }
+                        });
+                    }
                 }
                 else
                 {
-                    rainbowInstantMessaging.SendMessageToConversationId(idSelected, textToSend, null, UrgencyType.Std, null, callback =>
+                    if (contactSelected)
                     {
-                        if (callback.Result.Success)
+                        rainbowInstantMessaging.SendMessageToContactId(idSelected, textToSend, UrgencyType.Std, null, callback =>
                         {
-                            AddStateLine($"Message sent successfully to conversation [{idSelected}]");
-                        }
-                        else
+                            if (callback.Result.Success)
+                            {
+                                AddStateLine($"Message sent successfully to contact [{idSelected}]");
+                            }
+                            else
+                            {
+                                string logLine = String.Format("Impossible to send message to contact [{1}]:\r\n{0}", callback.Result, idSelected);
+                                AddStateLine(logLine);
+                                log.LogWarning(logLine);
+                            }
+                        });
+                    }
+                    else
+                    {
+                        rainbowInstantMessaging.SendMessageToConversationId(idSelected, textToSend, null, UrgencyType.Std, null, callback =>
                         {
-                            string logLine = String.Format("Impossible to send message to conversation [{1}]:\r\n{0}", callback.Result, idSelected);
-                            AddStateLine(logLine);
-                            log.LogWarning(logLine);
-                        }
-                    });
+                            if (callback.Result.Success)
+                            {
+                                AddStateLine($"Message sent successfully to conversation [{idSelected}]");
+                            }
+                            else
+                            {
+                                string logLine = String.Format("Impossible to send message to conversation [{1}]:\r\n{0}", callback.Result, idSelected);
+                                AddStateLine(logLine);
+                                log.LogWarning(logLine);
+                            }
+                        });
+                    }
                 }
             }
         }
@@ -1022,6 +1160,18 @@ namespace Sample_Contacts
             }
         }
 
+        private void btn_Browse_Click(object sender, EventArgs e)
+        {
+            using (OpenFileDialog openFileDialog = new OpenFileDialog())
+            {
+                openFileDialog.RestoreDirectory = true;
+
+                if (openFileDialog.ShowDialog() == DialogResult.OK)
+                    filePath = openFileDialog.FileName;
+            }
+        }
+
+
     #endregion EVENTS FIRED BY SampleContactForm ELEMENTS
 
     #region UTIL METHODS
@@ -1119,7 +1269,6 @@ namespace Sample_Contacts
             return dateTime.ToUniversalTime()
                         .ToString("yyyy-MM-ddTHH:mm:ssZ");
         }
-
 
     #endregion UTIL METHODS
 

@@ -52,6 +52,9 @@
             this.label7 = new System.Windows.Forms.Label();
             this.cbPresenceList = new System.Windows.Forms.ComboBox();
             this.cbAutoLogon = new System.Windows.Forms.CheckBox();
+            this.label3 = new System.Windows.Forms.Label();
+            this.cb_IncludeFile = new System.Windows.Forms.CheckBox();
+            this.btn_Browse = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // label21
@@ -277,11 +280,43 @@
             this.cbAutoLogon.UseVisualStyleBackColor = true;
             this.cbAutoLogon.CheckedChanged += new System.EventHandler(this.cbAutoLogon_CheckedChanged);
             // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(33, 377);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(23, 13);
+            this.label3.TabIndex = 74;
+            this.label3.Text = "File";
+            // 
+            // cb_IncludeFile
+            // 
+            this.cb_IncludeFile.AutoSize = true;
+            this.cb_IncludeFile.Location = new System.Drawing.Point(169, 379);
+            this.cb_IncludeFile.Name = "cb_IncludeFile";
+            this.cb_IncludeFile.Size = new System.Drawing.Size(117, 17);
+            this.cb_IncludeFile.TabIndex = 75;
+            this.cb_IncludeFile.Text = "include to message";
+            this.cb_IncludeFile.UseVisualStyleBackColor = true;
+            // 
+            // btn_Browse
+            // 
+            this.btn_Browse.Location = new System.Drawing.Point(88, 374);
+            this.btn_Browse.Name = "btn_Browse";
+            this.btn_Browse.Size = new System.Drawing.Size(75, 23);
+            this.btn_Browse.TabIndex = 76;
+            this.btn_Browse.Text = "Browse ...";
+            this.btn_Browse.UseVisualStyleBackColor = true;
+            this.btn_Browse.Click += new System.EventHandler(this.btn_Browse_Click);
+            // 
             // SampleInstantMessagingForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 584);
+            this.Controls.Add(this.btn_Browse);
+            this.Controls.Add(this.cb_IncludeFile);
+            this.Controls.Add(this.label3);
             this.Controls.Add(this.cbAutoLogon);
             this.Controls.Add(this.cbPresenceList);
             this.Controls.Add(this.label7);
@@ -341,6 +376,9 @@
         private System.Windows.Forms.Label label7;
         private System.Windows.Forms.ComboBox cbPresenceList;
         private System.Windows.Forms.CheckBox cbAutoLogon;
+        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.CheckBox cb_IncludeFile;
+        private System.Windows.Forms.Button btn_Browse;
     }
 }
 
