@@ -794,7 +794,16 @@ namespace BotVideoOrchestratorAndBroadcaster
                 }
                 else
                 {
-                    var uriDevice = new InputStreamDevice("videoStream", "videoStream", uri, true, false, true);
+                    Dictionary<String, String>? options = null;
+                    if (uri.StartsWith("rtsp"))
+                    {
+                        options = new Dictionary<string, string>()
+                        {
+                            { "rtsp_transport", "tcp" }
+                        };
+                    }
+
+                    var uriDevice = new InputStreamDevice("videoStream", "videoStream", uri, true, false, true, options);
                     newStreamToUse = new MediaInput(uriDevice);
                     if (!newStreamToUse.Init(true))
                     {
@@ -865,7 +874,16 @@ namespace BotVideoOrchestratorAndBroadcaster
                 }
                 else
                 {
-                    var uriDevice = new InputStreamDevice("sharingStream", "sharingStream", uri, true, false, true);
+                    Dictionary<String, String>? options = null;
+                    if (uri.StartsWith("rtsp"))
+                    {
+                        options = new Dictionary<string, string>()
+                        {
+                            { "rtsp_transport", "tcp" }
+                        };
+                    }
+
+                    var uriDevice = new InputStreamDevice("sharingStream", "sharingStream", uri, true, false, true, options);
                     newStreamToUse = new MediaInput(uriDevice);
                     if (!newStreamToUse.Init(true))
                     {
