@@ -236,7 +236,7 @@ namespace BotVideoOrchestratorAndBroadcaster
                         String? jid = UtilJson.AsString(item, "jid");
                         String? id = UtilJson.AsString(item, "id");
 
-                        if (!String.IsNullOrEmpty(login))
+                        if ( (!String.IsNullOrEmpty(login)) || (!String.IsNullOrEmpty(jid)) ) 
                             RainbowApplicationInfo.botManagers.Add(new BotManager(login, id, jid));
                     }
                 }
