@@ -1,8 +1,17 @@
 ![Rainbow](logo_rainbow.png)
 
  
-# Rainbow CSharp SDK Samples
+## Examples for Rainbow CSharp SDK v3.x
 ---
+
+Check a look to this [page](./SDK%20V3.X) to get examples for V3.X
+
+
+## Examples for Rainbow CSharp SDK v2.X
+---
+
+Check a look to this [page]() to get examples for V3.X
+
 
 You will find here several samples which illustrate how to use the Rainbow CSharp SDK:
 
@@ -16,7 +25,7 @@ You will find here several samples which illustrate how to use the Rainbow CShar
 
 - S2S (Server to Server) sample (as **`BOT application`**) to understand how to use S2S event mode - full details about S2S versus XMPP event mode [here](https://developers.openrainbow.com/doc/sdk/csharp/core/lts/guides/035_events_mode) 
 
-## Small samples
+### Small samples
 ---
 
 They are listed in order of priority if you just started to use the SDK - they are available for **`Windows`** platform (using `.Net Framework`) and **`MacOS`** platform (using `Xamarin`)
