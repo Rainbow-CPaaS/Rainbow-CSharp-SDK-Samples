@@ -32,8 +32,8 @@ They are listed in order of priority / complexity.
 | Linux, MacOS, Windows | Login | Login and first events management | [Project](./ConsoleApp/Login%20and%20events) |
 | Linux, MacOS, Windows | Login, AutoReconnection | Login and AutoReconnection management | [Project](./ConsoleApp/Login%20and%20autoreconnection) |
 | Linux, MacOS, Windows | Logs | Configure multiple loggers (to manage several Rainbow instance) | [TO DO] |
-| Linux, MacOS, Windows | Bubbles, Contacts | Get information about Bubbles and Contacts | [Project](./ConsoleApp/Login%20simple) |
-| Linux, MacOS, Windows | Contacts, Presence | Get the presence of your contacts and modify yours | [Project](./ConsoleApp/Get%20basic%20contacts%20and%20bubbles%20info) |
+| Linux, MacOS, Windows | Bubbles, Contacts | Get information about Bubbles and Contacts | [Project](./ConsoleApp/Get%20basic%20contacts%20and%20bubbles%20info) |
+| Linux, MacOS, Windows | Contacts, Presence | Get the presence of your contacts and modify yours | [Project](./ConsoleApp/Get%20and%20set%20presence) |
 | Linux, MacOS, Windows | Contacts, Invitation, Presence | Presence and User invitations | [TO DO] |
 | Linux, MacOS, Windows | Bubbles | Bubbles affiliation and invitations | [TO DO] |
 | Linux, MacOS, Windows | InstantMessaging | Send and Receive messages  | [TO DO]  |
