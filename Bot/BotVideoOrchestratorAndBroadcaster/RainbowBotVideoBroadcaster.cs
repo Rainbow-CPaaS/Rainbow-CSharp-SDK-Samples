@@ -105,11 +105,11 @@ namespace BotVideoOrchestratorAndBroadcaster
         List<BotManager>? _botManagers;
         private String _stopMessage = "";
 
-        private MediaInput? _videoStream = null;
-        private String? _videoStreamUri = null;
+        private MediaFiltered ? _videoStreamFiltered = null;
+        private String? _videoStreamIndex = null;
 
-        private MediaInput? _sharingStream = null;
-        private String? _sharingStreamUri = null;
+        private MediaFiltered? _sharingStreamFiltered = null;
+        private String? _sharingStreamIndex = null;
 
         private String? _monitoredBubbleId = null;
         private String? _currentConferenceId = null;
@@ -350,9 +350,8 @@ namespace BotVideoOrchestratorAndBroadcaster
                     {
                         Boolean joinConference = UtilJson.AsBoolean(dicoData, "joinConference");
                         String conferenceId = UtilJson.AsString(dicoData, "conferenceId");
-                        String useName = UtilJson.AsString(dicoData, "useName");
-                        _videoStreamUri = UtilJson.AsString(dicoData, "videoUri");
-                        _sharingStreamUri = UtilJson.AsString(dicoData, "sharingUri");
+                        _videoStreamIndex = UtilJson.AsString(dicoData, "videoIndex");
+                        _sharingStreamIndex = UtilJson.AsString(dicoData, "sharingIndex");
 
                         if (joinConference && (!String.IsNullOrEmpty(conferenceId)))
                         {
@@ -361,8 +360,8 @@ namespace BotVideoOrchestratorAndBroadcaster
                                 Util.WriteDebugToConsole($"[{_botName}] We have to JOIN the conference [{conferenceId}]");
                                 _monitoredBubbleId = conferenceId;
                             }
-                            UpdateVideoStream(_videoStreamUri);
-                            UpdateSharingStream(_sharingStreamUri);
+                            UpdateVideoStream(_videoStreamIndex);
+                            UpdateSharingStream(_sharingStreamIndex);
                         }
                         else
                         {
@@ -698,8 +697,8 @@ namespace BotVideoOrchestratorAndBroadcaster
 
         private void QuitConference()
         {
-            SetNewVideoOrSharingStream(ref _videoStream, null);
-            SetNewVideoOrSharingStream(ref _sharingStream, null);
+            SetNewVideoOrSharingStream(_videoStreamFiltered, null);
+            SetNewVideoOrSharingStream(_sharingStreamFiltered, null);
 
             HangUp();
             ResetValues();
@@ -711,11 +710,11 @@ namespace BotVideoOrchestratorAndBroadcaster
             _needToAddVideoStreamInConference = false;
             _addingVideoStreamInConference = true;
 
-            if (!String.IsNullOrEmpty(_videoStreamUri))
+            if (_videoStreamIndex != "0")
             {
                 Rainbow.CancelableDelay.StartAfter(500, () =>
                 {
-                    UpdateVideoStream(_videoStreamUri);
+                    UpdateVideoStream(_videoStreamIndex);
                     _addingVideoStreamInConference = false;
 
                 });
@@ -728,11 +727,11 @@ namespace BotVideoOrchestratorAndBroadcaster
             _needToAddSharingStreamInConference = false;
             _addingSharingStreamInConference = true;
 
-            if (!String.IsNullOrEmpty(_sharingStreamUri))
+            if (_sharingStreamIndex != "0")
             {
                 Rainbow.CancelableDelay.StartAfter(500, () =>
                 {
-                    UpdateSharingStream(_sharingStreamUri);
+                    UpdateSharingStream(_sharingStreamIndex);
                     _addingSharingStreamInConference = false;
 
                 });
@@ -740,10 +739,13 @@ namespace BotVideoOrchestratorAndBroadcaster
             FireTrigger(Trigger.ActionDone);
         }
 
-        private void SetNewVideoOrSharingStream(ref MediaInput? internalStream, MediaInput? newSharingStream)
+        private void SetNewVideoOrSharingStream(MediaFiltered? internalStream, MediaFiltered? newSharingStream)
         {
             if (internalStream == null)
+            {
                 internalStream = newSharingStream;
+                return;
+            }
 
             if (newSharingStream != null)
             {
@@ -756,7 +758,7 @@ namespace BotVideoOrchestratorAndBroadcaster
                     internalStream = newSharingStream;
                 }
             }
-            else if(internalStream != null)
+            else if (internalStream != null)
             {
                 // Dispose previous stream
                 internalStream.Dispose();
@@ -765,18 +767,42 @@ namespace BotVideoOrchestratorAndBroadcaster
             }
         }
 
-        private void SetNewSharingStream(MediaInput? newSharingStream)
+        private void SetNewSharingStream(MediaFiltered? newSharingStream)
         {
-            SetNewVideoOrSharingStream(ref _sharingStream, newSharingStream);
+            SetNewVideoOrSharingStream(_sharingStreamFiltered, newSharingStream);
         }
 
-        private void SetNewVideoStream(MediaInput ? newVideoStream)
+        private void SetNewVideoStream(MediaFiltered ? newVideoStream)
         {
-            SetNewVideoOrSharingStream(ref _videoStream, newVideoStream);
+            SetNewVideoOrSharingStream(_videoStreamFiltered, newVideoStream);
         }
 
-        public void UpdateVideoStream(String? uri)
+        private (String uri, Dictionary<String, String> settings, String filter ) GetVideoDetailsUsingIndex(String index)
         {
+            String uri = "";
+            Dictionary<String, String> settings = null;
+            String filter = "";
+            foreach (var video in RainbowApplicationInfo.videos)
+            {
+                if (video.Index.ToString() == index)
+                {
+                    uri = video.Uri;
+                    settings = video.Settings;
+                    filter = video.Filter;
+                    break;
+                }
+            }
+            return (uri, settings, filter);
+        }
+
+        public void UpdateVideoStream(String? index)
+        {
+            if (index == "0")
+                return;
+
+            (String uri, Dictionary<String, String> settings, String filter) = GetVideoDetailsUsingIndex(index);
+            String id = "videoStream" + index;
+
             if (String.IsNullOrEmpty(uri))
             {
                 Util.WriteInfoToConsole($"[{_botName}] URI for Video Stream is null/empty");
@@ -786,39 +812,46 @@ namespace BotVideoOrchestratorAndBroadcaster
             // Are we currently in a conference ?
             if ((_currentCall != null) && (_currentCall.CallStatus == Call.Status.ACTIVE))
             {
-                MediaInput newStreamToUse;
+                MediaFiltered newStreamToUse = null;
 
-                if (_videoStream?.Path == uri)
+                if (_videoStreamFiltered?.Id == id)
                 {
-                    newStreamToUse = _videoStream;
+                    newStreamToUse = _videoStreamFiltered;
                 }
                 else
                 {
-                    Dictionary<String, String>? options = null;
-                    if (uri.StartsWith("rtsp"))
+                    var uriDevice = new InputStreamDevice(id, id, uri, true, false, true, settings);
+
+                    var mediaInput = new MediaInput(uriDevice);
+                    if (!mediaInput.Init(true))
                     {
-                        options = new Dictionary<string, string>()
-                        {
-                            { "rtsp_transport", "tcp" }
-                        };
+                        Util.WriteErrorToConsole($"[{_botName}] Canno init Video Stream using this URI:{uri}]. (MediaInput)");
+                        return;
                     }
 
-                    var uriDevice = new InputStreamDevice("videoStream", "videoStream", uri, true, false, true, options);
-                    newStreamToUse = new MediaInput(uriDevice);
+                    List<MediaInput> list = new()
+                    {
+                        mediaInput
+                    };
+                    newStreamToUse = new MediaFiltered(id + "Filtered", list);
+                    if (filter == "") filter = null;
+                    if (!newStreamToUse.SetVideoFilter(new List<String>() { id }, filter))
+                        Util.WriteErrorToConsole($"[{_botName}] Cannot use this filter for Video Stream: {filter}].");
+
                     if (!newStreamToUse.Init(true))
                     {
-                        Util.WriteErrorToConsole($"[{_botName}] Canno init Video Stream using this URI:{uri}].");
+                        Util.WriteErrorToConsole($"[{_botName}] Canno init Video Stream using this URI:{uri}]. (MediaFiltered)");
                         return;
                     }
                 }
 
-                Util.WriteWarningToConsole($"[{_botName}] For Video Stream trying to use this URI:{uri}].");
+                Util.WriteWarningToConsole($"[{_botName}] For Video Stream trying to use this URI:{uri}] - Filter:[{filter}]");
 
                 Boolean videoHasNotBeenSet = false;
 
                 if (Rainbow.Util.MediasWithVideo(_currentCall.LocalMedias))
                 {
-                    if (newStreamToUse.Path == _videoStream?.Path)
+                    if (newStreamToUse?.Id == _videoStreamFiltered?.Id)
                     {
                         Util.WriteWarningToConsole($"[{_botName}] For Video, We alreayd use this URI:[{uri}]");
                         return;
@@ -855,8 +888,14 @@ namespace BotVideoOrchestratorAndBroadcaster
             }
         }
 
-        public void UpdateSharingStream(String? uri)
+        public void UpdateSharingStream(String? index)
         {
+            if (index == "0")
+                return;
+
+            (String uri, Dictionary<String, String> settings, String filter) = GetVideoDetailsUsingIndex(index);
+            String id = "SharingStream" + index;
+
             if (String.IsNullOrEmpty(uri))
             {
                 Util.WriteDebugToConsole($"[{_botName}] URI for Sharing Stream is null/empty");
@@ -866,40 +905,46 @@ namespace BotVideoOrchestratorAndBroadcaster
             // Are we currently in a conference ?
             if ((_currentConferenceId != null) && (_currentCall != null))
             {
-                MediaInput newStreamToUse;
+                MediaFiltered newStreamToUse = null;
 
-                if (_sharingStream?.Path == uri)
+                if (_sharingStreamFiltered?.Id == id)
                 {
-                    newStreamToUse = _sharingStream;
+                    newStreamToUse = _sharingStreamFiltered;
                 }
                 else
                 {
-                    Dictionary<String, String>? options = null;
-                    if (uri.StartsWith("rtsp"))
-                    {
-                        options = new Dictionary<string, string>()
-                        {
-                            { "rtsp_transport", "tcp" }
-                        };
-                    }
+                    var uriDevice = new InputStreamDevice(id, id, uri, true, false, true, settings);
 
-                    var uriDevice = new InputStreamDevice("sharingStream", "sharingStream", uri, true, false, true, options);
-                    newStreamToUse = new MediaInput(uriDevice);
-                    if (!newStreamToUse.Init(true))
+                    var mediaInput = new MediaInput(uriDevice);
+                    if (!mediaInput.Init(true))
                     {
                         Util.WriteErrorToConsole($"[{_botName}] Canno init Sharing Stream using this URI:|{uri}].");
                         return;
                     }
+                    List<MediaInput> list = new()
+                    {
+                        mediaInput
+                    };
+                    newStreamToUse = new MediaFiltered(id + "Filtered", list);
+                    if (filter == "") filter = null;
+                    if (!newStreamToUse.SetVideoFilter(new List<String>() { id }, filter))
+                        Util.WriteErrorToConsole($"[{_botName}] Cannot use this filter for Sharing Stream: [{filter}].");
+
+                    if (!newStreamToUse.Init(true))
+                    {
+                        Util.WriteErrorToConsole($"[{_botName}] Canno init Sharing Stream using this URI:{uri}]. (MediaFiltered)");
+                        return;
+                    }
                 }
 
-                Util.WriteWarningToConsole($"[{_botName}] For Sharing Stream trying to use this URI:{uri}].");
+                Util.WriteWarningToConsole($"[{_botName}] For Sharing Stream trying to use this URI:{uri}] - Filter:[{filter}]");
 
                 Boolean sharingHasNotBeenSet = false;
             
 
                 if (Rainbow.Util.MediasWithSharing(_currentCall.LocalMedias))
                 {
-                    if (newStreamToUse.Path == _sharingStream?.Path)
+                    if (newStreamToUse?.Id == _sharingStreamFiltered?.Id)
                     {
                         Util.WriteWarningToConsole($"[{_botName}] For Sharing, We alreayd use this URI:[{uri}]");
                         return;
@@ -1146,7 +1191,7 @@ namespace BotVideoOrchestratorAndBroadcaster
         {
             if (media == Call.Media.VIDEO)
             {
-                Util.WriteErrorToConsole($"[{_botName}] Failed to stream video using URI:[{_videoStreamUri}] - Retrying ...");
+                Util.WriteErrorToConsole($"[{_botName}] Failed to stream video using VideoIndex:[{_videoStreamIndex}] - Retrying ...");
 
                 if (_currentCall != null)
                 {
@@ -1158,7 +1203,7 @@ namespace BotVideoOrchestratorAndBroadcaster
             }
             else
             {
-                Util.WriteErrorToConsole($"[{_botName}] Failed to stream Sharing using URI:[{_sharingStreamUri}] - Retrying ...");
+                Util.WriteErrorToConsole($"[{_botName}] Failed to stream Sharing using URI:[{_sharingStreamIndex}] - Retrying ...");
 
                 if (_currentCall != null)
                 {
@@ -1278,7 +1323,7 @@ namespace BotVideoOrchestratorAndBroadcaster
         /// <param name="iniFolderFullPathName">[optional]Full Folder path to ini file</param>
         /// <param name="iniFileName">[optional]ini file name</param>
         /// <returns>True if configuration has been done</returns>
-        public Boolean Configure(String appId, String appSecretKey, String hostname, String login, String pwd, String botName, List<BotManager>? botManagers, String stopMessage, String? monitoredBubbleId, String? videoStreamUri, String? sharingStreamUri, String? iniFolderFullPathName = null, String? iniFileName = null)
+        public Boolean Configure(String appId, String appSecretKey, String hostname, String login, String pwd, String botName, List<BotManager>? botManagers, String stopMessage, String? monitoredBubbleId, String? videoStreamIndex, String? sharingStreamIndex, String? iniFolderFullPathName = null, String? iniFileName = null)
         {
             // Check that the trigger can be used
             Trigger triggerToUse = Trigger.Configure;
@@ -1314,10 +1359,10 @@ namespace BotVideoOrchestratorAndBroadcaster
             _stopMessage = stopMessage;
 
             // Store Video / Sharing Stream Uri
-            _videoStreamUri = videoStreamUri;
-            _sharingStreamUri = sharingStreamUri;
-            UpdateVideoStream(videoStreamUri);
-            UpdateSharingStream(sharingStreamUri);
+            _videoStreamIndex = videoStreamIndex;
+            _sharingStreamIndex = sharingStreamIndex;
+            UpdateVideoStream(videoStreamIndex);
+            UpdateSharingStream(sharingStreamIndex);
 
             // Store Bubble ID monitored 
             _monitoredBubbleId = monitoredBubbleId;

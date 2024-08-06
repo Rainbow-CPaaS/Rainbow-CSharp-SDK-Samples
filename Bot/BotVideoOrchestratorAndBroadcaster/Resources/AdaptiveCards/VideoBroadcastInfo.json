@@ -14,11 +14,11 @@
 			"items": [{
 				"type": "Input.ChoiceSet",
 				"id": "BOT[[$ID]]_ChoiceSet",
-				"value": "${botsInfo[[[$ID]]].uri}",
+				"value": "${botsInfo[[[$ID]]].index}",
 				"choices": [{
 					"$data": "${videos}",
 					"title": "${title}",
-					"value": "${uri}"
+					"value": "${index}"
 				}]
 			}]
 		}

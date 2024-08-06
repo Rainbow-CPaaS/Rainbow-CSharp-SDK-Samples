@@ -531,18 +531,9 @@ namespace BotVideoOrchestratorAndBroadcaster
 
             foreach (var bot in botVideoBroadcasterInfos)
             {
-                String uri = bot.Uri;
-                if (uri.StartsWith('"'))
-                    uri = bot.Uri.Substring(1);
-                if (uri.EndsWith('"'))
-                    uri = bot.Uri.Substring(0, bot.Uri.Length-1);
-
-                if (String.IsNullOrEmpty(uri))
-                    uri = RainbowApplicationInfo.labelNoVideo;
-
                 String info = "{";
                 info += $"\r\n\"name\": \"{bot.Name}\",";
-                info += $"\r\n\"uri\": \"{uri.Replace("\\", "\\\\")}\",";
+                info += $"\r\n\"index\": \"{bot.VideoIndex}\",";
                 info += $"\r\n\"checked\": \"{(bot.Selected ? "true" : "false")}\"";
                 info += "}";
 
@@ -557,7 +548,7 @@ namespace BotVideoOrchestratorAndBroadcaster
             {
                 String info = "{";
                 info += $"\r\n\"title\": \"{video.Title.Replace("\\", "\\\\")}\",";
-                info += $"\r\n\"uri\": \"{video.Uri.Replace("\\", "\\\\")}\"";
+                info += $"\r\n\"index\": \"{video.Index}\"";
                 info += "}";
 
                 videos.Add(info);
@@ -572,7 +563,7 @@ namespace BotVideoOrchestratorAndBroadcaster
             // Add sharingSelection
             List<string> sharingSelection = new List<string>();
             String sharingSelected = RainbowApplicationInfo.labelNone;
-            String sharingUri = videoInfos[1].Uri;
+            String sharingIndex = videoInfos[1].Index.ToString();
             foreach (var bot in botVideoBroadcasterInfos)
             {
                 String info = "{";
@@ -580,13 +571,13 @@ namespace BotVideoOrchestratorAndBroadcaster
                 info += "}";
 
                 sharingSelection.Add(info);
-                if (!String.IsNullOrEmpty(bot.SharingUri))
+                if (bot.SharingIndex != "0")
                 {
                     sharingSelected = bot.Name;
-                    sharingUri = bot.SharingUri;
+                    sharingIndex = bot.SharingIndex;
                 }
             }
-            result += $"\r\n\"sharingStreamSelected\": \"{sharingUri.Replace("\\", "\\\\")}\",";
+            result += $"\r\n\"sharingStreamSelected\": \"{sharingIndex}\",";
             result += $"\r\n\"sharingSelected\": \"{sharingSelected}\",";
             result += $"\r\n\"sharingSelection\": [{String.Join(",", sharingSelection)}]";
 
@@ -754,12 +745,12 @@ namespace BotVideoOrchestratorAndBroadcaster
             FireTrigger(Trigger.MessageManaged);
         }
 
-        private String GetVideoTitleUsingUri(String uri)
+        private String GetVideoTitleUsingIndex(String index)
         {
             string result = "";
             foreach(var video in videoInfos)
             {
-                if(video.Uri == uri)
+                if(video.Index.ToString() == index)
                 {
                     result = video.Title;
                     break;
@@ -832,7 +823,7 @@ namespace BotVideoOrchestratorAndBroadcaster
                                         && (botState != RainbowBotVideoBroadcaster.State.NotConnected))
                                 {
 
-                                    videoTitle = GetVideoTitleUsingUri(choiceSet);
+                                    videoTitle = GetVideoTitleUsingIndex(choiceSet);
                                     if (String.IsNullOrEmpty(videoTitle))
                                         videoTitle = bot.Name;
 
@@ -844,16 +835,16 @@ namespace BotVideoOrchestratorAndBroadcaster
 
                                     // Update Bot info:
                                     bot.Selected = joinConference;
-                                    bot.Uri = choiceSet;
-                                    bot.SharingUri = (sharingChoiceSet == bot.Name) ? sharingStreamChoiceSet : "";
+                                    bot.VideoIndex = choiceSet;
+                                    bot.SharingIndex = (sharingChoiceSet == bot.Name) ? sharingStreamChoiceSet : "0";
 
                                     Dictionary <String, Object> dataToSend = new Dictionary<string, Object>();
                                     dataToSend.Add("joinConference", joinConference);
                                     dataToSend.Add("conferenceId", confId);
                                     dataToSend.Add("useName", videoTitle);
-                                    dataToSend.Add("videoUri", bot.Uri);
-                                    dataToSend.Add("sharingUri", bot.SharingUri);
-                                    
+                                    dataToSend.Add("videoIndex", bot.VideoIndex);
+                                    dataToSend.Add("sharingIndex", bot.SharingIndex);
+
                                     String dataToSendJsonString = UtilJson.JsonStringFromDictionaryOfStringAndObject(dataToSend);
                                     //Console.WriteLine($"[{_botName}] Message to send to [{bot.Name}]: [{dataToSendJsonString}]");
 
@@ -1518,14 +1509,14 @@ namespace BotVideoOrchestratorAndBroadcaster
             _botManagers = botManagers;
 
             // Create list of VideoInfo
-            if (RainbowApplicationInfo.videosUri == null)
+            if (RainbowApplicationInfo.videos == null)
                 return false;
             videoInfos = new List<VideoInfo>();
-            videoInfos.Add(new VideoInfo(RainbowApplicationInfo.labelNoVideo));
             int index = 0;
-            foreach(var uri in RainbowApplicationInfo.videosUri)
+            videoInfos.Add(new VideoInfo(0, RainbowApplicationInfo.labelNoVideo));
+            foreach(var video in RainbowApplicationInfo.videos)
             {
-                var videoInfo = new VideoInfo(uri);
+                var videoInfo = new VideoInfo(index + 1, video.Uri, video.Settings);
                 if(RainbowApplicationInfo.labelVideosUriName?.Count > index)
                     videoInfo.Title = RainbowApplicationInfo.labelVideosUriName[index];
                 videoInfos.Add(videoInfo);
@@ -1537,7 +1528,7 @@ namespace BotVideoOrchestratorAndBroadcaster
                 return false;
             botVideoBroadcasterInfos = new List<BotVideoBroadcasterInfo>();
             var botVideoBroadcasterNone = new BotVideoBroadcasterInfo(RainbowApplicationInfo.labelNone, RainbowApplicationInfo.labelNone);
-            botVideoBroadcasterNone.Name = botVideoBroadcasterNone.Uri = RainbowApplicationInfo.labelNone;
+            botVideoBroadcasterNone.Name = RainbowApplicationInfo.labelNone;
             botVideoBroadcasterInfos.Add(botVideoBroadcasterNone);
             index = 0;
             foreach (var account in RainbowApplicationInfo.botsVideoBroadcaster)
@@ -1550,13 +1541,13 @@ namespace BotVideoOrchestratorAndBroadcaster
                 else
                     botVideoBroadcasterInfo.Name = $"CCTV {index+1}";
 
-                // Set Bot default URI
-                if (RainbowApplicationInfo.videosUri?.Count > 0)
+                // Set Bot default VideoIndex
+                if (RainbowApplicationInfo.videos?.Count > 0)
                 {
-                    if (RainbowApplicationInfo.videosUri.Count > index)
-                        botVideoBroadcasterInfo.Uri = RainbowApplicationInfo.videosUri[index];
+                    if (RainbowApplicationInfo.videos.Count > index)
+                        botVideoBroadcasterInfo.VideoIndex =  RainbowApplicationInfo.videos[index].Index.ToString();
                     else
-                        botVideoBroadcasterInfo.Uri = RainbowApplicationInfo.videosUri[index % RainbowApplicationInfo.videosUri.Count];
+                        botVideoBroadcasterInfo.VideoIndex = RainbowApplicationInfo.videos[index % RainbowApplicationInfo.videos.Count].Index.ToString(); ;
                 }
 
                 //if (index == 0)

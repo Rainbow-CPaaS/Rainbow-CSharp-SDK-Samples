@@ -4,7 +4,7 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
-    <Version>0.2.0</Version>
+    <Version>0.3.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
@@ -38,11 +38,10 @@
   <ItemGroup>
 	<PackageReference Include="AdaptiveCards.Templating" Version="1.5.0" />
 	<PackageReference Include="NLog.Extensions.Logging" Version="5.3.8" />
-	<PackageReference Include="Rainbow.CSharp.SDK.WebRTC" Version="0.0.15-sts" />
-	<PackageReference Include="Rainbow.CSharp.SDK.WebRTC.Desktop" Version="0.0.6-sts" />
+	<PackageReference Include="Rainbow.CSharp.SDK.WebRTC" Version="1.0.0" />
+	<PackageReference Include="Rainbow.CSharp.SDK.WebRTC.Desktop" Version="1.0.0" />
 	<PackageReference Include="stateless" Version="5.15.0" />
 	<PackageReference Include="System.Net.Http" Version="4.3.4" />
 	<PackageReference Include="System.Net.Security" Version="4.3.2" />
   </ItemGroup>
-
 </Project>

@@ -1,11 +1,11 @@
 ﻿using Microsoft.Extensions.Logging;
-using Newtonsoft.Json.Linq;
 using NLog.Config;
 using NLog.Extensions.Logging;
 using Rainbow;
 using Rainbow.SimpleJSON;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Threading;
 
@@ -192,8 +192,29 @@ namespace BotVideoOrchestratorAndBroadcaster
                 if (jsonNode["labelsFilePath"] != null)
                     RainbowApplicationInfo.labelsFilePath = $".{Path.DirectorySeparatorChar}Resources{Path.DirectorySeparatorChar}" + UtilJson.AsString(jsonNode, "labelsFilePath");
 
-                if (jsonNode["videosUri"] != null)
-                    RainbowApplicationInfo.videosUri = UtilJson.AsStringList(jsonNode, "videosUri");
+                if (jsonNode["videos"]?.IsArray == true)
+                {
+                    RainbowApplicationInfo.videos = new List<Video>();
+                    int index = 1;
+                    foreach (var video_json in jsonNode["videos"])
+                    {
+                        var video = new Video(index++);
+                        video.Uri = UtilJson.AsString(video_json, "uri");
+
+                        var settings = UtilJson.AsDictionaryOfStringAndObject(video_json, "settings");
+                        foreach (var key in settings.Keys)
+                        {
+                            var value = settings[key];
+                            if (value is String str)
+                                video.Settings[key] = str;
+                            else if (value is Double dbl)
+                                video.Settings[key] = dbl.ToString(CultureInfo.InvariantCulture);
+                        }
+                        video.Filter = UtilJson.AsString(video_json, "filter");
+
+                        RainbowApplicationInfo.videos.Add(video);
+                    }
+                }
 
                 if (jsonNode["serverConfig"]?.IsObject == true)
                 {
@@ -272,7 +293,6 @@ namespace BotVideoOrchestratorAndBroadcaster
                 result = false;
             }
 
-
             if (!IsConfigValueValid(RainbowApplicationInfo.commandMenu))
             {
                 message += "\r\n\t botVideoOrchestrator.commandMenu has not been defined";
@@ -291,7 +311,7 @@ namespace BotVideoOrchestratorAndBroadcaster
                 result = false;
             }
 
-            if (RainbowApplicationInfo.videosUri == null)
+            if (RainbowApplicationInfo.videos == null)
             {
                 message += "\r\n\t videosUri has not been defined";
                 result = false;

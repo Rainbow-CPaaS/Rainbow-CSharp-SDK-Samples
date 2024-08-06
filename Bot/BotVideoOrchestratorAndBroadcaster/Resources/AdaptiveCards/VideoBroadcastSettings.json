@@ -99,7 +99,7 @@
                             {
                               "$data": "${videosForSharing}",
                               "title": "${title}",
-                              "value": "${uri}"
+                              "value": "${index}"
                             }
                           ]
                         }

@@ -21,11 +21,11 @@ namespace BotVideoOrchestratorAndBroadcaster
 
         public string Name; // Name (i;e. first + last name to use
 
-        public string Uri; // Uri of the stream to use (distant or local)
+        public string VideoIndex; // Index of the video
 
         public bool Selected; // To know if this bot must join the conference
 
-        public string SharingUri; // Uri of the stream to use in sharing stream (distant or local)
+        public string SharingIndex; // Uri of the stream to use in sharing stream (distant or local)
 
         public BotVideoBroadcasterInfo(string login, string pwd)
         {
@@ -33,9 +33,9 @@ namespace BotVideoOrchestratorAndBroadcaster
             Pwd = pwd;
             Id = "";
             Name = "";
-            Uri = "";
+            VideoIndex = "0";
             Selected = false;
-            SharingUri = "";
+            SharingIndex = "0";
 
             botVideoBroadcaster = new RainbowBotVideoBroadcaster();
         }
@@ -174,19 +174,19 @@ namespace BotVideoOrchestratorAndBroadcaster
 
     internal class VideoInfo
     {
+        public int Index;
+
         public string Title;
 
         public string Uri;
 
-        public VideoInfo(string title, string uri)
-        {
-            Title = title;
-            Uri = uri;
-        }
+        public Dictionary<String, String> Settings { get; set; }
 
-        public VideoInfo(string title)
+        public VideoInfo(int index, string title, Dictionary<string, string> settings = null)
         {
+            Index = index;
             Title = Uri = title;
+            Settings = settings;
         }
     }
 

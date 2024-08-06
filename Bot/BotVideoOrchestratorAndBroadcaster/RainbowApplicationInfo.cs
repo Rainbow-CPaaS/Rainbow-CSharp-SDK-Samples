@@ -21,8 +21,6 @@ namespace BotVideoOrchestratorAndBroadcaster
 
         static internal String labelsFilePath = DEFAULT_VALUE;
 
-        static internal List<String>? videosUri = null;
-
         static internal String appId = DEFAULT_VALUE;
         static internal String appSecret = DEFAULT_VALUE;
         static internal String hostname = DEFAULT_VALUE;
@@ -46,6 +44,8 @@ namespace BotVideoOrchestratorAndBroadcaster
 
         static internal List<String>? labelVideosUriName = null;
         static internal List<String>? labelBotsVideoBroadcasterName = null;
+
+        static internal List<Video>? videos = null;
     }
 
     internal class Account
