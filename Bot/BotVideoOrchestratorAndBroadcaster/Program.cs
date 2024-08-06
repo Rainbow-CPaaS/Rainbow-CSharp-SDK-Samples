@@ -211,6 +211,8 @@ namespace BotVideoOrchestratorAndBroadcaster
                                 video.Settings[key] = dbl.ToString(CultureInfo.InvariantCulture);
                         }
                         video.Filter = UtilJson.AsString(video_json, "filter");
+                        if (UtilJson.CheckJsonNode(video_json, "forceLiveStream"))
+                            video.ForceLiveStream = UtilJson.AsBoolean(video_json, "forceLiveStream");
 
                         RainbowApplicationInfo.videos.Add(video);
                     }

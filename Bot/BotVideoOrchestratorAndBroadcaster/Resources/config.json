@@ -1,10 +1,9 @@
 {
 	"_comment_ffmpegLibFolderPath": "A valid path where FFMpeg libraries are stored according your system",
-	"ffmpegLibFolderPath": "C:\\ffmpeg-6.0-full_build-shared\\bin",
+	"ffmpegLibFolderPath": "C:\\ffmpeg-7.0.1-full_build-shared\\bin",
 
 	"labelsFilePath": "labels_EN.json",
 
-	"_comment_videosUri": "You can specify several URI: local or remote",
 	"_comment_videos": "You can specify several videos: uri as local or remote and also settings and filter for each if necessary",
 	"videos": [
 		{
@@ -13,14 +12,16 @@
 			"settings": {
 				"rtsp_transport": "tcp"
 			},
-			"filter": "format=gray,scale=200:-2"
+			"filter": "format=gray,scale=200:-2",
+			"forceLiveStream": false
 		},
 		{
-			"_comment_uri": "a valid URI - for example a video file on the dsik. No settings and no filter",
+			"_comment_uri": "a valid URI - for example a video file on the HD. No settings and no filter",
 			"uri": "C:\\media\\Joy_and_Heron.webm",
 			"settings": {
 			},
-			"filter": ""
+			"filter": "",
+			"forceLiveStream": false
 		}
 	],
 

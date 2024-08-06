@@ -12,12 +12,15 @@ namespace BotVideoOrchestratorAndBroadcaster
 
         public Dictionary<String, String> Settings { get; set; }
 
+        public Boolean? ForceLiveStream{ get; set; }
+
         public Video(int index)
         {
             Index = index;
             Uri = "";
             Settings = new Dictionary<String, String>();
             Filter = "";
+            ForceLiveStream = null;
         }
     }
 }

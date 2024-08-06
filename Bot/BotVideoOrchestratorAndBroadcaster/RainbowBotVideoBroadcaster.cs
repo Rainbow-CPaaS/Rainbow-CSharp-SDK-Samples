@@ -777,11 +777,12 @@ namespace BotVideoOrchestratorAndBroadcaster
             SetNewVideoOrSharingStream(_videoStreamFiltered, newVideoStream);
         }
 
-        private (String uri, Dictionary<String, String> settings, String filter ) GetVideoDetailsUsingIndex(String index)
+        private (String uri, Dictionary<String, String>? settings, String filter, Boolean? forceLiveStream) GetVideoDetailsUsingIndex(String index)
         {
             String uri = "";
             Dictionary<String, String> settings = null;
             String filter = "";
+            Boolean? forceLiveStream = null;
             foreach (var video in RainbowApplicationInfo.videos)
             {
                 if (video.Index.ToString() == index)
@@ -789,10 +790,11 @@ namespace BotVideoOrchestratorAndBroadcaster
                     uri = video.Uri;
                     settings = video.Settings;
                     filter = video.Filter;
+                    forceLiveStream = video.ForceLiveStream;
                     break;
                 }
             }
-            return (uri, settings, filter);
+            return (uri, settings, filter, forceLiveStream);
         }
 
         public void UpdateVideoStream(String? index)
@@ -800,7 +802,7 @@ namespace BotVideoOrchestratorAndBroadcaster
             if (index == "0")
                 return;
 
-            (String uri, Dictionary<String, String> settings, String filter) = GetVideoDetailsUsingIndex(index);
+            (String uri, Dictionary<String, String> settings, String filter, Boolean? forceLiveStream) = GetVideoDetailsUsingIndex(index);
             String id = "videoStream" + index;
 
             if (String.IsNullOrEmpty(uri))
@@ -822,7 +824,7 @@ namespace BotVideoOrchestratorAndBroadcaster
                 {
                     var uriDevice = new InputStreamDevice(id, id, uri, true, false, true, settings);
 
-                    var mediaInput = new MediaInput(uriDevice);
+                    var mediaInput = new MediaInput(uriDevice, forceLivestream: forceLiveStream);
                     if (!mediaInput.Init(true))
                     {
                         Util.WriteErrorToConsole($"[{_botName}] Canno init Video Stream using this URI:{uri}]. (MediaInput)");
@@ -893,7 +895,7 @@ namespace BotVideoOrchestratorAndBroadcaster
             if (index == "0")
                 return;
 
-            (String uri, Dictionary<String, String> settings, String filter) = GetVideoDetailsUsingIndex(index);
+            (String uri, Dictionary<String, String> settings, String filter, Boolean? forceLiveStream) = GetVideoDetailsUsingIndex(index);
             String id = "SharingStream" + index;
 
             if (String.IsNullOrEmpty(uri))
@@ -915,7 +917,7 @@ namespace BotVideoOrchestratorAndBroadcaster
                 {
                     var uriDevice = new InputStreamDevice(id, id, uri, true, false, true, settings);
 
-                    var mediaInput = new MediaInput(uriDevice);
+                    var mediaInput = new MediaInput(uriDevice, forceLivestream: forceLiveStream);
                     if (!mediaInput.Init(true))
                     {
                         Util.WriteErrorToConsole($"[{_botName}] Canno init Sharing Stream using this URI:|{uri}].");
