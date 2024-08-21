@@ -1,0 +1,9 @@
+
+[*.cs]
+
+# CA1050: Declare types in namespaces
+dotnet_diagnostic.CA1050.severity = none
+
+
+# CA2211 : Les champs non constants ne doivent pas être visibles
+dotnet_diagnostic.CA2211.severity = none

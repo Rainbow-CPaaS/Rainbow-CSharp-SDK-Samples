@@ -19,32 +19,35 @@ This SDK is using the [Rainbow environment](https://developers.openrainbow.com/)
 This environment is based on the [Rainbow service](https://www.openrainbow.com/) 
 
 
-## Samples
+## Examples as Console Application
 ---
+
+They are working on **Linux, MacOS and Windows**
 
 They are listed in order of priority / complexity.
 
-
-| Platform | Content | Description | Project |
-| --- | --- | --- | --- |
-| Linux, MacOS, Windows | Login | Simple Login using await / async | [Project](./ConsoleApp/Login%20simple) |
-| Linux, MacOS, Windows | Logs | Configure logger to have logs file | [Project](./ConsoleApp/Configure%20logger) | 
-| Linux, MacOS, Windows | Login | Login and first events management | [Project](./ConsoleApp/Login%20and%20events) |
-| Linux, MacOS, Windows | Login, AutoReconnection | Login and AutoReconnection management | [Project](./ConsoleApp/Login%20and%20autoreconnection) |
-| Linux, MacOS, Windows | Logs | Configure multiple loggers (to manage several Rainbow instance) | [TO DO] |
-| Linux, MacOS, Windows | Bubbles, Contacts | Get information about Bubbles and Contacts | [Project](./ConsoleApp/Get%20basic%20contacts%20and%20bubbles%20info) |
-| Linux, MacOS, Windows | Contacts, Presence | Get the presence of your contacts and modify yours | [Project](./ConsoleApp/Get%20and%20set%20presence) |
-| Linux, MacOS, Windows | Contacts, Invitation, Presence | Presence and User invitations | [TO DO] |
-| Linux, MacOS, Windows | Bubbles | Bubbles affiliation and invitations | [TO DO] |
-| Linux, MacOS, Windows | InstantMessaging | Send and Receive messages  | [TO DO]  |
-| Linux, MacOS, Windows | InstantMessaging, Restrictions | Send and Receive messages (advanced settings) | [TO DO]  |
-| Linux, MacOS, Windows | InstantMessaging | Fetch all messages archived from a Peer | [Project](./ConsoleApp/Fetch%20messages%20from%20peer) |
-
- 
+| Content | Description | Project |
+| --- | --- | --- |
+| Login | Simple Login using await / async | [Project](./ConsoleApp/Login%20simple) |
+| Logs | Configure logger to have logs file | [Project](./ConsoleApp/Configure%20logger) | 
+| Login | Login and first events management | [Project](./ConsoleApp/Login%20and%20events) |
+| Login, AutoReconnection | Login and AutoReconnection management | [Project](./ConsoleApp/Login%20and%20autoreconnection) |
+| Logs, Multiple Instances | Configure multiple loggers (to manage several Rainbow instance) | [Project](./ConsoleApp/Configure%20multiple%20loggers) |
+| Bubbles, Contacts | Get information about Bubbles and Contacts | [Project](./ConsoleApp/Get%20basic%20contacts%20and%20bubbles%20info) |
+| Contacts, Presence | Get the presence of your contacts and modify yours | [Project](./ConsoleApp/Get%20and%20set%20presence) |
+| InstantMessaging | Fetch all messages archived from a Peer | [Project](./ConsoleApp/Fetch%20messages%20from%20peer) |
 
 
+## Examples as Termninal Application
+---
 
+This examples are more interactive and they are working on **Linux, MacOS and Windows**
 
+An solution centralized all of them [here](./TerminalApp/TerminalApp.sln)
 
-
+| Project Name | Content | Description |
+| --- | --- | --- |
+| TerminAppLogin | Login, AutoReconnection | Simple Login form to understand basic features and switch between different accounts  |
+| TerminAppLoginSplittedView | Login, AutoReconnection | Simple Login form with a splitted view to manage in same time two different accounts | 
+| TerminAppPresencePanel | Login, AutoReconnection, (Aggregated) Presence | Panel to see Presence of all contatcs in the roster. Possibility to change it's own presence | 
 

@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.DotNet.PlatformAbstractions" Version="3.1.6" />
+    <PackageReference Include="NLog.Extensions.Logging" Version="5.3.8" />
+    <PackageReference Include="Rainbow.CSharp.SDK" Version="3.0.0-sts.2" />
+    <PackageReference Include="Terminal.Gui" Version="2.0.0-v2-develop.2169" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Resources\config.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EditorConfigFiles Remove="C:\Mercurial\CSharpSDKSamples\SDK V3.X\TerminalApp\TerminalAppLibrary\.editorconfig" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="C:\Mercurial\CSharpSDKSamples\SDK V3.X\TerminalApp\TerminalAppLibrary\.editorconfig" />
+  </ItemGroup>
+
+</Project>

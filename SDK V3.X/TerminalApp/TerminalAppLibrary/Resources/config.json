@@ -1,0 +1,24 @@
+{
+  "_comment_serverConfig": "Define your appId, appSecret and host Name",
+  "serverConfig": {
+    "appId": "TO DEFINE",
+    "appSecret": "TO DEFINE",
+    "hostname": "TO DEFINE"
+  },
+
+  "_comment_accounts": "Define one or several accounts (login, password) to use. 'botName' is used in the display and to log entries if a specific file. If 'autoLogin' is true, automatically try to login",
+  "accounts": [
+    {
+      "botName": "BOT1",
+      "login": "TO DEFINE",
+      "password": "TO DEFINE",
+      "autoLogin": true
+    },
+    {
+      "botName": "BOT2",
+      "login": "TO DEFINE",
+      "password": "TO DEFINE",
+      "autoLogin": true
+    }
+  ]
+}
