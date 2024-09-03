@@ -558,7 +558,7 @@ namespace BotVideoOrchestratorAndRemoteControl
                                 {
                                     if (!task.Result.IsSuccessful)
                                     {
-                                        Util.WriteErrorToConsole($"[{_broadcaster.Name}] Trigger:{action.Trigger} received from a Bot Manager - Action:[{action.Type}] in ConversationId:[{messageEvent.ConversationId}] - Parameters:[{String.Join(", ", restRequest.Parameters)}] - Exception:[{task.Result.ErrorException}]");
+                                        Util.WriteErrorToConsole($"[{_broadcaster.Name}] Trigger:{action.Trigger} received from a Bot Manager - Action:[{action.Type}] in ConversationId:[{messageEvent.ConversationId}] - Parameters:[{String.Join(", ", restRequest.Parameters)}] - ErrorMessage[{task.Result.ErrorMessage}] - Exception:[{task.Result.ErrorException}]");
                                     }
                                 }
                                 pause.Set();

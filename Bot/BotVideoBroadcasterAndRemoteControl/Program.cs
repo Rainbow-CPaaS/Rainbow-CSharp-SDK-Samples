@@ -176,6 +176,11 @@ namespace BotVideoOrchestratorAndRemoteControl
                 {
                     RainbowApplicationInfo.ffmpegLibFolderPath = UtilJson.AsString(json, "ffmpegLibFolderPath");
                     Rainbow.Medias.Helper.InitExternalLibraries(RainbowApplicationInfo.ffmpegLibFolderPath);
+
+                    // Log ffmpeg in log file
+                    Rainbow.Medias.LogFactory.Set(Rainbow.LogFactory.Get());
+                    var log = Rainbow.LogFactory.CreateLogger("FFmpeg");
+                    Rainbow.Medias.Helper.SetFFmpegLog(log, LogLevel.Information);
                 }
 
 
@@ -362,7 +367,7 @@ namespace BotVideoOrchestratorAndRemoteControl
                         else
                         {
                             var str = UtilJson.AsString(entry, entry.Key);
-                            var value =  ParseValue(entry.Value.Value, root);
+                            var value = ParseValue(entry.Value.Value, root);
                             if (!String.IsNullOrEmpty(value))
                             {
                                 if (result == null)
@@ -385,8 +390,7 @@ namespace BotVideoOrchestratorAndRemoteControl
                 if (value.StartsWith("${") && value.EndsWith("}"))
                 { 
                     var v = value.Substring(2, value.Length - 3);
-                    if (root[v] != null)
-                        return root[v].ToString();
+                    return UtilJson.AsString(root, v);
                 }
             }
             return value;
