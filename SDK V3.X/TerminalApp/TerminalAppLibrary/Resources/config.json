@@ -1,11 +1,8 @@
 {
-  "_comment_ffmpegLibFolderPath": "A valid path where FFMpeg libraries are stored according your system",
-  "ffmpegLibFolderPath": "C:\\ffmpeg-7.0.1-full_build-shared\\bin",
-
   "_comment_serverConfig": "Define your appId, appSecret and host Name",
   "serverConfig": {
-    "appId": "6f8c5910725b11e9b55c81be00bebc2c",
-    "appSecret": "5CkS7sRKU5NgGjZ8DfFjHnKkHv0LrpcVqVcunCJ5XQvi3ZbQdNvuUMgYUYk0KCnQ",
+    "appId": "TO DEFINE",
+    "appSecret": "TO DEFINE",
     "hostname": "openrainbow.net"
   },
 
@@ -13,60 +10,27 @@
   "accounts": [
     {
       "botName": "BOT1",
-      "login": "irlesuser1@sophia.com",
-      "password": "Rainbow1!",
+      "login": "TO DEFINE",
+      "password": "TO DEFINE",
       "autoLogin": true
     },
     {
       "botName": "BOT2",
-      "login": "irlesuser2@sophia.com",
-      "password": "Rainbow1!",
+      "login": "TO DEFINE",
+      "password": "TO DEFINE",
       "autoLogin": true
     },
     {
       "botName": "BOT3",
-      "login": "irlesuser3@sophia.com",
-      "password": "Rainbow1!",
+      "login": "TO DEFINE",
+      "password": "TO DEFINE",
       "autoLogin": true
     },
     {
       "botName": "BOT4",
-      "login": "irlesuser4@sophia.com",
-      "password": "Rainbow1!",
+      "login": "TO DEFINE",
+      "password": "TO DEFINE",
       "autoLogin": true
     }
-  ],
-
-  "videosUri": [
-    {
-      "name": "Big Bunny (rtsp)",
-      "uri": "rtsp://zephyr.rtsp.stream/movie?streamKey=00d44dd4eecf8e25d5420a9daf2054d9"
-    },
-    {
-      "name": "Harbor",
-      "uri": "http://212.114.24.142/cgi-bin/faststream.jpg"
-    },
-    {
-      "name": "Roof",
-      "uri": "http://176.139.87.16/mjpg/video.mjpg"
-    },
-    {
-      "name": "Street",
-      "uri": "http://181.57.169.89:8080/mjpg/video.mjpg"
-    },
-    {
-      "name": "Canada",
-      "uri": "http://104.157.27.62/cgi-bin/faststream.jpg"
-    },
-    {
-      "name": "Sweden",
-      "uri": "http://195.196.36.242/mjpg/video.mjpg"
-    },
-    {
-      "name": "Big Bunny 2 (rtsp)",
-      "uri": "rtsp://rtspstream:00d44dd4eecf8e25d5420a9daf2054d9@zephyr.rtsp.stream/movie"
-    }
-
   ]
-
 }
