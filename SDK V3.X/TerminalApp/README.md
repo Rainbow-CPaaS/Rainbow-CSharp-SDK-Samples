@@ -4,7 +4,7 @@
 
 You will find here several examples which illustrate how to use the Rainbow CSharp SDK v3.X in an interactive terminal.
 
-All samples are working on **Linux, MacOS and Windows**
+All examples are working on **Linux, MacOS and Windows**
 
 To have more info about the SDK:
 - check [Getting started guide](https://developers.openrainbow.com/doc/sdk/csharp/core/sts/guides/001_getting_started?isBeta=true)

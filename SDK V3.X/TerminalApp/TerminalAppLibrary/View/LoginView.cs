@@ -26,6 +26,7 @@ public class LoginView: View
         rbAutoReconnection.TokenExpired += RbAutoReconnection_TokenExpired;                 // Triggered when the Security Token is expired
 
         Title = $"Login - {rbAccount.BotName}";
+        CanFocus = true;
 
         // Create Login and Password Label
         var loginLabel = new Label 
@@ -89,9 +90,9 @@ public class LoginView: View
                 Height = Dim.Fill(),
             };
 
-            loggerView.AddColorScheme("green", LoggerView.Green, LoggerView.DEBUG);
-            loggerView.AddColorScheme("blue", LoggerView.Blue, LoggerView.INFO);
-            loggerView.AddColorScheme("red", LoggerView.Red, LoggerView.WARN);
+            loggerView.AddColorScheme("green", Tools.ColorSchemeGreenOnGray, LoggerView.DEBUG);
+            loggerView.AddColorScheme("blue", Tools.ColorSchemeBlueOnGray, LoggerView.INFO);
+            loggerView.AddColorScheme("red", Tools.ColorSchemeRedOnGray, LoggerView.WARN);
         }
 
         // When text is changed, enable/disable Login Button
@@ -102,7 +103,10 @@ public class LoginView: View
         btnLogin.Accept += BtnLogin_Accept_StartLogin;
 
         // Add elements to this View
-        Add(loginLabel, loginText, passwordLabel, passwordText, btnLogin, loggerView);
+        Add(loginLabel, loginText, passwordLabel, passwordText, btnLogin);
+        
+        if (loggerView != null)
+            Add(loggerView);
 
         if(rbAccount.AutoLogin)
             Initialized += LoginView_Initialized;

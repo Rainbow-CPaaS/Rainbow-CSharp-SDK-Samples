@@ -33,14 +33,23 @@ public class PresenceColorView : View
         AddRune(0, 0, (Rune)c);
     }
 
+
+    public void SetInvitationInProgress()
+    {
+        c = Emojis.THREE_DOTS[0];
+        background = new Color(255, 255, 255);
+        foreground = new Color(0, 0, 0);
+        SetNeedsDisplay();
+    }
+
     public void SetPresence(Presence? presence)
     {
         char chr = ' ';
         Color? background = null;
         Color? foreground = null;
 
-        if (presence == null)
-            background = new Color(0, 0, 0);
+        if ( (presence == null) || (presence.PresenceLevel == PresenceLevel.Unavailable) )
+            background = Color.Gray;
         else
         {
             switch (presence.PresenceLevel)

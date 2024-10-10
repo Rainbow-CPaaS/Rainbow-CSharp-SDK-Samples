@@ -37,6 +37,9 @@ internal class BotView: View
     private void SetViewLayout()
     {
         Title = rbAccount.BotName;
+        CanFocus = true;
+
+        ColorScheme = Tools.ColorSchemeMain;
 
         X = 0;
         Width = Dim.Fill();
@@ -58,7 +61,7 @@ internal class BotView: View
             X = Pos.Center(),
             Y = Pos.Center(),
             Height = Dim.Percent(90),
-            Width = Dim.Percent(90)
+            Width = Dim.Percent(90),
         };
 
         Add(loginView);

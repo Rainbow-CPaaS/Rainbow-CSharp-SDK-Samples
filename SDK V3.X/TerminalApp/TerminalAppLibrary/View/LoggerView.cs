@@ -8,11 +8,6 @@ public partial class LoggerView: View
     public const String DEBUG = "DEBUG";
     public const String WARN = "WARN";
 
-    public static readonly ColorScheme Green = new(new Attribute(Color.Green, Color.Gray));
-    public static readonly ColorScheme Blue = new(new Attribute(Color.Blue, Color.Gray));
-    public static readonly ColorScheme Red = new(new Attribute(Color.Red, Color.Gray));
-    public static readonly ColorScheme White = new(new Attribute(Color.Black, Color.Gray));
-
     readonly TextView infoText;
 
     private readonly Object lockRegexes = new();
@@ -23,6 +18,7 @@ public partial class LoggerView: View
 
     public LoggerView()
     {
+        CanFocus = true;
         colorSchemesByColor = [];
         keysByColor = [];
         regexesByColor = [];
@@ -38,10 +34,10 @@ public partial class LoggerView: View
             BorderStyle = LineStyle.Dotted,
             ReadOnly = false,
             Visible = true,
-            ColorScheme = White,
+            ColorScheme = Tools.ColorSchemeBlackOnGray,
         };
 
-        // To dislay with some colors
+        // To display with some colors
         infoText.TextChanged += HighlightTextBasedOnKeywords;
         infoText.DrawContent += HighlightTextBasedOnKeywords;
         infoText.DrawContentComplete += HighlightTextBasedOnKeywords;
@@ -53,7 +49,7 @@ public partial class LoggerView: View
             Y = Pos.AnchorEnd(),
             Width = 24,
             Height = 1,
-            ColorScheme = White
+            ColorScheme = Tools.ColorSchemeBlackOnGray
         };
 
         // Create "Clear" button
@@ -62,7 +58,7 @@ public partial class LoggerView: View
             Text = $"{Emojis.CLEAR}Clear",
             Y = 0,
             X = 0,
-            ColorScheme = White
+            ColorScheme = Tools.ColorSchemeBlackOnGray
         };
         clearInfoTextBtn.Accept += ClearInfo;
 
@@ -72,7 +68,7 @@ public partial class LoggerView: View
             Text = $"{Emojis.COPY}Copy ",
             Y = 0,
             X = Pos.AnchorEnd(),
-            ColorScheme = White
+            ColorScheme = Tools.ColorSchemeBlackOnGray
         };
         copyToClipboardInfoTextBtn.Accept += CopyToClipboard;
         btnsView.Add(clearInfoTextBtn, copyToClipboardInfoTextBtn);
@@ -182,13 +178,14 @@ private static bool ContainsPosition(Match m, int pos) { return pos >= m.Index &
                         Match[] match = matches[color];
                         if (match.Any(m => ContainsPosition(m, pos)))
                         {
+                            var t = line[x];
                             line[x].ColorScheme = colorSchemesByColor[color];
                             oneMatch = true;
                             break;
                         }
                     }
                     if (!oneMatch)
-                        line[x].ColorScheme = White;
+                        line[x].ColorScheme = Tools.ColorSchemeBlackOnGray;
 
                     pos++;
                 }

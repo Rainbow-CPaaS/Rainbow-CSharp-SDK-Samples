@@ -1,4 +1,5 @@
-﻿using Rainbow.Model;
+﻿using System.Drawing;
+using System.Globalization;
 using Terminal.Gui;
 using RuntimeEnvironment = Microsoft.DotNet.PlatformAbstractions.RuntimeEnvironment;
 
@@ -10,6 +11,8 @@ public class BotWindow : Window
 
     public static IBotViewFactory? BotViewFactory { get; set; }
 
+    public static Point MousePosition { get; set; } // To get mouse position in all windows / views
+
     private readonly Shortcut? ShVersion;
 
     private readonly List<View> botViewsAvailable;
@@ -18,6 +21,13 @@ public class BotWindow : Window
     {
         if(BotViewFactory == null)
             throw new ArgumentNullException(nameof(BotViewFactory));
+
+        try
+        {
+            if(!String.IsNullOrEmpty(Configuration.CultureInfo))
+                CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.GetCultureInfo(Configuration.CultureInfo);
+        }
+        catch { }
 
         //Title = $"Rainbow Terminal App";
         BorderStyle = LineStyle.None;
@@ -55,12 +65,13 @@ public class BotWindow : Window
         }
 
         // Create StatusBar
-        StatusBar = new()
+        StatusBar statusBar = new()
         {
             Visible = true,
             AlignmentModes = AlignmentModes.IgnoreFirstOrLast,
             CanFocus = false
         };
+
 
         var statusBarShortcutHide = new Shortcut
         {
@@ -68,7 +79,7 @@ public class BotWindow : Window
             Title = "Show/Hide Status Bar",
             CanFocus = false,
         };
-        statusBarShortcutHide.Accept += (sender, args) => { StatusBar.Visible = !StatusBar.Visible; };
+        statusBarShortcutHide.Accept += (sender, args) => { statusBar.Visible = !statusBar.Visible; };
 
         ShVersion = new()
         {
@@ -101,7 +112,7 @@ public class BotWindow : Window
             };
             statusBarShortcutBotSelectionOnRight.Accept += (sender, args) => SelectBotOnPanel(false);
 
-            StatusBar.Add(quitBarShortcut,
+            statusBar.Add(quitBarShortcut,
                     statusBarShortcutBotSelectionOnLeft,
                     statusBarShortcutBotSelectionOnRight
                     );
@@ -116,23 +127,27 @@ public class BotWindow : Window
             };
             statusBarShortcutBotSelection.Accept += (sender, args) => SelectBotOnPanel(null);
 
-            StatusBar.Add(quitBarShortcut,
+            statusBar.Add(quitBarShortcut,
                     statusBarShortcutBotSelection);
         }
         else
         {
-            StatusBar.Add(quitBarShortcut);
+            statusBar.Add(quitBarShortcut);
         }
 
         if(statusBarShortcutHide != null)
-            StatusBar.Add(statusBarShortcutHide);
+            statusBar.Add(statusBarShortcutHide);
 
-        StatusBar.Add(ShVersion); // always add it as the last one
-        Add(StatusBar);
+        statusBar.Add(ShVersion); // always add it as the last one
+        Add(statusBar);
 
         // Need to manage Loaded event
         Loaded += LoadedHandler;
+
+        Terminal.Gui.Application.MouseEvent += ApplicationMouseEvent;
     }
+
+    private void ApplicationMouseEvent(object? sender, MouseEvent a) { BotWindow.MousePosition = a.Position; }
 
     private static void SetOnLeft(View leftView)
     {

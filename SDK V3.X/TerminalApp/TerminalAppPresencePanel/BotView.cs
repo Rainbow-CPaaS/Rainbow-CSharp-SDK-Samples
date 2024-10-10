@@ -1,6 +1,9 @@
-﻿using Rainbow;
+﻿using NLog.LayoutRenderers.Wrappers;
+using Rainbow;
 using Rainbow.Consts;
+using Rainbow.Model;
 using Terminal.Gui;
+using static System.Net.Mime.MediaTypeNames;
 
 internal class BotView: View
 {
@@ -9,10 +12,21 @@ internal class BotView: View
     private readonly Rainbow.Application rbApplication;
     private readonly AutoReconnection rbAutoReconnection;
     private readonly Contacts rbContacts;
+    private readonly Invitations rbInvitations;
+    private readonly Contact currentContact;
 
     private LoginView? loginView;
+    private View? panelsSelection;
+    
+    private NotificationView? notificationView;
     private PresenceView? presenceView;
     private PresencePanelView? presencePanelView;
+    private PresencePanelView? contactsPanelView;
+
+    private ContextMenu? contextMenu;
+
+    private Button? testButton;
+    private int testNumber = 0;
 
     internal BotView(RainbowAccount rbAccount)
     {
@@ -28,8 +42,12 @@ internal class BotView: View
         // Create Rainbow SDK objects
         rbApplication = new Rainbow.Application(iniFileName: iniFileName, loggerPrefix: prefix);
 
+        rbApplication.Restrictions.LogRestRequest = true;
+
         rbAutoReconnection = rbApplication.GetAutoReconnection();
         rbContacts = rbApplication.GetContacts();
+        rbInvitations = rbApplication.GetInvitations();
+        currentContact = rbContacts.GetCurrentContact();
 
         // Set global configuration info
         rbApplication.SetApplicationInfo(Configuration.RainbowServerConfiguration.AppId, Configuration.RainbowServerConfiguration.AppSecret);
@@ -48,6 +66,9 @@ internal class BotView: View
     private void SetViewLayout()
     {
         Title = rbAccount.BotName;
+        CanFocus = true;
+
+        ColorScheme = Tools.ColorSchemeMain;
 
         X = 0;
         Width = Dim.Fill();
@@ -75,11 +96,52 @@ internal class BotView: View
         Add(loginView);
     }
 
+    void AddPresencePanelView()
+    {
+        if (presencePanelView == null)
+        {
+            presencePanelView = new(rbApplication, rosterOnly: true)
+            {
+                X = 0,
+                Y = Pos.Bottom(presenceView) + 1,
+            };
+            Add(presencePanelView);
+        }
+        presencePanelView.Visible = true;
+    }
+
+    void AddContactsPanelView()
+    {
+        if (contactsPanelView == null)
+        {
+            contactsPanelView = new(rbApplication, rosterOnly: false)
+            {
+                X = 0,
+                Y = Pos.Bottom(presenceView) + 1,
+            };
+            Add(contactsPanelView);
+        }
+        contactsPanelView.Visible = true;
+    }
+    
+    void AddNotificationView()
+    {
+        if (notificationView == null)
+        {
+            notificationView = new NotificationView(rbApplication)
+            {
+                X = Pos.AnchorEnd() - 2,
+                Y = 0
+            };
+            Add(notificationView);
+        }
+    }
+
     void AddPresenceView()
     {
         if (presenceView == null)
         {
-            presenceView = new PresenceView(rbApplication, rbContacts.GetCurrentContact(), true, true)
+            presenceView = new PresenceView(rbApplication, rbContacts.GetCurrentContact())
             {
                 X = Pos.Center(),
                 Y = 0,
@@ -88,6 +150,196 @@ internal class BotView: View
             };
 
             Add(presenceView);
+
+            presenceView.ContactClick += PresenceView_ContactClick;
+        }
+    }
+
+    void AddPanelsSelection()
+    {
+        if (panelsSelection == null)
+        {
+            panelsSelection = new()
+            {
+                X = Pos.Center(),
+                Y = 1,
+                Height = 1,
+                Width = Dim.Auto(DimAutoStyle.Content)
+            };
+
+            var contactsPanelSelection = new Button()
+            {
+                X = Pos.Align(Alignment.Start),
+                Y = 0,
+                Height = 1,
+                Width = Dim.Auto(DimAutoStyle.Text),
+                Text = "Contacts"
+            };
+            contactsPanelSelection.MouseClick += (sender, me) =>
+            {
+                if (presencePanelView != null)
+                    presencePanelView.Visible = false;
+                AddContactsPanelView();
+            };
+
+            var presencePanelSelection = new Button()
+            {
+                X = Pos.Align(Alignment.End),
+                Y = 0,
+                Height = 1,
+                Width = Dim.Auto(DimAutoStyle.Text),
+                Text = "Roster"
+            };
+            presencePanelSelection.MouseClick += (sender, me) =>
+            {
+                if (contactsPanelView != null)
+                    contactsPanelView.Visible = false;
+                AddPresencePanelView();
+            };
+
+            panelsSelection.Add(contactsPanelSelection, presencePanelSelection);
+            Add(panelsSelection);
+        }
+    }
+
+    void RemovePanelsSelection()
+    {
+        if (panelsSelection != null)
+        {
+            Remove(panelsSelection);
+            panelsSelection = null;
+        }
+    }
+
+    void AddTestButton()
+    {
+        if (false && (testButton == null))
+        {
+            testButton = new()
+            {
+                X = 2,
+                Y = 1,
+                Text = "Test",
+                Height = 1,
+                Width = Dim.Auto(DimAutoStyle.Text)
+            };
+            testButton.MouseClick += TestButton_MouseClick;
+
+            Add(testButton);
+        }
+    }
+
+    void RemoveTestButton()
+    {
+        if (testButton != null)
+        {
+            Remove(testButton);
+            testButton = null;
+        }
+    }
+
+    private void TestButton_MouseClick(object? sender, MouseEventEventArgs e)
+    {
+        if (e.MouseEvent.Flags == MouseFlags.Button1Clicked)
+        {
+            e.MouseEvent.Handled = true;
+
+        }
+    }
+
+    private void PresenceView_ContactClick(object? sender, PeerAndMouseEventEventArgs e)
+    {
+        if (e.MouseEvent.Flags == MouseFlags.Button3Clicked)
+        {
+            DisplayPresenceContextMenu();
+            return;
+        }
+    }
+
+    private void DisplayPresenceContextMenu()
+    {
+        String[] stdItems = ["Online", "Away", "Invisible", "Dnd", "", "Busy - Audio", "Busy - Video", "Busy - Sharing"];
+
+        List<MenuItem> menuItems = [];
+        for (int i = 0; i < stdItems.Length; i++)
+        {
+            var name = stdItems[i];
+            MenuItem menuItem;
+            if (name == "")
+#pragma warning disable CS8625
+                menuItems.Add(null);
+#pragma warning restore CS8625
+            else
+            {
+                char help;
+                Key shortcut;
+                if (name.Contains(" - "))
+                {
+                    help = ' ';
+#pragma warning disable CS8600
+                    shortcut = null;
+#pragma warning restore CS8600
+                }
+                else
+                {
+                    help = name[0];
+                    shortcut = new Key(help).NoShift;
+                }
+
+                menuItem = new MenuItem(
+                                    name,
+                                    ""
+                                    , () => UpdatePresence(name)
+                                    , shortcutKey: shortcut
+                                    ); ;
+                menuItems.Add(menuItem);
+            }
+        }
+
+        // Dispose previoues context menu (if any)
+        contextMenu?.Dispose();
+
+        contextMenu = new()
+        {
+            
+            Position = BotWindow.MousePosition,
+            MenuItems = new([.. menuItems])
+        };
+
+        contextMenu.Show();
+    }
+
+    private void UpdatePresence(String strPresence)
+    {
+        contextMenu?.Hide();
+
+        Presence? presence;
+
+        strPresence = strPresence.ToLower();
+        if (strPresence.Contains(" - "))
+        {
+            var info = strPresence.Split(" - ");
+            presence = rbContacts.CreatePresence(info[0], info[1]);
+        }
+        else
+        {
+            if (strPresence == "invisible")
+                strPresence = "xa";
+            presence = rbContacts.CreatePresence(strPresence);
+        }
+
+        if (presence != null)
+        {
+            var _ = rbContacts.SetPresenceLevelAsync(presence);
+        }
+    }
+
+    void RemoveNotificationView()
+    {
+        if (notificationView != null)
+        {
+            Remove(notificationView);
+            notificationView = null;
         }
     }
 
@@ -97,20 +349,6 @@ internal class BotView: View
         {
             Remove(presenceView);
             presenceView = null;
-        }
-    }
-
-    void AddPresencePanelView()
-    {
-        if (presencePanelView == null)
-        {
-            var contactsInRoster = rbContacts.GetAllContactsInRoster();
-            presencePanelView = new(rbApplication, contactsInRoster)
-            {
-                X = 0,
-                Y = Pos.Bottom(presenceView),
-            };
-            Add(presencePanelView);
         }
     }
 
@@ -129,16 +367,26 @@ internal class BotView: View
         if (loginView == null)
             return;
 
-        Terminal.Gui.Application.Invoke(() =>
+        Terminal.Gui.Application.Invoke(async () =>
         {
             switch (connectionState.Status)
             {
                 case ConnectionStatus.Connected:
+                    // Ask more info to the server about contacts invitations
+                    var task1 = rbInvitations.GetReceivedInvitationsAsync(InvitationStatus.Pending);
+                    var task2 = rbInvitations.GetSentInvitationsAsync(InvitationStatus.Pending);
+                    Task[] tasks = [task1, task2];
+                    await Task.WhenAll(tasks);
+
                     Title = rbAccount.BotName;
 
                     loginView.Visible = false;
                     AddPresenceView();
                     AddPresencePanelView();
+                    AddPanelsSelection();
+                    AddNotificationView();
+
+                    AddTestButton();
                     break;
 
                 case ConnectionStatus.Connecting:
@@ -151,6 +399,10 @@ internal class BotView: View
                     loginView.Visible = true;
                     RemovePresenceView();
                     RemovePresencePanelView();
+                    RemovePanelsSelection();
+                    RemoveNotificationView();
+
+                    RemoveTestButton();
                     break;
             }
         });
@@ -165,7 +417,7 @@ internal class BotView: View
     {
         // TODO
     }
-
+    
     void RbAutoReconnection_Cancelled(SdkError sdkError)
     {
         // TODO

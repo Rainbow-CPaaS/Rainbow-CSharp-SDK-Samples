@@ -7,6 +7,8 @@ public static class Configuration
     public static Boolean NeedsRainbowAccounts = false;             // True to use one or several Rainbow Accounts
     public static Boolean UseSplittedView = false;                  // True to use several Rainbow Accounts, False to use only the first one
 
+    public static String CultureInfo = "";                               // Define culture info to use
+
     public static RainbowServerConfiguration RainbowServerConfiguration = new();
     public static List<RainbowAccount> RainbowAccounts = [];
 
@@ -56,6 +58,11 @@ public static class Configuration
                 _errorMessage += $"Cannot get JSON data from file:\r\n\t{configFilePath}";
                 return false;
             }
+
+            if (json["cultureInfo"] != null)
+                CultureInfo = UtilJson.AsString(json, "cultureInfo");
+            else
+                CultureInfo = "";
 
             // HostName, AppId, AppSecret
             if (NeedsRainbowServerConfiguration)

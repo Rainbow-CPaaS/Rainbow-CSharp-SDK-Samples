@@ -14,11 +14,11 @@ using NLog.Extensions.Logging;
 /// </summary>
 public static class NLogConfigurator
 {
-    private static List<String> prefixUsed;
+    private static readonly List<String> prefixUsed;
 
     static NLogConfigurator()
     {
-        prefixUsed = new ();
+        prefixUsed = [];
     }
 
     /// <summary>
@@ -35,22 +35,21 @@ public static class NLogConfigurator
 
         // Check new prefix
         var newPrefix = prefix.ToList().Except(prefixUsed);
-        if(newPrefix.Count() == 0)
+        if(!newPrefix.Any())
             return true; // No new prefix added
 
         // Add new ones
         prefixUsed.AddRange(newPrefix);
 
         // Set "" always at the end
-        if(prefixUsed.Contains(""))
-            prefixUsed.Remove("");
+        prefixUsed.Remove("");
         prefixUsed.Add("");
 
         // Check Directory
         if (String.IsNullOrEmpty(Directory))
             Directory = "./";
-        else if (!Directory.EndsWith("/"))
-            Directory += "/";
+        else if (!Directory.EndsWith('/'))
+            Directory += '/';
 
         // Get content of the log file configuration
         String logConfigContent = XmlContent;
