@@ -21,11 +21,11 @@ This environment is based on the [Rainbow service](https://www.openrainbow.com/)
 
 They are listed in order of priority / complexity.
 
-| Project Name | Features | Description |
-| --- | --- | --- |
-| TerminAppLogin | Login, AutoReconnection | Simple Login form to understand basic features and switch between different accounts  |
-| TerminAppLoginSplittedView | Login, AutoReconnection | Simple Login form with a splitted view to manage in same time two different accounts | 
-| TerminAppPresencePanel | Login, AutoReconnection, (Aggregated) Presence | Panel to see Presence of all contatcs in the roster. Possibility to change it's own presence | 
+| Project Name | Content | Description | |
+| --- | --- | --- | --- |
+| TerminAppLogin | Login, AutoReconnection | Simple Login form to understand basic features and switch between different accounts  | [README](./TerminalAppLogin/README.md) |
+| TerminAppLoginSplittedView | Login, AutoReconnection | Simple Login form with a splitted view to manage in same time two different accounts | [README](./TerminalAppLoginSplittedView/README.md) |
+| TerminAppPresencePanel | Login, AutoReconnection, (Aggregated) Presence, User and Bubble invitation | Panel to see Presence of all contatcs in the roster. Possibility to change it's own presence. Manage user and bubble invitations | [README](./TerminalAppPresencePanel/README.md) | 
 
 ## How to test them
 
