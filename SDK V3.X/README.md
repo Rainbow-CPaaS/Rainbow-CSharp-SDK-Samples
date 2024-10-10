@@ -38,16 +38,16 @@ They are listed in order of priority / complexity.
 | InstantMessaging | Fetch all messages archived from a Peer | [Project](./ConsoleApp/Fetch%20messages%20from%20peer) |
 
 
-## Examples as Termninal Application
+## Examples as Terminal Application
 ---
 
-This examples are more interactive and they are working on **Linux, MacOS and Windows**
+This examples are more interactive and they are working on **Linux, MacOS and Windows** (right / left mouse click, UI)
 
-An solution centralized all of them [here](./TerminalApp/TerminalApp.sln)
+A Visual Studio solution centralized all of them [here](./TerminalApp/)
 
-| Project Name | Content | Description |
-| --- | --- | --- |
-| TerminAppLogin | Login, AutoReconnection | Simple Login form to understand basic features and switch between different accounts  |
-| TerminAppLoginSplittedView | Login, AutoReconnection | Simple Login form with a splitted view to manage in same time two different accounts | 
-| TerminAppPresencePanel | Login, AutoReconnection, (Aggregated) Presence | Panel to see Presence of all contatcs in the roster. Possibility to change it's own presence | 
+| Project Name | Content | Description | |
+| --- | --- | --- | --- |
+| TerminAppLogin | Login, AutoReconnection | Simple Login form to understand basic features and switch between different accounts  | [README](./TerminalApp/TerminalAppLogin/README.md) |
+| TerminAppLoginSplittedView | Login, AutoReconnection | Simple Login form with a splitted view to manage in same time two different accounts | [README](./TerminalApp/TerminalAppLoginSplittedView/README.md) |
+| TerminAppPresencePanel | Login, AutoReconnection, (Aggregated) Presence, User and Bubble invitation | Panel to see Presence of all contatcs in the roster. Possibility to change it's own presence. Manage user and bubble invitations | [README](./TerminalApp/TerminalAppPresencePanel/README.md) | 
 
