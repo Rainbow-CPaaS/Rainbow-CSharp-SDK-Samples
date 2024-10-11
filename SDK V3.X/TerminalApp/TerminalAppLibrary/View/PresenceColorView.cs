@@ -49,7 +49,7 @@ public class PresenceColorView : View
         Color? foreground = null;
 
         if ( (presence == null) || (presence.PresenceLevel == PresenceLevel.Unavailable) )
-            background = Color.Gray;
+            background = Tools.LightGray;
         else
         {
             switch (presence.PresenceLevel)

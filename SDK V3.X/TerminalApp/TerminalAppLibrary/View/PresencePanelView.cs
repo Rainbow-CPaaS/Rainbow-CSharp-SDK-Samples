@@ -63,6 +63,7 @@ public class PresencePanelView: View
             X = Pos.Center(),
             Y = 0,
             Text = "Settings",
+            ShadowStyle = ShadowStyle.None
         };
         settings.MouseClick += Settings_MouseClick;
         Add(settings);
@@ -133,10 +134,10 @@ public class PresencePanelView: View
         contextMenu = new()
         {
             Position = e.MouseEvent.ScreenPosition,
-            MenuItems = new([.. menuItems])
         };
 
-        contextMenu.Show();
+        MenuBarItem menuBarItem = new(menuItems.ToArray());
+        contextMenu.Show(menuBarItem);
     }
 
     public void Update(int nbColumns)
@@ -291,10 +292,16 @@ public class PresencePanelView: View
     private void PresenceView_ContactClick(object? sender, PeerAndMouseEventEventArgs e)
     {
         if (e.MouseEvent.Flags == MouseFlags.Button1DoubleClicked)
+        {
+            e.MouseEvent.Handled = true;
             DisplayPresenceDetails(e.Peer);
+        }
 
         if (e.MouseEvent.Flags == MouseFlags.Button3Clicked)
+        {
+            e.MouseEvent.Handled = true;
             DisplayContextMenu(e.Peer);
+        }
     }
 
     private static String GetPresenceString(Presence presence)
@@ -321,7 +328,8 @@ public class PresencePanelView: View
             X = Pos.Center(),
             Y = Pos.Center(),
             Width = Dim.Percent(80),
-            Height = Dim.Percent(80)
+            Height = Dim.Percent(80),
+            ShadowStyle = ShadowStyle.None
         };
 
         LoggerView loggerView = new()
@@ -332,8 +340,8 @@ public class PresencePanelView: View
             Height = Dim.Fill(2),
         };
 
-        loggerView.AddColorScheme("blue", Tools.ColorSchemeBlueOnGray, "Resource", "Apply", "Until");
-        loggerView.AddColorScheme("red", Tools.ColorSchemeRedOnGray, "DisplayName", "Id", "Jid", "Aggregated Presence");
+        loggerView.AddColorScheme("blue", Tools.ColorSchemeLoggerBlue, "Resource", "Apply", "Until");
+        loggerView.AddColorScheme("red", Tools.ColorSchemeLoggerRed, "DisplayName", "Id", "Jid", "Aggregated Presence");
 
         String txt = $"DisplayName:[{peer.DisplayName}]{Rainbow.Util.CR}Id:[{peer.Id}]{Rainbow.Util.CR}Jid:[{peer.Jid}]";
 
@@ -347,9 +355,9 @@ public class PresencePanelView: View
         txt += $"{Rainbow.Util.CR}{Rainbow.Util.CR}Aggregated Presence:{Rainbow.Util.CR}{GetPresenceString(aggregatedPresence)}";
 
         // Create button
-        Button button = new() { Text = "OK", IsDefault = true };
-        button.Accept += (s, e) => dialog.RequestStop();
-
+        Button button = new() { Text = "OK", IsDefault = true, ShadowStyle = ShadowStyle.None};
+        button.Accepting += (s, e) => { Application.RequestStop(); e.Cancel = true; };
+        
         // Add button
         dialog.AddButton(button);
 
@@ -368,6 +376,15 @@ public class PresencePanelView: View
 
     private void DisplayContextMenu(Peer peer)
     {
+        // Dispose previous context menu
+        contextMenu?.Dispose();
+
+        contextMenu = new()
+        {
+            Position = BotWindow.MousePosition,
+        };
+
+
         List<MenuItem> menuItems = [];
 
         var contact = rbContacts.GetContact(peer);
@@ -410,6 +427,8 @@ public class PresencePanelView: View
             }
             // 
         }
+
+
         menuItems.Add(menuItem);
 
         menuItems.Add(null);
@@ -423,16 +442,8 @@ public class PresencePanelView: View
                     );
         menuItems.Add(menuItem);
 
-        // Dispose previous context menu
-        contextMenu?.Dispose();
-
-        contextMenu = new()
-        {
-            Position = BotWindow.MousePosition,
-            MenuItems = new([.. menuItems])            
-        };
-
-        contextMenu.Show();
+        MenuBarItem menuBarItem = new(menuItems.ToArray());
+        contextMenu.Show(menuBarItem);
     }
 
     private void AddOrRemoveFavorite(Peer peer)

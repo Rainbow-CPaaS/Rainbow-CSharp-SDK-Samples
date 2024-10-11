@@ -19,6 +19,8 @@ public partial class LoggerView: View
     public LoggerView()
     {
         CanFocus = true;
+        ColorScheme = Tools.ColorSchemeLogger;
+
         colorSchemesByColor = [];
         keysByColor = [];
         regexesByColor = [];
@@ -34,7 +36,7 @@ public partial class LoggerView: View
             BorderStyle = LineStyle.Dotted,
             ReadOnly = false,
             Visible = true,
-            ColorScheme = Tools.ColorSchemeBlackOnGray,
+            ColorScheme = Tools.ColorSchemeLogger,
         };
 
         // To display with some colors
@@ -49,7 +51,7 @@ public partial class LoggerView: View
             Y = Pos.AnchorEnd(),
             Width = 24,
             Height = 1,
-            ColorScheme = Tools.ColorSchemeBlackOnGray
+            ColorScheme = Tools.ColorSchemeLogger
         };
 
         // Create "Clear" button
@@ -58,9 +60,10 @@ public partial class LoggerView: View
             Text = $"{Emojis.CLEAR}Clear",
             Y = 0,
             X = 0,
-            ColorScheme = Tools.ColorSchemeBlackOnGray
+            ColorScheme = Tools.ColorSchemeLogger,
+            ShadowStyle = ShadowStyle.None
         };
-        clearInfoTextBtn.Accept += ClearInfo;
+        clearInfoTextBtn.MouseClick += ClearInfoTextBtn_MouseClick;
 
         // Create "Copy to clipboard" button
         Button copyToClipboardInfoTextBtn = new()
@@ -68,9 +71,12 @@ public partial class LoggerView: View
             Text = $"{Emojis.COPY}Copy ",
             Y = 0,
             X = Pos.AnchorEnd(),
-            ColorScheme = Tools.ColorSchemeBlackOnGray
+            ColorScheme = Tools.ColorSchemeLogger,
+            ShadowStyle = ShadowStyle.None
         };
-        copyToClipboardInfoTextBtn.Accept += CopyToClipboard;
+        copyToClipboardInfoTextBtn.MouseClick += CopyToClipboardInfoTextBtn_MouseClick;
+        
+        
         btnsView.Add(clearInfoTextBtn, copyToClipboardInfoTextBtn);
 
         Add(infoText, btnsView);
@@ -137,13 +143,15 @@ public partial class LoggerView: View
         RemoveKeysForRegex(color);
     }
 
-    private void ClearInfo(object? sender, System.ComponentModel.HandledEventArgs e)
+    private void ClearInfoTextBtn_MouseClick(object? sender, MouseEventEventArgs e)
     {
+        e.MouseEvent.Handled = true;
         ClearText();
     }
 
-    private void CopyToClipboard(object? sender, System.ComponentModel.HandledEventArgs e)
+    private void CopyToClipboardInfoTextBtn_MouseClick(object? sender, MouseEventEventArgs e)
     {
+        e.MouseEvent.Handled = true;
         Clipboard.TrySetClipboardData(infoText.Text);
     }
 
@@ -168,25 +176,26 @@ private static bool ContainsPosition(Match m, int pos) { return pos >= m.Index &
             var pos = 0;
             for (var y = 0; y < infoText.Lines; y++)
             {
-                List<RuneCell> line = infoText.GetLine(y);
+                List<Cell> line = infoText.GetLine(y);
 
                 for (var x = 0; x < line.Count; x++)
                 {
+                    var cell = line[x];
                     Boolean oneMatch = false;
                     foreach (string color in matches.Keys)
                     {
                         Match[] match = matches[color];
                         if (match.Any(m => ContainsPosition(m, pos)))
                         {
-                            var t = line[x];
-                            line[x].ColorScheme = colorSchemesByColor[color];
+                            cell.Attribute = Tools.ToAttribute(colorSchemesByColor[color]);
                             oneMatch = true;
                             break;
                         }
                     }
                     if (!oneMatch)
-                        line[x].ColorScheme = Tools.ColorSchemeBlackOnGray;
+                        cell.Attribute = Tools.ToAttribute(Tools.ColorSchemeLogger);
 
+                    line[x] = cell;
                     pos++;
                 }
 

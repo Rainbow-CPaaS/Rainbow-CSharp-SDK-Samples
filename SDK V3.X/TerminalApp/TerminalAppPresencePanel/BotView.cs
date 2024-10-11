@@ -173,7 +173,9 @@ internal class BotView: View
                 Y = 0,
                 Height = 1,
                 Width = Dim.Auto(DimAutoStyle.Text),
-                Text = "Contacts"
+                Text = "Contacts",
+                ShadowStyle = ShadowStyle.None,
+                ColorScheme = Tools.ColorSchemeBlackOnWhite
             };
             contactsPanelSelection.MouseClick += (sender, me) =>
             {
@@ -188,7 +190,9 @@ internal class BotView: View
                 Y = 0,
                 Height = 1,
                 Width = Dim.Auto(DimAutoStyle.Text),
-                Text = "Roster"
+                Text = "Roster",
+                ShadowStyle = ShadowStyle.None,
+                ColorScheme = Tools.ColorSchemeBlackOnWhite
             };
             presencePanelSelection.MouseClick += (sender, me) =>
             {
@@ -213,7 +217,7 @@ internal class BotView: View
 
     void AddTestButton()
     {
-        if (false && (testButton == null))
+        if (false && testButton == null)
         {
             testButton = new()
             {
@@ -221,7 +225,9 @@ internal class BotView: View
                 Y = 1,
                 Text = "Test",
                 Height = 1,
-                Width = Dim.Auto(DimAutoStyle.Text)
+                Width = Dim.Auto(DimAutoStyle.Text),
+                ShadowStyle = ShadowStyle.None,
+                ColorScheme = Tools.ColorSchemeBlackOnWhite
             };
             testButton.MouseClick += TestButton_MouseClick;
 
@@ -243,7 +249,6 @@ internal class BotView: View
         if (e.MouseEvent.Flags == MouseFlags.Button1Clicked)
         {
             e.MouseEvent.Handled = true;
-
         }
     }
 
@@ -301,12 +306,11 @@ internal class BotView: View
 
         contextMenu = new()
         {
-            
             Position = BotWindow.MousePosition,
-            MenuItems = new([.. menuItems])
         };
 
-        contextMenu.Show();
+        MenuBarItem menuBarItem = new(menuItems.ToArray());
+        contextMenu.Show(menuBarItem);
     }
 
     private void UpdatePresence(String strPresence)

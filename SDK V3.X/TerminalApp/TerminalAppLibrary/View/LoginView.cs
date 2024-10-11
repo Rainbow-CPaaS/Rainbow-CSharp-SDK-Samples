@@ -77,7 +77,9 @@ public class LoginView: View
             // center the login button horizontally
             X = Pos.Center(),
             IsDefault = true,
-            Enabled = ButtonLoginEnabled()
+            Enabled = ButtonLoginEnabled(),
+            ShadowStyle = ShadowStyle.None,
+            ColorScheme = Tools.ColorSchemeBlackOnWhite
         };
 
         if (withDetails)
@@ -90,9 +92,9 @@ public class LoginView: View
                 Height = Dim.Fill(),
             };
 
-            loggerView.AddColorScheme("green", Tools.ColorSchemeGreenOnGray, LoggerView.DEBUG);
-            loggerView.AddColorScheme("blue", Tools.ColorSchemeBlueOnGray, LoggerView.INFO);
-            loggerView.AddColorScheme("red", Tools.ColorSchemeRedOnGray, LoggerView.WARN);
+            loggerView.AddColorScheme("green", Tools.ColorSchemeLoggerGreen, LoggerView.DEBUG);
+            loggerView.AddColorScheme("blue", Tools.ColorSchemeLoggerBlue, LoggerView.INFO);
+            loggerView.AddColorScheme("red", Tools.ColorSchemeLoggerRed, LoggerView.WARN);
         }
 
         // When text is changed, enable/disable Login Button
@@ -100,7 +102,7 @@ public class LoginView: View
         passwordText.TextChanged += TextField_TextChanged;
 
         // When login button is clicked - start login process
-        btnLogin.Accept += BtnLogin_Accept_StartLogin;
+        btnLogin.MouseClick += BtnLogin_MouseClick_Login;
 
         // Add elements to this View
         Add(loginLabel, loginText, passwordLabel, passwordText, btnLogin);
@@ -132,17 +134,24 @@ public class LoginView: View
     private void LoginView_Initialized(object? sender, EventArgs e)
     {
         if (ButtonLoginEnabled())
-            BtnLogin_Accept_StartLogin(null, null);
+            BtnLogin_MouseClick_Login(null, null);
     }
 
-    private void BtnLogin_Accept_StartLogin(object? sender, System.ComponentModel.HandledEventArgs? e)
+    private void BtnLogin_MouseClick_Login(object? sender, MouseEventEventArgs e)
     {
+        if(e != null)
+            e.MouseEvent.Handled = true;
+
         // Start login - don't need to manage result here. We handle events to update UI
         var _ = rbApplication.LoginAsync(loginText.Text, passwordText.Text);
     }
 
-    private void BtnLogin_Accept_StartLogout(object? sender, System.ComponentModel.HandledEventArgs? e)
+
+    private void BtnLogin_MouseClick_Logout(object? sender, MouseEventEventArgs e)
     {
+        if (e != null)
+            e.MouseEvent.Handled = true;
+
         // Start logout - don't need to manage result here. We handle events to update UI
         var _ = rbApplication.LogoutAsync();
     }
@@ -165,8 +174,8 @@ public class LoginView: View
                 case ConnectionStatus.Connected:
                     btnLogin.Text = "Logout";
                     btnLogin.Enabled = true;
-                    btnLogin.Accept -= BtnLogin_Accept_StartLogin;
-                    btnLogin.Accept += BtnLogin_Accept_StartLogout;
+                    btnLogin.MouseClick -= BtnLogin_MouseClick_Login;
+                    btnLogin.MouseClick += BtnLogin_MouseClick_Logout;
 
                     LogInfo($"Connected: Reset NbAttempts: [{ rbAutoReconnection.CurrentNbAttempts}]");
                     break;
@@ -186,8 +195,8 @@ public class LoginView: View
                     loginText.Enabled = true;
                     passwordText.Enabled = true;
 
-                    btnLogin.Accept -= BtnLogin_Accept_StartLogout;
-                    btnLogin.Accept += BtnLogin_Accept_StartLogin;
+                    btnLogin.MouseClick -= BtnLogin_MouseClick_Logout;
+                    btnLogin.MouseClick += BtnLogin_MouseClick_Login;
                     break;
             }
 

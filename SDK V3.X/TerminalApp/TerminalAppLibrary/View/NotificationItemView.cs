@@ -20,7 +20,7 @@ public class NotificationItemView: View
         InvitationContextId = invitationContextId;
         _invitingContactId = invitingContactId;
 
-        List<RuneCell> cells = [];
+        List<Cell> cells = [];
 
         // Get display name of inviting user
         String invitingContactDisplayName;
@@ -34,11 +34,12 @@ public class NotificationItemView: View
         if (invitingContactDisplayName.Length > 30)
             invitingContactDisplayName = string.Concat(invitingContactDisplayName.AsSpan(0, 27), "...");
 
-        cells = Tools.ToRuneCellList(invitingContactDisplayName, Tools.ColorSchemeBlueOnGray);
+
+        cells = Tools.ToCellList(invitingContactDisplayName, Tools.ColorSchemeBlueOnGray);
 
         if (contactInvitation)
         {
-            cells.AddRange(Tools.ToRuneCellList(" would like to add you to their network.", Tools.ColorSchemeBlackOnGray));
+            cells.AddRange(Tools.ToCellList(" would like to add you to their network.", Tools.ColorSchemeMain));
         }
         else
         {
@@ -53,8 +54,8 @@ public class NotificationItemView: View
             if (bubbleDisplayName.Length > 30)
                 bubbleDisplayName = string.Concat(bubbleDisplayName.AsSpan(0, 27), "...");
 
-            cells.AddRange(Tools.ToRuneCellList(" invites you to the bubble ", Tools.ColorSchemeBlackOnGray));
-            cells.AddRange(Tools.ToRuneCellList(bubbleDisplayName, Tools.ColorSchemeGreenOnGray));
+            cells.AddRange(Tools.ToCellList(" invites you to the bubble ", Tools.ColorSchemeMain));
+            cells.AddRange(Tools.ToCellList(bubbleDisplayName, Tools.ColorSchemeGreenOnGray));
         }
 
         var label = new TextView()
@@ -65,7 +66,7 @@ public class NotificationItemView: View
             ReadOnly = true,
             Height = 1,
             Width = Dim.Fill(25),
-            ColorScheme = Tools.ColorSchemeBlackOnGray,
+            ColorScheme = Tools.ColorSchemeMain,
         };
         label.Load(cells);
 

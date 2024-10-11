@@ -79,12 +79,13 @@ public class NotificationView: View
             X = Pos.Center(),
             Y = Pos.Center(),
             Width = Dim.Percent(80),
-            Height = Dim.Percent(80)
+            Height = Dim.Percent(80),
+            ShadowStyle = ShadowStyle.None
         };
 
         // Create button
-        Button button = new() { Text = "OK", IsDefault = true };
-        button.Accept += (s, e) => dialog.RequestStop();
+        Button button = new() { Text = "OK", IsDefault = true, ShadowStyle = ShadowStyle.None};
+        button.MouseClick += (s, e) => { e.MouseEvent.Handled = true; dialog.RequestStop(); };
 
         // Add button
         dialog.AddButton(button);

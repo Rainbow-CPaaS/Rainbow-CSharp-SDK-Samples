@@ -79,7 +79,7 @@ public class BotWindow : Window
             Title = "Show/Hide Status Bar",
             CanFocus = false,
         };
-        statusBarShortcutHide.Accept += (sender, args) => { statusBar.Visible = !statusBar.Visible; };
+        statusBarShortcutHide.Accepting += (sender, e) => { statusBar.Visible = !statusBar.Visible; };
 
         ShVersion = new()
         {
@@ -102,7 +102,7 @@ public class BotWindow : Window
                 Title = "Select Bot on Left Panel",
                 CanFocus = false,
             };
-            statusBarShortcutBotSelectionOnLeft.Accept += (sender, args) => SelectBotOnPanel(true);
+            statusBarShortcutBotSelectionOnLeft.Accepting += (sender, e) => { SelectBotOnPanel(true); };
 
             var statusBarShortcutBotSelectionOnRight = new Shortcut
             {
@@ -110,7 +110,7 @@ public class BotWindow : Window
                 Title = "Select Bot on Right Panel",
                 CanFocus = false,
             };
-            statusBarShortcutBotSelectionOnRight.Accept += (sender, args) => SelectBotOnPanel(false);
+            statusBarShortcutBotSelectionOnRight.Accepting += (sender, e) => { SelectBotOnPanel(false); };
 
             statusBar.Add(quitBarShortcut,
                     statusBarShortcutBotSelectionOnLeft,
@@ -125,7 +125,7 @@ public class BotWindow : Window
                 Title = "Select Bot",
                 CanFocus = false,
             };
-            statusBarShortcutBotSelection.Accept += (sender, args) => SelectBotOnPanel(null);
+            statusBarShortcutBotSelection.Accepting += (sender, e) => { SelectBotOnPanel(null); };
 
             statusBar.Add(quitBarShortcut,
                     statusBarShortcutBotSelection);
@@ -173,9 +173,10 @@ public class BotWindow : Window
             List<String> buttonsName = ["Ok", "Cancel"];
             foreach (var name in buttonsName)
             {
-                Button button = new() { Text = name, IsDefault = (name == "Ok") };
-                button.Accept += (s, e) =>
+                Button button = new() { Text = name, IsDefault = (name == "Ok"), ShadowStyle = ShadowStyle.None };
+                button.MouseClick += (s, e) =>
                 {
+                    e.MouseEvent.Handled = true;
                     buttonClicked = name;
                     Application.RequestStop();
                 };
@@ -194,7 +195,8 @@ public class BotWindow : Window
                 X = Pos.Center(),
                 Y = Pos.Center(),
                 Width = Dim.Percent(50),
-                Height = Dim.Percent(50)
+                Height = Dim.Percent(50),
+                ShadowStyle = ShadowStyle.None
             };
 
             // /!\ It's not possible to display same BotView multiple time
