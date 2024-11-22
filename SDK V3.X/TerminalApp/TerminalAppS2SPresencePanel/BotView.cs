@@ -1,4 +1,5 @@
-﻿using NLog.LayoutRenderers.Wrappers;
+﻿using EmbedIO;
+using NLog.LayoutRenderers.Wrappers;
 using Rainbow;
 using Rainbow.Consts;
 using Rainbow.Model;
@@ -15,6 +16,9 @@ internal class BotView: View
     private readonly Invitations rbInvitations;
     private readonly Contact currentContact;
 
+    private readonly WebServer webServer;
+
+
     private LoginView? loginView;
     private View? panelsSelection;
     
@@ -27,6 +31,7 @@ internal class BotView: View
 
     private Button? testButton;
     private int testNumber = 0;
+    private Message message = null;
 
     internal BotView(RainbowAccount rbAccount)
     {
@@ -40,9 +45,17 @@ internal class BotView: View
         NLogConfigurator.AddLogger(prefix);
 
         // Create Rainbow SDK objects
-        rbApplication = new Rainbow.Application(iniFileName: iniFileName, loggerPrefix: prefix);
+        rbApplication = new Rainbow.Application(iniFolderFullPathName: "./", iniFileName: iniFileName, loggerPrefix: prefix);
 
         rbApplication.Restrictions.LogRestRequest = true;
+        rbApplication.Restrictions.LogEvent = true;
+
+        //rbApplication.Restrictions.AcceptBubbleInvitation = true;
+        //rbApplication.Restrictions.AcceptUserInvitation = true;
+
+        // If S2S is used Specify the callback Url
+        if (rbAccount.UseS2S)
+            rbApplication.SetS2SCallbackUrl(Configuration.S2SCallbackURL);
 
         rbAutoReconnection = rbApplication.GetAutoReconnection();
         rbContacts = rbApplication.GetContacts();

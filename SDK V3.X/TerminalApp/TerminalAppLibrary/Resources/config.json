@@ -3,34 +3,41 @@
   "serverConfig": {
     "appId": "TO DEFINE",
     "appSecret": "TO DEFINE",
-    "hostname": "openrainbow.net"
+    "hostname": "TO DEFINE"
   },
 
-  "_comment_accounts": "Define one or several accounts (login, password) to use. 'botName' is used to log entries if a speciic file. If 'autoLogin' is true, automatically try to login",
+  "_comment_s2sCallbackURL": "[OPTIONAL] Define your S2S callback URL if you want this kind of event pipe",
+  "s2sCallbackURL": "",
+
+  "_comment_accounts": "Define ONE or SEVERAL accounts (login, password) to use. 'botName' is used to log entries if a speciic file. If 'autoLogin' is true, automatically try to login",
   "accounts": [
     {
       "botName": "BOT1",
       "login": "TO DEFINE",
       "password": "TO DEFINE",
+      "useS2S": false,
       "autoLogin": true
     },
     {
       "botName": "BOT2",
       "login": "TO DEFINE",
       "password": "TO DEFINE",
+      "useS2S": false,
       "autoLogin": true
     },
     {
       "botName": "BOT3",
       "login": "TO DEFINE",
       "password": "TO DEFINE",
-      "autoLogin": true
+      "useS2S": false,
+      "autoLogin": false
     },
     {
       "botName": "BOT4",
       "login": "TO DEFINE",
       "password": "TO DEFINE",
-      "autoLogin": true
+      "useS2S": false,
+      "autoLogin": false
     }
   ]
 }

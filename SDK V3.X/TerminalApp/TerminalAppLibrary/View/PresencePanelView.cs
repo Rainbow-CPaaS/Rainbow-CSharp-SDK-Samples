@@ -294,7 +294,7 @@ public class PresencePanelView: View
         if (e.MouseEvent.Flags == MouseFlags.Button1DoubleClicked)
         {
             e.MouseEvent.Handled = true;
-            DisplayPresenceDetails(e.Peer);
+            Tools.DisplayPresenceDetails(rbApplication, e.Peer);
         }
 
         if (e.MouseEvent.Flags == MouseFlags.Button3Clicked)
@@ -302,76 +302,6 @@ public class PresencePanelView: View
             e.MouseEvent.Handled = true;
             DisplayContextMenu(e.Peer);
         }
-    }
-
-    private static String GetPresenceString(Presence presence)
-    {
-        String calendar;
-        if (presence.Resource == "calendar")
-            calendar = $" - Until:[{presence.Until:o}]";
-        else
-            calendar = "";
-
-        return $"Resource:[{presence.Resource}] - Apply:[{presence.Apply}]{calendar}{Rainbow.Util.CR}\t{Emojis.TRIANGLE_RIGHT}{presence.PresenceLevel}{((presence.PresenceDetails?.Length > 0) ? (" [" + presence.PresenceDetails) + "]" : "")}";
-    }
-
-    private void DisplayPresenceDetails(Peer peer)
-    {
-        if (peer == null)
-            return;
-
-        // Create dialog
-        Dialog dialog = new()
-        {
-            Title = "Presence details",
-            ButtonAlignment = Alignment.Center,
-            X = Pos.Center(),
-            Y = Pos.Center(),
-            Width = Dim.Percent(80),
-            Height = Dim.Percent(80),
-            ShadowStyle = ShadowStyle.None
-        };
-
-        LoggerView loggerView = new()
-        {
-            X = Pos.Center(),
-            Y = Pos.Center(),
-            Width = Dim.Fill(4),
-            Height = Dim.Fill(2),
-        };
-
-        loggerView.AddColorScheme("blue", Tools.ColorSchemeLoggerBlue, "Resource", "Apply", "Until");
-        loggerView.AddColorScheme("red", Tools.ColorSchemeLoggerRed, "DisplayName", "Id", "Jid", "Aggregated Presence");
-
-        String txt = $"DisplayName:[{peer.DisplayName}]{Rainbow.Util.CR}Id:[{peer.Id}]{Rainbow.Util.CR}Jid:[{peer.Jid}]";
-
-        // Add all presences
-        var presences = rbContacts.GetPresencesList(peer);
-        foreach (var presence in presences.Values)
-            txt += $"{Rainbow.Util.CR}{Rainbow.Util.CR}{GetPresenceString(presence)}";
-
-        // Add  aggregated presence
-        var aggregatedPresence = rbContacts.GetAggregatedPresence(peer);
-        txt += $"{Rainbow.Util.CR}{Rainbow.Util.CR}Aggregated Presence:{Rainbow.Util.CR}{GetPresenceString(aggregatedPresence)}";
-
-        // Create button
-        Button button = new() { Text = "OK", IsDefault = true, ShadowStyle = ShadowStyle.None};
-        button.Accepting += (s, e) => { Application.RequestStop(); e.Cancel = true; };
-        
-        // Add button
-        dialog.AddButton(button);
-
-        // Add View
-        dialog.Add(loggerView);
-
-        // Add text to Logger
-        loggerView.AddText(txt);
-
-        // Display dialog and wait until it's closed
-        Terminal.Gui.Application.Run(dialog);
-
-        // Dispose dialog
-        dialog.Dispose();
     }
 
     private void DisplayContextMenu(Peer peer)

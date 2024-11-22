@@ -33,7 +33,6 @@ public class PresenceColorView : View
         AddRune(0, 0, (Rune)c);
     }
 
-
     public void SetInvitationInProgress()
     {
         c = Emojis.THREE_DOTS[0];
@@ -88,7 +87,11 @@ public class PresenceColorView : View
                     if (presence.PresenceDetails?.Length > 0)
                     {
                         foreground = new Color(255, 255, 255);
-                        chr = presence.PresenceDetails.ToUpper()[0];
+
+                        if (presence.PresenceDetails == PresenceDetails.Phone)
+                            chr = 'A';
+                        else
+                            chr = presence.PresenceDetails.ToUpper()[0];
                     }
                     break;
             }

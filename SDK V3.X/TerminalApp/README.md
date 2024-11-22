@@ -26,6 +26,7 @@ They are listed in order of priority / complexity.
 | TerminAppLogin | Login, AutoReconnection | Simple Login form to understand basic features and switch between different accounts  | [README](./TerminalAppLogin/README.md) |
 | TerminAppLoginSplittedView | Login, AutoReconnection | Simple Login form with a splitted view to manage in same time two different accounts | [README](./TerminalAppLoginSplittedView/README.md) |
 | TerminAppPresencePanel | Login, AutoReconnection, (Aggregated) Presence, User and Bubble invitation | Panel to see Presence of all contatcs in the roster. Possibility to change it's own presence. Manage user and bubble invitations | [README](./TerminalAppPresencePanel/README.md) | 
+| TerminalAppS2SPresencePanel | Login, AutoReconnection, (Aggregated) Presence, User and Bubble invitation | Using S2S, Panel to see Presence of all contatcs in the roster. Possibility to change it's own presence. Manage user and bubble invitations | [README](./TerminalAppS2SPresencePanel/README.md) | 
 
 ## How to test them
 
@@ -33,6 +34,7 @@ They are listed in order of priority / complexity.
 - Set the **./TerminalAppLibrary/Resources.json** according you environment / configuration:
 	- server configuration with  **appId, appSecret and hostname**
 	- account(s) with  **botName, login, password**
+	- Eventually configurS2S Callback URL using the field **s2sCallbackURL**
 - Select as **default project**, the one you want to test
 - Compile it and test it.
 

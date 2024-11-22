@@ -12,6 +12,8 @@ public static class Configuration
     public static RainbowServerConfiguration RainbowServerConfiguration = new();
     public static List<RainbowAccount> RainbowAccounts = [];
 
+    public static String S2SCallbackURL = "";
+
     private static readonly String DEFAULT_VALUE = "TO DEFINE";
     private static String _errorMessage = "";
 
@@ -85,6 +87,9 @@ public static class Configuration
                     _errorMessage += $"\r\nCannot read 'serverConfig' property in config.json";
             }
 
+            // S2SCallbackURL
+            S2SCallbackURL = UtilJson.AsString(json, "s2sCallbackURL");
+
             // Accounts
             if (NeedsRainbowAccounts)
             {
@@ -114,6 +119,9 @@ public static class Configuration
                             rainbowAccount.AutoLogin = UtilJson.AsBoolean(jobject, "autoLogin");
                         else
                             _errorMessage += $"\r\nCannot read 'autoLogin' in 'accounts' for index:[{index}]";
+
+                        rainbowAccount.UseS2S = UtilJson.AsBoolean(jobject, "useS2S");
+                        
 
                         RainbowAccounts.Add(rainbowAccount);
                     }
@@ -147,5 +155,6 @@ public class RainbowAccount
     public String BotName = "";
     public String Login = "";
     public String Password = "";
+    public Boolean UseS2S = false;
     public Boolean AutoLogin = false;
 }
