@@ -143,52 +143,52 @@ async Task ChangePresence()
     {
         case 0:
             // Create presence object to Away
-            newPresence = RbContacts.CreatePresence(true, PresenceLevel.Away);
+            newPresence = RbContacts.CreatePresence(PresenceLevel.Away);
             break;
 
         case 1:
             // Create presence object to Away / Inactive
-            newPresence = RbContacts.CreatePresence(true, PresenceLevel.Away, PresenceDetails.Inactive);
+            newPresence = RbContacts.CreatePresence(PresenceLevel.Away, PresenceDetails.Inactive);
             break;
 
         case 2:
             // Create presence object to Xa / Invisible
-            newPresence = RbContacts.CreatePresence(true, PresenceLevel.Xa);
+            newPresence = RbContacts.CreatePresence(PresenceLevel.Xa);
             break;
 
         case 3:
             // Create presence object to Dnd
-            newPresence = RbContacts.CreatePresence(true, PresenceLevel.Dnd);
+            newPresence = RbContacts.CreatePresence(PresenceLevel.Dnd);
             break;
 
         case 4:
             // Create presence object to Online
-            newPresence = RbContacts.CreatePresence(true, PresenceLevel.Dnd);
+            newPresence = RbContacts.CreatePresence(PresenceLevel.Dnd);
             break;
 
         case 5:
             // Create presence object to Busy - Audio
-            newPresence = RbContacts.CreatePresence(true, PresenceLevel.Busy, PresenceDetails.Audio);
+            newPresence = RbContacts.CreatePresence(PresenceLevel.Busy, PresenceDetails.Audio);
             break;
 
         case 6:
             // Create presence object to Busy - Video
-            newPresence = RbContacts.CreatePresence(true, PresenceLevel.Busy, PresenceDetails.Video);
+            newPresence = RbContacts.CreatePresence(PresenceLevel.Busy, PresenceDetails.Video);
             break;
 
         case 7:
             // Create presence object to Busy - Sharing
-            newPresence = RbContacts.CreatePresence(true, PresenceLevel.Busy, PresenceDetails.Sharing);
+            newPresence = RbContacts.CreatePresence(PresenceLevel.Busy, PresenceDetails.Sharing);
             break;
 
         case 8:
             // Create presence object to Dnd - Teams
-            newPresence = RbContacts.CreatePresence(true, PresenceLevel.Dnd, PresenceDetails.Teams);
+            newPresence = RbContacts.CreatePresence(PresenceLevel.Dnd, PresenceDetails.Teams);
             break;
 
         case 9:
             // Create presence object to Dnd - Presentation
-            newPresence = RbContacts.CreatePresence(true, PresenceLevel.Dnd, PresenceDetails.Presentation);
+            newPresence = RbContacts.CreatePresence(PresenceLevel.Dnd, PresenceDetails.Presentation);
             break;
     }
 

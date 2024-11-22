@@ -1,8 +1,6 @@
-﻿using Microsoft.Extensions.Logging.Abstractions;
-using Rainbow;
+﻿using Rainbow;
 using Rainbow.Consts;
 using Rainbow.Model;
-using System.Text;
 
 // --------------------------------------------------
 
@@ -136,9 +134,9 @@ void DisplayInputsInfo()
     WriteGreen($"{CR}Use [B] to search a Bubble and retrieve message exchanged in it");
 }
 
-Contact SearchForContactsInRoster()
+Contact? SearchForContactsInRoster()
 {
-    Contact result = null;
+    Contact? result = null;
     WriteYellow($"{CR}Enter a text to search a contact from you Roster: ");
     var str = Console.ReadLine();
     if (str != null)
@@ -155,9 +153,9 @@ Contact SearchForContactsInRoster()
     return result;
 }
 
-Bubble SearchForBubbles()
+Bubble? SearchForBubbles()
 {
-    Bubble result = null;
+    Bubble? result = null;
     WriteYellow($"{CR}Enter a text to search a Bubble:");
     var str = Console.ReadLine();
     if (str != null)
@@ -231,9 +229,7 @@ void FetchAllMessagesFromPeer(Peer peer)
                 if (messagesCount != 0)
                     WriteBlue($"Nb Messages:[{messagesCount}] - Time elapsed:[{elapsed.TotalSeconds} sec]");
                 else
-                    WriteBlue($"We have already egt all messages from this Peer - Nb Messages:[{messages.Count()}] - Time elapsed:[{elapsed.TotalSeconds} sec]");
-
-                DisplayInputsInfo();
+                    WriteBlue($"We have already get all messages from this Peer - Nb Messages:[{messages.Count()}] - Time elapsed:[{elapsed.TotalSeconds} sec]");
             }
         }
         catch (Exception e)
@@ -241,8 +237,7 @@ void FetchAllMessagesFromPeer(Peer peer)
 
         }
 
-
-
+        DisplayInputsInfo();
 
     });
 }
