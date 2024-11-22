@@ -1,11 +1,11 @@
-﻿using System;
+﻿using Microsoft.Web.WebView2.Wpf;
+using System;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Media;
 using System.Web;
-using System.Runtime.InteropServices;
+using System.Windows;
+using System.Windows.Media;
 
 namespace WpfWebView
 {
@@ -34,7 +34,8 @@ namespace WpfWebView
             set { Window.Icon = value; }
         }
 
-        private WebBrowser webBrowser;
+        private WebView2 webView2;
+
         private SemaphoreSlim signal;
         private BrowserResult result;
         private String Uri;
@@ -59,11 +60,14 @@ namespace WpfWebView
             Window.Closing += Window_Closing;
 
             // Create WebBrowser
-            webBrowser = new WebBrowser();
-            webBrowser.Navigating += WebBrowser_Navigating;
+            webView2 = new WebView2();
+            webView2.NavigationStarting += WebView2_NavigationStarting;
+            
+            //webBrowser = new WebBrowser();
+            //webBrowser.Navigating += WebBrowser_Navigating;
 
             // Add browser as content of the window
-            Window.Content = webBrowser;
+            Window.Content = webView2;
         }
 
         public void Show()
@@ -118,7 +122,7 @@ namespace WpfWebView
             Window.Show();
 
             // Navigate to the URL
-            webBrowser.Source = new Uri(Uri);
+            webView2.Source = new Uri(Uri);
 
             await signal.WaitAsync();
 
@@ -141,7 +145,7 @@ namespace WpfWebView
             }
         }
 
-        private void WebBrowser_Navigating(object sender, System.Windows.Navigation.NavigatingCancelEventArgs e)
+        private void WebView2_NavigationStarting(object sender, Microsoft.Web.WebView2.Core.CoreWebView2NavigationStartingEventArgs e)
         {
             if (BrowserIsNavigatingToRedirectUri(e.Uri))
             {
@@ -149,7 +153,7 @@ namespace WpfWebView
                 e.Cancel = true;
 
                 // Parse query string to get token value
-                string queryString = new System.Uri(e.Uri.AbsoluteUri).Query;
+                string queryString = new System.Uri(e.Uri).Query;
                 var queryDictionary = HttpUtility.ParseQueryString(queryString);
 
                 result.Token = queryDictionary.Get("tkn");
@@ -173,9 +177,9 @@ namespace WpfWebView
             result.Token = "";
         }
 
-        private bool BrowserIsNavigatingToRedirectUri(Uri uri)
+        private bool BrowserIsNavigatingToRedirectUri(String uri)
         {
-            return uri.AbsoluteUri.StartsWith(RedirectUri, StringComparison.InvariantCultureIgnoreCase);
+            return uri.StartsWith(RedirectUri, StringComparison.InvariantCultureIgnoreCase);
         }
 
     }

@@ -1,15 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Data;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Xml;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using NLog.Config;
-using Rainbow;
+using System;
+using System.IO;
+using System.Windows;
 using WpfSSOSamples.Helpers;
 using WpfSSOSamples.View;
 

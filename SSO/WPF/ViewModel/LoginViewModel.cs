@@ -1,10 +1,8 @@
 using System;
 using System.ComponentModel.DataAnnotations;
-using System.Reflection;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
 
-using Rainbow;
 using Rainbow.Model;
 
 using WpfSSOSamples.Helpers;
@@ -14,7 +12,6 @@ using System.Windows;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
-using System.Windows.Threading;
 using System.Threading;
 using WpfWebView;
 
@@ -280,7 +277,7 @@ namespace WpfSSOSamples.ViewModel
                 if (browserResult.Error)
                 {
                     if (browserResult.CancelByUser)
-                        SetErrorMessage("The sign -in window was closed before authorization was completed.");
+                        SetErrorMessage("The sign-in window was closed before authorization was completed.");
                     else
                         SetErrorMessage("Authentication failed");
                     SetToBusy(false);
@@ -294,9 +291,14 @@ namespace WpfSSOSamples.ViewModel
                     {
                         if (callbackLoginToken.Result.Success)
                         {
-
+                            SetErrorMessage("Login to RB with Token in progress ...");
+                            SetToBusy(true);
                         }
-                        SetToBusy(false);
+                        else
+                        {
+                            SetErrorMessage("Login to RB using Token failed");
+                            SetToBusy(false);
+                        }
                     });
                 }
             }
