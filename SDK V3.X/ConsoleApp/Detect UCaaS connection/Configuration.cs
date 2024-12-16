@@ -23,6 +23,7 @@ public sealed class Configuration
     private String _appId;
     private String _appSecret;
 
+    private RainbowAccount _rbAdmin;
     private List<RainbowAccount> _rbAccounts;
 
     public static Configuration Instance
@@ -42,6 +43,8 @@ public sealed class Configuration
     public String HostName { get => _hostname; }
     public String AppId { get => _appId; }
     public String AppSecret { get => _appSecret; }
+
+    public RainbowAccount RbAdmin { get => _rbAdmin; }
 
     public List<RainbowAccount> RbAccounts { get => _rbAccounts; }
 
@@ -152,7 +155,7 @@ public sealed class Configuration
                 var jobject = json["applicationConfig"];
 
                 if (jobject["logsFolderPath"] != null)
-                    _logsFolderPath = UtilJson.AsString(jobject, "logsFolderPath");
+                    _logsFolderPath = jobject["logsFolderPath"];
                 else
                     _errorMessage += $"\r\nCannot read 'logsFolderPath' property in 'applicationConfig' object";
             }
@@ -163,22 +166,39 @@ public sealed class Configuration
                 var jobject = json["serverConfig"];
 
                 if (jobject["appId"] != null)
-                    _appId = UtilJson.AsString(jobject, "appId");
+                    _appId = jobject["appId"];
                 else
                     _errorMessage += $"\r\nCannot read 'appId' property in 'serverConfig' object";
 
                 if (jobject["appSecret"] != null)
-                    _appSecret = UtilJson.AsString(jobject, "appSecret");
+                    _appSecret = jobject["appSecret"];
                 else
                     _errorMessage += $"\r\nCannot read 'apappSecretpId' property in 'serverConfig' object";
 
                 if (jobject["hostname"] != null)
-                    _hostname = UtilJson.AsString(jobject, "hostname");
+                    _hostname = jobject["hostname"];
                 else
                     _errorMessage += $"\r\nCannot read 'hostname' property in 'serverConfig' object";
             }
             else if(CHECK_APPID)
                 _errorMessage += $"\r\nCannot read 'serverConfig' object";
+
+            if (json["adminConfig"]?.IsObject == true)
+            {
+                var adminConfig = json["adminConfig"];
+                _rbAdmin = new RainbowAccount()
+                {
+                    Prefix = adminConfig["prefix"],
+                    Login = adminConfig["login"],
+                    Password = adminConfig["password"],
+                    AutoLogin = adminConfig["autoLogin"],
+                };
+
+                if (!(IsValueCorrect(_rbAdmin.Prefix) && IsValueCorrect(_rbAdmin.Login) && IsValueCorrect(_rbAdmin.Password)))
+                    _errorMessage += $"\r\nCannot read 'prefix', 'login' or 'password' in 'adminConfig' object";
+            }
+            else if (CHECK_ACCOUNT)
+                _errorMessage += $"\r\nCannot read 'adminConfig' object";
 
             // UserLogin, UserPassword
             if (json["usersConfig"]?.IsArray == true)
@@ -189,10 +209,10 @@ public sealed class Configuration
                 {
                     var account = new RainbowAccount()
                     {
-                        Prefix = UtilJson.AsString(userconfig, "prefix"),
-                        Login = UtilJson.AsString(userconfig, "login"),
-                        Password = UtilJson.AsString(userconfig, "password"),
-                        AutoLogin = UtilJson.AsBoolean(userconfig, "autoLogin"),
+                        Prefix = userconfig["prefix"],
+                        Login = userconfig["login"],
+                        Password = userconfig["password"],
+                        AutoLogin = userconfig["autoLogin"],
                     };
 
                     if (!(IsValueCorrect(account.Prefix) && IsValueCorrect(account.Login) && IsValueCorrect(account.Password)))
@@ -201,7 +221,6 @@ public sealed class Configuration
                         _rbAccounts.Add(account);
                     index++;
                 }
-                
             }
             else if (CHECK_ACCOUNT)
                 _errorMessage += $"\r\nCannot read 'usersConfig' object as array";
@@ -227,9 +246,17 @@ public sealed class Configuration
         // Set folder / directory path
         NLogConfigurator.Directory = _logsFolderPath;
 
+        // Add loggers using prefix set on std accounts
         var prefixArray = _rbAccounts.Select(a => a.Prefix).Distinct().ToArray();
         if(!NLogConfigurator.AddLogger(prefixArray))
             _errorMessage += $"\r\n\tCannot set logger for prefix:[{prefixArray}]";
+
+        // Add logger using prefix set on Admin account
+        var prefix = _rbAdmin.Prefix;
+        if(prefixArray.Contains(prefix))
+            _errorMessage += $"\r\n\tPrefix set for Admin account is already used - prefix:[{prefix}]";
+        else if (!NLogConfigurator.AddLogger(prefix))
+            _errorMessage += $"\r\n\tCannot set logger for prefix:[{prefix}]";
 
         return _errorMessage == "";
     }

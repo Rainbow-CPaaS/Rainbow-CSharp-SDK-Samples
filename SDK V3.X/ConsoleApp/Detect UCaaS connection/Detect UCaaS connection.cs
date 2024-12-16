@@ -1,8 +1,10 @@
 ﻿
+using Login_Simple;
 using Microsoft.Extensions.Logging;
 using Rainbow;
 using Rainbow.Consts;
 using Rainbow.Model;
+using System.Security.Principal;
 using System.Text;
 
 Object consoleLockObject = new(); // To lock until the current console display is performed
@@ -20,10 +22,21 @@ if (!configuration.Initialized)
     return;
 }
 
+
+
+
 var logFullPath = Path.GetFullPath(configuration.LogsFolderPath);
 WriteBlue($"Logs files will be stored in folder:[{logFullPath}]{Rainbow.Util.CR}");
 
 WriteBlue($"Use [ESC] at anytime to quit{Rainbow.Util.CR}");
+
+// Create admin bot
+var adminBot = new RainbowAdminBot(configuration.RbAdmin);
+adminBot.ConnectionStateChanged += (connectionState) => RainbowBot_ConnectionStateChanged(adminBot.RainbowAccount, connectionState);
+adminBot.ConnectionFailed += (sdkError) => RainbowBot_ConnectionFailed(adminBot.RainbowAccount, sdkError);
+adminBot.SIPDeviceStatusChanged += AdminBot_SIPDeviceStatusChanged;
+
+
 
 foreach (var account in configuration.RbAccounts)
 {
@@ -31,9 +44,9 @@ foreach (var account in configuration.RbAccounts)
     rainbowBots.Add(rainbowBot);
 
     // Set events we want to follow 
-    rainbowBot.ConnectionStateChanged += (connectionState) => RainbowBot_ConnectionStateChanged(rainbowBot, connectionState);
-    rainbowBot.AccountUsedOnAnotherDevice += (accountUsedOnAnotherDevice) => RainbowBot_AccountUsedOnAnotherDevice(rainbowBot, accountUsedOnAnotherDevice);
-    rainbowBot.ConnectionFailed += (sdkError) => RainbowBot_ConnectionFailed(rainbowBot, sdkError);
+    rainbowBot.ConnectionStateChanged += (connectionState) => RainbowBot_ConnectionStateChanged(rainbowBot.RainbowAccount, connectionState);
+    rainbowBot.AccountUsedOnAnotherDevice += (accountUsedOnAnotherDevice) => RainbowBot_AccountUsedOnAnotherDevice(rainbowBot.RainbowAccount, accountUsedOnAnotherDevice);
+    rainbowBot.ConnectionFailed += (sdkError) => RainbowBot_ConnectionFailed(rainbowBot.RainbowAccount, sdkError);
 }
 
 do
@@ -60,38 +73,49 @@ void CheckInputKey()
     }
 }
 
+#region EVENTS TRIGGERED BY RainbowAdminBot
+
+void AdminBot_SIPDeviceStatusChanged(SIPDeviceStatus sipDeviceStatus)
+{
+    var log = $"Device status changed: Registered[{sipDeviceStatus.Registered}] - ShortNumber:[{sipDeviceStatus.DeviceShortNumber}] - Peer:[{sipDeviceStatus.Peer.ToString("small")}]";
+    if (sipDeviceStatus.Registered)
+        WriteDarkYellow(log);
+    else
+        WriteRed(log);
+}
+#endregion EVENTS TRIGGERED BY RainbowAdminBot
 
 #region EVENTS TRIGGERED BY RainbowBot
 
-void RainbowBot_ConnectionStateChanged(RainbowBot rainbowBot, ConnectionState connectionState)
+void RainbowBot_ConnectionStateChanged(RainbowAccount rainbowAccount, ConnectionState connectionState)
 {
     switch(connectionState.Status)
     {
         case ConnectionStatus.Connected:
-            WriteDarkYellow($"Bot using [{rainbowBot.RainbowAccount.Login}] is connected{Rainbow.Util.CR}");
+            WriteDarkYellow($"Bot using [{rainbowAccount.Login}] is connected{Rainbow.Util.CR}");
             break;
 
         case ConnectionStatus.Connecting:
-            WriteBlue($"Bot using [{rainbowBot.RainbowAccount.Login}] is connecting ...{Rainbow.Util.CR}");
+            WriteBlue($"Bot using [{rainbowAccount.Login}] is connecting ...{Rainbow.Util.CR}");
             break;
 
         case ConnectionStatus.Disconnected:
-            WriteRed ($"Bot using [{rainbowBot.RainbowAccount.Login}] is disconnected{Rainbow.Util.CR}");
+            WriteRed ($"Bot using [{rainbowAccount.Login}] is disconnected{Rainbow.Util.CR}");
             break;
     }
 }
 
-void RainbowBot_AccountUsedOnAnotherDevice(RainbowBot rainbowBot, Boolean accountUsedOnAnotherDevice)
+void RainbowBot_AccountUsedOnAnotherDevice(RainbowAccount rainbowAccount, Boolean accountUsedOnAnotherDevice)
 {
     if(accountUsedOnAnotherDevice)
-        WriteDarkYellow($"[{rainbowBot.RainbowAccount.Login}] is connected using another device{Rainbow.Util.CR}");
+        WriteDarkYellow($"[{rainbowAccount.Login}] is connected using another device{Rainbow.Util.CR}");
     else
-        WriteRed($"[{rainbowBot.RainbowAccount.Login}] is NOT connected using another device{Rainbow.Util.CR}");
+        WriteRed($"[{rainbowAccount.Login}] is NOT connected using another device{Rainbow.Util.CR}");
 }
 
-void RainbowBot_ConnectionFailed(RainbowBot rainbowBot, SdkError sdkError)
+void RainbowBot_ConnectionFailed(RainbowAccount rainbowAccount, SdkError sdkError)
 {
-    WriteRed($"Bot using [{rainbowBot.RainbowAccount.Login}] is not connected - Error:[{sdkError}]{Rainbow.Util.CR}");
+    WriteRed($"Bot using [{rainbowAccount.Login}] is not connected - Error:[{sdkError}]{Rainbow.Util.CR}");
 }
 
 #endregion EVENTS TRIGGERED BY RainbowBot
