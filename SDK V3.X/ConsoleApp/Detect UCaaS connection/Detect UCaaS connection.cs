@@ -1,10 +1,8 @@
 ﻿
 using Login_Simple;
-using Microsoft.Extensions.Logging;
 using Rainbow;
 using Rainbow.Consts;
 using Rainbow.Model;
-using System.Security.Principal;
 using System.Text;
 
 Object consoleLockObject = new(); // To lock until the current console display is performed
@@ -45,9 +43,11 @@ foreach (var account in configuration.RbAccounts)
 
     // Set events we want to follow 
     rainbowBot.ConnectionStateChanged += (connectionState) => RainbowBot_ConnectionStateChanged(rainbowBot.RainbowAccount, connectionState);
-    rainbowBot.AccountUsedOnAnotherDevice += (accountUsedOnAnotherDevice) => RainbowBot_AccountUsedOnAnotherDevice(rainbowBot.RainbowAccount, accountUsedOnAnotherDevice);
     rainbowBot.ConnectionFailed += (sdkError) => RainbowBot_ConnectionFailed(rainbowBot.RainbowAccount, sdkError);
+    
+    rainbowBot.AccountUsedOnAnotherDevice += (accountUsedOnAnotherDevice) => RainbowBot_AccountUsedOnAnotherDevice(rainbowBot.RainbowAccount, accountUsedOnAnotherDevice);
 }
+
 
 do
 {
@@ -105,18 +105,20 @@ void RainbowBot_ConnectionStateChanged(RainbowAccount rainbowAccount, Connection
     }
 }
 
-void RainbowBot_AccountUsedOnAnotherDevice(RainbowAccount rainbowAccount, Boolean accountUsedOnAnotherDevice)
-{
-    if(accountUsedOnAnotherDevice)
-        WriteDarkYellow($"[{rainbowAccount.Login}] is connected using another device{Rainbow.Util.CR}");
-    else
-        WriteRed($"[{rainbowAccount.Login}] is NOT connected using another device{Rainbow.Util.CR}");
-}
 
 void RainbowBot_ConnectionFailed(RainbowAccount rainbowAccount, SdkError sdkError)
 {
     WriteRed($"Bot using [{rainbowAccount.Login}] is not connected - Error:[{sdkError}]{Rainbow.Util.CR}");
 }
+
+void RainbowBot_AccountUsedOnAnotherDevice(RainbowAccount rainbowAccount, Boolean accountUsedOnAnotherDevice)
+{
+    if (accountUsedOnAnotherDevice)
+        WriteDarkYellow($"[{rainbowAccount.Login}] is connected using another device{Rainbow.Util.CR}");
+    else
+        WriteRed($"[{rainbowAccount.Login}] is NOT connected using another device{Rainbow.Util.CR}");
+}
+
 
 #endregion EVENTS TRIGGERED BY RainbowBot
 

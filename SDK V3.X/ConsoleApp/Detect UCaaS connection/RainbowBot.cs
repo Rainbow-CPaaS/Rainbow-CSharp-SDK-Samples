@@ -3,6 +3,7 @@ using Rainbow.Consts;
 using Rainbow.Delegates;
 using Rainbow.Enums;
 using Rainbow.Model;
+using Rainbow.SimpleJSON;
 
 
 internal class RainbowBot
@@ -75,9 +76,43 @@ internal class RainbowBot
         }
     }
 
-    private void RbApplication_AuthenticationFailed(SdkError sdkError)
+    public async Task<SdkResult<String>> MakeRestRequestAsync(String requestUri, String requestMethod, String? body = null, Dictionary<string, object>? queryParameters = null, Dictionary<String, String>? specificHeaders = null, String? acceptContentType = null, int acceptHttpStatusCode = 200)
+    {
+        var httpClient = _rbApplication?.GetSecondaryHttpClient();
+
+        if (httpClient is null)
+            return new SdkResult<String>(SdkInternalError.FromInternalError(SdkInternalErrorEnum.OPERATION_FAILED, new[] { "HttpClient is null", "MakeRestRequestAsync" }));
+
+        HttpRequestDescriptor httpRequestDescriptor = HttpRequestDescriptor.JsonRequest(requestUri, requestMethod, body);
+        httpRequestDescriptor.AddQueryParameters(queryParameters);
+        httpRequestDescriptor.AddAcceptContentType(acceptContentType);
+        httpRequestDescriptor.AddAcceptHttpStatusCode(acceptHttpStatusCode);
+        if (specificHeaders?.Count > 0)
+            httpRequestDescriptor.AddHeaders(specificHeaders);
+
+        return await httpClient.RequestAsStringAsync(httpRequestDescriptor);
+    }
+
+    private async void RbApplication_AuthenticationFailed(SdkError sdkError)
     {
         Util.RaiseEvent(() => ConnectionFailed, _rbApplication, sdkError);
+
+        // EXAMPLE TO POST DATA USING HTTP
+        Dictionary<String, object> bodyDico = new()
+        {
+            { "login", RainbowAccount.Login },
+            { "error", sdkError.ToString()}
+        };
+
+        var requestUri = "https://www.myserver.com/AuthenticationFailed";
+        var requestMethod = "POST";
+        var body = JSON.ToJson(bodyDico);
+
+        var sdkResult = await MakeRestRequestAsync(requestUri, requestMethod, body);
+        if (!sdkResult.Success)
+        {
+            // it was not possible to make REST request to my server ...
+        }
     }
 
     private void RbContacts_ContactPresenceUpdated(Rainbow.Model.Presence presence)
@@ -113,7 +148,7 @@ internal class RainbowBot
         
     }
 
-    private void RbApplication_ConnectionStateChanged(Rainbow.Model.ConnectionState connectionState)
+    private async void RbApplication_ConnectionStateChanged(Rainbow.Model.ConnectionState connectionState)
     {
         switch(connectionState.Status) 
         {
@@ -129,6 +164,25 @@ internal class RainbowBot
         }
 
         Util.RaiseEvent(() => ConnectionStateChanged, _rbApplication, connectionState);
+
+
+        // EXAMPLE TO POST DATA USING HTTP
+        Dictionary<String, object> bodyDico = new()
+        {
+            { "login", RainbowAccount.Login },
+            { "connectionStatus", connectionState.Status}
+        };
+
+        var requestUri = "https://www.myserver.com/ConnectionStateChanged";
+        var requestMethod = "POST";
+        var body = JSON.ToJson(bodyDico);
+
+        var sdkResult = await MakeRestRequestAsync(requestUri, requestMethod, body);
+        if (!sdkResult.Success)
+        {
+            // it was not possible to make REST request to my server ...
+        }
+
     }
 
     private void RbAutoReconnection_Cancelled(Rainbow.SdkError sdkError)

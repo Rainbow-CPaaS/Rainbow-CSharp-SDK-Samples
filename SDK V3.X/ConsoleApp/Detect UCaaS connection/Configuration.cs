@@ -1,8 +1,4 @@
-﻿using NLog.Config;
-using Rainbow;
-using Rainbow.SimpleJSON;
-using Microsoft.Extensions.Logging;
-using NLog.Extensions.Logging;
+﻿using Rainbow.SimpleJSON;
 
 public sealed class Configuration
 {
