@@ -4,7 +4,7 @@
 # Rainbow CSharp SDK - Binaries
 ---
 
-This folder contains several binaries / libraries files usefull to test Rainbow CSahrp SDK.
+This folder contains several binaries / libraries files usefull to test / use Rainbow C# SDK.
 
 ## SDL2 and FFmpeg libraries
 
@@ -12,9 +12,9 @@ They are mandatory if you use [Rainbow.CSharp.WebRTC](https://www.nuget.org/pack
 
 Info about [FFmpeg](https://www.ffmpeg.org/) libraries and [SDL2](https://www.libsdl.org) libraries. 
 
-For **FFmpeg** version 6.0 or more must be used.
+For **FFmpeg** version 7.0.1 must be used.
 
-For **SDL2** version 2.0.22 or more must be used.
+For **SDL2** version 2.0.22 must be used.
 
 They are available for each platform (Windows, MacOs, and Linux) but you need to get them differently according your environement.
 
@@ -26,22 +26,21 @@ Download X64 libraries from here: https://www.libsdl.org/download-2.0.php
 
 They are available also [here](./Windows/SDL2-2.0.22)
 
-Then they must be installed in the same folder that your executable using this SDK.
+Then they must be installed **in the same folder** that your executable using this SDK.
 
 #### FFmpeg libraries:
 
-Download X64 libraries from here: https://github.com/GyanD/codexffmpeg/releases/download/6.0/ffmpeg-6.0-full_build-shared.zip
+Download X64 libraries from here: https://github.com/GyanD/codexffmpeg/releases/download/7.0.1/ffmpeg-7.0.1-full_build-shared.7z
 
-They are available also [here](./Windows/ffmpeg-6.0-full_build-shared)
+They are available also [here](./Windows/ffmpeg-7.0.1-full_build-shared)
 
-From this ZIP file only files in folder **bin** are used by the SDK. You can store them on your system where you want but you need to specify this folder when you create an instance of **WebRTCCommunications** object.
+Only files in folder **bin** are used by the SDK. You can store them on your system where you want but you need to specify this folder when you create an instance of **WebRTCCommunications** object.
 
 Example:
 ``` csharp
-String FFMPEG_LIB_PATH = @"C:\ffmpeg-6.0-full_build-shared\bin";
+String FFMPEG_LIB_PATH = @"C:\ffmpeg-7.0.1-full_build-shared";
 
-Rainbow.Application rbApplication = new Rainbow.Application();
-Rainbow.WebRTCCommunications rbWebRTCCommunications =  WebRTCCommunications.CreateInstance(rbApplication, FFMPEG_LIB_PATH); 
+Rainbow.Medias.Helper.InitExternalLibraries(FFMPEG_LIB_PATH);
 ```
 
 ### MacOS
@@ -50,7 +49,7 @@ Rainbow.WebRTCCommunications rbWebRTCCommunications =  WebRTCCommunications.Crea
 
 Download X64 libraries from here: https://www.libsdl.org/download-2.0.php
 
-Then they must be installed in the same folder that your executable using this SDK.
+Then they must be installed **in the same folder** that your executable using this SDK.
 
 #### FFmpeg libraries:
 
