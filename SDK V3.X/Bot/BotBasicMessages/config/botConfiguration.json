@@ -1,0 +1,14 @@
+{
+  "botConfiguration": {
+    "administrators": {
+      "rainbowAccounts": [
+        {
+          "login": "myAccount@myDomain.com"
+        }
+      ],
+      "guestsAccepted": true
+    },
+    "bubbleInvitationAutoAccept": true,
+    "userInvitationAutoAccept": true
+  }
+}

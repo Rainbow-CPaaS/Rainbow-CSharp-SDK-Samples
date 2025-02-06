@@ -1,0 +1,49 @@
+digraph {
+compound=true;
+node [shape=Mrecord]
+rankdir="LR"
+
+subgraph "clusterConnected"
+	{
+	label = "Connected\n----------\nentry / OnEntryConnectedAsync"
+"CheckingDataAvailability" [label="CheckingDataAvailability|entry / OnEntryCheckDataAvailabilityAsync"];
+"ManageBubbleInvitationReceived" [label="ManageBubbleInvitationReceived|entry / OnEntryManageBubbleInvitationReceivedAsync"];
+"ManageUserInvitationReceived" [label="ManageUserInvitationReceived|entry / OnEntryManageUserInvitationReceivedAsync"];
+"ManageAckMessageReceived" [label="ManageAckMessageReceived|entry / OnEntryManageAckMessageReceivedAsync"];
+"ManageApplicationMessageReceived" [label="ManageApplicationMessageReceived|entry / OnEntryManageApplicationMessageReceivedAsync"];
+"ManageInternalMessageReceived" [label="ManageInternalMessageReceived|entry / OnEntryManageInternalMessageReceivedAsync"];
+"ManageInstantMessageReceived" [label="ManageInstantMessageReceived|entry / OnEntryManageInstantMessageReceivedAsync"];
+}
+"Created" [label="Created"];
+"Stopped" [label="Stopped|entry / OnEntryStoppedAsync"];
+"NotConnected" [label="NotConnected"];
+"Connecting" [label="Connecting"];
+"Authenticated" [label="Authenticated"];
+
+"Created" -> "NotConnected" [style="solid", label="Configure"];
+"Stopped" -> "Connecting" [style="solid", label="StartLogin"];
+"NotConnected" -> "Connecting" [style="solid", label="StartLogin"];
+"NotConnected" -> "Stopped" [style="solid", label="Stop"];
+"Connecting" -> "NotConnected" [style="solid", label="Disconnect"];
+"Connecting" -> "Connected" [style="solid", label="Connect"];
+"Connecting" -> "Authenticated" [style="solid", label="AuthenticationSucceeded"];
+"Authenticated" -> "Connected" [style="solid", label="Connect"];
+"Authenticated" -> "NotConnected" [style="solid", label="Disconnect"];
+"Connected" -> "CheckingDataAvailability" [style="solid", label="NextStep"];
+"Connected" -> "NotConnected" [style="solid", label="Disconnect"];
+"CheckingDataAvailability" -> "CheckingDataAvailability" [style="solid", label="NextStep / OnEntryCheckDataAvailabilityAsync"];
+"CheckingDataAvailability" -> "ManageBubbleInvitationReceived" [style="solid", label="BubbleInvitation"];
+"CheckingDataAvailability" -> "ManageUserInvitationReceived" [style="solid", label="UserInvitation"];
+"CheckingDataAvailability" -> "ManageAckMessageReceived" [style="solid", label="AckMessage"];
+"CheckingDataAvailability" -> "ManageApplicationMessageReceived" [style="solid", label="ApplicationMessage"];
+"CheckingDataAvailability" -> "ManageInternalMessageReceived" [style="solid", label="InternalMessage"];
+"CheckingDataAvailability" -> "ManageInstantMessageReceived" [style="solid", label="InstantMessage"];
+"ManageBubbleInvitationReceived" -> "CheckingDataAvailability" [style="solid", label="NextStep"];
+"ManageUserInvitationReceived" -> "CheckingDataAvailability" [style="solid", label="NextStep"];
+"ManageAckMessageReceived" -> "CheckingDataAvailability" [style="solid", label="NextStep"];
+"ManageApplicationMessageReceived" -> "CheckingDataAvailability" [style="solid", label="NextStep"];
+"ManageInternalMessageReceived" -> "CheckingDataAvailability" [style="solid", label="NextStep"];
+"ManageInstantMessageReceived" -> "CheckingDataAvailability" [style="solid", label="NextStep"];
+ init [label="", shape=point];
+ init -> "Created"[style = "solid"]
+}

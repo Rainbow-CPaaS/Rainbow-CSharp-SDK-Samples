@@ -1,0 +1,82 @@
+{
+  "_comment_botConfiguration": "To configure the bot: administrators, streams used (audio, video, sharing) and conference to join / quit",
+  "botConfiguration": {
+
+    "_comment_administrators": "(Optional) Define who can manage this bot (administrators) (if not defined, use previous value)",
+    "administrators": {
+
+      "_comment_rainbowAccounts": "(Optional) To define Rainbow Accounts which can be used to configure the bot (if not defined, use previous value)",
+      "rainbowAccounts": [
+        {
+          "_comment_id": "optional - if present used first",
+          "id": "",
+
+          "_comment_jid": "optional - if present used second",
+          "jid": "",
+
+          "_comment_login": "optional - if present used third",
+          "login": "myAccount@myDomain.com"
+        }
+      ],
+
+      "_comment_guests": "(Optional) True to accept guests to configure the bot",
+      "guestsAccepted": true
+    },
+
+    "_comment_bubbleInvitationAutoAccept": "(Optional) To accept automatically bubble invitation (if not defined, use previous value)",
+    "bubbleInvitationAutoAccept": true,
+
+    "_comment_userInvitationAutoAccept": "(Optional) To accept automatically user invitation (presence) (if not defined, use previous value)",
+    "userInvitationAutoAccept": true,
+
+    "_comment_streams": "(Optional) To define one or several streams. A video/sharing stream can be a composition of different streams. A filter is mandatory in this case to dsecribe the compostion",
+    "streams": [
+      {
+        "_comment_id": "unique id for this stream",
+        "id": "id4",
+
+        "_comment_media": "type of media in this stream te be played in conference: 'audio', 'video', 'audio+video' or 'composition'",
+        "media": "video",
+
+        "_comment_videoComposition": "(optional) if it's a videoComposition, list of streams id used to create it. Their order is important and related to the videoFilter used",
+        "videoComposition": [ "id1", "id2" ],
+
+        "_comment_uri": "(optional) if it's not a composition, uri (local or distant) to use",
+        "uri": "rtsp://zephyr.rtsp.stream/movie",
+
+        "_comment_uriSettings": "(optional) if it's not a composition, settings used to connected to the uri (can be null/empty) => ffmpeg parameters",
+        "uriSettings": {
+          "rtsp_transport": "tcp",
+          "max_delay": "0"
+        },
+
+        "_comment_videoFilter": "(optional) If it's a video composition, video filter used to create it. If it's not, video filter (optional) used on the stream before to broadcast it to the conference",
+        "videoFilter": "",
+
+        "_comment_forceLiveStream": "can help in very rare case - false by default",
+        "forceLiveStream": false
+      }
+    ],
+
+    "_comment_conference": "(Optional) If this object is null / not present, it means the bot must quit any conference in progress. If not null, it must join it",
+    "conference": {
+      "_comment_id": "(optional) id of the conference/bubble - if present used first",
+      "id": "12345648",
+
+      "_comment_jid": "(optional) jid of the conference/bubble - if present used second",
+      "jid": "12345648",
+
+      "_comment_name": "(optional) name of the conference/bubble - if present used third",
+      "name": "my bubble",
+
+      "_comment_audioStreamId": "(Optional) Id of the stream (defined in streams object) to use as audio in the conference. Empty track is used if no audio stream is specified",
+      "audioStreamId": "id1",
+
+      "_comment_videoStreamId": "(Optional) Id of the stream (defined in streams object) to use as video in the conference",
+      "videoStreamId": "id2",
+
+      "_comment_sharingStreamId": "(Optional) Id of the stream (defined in streams object) to use as sharing in the conference",
+      "sharingStreamId": "id3"
+    }
+  }
+}
