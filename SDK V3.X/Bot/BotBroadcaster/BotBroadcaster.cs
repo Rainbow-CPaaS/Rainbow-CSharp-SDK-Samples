@@ -37,9 +37,6 @@ namespace BotBroadcaster
         List<String> conferencesInProgress = [];
 
         Call? currentCall = null;
-        IAudioStreamTrack? audioTrack = null;
-        IVideoStreamTrack? videoTrack = null;
-        IVideoStreamTrack? sharingTrack = null;
 
         List<StreamAndDevice> _listConnectedDevices = []; // To know the relation between Streams (defined in config) and Device used to connect to the remote stream
 
@@ -123,12 +120,6 @@ namespace BotBroadcaster
 
                 if (result)
                     result = await ConnectOrDisconnectRemoteMediasAsync();
-
-                if (IsNewConfigAvailable())
-                    return;
-
-                if (result)
-                    result = await AddOrUpdateMediasInConferenceAsync();
 
                 if (IsNewConfigAvailable())
                     return;
@@ -592,12 +583,6 @@ namespace BotBroadcaster
             // Store only 
             _listConnectedDevices = _listConnectedDevices.FindAll(s => s.MustBeDeleted == false);
 
-            await Task.CompletedTask;
-            return true;
-        }
-
-        private async Task<Boolean> AddOrUpdateMediasInConferenceAsync()
-        {
             await Task.CompletedTask;
             return true;
         }

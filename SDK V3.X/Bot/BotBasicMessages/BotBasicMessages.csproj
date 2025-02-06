@@ -10,7 +10,7 @@
     <Content Include="config\botConfiguration.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="config\botCredentials.json">
+    <Content Include="config\credentials.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="config\exeSettings.json">

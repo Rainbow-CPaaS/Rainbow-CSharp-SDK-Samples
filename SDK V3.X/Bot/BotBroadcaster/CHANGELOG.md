@@ -3,6 +3,7 @@
 # Rainbow CSharp SDK v3 - Bot Broadcaster
 
 ##  [0.0.2]
+- use **credentials.json** (renamed from **botCredentials.json**)
 - Add **bot** object in JSON to specify which bot must use the configuration - see chapter [File botConfiguration.json](../README.md#botConfiguration.json) for details.
 - **ApplicationMessage**, to update the bot configuration, must have the first **XmlElement** with **"botConfiguration"** as name - see chapter [Using ApplicationMessage](../README.md#UsingApplicationMessage) for details.
 

@@ -84,7 +84,7 @@ namespace BotLibrary
         
         private readonly ConcurrentQueue<InternalMessage> _queueInternalMessagesReceived;
 
-        private BotCredentials _botCredentials;
+        private Credentials _credentials;
         private BotConfiguration _botConfiguration;
         private JSONNode _jsonNodeBotConfiguration;
 
@@ -196,7 +196,7 @@ namespace BotLibrary
 
                 // Log info about transition
                 var parameters = string.Join(", ", transition.Parameters);
-                Util.WriteInfoToConsole($"[{DateTime.Now:HH:mm:ss.fff}][{_botCredentials.UserConfig.Prefix}] State [{transition.Destination}] from [{transition.Source}] with Trigger: [{transition.Trigger}]{(String.IsNullOrEmpty(parameters) ? "" : " Parameter(s):[" + parameters + "]")}");
+                Util.WriteInfoToConsole($"[{DateTime.Now:HH:mm:ss.fff}][{_credentials.UserConfig.Prefix}] State [{transition.Destination}] from [{transition.Source}] with Trigger: [{transition.Trigger}]{(String.IsNullOrEmpty(parameters) ? "" : " Parameter(s):[" + parameters + "]")}");
             });
         }
 
@@ -888,20 +888,20 @@ namespace BotLibrary
         }
 
         /// <summary>
-        /// To get the name of the Bot (it's the prefix defined in file botCredentials.json file)
+        /// To get the name of the Bot (it's the prefix defined in file credentials.json file)
         /// </summary>
         public String BotName
         {
-            get { return _botCredentials.UserConfig.Prefix; }
+            get { return _credentials.UserConfig.Prefix; }
         }
 
         /// <summary>
         /// To configure the bot - must be called before to use <see cref="Login"/>
         /// </summary>
-        /// <param name="botCredentials"><see cref="BotCredentials"/></param>
-        /// <param name="botConfiguration"><see cref="BotConfiguration"/></param>
+        /// <param name="jsonNodeCredentials"><see cref="Credentials"/></param>
+        /// <param name="jsonNodeBotConfiguration"><see cref="BotConfiguration"/></param>
         /// <returns></returns>
-        public async Task<Boolean> Configure(JSONNode jsonNodeBotCredentials, JSONNode jsonNodeBotConfiguration)
+        public async Task<Boolean> Configure(JSONNode jsonNodeCredentials, JSONNode jsonNodeBotConfiguration)
         {
             // Check that the trigger can be used
             Trigger triggerToUse = Trigger.Configure;
@@ -910,7 +910,7 @@ namespace BotLibrary
 
             _jsonNodeBotConfiguration = jsonNodeBotConfiguration;
 
-            if (!BotCredentials.FromJsonNode(jsonNodeBotCredentials, out _botCredentials))
+            if (!Credentials.FromJsonNode(jsonNodeCredentials, out _credentials))
             {
                 Util.WriteErrorToConsole($"Cannot read 'botSettings' object OR invalid/missing data.");
                 return false;
@@ -929,7 +929,7 @@ namespace BotLibrary
                 return false;
             }
 
-            var prefix = _botCredentials.UserConfig.Prefix;
+            var prefix = _credentials.UserConfig.Prefix;
             var loggerPrefix = prefix + "_";
 
             // We want to log specifically using a prefix for this bot
@@ -939,11 +939,11 @@ namespace BotLibrary
             log = Rainbow.LogFactory.CreateLogger<Application>(loggerPrefix);
 
             // Create Rainbow Application (root object of the SDK)
-            _rbApplication = new Rainbow.Application(_botCredentials.UserConfig.IniFolderPath, prefix + ".ini", loggerPrefix);
+            _rbApplication = new Rainbow.Application(_credentials.UserConfig.IniFolderPath, prefix + ".ini", loggerPrefix);
 
             // Set APP_ID, APP_SECRET_KET and HOSTNAME
-            _rbApplication.SetApplicationInfo(_botCredentials.ServerConfig.AppId, _botCredentials.ServerConfig.AppSecret);
-            _rbApplication.SetHostInfo(_botCredentials.ServerConfig.HostName);
+            _rbApplication.SetApplicationInfo(_credentials.ServerConfig.AppId, _credentials.ServerConfig.AppSecret);
+            _rbApplication.SetHostInfo(_credentials.ServerConfig.HostName);
 
             _rbApplication.SetTimeout(10000);
 
@@ -979,7 +979,7 @@ namespace BotLibrary
                 UnsubscribeToRainbowEvents();
                 SubscribeToRainbowEvents();
 
-                var _ = _rbApplication.LoginAsync(_botCredentials.UserConfig.Login, _botCredentials.UserConfig.Password);
+                var _ = _rbApplication.LoginAsync(_credentials.UserConfig.Login, _credentials.UserConfig.Password);
                 return true;
             }
             return false;
@@ -1126,16 +1126,16 @@ namespace BotLibrary
                 canContinue = false;
 
                 if(_botCancelledSdkError?.Type == SdkErrorType.NoError)
-                    message = $"[{_botCredentials.UserConfig.Prefix}] Bot has been stopped ...";
+                    message = $"[{_credentials.UserConfig.Prefix}] Bot has been stopped ...";
 
                 else if (_botCancelledSdkError?.IncorrectUseError?.ErrorDetailsCode == (int)SdkInternalErrorEnum.LOGIN_PROCESS_INVALID_CREDENTIALS)
-                    message = $"[{_botCredentials.UserConfig.Prefix}] Bot is not connected because the credentials are not correct ...";
+                    message = $"[{_credentials.UserConfig.Prefix}] Bot is not connected because the credentials are not correct ...";
 
                 else if (_botCancelledSdkError?.IncorrectUseError?.ErrorDetailsCode == (int)SdkInternalErrorEnum.LOGIN_PROCESS_MAX_ATTEMPTS_REACHED)
-                    message = $"[{_botCredentials.UserConfig.Prefix}] Bot was connected but after several attempts it can't reach the server anymore...";
+                    message = $"[{_credentials.UserConfig.Prefix}] Bot was connected but after several attempts it can't reach the server anymore...";
 
                 else 
-                    message = $"[{_botCredentials.UserConfig.Prefix}] Bot has stopped ... SdkError:[{_botCancelledSdkError}]";
+                    message = $"[{_credentials.UserConfig.Prefix}] Bot has stopped ... SdkError:[{_botCancelledSdkError}]";
             }
 
             return (state, canContinue, message);

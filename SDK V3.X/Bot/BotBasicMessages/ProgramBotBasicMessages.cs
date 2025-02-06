@@ -62,21 +62,21 @@ namespace BotBasic
         static async Task<Boolean> ConfigureBot()
         {
 
-            String botCredentialsFilePath = $".{Path.DirectorySeparatorChar}config{Path.DirectorySeparatorChar}botCredentials.json";
-            if (!File.Exists(botCredentialsFilePath))
+            String credentialsFilePath = $".{Path.DirectorySeparatorChar}config{Path.DirectorySeparatorChar}credentials.json";
+            if (!File.Exists(credentialsFilePath))
             {
-                BotLibrary.Util.WriteErrorToConsole($"The file '{botCredentialsFilePath}' has not been found.");
+                BotLibrary.Util.WriteErrorToConsole($"The file '{credentialsFilePath}' has not been found.");
                 return false;
             }
-            String jsonConfig = File.ReadAllText(botCredentialsFilePath);
+            String jsonConfig = File.ReadAllText(credentialsFilePath);
             var jsonNode = JSON.Parse(jsonConfig);
 
-            if (jsonNode?["botCredentials"]?.IsObject != true)
+            if (jsonNode?["credentials"]?.IsObject != true)
             {
-                BotLibrary.Util.WriteErrorToConsole($"Cannot get JSON object 'botCredentials' from file '{botCredentialsFilePath}'.");
+                BotLibrary.Util.WriteErrorToConsole($"Cannot get JSON object 'credentials' from file '{credentialsFilePath}'.");
                 return false;
             }
-            var jsonNodeBotSettings = jsonNode["botCredentials"];
+            var jsonNodeBotSettings = jsonNode["credentials"];
 
 
             String botConfigurationFilePath = $".{Path.DirectorySeparatorChar}config{Path.DirectorySeparatorChar}botConfiguration.json";
@@ -90,7 +90,7 @@ namespace BotBasic
             jsonNode = JSON.Parse(jsonConfig);
             if (jsonNode?["botConfiguration"]?.IsObject != true)
             {
-                BotLibrary.Util.WriteErrorToConsole($"Cannot get JSON object 'botConfiguration' from file '{botCredentialsFilePath}'.");
+                BotLibrary.Util.WriteErrorToConsole($"Cannot get JSON object 'botConfiguration' from file '{credentialsFilePath}'.");
                 return false;
             }
             var jsonNodeBotConfiguration = jsonNode["botConfiguration"];

@@ -20,7 +20,7 @@ All bots are using a [state machine](#StateMachine) to simplify the complexity a
 
 - [Bot Base](#BotBase): features and how is designed the **BotBase** class (used by inheritance in all examples)
     - [File exeSettings.json](#exeSettings.json)
-    - [File botCredentials.json](#botCredentials.json)
+    - [File credentials.json](#credentials.json)
     - [File botConfiguration.json](#botConfiguration.json)
     - [BotLibrary.BotBase class](#BotLibrary.BotBaseClass)
     - [Implemented features](#Implementedfeatures)
@@ -87,7 +87,7 @@ A dot graph is a plain text describing a graph. To visualize it a tool is necess
 
 It's using three JSON configuration files:
 - **exeSettings.json**: to define mandatory settings for the application - data structure same for all bots
-- **botCredentials.json**: to define mandatory settings to connect to Rainbow server - data structure same for all bots
+- **credentials.json**: to define mandatory settings to connect to Rainbow server - data structure same for all bots
 - **botConfiguration.json**: to define settings used by the bot - data structure can be enhanced according bot features
 
 It provides a **BotLibrary.BotBase** class which must be inherited according your Bot features. This class provides default features (connection, reconnection, ...) to avoid to implement them each time in you bots.
@@ -111,14 +111,14 @@ The structure of this file is always the same. It looks like this:
 - **ffmpegLibFolderPath**: String (null/empty by default) - Must be set to a valid folder path to FFmpeg libraries if **useAudioVideo** is set to true.
 - **logFolderPath**: String (".\\logs" by default) - Folder path where logs of the bots will be stored.
 
-<a name="botCredentials.json"></a>
-### File botCredentials.json
+<a name="credentials.json"></a>
+### File credentials.json
 This file must be stored in **./config** folder path. This [online tool](https://jsonlint.com/) can be used to ensure that a valid JSON is used.
 
 The structure of this file is always the same. It looks like this:
 ```javascript
 {
-  "botCredentials": {
+  "credentials": {
     "serverConfig": {
       "appId": "TO DEFINE",
       "appSecret": "TO DEFINE",
@@ -286,11 +286,11 @@ There is also several public properties / methods available in **BotLibrary.BotB
 /// To provide access to the Rainbow.Application object used by the bot. Permit to use all SDK C# features from it
 public Rainbow.Application Application;
 
-/// To get the name of the Bot (it's the prefix defined in file botCredentials.json file)
+/// To get the name of the Bot (it's the prefix defined in file credentials.json file)
 public String BotName;
 
 /// To configure the bot - must be called before to use Login()
-public async Task<Boolean> Configure(JSONNode jsonNodeBotCredentials, JSONNode jsonNodeBotConfiguration);
+public async Task<Boolean> Configure(JSONNode jsonNodeCredentials, JSONNode jsonNodeBotConfiguration);
 
 /// Once configured, to start login process
 public Boolean Login();

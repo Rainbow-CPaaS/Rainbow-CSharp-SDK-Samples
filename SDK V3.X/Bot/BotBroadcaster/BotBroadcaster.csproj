@@ -9,13 +9,13 @@
 
     <ItemGroup>
     <Content Include="config\botConfiguration.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="config\botCredentials.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    <Content Include="config\credentials.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="config\exeSettings.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
 
