@@ -1,26 +1,38 @@
 ![Rainbow](../logo_rainbow.png)
-
  
-# Rainbow CSharp SDK Samples - v3.x
----
+# Rainbow CSharp SDK examples - v3.x
 
 You will find here several samples which illustrate how to use the Rainbow CSharp SDK v3.X
 
-To have more info about the SDK:
-- check [Getting started guide](https://developers.openrainbow.com/doc/sdk/csharp/core/sts/guides/001_getting_started?isBeta=true)
-- check [API documentation](https://developers.openrainbow.com/doc/sdk/csharp/core/sts/api/Rainbow.Application?isBeta=true)
 
+## Table of content
 
-## Rainbow API HUB
----
+- [Prerequisites](#Prerequisites)
+    - [Rainbow API HUB](#RainbowAPIHUB)
+    - [Rainbow CSharp SDK](#RainbowCSharpSDK)
+- [Console Application examples](#ConsoleApplicationexamples)
+- [Bot examples](#Botexamples)
+- [Terminal Application examples](#TerminalApplicationexamples)
+
+<a name="Prerequisites"></a>
+## Prerequisites
+
+<a name="RainbowAPIHUB"></a>
+### Rainbow API HUB
 
 This SDK is using the [Rainbow environment](https://developers.openrainbow.com/)
  
 This environment is based on the [Rainbow service](https://www.openrainbow.com/) 
 
+<a name="RainbowCSharpSDK"></a>
+### Rainbow CSharp SDK
 
-## Examples as Console Application
----
+To have more info about the SDK:
+- check [Getting started guide](https://developers.openrainbow.com/doc/sdk/csharp/core/lts/guides/001_getting_started)
+- check [API documentation](https://developers.openrainbow.com/doc/sdk/csharp/core/lts/api/Rainbow.Application)
+
+<a name="ConsoleApplicationexamples"></a>
+## Console Application examples
 
 They are working on **Linux, MacOS and Windows**
 
@@ -38,9 +50,23 @@ They are listed in order of priority / complexity.
 | Contacts, Presence, Multi-Instance | Using presence, detect if users are connected using an UCaaS Rainbow Application or not | [Project](./ConsoleApp/Detect%20UCaaS%20connection) |
 | InstantMessaging | Fetch all messages archived from a Peer | [Project](./ConsoleApp/Fetch%20messages%20from%20peer) |
 
+<a name="Botexamples"></a>
+## Bot examples
 
-## Examples as Terminal Application
----
+They are also console applications but developped to be used as bot
+
+A Visual Studio solution centralized all of them [here](./Bot/).
+
+A more detailed [README](./Bot/README.md) is available.
+
+| Project Name | Content | Description |
+| --- | --- | --- |
+| BotLibrary | Base for all other Bots | Authentication, Connection,  Auto-reconnection, Bubble and User invitations, BotConfiguration updates |
+| BotBasicMessages | Auto Answer | Small example to understand how to use BotLibrary.BotBase class |
+| BotBroadcaster | Medias Broadcast in Conference | Advanced example and **ready to use** to have a Bot which can grab streams and broadcast them in a conference | 
+
+<a name="TerminalApplicationexamples"></a>
+## Terminal Application examples
 
 This examples are more interactive and they are working on **Linux, MacOS and Windows** (right / left mouse click, UI)
 
