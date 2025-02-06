@@ -8,9 +8,7 @@ using Rainbow.SimpleJSON;
 using Stateless;
 using Stateless.Graph;
 using System.Collections.Concurrent;
-using System.Reflection.Metadata;
 using System.Text;
-using System.Xml;
 
 namespace BotLibrary
 {
@@ -66,6 +64,8 @@ namespace BotLibrary
     public class BotBase
     {
         internal ILogger log;
+
+        private const String BOT_CONFIGURATION = "botConfiguration";
 
         private readonly StateMachine<State, Trigger> _machine;
 
@@ -203,11 +203,27 @@ namespace BotLibrary
         private async Task<Boolean> IsValidJSONBotConfiguration(string json, string context, Object? contextData)
         {
             var jsonNode = JSON.Parse(json);
-            var jsonNodeBotConfiguration = jsonNode["botConfiguration"];
+            var jsonNodeBotConfiguration = jsonNode[BOT_CONFIGURATION];
             if (jsonNodeBotConfiguration?.IsObject == true)
             {
                 if (BotConfiguration.FromJsonNode(jsonNodeBotConfiguration, out var botConfiguration))
                 {
+                    // Check if the bot specified is correct
+                    if ( (botConfiguration.Bot is not null) && (_currentContact is not null) && (_currentContact.Peer is not null))
+                    {
+                        if ((!String.IsNullOrEmpty(botConfiguration.Bot.Id))
+                            && (!botConfiguration.Bot.Id.Equals(_currentContact.Peer.Id, StringComparison.InvariantCultureIgnoreCase)) )
+                            return false;
+
+                        if ((!String.IsNullOrEmpty(botConfiguration.Bot.Jid))
+                            && (!botConfiguration.Bot.Jid.Equals(_currentContact.Peer.Jid, StringComparison.InvariantCultureIgnoreCase)))
+                            return false;
+
+                        if ((!String.IsNullOrEmpty(botConfiguration.Bot.Login))
+                            && (!botConfiguration.Bot.Login.Equals(_currentContact.LoginEmail, StringComparison.InvariantCultureIgnoreCase)))
+                            return false;
+                    }
+
                     // Store the new configuration
                     _jsonNodeBotConfiguration = jsonNodeBotConfiguration;
 
@@ -244,7 +260,7 @@ namespace BotLibrary
                 {
                     try
                     {
-                        if ( (internalMessage.Type == "botConfiguration") 
+                        if ( (internalMessage.Type == BOT_CONFIGURATION) 
                             && internalMessage.Data is String json)
                         {
                             var result = await IsValidJSONBotConfiguration(json, "internalMessage", internalMessage);
@@ -333,10 +349,14 @@ namespace BotLibrary
                     {
                         if(applicationMessage.XmlElements?.Count > 0)
                         {
-                            var json = applicationMessage.XmlElements[0].InnerText;
-                            var result = await IsValidJSONBotConfiguration(json, "applicationMessage", applicationMessage);
-                            if (result)
-                                return;
+                            var xmlElement = applicationMessage.XmlElements[0];
+                            if (xmlElement.Name == BOT_CONFIGURATION)
+                            {
+                                var json = xmlElement.InnerText;
+                                var result = await IsValidJSONBotConfiguration(json, "applicationMessage", applicationMessage);
+                                if (result)
+                                    return;
+                            }
                         }
 
                         await ApplicationMessageReceivedAsync(applicationMessage);
@@ -360,7 +380,7 @@ namespace BotLibrary
                 {
                     try
                     {
-                        if (ackMessage.Action == "botConfiguration" && ackMessage.MimeType == HttpRequestDescriptor.MIME_TYPE_JSON)
+                        if (ackMessage.Action == BOT_CONFIGURATION && ackMessage.MimeType == HttpRequestDescriptor.MIME_TYPE_JSON)
                         {
                             var json = ackMessage.Content;
                             var result = await IsValidJSONBotConfiguration(json, "ackMessage", ackMessage);
@@ -1120,7 +1140,6 @@ namespace BotLibrary
 
             return (state, canContinue, message);
         }
-       
 
     #region virtual methods
 

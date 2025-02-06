@@ -184,6 +184,10 @@ Here the minimal/mandatory structure is described.
     - **guestsAccepted**: Boolean (false by default) - If set to True any guest account can send command to the bot.
 - **bubbleInvitationAutoAccept**: Boolean (true by default) - If set to true, the bot will accept automatically of Bubble invitations.
 - **userInvitationAutoAccept**: Boolean (true by default) - If set to true, the bot will accept automatically of User invitations.
+- **bot**: To define which bot must take into account this configuration (can be null/empty or not set - so will target any bot)
+    - **id**: String (can be null/empty or not set) - Id of the Rainbow Account used by the bot.
+    - **jid**: String (can be null/empty or not set) - Jid of the Rainbow Account used by the bot.
+    - **login**: String (can be null/empty or not set) - Login of the Rainbow Account used by the bot.
 
 <a name="BotLibrary.BotBaseClass"></a>
 ### BotLibrary.BotBase class
@@ -395,13 +399,11 @@ Peer peer;  // valid Peer as Contact or as Bubble
 
 Rainbow.Application rbApplication; // A valid Rainbow.Application object (with an account already connected)
 
-System.Xml.XmlElement el1 = new XmlDocument().CreateElement("something");
-el1.InnerText = Rainbow.Util.StringWithCDATA(json);
-var xmlElements = new List<System.Xml.XmlElement>();
-xmlElements.Add(el1);
+System.Xml.XmlElement botConfiguration = new XmlDocument().CreateElement("botConfiguration");
+botConfiguration.InnerText = Rainbow.Util.StringWithCDATA(json);
 
 var instantMessaging = rbApplication.GetInstantMessaging();
-await instantMessaging.SendApplicationMessageAsync(peer, xmlElements);
+await instantMessaging.SendApplicationMessageAsync(peer, [botConfiguration]);
 ```
 
 <a name="UsingInstantMessaging"></a>
@@ -421,7 +423,7 @@ Rainbow.Application rbApplication; // A valid Rainbow.Application object (with a
 var instantMessaging = rbApplication.GetInstantMessaging();
 await instantMessaging.SendMessageWithFileAsync(peer, null, filePath);
 ```
-s
+
 Code example using SDK C# and a String:
 ```cs
 String json;// a JSON with the same structure as defined in file botConfiguration.json
@@ -437,7 +439,7 @@ await instantMessaging.SendMessageWithStreamAsync(peer, null, memoryStream, "bot
 
 <a name="UsingInternalMessage"></a>
 #### Using InternalMessage
-**ApplicationMessage** can be sent by code only.
+**InternalMessage** can be sent by code only.
 
 Code example using SDK C#:
 ```cs

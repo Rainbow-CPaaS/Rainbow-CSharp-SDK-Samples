@@ -15,12 +15,15 @@ namespace BotLibrary.Model
 
         public Boolean UserInvitationAutoAccept { get; set; }
 
+        public Account? Bot { get; set; }
+
         public BotConfiguration()
         {
             Administrators = null;
             GuestsAccepted = false;
             BubbleInvitationAutoAccept = true;
             UserInvitationAutoAccept = true;
+            Bot = null;
         }
 
         public static Boolean FromJsonNode(JSONNode jsonNode, out BotConfiguration botConfiguration)
@@ -48,8 +51,15 @@ namespace BotLibrary.Model
                 }
                 if (jsonNode.HasKey("userInvitationAutoAccept"))
                     botConfiguration.UserInvitationAutoAccept = jsonNode["userInvitationAutoAccept"];
+
                 if (jsonNode.HasKey("bubbleInvitationAutoAccept"))
                     botConfiguration.BubbleInvitationAutoAccept = jsonNode["bubbleInvitationAutoAccept"];
+
+                if(jsonNode.HasKey("bot"))
+                {
+                    if (Account.FromJsonNode(jsonNode["bot"], out Account account))
+                        botConfiguration.Bot = account;
+                }
 
                 // At least one administrator must be set or guests accepted
                 //if ( (botConfiguration.GuestsAccepted == true) || (botConfiguration.Administrators?.Count > 0))
