@@ -524,7 +524,7 @@ namespace BotBasic
 
 Thanks to inheritance, this bot provides all features of [Bot Base](#Implementedfeatures).
 
-It permits also to broadcast medias in a specific conference so it's necesary to specified it in [file exeSettings.json](#exeSettings.json).
+It permits also to broadcast medias in a specific conference so it's necessary to specified **useAudioVideo** as true and a valid value for **ffmpegLibFolderPath** as detailed in [file exeSettings.json](#exeSettings.json).
 
 <a name="ExtendedBotConfiguration"></a>
 ### Extended BotConfiguration
