@@ -5,7 +5,7 @@
 Please refer first to this [README](../README.md): all details and JSON configuration files are fully explained.
 
 ## Restrictions
-Not all configuration seetings are yet available. 
+Not all configuration settings are yet available. 
 
 We list here (based on chapter [Extended BotConfiguration](../README.md#ExtendedBotConfiguration)) settings which are limited or not available for the moment.
 - **streams**
@@ -20,4 +20,4 @@ We list here (based on chapter [Extended BotConfiguration](../README.md#Extended
 
 FFmpeg and SDL2 libraries are mandatory.
 
-Please refer to [README](https://github.com/Rainbow-CPaaS/Rainbow-CSharp-SDK-Samples/blob/master/Binaries/README.md) to know which version must be used and how to download them.
+Please refer to this [README](https://github.com/Rainbow-CPaaS/Rainbow-CSharp-SDK-Samples/blob/master/Binaries/README.md) to know which version must be used and how to download them.
