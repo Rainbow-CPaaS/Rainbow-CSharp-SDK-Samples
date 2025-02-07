@@ -16,7 +16,7 @@ namespace ConsoleMediaPlayer
         // --- To store settings and to know which Stream is selected
         private static ExeSettings? _exeSettings;
         private static List<Stream>? _streamsList;
-        private static String _streamSettingsFilePath = "";
+        private static String _streamsFilePath = "";
         private static Stream? _currentStream;
 
         // --- IMedia used / created for Input based on the selected Stream
@@ -336,7 +336,7 @@ namespace ConsoleMediaPlayer
                 Util.WriteBlue($"{Rainbow.Util.CR}No stream defined as [{type}] correctly set in config file");
 
             Util.WriteYellow($"{Rainbow.Util.CR}Do you want to add in config file all [{type}s] available on your system ? [Y]");
-            Util.WriteRed($"Previous [{type}s] already set will be removed and the file [{_streamSettingsFilePath}] will be totally rewritten.");
+            Util.WriteRed($"Previous [{type}s] already set will be removed and the file [{_streamsFilePath}] will be totally rewritten.");
             var consoleKey = Console.ReadKey(true);
             if (consoleKey.Key == ConsoleKey.Y)
             {
@@ -375,9 +375,9 @@ namespace ConsoleMediaPlayer
 
                 // Get json string and store it to  file
                 var str = jsonNode.ToString(indent: true);
-                File.WriteAllText(_streamSettingsFilePath, str);
+                File.WriteAllText(_streamsFilePath, str);
 
-                Util.WriteYellow($"Update done about [{type}] - file updated [{_streamSettingsFilePath}]");
+                Util.WriteYellow($"Update done about [{type}] - file updated [{_streamsFilePath}]");
 
                 PromptStreamsInfo();
 
@@ -871,19 +871,19 @@ namespace ConsoleMediaPlayer
 
         static Boolean ReadStreamsSettings()
         {
-            _streamSettingsFilePath = $".{Path.DirectorySeparatorChar}config{Path.DirectorySeparatorChar}streamsSettings.json";
-            if (!File.Exists(_streamSettingsFilePath))
+            _streamsFilePath = $".{Path.DirectorySeparatorChar}config{Path.DirectorySeparatorChar}streams.json";
+            if (!File.Exists(_streamsFilePath))
             {
-                Util.WriteRed($"The file '{_streamSettingsFilePath}' has not been found.");
+                Util.WriteRed($"The file '{_streamsFilePath}' has not been found.");
                 return false;
             }
 
-            String jsonConfig = File.ReadAllText(_streamSettingsFilePath);
+            String jsonConfig = File.ReadAllText(_streamsFilePath);
             var jsonNode = JSON.Parse(jsonConfig);
 
             if ((jsonNode is null) || (!jsonNode.IsObject))
             {
-                Util.WriteRed($"Cannot get JSON data from file '{_streamSettingsFilePath}'.");
+                Util.WriteRed($"Cannot get JSON data from file '{_streamsFilePath}'.");
                 return false;
             }
 
@@ -899,13 +899,13 @@ namespace ConsoleMediaPlayer
 
                 if (_streamsList.Count == 0)
                 {
-                    Util.WriteRed($"Cannot read 'streams' object (no Stream object created) - file:'{_streamSettingsFilePath}'.");
+                    Util.WriteRed($"Cannot read 'streams' object (no Stream object created) - file:'{_streamsFilePath}'.");
                     return false;
                 }
             }
             else
             {
-                Util.WriteRed($"Cannot read 'streams' object OR invalid/missing data - file:'{_streamSettingsFilePath}'.");
+                Util.WriteRed($"Cannot read 'streams' object OR invalid/missing data - file:'{_streamsFilePath}'.");
                 return false;
             }
 

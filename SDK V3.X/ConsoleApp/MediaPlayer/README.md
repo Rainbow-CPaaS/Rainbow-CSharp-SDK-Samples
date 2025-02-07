@@ -10,7 +10,7 @@ Documentation is available [here](https://developers.openrainbow.net/doc/sdk/csh
 - Provide a simple Media Player
 - Can use audio and/or video file stored locally or remotely
 - Can use audio and/or video stream using protocols like RTSP, HTTP, ...
-- To define streams, the file "streamsSettings.json" must be used. 
+- To define streams, the file "streams.json" must be used. 
 - It's also possible to add to this file, streams using plugged devices like: "webcam", "screen" or "microphone"
 - Using your keyboard (the console must have the focus), you can select / update at any time which streams to use.
 
@@ -18,9 +18,9 @@ Documentation is available [here](https://developers.openrainbow.net/doc/sdk/csh
 
 You need to set correctly the file "exeSettings.json" like described in chapter [File exeSettings.json](./../../Bot/README.md#exeSettings.json) to use some dependencies listed in next chapter.
 
-## File streamsSettings.json
+## File streams.json
 
-You need to set correctly the file "streamsSettings.json". It uses exactly the same structure that the object **streams** defined in chapter [Extended BotConfiguration](./../../Bot/README.md#ExtendedBotConfiguration) of the [Bot Brocaster example](./../../Bot/BotBroadcaster/README.md).
+You need to set correctly the file "streams.json". It uses exactly the same structure that the object **streams** defined in chapter [Extended BotConfiguration](./../../Bot/README.md#ExtendedBotConfiguration) of the [Bot Brocaster example](./../../Bot/BotBroadcaster/README.md).
 
 ## Restrictions
 Not all configuration settings are yet available. 

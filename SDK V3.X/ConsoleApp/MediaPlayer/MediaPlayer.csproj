@@ -29,12 +29,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="config\streamsSettings - net.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="config\streamsSettings.json">
+    <None Update="config\streams.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="config\exeSettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>	  
   </ItemGroup>
 
 </Project>
