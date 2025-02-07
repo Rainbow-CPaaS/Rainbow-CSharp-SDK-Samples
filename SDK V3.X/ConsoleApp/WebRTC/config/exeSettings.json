@@ -1,0 +1,14 @@
+{
+  "_comment_settings": "Settings used by the executable: lib path, log configuration",
+  "exeSettings": {
+
+    "_comment_useAudioVideo": "To set to True since Medias are used",
+    "useAudioVideo": true,
+
+    "_comment_ffmpegLibFolderPath": "A valid path where FFMpeg libraries are stored according your system",
+    "ffmpegLibFolderPath": "C:\\ffmpeg-7.0.1-full_build-shared\\bin",
+
+    "_comment_logFolderPath": "Folder path where logs wile be stored",
+    "logFolderPath": ".\\logs"
+  }
+}

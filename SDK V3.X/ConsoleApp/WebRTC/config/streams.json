@@ -1,0 +1,20 @@
+{
+  "streams": [
+    {
+      "id": "joy_and_heron",
+      "media": "audio+video",
+      "uri": "c:\\media\\Joy_and_Heron.webm"
+    },
+    {
+      "id": "big_buck_bunny",
+      "media": "audio+video",
+      "uri": "c:\\media\\big_buck_bunny.mp4"
+    },
+    {
+      "id": "toefl",
+      "media": "audio+video",
+      "uri": "c:\\media\\TOEFLTest.mp4"
+    }
+  ]
+
+}
