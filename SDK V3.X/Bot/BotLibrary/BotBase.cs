@@ -912,7 +912,7 @@ namespace BotLibrary
 
             if (!Credentials.FromJsonNode(jsonNodeCredentials, out _credentials))
             {
-                Util.WriteErrorToConsole($"Cannot read 'botSettings' object OR invalid/missing data.");
+                Util.WriteErrorToConsole($"Cannot read 'credentials' object OR invalid/missing data.");
                 return false;
             }
 
