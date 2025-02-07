@@ -4,7 +4,7 @@
 
 This console application permits to understand how to use the package [Rainbow.CSharp.SDK.Medias](https://www.nuget.org/packages/Rainbow.CSharp.SDK.Medias/).
 
-Documentation is available [here](https://developers.openrainbow.net/doc/sdk/csharp/medias/guides/001_getting_started)
+Documentation is available [here](https://developers.openrainbow.com/doc/sdk/csharp/medias/lts/guides/001_getting_started)
 
 ## Features
 - Provide a simple Media Player
