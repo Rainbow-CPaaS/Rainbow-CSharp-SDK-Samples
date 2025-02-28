@@ -10,9 +10,11 @@ You will find here several samples which illustrate how to use the Rainbow CShar
 - [Prerequisites](#Prerequisites)
     - [Rainbow API HUB](#RainbowAPIHUB)
     - [Rainbow CSharp SDK](#RainbowCSharpSDK)
+- [Configuration files](#ConfigurationFiles)
 - [Console Application examples](#ConsoleApplicationexamples)
 - [Bot examples](#Botexamples)
 - [Terminal Application examples](#TerminalApplicationexamples)
+
 
 <a name="Prerequisites"></a>
 ## Prerequisites
@@ -31,6 +33,12 @@ To have more info about the SDK:
 - check [Getting started guide](https://developers.openrainbow.com/doc/sdk/csharp/core/lts/guides/001_getting_started)
 - check [API documentation](https://developers.openrainbow.com/doc/sdk/csharp/core/lts/api/Rainbow.Application)
 
+<a name="ConfigurationFiles"></a>
+### Configuration files
+All this examples are using one or several configuration files in JSON format.
+
+Their structures are explained [here](./ConfigurationFiles.md) 
+
 <a name="ConsoleApplicationexamples"></a>
 ## Console Application examples
 
@@ -38,24 +46,26 @@ They are working on **Linux, MacOS and Windows**
 
 They are listed in order of priority / complexity.
 
-| Content | Description | Project |
+| Content | Description |  |
 | --- | --- | --- |
-| Login | Simple Login using await / async | [Project](./ConsoleApp/Login%20simple) |
-| Logs | Configure logger to have logs file | [Project](./ConsoleApp/Configure%20logger) | 
-| Login | Login and first events management | [Project](./ConsoleApp/Login%20and%20events) |
-| Login, AutoReconnection | Login and AutoReconnection management | [Project](./ConsoleApp/Login%20and%20autoreconnection) |
-| Logs, Multiple Instances | Configure multiple loggers (to manage several Rainbow instance) | [Project](./ConsoleApp/Configure%20multiple%20loggers) |
-| Bubbles, Contacts | Get information about Bubbles and Contacts | [Project](./ConsoleApp/Get%20basic%20contacts%20and%20bubbles%20info) |
-| Contacts, Presence | Get the presence of your contacts and modify yours | [Project](./ConsoleApp/Get%20and%20set%20presence) |
-| Contacts, Presence, Multi-Instance | Using presence, detect if users are connected using an UCaaS Rainbow Application or not | [Project](./ConsoleApp/Detect%20UCaaS%20connection) |
-| InstantMessaging | Fetch all messages archived from a Peer | [Project](./ConsoleApp/Fetch%20messages%20from%20peer) |
+| Login | Simple Login using await / async | [README](./ConsoleApp/Login%20simple/README.md) |
+| Logs | Configure logger to have logs file | [README](./ConsoleApp/Configure%20logger/README.md) |
+| Logs, Multiple Instances | Configure multiple loggers (to manage several Rainbow instance) | [README](./ConsoleApp/Configure%20multiple%20loggers/README.md) | 
+| Login, Events | Login and first events management | [README](./ConsoleApp/Login%20and%20events/README.md) |
+| Login, AutoReconnection, Events | Login and AutoReconnection management | [README](./ConsoleApp/Login%20and%20autoreconnection/README.md) |
+| Bubbles, Contacts | Get information about Bubbles and Contacts | [README](./ConsoleApp/Get%20basic%20contacts%20and%20bubbles%20info/README.md) |
+| Contacts, Presence | Get the presence of your contacts and modify yours | [README](./ConsoleApp/Get%20and%20set%20presence/README.md) |
+| Contacts, Presence, Multi-Instance | Using presence, detect if users are connected using an UCaaS Rainbow Application or not | [README](./ConsoleApp/Detect%20UCaaS%20connection/README.md) |
+| InstantMessaging, Bubbles, Contacts | Fetch all messages archived from a Peer | [README](./ConsoleApp/Fetch%20messages%20from%20peer/README.md) |
+| Audio, Video, Local / Remote Media | Simple media Player | [README](./ConsoleApp/MediaPlayer/README.md) |
+| Audio, Video, Sharing, Conference, WebRTC| Allow to cerate/join conference, add/remove audio/video/sharing, subscribe to remote audio/video/sharing | [README](./ConsoleApp/WebRTC/README.md) |
 
 <a name="Botexamples"></a>
 ## Bot examples
 
-They are also console applications but developped to be used as bot
+They are also console applications but developped to be used as bot.
 
-A Visual Studio solution centralized all of them [here](./Bot/).
+A Visual Studio solution centralized all of them in a folder [here](./Bot/).
 
 A more detailed [README](./Bot/README.md) is available.
 

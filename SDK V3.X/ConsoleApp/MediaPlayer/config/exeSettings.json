@@ -2,7 +2,7 @@
   "_comment_settings": "Settings used by the executable: lib path, log configuration",
   "exeSettings": {
 
-    "_comment_useAudioVideo": "True if this bot needs audio and/or video media. In this case ffmpegLibFolderPat property must be set to",
+    "_comment_useAudioVideo": "To set to True since MEdia are used",
     "useAudioVideo": true,
 
     "_comment_ffmpegLibFolderPath": "If audio and/or video media are used, A valid path where FFMpeg libraries are stored according your system",

@@ -6,9 +6,9 @@ This example permits to understand:
 - how to manage login / logout features
 - the AutoReconnection service
 
-- You need first to set **../TerminalAppLibrary/Resources.json** according you environment / configuration:
-	- server configuration with  **appId, appSecret and hostname**
-	- account(s) with  **botName, login, password**
+You need first to set configuration files:
+- **../TerminalAppLibrary/exeSettings.json**: see chapter [File exeSettings.json](./../../ConfigurationFiles.md#exeSettings.json) - no need here to use external dependencies.
+- **../TerminalAppLibrary/credentials.json**: see chapter [File credentials.json](./../../ConfigurationFiles.md#credentials.json).
 
 ## How it works
 

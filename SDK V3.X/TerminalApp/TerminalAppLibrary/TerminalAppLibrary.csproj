@@ -9,25 +9,20 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.DotNet.PlatformAbstractions" Version="3.1.6" />
     <PackageReference Include="NLog.Extensions.Logging" Version="5.3.8" />
-    <PackageReference Include="Rainbow.CSharp.SDK" Version="3.0.0-sts.4" />
     <PackageReference Include="Terminal.Gui" Version="2.0.0-v2-develop.679" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Resources\config.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    <None Update="config\credentials.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Resources\index.html">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    <None Update="config\exeSettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
 
   <ItemGroup>
-    <EditorConfigFiles Remove="C:\Mercurial\CSharpSDKSamples\SDK V3.X\TerminalApp\TerminalAppLibrary\.editorconfig" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="C:\Mercurial\CSharpSDKSamples\SDK V3.X\TerminalApp\TerminalAppLibrary\.editorconfig" />
+    <ProjectReference Include="..\..\..\..\rainbow-csharp-sdk-test\SDK\SDK.csproj" />
   </ItemGroup>
 
 </Project>

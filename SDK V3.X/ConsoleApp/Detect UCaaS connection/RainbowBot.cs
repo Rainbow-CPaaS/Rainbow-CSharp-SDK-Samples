@@ -1,4 +1,5 @@
 ﻿using Rainbow;
+using Rainbow.Console;
 using Rainbow.Consts;
 using Rainbow.Delegates;
 using Rainbow.Enums;
@@ -8,7 +9,7 @@ using Rainbow.SimpleJSON;
 
 internal class RainbowBot
 {
-    public RainbowAccount RainbowAccount { get; private set; }
+    public UserConfig RainbowAccount { get; private set; }
 
     private Rainbow.Application _rbApplication;
     private AutoReconnection _rbAutoReconnection;
@@ -24,12 +25,14 @@ internal class RainbowBot
     internal event ConnectionStateDelegate ConnectionStateChanged;
     internal event SdkErrorDelegate ConnectionFailed;
 
-    internal RainbowBot(RainbowAccount rainbowAccount)
+    internal RainbowBot(ServerConfig serverConfig, UserConfig rainbowAccount)
     {
         RainbowAccount = rainbowAccount;
 
+        NLogConfigurator.AddLogger(rainbowAccount.Prefix);
+
         _rbApplication = new Rainbow.Application(
-                iniFolderFullPathName: Configuration.Instance.LogsFolderPath,
+                iniFolderFullPathName: rainbowAccount.IniFolderPath,
                 iniFileName: rainbowAccount.Prefix + "file.ini",
                 loggerPrefix: rainbowAccount.Prefix);
 
@@ -47,8 +50,8 @@ internal class RainbowBot
         _rbAutoReconnection.UsePreviousLoginPwd = true; // we want to auto reconnect using previous login/pwd even if security token has expired
 
         // Configure Application service
-        _rbApplication.SetApplicationInfo(Configuration.Instance.AppId, Configuration.Instance.AppSecret);
-        _rbApplication.SetHostInfo(Configuration.Instance.HostName);
+        _rbApplication.SetApplicationInfo(serverConfig.AppId, serverConfig.AppSecret);
+        _rbApplication.SetHostInfo(serverConfig.HostName);
 
         // We want to be inform of some events
         _rbApplication.AuthenticationFailed += RbApplication_AuthenticationFailed; ;
@@ -59,8 +62,7 @@ internal class RainbowBot
         _resourcesUsed = new();
         _resourceUsedByAnotherProcess = false;
 
-        if (rainbowAccount.AutoLogin)
-            Login();
+        Login();
     }
 
     public void Login()
@@ -71,7 +73,7 @@ internal class RainbowBot
             {
                 var sdkResult = obj.Result;
                 if (!sdkResult.Success)
-                    Util.RaiseEvent(() => ConnectionFailed, _rbApplication, sdkResult.Result);
+                    Rainbow.Util.RaiseEvent(() => ConnectionFailed, _rbApplication, sdkResult.Result);
             });
         }
     }
@@ -95,7 +97,7 @@ internal class RainbowBot
 
     private async void RbApplication_AuthenticationFailed(SdkError sdkError)
     {
-        Util.RaiseEvent(() => ConnectionFailed, _rbApplication, sdkError);
+        Rainbow.Util.RaiseEvent(() => ConnectionFailed, _rbApplication, sdkError);
 
         // EXAMPLE TO POST DATA USING HTTP
         Dictionary<String, object> bodyDico = new()
@@ -140,7 +142,7 @@ internal class RainbowBot
                         || ( (!_resourceUsedByAnotherProcess) && (_resourcesUsed.Count > 0)) ) 
                     {
                         _resourceUsedByAnotherProcess = !_resourceUsedByAnotherProcess;
-                        Util.RaiseEvent(() => AccountUsedOnAnotherDevice, _rbApplication, _resourceUsedByAnotherProcess);
+                        Rainbow.Util.RaiseEvent(() => AccountUsedOnAnotherDevice, _rbApplication, _resourceUsedByAnotherProcess);
                     }
                 }
             }
@@ -163,7 +165,7 @@ internal class RainbowBot
                 break;
         }
 
-        Util.RaiseEvent(() => ConnectionStateChanged, _rbApplication, connectionState);
+        Rainbow.Util.RaiseEvent(() => ConnectionStateChanged, _rbApplication, connectionState);
 
 
         // EXAMPLE TO POST DATA USING HTTP
@@ -194,7 +196,7 @@ internal class RainbowBot
             Login();
         }
         else
-            Util.RaiseEvent(() => ConnectionFailed, _rbApplication, sdkError);
+            Rainbow.Util.RaiseEvent(() => ConnectionFailed, _rbApplication, sdkError);
     }
 }
 

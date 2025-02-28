@@ -7,29 +7,18 @@ Configuration.NeedsRainbowAccounts = true;
 
 // Initialize the Configuration i.e. reads content of the file "config.json" defined in the "Resources" folder or "TerminalAppLibrary" project
 if (!Configuration.Initialize())
-{
-    Console.WriteLine(Configuration.GetErrorMessage());
     return;
-}
 
 // Check if a S2SCallbackURL has been defined
-if (String.IsNullOrEmpty(Configuration.S2SCallbackURL))
+if (String.IsNullOrEmpty(Configuration.ExeSettings.S2SCallbackURL))
 {
     Console.WriteLine("There is no S2SCallbackURL defined in config.json file ...");
     return;
 }
 
-// Check if the first account use S2S
-var account = Configuration.RainbowAccounts[0];
-if(!account.UseS2S)
-{ 
-    Console.WriteLine("The first accound defined config.json file don't use S2S ...");
-    return;
-}
-
 // We want to log S2S specfic entries in a log file
 NLogConfigurator.AddLogger("S2S");
-var webServer = CreateWebServer("http://localhost:9870", Configuration.S2SCallbackURL);
+var webServer = CreateWebServer("http://localhost:9870", Configuration.ExeSettings.S2SCallbackURL);
 var _ = webServer.RunAsync();
 
 

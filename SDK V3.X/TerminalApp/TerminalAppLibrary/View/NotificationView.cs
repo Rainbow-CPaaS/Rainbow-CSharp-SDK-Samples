@@ -110,10 +110,10 @@ public class NotificationView: View
             AddInvitation(true, invitation.Id, invitation.InvitingUserId);
 
         // Get Pending bubble invitations
-        List<(Bubble bubble, Contact contact, String subject)> bubblesInvitations = rbBubbles.GetPendingBubbleInvitations();
-        foreach (var (bubble, contact, subject) in bubblesInvitations)
+        List<BubbleInvitation> bubblesInvitations = rbBubbles.GetPendingBubbleInvitations();
+        foreach (var bubbleInvitation in bubblesInvitations)
         {
-            AddInvitation(false, bubble.Peer.Id, contact.Peer.Id);
+            AddInvitation(false, bubbleInvitation.Bubble.Peer.Id, bubbleInvitation.Contact.Peer.Id);
         }
     }
 
@@ -196,19 +196,19 @@ public class NotificationView: View
         //}
     }
 
-    private void RbBubbles_BubbleInvitationAccepted(Rainbow.Model.Bubble bubble, Rainbow.Model.Contact contact, string subject)
+    private void RbBubbles_BubbleInvitationAccepted(BubbleInvitation bubbleInvitation)
     {
-        RemoveInvitation(false, bubble.Peer.Id);
+        RemoveInvitation(false, bubbleInvitation.Bubble.Peer.Id);
     }
 
-    private void RbBubbles_BubbleInvitationReceived(Rainbow.Model.Bubble bubble, Rainbow.Model.Contact contact, string subject)
+    private void RbBubbles_BubbleInvitationReceived(BubbleInvitation bubbleInvitation)
     {
-        AddInvitation(false, bubble.Peer.Id, contact.Peer.Id);
+        AddInvitation(false, bubbleInvitation.Bubble.Peer.Id, bubbleInvitation.Contact.Peer.Id);
     }
 
-    private void RbBubbles_BubbleInvitationRejected(Rainbow.Model.Bubble bubble, Rainbow.Model.Contact contact, string subject)
+    private void RbBubbles_BubbleInvitationRejected(BubbleInvitation bubbleInvitation)
     {
-        RemoveInvitation(false, bubble.Peer.Id);
+        RemoveInvitation(false, bubbleInvitation.Bubble.Peer.Id);
     }
 
 #endregion Events from RB Bubbles service

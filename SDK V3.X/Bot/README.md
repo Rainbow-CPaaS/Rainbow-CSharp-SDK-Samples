@@ -94,56 +94,11 @@ It provides a **BotLibrary.BotBase** class which must be inherited according you
 
 <a name="exeSettings.json"></a>
 ### File exeSettings.json
-This file must be stored in **./config** folder path. This [online tool](https://jsonlint.com/) can be used to ensure that a valid JSON is used.
-
-The structure of this file is always the same. It looks like this:
-```javascript
-{
-  "exeSettings": {
-    "useAudioVideo": false,
-    "ffmpegLibFolderPath": "C:\\ffmpeg-7.0.1-full_build-shared\\bin",
-    "logFolderPath": ".\\logs"
-  }
-}
-```
-**Details:**
-- **useAudioVideo**: Boolean (false by default) - True if the current bot is using audio / video medias.
-- **ffmpegLibFolderPath**: String (null/empty by default) - Must be set to a valid folder path to FFmpeg libraries if **useAudioVideo** is set to true.
-- **logFolderPath**: String (".\\logs" by default) - Folder path where logs of the bots will be stored.
+You need to set correctly the file "exeSettings.json" like described in chapter [File exeSettings.json](./../ConfigurationFiles.md#exeSettings.json).
 
 <a name="credentials.json"></a>
 ### File credentials.json
-This file must be stored in **./config** folder path. This [online tool](https://jsonlint.com/) can be used to ensure that a valid JSON is used.
-
-The structure of this file is always the same. It looks like this:
-```javascript
-{
-  "credentials": {
-    "serverConfig": {
-      "appId": "TO DEFINE",
-      "appSecret": "TO DEFINE",
-      "hostname": "TO DEFINE"
-    },
-
-    "userConfig": {
-      "iniFolderPath": ".\\logs",
-      "prefix": "BOT1",
-      "login": "my_account@my_domain.com",
-      "password": "my_password"
-    }
-  }
-}
-```
-**Details:**
-- **serverConfig**: See [developer journey](https://developers.openrainbow.com/doc/hub/developer-journey) for more details
-    - **appId**: Application Id (its value is dependent of the host name used)
-    - **appSecret**: Application Secret(its value is dependent of the host name used)
-    - **hostname**: Host name used to connect to the Rainbow server (examples: **openrainbow.com**, **openrainbow.net**, ...)
-- **userConfig**:
-    - **iniFolderPath**: String (".\\logs" by default) - Folder path where INI file of the bot will be stored.
-    - **prefix**: String (must no be empty/null) - Prefix used for the bot for logging purpose
-    - **login**: Login (email address) used by the bot to connect to Rainbow server
-    - **password**: Password used by the bot to connect to Rainbow server
+You need to set correctly the file "credentials.json" like described in chapter [File credentials.json](./../ConfigurationFiles.md#credentials.json)
 
 <a name="botConfiguration.json"></a>
 ### File botConfiguration.json
@@ -611,33 +566,7 @@ To specify which stream/media is broadcasted and in which conference, the struct
 ```
 **Details:**
 - **administrators** object, **bubbleInvitationAutoAccept** and **userInvitationAutoAccept**: see [file botConfiguration.json](#botConfiguration.json)
-- **streams**: to define one of several streams and how to connect / use them
-    - **id**: String (cannot be null/empty) - Unique identifier of the stream
-    - **media**: String (possible values: "audio", "video", "audio+video", "composition")
-        - Media to grab from this stream
-        - If the stream contains audio and video but you want only to use it for video purpose use "video". It permits to avoid to decode audio part.
-        - "composition" permits to create a video stream using one of several streams (see **videoComposition**) based on a **videoFilter**
-    - **uriType**: String (possible values: "other" (default value if null or not provided), "screen", "webcam", "microphone")
-        - to define the type of the uri
-        - "screen" to grab stream from a plugged screen, "webcam" to grab stream from a plugged webcam, "microphone" to grab stream from a plugged microphone.
-        - "other" (or null or not provided) to grab stream from any other source.
-    - **uri**: String (cannot be null/empty) - Uri to use to connect to the stream
-        - can be a path to a local or remote file - for example "c:\\media\\myVideoFile.mp4"
-        - can be an URL (http, ftp, rtsp, ...). You can specify a login/pwd like this: rtsp://myLogin:myPwd@rtsp.stream/movie
-        - can be the full name of the local device to use (when "screen", "webcam" or "microphone" are used for **uriType**)
-        - can be null or not provided if a "composition" is used
-    - **uriSettings**: Object (can be null or not provided)
-        - More settings to enhance connection to the stream.
-        - One or several settings can be set. It's related to the protocol used and options available in [ffmpeg](https://ffmpeg.org/ffmpeg-protocols.html).
-    - **connected**: Boolean (can be null or not provided - false by default) - If True it means the bot will connect and stay connected to the stream even if this stream is not used in the conference or if there is no conference.
-    - **forceLiveStream**: Boolean (can be null or not provided - null by default) - Due to some internal restrictions, remote stream could be not grabbed well. Using true or false can help to resolve this situation.
-    - **videoComposition**: Array of String (can be null or not provided - null by default)
-        - Mandatory if **media** is set as "composition"
-        - The array contains id of video stream used to create the composition. Order used is important and it's related to the **videoFilter**
-    - **videoFilter**: String (can be null or not provided - null by default)
-        - Mandatory if **media** is set as "composition"
-        - Can be used also if **media** is set as "video", "audio+video" to use a filter of the original stream
-        - If used a valid filter for ffmpeg must be used - see [ffmpeg video filters documentation](https://ffmpeg.org/ffmpeg-filters.html#Video-Filters)
+- **streams**: to define one of several streams and how to connect / use them. Using same structure as described in chapter [File streams.json](./../ConfigurationFiles.md#streams.json)
 - **conference**: 
     - To define the conference to use. If null or not provided, the bot will not be a conference.
     - if a conference is defined but it's not yet active, the bot will wait and join it when it's started.

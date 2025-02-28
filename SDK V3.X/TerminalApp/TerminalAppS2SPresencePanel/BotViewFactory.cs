@@ -1,14 +1,15 @@
-﻿using Terminal.Gui;
+﻿using Rainbow.Console;
+using Terminal.Gui;
 
 internal class BotViewFactory : IBotViewFactory
 {
-    public View CreateBotView(RainbowAccount account)
+    public View CreateBotView(UserConfig account)
     {
 
         return new BotView(account);
     }
 
-    public RainbowAccount? GetRainbowAccountFromBotView(View? botView)
+    public UserConfig? GetRainbowAccountFromBotView(View? botView)
     {
         if (botView == null)
             return null;

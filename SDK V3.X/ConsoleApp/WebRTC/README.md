@@ -28,15 +28,15 @@ To have more info about the SDK:
 
 ## File exeSettings.json
 
-You need to set correctly the file "exeSettings.json" like described in chapter [File exeSettings.json](./../../Bot/README.md#exeSettings.json) to use some dependencies listed in next chapter.
+You need to set correctly the file "exeSettings.json" like described in chapter [File exeSettings.json](./../../ConfigurationFiles.md#exeSettings.json).
 
 ## File credentials.json
 
-You need to set correctly the file "credentials.json" like described in chapter [File credentials.json](./../../Bot/README.md#credentials.json) of the [Bot Brocaster example](./../../Bot/BotBroadcaster/README.md).
+You need to set correctly the file "credentials.json" like described in chapter [File credentials.json](./../../ConfigurationFiles.md#credentials.json).
 
 ## File streams.json
 
-You need to set correctly the file "streams.json". It uses exactly the same structure that the object **streams** defined in chapter [Extended BotConfiguration](./../../Bot/README.md#ExtendedBotConfiguration) of the [Bot Brocaster example](./../../Bot/BotBroadcaster/README.md).
+You need to set correctly the file "streams.json" like described in chapter [File streams.json](./../../ConfigurationFiles.md#streams.json).
 
 ## Restrictions
 Not all settings from **streams.json** are supported for code simplification: only **audio**, **video** or **audio+video** is supported, **videoFilter** is not supported

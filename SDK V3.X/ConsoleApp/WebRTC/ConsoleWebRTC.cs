@@ -1,5 +1,4 @@
 ﻿using ConsoleWebRTC;
-using ConsoleWebRTC.Model;
 using FFmpeg.AutoGen;
 using Rainbow;
 using Rainbow.Consts;
@@ -10,12 +9,10 @@ using Rainbow.SimpleJSON;
 using Rainbow.WebRTC;
 using Rainbow.WebRTC.Abstractions;
 using Rainbow.WebRTC.Desktop;
-using System.Linq;
-using System.Net;
-using Stream = ConsoleWebRTC.Model.Stream;
-using Util = ConsoleWebRTC.Util;
 
-Object consoleLockObject = new(); // To lock until the current console display is performed
+using Rainbow.Console;
+using Stream = Rainbow.Console.Stream;
+using Util = Rainbow.Console.Util;
 
 ExeSettings? exeSettings = null;
 List<Stream>? streamsList = null;
@@ -32,7 +29,7 @@ if ( (!ReadStreamsSettings()) || (streamsList is null))
 if ( (!ReadCredentials()) || (credentials is null))
     return;
 
-Util.WriteRed($"Account used: [{credentials.UserConfig.Login}]");
+Util.WriteRed($"Account used: [{credentials.UsersConfig[0].Login}]");
 
 // Init external libraries
 Util.WriteGreen($"Initializing external libraries ...");
@@ -43,7 +40,7 @@ Util.WriteBlue($"External libraries initialized");
 NLogConfigurator.Directory = exeSettings.LogFolderPath;
 
 // Add logger for the prefix specified
-NLogConfigurator.AddLogger(credentials.UserConfig.Prefix + "_");
+NLogConfigurator.AddLogger(credentials.UsersConfig[0].Prefix + "_");
 
 // Instead of a Microphone, an audio file can be used - we use the first audio stream defined
 String? audioFilePath = streamsList?.FindAll(s => s.Media.Contains("audio")).Select(s => s.Uri).FirstOrDefault();
@@ -67,8 +64,8 @@ String appId = credentials.ServerConfig.AppId; // To set according your settings
 String appSecretKey = credentials.ServerConfig.AppSecret; // To set according your settings
 String hostName = credentials.ServerConfig.HostName; // To set according your settings
 
-String login = credentials.UserConfig.Login; // To set according your settings
-String password = credentials.UserConfig.Password; // To set according your settings
+String login = credentials.UsersConfig[0].Login; // To set according your settings
+String password = credentials.UsersConfig[0].Password; // To set according your settings
 
 Boolean endProgram = false;// To know when to quit the app
 
@@ -118,7 +115,7 @@ IntPtr windowSharingTexture = IntPtr.Zero;
 Task RbTask = Task.CompletedTask;
 
 // Create Rainbow Application ROOT object
-var RbApplication = new Rainbow.Application(exeSettings.LogFolderPath, loggerPrefix: credentials.UserConfig.Prefix + "_");
+var RbApplication = new Rainbow.Application(exeSettings.LogFolderPath, loggerPrefix: credentials.UsersConfig[0].Prefix + "_");
 
 // Define Restrictions
 RbApplication.Restrictions.LogRestRequest = true;

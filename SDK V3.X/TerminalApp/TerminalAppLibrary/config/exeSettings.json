@@ -1,0 +1,21 @@
+{
+  "_comment_settings": "Settings used by the executable: lib path, log configuration",
+  "exeSettings": {
+
+    "_comment_useAudioVideo": "True if Medias (Audio / Video) are used",
+    "useAudioVideo": false,
+
+    "_comment_ffmpegLibFolderPath": "(OPTIONAL) Valid to FFMpeg libraries - only if you need it",
+    "ffmpegLibFolderPath": "C:\\ffmpeg-7.0.1-full_build-shared\\bin",
+
+    "_comment_logFolderPath": "Folder path where logs wile be stored",
+    "logFolderPath": ".\\logs",
+
+    "_comment_s2sCallbackURL": "(OPTIONAL) Specify the S2S callback url - only if you need it",
+    "s2sCallbackURL": "",
+
+    "_comment_cultureInfo": "(OPTIONAL) Specify Culture Info to use (let null / empty to use default one) - see https://learn.microsoft.com/fr-fr/dotnet/api/system.globalization.cultureinfo.getcultureinfo",
+    "cultureInfo": ""
+
+  }
+}

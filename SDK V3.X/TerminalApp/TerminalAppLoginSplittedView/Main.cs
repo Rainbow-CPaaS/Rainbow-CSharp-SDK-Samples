@@ -3,14 +3,12 @@
 Configuration.NeedsRainbowServerConfiguration = true;
 Configuration.NeedsRainbowAccounts = true;
 
-Configuration.UseSplittedView = true; // We want to display up to two Rainbow accounts in same time
+// We want to display up to two Rainbow accounts in same time
+Configuration.UseSplittedView = true; 
 
 // Initialize the Configuration i.e. reads content of the file "config.json" defined in the "Resources" folder or "TerminalAppLibrary" project
 if (!Configuration.Initialize())
-{
-    Console.WriteLine(Configuration.GetErrorMessage());
     return;
-}
 
 // Specify the "BotViewFactory" to use in "BotWindow"
 BotWindow.BotViewFactory = new BotViewFactory();

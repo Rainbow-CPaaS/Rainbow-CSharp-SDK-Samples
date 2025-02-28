@@ -545,9 +545,6 @@ namespace BotLibrary
         {
             //TODO - need to be defined by a configuration file
 
-            // We want to let MCQ message visible to the end user
-            _rbApplication.Restrictions.MessageStorageMode = SdkMessageStorageMode.Store;
-
             // Since we are using a Bot we want to send automatically a Read Receipt when a message has been received
             _rbApplication.Restrictions.SendReadReceipt = true;
 

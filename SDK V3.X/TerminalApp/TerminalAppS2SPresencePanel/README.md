@@ -9,10 +9,12 @@ Using S2S event pipe (and not XMPP event pipe), this example permits to understa
 - Add / Remove contacts from network / roster
 - Add / Remove contacts from favorites
 
-- You need first to set **../TerminalAppLibrary/Resources.json** according you environment / configuration:
-	- server configuration with  **appId, appSecret and hostname**
-	- account(s) with  **botName, login, password** and also **useS2S**
-	- S2S Callback URL using the field **s2sCallbackURL**
+
+You need first to set configuration files:
+- **../TerminalAppLibrary/exeSettings.json**: see chapter [File exeSettings.json](./../../ConfigurationFiles.md#exeSettings.json) - no need here to use external dependencies.
+- **../TerminalAppLibrary/credentials.json**: see chapter [File credentials.json](./../../ConfigurationFiles.md#credentials.json).
+
+NOTE: In **exeSettings.json**, **s2sCallbackURL** must de defined.
 
 One loggued, a Presence panel is displayed to see interactively Aggregated Presence of contacts in the roster.
 
@@ -27,7 +29,7 @@ It's also possible to change the Presence of the contact connected to the Rainbo
 About the S2S:
 - check [Getting started guide](https://developers.openrainbow.com/doc/sdk/csharp/core/sts/guides/035_events_mode?isBeta=true)
 
-Ngok local instance must be starte locally like this:
+Ngok local instance must be started locally like this:
 **ngrok http --host-header="localhost:9870" 9870**
 
 ## How it works

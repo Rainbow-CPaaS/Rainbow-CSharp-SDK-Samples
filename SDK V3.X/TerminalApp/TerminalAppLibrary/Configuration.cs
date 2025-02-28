@@ -1,5 +1,8 @@
 ﻿using Rainbow;
+using Rainbow.Console;
 using Rainbow.SimpleJSON;
+
+using Util = Rainbow.Console.Util;
 
 public static class Configuration
 {
@@ -7,41 +10,19 @@ public static class Configuration
     public static Boolean NeedsRainbowAccounts = false;             // True to use one or several Rainbow Accounts
     public static Boolean UseSplittedView = false;                  // True to use several Rainbow Accounts, False to use only the first one
 
-    public static String CultureInfo = "";                               // Define culture info to use
-
-    public static RainbowServerConfiguration RainbowServerConfiguration = new();
-    public static List<RainbowAccount> RainbowAccounts = [];
-
-    public static String S2SCallbackURL = "";
-
-    private static readonly String DEFAULT_VALUE = "TO DEFINE";
-    private static String _errorMessage = "";
-
-    public static String GetErrorMessage()
-    {
-        return _errorMessage;
-    }
+    public static ExeSettings ExeSettings = new();
+    public static Credentials Credentials = new();
 
     public static Boolean Initialize()
     {
         return ParseConfigFile();
     }
 
-    private static String GetConfigFilePath()
-    {
-        return Path.GetFullPath($".{Path.DirectorySeparatorChar}Resources{Path.DirectorySeparatorChar}config.json");
-    }
-
-    private static void CheckDefaultValue(String val, String propertyName)
-    {
-        if (String.IsNullOrEmpty(val))
-            _errorMessage += $"\r\nProperty '{propertyName}' is not defined or has an empty value";
-        else if (val.Equals(DEFAULT_VALUE, StringComparison.InvariantCultureIgnoreCase))
-            _errorMessage += $"\r\nProperty '{propertyName}' has a default value - set a correct one";
-    }
-
     private static Boolean ParseConfigFile()
     {
+        return ReadExeSettings() && ReadCredentials();
+        //return ReadExeSettings() && ReadCredentials() && ReadStreamsSettings();
+/*
         String configFilePath = GetConfigFilePath();
 
         if (!File.Exists(configFilePath))
@@ -61,10 +42,6 @@ public static class Configuration
                 return false;
             }
 
-            if (json["cultureInfo"] != null)
-                CultureInfo = UtilJson.AsString(json, "cultureInfo");
-            else
-                CultureInfo = "";
 
             // HostName, AppId, AppSecret
             if (NeedsRainbowServerConfiguration)
@@ -74,13 +51,13 @@ public static class Configuration
                     RainbowServerConfiguration = new();
                     var jobject = json["serverConfig"];
 
-                    RainbowServerConfiguration.AppId = UtilJson.AsString(jobject, "appId");
+                    RainbowServerConfiguration.AppId = jobject["appId"];
                     CheckDefaultValue(RainbowServerConfiguration.AppId, "appId");
 
-                    RainbowServerConfiguration.AppSecret = UtilJson.AsString(jobject, "appSecret");
+                    RainbowServerConfiguration.AppSecret = jobject["appSecret"];
                     CheckDefaultValue(RainbowServerConfiguration.AppSecret, "appSecret");
 
-                    RainbowServerConfiguration.HostName = UtilJson.AsString(jobject, "hostname");
+                    RainbowServerConfiguration.HostName = jobject["hostname"];
                     CheckDefaultValue(RainbowServerConfiguration.HostName, "hostname");
                 }
                 else
@@ -88,7 +65,7 @@ public static class Configuration
             }
 
             // S2SCallbackURL
-            S2SCallbackURL = UtilJson.AsString(json, "s2sCallbackURL");
+            S2SCallbackURL = json["s2sCallbackURL"];
 
             // Accounts
             if (NeedsRainbowAccounts)
@@ -101,26 +78,26 @@ public static class Configuration
                         RainbowAccount rainbowAccount = new();
 
                         if (jobject["botName"] != null)
-                            rainbowAccount.BotName = UtilJson.AsString(jobject, "botName");
+                            rainbowAccount.BotName = jobject["botName"];
                         else
                             _errorMessage += $"\r\nCannot read 'botName' in 'accounts' for index:[{index}]";
 
                         if (jobject["login"] != null)
-                            rainbowAccount.Login = UtilJson.AsString(jobject, "login");
+                            rainbowAccount.Login = jobject["login"];
                         else
                             _errorMessage += $"\r\nCannot read 'login' in 'accounts' for index:[{index}]";
 
                         if (jobject["password"] != null)
-                            rainbowAccount.Password = UtilJson.AsString(jobject, "password");
+                            rainbowAccount.Password = jobject["password"];
                         else
                             _errorMessage += $"\r\nCannot read 'password' in 'accounts' for index:[{index}]";
 
                         if (jobject["autoLogin"] != null)
-                            rainbowAccount.AutoLogin = UtilJson.AsBoolean(jobject, "autoLogin");
+                            rainbowAccount.AutoLogin = jobject["autoLogin"];
                         else
                             _errorMessage += $"\r\nCannot read 'autoLogin' in 'accounts' for index:[{index}]";
 
-                        rainbowAccount.UseS2S = UtilJson.AsBoolean(jobject, "useS2S");
+                        rainbowAccount.UseS2S = jobject["useS2S"];
                         
 
                         RainbowAccounts.Add(rainbowAccount);
@@ -140,21 +117,60 @@ public static class Configuration
 
         _errorMessage = $"Pb occured while reading/parsing this file:\r\n\t{configFilePath}" + _errorMessage;
         return false;
+*/
+    }
+
+    private static Boolean ReadExeSettings()
+    {
+        String exeSettingsFilePath = $".{Path.DirectorySeparatorChar}config{Path.DirectorySeparatorChar}exeSettings.json";
+        if (!File.Exists(exeSettingsFilePath))
+        {
+            Util.WriteRed($"The file '{exeSettingsFilePath}' has not been found.");
+            return false;
+        }
+
+        String jsonConfig = File.ReadAllText(exeSettingsFilePath);
+        var jsonNode = JSON.Parse(jsonConfig);
+
+        if ((jsonNode is null) || (!jsonNode.IsObject))
+        {
+            Util.WriteRed($"Cannot get JSON data from file '{exeSettingsFilePath}'.");
+            return false;
+        }
+
+        if (ExeSettings.FromJsonNode(jsonNode["exeSettings"], out ExeSettings))
+        {
+            // Set where log files must be stored
+            NLogConfigurator.Directory = ExeSettings.LogFolderPath;
+        }
+        else
+        {
+            Util.WriteRed($"Cannot read 'exeSettings' object OR invalid/missing data - file:'{exeSettingsFilePath}'.");
+            return false;
+        }
+
+        return true;
+    }
+
+    private static Boolean ReadCredentials()
+    {
+        var credentialsFilePath = $".{Path.DirectorySeparatorChar}config{Path.DirectorySeparatorChar}credentials.json";
+        if (!File.Exists(credentialsFilePath))
+        {
+            Util.WriteRed($"The file '{credentialsFilePath}' has not been found.");
+            return false;
+        }
+
+        String jsonConfig = File.ReadAllText(credentialsFilePath);
+        var jsonNode = JSON.Parse(jsonConfig);
+
+        if (!Credentials.FromJsonNode(jsonNode["credentials"], out Credentials))
+        {
+            Util.WriteRed($"Cannot read 'credentials' object OR invalid/missing data.");
+            return false;
+        }
+
+        return true;
     }
 }
 
-public class RainbowServerConfiguration
-{
-    public String AppId = "";
-    public String AppSecret = "";
-    public String HostName = "";
-}
-
-public class RainbowAccount
-{
-    public String BotName = "";
-    public String Login = "";
-    public String Password = "";
-    public Boolean UseS2S = false;
-    public Boolean AutoLogin = false;
-}

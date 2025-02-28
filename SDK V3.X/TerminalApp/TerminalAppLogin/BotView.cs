@@ -1,32 +1,32 @@
-﻿using Rainbow;
+﻿using Rainbow.Console;
 using Rainbow.Consts;
 using Terminal.Gui;
 
 internal class BotView: View
 {
-    internal RainbowAccount rbAccount;
+    internal UserConfig rbAccount;
 
     private readonly Rainbow.Application rbApplication;
 
     private LoginView? loginView;
 
-    internal BotView(RainbowAccount rbAccount)
+    internal BotView(UserConfig rbAccount)
     {
         this.rbAccount = rbAccount;
 
         // Set Rainbow objects / events
-        string prefix = rbAccount.BotName + "_";
-        string iniFileName = rbAccount.BotName + ".ini";
+        string prefix = rbAccount.Prefix + "_";
+        string iniFileName = rbAccount.Prefix + ".ini";
 
         // We want to log files from SDK for this Bot
         NLogConfigurator.AddLogger(prefix);
 
         // Create Rainbow SDK objects
-        rbApplication = new Rainbow.Application(iniFileName: iniFileName, loggerPrefix: prefix);
+        rbApplication = new Rainbow.Application(iniFolderFullPathName: rbAccount.IniFolderPath, iniFileName: iniFileName, loggerPrefix: prefix);
 
         // Set global configuration info
-        rbApplication.SetApplicationInfo(Configuration.RainbowServerConfiguration.AppId, Configuration.RainbowServerConfiguration.AppSecret);
-        rbApplication.SetHostInfo(Configuration.RainbowServerConfiguration.HostName);
+        rbApplication.SetApplicationInfo(Configuration.Credentials.ServerConfig.AppId, Configuration.Credentials.ServerConfig.AppSecret);
+        rbApplication.SetHostInfo(Configuration.Credentials.ServerConfig.HostName);
 
         // We want to receive events from SDK
         rbApplication.ConnectionStateChanged += RbApplication_ConnectionStateChanged;   // Triggered when the Connection State will change
@@ -36,7 +36,7 @@ internal class BotView: View
 
     private void SetViewLayout()
     {
-        Title = rbAccount.BotName;
+        Title = rbAccount.Prefix;
         CanFocus = true;
 
         ColorScheme = Tools.ColorSchemeMain;
@@ -78,15 +78,15 @@ internal class BotView: View
             switch (connectionState.Status)
             {
                 case ConnectionStatus.Connected:
-                    Title = rbAccount.BotName;
+                    Title = rbAccount.Prefix;
                     break;
 
                 case ConnectionStatus.Connecting:
-                    Title = $"{rbAccount.BotName} - [Connecting]";
+                    Title = $"{rbAccount.Prefix} - [Connecting]";
                     break;
 
                 case ConnectionStatus.Disconnected:
-                    Title = $"{rbAccount.BotName} - [Disconnected]";
+                    Title = $"{rbAccount.Prefix} - [Disconnected]";
                     break;
             }
         });

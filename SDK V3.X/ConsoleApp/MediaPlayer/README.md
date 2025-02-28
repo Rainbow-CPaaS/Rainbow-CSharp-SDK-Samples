@@ -16,14 +16,14 @@ Documentation is available [here](https://developers.openrainbow.com/doc/sdk/csh
 
 ## File exeSettings.json
 
-You need to set correctly the file "exeSettings.json" like described in chapter [File exeSettings.json](./../../Bot/README.md#exeSettings.json) to use some dependencies listed in next chapter.
+You need to set correctly the file "exeSettings.json" like described in chapter [File exeSettings.json](./../../ConfigurationFiles.md#exeSettings.json).
 
 ## File streams.json
 
-You need to set correctly the file "streams.json". It uses exactly the same structure that the object **streams** defined in chapter [Extended BotConfiguration](./../../Bot/README.md#ExtendedBotConfiguration) of the [Bot Brocaster example](./../../Bot/BotBroadcaster/README.md).
+You need to set correctly the file "streams.json" like described in chapter [File streams.json](./../../ConfigurationFiles.md#streams.json).
 
 ## Restrictions
-Not all configuration settings are yet available. 
+Not all configuration settings in file **streams.json** are yet available. 
 
 Check [CHANGELOG](CHANGELOG.md)
 

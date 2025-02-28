@@ -5,10 +5,7 @@ Configuration.NeedsRainbowAccounts = true;
 
 // Initialize the Configuration i.e. reads content of the file "config.json" defined in the "Resources" folder or "TerminalAppLibrary" project
 if (!Configuration.Initialize())
-{
-    Console.WriteLine(Configuration.GetErrorMessage());
     return;
-}
 
 // Specify the "BotViewFactory" to use in "BotWindow"
 BotWindow.BotViewFactory = new BotViewFactory();

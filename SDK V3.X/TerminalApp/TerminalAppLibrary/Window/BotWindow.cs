@@ -1,4 +1,5 @@
-﻿using System.Drawing;
+﻿using Rainbow.Console;
+using System.Drawing;
 using System.Globalization;
 using Terminal.Gui;
 using RuntimeEnvironment = Microsoft.DotNet.PlatformAbstractions.RuntimeEnvironment;
@@ -24,8 +25,8 @@ public class BotWindow : Window
 
         try
         {
-            if(!String.IsNullOrEmpty(Configuration.CultureInfo))
-                CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.GetCultureInfo(Configuration.CultureInfo);
+            if(!String.IsNullOrEmpty(Configuration.ExeSettings.CultureInfo))
+                CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.GetCultureInfo(Configuration.ExeSettings.CultureInfo);
         }
         catch { }
 
@@ -34,32 +35,29 @@ public class BotWindow : Window
         
         botViewsAvailable = [];
 
-        // We need at least one account
-        if (Configuration.RainbowServerConfiguration == null)
-            return;
 
         // We need at least one account
-        if ((Configuration.RainbowAccounts == null) || (Configuration.RainbowAccounts.Count == 0))
+        if ((Configuration.Credentials.UsersConfig == null) || (Configuration.Credentials.UsersConfig.Count == 0))
             return;
 
-        int nbAccounts = Configuration.RainbowAccounts.Count;
+        int nbAccounts = Configuration.Credentials.UsersConfig.Count;
 
         // We display up to two Accounts in same time if specified
         if (Configuration.UseSplittedView && nbAccounts > 1)
         {
-            leftView = BotViewFactory.CreateBotView(Configuration.RainbowAccounts[0]);
+            leftView = BotViewFactory.CreateBotView(Configuration.Credentials.UsersConfig[0]);
             SetOnLeft(leftView);
             botViewsAvailable.Add(leftView);
             Add(leftView);
 
-            rightView = BotViewFactory.CreateBotView(Configuration.RainbowAccounts[1]);
+            rightView = BotViewFactory.CreateBotView(Configuration.Credentials.UsersConfig[1]);
             SetOnRight(rightView);
             botViewsAvailable.Add(rightView);
             Add(rightView);
         }
         else
         {
-            leftView = BotViewFactory.CreateBotView(Configuration.RainbowAccounts[0]);
+            leftView = BotViewFactory.CreateBotView(Configuration.Credentials.UsersConfig[0]);
             botViewsAvailable.Add(leftView);
             Add(leftView);
         }
@@ -205,28 +203,28 @@ public class BotWindow : Window
             int selectedIndex = 0;
             int index = 0;
 
-            RainbowAccount? leftRainbowAccount = BotViewFactory.GetRainbowAccountFromBotView(leftView);
-            RainbowAccount? rightRainbowAccount = BotViewFactory.GetRainbowAccountFromBotView(rightView);
+            UserConfig? leftRainbowAccount = BotViewFactory.GetRainbowAccountFromBotView(leftView);
+            UserConfig? rightRainbowAccount = BotViewFactory.GetRainbowAccountFromBotView(rightView);
 
-            foreach (var account in Configuration.RainbowAccounts)
+            foreach (var account in Configuration.Credentials.UsersConfig)
             {
                 if ( (onLeft == null) || onLeft.Value)
                 {
-                    selectedByDefault = (leftRainbowAccount?.BotName == account.BotName);
-                    if (rightRainbowAccount?.BotName == account.BotName)
+                    selectedByDefault = (leftRainbowAccount?.Prefix == account.Prefix);
+                    if (rightRainbowAccount?.Prefix == account.Prefix)
                         continue;
                 }
                 else
                 {
-                    selectedByDefault = (rightRainbowAccount?.BotName == account.BotName);
-                    if (leftRainbowAccount?.BotName == account.BotName)
+                    selectedByDefault = (rightRainbowAccount?.Prefix == account.Prefix);
+                    if (leftRainbowAccount?.Prefix == account.Prefix)
                         continue;
                 }
 
                 if (selectedByDefault)
                     selectedIndex = index;
 
-                botsList.Add(index, account.BotName);
+                botsList.Add(index, account.Prefix);
                 index++;
             }
 
@@ -255,8 +253,8 @@ public class BotWindow : Window
             // Check if we have already the BotView according selection
             foreach (var botView in botViewsAvailable)
             {
-                RainbowAccount? rbAccount = BotViewFactory.GetRainbowAccountFromBotView(botView);
-                if (botNameSelected == rbAccount?.BotName)
+                UserConfig? rbAccount = BotViewFactory.GetRainbowAccountFromBotView(botView);
+                if (botNameSelected == rbAccount?.Prefix)
                 {
                     viewToUpdate = botView;
                     break;
@@ -264,9 +262,9 @@ public class BotWindow : Window
             }
             if (viewToUpdate == null)
             {
-                foreach(var rbAccount in Configuration.RainbowAccounts)
+                foreach(var rbAccount in Configuration.Credentials.UsersConfig)
                 {
-                    if (rbAccount.BotName == botNameSelected)
+                    if (rbAccount.Prefix == botNameSelected)
                     {
                         viewToUpdate = BotViewFactory.CreateBotView(rbAccount);
                         botViewsAvailable.Add(viewToUpdate);

@@ -9,9 +9,9 @@ This example permits to understand:
 - Add / Remove contacts from network / roster
 - Add / Remove contacts from favorites
 
-- You need first to set **../TerminalAppLibrary/Resources.json** according you environment / configuration:
-	- server configuration with  **appId, appSecret and hostname**
-	- account(s) with  **botName, login, password**
+You need first to set configuration files:
+- **../TerminalAppLibrary/exeSettings.json**: see chapter [File exeSettings.json](./../../ConfigurationFiles.md#exeSettings.json) - no need here to use external dependencies.
+- **../TerminalAppLibrary/credentials.json**: see chapter [File credentials.json](./../../ConfigurationFiles.md#credentials.json).
 
 One loggued, a Presence panel is displayed to see interactively Aggregated Presence of contacts in the roster.
 

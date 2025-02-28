@@ -1,6 +1,7 @@
 ﻿using EmbedIO;
 using NLog.LayoutRenderers.Wrappers;
 using Rainbow;
+using Rainbow.Console;
 using Rainbow.Consts;
 using Rainbow.Model;
 using Terminal.Gui;
@@ -8,7 +9,7 @@ using static System.Net.Mime.MediaTypeNames;
 
 internal class BotView: View
 {
-    internal RainbowAccount rbAccount;
+    internal UserConfig rbAccount;
 
     private readonly Rainbow.Application rbApplication;
     private readonly AutoReconnection rbAutoReconnection;
@@ -33,19 +34,19 @@ internal class BotView: View
     private int testNumber = 0;
     private Message message = null;
 
-    internal BotView(RainbowAccount rbAccount)
+    internal BotView(UserConfig rbAccount)
     {
         this.rbAccount = rbAccount;
 
         // Set Rainbow objects / events
-        string prefix = rbAccount.BotName + "_";
-        string iniFileName = rbAccount.BotName + ".ini";
+        string prefix = rbAccount.Prefix + "_";
+        string iniFileName = rbAccount.Prefix + ".ini";
 
         // We want to log files from SDK for this Bot
         NLogConfigurator.AddLogger(prefix);
 
         // Create Rainbow SDK objects
-        rbApplication = new Rainbow.Application(iniFolderFullPathName: "./", iniFileName: iniFileName, loggerPrefix: prefix);
+        rbApplication = new Rainbow.Application(iniFolderFullPathName: rbAccount.IniFolderPath, iniFileName: iniFileName, loggerPrefix: prefix);
 
         rbApplication.Restrictions.LogRestRequest = true;
         rbApplication.Restrictions.LogEvent = true;
@@ -53,9 +54,8 @@ internal class BotView: View
         //rbApplication.Restrictions.AcceptBubbleInvitation = true;
         //rbApplication.Restrictions.AcceptUserInvitation = true;
 
-        // If S2S is used Specify the callback Url
-        if (rbAccount.UseS2S)
-            rbApplication.SetS2SCallbackUrl(Configuration.S2SCallbackURL);
+        // S2S is used - s pecify the callback Url
+        rbApplication.SetS2SCallbackUrl(Configuration.ExeSettings. S2SCallbackURL);
 
         rbAutoReconnection = rbApplication.GetAutoReconnection();
         rbContacts = rbApplication.GetContacts();
@@ -63,8 +63,8 @@ internal class BotView: View
         currentContact = rbContacts.GetCurrentContact();
 
         // Set global configuration info
-        rbApplication.SetApplicationInfo(Configuration.RainbowServerConfiguration.AppId, Configuration.RainbowServerConfiguration.AppSecret);
-        rbApplication.SetHostInfo(Configuration.RainbowServerConfiguration.HostName);
+        rbApplication.SetApplicationInfo(Configuration.Credentials.ServerConfig.AppId, Configuration.Credentials.ServerConfig.AppSecret);
+        rbApplication.SetHostInfo(Configuration.Credentials.ServerConfig.HostName);
 
         // We want to receive events from SDK
         rbApplication.AuthenticationFailed += RbApplication_AuthenticationFailed;       // Triggered when the authentication process will fail
@@ -78,7 +78,7 @@ internal class BotView: View
 
     private void SetViewLayout()
     {
-        Title = rbAccount.BotName;
+        Title = rbAccount.Prefix;
         CanFocus = true;
 
         ColorScheme = Tools.ColorSchemeMain;
@@ -404,7 +404,7 @@ internal class BotView: View
                     Task[] tasks = [task1, task2];
                     await Task.WhenAll(tasks);
 
-                    Title = rbAccount.BotName;
+                    Title = rbAccount.Prefix;
 
                     loginView.Visible = false;
                     AddPresenceView();
@@ -416,11 +416,11 @@ internal class BotView: View
                     break;
 
                 case ConnectionStatus.Connecting:
-                    Title = $"{rbAccount.BotName} - [Connecting]";
+                    Title = $"{rbAccount.Prefix} - [Connecting]";
                     break;
 
                 case ConnectionStatus.Disconnected:
-                    Title = $"{rbAccount.BotName} - [Disconnected]";
+                    Title = $"{rbAccount.Prefix} - [Disconnected]";
 
                     loginView.Visible = true;
                     RemovePresenceView();

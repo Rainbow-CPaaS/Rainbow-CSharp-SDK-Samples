@@ -1,8 +1,9 @@
 ﻿using Terminal.Gui;
+using Rainbow.Console;
 
 public interface IBotViewFactory
 {
-    public View CreateBotView(RainbowAccount account);
+    public View CreateBotView(UserConfig account);
 
-    public RainbowAccount ? GetRainbowAccountFromBotView(View? botView);
+    public UserConfig? GetRainbowAccountFromBotView(View? botView);
 }

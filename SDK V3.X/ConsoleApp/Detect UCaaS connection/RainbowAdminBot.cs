@@ -1,5 +1,6 @@
 ﻿using Login_Simple;
 using Rainbow;
+using Rainbow.Console;
 using Rainbow.Consts;
 using Rainbow.Delegates;
 using Rainbow.Enums;
@@ -13,7 +14,8 @@ internal class RainbowAdminBot
     const int DEVICES_ROW_SIZE = 200;                       // Devices list asked in same time
     const int DEVICE_REGISTRATION_SIMULTANEOUS_CALL = 10;   // Nb of simultaneous HTTP request made to know registration status of devices
 
-    public RainbowAccount RainbowAccount { get; private set; }
+    public UserConfig RainbowAccount { get; private set; }
+
 
     private Rainbow.Application _rbApplication;
     private AutoReconnection _rbAutoReconnection;
@@ -29,12 +31,14 @@ internal class RainbowAdminBot
     internal event ConnectionStateDelegate? ConnectionStateChanged;
     internal event SdkErrorDelegate? ConnectionFailed;
 
-    internal RainbowAdminBot(RainbowAccount rainbowAccount)
+    internal RainbowAdminBot(ServerConfig serverConfig, UserConfig rainbowAccount)
     {
         RainbowAccount = rainbowAccount;
 
+        NLogConfigurator.AddLogger(rainbowAccount.Prefix);
+
         _rbApplication = new Rainbow.Application(
-                iniFolderFullPathName: Configuration.Instance.LogsFolderPath,
+                iniFolderFullPathName: rainbowAccount.IniFolderPath,
                 iniFileName: rainbowAccount.Prefix + "file.ini",
                 loggerPrefix: rainbowAccount.Prefix);
 
@@ -54,16 +58,15 @@ internal class RainbowAdminBot
         _rbAutoReconnection.UsePreviousLoginPwd = true; // we want to auto reconnect using previous login/pwd even if security token has expired
 
         // Configure Application service
-        _rbApplication.SetApplicationInfo(Configuration.Instance.AppId, Configuration.Instance.AppSecret);
-        _rbApplication.SetHostInfo(Configuration.Instance.HostName);
+        _rbApplication.SetApplicationInfo(serverConfig.AppId, serverConfig.AppSecret);
+        _rbApplication.SetHostInfo(serverConfig.HostName);
 
         // We want to be inform of some events
         _rbApplication.AuthenticationFailed += RbApplication_AuthenticationFailed; ;
         _rbApplication.ConnectionStateChanged += RbApplication_ConnectionStateChanged;
         _rbAutoReconnection.Cancelled += RbAutoReconnection_Cancelled;
 
-        if (rainbowAccount.AutoLogin)
-            Login();
+        Login();
     }
 
     public void Login()
@@ -74,7 +77,7 @@ internal class RainbowAdminBot
             {
                 var sdkResult = obj.Result;
                 if (!sdkResult.Success)
-                    Util.RaiseEvent(() => ConnectionFailed, _rbApplication, sdkResult.Result);
+                    Rainbow.Util.RaiseEvent(() => ConnectionFailed, _rbApplication, sdkResult.Result);
             });
         }
     }
@@ -98,7 +101,7 @@ internal class RainbowAdminBot
 
     private async void RbApplication_AuthenticationFailed(SdkError sdkError)
     {
-        Util.RaiseEvent(() => ConnectionFailed, _rbApplication, sdkError);
+        Rainbow.Util.RaiseEvent(() => ConnectionFailed, _rbApplication, sdkError);
 
         // EXAMPLE TO POST DATA USING HTTP
         Dictionary<String, object> bodyDico = new()
@@ -120,7 +123,7 @@ internal class RainbowAdminBot
 
     private async void RbApplication_ConnectionStateChanged(Rainbow.Model.ConnectionState connectionState)
     {
-        Util.RaiseEvent(() => ConnectionStateChanged, _rbApplication, connectionState);
+        Rainbow.Util.RaiseEvent(() => ConnectionStateChanged, _rbApplication, connectionState);
 
         if (connectionState.Status == ConnectionStatus.Connected)
         {
@@ -162,7 +165,7 @@ internal class RainbowAdminBot
             Login();
         }
         else
-            Util.RaiseEvent(() => ConnectionFailed, _rbApplication, sdkError);
+            Rainbow.Util.RaiseEvent(() => ConnectionFailed, _rbApplication, sdkError);
     }
 
     private async Task AskHubDeviceRegistrationAsync(String cloudId, String deviceId, String deviceUserId, String deviceShortNumber)
@@ -206,7 +209,7 @@ internal class RainbowAdminBot
             }
 
             if (raiseEvent)
-                Util.RaiseEvent(() => SIPDeviceStatusChanged, _rbApplication, sipDeviceStatus);
+                Rainbow.Util.RaiseEvent(() => SIPDeviceStatusChanged, _rbApplication, sipDeviceStatus);
         }
 
     }

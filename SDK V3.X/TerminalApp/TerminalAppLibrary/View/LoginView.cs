@@ -1,4 +1,5 @@
 ﻿using Rainbow;
+using Rainbow.Console;
 using Rainbow.Consts;
 using System.Diagnostics;
 using Terminal.Gui;
@@ -13,7 +14,7 @@ public class LoginView: View
     readonly Button btnLogin;
     readonly LoggerView? loggerView;
 
-    public LoginView(RainbowAccount rbAccount, Rainbow.Application rbApplication, Boolean withDetails = false)
+    public LoginView(UserConfig rbAccount, Rainbow.Application rbApplication, Boolean withDetails = false)
     {
         this.rbApplication = rbApplication;
         rbAutoReconnection = rbApplication.GetAutoReconnection();
@@ -25,7 +26,7 @@ public class LoginView: View
         rbAutoReconnection.Cancelled += RbAutoReconnection_Cancelled;                       // Triggered when AutoReonnection service is cancelled
         rbAutoReconnection.TokenExpired += RbAutoReconnection_TokenExpired;                 // Triggered when the Security Token is expired
 
-        Title = $"Login - {rbAccount.BotName}";
+        Title = $"Login - {rbAccount.Prefix}";
         CanFocus = true;
 
         // Create Login and Password Label
