@@ -167,7 +167,7 @@ async Task ChangePresence()
 
         case 4:
             // Create presence object to Online
-            newPresence = RbContacts.CreatePresence(PresenceLevel.Dnd);
+            newPresence = RbContacts.CreatePresence(PresenceLevel.Online);
             break;
 
         case 5:
@@ -255,6 +255,14 @@ void RbApplication_ConnectionStateChanged(Rainbow.Model.ConnectionState connecti
     {
         Util.WriteYellow($"{CR}We quit the process since AutoReconnection is stopped and we are disconnected");
         System.Environment.Exit(0);
+    }
+    else if (connectionState.Status == ConnectionStatus.Connected)
+    {
+        var list = RbContacts.GetAllContactsInRoster();
+        if(list.Count > 0)
+        {
+            Util.WriteDarkYellow($"{CR}Nb Contacts in your roster:[{list.Count}]");
+        }
     }
 }
 
