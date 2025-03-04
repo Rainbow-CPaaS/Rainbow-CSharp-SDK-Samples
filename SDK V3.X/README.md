@@ -56,6 +56,7 @@ They are listed in order of priority / complexity.
 | Bubbles, Contacts | Get information about Bubbles and Contacts | [README](./ConsoleApp/Get%20basic%20contacts%20and%20bubbles%20info/README.md) |
 | Contacts, Presence | Get the presence of your contacts and modify yours | [README](./ConsoleApp/Get%20and%20set%20presence/README.md) |
 | Contacts, Presence, Multi-Instance | Using presence, detect if users are connected using an UCaaS Rainbow Application or not | [README](./ConsoleApp/Detect%20UCaaS%20connection/README.md) |
+| Conversations, InstantMessaging, Bubbles, Contacts | Manage Conversations, Send/Reveive Messages, Receipts | [README](./ConsoleApp/Conversations%20and%20IM/README.md) |
 | InstantMessaging, Bubbles, Contacts | Fetch all messages archived from a Peer | [README](./ConsoleApp/Fetch%20messages%20from%20peer/README.md) |
 | Audio, Video, Local / Remote Media | Simple media Player | [README](./ConsoleApp/MediaPlayer/README.md) |
 | Audio, Video, Sharing, Conference, WebRTC| Allow to cerate/join conference, add/remove audio/video/sharing, subscribe to remote audio/video/sharing | [README](./ConsoleApp/WebRTC/README.md) |
