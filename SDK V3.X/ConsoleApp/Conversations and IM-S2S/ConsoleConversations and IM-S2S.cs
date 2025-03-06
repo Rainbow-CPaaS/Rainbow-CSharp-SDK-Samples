@@ -7,6 +7,7 @@ using Util = Rainbow.Console.Util;
 using Rainbow.SimpleJSON;
 using System.Text;
 using Rainbow.Enums;
+using EmbedIO;
 
 // --------------------------------------------------
 
@@ -16,10 +17,22 @@ Credentials? credentials = null;
 if ((!ReadExeSettings()) || (exeSettings is null))
     return;
 
+if (String.IsNullOrEmpty(exeSettings.S2SCallbackURL))
+{
+    Util.WriteRed($"This example demonstrates how to use S2S but you have not set S2S callback URL (in \"exeSttings.json\" file with the property \"S2SCallbackURL\")");
+    Util.WriteRed($"In consequence, XMPP event mode (i.e standard mode and not S2S) will be use instead !");
+}
+else
+{
+    Util.WriteRed($"S2SCallbackURL:[{exeSettings.S2SCallbackURL}]");
+}
+
 if ((!ReadCredentials()) || (credentials is null))
     return;
 
+
 Util.WriteRed($"Account used: [{credentials.UsersConfig[0].Login}]");
+
 
 // --------------------------------------------------
 
@@ -39,14 +52,32 @@ NLogConfigurator.AddLogger(logPrefix);
 
 Rainbow.Util.SetLogAnonymously(false);
 
-Boolean saveAllMessages = true;
+Conversation? lastConversationDeleted = null;
 
 // Create Rainbow SDK objects
-var RbApplication = new Application(iniFolderFullPathName: logFolderPath, iniFileName: logPrefix+".ini", loggerPrefix: logPrefix);
+var RbApplication = new Application(iniFolderFullPathName: logFolderPath, iniFileName: logPrefix + ".ini", loggerPrefix: logPrefix);
+
+// If we use S2S:
+//  - we have to indicate to the SDK
+//  - we are using "ngrok" since we have not a public HTTP Server. We have to create a local web server on a correct port - here we uset port 9870
+if (!String.IsNullOrEmpty(exeSettings.S2SCallbackURL))
+{
+    RbApplication.SetS2SCallbackUrl(exeSettings.S2SCallbackURL);
+    // When using RbApplication.SetS2SCallbackUrl with a no empty UR, internally this is called too:
+    // RbApplication.Restrictions.EventMode = SdkEventMode.S2S;
+
+    // We start a local web server using port 9870
+    var webServer = CreateWebServer("http://localhost:9870");
+    var _ = webServer.RunAsync();
+}
+
 var RbAutoReconnection = RbApplication.GetAutoReconnection();
 var RbBubbles = RbApplication.GetBubbles();
 var RbContacts = RbApplication.GetContacts();
 var RbInstantMessaging = RbApplication.GetInstantMessaging();
+var RbConversations = RbApplication.GetConversations();
+
+RbApplication.Restrictions.LogRestRequest = true;
 
 // We want to receive events from SDK
 RbApplication.AuthenticationFailed += RbApplication_AuthenticationFailed;       // Triggered when the authentication process will fail
@@ -59,6 +90,18 @@ RbAutoReconnection.MaxNbAttemptsReached += RbAutoReconnection_MaxNbAttemptsReach
 RbAutoReconnection.TokenExpired += RbAutoReconnection_TokenExpired;                 // Triggered when the Security Token is expired
 
 RbContacts.ContactsAdded += RbContacts_ContactsAdded;
+
+RbInstantMessaging.MessageReceived += RbInstantMessaging_MessageReceived;
+RbInstantMessaging.ReceiptReceived += RbInstantMessaging_ReceiptReceived;
+RbInstantMessaging.UserTypingChanged += RbInstantMessaging_UserTypingChanged;
+
+RbBubbles.BubbleInvitationReceived += RbBubbles_BubbleInvitationReceived;
+
+void RbBubbles_BubbleInvitationReceived(BubbleInvitation bubbleInvitation)
+{
+    
+}
+
 
 // Set global configuration info
 RbApplication.SetApplicationInfo(credentials.ServerConfig.AppId, credentials.ServerConfig.AppSecret);
@@ -116,36 +159,259 @@ async Task CheckInputKey()
                 return;
 
             case ConsoleKey.C:
-                var contact = SearchForContactsInRoster();
-                if (contact != null)
-                    FetchAllMessagesFromPeer(contact);
-                else
-                    DisplayInputsInfo();
+                ListConversations();
                 break;
 
-            case ConsoleKey.B:
-                var bubble = SearchForBubbles();
-                if (bubble != null)
-                    FetchAllMessagesFromPeer(bubble);
-                else
-                    DisplayInputsInfo();
+            case ConsoleKey.D:
+                var _del = DeleteFirstConversationAsync();
                 break;
 
+            case ConsoleKey.O:
+                var _open = OpenConversationDeletedAsync();
+                break;
+
+            case ConsoleKey.S:
+                await SendIMAsync();
+                break;
+
+            case ConsoleKey.M:
+                await GetOlderMessagesAsync();
+                break;
+
+            case ConsoleKey.I:
+                DisplayInputsInfo();
+                break;
         }
     }
 }
 
 void DisplayInputsInfo()
 {
-    Util.WriteGreen($"{CR}Use [C] to search a Contact and retrieve messages exchanged with him in Peer to Peer");
+    Util.WriteGreen($"{CR}Use [I] to display this [I]nfo menu");
 
-    Util.WriteGreen($"{CR}Use [B] to search a Bubble and retrieve message exchanged in it");
+    Util.WriteGreen($"{CR}Use [C] to list [C]onversations");
+
+    Util.WriteGreen($"{CR}Use [D] to [D]elete first Conversation from list");
+
+    Util.WriteGreen($"{CR}Use [O] to [O]pen a Conversation previously deleted");
+
+    Util.WriteGreen($"{CR}Use [S] to [S]end an IM to a Contact or a Bubble");
+
+    Util.WriteGreen($"{CR}Use [M] to get older [M]essages exchanged with a Contact or a Bubble");
 }
 
-Contact? SearchForContactsInRoster()
+async Task<Boolean> OpenConversationDeletedAsync()
+{
+    if(lastConversationDeleted == null)
+    {
+        Util.WriteRed($"{CR}No conversation previously deleted");
+        return false;
+    }
+    else
+    {
+        var sdkResult = await RbConversations.GetOrCreateConversationFromPeerAsync(lastConversationDeleted);
+        if (sdkResult.Success)
+        {
+            var conversation = sdkResult.Data;
+            Util.WriteDarkYellow($"{CR}Conversation opened:[{conversation.ToString(DetailsLevel.Medium)}]");
+            lastConversationDeleted = null;
+            return true;
+        }
+        else
+        {
+            Util.WriteRed($"{CR}OpenConversationDeletedAsync() - Error occured:{sdkResult.Result}");
+            return false;
+        }
+    }
+}
+
+async Task<Boolean> DeleteFirstConversationAsync()
+{
+    var list = RbConversations.GetAllConversations();
+    if (list?.Count > 0)
+    {
+        var conversation = list.First();
+        var sdkResult = await RbConversations.RemoveFromConversationsAsync(conversation);
+        if (sdkResult.Success)
+        {
+            lastConversationDeleted = sdkResult.Data;
+            Util.WriteDarkYellow($"{CR}Conversation deleted:[{lastConversationDeleted.ToString(DetailsLevel.Medium)}]");
+            return true;
+        }
+
+        Util.WriteRed($"{CR}DeleteFirstConversationAsync() - Error occured:{sdkResult.Result}");
+        return false;
+    }
+    else
+    {
+        Util.WriteDarkYellow($"{CR}No conversations already exists");
+        return false;
+    }
+}
+
+void ListConversations()
+{
+    var list = RbConversations.GetAllConversations();
+    if(list?.Count > 0)
+    {
+        Util.WriteDarkYellow($"{CR}Nb conversations:[{list.Count}]");
+        var index = 1;
+        foreach (var conversation in list)
+        {
+            Util.WriteDarkYellow($"{CR}Conversation {index++:00}:{conversation.ToString(DetailsLevel.Medium)}]");
+        }
+    }
+    else
+        Util.WriteDarkYellow($"{CR}No conversations already exists");
+}
+
+async Task GetOlderMessagesAsync()
+{
+    Boolean canContinue = true;
+    Boolean displayInfo = true;
+    while (canContinue)
+    {
+        if (displayInfo)
+        {
+            displayInfo = false;
+            Util.WriteGreen($"{CR}Get last message from:");
+            Util.WriteGreen($"\t - [U] User");
+            Util.WriteGreen($"\t - [B] Bubble");
+            Util.WriteGreen($"\t - [C] to cancel");
+        }
+
+        while (Console.KeyAvailable)
+        {
+            var userInput = Console.ReadKey(false);
+            switch (userInput.Key)
+            {
+                case ConsoleKey.U:
+                    var contact = SearchForUserInRoster();
+                    if (contact is not null)
+                        await GetOlderMessagesWithPeerAsync(contact);
+                    displayInfo = true;
+                    break;
+
+                case ConsoleKey.B:
+                    var bubble = SearchForBubbles();
+                    if (bubble is not null)
+                        await GetOlderMessagesWithPeerAsync(bubble);
+                    displayInfo = true;
+                    break;
+
+                case ConsoleKey.C:
+                    canContinue = false;
+                    break;
+
+                default:
+                    Util.WriteYellow($"Invalid key ...");
+                    displayInfo = true;
+                    break;
+            }
+        }
+    }
+
+    DisplayInputsInfo();
+}
+
+async Task GetOlderMessagesWithPeerAsync(Peer peer)
+{
+    var sdkResultMessages = await RbInstantMessaging.GetOlderMessagesAsync(peer, 5);
+    if(sdkResultMessages.Success)
+    {
+        var messages = sdkResultMessages.Data;
+
+        if (messages.Count > 0)
+        {
+            StringBuilder stringBuilder = new();
+            int index = 0;
+            foreach (var message in messages)
+            {
+                stringBuilder.Append($"{CR}Message [{index++:00}]:");
+                AppendMessage(ref stringBuilder, message, $"{CR}\t");
+            }
+
+            Util.WriteDarkYellow($"{CR}Older messages with Peer:[{peer.ToString(DetailsLevel.Small)}]:");
+            Util.WriteDarkYellow($"{CR}{stringBuilder}");
+        }
+        else
+            Util.WriteDarkYellow($"{CR}No more older messages to retrieve with Peer:[{peer.ToString(DetailsLevel.Small)}]:");
+    }
+    else
+    {
+        Util.WriteBlue($"{CR}Cannot get older messages with [{peer.ToString(DetailsLevel.Small)}]");
+    }
+}
+
+async Task SendIMAsync()
+{
+    Boolean canContinue = true;
+    Boolean displayInfo = true;
+    while (canContinue)
+    {
+        if (displayInfo)
+        {
+            displayInfo = false;
+            Util.WriteGreen($"{CR}Send an IM To:");
+            Util.WriteGreen($"\t - [U] User");
+            Util.WriteGreen($"\t - [B] Bubble");
+            Util.WriteGreen($"\t - [C] to cancel");
+        }
+
+        while (Console.KeyAvailable && !displayInfo)
+        {
+            var userInput = Console.ReadKey(false);
+            switch (userInput.Key)
+            {
+                case ConsoleKey.U:
+                    var contact = SearchForUserInRoster();
+                    if (contact is not null)
+                        await SendImToPeerAsync(contact);
+                    displayInfo = true;
+                    break;
+
+                case ConsoleKey.B:
+                    var bubble = SearchForBubbles();
+                    if (bubble is not null)
+                        await SendImToPeerAsync(bubble);
+                    displayInfo = true;
+                    break;
+
+                case ConsoleKey.C:
+                    canContinue = false;
+                    break;
+
+                default:
+                    Util.WriteYellow($"Invalid key ...");
+                    displayInfo = true;
+                    break;
+            }
+        }
+    }
+
+    DisplayInputsInfo();
+}
+
+async Task SendImToPeerAsync(Peer peer)
+{
+    Util.WriteYellow($"{CR}Enter a text to send it to [{peer.ToString(DetailsLevel.Small)}]: ");
+    var str = Console.ReadLine();
+    if (str != null)
+    {
+        var sdkResult = await RbInstantMessaging.SendMessageAsync(peer, str);
+        if(sdkResult.Success)
+            Util.WriteBlue($"{CR}IM sent to [{peer.ToString(DetailsLevel.Small)}]");
+        else
+            Util.WriteRed($"{CR}Error sending IM: [{sdkResult.Result}]");
+    }
+    else
+        Util.WriteRed($"No text specified - No IM sent");
+}
+
+Contact? SearchForUserInRoster()
 {
     Contact? result = null;
-    Util.WriteYellow($"{CR}Enter a text to search a contact from you Roster: ");
+    Util.WriteYellow($"{CR}Enter a text to search a user from you Roster: ");
     var str = Console.ReadLine();
     if (str != null)
     {
@@ -181,135 +447,7 @@ Bubble? SearchForBubbles()
     return result;
 }
 
-void FetchAllMessagesFromPeer(Peer peer)
-{
-    if (peer == null)
-        return;
-
-    Task.Run(async () =>
-    {
-        try
-        {
-            int nbMessagesByRow = 100;
-
-            SdkResult<List<Rainbow.Model.Message>> mamSdkResult;
-            Boolean canContinue = true;
-            Boolean error = false;
-            int messagesCount = 0;
-
-            Util.WriteBlue($"Start to fetch all messages from Peer:[{RbApplication.GetPeerDisplayName(peer)}]");
-
-            DateTime start = DateTime.Now;
-            DateTime startMsgRow = start;
-            DateTime endMsgRow;
-            TimeSpan elapsed;
-            do
-            {
-                startMsgRow = DateTime.Now;
-                mamSdkResult = await RbInstantMessaging.GetOlderMessagesAsync(peer, nbMessagesByRow);
-                if (mamSdkResult.Success)
-                {
-                    endMsgRow = DateTime.Now;
-                    elapsed = endMsgRow - startMsgRow;
-                    if (mamSdkResult.Data.Count > 0)
-                    {
-                        messagesCount += mamSdkResult.Data.Count;
-                        Util.WriteYellow($"Retrieved: {mamSdkResult.Data.Count} - Time elapsed:[{elapsed.TotalSeconds} sec] - Count:[{messagesCount}]");
-                    }
-                    else
-                        canContinue = false;
-                }
-                else
-                {
-                    Util.WriteRed($"SdkError:{mamSdkResult.Result}");
-                    canContinue = false;
-                    error = true;
-                }
-            }
-            while (canContinue);
-
-            if (!error)
-            {
-                // Here messages object contains all messages exchanged with the Peer
-                List<Rainbow.Model.Message> messages = RbInstantMessaging.GetOlderMessages(peer);
-                elapsed = DateTime.Now - start;
-
-                if (messagesCount != 0)
-                    Util.WriteBlue($"Nb Messages:[{messagesCount}] - Time elapsed:[{elapsed.TotalSeconds} sec]");
-                else
-                    Util.WriteBlue($"We have already get all messages from this Peer - Nb Messages:[{messages.Count()}] - Time elapsed:[{elapsed.TotalSeconds} sec]");
-
-                if (saveAllMessages)
-                {
-                    var fileNameAllMessages = Path.Combine(Directory.GetCurrentDirectory(), $"Messages-ALL-{messagesCount}.txt");
-
-                    Util.WriteDarkYellow($"Saving all messages in the file:[{Path.GetFullPath(fileNameAllMessages)}] ...");
-
-                    StringBuilder stringBuilder = new StringBuilder();
-
-                    // Delete previous one if any
-                    File.Delete(fileNameAllMessages);
-                    for (int i = 0; i < messagesCount; i++)
-                    {
-                        var message = messages[i];
-                        AppendMessage(ref stringBuilder, message);
-
-                        // Store in file every 500 messages
-                        if ((i != 0) && (i % 500 == 0))
-                        {
-                            File.AppendAllText(fileNameAllMessages, stringBuilder.ToString(), Encoding.UTF8);
-                            stringBuilder.Clear();
-                            Util.WriteBlue($"500 Messages stored in file");
-                        }
-                    }
-                    File.AppendAllText(fileNameAllMessages, stringBuilder.ToString(), Encoding.UTF8);
-                    Util.WriteBlue($"All messages have been stored");
-                }
-                else
-                {
-                    // Log first and last messages
-                    int nbMessagesScope = 100;
-
-                    if (messages.Count > nbMessagesScope)
-                    {
-                        var fileNameFirstMessages = Path.Combine(Directory.GetCurrentDirectory(), $"Messages-First{nbMessagesScope}.txt");
-                        StringBuilder stringBuilder = new();
-
-                        // Delete previous one if any
-                        File.Delete(fileNameFirstMessages);
-                        for (int i = 0; i < nbMessagesScope; i++)
-                        {
-                            var message = messages[i];
-                            AppendMessage(ref stringBuilder, message);
-                        }
-                        File.AppendAllText(fileNameFirstMessages, stringBuilder.ToString(), Encoding.UTF8);
-
-                        stringBuilder.Clear();
-                        var fileNameLastMessages = Path.Combine(Directory.GetCurrentDirectory(), $"Messages-Last{nbMessagesScope}.txt");
-                        // Delete previous one if any
-                        File.Delete(fileNameLastMessages);
-                        for (int i = 0; i < nbMessagesScope; i++)
-                        {
-                            var message = messages[messagesCount - nbMessagesScope + i];
-                            AppendMessage(ref stringBuilder, message);
-                        }
-                        File.AppendAllText(fileNameLastMessages, stringBuilder.ToString(), Encoding.UTF8);
-                    }
-                }
-
-            }
-        }
-        catch (Exception e)
-        {
-
-        }
-
-        DisplayInputsInfo();
-
-    });
-}
-
-void AppendMessage(ref StringBuilder stringBuilder, Rainbow.Model.Message message)
+void AppendMessage(ref StringBuilder stringBuilder, Rainbow.Model.Message message, String separator = " - ")
 {
     if (message == null)
         return;
@@ -332,47 +470,40 @@ void AppendMessage(ref StringBuilder stringBuilder, Rainbow.Model.Message messag
         if (content?.Length > 50)
             content = content.Substring(0, 50);
     }
-    stringBuilder.Append(message.Date.ToString(Rainbow.SimpleJSON.JSON.DATE_TIME_FORMAT_24));
-    stringBuilder.Append(" - Id:[");
+    stringBuilder.Append($"{separator}Date:[{message.Date.ToString(Rainbow.SimpleJSON.JSON.DATE_TIME_FORMAT_24)}");
+    stringBuilder.Append($"]{separator}Id:[");
     stringBuilder.Append(String.Format("{0,-50}", message.Id));
 
-    stringBuilder.Append("] - FromJid:[");
+    stringBuilder.Append($"]{separator}FromJid:[");
     stringBuilder.Append(String.Format("{0,-50}", message.FromContact?.Peer.Jid));
 
-    stringBuilder.Append("] - ToJid:[");
+    stringBuilder.Append($"]{separator}ToJid:[");
     if (message.ToBubble != null)
         stringBuilder.Append(String.Format("{0,-50}", message.ToBubble.Peer.Jid));
     else
         stringBuilder.Append(String.Format("{0,-50}", message.ToContact?.Peer.Jid));
 
-    stringBuilder.Append("] - Urgency:[");
+    stringBuilder.Append($"]{separator}Urgency:[");
     stringBuilder.Append(String.Format("{0,-6}", message.Urgency.ToFriendlyString()));
 
-    stringBuilder.Append("] - AttachmentId:[");
+    stringBuilder.Append($"]{separator}AttachmentId:[");
     stringBuilder.Append(String.Format("{0,-50}", (message.FileAttachment is null) ? "" : message.FileAttachment.Id));
 
-    stringBuilder.Append("] - Content:[");
+    stringBuilder.Append($"]{separator}Content:[");
     stringBuilder.Append(String.Format("{0,-50}", content));
 
-    stringBuilder.Append("] - Deleted:[");
+    stringBuilder.Append($"]{separator}Deleted:[");
     stringBuilder.Append(message.Deleted ? "X" : " ");
 
-    stringBuilder.Append("] - Modified:[");
+    stringBuilder.Append($"]{separator}Modified:[");
     stringBuilder.Append(message.Modified ? "X" : " ");
 
-    stringBuilder.Append("] - Forwarded:[");
+    stringBuilder.Append($"]{separator}Forwarded:[");
     stringBuilder.Append(message.IsForwarded ? "X" : " ");
 
-    stringBuilder.Append("] - Event:[");
+    stringBuilder.Append($"]{separator}Event:[");
     stringBuilder.Append(bubbleEvent);
     stringBuilder.Append("]\r\n");
-}
-
-String UrgencyToString(MessageUrgencyType type)
-{
-    if (type == MessageUrgencyType.Std)
-        return "";
-    return type.ToString();
 }
 
 #region Events received from the SDK
@@ -466,7 +597,46 @@ void RbContacts_ContactsAdded(IEnumerable<Rainbow.Model.Contact> contacts)
     Util.WriteBlue($"{Rainbow.Util.CR}Event ContactsAdded triggered - Nb:[{displayNames.Count}] - Contact(s):[{String.Join(", ", displayNames)}]{Rainbow.Util.CR}");
 }
 
+void RbInstantMessaging_MessageReceived(Message message, bool carbonCopy)
+{
+    if(message.ToBubble is null)
+    {
+        // Message has NOT be sent to a Bubble
+        Util.WriteBlue($"{CR}Message received: sent by [{message.FromContact.ToString(DetailsLevel.Small)}] to you:");
+    }
+    else
+    {
+        // Message has been sent to a Bubble
+        Util.WriteBlue($"{CR}Message received: sent by [{message.FromContact.ToString(DetailsLevel.Small)}] in Bubble [{message.ToBubble.ToString(DetailsLevel.Small)}]:");
+    }
+    StringBuilder stringBuilder = new();
+    AppendMessage(ref stringBuilder, message, $"{CR}\t");
+    Util.WriteDarkYellow($"{CR}{stringBuilder}");
+}
+
+void RbInstantMessaging_ReceiptReceived(Peer peerContext, Message message, MessageReceiptType receiptType)
+{
+    string messageId = message.Id; // ID of the message
+    var receipt = receiptType; // receipt Type
+}
+
+void RbInstantMessaging_UserTypingChanged(Peer peerContext, Contact contact, bool isTyping)
+{
+    if(peerContext.Type == EntityType.User)
+    {
+        // A P2P context
+        Util.WriteBlue($"{CR} Contact [{contact.ToString(DetailsLevel.Small)}] - isTyping:[{isTyping}]");
+    }
+    else
+    {
+        // A Bubble context
+        Util.WriteBlue($"{CR} Contact [{contact.ToString(DetailsLevel.Small)}] - isTyping:[{isTyping}] in Bubble:[{peerContext.ToString(DetailsLevel.Small)}]");
+    }
+}
+
+
 #endregion Events received from the SDK
+
 Boolean ReadExeSettings()
 {
     String exeSettingsFilePath = $".{Path.DirectorySeparatorChar}config{Path.DirectorySeparatorChar}exeSettings.json";
@@ -519,3 +689,25 @@ Boolean ReadCredentials(string fileName = "credentials.json")
 
     return true;
 }
+
+
+#region CODE USED ONLY IN S2S CONTEXT
+WebServer CreateWebServer(string url)
+{
+    WebServer server = new WebServer(o => o
+            .WithUrlPrefix(url)
+            .WithMode(HttpListenerMode.EmbedIO)
+            )
+
+        // First, we will configure our web server by adding Modules.
+        .WithLocalSessionManager()
+        .WithModule(new CallbackWebModule("/"));
+
+    server.WithStaticFolder("/", "./", true, configure =>
+    {
+
+    });
+
+    return server;
+}
+#endregion

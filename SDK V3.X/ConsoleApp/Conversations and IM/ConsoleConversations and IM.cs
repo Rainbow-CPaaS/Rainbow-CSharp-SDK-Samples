@@ -7,8 +7,6 @@ using Util = Rainbow.Console.Util;
 using Rainbow.SimpleJSON;
 using System.Text;
 using Rainbow.Enums;
-using Microsoft.VisualBasic;
-using System.Diagnostics.Contracts;
 
 // --------------------------------------------------
 
@@ -68,8 +66,6 @@ RbContacts.ContactsAdded += RbContacts_ContactsAdded;
 RbInstantMessaging.MessageReceived += RbInstantMessaging_MessageReceived;
 RbInstantMessaging.ReceiptReceived += RbInstantMessaging_ReceiptReceived;
 RbInstantMessaging.UserTypingChanged += RbInstantMessaging_UserTypingChanged;
-
-
 
 // Set global configuration info
 RbApplication.SetApplicationInfo(credentials.ServerConfig.AppId, credentials.ServerConfig.AppSecret);
@@ -403,7 +399,7 @@ Bubble? SearchForBubbles()
     if (str != null)
     {
         List<String> memberStatus = new() { BubbleMemberStatus.Accepted };
-        var bubblesList = RbBubbles.GetAllBubbles(memberStatus: memberStatus);
+        var bubblesList = RbBubbles.GetAllBubbles(bubbleMemberStatusList: memberStatus);
         result = bubblesList.Find(contact => contact.Peer.DisplayName.Contains(str, StringComparison.InvariantCultureIgnoreCase));
     }
 

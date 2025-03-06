@@ -497,7 +497,7 @@ void MenuConference()
                 else
                 {
                     List<String> memberStatus = new() { BubbleMemberStatus.Accepted };
-                    var bubblesList = RbBubbles.GetAllBubbles(memberStatus: memberStatus);
+                    var bubblesList = RbBubbles.GetAllBubbles(bubbleMemberStatusList: memberStatus);
                     result = bubblesList.Find(contact => contact.Peer.DisplayName.Contains(str, StringComparison.InvariantCultureIgnoreCase));
                 }
 

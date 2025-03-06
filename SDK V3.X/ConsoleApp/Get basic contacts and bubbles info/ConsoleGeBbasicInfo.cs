@@ -164,8 +164,8 @@ async Task DisplayBubbleInfo(Bubble bubble, Boolean displayBubbleMemberInfo, Boo
     String inactiveMsg = canUseEmoji ? "💤💤💤💤💤 " : "[INACTIVE] ";
     String activeMsg = "           ";
 
-    List<String> memberStatus = new();
-    List<String> memberPrivilege = new();
+    List<String> bubbleMemberStatusList = new();
+    List<String> bubbleMemberPrivilegeList = new();
 
     Util.WriteYellow($"{((bubble.IsActive) ? activeMsg : inactiveMsg)}{bubble.ToString(DetailsLevel.Small)}");
     if (displayBubbleMemberInfo && (!displayBubbleMemberInfoAsContact))
@@ -173,21 +173,21 @@ async Task DisplayBubbleInfo(Bubble bubble, Boolean displayBubbleMemberInfo, Boo
         // /!\ Here we ask BubbleMember - if they are not knownn yet as Contact, their Display Name is not available
         // If you want to have if, use "displayBubbleMemberInfoAsContact" and set it to true to see how to retrieve them
 
-        memberStatus.Clear();
-        memberStatus.Add(BubbleMemberStatus.Accepted);
+        bubbleMemberStatusList.Clear();
+        bubbleMemberStatusList.Add(BubbleMemberStatus.Accepted);
 
         // We want Moderators only and Accepted
-        memberPrivilege.Clear();
-        memberPrivilege.Add(BubbleMemberPrivilege.Moderator);
-        var moderators = RbBubbles.GetMembers(bubble, memberStatus: memberStatus, memberPrivilege: memberPrivilege); ; ;
+        bubbleMemberPrivilegeList.Clear();
+        bubbleMemberPrivilegeList.Add(BubbleMemberPrivilege.Moderator);
+        var moderators = RbBubbles.GetMembers(bubble, bubbleMemberStatusList: bubbleMemberStatusList, bubbleMemberPrivilegeList: bubbleMemberPrivilegeList); ; ;
         Util.WriteGreen($"\t\t{bubble.ToString(DetailsLevel.Small)} - Nb Moderator(s): [{moderators.Count}]");
         foreach (var member in moderators)
             Util.WriteWhite($"\t\t{(String.IsNullOrEmpty(member.Peer.DisplayName) ? member.Peer.Id : member.Peer.DisplayName)}");
 
         // We want Members only and Accepted 
-        memberPrivilege.Clear();
-        memberPrivilege.Add(BubbleMemberPrivilege.User);
-        var members = RbBubbles.GetMembers(bubble, memberStatus: memberStatus, memberPrivilege: memberPrivilege);
+        bubbleMemberPrivilegeList.Clear();
+        bubbleMemberPrivilegeList.Add(BubbleMemberPrivilege.User);
+        var members = RbBubbles.GetMembers(bubble, bubbleMemberStatusList: bubbleMemberStatusList, bubbleMemberPrivilegeList: bubbleMemberPrivilegeList);
         Util.WriteGreen($"\t\t{bubble.ToString(DetailsLevel.Small)} - Nb Members (s): [{members.Count}]");
         foreach (var member in members)
             Util.WriteWhite($"\t\t{(String.IsNullOrEmpty(member.Peer.DisplayName) ? member.Peer.Id : member.Peer.DisplayName)}");
@@ -197,13 +197,13 @@ async Task DisplayBubbleInfo(Bubble bubble, Boolean displayBubbleMemberInfo, Boo
         // /!\ Here we ask Members as Contact - So if some members are not yet known, GetMembersAsContactsAsync() will ask the server
         // Once there are known, we not more asks the server
 
-        memberStatus.Clear();
-        memberStatus.Add(BubbleMemberStatus.Accepted);
+        bubbleMemberStatusList.Clear();
+        bubbleMemberStatusList.Add(BubbleMemberStatus.Accepted);
 
         // We want Moderators only and Accepted
-        memberPrivilege.Clear();
-        memberPrivilege.Add(BubbleMemberPrivilege.Moderator);
-        var sdkResult = await RbBubbles.GetMembersAsContactsAsync(bubble, memberStatus: memberStatus, memberPrivilege: memberPrivilege); ; ;
+        bubbleMemberPrivilegeList.Clear();
+        bubbleMemberPrivilegeList.Add(BubbleMemberPrivilege.Moderator);
+        var sdkResult = await RbBubbles.GetMembersAsContactsAsync(bubble, bubbleMemberStatusList: bubbleMemberStatusList, bubbleMemberPrivilegeList: bubbleMemberPrivilegeList); ; ;
         if (sdkResult.Success)
         {
             var moderators = sdkResult.Data;
@@ -213,9 +213,9 @@ async Task DisplayBubbleInfo(Bubble bubble, Boolean displayBubbleMemberInfo, Boo
         }
 
         // We want Members only and Accepted 
-        memberPrivilege.Clear();
-        memberPrivilege.Add(BubbleMemberPrivilege.User);
-        sdkResult = await RbBubbles.GetMembersAsContactsAsync(bubble, memberStatus: memberStatus, memberPrivilege: memberPrivilege);
+        bubbleMemberPrivilegeList.Clear();
+        bubbleMemberPrivilegeList.Add(BubbleMemberPrivilege.User);
+        sdkResult = await RbBubbles.GetMembersAsContactsAsync(bubble, bubbleMemberStatusList: bubbleMemberStatusList, bubbleMemberPrivilegeList: bubbleMemberPrivilegeList);
         if (sdkResult.Success)
         {
             var members = sdkResult.Data;
@@ -236,84 +236,84 @@ async Task DisplayBubbles(Boolean displayBubbleInfo, Boolean displayBubbleMember
 
     Util.WriteRed($"{CR}------ START DisplayBubbles");
 
-    List<String> memberStatus = new();
-    List<String> memberPrivilege = new();
-    List<Bubble> bubbles;
+    List<String> bubbleMemberStatusList = new();
+    List<String> bubbleMemberPrivilegeList = new();
+    List<Bubble> bubblesList;
 
     // Bubbles as Owner only
-    memberPrivilege.Clear();
-    memberPrivilege.Add(BubbleMemberPrivilege.Owner);
-    bubbles = RbBubbles.GetAllBubbles(memberPrivilege: memberPrivilege);
-    Util.WriteBlue($"{CR}\tBubble(s) as Owner - Nb:[{bubbles.Count}]");
+    bubbleMemberPrivilegeList.Clear();
+    bubbleMemberPrivilegeList.Add(BubbleMemberPrivilege.Owner);
+    bubblesList = RbBubbles.GetAllBubbles(bubbleMemberPrivilegeList: bubbleMemberPrivilegeList);
+    Util.WriteBlue($"{CR}\tBubble(s) as Owner - Nb:[{bubblesList.Count}]");
     if (displayBubbleInfo)
-        foreach (var bubble in bubbles)
+        foreach (var bubble in bubblesList)
             await DisplayBubbleInfo(bubble, displayBubbleMemberInfo, displayBubbleMemberInfoAsContact);
 
     // Bubbles as Moderator only
-    memberPrivilege.Clear();
-    memberPrivilege.Add(BubbleMemberPrivilege.Moderator);
-    bubbles = RbBubbles.GetAllBubbles(memberPrivilege: memberPrivilege);
-    Util.WriteBlue($"{CR}\tBubble(s) as Moderator - Nb:[{bubbles.Count}]");
+    bubbleMemberPrivilegeList.Clear();
+    bubbleMemberPrivilegeList.Add(BubbleMemberPrivilege.Moderator);
+    bubblesList = RbBubbles.GetAllBubbles(bubbleMemberPrivilegeList: bubbleMemberPrivilegeList);
+    Util.WriteBlue($"{CR}\tBubble(s) as Moderator - Nb:[{bubblesList.Count}]");
     if (displayBubbleInfo)
-        foreach (var bubble in bubbles)
+        foreach (var bubble in bubblesList)
             await DisplayBubbleInfo(bubble, displayBubbleMemberInfo, displayBubbleMemberInfoAsContact);
 
     // Bubbles as User only
-    memberPrivilege.Clear();
-    memberPrivilege.Add(BubbleMemberPrivilege.User);
-    bubbles = RbBubbles.GetAllBubbles(memberPrivilege: memberPrivilege);
-    Util.WriteBlue($"{CR}\tBubble(s) as User - Nb:[{bubbles.Count}]");
+    bubbleMemberPrivilegeList.Clear();
+    bubbleMemberPrivilegeList.Add(BubbleMemberPrivilege.User);
+    bubblesList = RbBubbles.GetAllBubbles(bubbleMemberPrivilegeList: bubbleMemberPrivilegeList);
+    Util.WriteBlue($"{CR}\tBubble(s) as User - Nb:[{bubblesList.Count}]");
     if (displayBubbleInfo)
-        foreach (var bubble in bubbles)
+        foreach (var bubble in bubblesList)
             await DisplayBubbleInfo(bubble, displayBubbleMemberInfo, displayBubbleMemberInfoAsContact);
 
 
     // Bubbles as Accepted status only - Permits to have all bubbles where current user can communicates
-    memberStatus.Clear();
-    memberStatus.Add(BubbleMemberStatus.Accepted);
-    bubbles = RbBubbles.GetAllBubbles(memberStatus: memberStatus);
-    Util.WriteBlue($"{CR}\tBubble(s) as Accepted status - Nb:[{bubbles.Count}]");
+    bubbleMemberStatusList.Clear();
+    bubbleMemberStatusList.Add(BubbleMemberStatus.Accepted);
+    bubblesList = RbBubbles.GetAllBubbles(bubbleMemberStatusList: bubbleMemberStatusList);
+    Util.WriteBlue($"{CR}\tBubble(s) as Accepted status - Nb:[{bubblesList.Count}]");
     if (displayBubbleInfo)
-        foreach (var bubble in bubbles)
+        foreach (var bubble in bubblesList)
             await DisplayBubbleInfo(bubble, displayBubbleMemberInfo, displayBubbleMemberInfoAsContact);
 
     // Bubbles as Invited status only
-    memberStatus.Clear();
-    memberStatus.Add(BubbleMemberStatus.Invited);
-    bubbles = RbBubbles.GetAllBubbles(memberStatus: memberStatus);
-    Util.WriteBlue($"{CR}\tBubble(s) as Invited status - Nb:[{bubbles.Count}]");
+    bubbleMemberStatusList.Clear();
+    bubbleMemberStatusList.Add(BubbleMemberStatus.Invited);
+    bubblesList = RbBubbles.GetAllBubbles(bubbleMemberStatusList: bubbleMemberStatusList);
+    Util.WriteBlue($"{CR}\tBubble(s) as Invited status - Nb:[{bubblesList.Count}]");
     if (displayBubbleInfo)
-        foreach (var bubble in bubbles)
+        foreach (var bubble in bubblesList)
             await DisplayBubbleInfo(bubble, displayBubbleMemberInfo, displayBubbleMemberInfoAsContact);
 
     // Bubbles as Unsubscribed status only
-    memberStatus.Clear();
-    memberStatus.Add(BubbleMemberStatus.Unsubscribed);
-    bubbles = RbBubbles.GetAllBubbles(memberStatus: memberStatus);
-    Util.WriteBlue($"\tBubble(s) as Unsubscribed status - Nb:[{bubbles.Count}]");
+    bubbleMemberStatusList.Clear();
+    bubbleMemberStatusList.Add(BubbleMemberStatus.Unsubscribed);
+    bubblesList = RbBubbles.GetAllBubbles(bubbleMemberStatusList: bubbleMemberStatusList);
+    Util.WriteBlue($"\tBubble(s) as Unsubscribed status - Nb:[{bubblesList.Count}]");
     if (displayBubbleInfo)
-        foreach (var bubble in bubbles)
+        foreach (var bubble in bubblesList)
             await DisplayBubbleInfo(bubble, displayBubbleMemberInfo, displayBubbleMemberInfoAsContact);
 
 
     // Bubbles as Owner or Moderator (an Owner is always a Moderator - so here we have same result than asking for Moderator only)
-    memberPrivilege.Clear();
-    memberPrivilege.Add(BubbleMemberPrivilege.Owner);
-    memberPrivilege.Add(BubbleMemberPrivilege.Moderator);
-    bubbles = RbBubbles.GetAllBubbles(memberPrivilege: memberPrivilege);
-    Util.WriteBlue($"{CR}\tBubble(s) as Owner And Moderator - Nb:[{bubbles.Count}]");
+    bubbleMemberPrivilegeList.Clear();
+    bubbleMemberPrivilegeList.Add(BubbleMemberPrivilege.Owner);
+    bubbleMemberPrivilegeList.Add(BubbleMemberPrivilege.Moderator);
+    bubblesList = RbBubbles.GetAllBubbles(bubbleMemberPrivilegeList: bubbleMemberPrivilegeList);
+    Util.WriteBlue($"{CR}\tBubble(s) as Owner And Moderator - Nb:[{bubblesList.Count}]");
     if (displayBubbleInfo)
-        foreach (var bubble in bubbles)
+        foreach (var bubble in bubblesList)
             await DisplayBubbleInfo(bubble, displayBubbleMemberInfo, displayBubbleMemberInfoAsContact);
 
     // Bubbles as Moderator or User
-    memberPrivilege.Clear();
-    memberPrivilege.Add(BubbleMemberPrivilege.Moderator);
-    memberPrivilege.Add(BubbleMemberPrivilege.User);
-    bubbles = RbBubbles.GetAllBubbles(memberPrivilege: memberPrivilege);
-    Util.WriteBlue($"{CR}\tBubble(s) as Moderator or User - Nb:[{bubbles.Count}]");
+    bubbleMemberPrivilegeList.Clear();
+    bubbleMemberPrivilegeList.Add(BubbleMemberPrivilege.Moderator);
+    bubbleMemberPrivilegeList.Add(BubbleMemberPrivilege.User);
+    bubblesList = RbBubbles.GetAllBubbles(bubbleMemberPrivilegeList: bubbleMemberPrivilegeList);
+    Util.WriteBlue($"{CR}\tBubble(s) as Moderator or User - Nb:[{bubblesList.Count}]");
     if (displayBubbleInfo)
-        foreach (var bubble in bubbles)
+        foreach (var bubble in bubblesList)
             await DisplayBubbleInfo(bubble, displayBubbleMemberInfo, displayBubbleMemberInfoAsContact);
 
     Util.WriteRed($"------ END DisplayBubbles{CR}");
