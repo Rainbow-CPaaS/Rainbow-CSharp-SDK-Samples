@@ -40,7 +40,7 @@ NLogConfigurator.AddLogger(logPrefix);
 Rainbow.Util.SetLogAnonymously(false);
 
 // Create Rainbow SDK objects
-var RbApplication = new Application(loggerPrefix: logPrefix);
+var RbApplication = new Application(iniFolderFullPathName: logFolderPath, iniFileName: logPrefix +".ini", loggerPrefix: logPrefix);
 var RbAutoReconnection = RbApplication.GetAutoReconnection();
 
 // We want to receive events from SDK
@@ -71,7 +71,7 @@ Util.WriteBlue($"{CR}You can change your network connection settgins while the p
 
 // Start login
 Util.WriteWhite($"{CR}Starting login ...");
-RbApplication.LoginAsync(credentials.UsersConfig[0].Login, credentials.UsersConfig[0].Password);
+var _ = RbApplication.LoginAsync(credentials.UsersConfig[0].Login, credentials.UsersConfig[0].Password);
 do
 {
     await Task.Delay(200);

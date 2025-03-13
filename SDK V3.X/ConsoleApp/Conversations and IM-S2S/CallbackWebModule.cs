@@ -15,14 +15,25 @@ public class CallbackWebModule : WebModuleBase
 
     protected override async Task OnRequestAsync(IHttpContext context)
     {
+        // We get the HTTP verb of the request (POST, GET, ...)
+        String httpVerb = context.Request.HttpVerb.ToString();
+
+        // We get the AbsolutePath of the request
+        String absolutePath = context.Request.Url.AbsolutePath;
+
+        // We get the body of the request
+        String body = await context.GetRequestBodyAsStringAsync();
+
+        // And finally we need the content-type of the body
+        String? contentType = context.Request.Headers["Content-Type"];
+
+        // We use Rainbow.S2SEventPipe instance with all this info
         Boolean result = false;
+        log.LogDebug("[OnRequestAsync] RequestedPath:[{Path}] - HttpVerb:[{HttpVerb}]", absolutePath, httpVerb);
 
-        log.LogDebug("[OnRequestAsync] RequestedPath:[{Path}] - HttpVerb:[{HttpVerb}]", context.Request.Url.AbsolutePath, context.Request.HttpVerb);
-
-        if (context.Request.Headers["Content-Type"] == "application/json")
+        if (contentType == "application/json")
         {
-            String body = await context.GetRequestBodyAsStringAsync();
-            result = await s2sEventPipe.ParseCallbackContentAsync(context.Request.HttpVerb.ToString(), context.Request.Url.AbsolutePath, body);
+            result = await s2sEventPipe.ParseCallbackContentAsync(httpVerb, absolutePath, body);
         }
 
         if (!result)
