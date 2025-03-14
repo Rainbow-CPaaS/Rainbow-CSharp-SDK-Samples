@@ -53,7 +53,7 @@ RbApplication.SetHostInfo(credentials.ServerConfig.HostName);
 
 RbApplication.Restrictions.LogRestRequest = true;
 
-Util.WriteRed($"{CR}Account used: [{credentials.UsersConfig[0].Login}] - it must have rights to create user / guest");
+Util.WriteRed($"{CR}Account used: [{credentials.UsersConfig[0].Login}]");
 Util.WriteDarkYellow($"Logging in progress ...");
 var sdkResult = await RbApplication.LoginAsync(credentials.UsersConfig[0].Login, credentials.UsersConfig[0].Password);
 
@@ -67,11 +67,14 @@ else
     // Check roles of this account
     var roles = RbApplication.Roles;
 
-    Util.WriteGreen($"Roles of this account:[{String.Join(", ", roles)}]");
-
+    Util.WriteGreen($"{CR}Roles of this account:[{String.Join(", ", roles)}]");
     var adminRoles = roles.Where(s => s.Contains("admin")).ToList();
     if (adminRoles.Count == 0)
-        Util.WriteRed($"The account used seems not to have correct roles to create user / guest ...");
+    {
+        Util.WriteRed($"Without admin right");
+        Util.WriteRed($"\tyou can create User using Company Link (but you need to have a valid one first. They can be created only with admin right)");
+        Util.WriteRed($"\tyou can create GuestMode using Bubble Link");
+    }
 }
 
 Organisation? organisationManaged = null;
@@ -303,16 +306,15 @@ async Task MenuCompanyLinkAsync()
         Util.WriteYellow($"{CR}No Company managed yet ...");
         await MenuCompagniesAsync();
         if (companyManaged is null)
-        {
-            Util.WriteRed($"{CR}No Company managed yet ...");
-            return;
-        }
+            companyManaged = RbContacts.GetCompany();
     }
 
     int offset = 0;
     int limit = 100;
     Boolean canContinue = true;
     List<JoinCompanyLink> joinCompanyLinkList = new();
+
+    Boolean isAdmin = true;
 
     Util.WriteDarkYellow($"{CR}Asking server list of join company link for Company [{companyManaged.Name}] ...");
     while (canContinue)
@@ -327,8 +329,11 @@ async Task MenuCompanyLinkAsync()
         }
         else
         {
+            isAdmin = false;
             Util.WriteRed($"GetJoinCompanyLinksAsync - Error:[{sdkResult.Result}]");
-            return;
+
+            Util.WriteGreen($"{CR}You can still create a user if you have already a valid Company Link ");
+            canContinue = false;
         }
     }
  
@@ -340,19 +345,23 @@ async Task MenuCompanyLinkAsync()
     }
     else
     {
-        Util.WriteDarkYellow($"{CR}No Join Company Link.");
+        if(isAdmin)
+            Util.WriteDarkYellow($"{CR}No Join Company Link.");
     }
 
     Boolean listLinks = false;
 
-    Util.WriteYellow($"\t [A] Add a Join Company Link");
+    if (isAdmin)
+        Util.WriteYellow($"\t [A] Add a Join Company Link");
     if (joinCompanyLinkList.Count > 0)
-    {
         Util.WriteYellow($"\t [D] Delete a Join Company Link");
-        Util.WriteYellow($"\t [U] Create [U]ser with Join Company Link");
-    }
-    Util.WriteYellow($"\t [L] List Join Company Link");
+    Util.WriteYellow($"\t [U] Create [U]ser with Join Company Link");
+    if (isAdmin)
+        Util.WriteYellow($"\t [L] List Join Company Link");
     Util.WriteYellow($"\t [C] Cancel");
+
+    String str;
+    String id;
 
     canContinue = true;
     do
@@ -364,52 +373,52 @@ async Task MenuCompanyLinkAsync()
             switch (userInput.Key)
             {
                 case ConsoleKey.A:
-                    Util.WriteDarkYellow($"{CR}Asking server to create a join company link for Company [{companyManaged.Name}] ...");
-                    var createSdkResult = await RbAdministration.CreateJoinCompanyLinkAsync(companyManaged.Id, 20);
-                    if(createSdkResult.Success)
-                        Util.WriteYellow($"JoinCompanyLink created: [{createSdkResult.Data.ToString(DetailsLevel.Medium)}]");
-                    else
-                        Util.WriteRed($"CreateJoinCompanyLinkAsync - Error:[{createSdkResult.Result}]");
-
-                    listLinks = true;
-                    break;
-
-                case ConsoleKey.U:
-                    if (joinCompanyLinkList.Count > 0)
+                    if (isAdmin)
                     {
-                        Util.WriteYellow($"{CR}Enter an Id of a join company link or empty string to use it to create an user");
-                        var str = Console.ReadLine();
-                        String id = "";
-                        if (String.IsNullOrEmpty(str))
-                            id = joinCompanyLinkList[0].Id;
+                        Util.WriteDarkYellow($"{CR}Asking server to create a join company link for Company [{companyManaged.Name}] ...");
+                        var createSdkResult = await RbAdministration.CreateJoinCompanyLinkAsync(companyManaged.Id, 20);
+                        if (createSdkResult.Success)
+                            Util.WriteYellow($"JoinCompanyLink created: [{createSdkResult.Data.ToString(DetailsLevel.Medium)}]");
                         else
-                            id = str;
-
-                        String loginEmail = Rainbow.Util.GetGUID().Substring(0, 16) + "@sdk.drop.me";
-                        String pwd = Rainbow.Util.GetGUID().ToUpper() + "!a";
-                        String firstName = Rainbow.Util.GetGUID().Substring(0, 5);
-                        String lastName ="USER company link";
-
-                        Util.WriteDarkYellow($"Creating user with Join Company Link ...");
-                        var sdkResultContact = await RbAdministration.CreateUserWithCompanyLinkAsync(id, loginEmail, pwd, firstName, lastName, null, true);
-                        if (sdkResultContact.Success)
-                        {
-                            var contactCreated = sdkResultContact.Data;
-                            Util.WriteGreen($"Contact created - Login:[{loginEmail}] - Pwd:[{pwd}] - {Rainbow.Util.LogOnOneLine(contactCreated.ToString(DetailsLevel.Medium))}");
-                        }
-                        else
-                            Util.WriteRed($"CreateUserWithCompanyLinkAsync - Error:[{sdkResultContact.Result}]");
+                            Util.WriteRed($"CreateJoinCompanyLinkAsync - Error:[{createSdkResult.Result}]");
 
                         listLinks = true;
                     }
+                    break;
+
+                case ConsoleKey.U:
+                    Util.WriteYellow($"{CR}Enter an Id of a join company link or empty string to use it to create an user");
+                    str = Console.ReadLine();
+                    id = "";
+                    if (String.IsNullOrEmpty(str))
+                        id = joinCompanyLinkList[0].Id;
+                    else
+                        id = str;
+
+                    String loginEmail = Rainbow.Util.GetGUID().Substring(0, 16) + "@sdk.drop.me";
+                    String pwd = Rainbow.Util.GetGUID().ToUpper() + "!a";
+                    String firstName = Rainbow.Util.GetGUID().Substring(0, 5);
+                    String lastName ="USER company link";
+
+                    Util.WriteDarkYellow($"Creating user with Join Company Link ...");
+                    var sdkResultContact = await RbAdministration.CreateUserWithCompanyLinkAsync(id, loginEmail, pwd, firstName, lastName, null, true);
+                    if (sdkResultContact.Success)
+                    {
+                        var contactCreated = sdkResultContact.Data;
+                        Util.WriteBlue($"Contact created - Login:[{loginEmail}] - Pwd:[{pwd}] - {Rainbow.Util.LogOnOneLine(contactCreated.ToString(DetailsLevel.Medium))}");
+                    }
+                    else
+                        Util.WriteRed($"CreateUserWithCompanyLinkAsync - Error:[{sdkResultContact.Result}]");
+
+                    listLinks = true;
                     break;
 
                 case ConsoleKey.D:
                     if (joinCompanyLinkList.Count > 0)
                     {
                         Util.WriteYellow($"{CR}Enter an Id of a join company link or empty string to delete the first one");
-                        var str = Console.ReadLine();
-                        String id = "";
+                        str = Console.ReadLine();
+                        id = "";
                         if (String.IsNullOrEmpty(str))
                             id = joinCompanyLinkList[0].Id;
                         else
@@ -426,7 +435,8 @@ async Task MenuCompanyLinkAsync()
                     break;
 
                 case ConsoleKey.L:
-                    listLinks = true;
+                    if (isAdmin)
+                        listLinks = true;
                     break;
 
                 case ConsoleKey.C:
@@ -529,7 +539,7 @@ async Task MenuBubbleLinkAsync()
         if (sdkResultContact.Success)
         {
             var contactCreated = sdkResultContact.Data;
-            Util.WriteGreen($"Contact created - Login:[{loginEmail}] - Pwd:[{pwd}] - {Rainbow.Util.LogOnOneLine(contactCreated.ToString(DetailsLevel.Medium))}");
+            Util.WriteBlue($"Contact created - Login:[{loginEmail}] - Pwd:[{pwd}] - {Rainbow.Util.LogOnOneLine(contactCreated.ToString(DetailsLevel.Medium))}");
         }
         else
             Util.WriteRed($"CreateUserWithBubbleLinkAsync - Error:[{sdkResultContact.Result}]");
