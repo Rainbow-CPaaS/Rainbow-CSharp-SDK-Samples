@@ -10,10 +10,7 @@
   <ItemGroup>
     <PackageReference Include="NLog.Extensions.Logging" Version="5.3.8" />
     <PackageReference Include="Stateless" Version="5.15.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\..\rainbow-csharp-sdk-test\SDK\SDK.csproj" />
+	<PackageReference Include="Rainbow.CSharp.SDK" Version="3.0.0" />
   </ItemGroup>
 
 </Project>

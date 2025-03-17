@@ -21,11 +21,8 @@
 
   <ItemGroup>
     <PackageReference Include="NLog.Extensions.Logging" Version="5.3.8" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\..\rainbow-csharp-sdk-test\SDK.Medias\SDK.Medias.csproj" />
-    <ProjectReference Include="..\..\..\..\rainbow-csharp-sdk-test\SDK\SDK.csproj" />
+	<PackageReference Include="Rainbow.CSharp.SDK" Version="3.0.0" />
+    <PackageReference Include="Rainbow.CSharp.SDK.Medias" Version="1.3.0" />
   </ItemGroup>
 
   <ItemGroup>
