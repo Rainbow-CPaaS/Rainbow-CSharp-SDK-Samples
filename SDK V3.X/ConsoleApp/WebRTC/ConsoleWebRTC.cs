@@ -29,6 +29,8 @@ if ( (!ReadStreamsSettings()) || (streamsList is null))
 if ( (!ReadCredentials()) || (credentials is null))
     return;
 
+var CR = Rainbow.Util.CR;
+
 Util.WriteRed($"Account used: [{credentials.UsersConfig[0].Login}]");
 
 // Init external libraries
@@ -127,10 +129,10 @@ RbApplication.Restrictions.AcceptUserInvitation = true;
 RbApplication.Restrictions.UseWebRTC = true;
 
 // Create Rainbow SDK objects
-var RbConferences = RbApplication.GetConferences();
-var RbContacts = RbApplication.GetContacts();
-var RbBubbles = RbApplication.GetBubbles();
-var RbAutoReconnection = RbApplication.GetAutoReconnection();
+var RbConferences       = RbApplication.GetConferences();
+var RbContacts          = RbApplication.GetContacts();
+var RbBubbles           = RbApplication.GetBubbles();
+var RbAutoReconnection  = RbApplication.GetAutoReconnection();
 
 var RbWebRTCDesktopFactory = new Rainbow.WebRTC.Desktop.WebRTCFactory();
 WebRTCCommunications? RbWebRTCCommunications;
@@ -274,6 +276,10 @@ void CheckInputKey()
                 MenuConference();
                 break;
 
+            case ConsoleKey.P: // P2P - HangUp or Start
+                MenuP2P();
+                break;
+
             case ConsoleKey.A: // Audio input/output selection.
                 MenuAudioStream();
                 break;
@@ -309,6 +315,7 @@ void MenuDisplayInfo()
 
     Util.WriteYellow("");
     Util.WriteYellow("[C] (Conference) to start, join or quit a conference");
+    Util.WriteYellow("[P] (P2P) to start or hang up a P2P call");
 
     Util.WriteYellow("");
     Util.WriteYellow("[A] (Audio) to manage Audio (Input / Ouput)");
@@ -320,7 +327,7 @@ void MenuDisplayInfo()
     Util.WriteYellow("[M] (MediaPublication) to subscribe/unsubscribe to media publication");
 
     Util.WriteYellow("");
-    Util.WriteYellow("[L] (List) to list devices used and conference info");
+    Util.WriteYellow("[L] (List) to list devices used/available and call info (conference or P2P)");
 }
 
 void MenuMediaPublications()
@@ -448,6 +455,111 @@ void MenuMediaPublications()
     }
 }
 
+void MenuP2P()
+{
+    if (!RbTask.IsCompleted)
+    {
+        Util.WriteRed("Task is already in progress");
+        return;
+    }
+
+    Action action = async () =>
+    {
+
+        if ((currentCall != null) && (!currentCall.IsConference) && (currentCall.IsInProgress() && (currentCall.CallStatus != CallStatus.RINGING_INCOMING) ))
+        {
+            Util.WriteGreen("Asking to leave P2P...");
+            if (currentCall.Id != null)
+            {
+                await RbWebRTCCommunications.HangUpCallAsync(currentCall.Id);
+                Util.WriteDarkYellow($"P2P has been left");
+            }
+            else
+                Util.WriteRed($"Cannot leave P2P - currentCallId object null");
+        }
+        else if ((currentCall != null) && (!currentCall.IsConference) && (currentCall.CallStatus == CallStatus.RINGING_INCOMING))
+        {
+            await AnswerP2PAsync();
+        }
+        else if (currentCall == null)
+        {
+            if (audioTrack is null)
+            {
+                Util.WriteRed("You cannot start a P2P call. You don't have created an Audio Input Track");
+                return;
+            }
+
+            var canContinue = true;
+            while (canContinue)
+            {
+                Contact? result = null;
+                Util.WriteYellow($"{Rainbow.Util.CR}Enter a text to search a User: (empty text to cancel)");
+                var str = Console.ReadLine();
+                if (String.IsNullOrEmpty(str))
+                {
+                    canContinue = false;
+                    Util.WriteDarkYellow("Cancel search ...");
+                    break;
+                }
+                else
+                {
+                    var contactsList = RbContacts.GetAllContacts();
+                    result = contactsList.Find(contact => contact.Peer.DisplayName.Contains(str, StringComparison.InvariantCultureIgnoreCase));
+                }
+
+                if (result == null)
+                    Util.WriteDarkYellow($"No contact found with [{str}] ...");
+                else
+                {
+                    Util.WriteDarkYellow($"First contact found:[{result.ToString(DetailsLevel.Small)}]");
+                    Util.WriteYellow($"Do you want to make P2P call with this contact ? [Y]");
+
+                    var keyInfo = Console.ReadKey(true);
+                    if (keyInfo.Key == ConsoleKey.Y)
+                    {
+                        // Set tracks used to make P2P call
+                        Dictionary<int, IMediaStreamTrack?>? mediaStreamTracks = new()
+                        {
+                            {Media.AUDIO, audioTrack }
+                        };
+
+                        if (videoTrack is not null)
+                        {
+                            Util.WriteYellow($"Do you want to add video to this P2P call ? [Y]");
+                            keyInfo = Console.ReadKey(true);
+                            if (keyInfo.Key == ConsoleKey.Y)
+                            {
+                                mediaStreamTracks.Add(Media.VIDEO, videoTrack);
+                            }
+                        }
+
+                        // We save current presence
+                        var presence = RbContacts.GetPresence();
+                        RbContacts.SavePresenceForRollback();
+                        Util.WriteBlue($"SavePresenceForRollback - Presence:[{presence.ToString(DetailsLevel.Small)}]");
+
+
+                        Util.WriteGreen($"Asking to start P2P ...");
+                        var sdkResult = await RbWebRTCCommunications.MakeCallAsync(result.Peer.Id, mediaStreamTracks);
+                        if (sdkResult.Success)
+                        {
+                            Util.WriteDarkYellow($"P2P call has been started");
+                            canContinue = false;
+                            break;
+                        }
+                        else
+                            Util.WriteRed($"Cannot make Call:[{sdkResult.Result}]");
+                    }
+                    else
+                        Util.WriteDarkYellow("Conference not started ...");
+                }
+            }
+        }
+    };
+
+    RbTask = Task.Run(action);
+}
+
 void MenuConference()
 {
     if (!RbTask.IsCompleted)
@@ -458,7 +570,7 @@ void MenuConference()
 
     Action action = async () =>
     {
-        if (currentCall != null)
+        if ( (currentCall != null) && (currentCall.IsConference) )
         {
             Util.WriteGreen("Asking to leave conference ...");
             if (currentCall.Id != null)
@@ -474,7 +586,7 @@ void MenuConference()
             Util.WriteGreen("Asking to join conference ...");
             await JoinConferenceAsync(RbConferences.GetConferenceById(conferencesInProgress[0]));
         }
-        else
+        else if (currentCall == null)
         {
             if (audioTrack is null)
             {
@@ -634,11 +746,11 @@ async Task SubMenuAudioInputStream()
                 if (audioTrack is not null)
                 {
                     if (useEmptyTrack)
-                        Util.WriteYellow($"A conference is in progress WITH your EMPTY Audio track");
+                        Util.WriteYellow($"A call is in progress WITH your EMPTY Audio track");
                     else //if (currentAudioInput != null)
-                        Util.WriteYellow($"A conference is in progress WITH your AUDIO Input: {currentAudioInput.Name} [{currentAudioInput.Path}]");
+                        Util.WriteYellow($"A call is in progress WITH your AUDIO Input: {currentAudioInput.Name} [{currentAudioInput.Path}]");
                 }
-                Util.WriteYellow("\t[S] - Select another one and use it in the conference");
+                Util.WriteYellow("\t[S] - Select another one and use it in the call");
                 Util.WriteYellow("\t[C] - Cancel");
                 var keyInfo = Console.ReadKey(true);
                 switch (keyInfo.Key)
@@ -668,16 +780,16 @@ async Task SubMenuAudioInputStream()
             {
                 Util.WriteYellow("");
                 if (audioTrack is null)
-                    Util.WriteYellow($"A conference is in progress:");
+                    Util.WriteYellow($"A call is in progress:");
                 else
                 {
                     if(useEmptyTrack)
-                        Util.WriteYellow($"A conference is in progress WITHOUT your AUDIO INPUT: EMPTY TRACK");
+                        Util.WriteYellow($"A call is in progress WITHOUT your AUDIO INPUT: EMPTY TRACK");
                     else //if(currentAudioInput is not null)
-                        Util.WriteYellow($"A conference is in progress WITHOUT your AUDIO INPUT: {currentAudioInput.Name} [{currentAudioInput.Path}]");
-                    Util.WriteYellow("\t[A] - Add it to the conference");
+                        Util.WriteYellow($"A call is in progress WITHOUT your AUDIO INPUT: {currentAudioInput.Name} [{currentAudioInput.Path}]");
+                    Util.WriteYellow("\t[A] - Add it to the call");
                 }
-                Util.WriteYellow("\t[S] - Select stream and use it as AUDIO INPUT in the conference");
+                Util.WriteYellow("\t[S] - Select stream and use it as AUDIO INPUT in the call");
                 Util.WriteYellow("\t[C] - Cancel");
                 var keyInfo = Console.ReadKey(true);
                 switch (keyInfo.Key)
@@ -878,17 +990,17 @@ async Task SubMenuAudioInputStream()
 
             Boolean success = true;
 
-            // Update conference (if any) with this new track
+            // Update call (if any) with this new track
             if ( (currentCall?.IsActive() == true) && (audioTrack is not null))
             {
                 if (Rainbow.Util.MediasWithAudio(currentCall.LocalMedias))
                 {
-                    Util.WriteGreen("Asking to update Audio in the conference ...");
+                    Util.WriteGreen("Asking to update Audio in the call ...");
                     success = await UpdateAudioInputAsync();
                 }
                 else
                 {
-                    Util.WriteGreen("Asking to add Audio in the conference ...");
+                    Util.WriteGreen("Asking to add Audio in the call ...");
                     success = await AddAudioInputAsync();
                 }
             }
@@ -1001,11 +1113,11 @@ void MenuVideoStream()
                 {
                     Util.WriteYellow("");
                     if (currentWebCam == null)
-                        Util.WriteYellow($"A conference is in progress WITH your VIDEO");
+                        Util.WriteYellow($"A call is in progress WITH your VIDEO");
                     else
-                        Util.WriteYellow($"A conference is in progress WITH your VIDEO: {currentWebCam.Name} [{currentWebCam.Path}]");
-                    Util.WriteYellow("\t[R] - Remove it from conference");
-                    Util.WriteYellow("\t[S] - Select another one and use it in the conference");
+                        Util.WriteYellow($"A call is in progress WITH your VIDEO: {currentWebCam.Name} [{currentWebCam.Path}]");
+                    Util.WriteYellow("\t[R] - Remove it from call");
+                    Util.WriteYellow("\t[S] - Select another one and use it in the call");
                     Util.WriteYellow("\t[C] - Cancel");
                     var keyInfo = Console.ReadKey(true);
                     switch (keyInfo.Key)
@@ -1041,13 +1153,13 @@ void MenuVideoStream()
                 {
                     Util.WriteYellow("");
                     if (currentWebCam == null)
-                        Util.WriteYellow($"A conference is in progress:");
+                        Util.WriteYellow($"A call is in progress:");
                     else
                     {
-                        Util.WriteYellow($"A conference is in progress WITHOUT your VIDEO: {currentWebCam.Name} [{currentWebCam.Path}]");
-                        Util.WriteYellow("\t[A] - Add it to the conference");
+                        Util.WriteYellow($"A call is in progress WITHOUT your VIDEO: {currentWebCam.Name} [{currentWebCam.Path}]");
+                        Util.WriteYellow("\t[A] - Add it to the call");
                     }
-                    Util.WriteYellow("\t[S] - Select stream and use it as VIDEO in the conference");
+                    Util.WriteYellow("\t[S] - Select stream and use it as VIDEO in the call");
                     Util.WriteYellow("\t[C] - Cancel");
                     var keyInfo = Console.ReadKey(true);
                     switch (keyInfo.Key)
@@ -1165,7 +1277,7 @@ void MenuVideoStream()
             {
                 if ((currentCall?.IsActive() == true) && Rainbow.Util.MediasWithVideo(currentCall.LocalMedias))
                 {
-                    Util.WriteGreen("Asking to remove Video from conference ...");
+                    Util.WriteGreen("Asking to remove Video from call ...");
                     await RemoveVideoAsync();
                 }
 
@@ -1192,17 +1304,17 @@ void MenuVideoStream()
 
                 Boolean success = true;
 
-                // Update conference (if any) with this new track
+                // Update call (if any) with this new track
                 if (currentCall?.IsActive() == true)
                 {
                     if (Rainbow.Util.MediasWithVideo(currentCall.LocalMedias))
                     {
-                        Util.WriteGreen("Asking to update Video in the conference ...");
+                        Util.WriteGreen("Asking to update Video in the call ...");
                         success = await UpdateVideoAsync();
                     }
                     else
                     {
-                        Util.WriteGreen("Asking to add Video in the conference ...");
+                        Util.WriteGreen("Asking to add Video in the call ...");
                         success = await AddVideoAsync();
                     }
                 }
@@ -1240,11 +1352,11 @@ void MenuSharingStream()
                 {
                     Util.WriteYellow("");
                     if (currentScreen == null)
-                        Util.WriteYellow($"A conference is in progress WITH your Sharing");
+                        Util.WriteYellow($"A call is in progress WITH your Sharing");
                     else
-                        Util.WriteYellow($"A conference is in progress WITH your Sharing: {currentScreen.Name} [{currentScreen.Path}]");
-                    Util.WriteYellow("\t[R] - Remove it from conference");
-                    Util.WriteYellow("\t[S] - Select another one and use it in the conference");
+                        Util.WriteYellow($"A call is in progress WITH your Sharing: {currentScreen.Name} [{currentScreen.Path}]");
+                    Util.WriteYellow("\t[R] - Remove it from call");
+                    Util.WriteYellow("\t[S] - Select another one and use it in the call");
                     Util.WriteYellow("\t[C] - Cancel");
                     var keyInfo = Console.ReadKey(true);
                     switch (keyInfo.Key)
@@ -1281,13 +1393,13 @@ void MenuSharingStream()
                 {
                     Util.WriteYellow("");
                     if (currentScreen == null)
-                        Util.WriteYellow($"A conference is in progress:");
+                        Util.WriteYellow($"A call is in progress:");
                     else
                     {
-                        Util.WriteYellow($"A conference is in progress WITHOUT your Sharing: {currentScreen.Name} [{currentScreen.Path}]");
-                        Util.WriteYellow("\t[A] - Add it to the conference");
+                        Util.WriteYellow($"A call is in progress WITHOUT your Sharing: {currentScreen.Name} [{currentScreen.Path}]");
+                        Util.WriteYellow("\t[A] - Add it to the call");
                     }
-                    Util.WriteYellow("\t[S] - Select stream and use it as Sharing in the conference");
+                    Util.WriteYellow("\t[S] - Select stream and use it as Sharing in the call");
                     Util.WriteYellow("\t[C] - Cancel");
                     var keyInfo = Console.ReadKey(true);
                     switch (keyInfo.Key)
@@ -1302,7 +1414,7 @@ void MenuSharingStream()
                             {
                                 canContinue = false;
                                 if (Rainbow.Util.MediasWithSharing(currentCall.RemoteMedias))
-                                    Util.WriteRed($"A conference is in progress with already a sharing. Cannot set another one");
+                                    Util.WriteRed($"A call is in progress with already a sharing. Cannot set another one");
                                 else
                                 {
                                     Util.WriteGreen("Asking to add sharing ...");
@@ -1410,7 +1522,7 @@ void MenuSharingStream()
             {
                 if ((currentCall?.IsActive() == true) && Rainbow.Util.MediasWithSharing(currentCall.LocalMedias))
                 {
-                    Util.WriteGreen("Asking to remove Sharing from conference ...");
+                    Util.WriteGreen("Asking to remove Sharing from call ...");
                     await RemoveSharingAsync();
                 }
 
@@ -1424,7 +1536,7 @@ void MenuSharingStream()
                 Boolean success = true;
                 if ((currentCall?.IsActive() == true) && Rainbow.Util.MediasWithSharing(currentCall.RemoteMedias) && !Rainbow.Util.MediasWithSharing(currentCall.LocalMedias))
                 {
-                    Util.WriteRed($"A conference is in progress with already a sharing. Cannot set another one");
+                    Util.WriteRed($"A call is in progress with already a sharing. Cannot set another one");
                 }
                 else
                 {
@@ -1435,17 +1547,17 @@ void MenuSharingStream()
 
                         Util.WriteDarkYellow($"New Sharing track created");
 
-                        // Update conference (if any) with this new track
+                        // Update call (if any) with this new track
                         if (currentCall?.IsActive() == true)
                         {
                             if (Rainbow.Util.MediasWithSharing(currentCall.LocalMedias))
                             {
-                                Util.WriteGreen("Asking to update sharing in the conference ...");
+                                Util.WriteGreen("Asking to update sharing in the call ...");
                                 success = await UpdateSharingAsync();
                             }
                             else
                             {
-                                Util.WriteGreen("Asking to add sharing in the conference ...");
+                                Util.WriteGreen("Asking to add sharing in the call ...");
                                 success = await AddSharingAsync();
                             }
                         }
@@ -1473,12 +1585,14 @@ void MenuSharingStream()
 
 void MenuListDevicesAndConferenceInfo()
 {
-    Util.WriteGreen("Asking to list devices and conference info ...");
+    Util.WriteGreen($"{CR}Asking to list devices and call info (conference or P2P) ...");
     ListUserInfo();
     Util.WriteYellow("");
     ListDevicesUsed();
     Util.WriteYellow("");
     DisplayConferenceInfo();
+    Util.WriteYellow("");
+    DisplayP2PInfo();
     Util.WriteYellow("");
     ListAudioInputDevices();
     Util.WriteYellow("");
@@ -1489,10 +1603,23 @@ void MenuListDevicesAndConferenceInfo()
     ListWebCams();
 }
 
+void DisplayP2PInfo()
+{
+    Util.WriteDarkYellow("P2P call:");
+    if ( (currentCall?.IsActive() == true) && (!currentCall.IsConference))
+    {
+        Util.WriteYellow($"\t{currentCall}");
+    }
+    else
+    {
+        Util.WriteYellow("\tYou are not in a P2P call");
+    }
+}
+
 void DisplayConferenceInfo()
 {
     Util.WriteDarkYellow("Conference:");
-    if (currentCall?.IsActive() == true)
+    if ( (currentCall?.IsActive() == true) && (currentCall.IsConference))
     {
         Util.WriteYellow($"{currentCall}");
     }
@@ -1500,7 +1627,9 @@ void DisplayConferenceInfo()
     {
         Util.WriteYellow("\tYou are not in a conference");
         if (conferencesInProgress.Count > 0)
-            Util.WriteYellow($"\tConference(s) in progress: [{conferencesInProgress.Count}]");
+            Util.WriteYellow($"\tConference(s) in progress - Nb:[{conferencesInProgress.Count}]");
+        else
+            Util.WriteYellow($"\tNo conference in progress");
     }
 }
 
@@ -1516,7 +1645,9 @@ async Task JoinConferenceAsync(Conference conference)
 {
     if ((currentCallId == null) && (conference != null))
     {
+        var presence = RbContacts.GetPresence();
         RbContacts.SavePresenceForRollback();
+        Util.WriteBlue($"SavePresenceForRollback - Presence:[{presence.ToString(DetailsLevel.Small)}]");
 
         SdkResult<String> sdkResult;
         if (audioTrack is null)
@@ -1547,6 +1678,53 @@ async Task JoinConferenceAsync(Conference conference)
         Util.WriteRed($"Cannot join Conference - current call in progress or conference object null");
 }
 
+async Task AnswerP2PAsync()
+{
+    if ((currentCall is not null) && (currentCall.CallStatus == CallStatus.RINGING_INCOMING))
+    {
+        if (audioTrack is null)
+        {
+            Util.WriteRed($"You don't have create an Audio Input Track - you cannot take the call");
+
+            Util.WriteGreen($"{CR}Asking to reject P2P call...");
+            await RbWebRTCCommunications.RejectCallAsync(currentCall.Id);
+            Util.WriteDarkYellow($"P2P has been rejected");
+        }
+        else
+        {
+            // Set tracks used to make P2P call
+            Dictionary<int, IMediaStreamTrack?>? mediaStreamTracks = new()
+            {
+                {Media.AUDIO, audioTrack }
+            };
+
+            if ((Rainbow.Util.MediasWithVideo(currentCall.RemoteMedias) && (videoTrack is not null)))
+            {
+                Util.WriteYellow($"Do you want to answer with video to this P2P call ? [Y]");
+                var keyInfo = Console.ReadKey(true);
+                if (keyInfo.Key == ConsoleKey.Y)
+                {
+                    mediaStreamTracks.Add(Media.VIDEO, videoTrack);
+                }
+            }
+
+            // We save current presence
+            var presence = RbContacts.GetPresence();
+            RbContacts.SavePresenceForRollback();
+            Util.WriteBlue($"SavePresenceForRollback - Presence:[{presence.ToString(DetailsLevel.Small)}]");
+
+            Util.WriteGreen($"{CR}Answering P2P call...");
+            var sdkResult = await RbWebRTCCommunications.AnswerCallAsync(currentCall.Id, mediaStreamTracks);
+            if (sdkResult.Success)
+                Util.WriteDarkYellow($"P2P call has been answered");
+            else
+                Util.WriteRed($"Cannot answer Call:[{sdkResult.Result}]");
+        }
+    }
+    else
+        Util.WriteRed($"Cannot answer call - current call is nul or not RINGING_INCOMING");
+}
+
 void MenuEscape()
 {
     if (!RbTask.IsCompleted)
@@ -1562,9 +1740,9 @@ void MenuEscape()
         {
             if (currentCall?.Id != null)
             {
-                Util.WriteGreen("Asking to leave conference ...");
+                Util.WriteGreen("Asking to leave call ...");
                 await RbWebRTCCommunications.HangUpCallAsync(currentCall.Id);
-                Util.WriteDarkYellow($"Conference has been left");
+                Util.WriteDarkYellow($"CAll has been left");
             }
 
             Util.WriteGreen($"Asked to quit - Logout");
@@ -1577,7 +1755,7 @@ void MenuEscape()
     RbTask = Task.Run(action);
 }
 
-#region AUDIO INPUT - add, remove in the conference
+#region AUDIO INPUT - add, remove in the call
 
 async Task<Boolean> AddAudioInputAsync()
 {
@@ -1592,7 +1770,7 @@ async Task<Boolean> AddAudioInputAsync()
         var sdkResult = await RbWebRTCCommunications.AddAudioAsync(currentCall.Id, audioTrack, "Audio name", "Audio desc", null);
         if (sdkResult.Success)
         {
-            Util.WriteDarkYellow($"Audio Input added in conference and started");
+            Util.WriteDarkYellow($"Audio Input added in call and started");
             return true;
         }
         else
@@ -1603,7 +1781,7 @@ async Task<Boolean> AddAudioInputAsync()
     }
     else
     {
-        Util.WriteRed($"Cannot add Audio Input - conference is not active");
+        Util.WriteRed($"Cannot add Audio Input - call is not active");
         return true;
     }
 }
@@ -1621,7 +1799,7 @@ async Task<Boolean> UpdateAudioInputAsync()
         var sdkResult = await RbWebRTCCommunications.ChangeAudioAsync(currentCall.Id, audioTrack);
         if (sdkResult.Success)
         {
-            Util.WriteDarkYellow($"AUDIO Input updated in conference and started");
+            Util.WriteDarkYellow($"AUDIO Input updated in call and started");
             return true;
         }
         else
@@ -1632,14 +1810,14 @@ async Task<Boolean> UpdateAudioInputAsync()
     }
     else
     {
-        Util.WriteRed($"Cannot update AUDIO Input - conference is not active");
+        Util.WriteRed($"Cannot update AUDIO Input - call is not active");
         return false;
     }
 }
 
-#endregion AUDIO INPUT - add, remove in the conference
+#endregion AUDIO INPUT - add, remove in the call
 
-#region DATACHANNEL - add, remove in the conference, send / receive data
+#region DATACHANNEL - add, remove in the call, send / receive data
 async Task<Boolean> RemoveDataChannelAsync()
 {
     if (currentCall?.IsActive() == true)
@@ -1650,7 +1828,7 @@ async Task<Boolean> RemoveDataChannelAsync()
         var sdkResult = await RbWebRTCCommunications.RemoveDataChannelAsync(currentCall.Id);
         if (sdkResult.Success)
         {
-            Util.WriteDarkYellow($"DataChannel removed from conference");
+            Util.WriteDarkYellow($"DataChannel removed from call");
             dcLocal = null;
             return true;
         }
@@ -1662,7 +1840,7 @@ async Task<Boolean> RemoveDataChannelAsync()
     }
     else
     {
-        Util.WriteRed($"Cannot remove DataChannel - conference is not active");
+        Util.WriteRed($"Cannot remove DataChannel - call is not active");
         return false;
     }
 }
@@ -1674,7 +1852,7 @@ async Task<Boolean> AddDataChannelAsync()
         var sdkResult = await RbWebRTCCommunications.AddDataChannelAsync(currentCall.Id, "DC name", "DC desc", null, null);
         if (sdkResult.Success)
         {
-            Util.WriteDarkYellow($"DataChannel added in conference and started");
+            Util.WriteDarkYellow($"DataChannel added in call and started");
 
             if(dcLocal != null)
             {
@@ -1696,7 +1874,7 @@ async Task<Boolean> AddDataChannelAsync()
     }
     else
     {
-        Util.WriteRed($"Cannot add DataChannel - conference is not active");
+        Util.WriteRed($"Cannot add DataChannel - call is not active");
         return false;
     }
 }
@@ -1709,9 +1887,9 @@ void SendDataOnDc()
     }
 }
 
-#endregion DATACHANNEL - add, remove in the conference, send / receive data
+#endregion DATACHANNEL - add, remove in the call, send / receive data
 
-#region VIDEO - add, remove, update in the conference
+#region VIDEO - add, remove, update in the call
 async Task<Boolean> RemoveVideoAsync()
 {
     if (currentCall?.IsActive() == true)
@@ -1719,7 +1897,7 @@ async Task<Boolean> RemoveVideoAsync()
         var sdkResult = await RbWebRTCCommunications.RemoveVideoAsync(currentCall.Id);
         if (sdkResult.Success)
         {
-            Util.WriteDarkYellow($"Video removed from conference");
+            Util.WriteDarkYellow($"Video removed from call");
             return true;
         }
         else
@@ -1730,7 +1908,7 @@ async Task<Boolean> RemoveVideoAsync()
     }
     else
     { 
-        Util.WriteRed($"Cannot remove video - conference is not active");
+        Util.WriteRed($"Cannot remove video - call is not active");
         return false;
     }
 }
@@ -1748,7 +1926,7 @@ async Task<Boolean> AddVideoAsync()
         var sdkResult = await RbWebRTCCommunications.AddVideoAsync(currentCall.Id, videoTrack, "Video name", "Video desc", null);
         if (sdkResult.Success)
         {
-            Util.WriteDarkYellow($"Video added in conference and started");
+            Util.WriteDarkYellow($"Video added in call and started");
             return true;
         }
         else
@@ -1759,7 +1937,7 @@ async Task<Boolean> AddVideoAsync()
     }
     else
     { 
-        Util.WriteRed($"Cannot add video - conference is not active");
+        Util.WriteRed($"Cannot add video - call is not active");
         return true;
     }
 }
@@ -1777,7 +1955,7 @@ async Task<Boolean> UpdateVideoAsync()
         var sdkResult = await RbWebRTCCommunications.ChangeVideoAsync(currentCall.Id, videoTrack);
         if (sdkResult.Success)
         {
-            Util.WriteDarkYellow($"Video updated in conference and started");
+            Util.WriteDarkYellow($"Video updated in call and started");
             return true;
         }
         else
@@ -1788,14 +1966,14 @@ async Task<Boolean> UpdateVideoAsync()
     }
     else
     {
-        Util.WriteRed($"Cannot update video - conference is not active");
+        Util.WriteRed($"Cannot update video - call is not active");
         return false;
     }
 }
 
-#endregion VIDEO - add, remove, update in the conference
+#endregion VIDEO - add, remove, update in the call
 
-#region SHARING - add, remove, update in the conference
+#region SHARING - add, remove, update in the call
 
 async Task<Boolean> RemoveSharingAsync()
 {
@@ -1804,7 +1982,7 @@ async Task<Boolean> RemoveSharingAsync()
         var sdkResult = await RbWebRTCCommunications.RemoveSharingAsync(currentCall.Id);
         if (sdkResult.Success)
         {
-            Util.WriteDarkYellow($"Sharing removed from conference");
+            Util.WriteDarkYellow($"Sharing removed from call");
             return true;
         }
         else
@@ -1815,7 +1993,7 @@ async Task<Boolean> RemoveSharingAsync()
     }
     else
     {
-        Util.WriteRed($"Cannot remove Sharing - conference is not active");
+        Util.WriteRed($"Cannot remove Sharing - call is not active");
         return false;
     }
 }
@@ -1833,7 +2011,7 @@ async Task<Boolean> AddSharingAsync()
         var sdkResult = await RbWebRTCCommunications.AddSharingAsync(currentCall.Id, sharingTrack, "Sharing name", "Sharing desc", null);
         if (sdkResult.Success)
         { 
-            Util.WriteDarkYellow($"Sharing added in conference and started");
+            Util.WriteDarkYellow($"Sharing added in call and started");
             return true;
         }
         else
@@ -1844,7 +2022,7 @@ async Task<Boolean> AddSharingAsync()
     }
     else
     { 
-        Util.WriteRed($"Cannot add Sharing - conference is not active");
+        Util.WriteRed($"Cannot add Sharing - call is not active");
         return false;
     }
 }
@@ -1862,7 +2040,7 @@ async Task<Boolean> UpdateSharingAsync()
         var sdkResult = await RbWebRTCCommunications.ChangeSharingAsync(currentCall.Id, sharingTrack);
         if (sdkResult.Success)
         {
-            Util.WriteDarkYellow($"Sharing updated in conference and started");
+            Util.WriteDarkYellow($"Sharing updated in call and started");
             return true;
         }
         else
@@ -1873,12 +2051,12 @@ async Task<Boolean> UpdateSharingAsync()
     }
     else
     {
-        Util.WriteRed($"Cannot update Sharing - conference is not active");
+        Util.WriteRed($"Cannot update Sharing - call is not active");
         return false;
     }
 }
 
-#endregion SHARING - add, remove, update in the conference
+#endregion SHARING - add, remove, update in the call
 
 #region DEVICES - List audio output, audio input, webcam, screens
 
@@ -1902,7 +2080,7 @@ void ListDevicesUsed()
             Util.WriteRed($"\t AUDIO IN  - stream used: bad config ....");
         }
         if ((currentCall?.IsActive() == true) && Rainbow.Util.MediasWithAudio(currentCall.LocalMedias))
-            Util.WriteYellow($"\t\t => this stream is currently used in the conference");
+            Util.WriteYellow($"\t\t => this stream is currently used in the call");
     }
 
     //Audio Output
@@ -1912,7 +2090,7 @@ void ListDevicesUsed()
     {
         Util.WriteYellow($"\t AUDIO OUT - stream used: {currentAudioOutput.Name} [{currentAudioOutput.Path}]");
         if ((currentCall?.IsActive() == true) && Rainbow.Util.MediasWithAudio(currentCall.LocalMedias))
-            Util.WriteYellow($"\t\t => this stream is currently used in the conference");
+            Util.WriteYellow($"\t\t => this stream is currently used in the call");
     }
 
     // Video
@@ -1922,7 +2100,7 @@ void ListDevicesUsed()
     {
         Util.WriteYellow($"\t VIDEO     - stream used: {currentWebCam.Name} [{currentWebCam.Path}]");
         if ((currentCall?.IsActive() == true) && Rainbow.Util.MediasWithVideo(currentCall.LocalMedias))
-            Util.WriteYellow($"\t\t => this stream is currently used in the conference");
+            Util.WriteYellow($"\t\t => this stream is currently used in the call");
     }
     // Sharing
     if (currentScreen == null)
@@ -1931,7 +2109,7 @@ void ListDevicesUsed()
     {
         Util.WriteYellow($"\t SHARING   - stream used : {currentScreen.Name} [{currentScreen.Path}]");
         if ((currentCall?.IsActive() == true) && Rainbow.Util.MediasWithSharing(currentCall.LocalMedias))
-            Util.WriteYellow($"\t\t => this stream is currently used in the conference");
+            Util.WriteYellow($"\t\t => this stream is currently used in the call");
     }
 
     // DC
@@ -1941,7 +2119,7 @@ void ListDevicesUsed()
     {
         Util.WriteYellow($"\t DC       - stream used: YES");
         if ((currentCall?.IsActive() == true) && Rainbow.Util.MediasWithDataChannel(currentCall.LocalMedias))
-            Util.WriteYellow($"\t\t => this stream is currently used in the conference");
+            Util.WriteYellow($"\t\t => this stream is currently used in the call");
     }
 }
 
@@ -2208,7 +2386,11 @@ void RbWebRTCCommunications_CallUpdated(Call call)
     if (currentCallId == null)
     {
         currentCallId = call.Id;
-        Util.WriteBlue($"[CallUpdated] New call with id:[{currentCallId}]");
+        if (!call.IsConference)
+        {
+            if(call.IsRinging())
+                Util.WriteBlue($"[CallUpdated] New P2P call with:[{call.Peer.ToString(DetailsLevel.Small)}] - Medias:[{Rainbow.Util.MediasToString(call.RemoteMedias)}]");
+        }
     }
 
     if (call.Id == currentCallId)
@@ -2219,23 +2401,49 @@ void RbWebRTCCommunications_CallUpdated(Call call)
             Util.WriteBlue($"[CallUpdated] Reset current Call");
             currentCall = null;
 
+            // Hide any window
+            HideWindow(windowSharing);
+            HideWindow(windowVideo);
+
+
             // The call is NO MORE in Progress => We Rollback presence if any
-            var _ = RbContacts.RollbackPresenceSavedAsync();
+            var presenceRollback = RbContacts.GetPresenceSavedForRollback();
+            if (presenceRollback is not null)
+            {
+                RbContacts.RollbackPresenceSavedAsync().ContinueWith(async task =>
+                {
+                    var sdkResult = await task;
+                    if (sdkResult.Success)
+                        Util.WriteBlue($"Rollback presence to [{presenceRollback.ToString(DetailsLevel.Small)}]");
+                    else
+                        Util.WriteRed($"Cannot rollback presence to [{presenceRollback.ToString(DetailsLevel.Small)}] - Error:[{sdkResult.Result}]");
+                });
+            }
         }
         else
         {
             currentCall = call;
 
-            if (!call.IsRinging())
+            if ( !call.IsRinging() )
             {
                 // The call is NOT IN RINGING STATE  => We update presence according media
-                var _ = RbContacts.SetBusyPresenceAccordingMediasAsync(call.LocalMedias);
+                RbContacts.SetBusyPresenceAccordingMediasAsync(call.LocalMedias).ContinueWith(async task =>
+                {
+                    var sdkResult = await task;
+                    if (sdkResult.Success)
+                    {
+                        // Needs SDK v3.1
+                        //var presence = sdkResult.Data; 
+                        //Util.WriteBlue($"Busy presence updated according local media:[{Rainbow.Util.MediasToString(call.LocalMedias)}] - Presence:[{presence.ToString(DetailsLevel.Small)}]");
+                        
+                        Util.WriteBlue($"Busy presence updated according local media:[{Rainbow.Util.MediasToString(call.LocalMedias)}]");
+                    }
+                });
             }
         }
         Util.WriteDateTime();
         Util.WriteBlue($"[CallUpdated] CallId:[{call.Id}] - Status:[{call.CallStatus}] - Local:[{Rainbow.Util.MediasToString(call.LocalMedias)}] - Remote:[{Rainbow.Util.MediasToString(call.RemoteMedias)}] - Conf.:[{(call.IsConference ? "True" : "False")}] - IsInitiator.:[{call.IsInitiator}]");
     }
-
 }
 
 void RbWebRTCCommunications_OnMediaPublicationUpdated(MediaPublication mediaPublication, Rainbow.WebRTC.MediaPublicationStatus status)

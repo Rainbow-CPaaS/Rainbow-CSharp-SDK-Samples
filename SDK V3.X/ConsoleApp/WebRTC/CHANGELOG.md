@@ -4,7 +4,14 @@
 
 ## Bugs / Restrictions known:
 - limit automatically video fps/size according media (video vs sharing) when a file is used to avoid bad display for remote (already done when webcam or screen is used).
-- Not possible to manage P2P call
+- When starting a conf, once a remote Peer join it, MediaPublication list no more contain Audio media
+- Window to display Video / Sharing:
+	- ratio is not changed according remote stream
+	- not closed if remote stream has been closed (in P2P call only)
+
+## [0.8.1]
+- Use official WebRTC Version: 2.0.0
+- Enhancement: Allow to manage P2P calls (make, answer and take call)
 
 ## [0.8]
 - Use SDK GLOBAL Version: 3.0.0-sts.4.2-20
