@@ -192,6 +192,7 @@ namespace WpfSSOSamples.ViewModel
                     break;
             }
         }
+
     #endregion Events fired by Rainbow SDK
 
 
@@ -243,9 +244,19 @@ namespace WpfSSOSamples.ViewModel
             else
             {
                 if (Model.AskingPassword)
-                    Model.Connect = "Connect";
+                {
+                    if (CurrentApplication.RbApplication.IsConnected())
+                        Model.Connect = "Logout";
+                    else
+                        Model.Connect = "Connect";
+                }
                 else
-                    Model.Connect = "Continue";
+                {
+                    if (CurrentApplication.RbApplication.IsConnected())
+                        Model.Connect = "Logout";
+                    else
+                        Model.Connect = "Continue";
+                }
             }
         }
         
@@ -284,16 +295,13 @@ namespace WpfSSOSamples.ViewModel
                 }
                 else
                 {
+                    SetErrorMessage("SSO has been performed well. Now using Token to login on RB Server ...");
+
                     String token = browserResult.Token;
 
                     // Now start login with this token
                     var sdkResult = await CurrentApplication.RbApplication.LoginWithTokenAsync(token);
-                    if (sdkResult.Success)
-                    {
-                        SetErrorMessage("Login to RB with Token in progress ...");
-                        SetToBusy(true);
-                    }
-                    else
+                    if (!sdkResult.Success)
                     {
                         SetErrorMessage("Login to RB using Token failed");
                         SetToBusy(false);
@@ -316,106 +324,122 @@ namespace WpfSSOSamples.ViewModel
             // Hide any error displayed
             SetErrorMessage(null);
 
-            // Are we aksing the password ?
-            if (Model.AskingPassword)
+            if (CurrentApplication.RbApplication.IsConnected())
             {
-
-                if (String.IsNullOrEmpty(Model.Password))
+                SetErrorMessage("Log out in progress ...");
+                SetToBusy(true);
+                CurrentApplication.RbApplication.LogoutAsync().ContinueWith(async task =>
                 {
-                    SetErrorMessage("Invalid password");
-                    SetToBusy(false);
-                }
-                else
-                {
-                    CurrentApplication.RbApplication.LoginAsync(Model.Login, Model.Password).ContinueWith(async task =>
-                    {
-                        var sdkResult = await task;
-                        if (!sdkResult.Success)
-                        {
-                            if (sdkResult.Result.HttpStatusCode != 0)
-                            {
-                                if (sdkResult.Result.IncorrectUseError != null)
-                                    SetErrorMessage(String.Format("{0}: [{1}]", sdkResult.Result.IncorrectUseError.ErrorDetails, sdkResult.Result.IncorrectUseError.ErrorCode));
-                                else
-                                    SetErrorMessage(String.Format("Exception occurs: [{0}]", sdkResult.Result.ExceptionError.Message));
-                            }
-                            else
-                            {
-                                SetErrorMessage("Cannot contact the server. Please check your network settings.");
-                            }
-                        }
-                    });
-                }
-
+                    var sdkResult = await task;
+                    if (sdkResult.Success)
+                        SetErrorMessage("Log out done");
+                    else
+                        SetErrorMessage($"Error: [{sdkResult.Result}]");
+                });
             }
-            // We are not asking password
             else
             {
-                // Check email address
-                if(IsEmailAddress(Model.Login))
+                // Are we asking the password ?
+                if (Model.AskingPassword)
                 {
-                    SetToBusy(true);
 
-                    // We ask server for SSO URL
-                    CurrentApplication.RbApplication.GetAuthenticationSSOUrlsAsync(Model.Login).ContinueWith(async task =>
+                    if (String.IsNullOrEmpty(Model.Password))
                     {
-                        var sdkResult = await task;
-                        if (sdkResult.Success)
+                        SetErrorMessage("Invalid password");
+                        SetToBusy(false);
+                    }
+                    else
+                    {
+                        CurrentApplication.RbApplication.LoginAsync(Model.Login, Model.Password).ContinueWith(async task =>
                         {
-                            List<AuthenticationSSOUrl> urls = sdkResult.Data;
-
-                            // Do we have at least one URL ?
-                            if ((urls == null) || (urls?.Count == 0))
+                            var sdkResult = await task;
+                            if (!sdkResult.Success)
                             {
-                                Model.AskingPassword = true;
-                                SetToBusy(false);
-                                return;
-                            }
-
-                            // If we have several URLs, the first one different of RAINBOW is taken into account
-                            AuthenticationSSOUrl authUrl = urls.FirstOrDefault(x => (x.Type.ToUpper() != "RAINBOW"));
-
-                            // Do we have found one ?
-                            if (authUrl == null)
-                            {
-                                Model.AskingPassword = true;
-                                SetToBusy(false);
-                                return;
-                            }
-
-                            // So we start SSO
-                            String uri = authUrl.LoginUrl;
-                            String redirectUri = String.Format("{0}://{1}/", AppConfiguration.URI_SCHEME_FOR_SSO, AppConfiguration.URI_PATH_FOR_SSO); // /!\  This callback must be set on the property "SsoAuthenticationRedirectUrl" on the RB Application used by this SDK
-                            StartSSO(uri, redirectUri);
-                        }
-                        else
-                        {
-                            SetToBusy(false);
-
-                            if(sdkResult.Result.HttpStatusCode != 0)
-                            {
-                                if (sdkResult.Result.IncorrectUseError != null)
-                                    SetErrorMessage(String.Format("{0}: [{1}]", sdkResult.Result.IncorrectUseError.ErrorDetails, sdkResult.Result.IncorrectUseError.ErrorCode));
+                                if (sdkResult.Result.HttpStatusCode != 0)
+                                {
+                                    if (sdkResult.Result.IncorrectUseError != null)
+                                        SetErrorMessage(String.Format("{0}: [{1}]", sdkResult.Result.IncorrectUseError.ErrorDetails, sdkResult.Result.IncorrectUseError.ErrorCode));
+                                    else
+                                        SetErrorMessage(String.Format("Exception occurs: [{0}]", sdkResult.Result.ExceptionError.Message));
+                                }
                                 else
-                                    SetErrorMessage(String.Format("Exception occurs: [{0}]", sdkResult.Result.ExceptionError.Message));
+                                {
+                                    SetErrorMessage("Cannot contact the server. Please check your network settings.");
+                                }
+                            }
+                        });
+                    }
+
+                }
+
+                // We are not asking password
+                else
+                {
+                    // Check email address
+                    if (IsEmailAddress(Model.Login))
+                    {
+                        SetToBusy(true);
+
+                        // We ask server for SSO URL
+                        CurrentApplication.RbApplication.GetAuthenticationSSOUrlsAsync(Model.Login).ContinueWith(async task =>
+                        {
+                            var sdkResult = await task;
+                            if (sdkResult.Success)
+                            {
+                                List<AuthenticationSSOUrl> urls = sdkResult.Data;
+
+                                // Do we have at least one URL ?
+                                if ((urls == null) || (urls?.Count == 0))
+                                {
+                                    Model.AskingPassword = true;
+                                    SetToBusy(false);
+                                    return;
+                                }
+
+                                // If we have several URLs, the first one different of RAINBOW is taken into account
+                                AuthenticationSSOUrl authUrl = urls.FirstOrDefault(x => (x.Type.ToUpper() != "RAINBOW"));
+
+                                // Do we have found one ?
+                                if (authUrl == null)
+                                {
+                                    Model.AskingPassword = true;
+                                    SetToBusy(false);
+                                    return;
+                                }
+
+                                // So we start SSO
+                                String uri = authUrl.LoginUrl;
+                                String redirectUri = String.Format("{0}://{1}/", AppConfiguration.URI_SCHEME_FOR_SSO, AppConfiguration.URI_PATH_FOR_SSO); // /!\  This callback must be set on the property "SsoAuthenticationRedirectUrl" on the RB Application used by this SDK
+                                StartSSO(uri, redirectUri);
                             }
                             else
                             {
-                                SetErrorMessage("Cannot contact the server. Please check your network settings.");
+                                SetToBusy(false);
+
+                                if (sdkResult.Result.HttpStatusCode != 0)
+                                {
+                                    if (sdkResult.Result.IncorrectUseError != null)
+                                        SetErrorMessage(String.Format("{0}: [{1}]", sdkResult.Result.IncorrectUseError.ErrorDetails, sdkResult.Result.IncorrectUseError.ErrorCode));
+                                    else
+                                        SetErrorMessage(String.Format("Exception occurs: [{0}]", sdkResult.Result.ExceptionError.Message));
+                                }
+                                else
+                                {
+                                    SetErrorMessage("Cannot contact the server. Please check your network settings.");
+                                }
                             }
-                        }
-                    });
-                }
-                else
-                {
-                    SetErrorMessage("Not a valid email address");
+                        });
+                    }
+                    else
+                    {
+                        SetErrorMessage("Not a valid email address");
 
-                    Model.AskingPassword = false;
-                    Model.Connect = "Continue";
-                }
+                        Model.AskingPassword = false;
+                        Model.Connect = "Continue";
+                    }
 
+                }
             }
-
         }
 
         private void CommandEntryLoginLostFocus(object obj)
