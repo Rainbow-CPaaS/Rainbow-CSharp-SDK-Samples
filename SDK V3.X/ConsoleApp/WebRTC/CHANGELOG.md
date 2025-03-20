@@ -4,13 +4,21 @@
 
 ## Bugs / Restrictions known:
 - limit automatically video fps/size according media (video vs sharing) when a file is used to avoid bad display for remote (already done when webcam or screen is used).
-- When starting a conf, once a remote Peer join it, MediaPublication list no more contain Audio media
+- When starting a conf, once a remote Peer join it, MediaPublication list no more contain Audio media (fixed in Rainbow.CSharp.SDK > v3.0.0)
 - Window to display Video / Sharing:
 	- ratio is not changed according remote stream
-	- not closed if remote stream has been closed (in P2P call only)
+	- not closed if remote stream has been closed (in P2P call only) (fixed in Rainbow.CSharp.SDK.WebRTC > v2.0.0)
+- "Streams.json": 
+	- Media supported: 'audio', 'video', 'audio+video'
+	- UriType supported: 'other' (or null/empty value)
+
+## [0.8.2]
+- Enhancement: allow to select a stream from "streams.json" for any media input (audio, video or sharing)
 
 ## [0.8.1]
-- Use official WebRTC Version: 2.0.0
+- Use official SDK:
+	- Rainbow.CSharp.SDK.WebRTC: 2.0.0
+	- Rainbow.CSharp.SDK.WebRTC.Desktop: 2.0.0 
 - Enhancement: Allow to manage P2P calls (make, answer and take call)
 
 ## [0.8]

@@ -21,9 +21,10 @@ To have more info about the SDK:
 - check [API documentation](https://developers.openrainbow.com/doc/sdk/csharp/core/lts/api/Rainbow.Application)
 
 ## Features
-- Join / Start a Conference
-- Select / Change Medias input: Audio, Video, Sharing
-- Select / Change Audio Output: to play audio of the conf in the selected device
+- Join, Start, Quit a Conference
+- Start, Decline, Hang Up a P2P Call
+- Select, Change Medias input: Audio, Video, Sharing
+- Select, Change Audio Output: to play audio of the conf in the selected device
 - Subscribe to MediaPublications: Audio (necessary to hear audio of the conference), Video (only one in same time), Sharing
 
 ## File exeSettings.json

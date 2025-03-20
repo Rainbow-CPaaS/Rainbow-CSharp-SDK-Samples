@@ -106,7 +106,7 @@ namespace Rainbow.Console
                     Media = jsonNode["media"],
                     VideoComposition = jsonNode["videoComposition"],
                     Uri = jsonNode["uri"],
-                    UriType = jsonNode["uriType"],
+                    UriType = jsonNode["uriType"].As<String>("other"),
                     UriSettings = jsonNode["uriSettings"],
                     Connected = jsonNode["connected"],
                     VideoFilter = jsonNode["videoFilter"],

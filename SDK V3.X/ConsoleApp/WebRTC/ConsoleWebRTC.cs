@@ -44,12 +44,17 @@ NLogConfigurator.Directory = exeSettings.LogFolderPath;
 // Add logger for the prefix specified
 NLogConfigurator.AddLogger(credentials.UsersConfig[0].Prefix + "_");
 
-// Instead of a Microphone, an audio file can be used - we use the first audio stream defined
-String? audioFilePath = streamsList?.FindAll(s => s.Media.Contains("audio")).Select(s => s.Uri).FirstOrDefault();
+// Instead of a Microphone, an audio stream can be used 
+Stream? audioStream = null;
 
-// Instead of a Webcam or a Screen, an video file can be used for Video or Sharing - we use the two first video stream defined
+// Instead of a Webcam, an video stream can be used for Video
 String? videoFilePath = null;
+Stream? videoStream = null;
+
+// Instead of a Screen, an video stream can be used for Sharing
 String? sharingFilePath = null;
+Stream? sharingStream = null;
+
 var videoStreams = streamsList?.FindAll(s => s.Media.Contains("video")).Select(s => s.Uri).ToList();
 if(videoStreams?.Count > 1)
 {
@@ -857,8 +862,8 @@ async Task SubMenuAudioInputStream()
                 Util.WriteYellow($"\t[{index++}] - {audioInput.Name} ({audioInput.Path})");
         }
 
-        if (!String.IsNullOrWhiteSpace(audioFilePath))
-            Util.WriteYellow($"\t[*] - Audio file: {audioFilePath})");
+        if(streamsList?.Count > 0)
+            Util.WriteYellow($"\t[S] - Select Audio stream");
 
         Util.WriteYellow($"\t[E] - Use empty track");
 
@@ -885,18 +890,23 @@ async Task SubMenuAudioInputStream()
                     Util.WriteDarkYellow($"Same Stream selected");
             }
         }
-        else if ((consoleKey.KeyChar == '*') && !String.IsNullOrWhiteSpace(audioFilePath))
+        else if ((consoleKey.Key == ConsoleKey.S) && (streamsList?.Count > 0))
         {
-            selected = true;
-            useEmptyTrack = false;
-            audioInputUpdated = currentAudioInput?.Path != audioFilePath;
-            if (audioInputUpdated)
+            var result = SelectStream("audio", audioStream, "audio");
+            if (result is not null)
             {
-                currentAudioInput = new InputStreamDevice("audio_file", "audio_file", audioFilePath, withVideo: false, withAudio: true);
-                Util.WriteDarkYellow($"Stream used as Audio Input selected: {currentAudioInput.Name} ({currentAudioInput.Path})]");
+                selected = true;
+                if ((audioStream is null) || (audioStream.Id != result.Id))
+                {
+                    useEmptyTrack = false;
+                    audioInputUpdated = true;
+                    audioStream = result;
+                    currentAudioInput = new InputStreamDevice("audio_stream", "audio_stream", audioStream.Uri, withVideo: false, withAudio: true);
+                    Util.WriteDarkYellow($"Stream used as Audio Input selected: {currentAudioInput.Name} ({currentAudioInput.Path})]");
+                }
+                else
+                    Util.WriteDarkYellow($"Same Audio Stream selected");
             }
-            else
-                Util.WriteDarkYellow($"Same Stream selected");
         }
         else if ( (consoleKey.Key == ConsoleKey.N) && (currentCall is null))
         {
@@ -1093,6 +1103,55 @@ void SubMenuAudioOutputStream()
     }
 }
 
+// Media: 'audio', 'video' (or 'composition' but not yet supported)
+// Context: Audio, Video, Sharing
+Stream? SelectStream(string media, Stream? currentStreamSelected, String context ) 
+{
+    Stream? stream = null;
+    if (String.IsNullOrEmpty(media))
+        return stream;
+
+    media = media.ToLower();
+    context = context.ToUpper();
+
+    var subList = streamsList?.FindAll(s => s.Media.Contains(media)).ToList();
+    if(subList?.Count > 0)
+    {
+        Boolean selected = false;
+        while (!selected)
+        {
+            Util.WriteYellow("");
+            if (currentStreamSelected != null)
+                Util.WriteYellow($"Current stream used for {context}: {currentStreamSelected.Id} {((currentStreamSelected.UriType == "other") ? "" : "[" + currentStreamSelected.UriType + "] ")}({currentStreamSelected.Uri})");
+
+            Util.WriteYellow($"Select stream to use has {context}:");
+            int index = 0;
+            foreach (var item in subList)
+                Util.WriteYellow($"\t[{index++}] - {item.Id} {((item.UriType == "other") ? "" : "[" + item.UriType + "] ")}({item.Uri})");
+            Util.WriteYellow("\t[C] - Cancel");
+
+            var consoleKey = Console.ReadKey(true);
+            if (char.IsDigit(consoleKey.KeyChar))
+            {
+                var selection = int.Parse(consoleKey.KeyChar.ToString());
+                if ((selection >= 0) && (selection < index))
+                {
+                    selected = true;
+                    stream = subList[selection];
+                    //Util.WriteDarkYellow($"Stream used as {media.ToUpper()} selected: {stream.Id} {((stream.UriType == "other") ? "" : "[" + stream.UriType + "] ")}({stream.Uri})");
+                }
+            }
+            else if (consoleKey.Key == ConsoleKey.C)
+            {
+                selected = true;
+                Util.WriteDarkYellow($"Cancel used ...");
+            }
+        }
+    }
+
+    return stream;
+}
+
 void MenuVideoStream()
 {
     if (!RbTask.IsCompleted)
@@ -1220,8 +1279,9 @@ void MenuVideoStream()
                     Util.WriteYellow($"\t[{index++}] - {webcam.Name} ({webcam.Path})");
             }
 
-            if (!String.IsNullOrWhiteSpace(videoFilePath))
-                Util.WriteYellow($"\t[*] - Video file: {videoFilePath})");
+            if (streamsList?.Count > 0)
+                Util.WriteYellow($"\t[S] - Select Video stream");
+
             Util.WriteYellow($"\t[N] - No video");
             Util.WriteYellow("\t[C] - Cancel");
             var consoleKey = Console.ReadKey(true);
@@ -1241,17 +1301,23 @@ void MenuVideoStream()
                         Util.WriteDarkYellow($"Same Stream selected");
                 }
             }
-            else if ((consoleKey.KeyChar == '*') && !String.IsNullOrWhiteSpace(videoFilePath))
+            else if ((consoleKey.Key == ConsoleKey.S) && (streamsList?.Count > 0))
             {
-                selected = true;
-                webcamUpdated = currentWebCam?.Path != videoFilePath;
-                if (webcamUpdated)
+                var result = SelectStream("video", videoStream, "video");
+                if (result is not null)
                 {
-                    currentWebCam = new InputStreamDevice("video_file", "video_file", videoFilePath, withVideo: true, withAudio: false);
-                    Util.WriteDarkYellow($"Stream used as Video selected: {currentWebCam.Name} ({currentWebCam.Path})]");
+                    selected = true;
+                    if ((videoStream is null) || (videoStream.Id != result.Id))
+                    {
+                        useEmptyTrack = false;
+                        webcamUpdated = true;
+                        videoStream = result;
+                        currentWebCam = new InputStreamDevice("video_stream", "video_stream", videoStream.Uri, withVideo: true, withAudio: false);
+                        Util.WriteDarkYellow($"Stream used as Video selected: {currentWebCam.Name} ({currentWebCam.Path})]");
+                    }
+                    else
+                        Util.WriteDarkYellow($"Same Video Stream selected");
                 }
-                else
-                    Util.WriteDarkYellow($"Same Stream selected");
             }
             else if (consoleKey.Key == ConsoleKey.N)
             {
@@ -1465,8 +1531,9 @@ void MenuSharingStream()
                     Util.WriteYellow($"\t[{index++}] - {screen.Name} ({screen.Path})");
             }
 
-            if (!String.IsNullOrWhiteSpace(sharingFilePath))
-                Util.WriteYellow($"\t[*] - Sharing file: {sharingFilePath})");
+            if (streamsList?.Count > 0)
+                Util.WriteYellow($"\t[S] - Select Sharing stream");
+
             Util.WriteYellow($"\t[N] - No sharing");
             Util.WriteYellow("\t[C] - Cancel");
             var consoleKey = Console.ReadKey(true);
@@ -1486,17 +1553,23 @@ void MenuSharingStream()
                         Util.WriteDarkYellow($"Same Stream selected");
                 }
             }
-            else if ((consoleKey.KeyChar == '*') && !String.IsNullOrWhiteSpace(sharingFilePath))
+            else if ((consoleKey.Key == ConsoleKey.S) && (streamsList?.Count > 0))
             {
-                selected = true;
-                screenUpdated = currentScreen?.Path != sharingFilePath;
-                if (screenUpdated)
+                var result = SelectStream("video", sharingStream, "sharing");
+                if (result is not null)
                 {
-                    currentScreen = new InputStreamDevice("sharing_file", "sharing_file", sharingFilePath, withVideo: true, withAudio: false);
-                    Util.WriteDarkYellow($"Stream used as Sharing selected: {currentScreen.Name} ({currentScreen.Path})]");
+                    selected = true;
+                    if ((sharingStream is null) || (sharingStream.Id != result.Id))
+                    {
+                        useEmptyTrack = false;
+                        screenUpdated = true;
+                        sharingStream = result;
+                        currentScreen = new InputStreamDevice("sharing_stream", "sharing_stream", sharingStream.Uri, withVideo: true, withAudio: false);
+                        Util.WriteDarkYellow($"Stream used as Video selected: {currentScreen.Name} ({currentScreen.Path})]");
+                    }
+                    else
+                        Util.WriteDarkYellow($"Same Video Stream selected");
                 }
-                else
-                    Util.WriteDarkYellow($"Same Stream selected");
             }
             else if (consoleKey.Key == ConsoleKey.N)
             {
