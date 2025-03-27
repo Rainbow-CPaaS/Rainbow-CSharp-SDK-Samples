@@ -174,10 +174,6 @@ async Task CheckInputKey()
                     Util.WriteRed($"{CR}GetContactByIdAsync - Error:[{sdkResultContact.Result}]");
                 return;
 
-            case ConsoleKey.T:
-                RbApplication.TestRestDisconnection(503);
-                return;
-
             case ConsoleKey.Q:
                 if(RbApplication.IsConnected())
                 {

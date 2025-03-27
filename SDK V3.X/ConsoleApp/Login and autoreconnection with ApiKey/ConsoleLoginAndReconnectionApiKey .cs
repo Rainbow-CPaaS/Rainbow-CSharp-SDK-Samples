@@ -106,10 +106,6 @@ async Task CheckInputKey()
                 Environment.Exit(0);
                 return;
 
-            case ConsoleKey.T:
-                RbApplication.TestRestDisconnection(503);
-                return;
-
             case ConsoleKey.Q:
                 if(RbApplication.IsConnected())
                 {
