@@ -34,7 +34,7 @@ namespace WpfSSOSamples
 
             RbApplication = new Rainbow.Application(appFolderPath);
             RbApplication.SetTimeout(10000);
-            //RbApplication.Restrictions.LogRestRequest = true;
+            RbApplication.Restrictions.LogRestRequest = true;
 
             RbApplication.SetApplicationInfo(AppConfiguration.APP_ID, AppConfiguration.APP_SECRET_KEY);
             RbApplication.SetHostInfo(AppConfiguration.HOST_NAME);

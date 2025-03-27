@@ -1,5 +1,5 @@
 ﻿
-using Login_Simple;
+using LoginSSO;
 using Rainbow;
 using Rainbow.Consts;
 using Rainbow.Model;

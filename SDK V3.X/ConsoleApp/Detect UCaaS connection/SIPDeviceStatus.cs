@@ -1,6 +1,6 @@
 ﻿using Rainbow.Model;
 
-namespace Login_Simple
+namespace LoginSSO
 {
     internal class SIPDeviceStatus
     {

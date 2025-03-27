@@ -1,4 +1,4 @@
-﻿using Login_Simple;
+﻿using LoginSSO;
 using Rainbow;
 using Rainbow.Console;
 using Rainbow.Consts;

@@ -106,8 +106,8 @@ namespace WpfSSOSamples.ViewModel
             SetErrorMessage(null);
 
             // Get Login / Password from cache (i.e. INI FILE)
-            Model.Login = CurrentApplication.RbApplication.GetUserLogin();
-            Model.Password = CurrentApplication.RbApplication.GetUserPassword();
+            Model.Login = CurrentApplication.RbApplication.UserCredentials.Login;
+            Model.Password = CurrentApplication.RbApplication.UserCredentials.Password;
 
             CurrentApplication.RbApplication.ConnectionStateChanged += RbApplication_ConnectionStateChanged;
 
@@ -437,7 +437,6 @@ namespace WpfSSOSamples.ViewModel
                         Model.AskingPassword = false;
                         Model.Connect = "Continue";
                     }
-
                 }
             }
         }
