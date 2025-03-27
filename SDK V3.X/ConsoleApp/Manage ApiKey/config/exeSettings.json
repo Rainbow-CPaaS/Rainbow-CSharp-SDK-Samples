@@ -1,0 +1,10 @@
+{
+  "_comment_settings": "Settings used by the executable: lib path, log configuration",
+  "exeSettings": {
+
+    "useAudioVideo": false,
+
+    "_comment_logFolderPath": "Folder path where logs wile be stored",
+    "logFolderPath": ".\\logs"
+  }
+}
