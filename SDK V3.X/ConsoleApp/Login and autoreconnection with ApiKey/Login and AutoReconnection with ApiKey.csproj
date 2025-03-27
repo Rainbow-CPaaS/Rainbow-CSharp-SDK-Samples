@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>Login_Simple</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NLog.Extensions.Logging" Version="5.3.11" />
+	  <!--
+	<PackageReference Include="Rainbow.CSharp.SDK" Version="3.0.0" />  
+-->
+	  <ProjectReference Include="..\..\..\..\rainbow-csharp-sdk-test\SDK\SDK.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="config\credentials.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="config\exeSettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="README.md">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>
