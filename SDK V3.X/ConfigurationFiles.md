@@ -49,7 +49,8 @@ The structure of this file is always the same. It looks like this:
     "serverConfig": {
       "appId": "01234567890123456789",
       "appSecret": "98765432109876543210",
-      "hostname": "openrainbow.net"
+      "hostname": "openrainbow.net",
+      "oauthPorts": [ 80, 8080, 1234, 9876, 4567 ]
     },
 
     "usersConfig": [
@@ -66,6 +67,11 @@ The structure of this file is always the same. It looks like this:
         "login": "my_account_2@my_domain.com",
         "password": "my_password2",
         "autoLogin": true
+      },
+      {
+        "iniFolderPath": ".\\logs",
+        "prefix": "User3",
+        "apiKey": "ad561fe5471gf3f56d7g413d"
       }
     ]
   }
@@ -77,12 +83,13 @@ The structure of this file is always the same. It looks like this:
       - **appId**: Application Id (its value is dependent of the host name used)
       - **appSecret**: Application Secret(its value is dependent of the host name used)
       - **hostname**: Host name used to connect to the Rainbow server (examples: **openrainbow.com**, **openrainbow.net**, ...)
+      - **oauthPorts**: Optional - used only in OAuth authentication context - List of port to use for the redirect Uri
       
   - **usersConfig**: Permits to define one or several accounts
       - **iniFolderPath**: String (".\\logs" by default) - Folder path where INI file of this account will be stored. If possible use the same folder where logs are store - see **logFolderPath** in [File exeSettings.json](#exeSettings.json)
       - **prefix**: String (must not be empty/null) - Prefix used for this account
-      - **login**: Login (email address) used by this account to connect to Rainbow server
-      - **password**: Password used by this account to connect to Rainbow server
+      - **login**, **password**: Login (email address) Password used by this account to connect to Rainbow server
+      - **apiKey**: Api Key used to connect to Rainbow server (instead of login / password)
 
 <a name="streams.json"></a>
 ## File streams.json

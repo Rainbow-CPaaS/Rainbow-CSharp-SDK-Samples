@@ -53,6 +53,9 @@ They are listed in order of priority / complexity.
 | Logs, Multiple Instances | Configure multiple loggers (to manage several Rainbow instance) | [README](./ConsoleApp/Configure%20multiple%20loggers/README.md) | 
 | Login, Events | Login and first events management | [README](./ConsoleApp/Login%20and%20events/README.md) |
 | Login, AutoReconnection, Events | Login and AutoReconnection management | [README](./ConsoleApp/Login%20and%20autoreconnection/README.md) |
+| Login, AutoReconnection, Events, ApiKey | Login and AutoReconnection management with ApiKey | [README](./ConsoleApp/Login%20and%20autoreconnection%20with%20ApiKey/README.md) |
+| ApiKey | ApiKey management (create, update, list, delete) | [README](./ConsoleApp/Manage%20ApiKey/README.md) |
+| Login, AutoReconnection, Events, OAuth | Login and AutoReconnection management with OAuth | [README](./ConsoleApp/Login%20with%20OAuth/README.md) |
 | Bubbles, Contacts | Get information about Bubbles and Contacts | [README](./ConsoleApp/Get%20basic%20contacts%20and%20bubbles%20info/README.md) |
 | Contacts, Presence | Get the presence of your contacts and modify yours | [README](./ConsoleApp/Get%20and%20set%20presence/README.md) |
 | Contacts, Presence, Multi-Instance | Using presence, detect if users are connected using an UCaaS Rainbow Application or not | [README](./ConsoleApp/Detect%20UCaaS%20connection/README.md) |
