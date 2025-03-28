@@ -103,4 +103,4 @@ This example is even more interactive but it's working only on **Windows**
 
 | Project Name | Content | Description |
 | --- | --- | --- | 
-| [SSO](./SSO/WPF/README.md) | Login, AutoReconnection using SSO | Simple Login form to understand how to manage SSO |
+| [SSO](./WPF/SSO/README.md) | Login, AutoReconnection using SSO | Simple Login form to understand how to manage SSO |
