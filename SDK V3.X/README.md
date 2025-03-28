@@ -14,6 +14,7 @@ You will find here several samples which illustrate how to use the Rainbow CShar
 - [Console Application examples](#ConsoleApplicationexamples)
 - [Bot examples](#Botexamples)
 - [Terminal Application examples](#TerminalApplicationexamples)
+- [WPF Application example](#WPFApplicationexample)
 
 
 <a name="Prerequisites"></a>
@@ -53,9 +54,9 @@ They are listed in order of priority / complexity.
 | Logs, Multiple Instances | Configure multiple loggers (to manage several Rainbow instance) | [README](./ConsoleApp/Configure%20multiple%20loggers/README.md) | 
 | Login, Events | Login and first events management | [README](./ConsoleApp/Login%20and%20events/README.md) |
 | Login, AutoReconnection, Events | Login and AutoReconnection management | [README](./ConsoleApp/Login%20and%20autoreconnection/README.md) |
-| Login, AutoReconnection, Events, ApiKey | Login and AutoReconnection management with ApiKey | [README](./ConsoleApp/Login%20and%20autoreconnection%20with%20ApiKey/README.md) |
-| ApiKey | ApiKey management (create, update, list, delete) | [README](./ConsoleApp/Manage%20ApiKey/README.md) |
-| Login, AutoReconnection, Events, OAuth | Login and AutoReconnection management with OAuth | [README](./ConsoleApp/Login%20with%20OAuth/README.md) |
+| Login, AutoReconnection, Events, **ApiKey** | Login and AutoReconnection management with ApiKey | [README](./ConsoleApp/Login%20and%20autoreconnection%20with%20ApiKey/README.md) |
+| **ApiKey** | ApiKey management (create, update, list, delete) | [README](./ConsoleApp/Manage%20ApiKey/README.md) |
+| Login, AutoReconnection, Events, **OAuth** | Login and AutoReconnection management with OAuth | [README](./ConsoleApp/Login%20with%20OAuth/README.md) |
 | Bubbles, Contacts | Get information about Bubbles and Contacts | [README](./ConsoleApp/Get%20basic%20contacts%20and%20bubbles%20info/README.md) |
 | Contacts, Presence | Get the presence of your contacts and modify yours | [README](./ConsoleApp/Get%20and%20set%20presence/README.md) |
 | Contacts, Presence, Multi-Instance | Using presence, detect if users are connected using an UCaaS Rainbow Application or not | [README](./ConsoleApp/Detect%20UCaaS%20connection/README.md) |
@@ -88,10 +89,18 @@ This examples are more interactive and they are working on **Linux, MacOS and Wi
 
 A Visual Studio solution centralized all of them [here](./TerminalApp/)
 
-| Project Name | Content | Description | |
-| --- | --- | --- | --- |
-| TerminAppLogin | Login, AutoReconnection | Simple Login form to understand basic features and switch between different accounts  | [README](./TerminalApp/TerminalAppLogin/README.md) |
-| TerminAppLoginSplittedView | Login, AutoReconnection | Simple Login form with a splitted view to manage in same time two different accounts | [README](./TerminalApp/TerminalAppLoginSplittedView/README.md) |
-| TerminAppPresencePanel | Login, AutoReconnection, (Aggregated) Presence, User and Bubble invitation | Panel to see Presence of all contatcs in the roster. Possibility to change it's own presence. Manage user and bubble invitations | [README](./TerminalApp/TerminalAppPresencePanel/README.md) | 
-| TerminalAppS2SPresencePanel | Login, AutoReconnection, (Aggregated) Presence, User and Bubble invitation | Using S2S, Panel to see Presence of all contatcs in the roster. Possibility to change it's own presence. Manage user and bubble invitations | [README](./TerminalApp/TerminalAppS2SPresencePanel/README.md) | 
+| Project Name | Content | Description |
+| --- | --- | --- | 
+| [TerminAppLogin](./TerminalApp/TerminalAppLogin/README.md) | Login, AutoReconnection | Simple Login form to understand basic features and switch between different accounts |
+| [TerminAppLoginSplittedView](./TerminalApp/TerminalAppLoginSplittedView/README.md) | Login, AutoReconnection | Simple Login form with a splitted view to manage in same time two different accounts |
+| [TerminAppPresencePanel](./TerminalApp/TerminalAppPresencePanel/README.md) | Login, AutoReconnection, (Aggregated) Presence, User and Bubble invitation | Panel to see Presence of all contatcs in the roster. Possibility to change it's own presence. Manage user and bubble invitations | 
+| [TerminalAppS2SPresencePanel](./TerminalApp/TerminalAppS2SPresencePanel/README.md) | Login, AutoReconnection, (Aggregated) Presence, User and Bubble invitation | Using S2S, Panel to see Presence of all contatcs in the roster. Possibility to change it's own presence. Manage user and bubble invitations | 
 
+<a name="WPFApplicationexample"></a>
+## WPF Application
+
+This example is even more interactive but it's working only on **Windows** 
+
+| Project Name | Content | Description |
+| --- | --- | --- | 
+| [SSO](./SSO/WPF/README.md) | Login, AutoReconnection using SSO | Simple Login form to understand how to manage SSO |
