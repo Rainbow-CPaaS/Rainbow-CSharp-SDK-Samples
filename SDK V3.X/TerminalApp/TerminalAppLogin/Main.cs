@@ -1,6 +1,4 @@
 ﻿// Indicates configuration elements we need to use in this example
-using Terminal.Gui;
-
 Configuration.NeedsRainbowServerConfiguration = true;
 Configuration.NeedsRainbowAccounts = true;
 

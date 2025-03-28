@@ -1,6 +1,7 @@
 ﻿using BotBroadcaster.Model;
 using BotLibrary.Model;
 using Rainbow;
+using Rainbow.Example.Common;
 using Rainbow.Medias;
 using Rainbow.Model;
 using Rainbow.WebRTC;
@@ -207,7 +208,7 @@ namespace BotBroadcaster
             // TODO - Later, needs to manage composition too
 
             // From configuration get streams to connect
-            List<Model.Stream>? allStreamsToConnect = null;
+            List<Stream>? allStreamsToConnect = null;
             if (_currentBotConfigurationExtended?.Streams is not null)
             {
                 allStreamsToConnect = _currentBotConfigurationExtended?.Streams.Values.Where(s => s.Connected).ToList();

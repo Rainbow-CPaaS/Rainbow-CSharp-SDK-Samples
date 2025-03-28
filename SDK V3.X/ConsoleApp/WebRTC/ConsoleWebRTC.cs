@@ -10,8 +10,8 @@ using Rainbow.WebRTC;
 using Rainbow.WebRTC.Abstractions;
 using Rainbow.WebRTC.Desktop;
 
-using Rainbow.Console;
-using Stream = Rainbow.Console.Stream;
+using Rainbow.Example.Common;
+using Stream = Rainbow.Example.Common.Stream;
 using Util = Rainbow.Console.Util;
 
 ExeSettings? exeSettings = null;

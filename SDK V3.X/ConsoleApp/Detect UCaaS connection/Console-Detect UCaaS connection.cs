@@ -7,7 +7,7 @@ using System.Text;
 
 using Util = Rainbow.Console.Util;
 using Rainbow.SimpleJSON;
-using Rainbow.Console;
+using Rainbow.Example.Common;
 
 ExeSettings? exeSettings = null;
 Credentials? credentialsUsers = null;

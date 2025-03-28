@@ -1,8 +1,8 @@
 ﻿using Rainbow;
-using Rainbow.Console;
 using Rainbow.Consts;
 using Rainbow.Delegates;
 using Rainbow.Enums;
+using Rainbow.Example.Common;
 using Rainbow.Model;
 using Rainbow.SimpleJSON;
 

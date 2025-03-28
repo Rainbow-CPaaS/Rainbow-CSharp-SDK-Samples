@@ -1,6 +1,6 @@
 ﻿using Rainbow.SimpleJSON;
 
-namespace Rainbow.Console
+namespace Rainbow.Example.Common
 {
     public class UserConfig
     {
@@ -14,12 +14,16 @@ namespace Rainbow.Console
 
         public string ApiKey { get; set; }
 
-        public UserConfig() 
+        public Boolean AutoLogin { get; set; }
+
+        public UserConfig()
         {
             IniFolderPath = null;
             Login = "";
             Password = "";
             Prefix = "";
+            ApiKey = "";
+            AutoLogin = false;
         }
 
         public static Boolean FromJsonNode(JSONNode jsonNode, Boolean needCredentials, out UserConfig userConfig)
@@ -32,7 +36,8 @@ namespace Rainbow.Console
                     Prefix = jsonNode["prefix"],
                     Login = jsonNode["login"],
                     Password = jsonNode["password"],
-                    ApiKey = jsonNode["apiKey"]
+                    ApiKey = jsonNode["apiKey"],
+                    AutoLogin = jsonNode["autoLogin"],
                 };
 
                 // Check validity
@@ -43,7 +48,7 @@ namespace Rainbow.Console
                 {
                     if ((!String.IsNullOrEmpty(userConfig.ApiKey))
                         || ((!String.IsNullOrEmpty(userConfig.Login)) && (!String.IsNullOrEmpty(userConfig.Password))))
-                    return true;
+                        return true;
                 }
                 else
                     return true;

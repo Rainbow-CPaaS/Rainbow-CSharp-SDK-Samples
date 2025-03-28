@@ -2,7 +2,7 @@
 using Rainbow;
 using Rainbow.Consts;
 
-using Rainbow.Console;
+using Rainbow.Example.Common;
 using Util = Rainbow.Console.Util;
 using Rainbow.SimpleJSON;
 using Rainbow.Enums;

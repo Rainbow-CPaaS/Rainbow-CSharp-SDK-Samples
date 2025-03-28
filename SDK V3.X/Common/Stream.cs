@@ -1,14 +1,11 @@
 ﻿using Rainbow.SimpleJSON;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
-namespace Rainbow.Console
+namespace Rainbow.Example.Common
 {
     public class Stream
     {
-        public static readonly List<String> mediaPossible = [ "audio", "video", "audio+video", "composition" ];
-        public static readonly List<String> uriTypePossible = [ "screen", "webcam", "microphone", "other" ];
+        public static readonly List<String> mediaPossible = ["audio", "video", "audio+video", "composition"];
+        public static readonly List<String> uriTypePossible = ["screen", "webcam", "microphone", "other"];
 
         /// <summary>
         /// Unique id for this stream
@@ -21,7 +18,7 @@ namespace Rainbow.Console
         public string Media { get; set; }
 
         // Media used in the conference - not set directly in JSON
-        internal String? MediaInConference { get; set; }
+        public String? MediaInConference { get; set; }
 
         /// <summary>
         /// (optional) if it's a video composition, list of streams id used to create it. Their order is important and related to the VideoFilter property
@@ -88,7 +85,7 @@ namespace Rainbow.Console
                 VideoComposition = other.VideoComposition,
                 Connected = other.Connected,
                 VideoFilter = other.VideoFilter,
-                ForceLiveStream= other.ForceLiveStream,
+                ForceLiveStream = other.ForceLiveStream,
 
                 // Internal property
                 MediaInConference = other.MediaInConference,
@@ -106,7 +103,7 @@ namespace Rainbow.Console
                     Media = jsonNode["media"],
                     VideoComposition = jsonNode["videoComposition"],
                     Uri = jsonNode["uri"],
-                    UriType = jsonNode["uriType"].As<String>("other"),
+                    UriType = jsonNode["uriType"],
                     UriSettings = jsonNode["uriSettings"],
                     Connected = jsonNode["connected"],
                     VideoFilter = jsonNode["videoFilter"],
@@ -116,7 +113,7 @@ namespace Rainbow.Console
                 // Check validity
                 if (String.IsNullOrEmpty(stream.Id))
                     return false;
-                
+
                 // Check UriType
                 if (String.IsNullOrEmpty(stream.UriType))
                     stream.UriType = "other";
@@ -168,7 +165,7 @@ namespace Rainbow.Console
             jsonNode["id"] = stream.Id;
             jsonNode["media"] = stream.Media;
             jsonNode["uri"] = stream.Uri;
-            if(stream.UriType == "other")
+            if (stream.UriType == "other")
                 jsonNode["uriType"] = null;
             else
                 jsonNode["uriType"] = stream.UriType;
@@ -182,14 +179,14 @@ namespace Rainbow.Console
 
         public Boolean IsSame(Stream? other)
         {
-            if ( (other is null)
+            if ((other is null)
                 || (other.Id != Id)
                 || (other.Media != Media)
                 || (other.Uri != Uri)
                 || (other.VideoFilter != VideoFilter)
                 || (other.ForceLiveStream != ForceLiveStream)
                 || (other.MediaInConference != MediaInConference)
-                || ( (VideoComposition is not null) && (other.VideoComposition is not null) && (!VideoComposition.SequenceEqual(other.VideoComposition)))
+                || ((VideoComposition is not null) && (other.VideoComposition is not null) && (!VideoComposition.SequenceEqual(other.VideoComposition)))
                 )
                 return false;
 
@@ -198,7 +195,7 @@ namespace Rainbow.Console
 
         public override string ToString()
         {
-            string result = $"Id:[{Id}] - Media:[{Media}] - Uri:[{Uri}] - UriType:[{UriType}] - UriSettings:[{((UriSettings is null) ? "None" :String.Join(", ", UriSettings))}] - ForceLiveStream:[{ForceLiveStream}]";
+            string result = $"Id:[{Id}] - Media:[{Media}] - Uri:[{Uri}] - UriType:[{UriType}] - UriSettings:[{((UriSettings is null) ? "None" : String.Join(", ", UriSettings))}] - ForceLiveStream:[{ForceLiveStream}]";
             return result;
         }
     }

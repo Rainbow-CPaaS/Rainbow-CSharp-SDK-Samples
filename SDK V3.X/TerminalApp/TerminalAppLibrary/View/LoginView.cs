@@ -1,7 +1,6 @@
 ﻿using Rainbow;
-using Rainbow.Console;
 using Rainbow.Consts;
-using System.Diagnostics;
+using Rainbow.Example.Common;
 using Terminal.Gui;
 
 public class LoginView: View

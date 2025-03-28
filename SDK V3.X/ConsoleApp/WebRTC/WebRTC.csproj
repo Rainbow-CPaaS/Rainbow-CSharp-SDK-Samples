@@ -19,10 +19,7 @@
  </ItemGroup>
 	
   <ItemGroup>
-	  <!--
-	  <ProjectReference Include="..\..\..\..\rainbow-csharp-sdk-test\SDK.WebRTC.Desktop\SDK.WebRTC.Desktop.csproj" />
-      <ProjectReference Include="..\..\..\..\rainbow-csharp-sdk-test\SDK.WebRTC\SDK.WebRTC.csproj" />
-	  -->
+    <ProjectReference Include="..\..\Common\Common.csproj" />
   </ItemGroup>
 
    <ItemGroup>

@@ -9,6 +9,7 @@ using Rainbow.Enums;
 using System;
 using System.Text;
 using System.Web;
+using Rainbow.Example.Common;
 
 // --------------------------------------------------
 

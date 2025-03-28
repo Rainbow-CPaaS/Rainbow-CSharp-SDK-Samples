@@ -1,4 +1,5 @@
-﻿using Rainbow.SimpleJSON;
+﻿using Rainbow.Example.Common;
+using Rainbow.SimpleJSON;
 using System;
 using System.Collections.Generic;
 

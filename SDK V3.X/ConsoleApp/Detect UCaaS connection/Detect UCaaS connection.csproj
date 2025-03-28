@@ -17,6 +17,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Common\Common.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Update="config\credentials-Admin.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

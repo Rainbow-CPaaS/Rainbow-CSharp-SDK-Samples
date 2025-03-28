@@ -1,13 +1,7 @@
 ﻿using Rainbow;
 using Rainbow.Consts;
 using Rainbow.Model;
-using System.Drawing;
-using System.Globalization;
-using System.Text;
-using System.Xml.Linq;
 using Terminal.Gui;
-using Attribute = Terminal.Gui.Attribute;
-using Color = Terminal.Gui.Color;
 
 public class PresenceView: View
 {

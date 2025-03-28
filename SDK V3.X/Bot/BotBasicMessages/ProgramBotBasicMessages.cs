@@ -1,5 +1,5 @@
 ﻿using BotLibrary;
-using BotLibrary.Model;
+using Rainbow.Example.Common;
 using Rainbow.SimpleJSON;
 using System;
 using System.IO;

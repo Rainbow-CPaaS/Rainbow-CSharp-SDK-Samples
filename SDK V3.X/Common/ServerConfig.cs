@@ -1,6 +1,6 @@
 ﻿using Rainbow.SimpleJSON;
 
-namespace Rainbow.Console
+namespace Rainbow.Example.Common
 {
     public class ServerConfig
     {

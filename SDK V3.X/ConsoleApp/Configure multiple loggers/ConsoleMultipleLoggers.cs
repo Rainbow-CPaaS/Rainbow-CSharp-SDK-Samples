@@ -5,6 +5,7 @@ using System.Text;
 
 using Util = Rainbow.Console.Util;
 using Rainbow.SimpleJSON;
+using Rainbow.Example.Common;
 
 //// --------------------------------------------------
 

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
-using EmbedIO;
-using Rainbow;
+﻿using EmbedIO;
 using Microsoft.Extensions.Logging;
 
 public class CallbackWebModule : WebModuleBase

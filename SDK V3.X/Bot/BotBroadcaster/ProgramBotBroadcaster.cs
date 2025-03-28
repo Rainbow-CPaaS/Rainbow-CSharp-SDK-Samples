@@ -2,6 +2,7 @@
 using BotLibrary.Model;
 using Microsoft.Extensions.Logging;
 using Rainbow;
+using Rainbow.Example.Common;
 using Rainbow.SimpleJSON;
 using System;
 using System.IO;

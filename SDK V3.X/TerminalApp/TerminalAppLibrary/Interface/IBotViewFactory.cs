@@ -1,5 +1,6 @@
-﻿using Terminal.Gui;
-using Rainbow.Console;
+﻿using Rainbow.Example.Common;
+using Terminal.Gui;
+
 
 public interface IBotViewFactory
 {

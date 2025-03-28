@@ -1,6 +1,5 @@
-﻿using Rainbow;
-using Rainbow.Console;
-using Rainbow.Consts;
+﻿using Rainbow.Consts;
+using Rainbow.Example.Common;
 using Terminal.Gui;
 
 internal class BotView: View

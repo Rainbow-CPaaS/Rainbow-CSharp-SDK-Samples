@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-public static class Emojis
+﻿public static class Emojis
 {
     // Check "CharacterMap.cs" from UICatalog example of Terminalg.GUI to check Emoji availables
     // Need to add a space to have a correct display

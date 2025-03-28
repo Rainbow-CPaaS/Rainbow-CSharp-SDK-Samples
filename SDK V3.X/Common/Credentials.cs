@@ -1,6 +1,6 @@
 ﻿using Rainbow.SimpleJSON;
 
-namespace Rainbow.Console
+namespace Rainbow.Example.Common
 {
     public class Credentials
     {
@@ -11,30 +11,34 @@ namespace Rainbow.Console
         public Credentials()
         {
             ServerConfig = new();
-            UsersConfig = new();
+            UsersConfig = [];
         }
 
         public static Boolean FromJsonNode(JSONNode jsonNode, out Credentials credentials)
         {
             if (jsonNode is not null)
             {
-                credentials = new ();
-
-                if (jsonNode["usersConfig"]?.IsArray == true)
-                {
-                    foreach(JSONNode node in jsonNode["usersConfig"])
-                    {
-                        if (UserConfig.FromJsonNode(node, out UserConfig userconfig))
-                            credentials.UsersConfig.Add(userconfig);
-                    }
-                }
-                if(credentials.UsersConfig.Count == 0)
-                    return false;
+                credentials = new();
 
                 if (ServerConfig.FromJsonNode(jsonNode["serverConfig"], out ServerConfig serverConfig))
                     credentials.ServerConfig = serverConfig;
                 else
                     return false;
+
+                Boolean needCredentials = !(credentials.ServerConfig.OAuthPorts?.Count > 0);
+
+                if (jsonNode["usersConfig"]?.IsArray == true)
+                {
+                    foreach (JSONNode node in jsonNode["usersConfig"])
+                    {
+                        if (UserConfig.FromJsonNode(node, needCredentials, out UserConfig userconfig))
+                            credentials.UsersConfig.Add(userconfig);
+                    }
+                }
+                if (credentials.UsersConfig.Count == 0)
+                    return false;
+
+
 
                 return true;
             }

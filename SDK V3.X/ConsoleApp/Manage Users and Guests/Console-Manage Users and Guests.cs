@@ -4,13 +4,10 @@ using Rainbow.Consts;
 using Rainbow.Model;
 using System.Text;
 
+using Rainbow.Example.Common;
 using Util = Rainbow.Console.Util;
 using Rainbow.SimpleJSON;
-using Rainbow.Console;
-using System.Xml;
-using NLog.Layouts;
-using Rainbow.Delegates;
-using Rainbow.Cryptography.SASL.SCRAM;
+
 
 ExeSettings? exeSettings = null;
 Credentials? credentials = null;

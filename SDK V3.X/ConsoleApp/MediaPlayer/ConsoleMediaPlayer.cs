@@ -1,10 +1,8 @@
-﻿using ConsoleMediaPlayer.Model;
+﻿using Rainbow.Example.Common;
 using FFmpeg.AutoGen;
 using Rainbow.Medias;
 using Rainbow.SimpleJSON;
-using Sharp.Xmpp.Core;
-using System;
-using Stream = ConsoleMediaPlayer.Model.Stream;
+using Stream = Rainbow.Example.Common.Stream;
 
 namespace ConsoleMediaPlayer
 {

@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Rainbow;
 using Rainbow.Consts;
 using Rainbow.Enums;
+using Rainbow.Example.Common;
 using Rainbow.Model;
 using Rainbow.SimpleJSON;
 using Stateless;
@@ -196,7 +197,7 @@ namespace BotLibrary
 
                 // Log info about transition
                 var parameters = string.Join(", ", transition.Parameters);
-                Util.WriteInfoToConsole($"[{DateTime.Now:HH:mm:ss.fff}][{_credentials.UserConfig.Prefix}] State [{transition.Destination}] from [{transition.Source}] with Trigger: [{transition.Trigger}]{(String.IsNullOrEmpty(parameters) ? "" : " Parameter(s):[" + parameters + "]")}");
+                Util.WriteInfoToConsole($"[{DateTime.Now:HH:mm:ss.fff}][{_credentials.UsersConfig[0].Prefix}] State [{transition.Destination}] from [{transition.Source}] with Trigger: [{transition.Trigger}]{(String.IsNullOrEmpty(parameters) ? "" : " Parameter(s):[" + parameters + "]")}");
             });
         }
 
@@ -889,7 +890,7 @@ namespace BotLibrary
         /// </summary>
         public String BotName
         {
-            get { return _credentials.UserConfig.Prefix; }
+            get { return _credentials.UsersConfig[0].Prefix; }
         }
 
         /// <summary>
@@ -926,7 +927,7 @@ namespace BotLibrary
                 return false;
             }
 
-            var prefix = _credentials.UserConfig.Prefix;
+            var prefix = _credentials.UsersConfig[0].Prefix;
             var loggerPrefix = prefix + "_";
 
             // We want to log specifically using a prefix for this bot
@@ -936,7 +937,7 @@ namespace BotLibrary
             log = Rainbow.LogFactory.CreateLogger<Application>(loggerPrefix);
 
             // Create Rainbow Application (root object of the SDK)
-            _rbApplication = new Rainbow.Application(_credentials.UserConfig.IniFolderPath, prefix + ".ini", loggerPrefix);
+            _rbApplication = new Rainbow.Application(_credentials.UsersConfig[0].IniFolderPath, prefix + ".ini", loggerPrefix);
 
             // Set APP_ID, APP_SECRET_KET and HOSTNAME
             _rbApplication.SetApplicationInfo(_credentials.ServerConfig.AppId, _credentials.ServerConfig.AppSecret);
@@ -976,7 +977,7 @@ namespace BotLibrary
                 UnsubscribeToRainbowEvents();
                 SubscribeToRainbowEvents();
 
-                var _ = _rbApplication.LoginAsync(_credentials.UserConfig.Login, _credentials.UserConfig.Password);
+                var _ = _rbApplication.LoginAsync(_credentials.UsersConfig[0].Login, _credentials.UsersConfig[0].Password);
                 return true;
             }
             return false;
@@ -1123,16 +1124,16 @@ namespace BotLibrary
                 canContinue = false;
 
                 if(_botCancelledSdkError?.Type == SdkErrorType.NoError)
-                    message = $"[{_credentials.UserConfig.Prefix}] Bot has been stopped ...";
+                    message = $"[{_credentials.UsersConfig[0].Prefix}] Bot has been stopped ...";
 
                 else if (_botCancelledSdkError?.IncorrectUseError?.ErrorDetailsCode == (int)SdkInternalErrorEnum.LOGIN_PROCESS_INVALID_CREDENTIALS)
-                    message = $"[{_credentials.UserConfig.Prefix}] Bot is not connected because the credentials are not correct ...";
+                    message = $"[{_credentials.UsersConfig[0].Prefix}] Bot is not connected because the credentials are not correct ...";
 
                 else if (_botCancelledSdkError?.IncorrectUseError?.ErrorDetailsCode == (int)SdkInternalErrorEnum.LOGIN_PROCESS_MAX_ATTEMPTS_REACHED)
-                    message = $"[{_credentials.UserConfig.Prefix}] Bot was connected but after several attempts it can't reach the server anymore...";
+                    message = $"[{  _credentials.UsersConfig[0].Prefix}] Bot was connected but after several attempts it can't reach the server anymore...";
 
                 else 
-                    message = $"[{_credentials.UserConfig.Prefix}] Bot has stopped ... SdkError:[{_botCancelledSdkError}]";
+                    message = $"[{_credentials.UsersConfig[0].Prefix}] Bot has stopped ... SdkError:[{_botCancelledSdkError}]";
             }
 
             return (state, canContinue, message);

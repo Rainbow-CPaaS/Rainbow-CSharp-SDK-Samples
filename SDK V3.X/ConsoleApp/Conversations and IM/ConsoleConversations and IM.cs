@@ -7,6 +7,7 @@ using Util = Rainbow.Console.Util;
 using Rainbow.SimpleJSON;
 using System.Text;
 using Rainbow.Enums;
+using Rainbow.Example.Common;
 
 // --------------------------------------------------
 

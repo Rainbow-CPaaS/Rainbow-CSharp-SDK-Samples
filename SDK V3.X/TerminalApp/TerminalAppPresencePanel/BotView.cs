@@ -1,10 +1,8 @@
-﻿using NLog.LayoutRenderers.Wrappers;
-using Rainbow;
-using Rainbow.Console;
+﻿using Rainbow;
 using Rainbow.Consts;
+using Rainbow.Example.Common;
 using Rainbow.Model;
 using Terminal.Gui;
-using static System.Net.Mime.MediaTypeNames;
 
 internal class BotView: View
 {

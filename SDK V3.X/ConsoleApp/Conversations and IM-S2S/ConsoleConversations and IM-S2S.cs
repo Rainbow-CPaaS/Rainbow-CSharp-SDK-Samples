@@ -2,12 +2,12 @@
 using Rainbow.Consts;
 using Rainbow.Model;
 
-using Rainbow.Console;
 using Util = Rainbow.Console.Util;
 using Rainbow.SimpleJSON;
 using System.Text;
 using Rainbow.Enums;
 using EmbedIO;
+using Rainbow.Example.Common;
 
 // --------------------------------------------------
 
@@ -434,7 +434,7 @@ Bubble? SearchForBubbles()
     var str = Console.ReadLine();
     if (str != null)
     {
-        List<String> memberStatus = new() { BubbleMemberStatus.Accepted };
+        List<String> memberStatus = [ BubbleMemberStatus.Accepted ];
         var bubblesList = RbBubbles.GetAllBubbles(bubbleMemberStatusList: memberStatus);
         result = bubblesList.Find(contact => contact.Peer.DisplayName.Contains(str, StringComparison.InvariantCultureIgnoreCase));
     }
@@ -588,7 +588,7 @@ void RbAutoReconnection_Cancelled(SdkError sdkError)
 
 void RbContacts_ContactsAdded(IEnumerable<Rainbow.Model.Contact> contacts)
 {
-    List<String> displayNames = new();
+    List<String> displayNames = [];
     foreach (var contact in contacts)
     {
         displayNames.Add(contact.ToString(DetailsLevel.Small));

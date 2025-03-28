@@ -1,4 +1,4 @@
-﻿using Rainbow.Console;
+﻿using Rainbow.Example.Common;
 using System.Drawing;
 using System.Globalization;
 using Terminal.Gui;

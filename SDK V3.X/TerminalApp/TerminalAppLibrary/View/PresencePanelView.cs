@@ -1,6 +1,5 @@
 ﻿using Rainbow.Consts;
 using Rainbow.Model;
-using System.Xml;
 using Terminal.Gui;
 
 public class PresencePanelView: View

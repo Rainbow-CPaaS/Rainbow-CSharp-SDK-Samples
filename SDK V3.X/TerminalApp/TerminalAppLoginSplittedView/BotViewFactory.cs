@@ -1,4 +1,4 @@
-﻿using Rainbow.Console;
+﻿using Rainbow.Example.Common;
 using Terminal.Gui;
 
 internal class BotViewFactory : IBotViewFactory

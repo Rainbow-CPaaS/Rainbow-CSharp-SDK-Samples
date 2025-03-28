@@ -1,5 +1,4 @@
-﻿using Rainbow;
-using Rainbow.Console;
+﻿using Rainbow.Example.Common;
 using Rainbow.SimpleJSON;
 
 using Util = Rainbow.Console.Util;

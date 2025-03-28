@@ -1,6 +1,5 @@
 ﻿using System.Text.RegularExpressions;
 using Terminal.Gui;
-using Attribute = Terminal.Gui.Attribute;
 
 public partial class LoggerView: View
 {
