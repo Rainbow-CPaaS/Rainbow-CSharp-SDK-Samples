@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
-using Rainbow;
+﻿using Rainbow;
 using Rainbow.Consts;
 
 using Rainbow.Example.Common;

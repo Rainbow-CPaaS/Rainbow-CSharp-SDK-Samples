@@ -1,11 +1,9 @@
 ﻿using Microsoft.Extensions.Logging;
-using NLog.Config;
 using Rainbow.Example.Common;
 using Rainbow.SimpleJSON;
 using System;
 using System.IO;
 using System.Windows;
-using WpfSSOSamples.Helpers;
 using WpfSSOSamples.View;
 
 namespace WpfSSOSamples

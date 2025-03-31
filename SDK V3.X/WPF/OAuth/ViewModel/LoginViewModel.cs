@@ -1,5 +1,4 @@
 using System;
-using System.ComponentModel.DataAnnotations;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
 
@@ -9,13 +8,9 @@ using WpfSSOSamples.Helpers;
 using WpfSSOSamples.Model;
 
 using System.Windows;
-using System.Threading.Tasks;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using WpfWebView;
 using Rainbow.Consts;
-using System.Security.Policy;
 
 namespace WpfSSOSamples.ViewModel
 {
@@ -215,7 +210,15 @@ namespace WpfSSOSamples.ViewModel
                     if (browserResult.CancelByUser)
                         SetErrorMessage("The sign-in window was closed before authorization was completed.");
                     else
-                        SetErrorMessage("Authentication failed");
+                    {
+                        String msg = "";
+                        foreach (var key in browserResult.Parameters.Keys)
+                            msg += key + ":" + browserResult.Parameters[key] + " - ";
+
+                        if (msg.Length > 3)
+                            msg = msg.Substring(0, msg.Length - 3);
+                        SetErrorMessage("Authentication failed:" + msg);
+                    }
                     SetToBusy(false);
                 }
                 else

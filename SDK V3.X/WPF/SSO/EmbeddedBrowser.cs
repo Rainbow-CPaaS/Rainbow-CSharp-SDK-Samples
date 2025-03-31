@@ -134,6 +134,7 @@ namespace WpfWebView
             SSOInprogress = false;
             if (!needToClose)
             {
+                webView2.NavigateToString("<html></html>");
                 try
                 {
                     signal.Release();

@@ -1,5 +1,7 @@
 ﻿using Microsoft.Web.WebView2.Wpf;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,6 +14,7 @@ namespace WpfWebView
 
     public class BrowserResult
     {
+        public Dictionary<String, String> Parameters { get; set; }
         public String Code { get; set; }
         public Boolean CancelByUser { get; set; }
         public Boolean Error { get; set; }
@@ -53,7 +56,7 @@ namespace WpfWebView
 
             Window = new Window()
             {
-                Width = 840,
+                Width = 860,
                 Height = 600,
                 WindowStartupLocation = WindowStartupLocation.CenterScreen,
             };
@@ -134,6 +137,8 @@ namespace WpfWebView
             SSOInprogress = false;
             if (!needToClose)
             {
+                webView2.NavigateToString("<html></html>");
+
                 try
                 {
                     signal.Release();
@@ -152,12 +157,17 @@ namespace WpfWebView
                 // Prevent real navigation
                 e.Cancel = true;
 
-                // Parse query string to get token value
+                // Parse query string to get token value and query parameters
                 string queryString = new System.Uri(e.Uri).Query;
-                var queryDictionary = HttpUtility.ParseQueryString(queryString);
+                var collection = HttpUtility.ParseQueryString(queryString);
 
-                result.Code = queryDictionary.Get("code");
+                result.Parameters = collection.Cast<string>().ToDictionary(k => k, v => collection[v]);
+                if(result.Parameters.ContainsKey("code"))
+                    result.Code = result.Parameters["code"];
                 result.Error = String.IsNullOrEmpty(result.Code);
+                result.CancelByUser = false;
+
+                
 
                 try
                 {

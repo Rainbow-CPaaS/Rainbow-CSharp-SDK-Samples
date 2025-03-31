@@ -25,13 +25,12 @@ if ( (credentials.ServerConfig.OAuthPorts is null)
     return;
 }
 
-Util.WriteRed($"Application used: Id:[{credentials.ServerConfig.AppId}] - HostName:[{credentials.ServerConfig.HostName}]");
-Util.WriteRed($"OAuthPorts used: [{String.Join(", ", credentials.ServerConfig.OAuthPorts)}]");
+String CR = Rainbow.Util.CR; // Get carriage return;
+
+Util.WriteGreen($"{CR}Application used: Id:[{credentials.ServerConfig.AppId}] - HostName:[{credentials.ServerConfig.HostName}]");
+Util.WriteGreen($"{CR}OAuthPorts used: [{String.Join(", ", credentials.ServerConfig.OAuthPorts)}]");
 
 // --------------------------------------------------
-
-Object consoleLockObject = new(); // To lock until the current console display is performed
-String CR = Rainbow.Util.CR; // Get carriage return;
 
 // In "exeSettings.json" using "logFolderPath" property, we defined a folder where the logs must be stored
 String logFolderPath = exeSettings.LogFolderPath;
@@ -96,7 +95,7 @@ if(systemBrowser is null)
 String redirectUri = $"http://127.0.0.1:{systemBrowser.Port}";
 
 string oAuthAuthorizationUrl = RbApplication.GetOAuthAuthorizationEndPoint(true, redirectUri);
-Util.WriteRed($"OAuthAuthorizationUrl used: [{oAuthAuthorizationUrl}]");
+Util.WriteGreen($"{CR}OAuthAuthorizationUrl used: [{oAuthAuthorizationUrl}]");
 
 CancellationToken cancellationToken = default; // We don't use here an cancellationToken
 var browserResult = await systemBrowser.InvokeAsync(oAuthAuthorizationUrl, cancellationToken);
@@ -109,7 +108,7 @@ else
     if (browserResult.Parameters.ContainsKey("code"))
     {
         string code = browserResult.Parameters["code"];
-        Util.WriteBlue($"SSO done successfully - code:{code}");
+        Util.WriteBlue($"SSO done successfully{CR}\tAuthorization Code:{code}");
 
         if (!String.IsNullOrEmpty(code))
         {
@@ -124,6 +123,18 @@ else
                 return;
             }
         }
+    }
+    else
+    {
+        String msg = "";
+        foreach (var key in browserResult.Parameters.Keys)
+            msg += $"\t{key}:{browserResult.Parameters[key]}";
+
+        Util.WriteRed($"Authentication failed:{CR}{msg}");
+
+        // We wait here a little to ensure to display info to the browser
+        await Task.Delay(500);
+        return;
     }
 }
 

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Rainbow.Console
+﻿namespace Rainbow.Console
 {
     /// <summary>
     /// Options for the browser used for login.

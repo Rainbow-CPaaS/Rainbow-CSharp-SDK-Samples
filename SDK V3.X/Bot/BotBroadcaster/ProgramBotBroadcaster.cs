@@ -1,5 +1,4 @@
 ﻿using BotLibrary;
-using BotLibrary.Model;
 using Microsoft.Extensions.Logging;
 using Rainbow;
 using Rainbow.Example.Common;

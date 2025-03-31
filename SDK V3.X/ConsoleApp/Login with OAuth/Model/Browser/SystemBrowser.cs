@@ -5,13 +5,11 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Rainbow.Console;
 using System.Diagnostics;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
-using System.Web;
 
 namespace Rainbow.Console
 {
@@ -170,7 +168,6 @@ namespace Rainbow.Console
                     // Do we received "code" as parameters ?
                     if(browserResult.Parameters.ContainsKey("code"))
                     {
-                        // TODO - we need to ask token
                         browserResult.ResultType = BrowserResultType.Success;
                         await SetResultAsync(browserResult, ctx);
                     }
@@ -189,8 +186,6 @@ namespace Rainbow.Console
 
         private async Task SetResultAsync(BrowserResult browserResult, HttpContext ctx)
         {
-            _source.TrySetResult(browserResult);
-
             try
             {
                 ctx.Response.StatusCode = 200;
@@ -205,6 +200,8 @@ namespace Rainbow.Console
                 await ctx.Response.WriteAsync("<h1>Invalid request.</h1>");
                 await ctx.Response.Body.FlushAsync();
             }
+
+            _source.TrySetResult(browserResult);
         }
 
         public Task<BrowserResult> WaitForCallbackAsync(int timeoutInSeconds = DefaultTimeout)

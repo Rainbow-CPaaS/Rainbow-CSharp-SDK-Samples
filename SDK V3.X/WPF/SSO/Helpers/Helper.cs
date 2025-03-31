@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Globalization;
 using System.Windows.Media.Imaging;
 using System.Windows.Resources;
 
