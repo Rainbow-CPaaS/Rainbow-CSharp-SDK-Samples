@@ -9,7 +9,6 @@
 
   <ItemGroup>
     <PackageReference Include="Stateless" Version="5.15.0" />
-	<PackageReference Include="Rainbow.CSharp.SDK" Version="3.1.0" />
 <!--
 	<ProjectReference Include="..\..\..\..\rainbow-csharp-sdk-test\SDK\SDK.csproj" />
 -->

@@ -15,10 +15,6 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2903.40" />
     <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.37" />
-	  <PackageReference Include="Rainbow.CSharp.SDK" Version="3.1.0" />
-	  <!--
-	<ProjectReference Include="..\..\..\..\rainbow-csharp-sdk-test\SDK\SDK.csproj" />
--->
   </ItemGroup>
 
   <ItemGroup>
