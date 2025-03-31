@@ -5,7 +5,6 @@ using Rainbow.Consts;
 using Rainbow.Example.Common;
 using Util = Rainbow.Console.Util;
 using Rainbow.SimpleJSON;
-using Rainbow.Enums;
 
 // --------------------------------------------------
 

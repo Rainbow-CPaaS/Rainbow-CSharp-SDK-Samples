@@ -1,6 +1,7 @@
 ﻿
 // Indicates configuration elements we need to use in this example
 using EmbedIO;
+using Rainbow.Example.Common;
 
 Configuration.NeedsRainbowServerConfiguration = true;
 Configuration.NeedsRainbowAccounts = true;

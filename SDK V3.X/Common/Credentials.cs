@@ -25,7 +25,7 @@ namespace Rainbow.Example.Common
                 else
                     return false;
 
-                Boolean needCredentials = !(credentials.ServerConfig.OAuthPorts?.Count > 0);
+                Boolean needCredentials = !( (credentials.ServerConfig.OAuthPorts?.Count > 0) || !String.IsNullOrEmpty(credentials.ServerConfig.SSORedirectUrl) );
 
                 if (jsonNode["usersConfig"]?.IsArray == true)
                 {

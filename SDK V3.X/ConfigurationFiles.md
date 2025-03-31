@@ -50,7 +50,8 @@ The structure of this file is always the same. It looks like this:
       "appId": "01234567890123456789",
       "appSecret": "98765432109876543210",
       "hostname": "openrainbow.net",
-      "oauthPorts": [ 80, 8080, 1234, 9876, 4567 ]
+      "oauthPorts": [ 80, 8080, 1234, 9876, 4567 ],
+      "ssoRedirectUrl": "myappscheme://callback/"
     },
 
     "usersConfig": [
@@ -84,6 +85,7 @@ The structure of this file is always the same. It looks like this:
       - **appSecret**: Application Secret(its value is dependent of the host name used)
       - **hostname**: Host name used to connect to the Rainbow server (examples: **openrainbow.com**, **openrainbow.net**, ...)
       - **oauthPorts**: Optional - used only in OAuth authentication context - List of port to use for the redirect Uri
+      - **ssoRedirectUrl**: Optional - used only in SSO authentication context - SSO redirect Uri
       
   - **usersConfig**: Permits to define one or several accounts
       - **iniFolderPath**: String (".\\logs" by default) - Folder path where INI file of this account will be stored. If possible use the same folder where logs are store - see **logFolderPath** in [File exeSettings.json](#exeSettings.json)

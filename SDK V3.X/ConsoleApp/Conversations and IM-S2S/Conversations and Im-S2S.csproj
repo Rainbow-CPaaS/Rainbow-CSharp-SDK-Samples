@@ -10,7 +10,6 @@
 
   <ItemGroup>
     <PackageReference Include="EmbedIO" Version="3.4.3" />
-    <PackageReference Include="NLog.Extensions.Logging" Version="5.3.11" />
 	  <PackageReference Include="Rainbow.CSharp.SDK" Version="3.1.0" />
 	  <!--
 	<ProjectReference Include="..\..\..\..\rainbow-csharp-sdk-test\SDK\SDK.csproj" />

@@ -10,12 +10,15 @@ namespace Rainbow.Example.Common
 
         public List<int>? OAuthPorts { get; set; }
 
+        public String? SSORedirectUrl { get; set; }
+
         public ServerConfig()
         {
             AppId = "";
             AppSecret = "";
             HostName = "";
             OAuthPorts = null;
+            SSORedirectUrl = null;
         }
 
         public static Boolean FromJsonNode(JSONNode jsonNode, out ServerConfig serverConfig)
@@ -28,7 +31,8 @@ namespace Rainbow.Example.Common
                     AppId = jsonNode["appId"],
                     AppSecret = jsonNode["appSecret"],
                     HostName = jsonNode["hostname"],
-                    OAuthPorts = jsonNode["oauthPorts"]
+                    OAuthPorts = jsonNode["oauthPorts"],
+                    SSORedirectUrl = jsonNode["ssoRedirectUrl"]
                 };
 
                 // Check validity

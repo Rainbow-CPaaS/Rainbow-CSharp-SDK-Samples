@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
 using Rainbow;
-using Rainbow.Console;
 using System.Text;
 
 using Util = Rainbow.Console.Util;
