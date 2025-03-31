@@ -4,7 +4,6 @@ using Rainbow.Example.Common;
 using Rainbow.SimpleJSON;
 using System;
 using System.IO;
-using System.Net;
 using System.Windows;
 using WpfSSOSamples.Helpers;
 using WpfSSOSamples.View;
@@ -22,18 +21,18 @@ namespace WpfSSOSamples
 
         // Define all Rainbow objects we use
         internal Rainbow.Application RbApplication = null;
+
         internal LoginView LoginWindow = null;
 
         internal ExeSettings? exeSettings = null;
         internal Credentials? credentials = null;
 
-
-#region EVENTS/OVERRIDE OF APPLICATION OBJECT
+    #region EVENTS/OVERRIDE OF APPLICATION OBJECT
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
 
-            if((!ReadExeSettings()) || exeSettings is null)
+            if ((!ReadExeSettings()) || exeSettings is null)
             {
                 // TODO
             }
@@ -100,6 +99,7 @@ namespace WpfSSOSamples
 
             return true;
         }
+
 
     }
 }

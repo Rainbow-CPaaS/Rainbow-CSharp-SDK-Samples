@@ -99,8 +99,10 @@ A Visual Studio solution centralized all of them [here](./TerminalApp/)
 <a name="WPFApplicationexample"></a>
 ## WPF Application
 
-This example is even more interactive but it's working only on **Windows** 
+These examples are APF Application so ther are working only on **Windows** 
 
 | Project Name | Content | Description |
-| --- | --- | --- | 
-| [SSO](./WPF/SSO/README.md) | Login, AutoReconnection using SSO | Simple Login form to understand how to manage SSO |
+| --- | --- | --- |
+| [OAuth](./WPF/OAuth/README.md) | Login, AutoReconnection using **OAuth** | Simple Login form to understand how to manage OAuth | 
+| [SSO](./WPF/SSO/README.md) | Login, AutoReconnection using **SSO** | Simple Login form to understand how to manage SSO |
+

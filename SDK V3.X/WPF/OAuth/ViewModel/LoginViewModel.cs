@@ -15,6 +15,7 @@ using System.Linq;
 using System.Threading;
 using WpfWebView;
 using Rainbow.Consts;
+using System.Security.Policy;
 
 namespace WpfSSOSamples.ViewModel
 {
@@ -101,68 +102,14 @@ namespace WpfSSOSamples.ViewModel
         {
             // Set default values
             Model.IsBusy = false;
-            Model.AskingPassword = false;
             Model.Connect = "Continue";
             SetErrorMessage(null);
-
-            // Get Login / Password from cache (i.e. INI FILE)
-            Model.Login = CurrentApplication.RbApplication.UserCredentials?.Login;
-            Model.Password = CurrentApplication.RbApplication.UserCredentials?.Password;
 
             CurrentApplication.RbApplication.ConnectionStateChanged += RbApplication_ConnectionStateChanged;
 
             // FOR TEST:
             //Model.ErrorIsVisible = Visibility.Visible;
             //Model.ErrorString = "Lorem ipsum dolor sit amet, libero amet, aliquam sed quis nam a, interdum massa est, pede aenean. Luctus felis. Nam accumsan consectetuer dui enim nostra et, amet odio consequatur, quis lacinia ipsum vel diam. Pellentesque rem fermentum felis, orci risus vel augue amet odio quam, sit eu quis donec scelerisque urna, urna dictum. Felis cursus lorem eget sagittis sed ante, ultrices varius non pulvinar elit in justo, lectus consectetuer tempus ornare tempor libero, per suspendisse mauris vel nec. Per lorem ante etiam aliquet cursus nec, ac lobortis. Eget metus. Mus urna in habitant ut tincidunt libero, et sit, urna interdum eget purus nec odio a, id sodales in. Tincidunt sit amet mattis aliquam sed risus, orci mollis lacus ullamcorper vel.";
-        }
-
-        private void RBLogin(String login, String password)
-        {
-            if (Model.IsBusy)
-                return;
-
-            // We set to Busy
-            Model.IsBusy = true;
-
-            // Hide error (if any)
-            Model.ErrorIsVisible = Visibility.Collapsed;
-            Model.ErrorString = "";
-
-            Task task = new Task(() =>
-            {
-                if (!CurrentApplication.RbApplication.IsConnected())
-                {
-                    CurrentApplication.RbApplication.LoginAsync(login, password).ContinueWith(async task =>
-                    {
-                        var sdkResult = await task;
-                        if (!sdkResult.Success)
-                        {
-                            if (System.Windows.Application.Current != null)
-                            {
-                                System.Windows.Application.Current.Dispatcher.Invoke(new Action(() =>
-                                {
-                                    String strError = "";
-                                    if (sdkResult.Result.ExceptionError != null)
-                                        strError = "Exception: " + sdkResult.Result.ExceptionError.ToString();
-                                    else if (sdkResult.Result.IncorrectUseError != null)
-                                    {
-                                        strError = sdkResult.Result.IncorrectUseError.ErrorMsg; 
-                                        if(!String.IsNullOrEmpty(sdkResult.Result.IncorrectUseError.ErrorDetails))
-                                            strError += ": " + sdkResult.Result.IncorrectUseError.ErrorDetails;
-                                    }
-                                    Model.IsBusy = false;
-                                    Model.ErrorIsVisible = Visibility.Visible;
-                                    Model.ErrorString = strError;
-                                }));
-                            }
-                        }
-                        
-                    });
-                }
-                else
-                    CurrentApplication.RbApplication.LogoutAsync();
-            });
-            task.Start();
         }
 
     #endregion PRIVATE METHODS
@@ -186,7 +133,6 @@ namespace WpfSSOSamples.ViewModel
                     break;
 
                 case ConnectionStatus.Disconnected:
-                    Model.AskingPassword = false;
                     SetToBusy(false);
                     break;
             }
@@ -196,11 +142,6 @@ namespace WpfSSOSamples.ViewModel
 
 
     #region COMMANDS RAISED BY THE VIEW
-
-        private Boolean IsEmailAddress(String str)
-        {
-            return new EmailAddressAttribute().IsValid(str);
-        }
 
         private void SetErrorMessage(String errMsg)
         {
@@ -234,28 +175,13 @@ namespace WpfSSOSamples.ViewModel
 
             Model.IsBusy = busy;
             if (busy)
-            {
-                if (Model.AskingPassword)
-                    Model.Connect = "Connecting";
-                else
-                    Model.Connect = "Continue";
-            }
+                Model.Connect = "Connecting";
             else
             {
-                if (Model.AskingPassword)
-                {
-                    if (CurrentApplication.RbApplication.IsConnected())
-                        Model.Connect = "Logout";
-                    else
-                        Model.Connect = "Connect";
-                }
+                if (CurrentApplication.RbApplication.IsConnected())
+                    Model.Connect = "Logout";
                 else
-                {
-                    if (CurrentApplication.RbApplication.IsConnected())
-                        Model.Connect = "Logout";
-                    else
-                        Model.Connect = "Continue";
-                }
+                    Model.Connect = "Continue";
             }
         }
         
@@ -294,15 +220,15 @@ namespace WpfSSOSamples.ViewModel
                 }
                 else
                 {
-                    SetErrorMessage("SSO has been performed well. Now using Token to login on RB Server ...");
+                    SetErrorMessage("SSO has been performed well. Now using Authorization Code to login on RB Server ...");
 
-                    String token = browserResult.Token;
+                    String code = browserResult.Code;
 
                     // Now start login with this token
-                    var sdkResult = await CurrentApplication.RbApplication.LoginWithTokenAsync(token);
+                    var sdkResult = await CurrentApplication.RbApplication.LoginWithOauthAuthorizationCodeAsync(code, redirectUri);
                     if (!sdkResult.Success)
                     {
-                        SetErrorMessage("Login to RB using Token failed");
+                        SetErrorMessage("Login to RB using Authorization Code failed");
                         SetToBusy(false);
                     }
                 }
@@ -338,105 +264,12 @@ namespace WpfSSOSamples.ViewModel
             }
             else
             {
-                // Are we asking the password ?
-                if (Model.AskingPassword)
-                {
-
-                    if (String.IsNullOrEmpty(Model.Password))
-                    {
-                        SetErrorMessage("Invalid password");
-                        SetToBusy(false);
-                    }
-                    else
-                    {
-                        CurrentApplication.RbApplication.LoginAsync(Model.Login, Model.Password).ContinueWith(async task =>
-                        {
-                            var sdkResult = await task;
-                            if (!sdkResult.Success)
-                            {
-                                if (sdkResult.Result.HttpStatusCode != 0)
-                                {
-                                    if (sdkResult.Result.IncorrectUseError != null)
-                                        SetErrorMessage(String.Format("{0}: [{1}]", sdkResult.Result.IncorrectUseError.ErrorDetails, sdkResult.Result.IncorrectUseError.ErrorCode));
-                                    else
-                                        SetErrorMessage(String.Format("Exception occurs: [{0}]", sdkResult.Result.ExceptionError.Message));
-                                }
-                                else
-                                {
-                                    SetErrorMessage("Cannot contact the server. Please check your network settings.");
-                                }
-                            }
-                        });
-                    }
-
-                }
-
-                // We are not asking password
-                else
-                {
-                    // Check email address
-                    if (IsEmailAddress(Model.Login))
-                    {
-                        SetToBusy(true);
-
-                        // We ask server for SSO URL
-                        CurrentApplication.RbApplication.GetAuthenticationSSOUrlsAsync(Model.Login).ContinueWith(async task =>
-                        {
-                            var sdkResult = await task;
-                            if (sdkResult.Success)
-                            {
-                                List<AuthenticationSSOUrl> urls = sdkResult.Data;
-
-                                // Do we have at least one URL ?
-                                if ((urls == null) || (urls?.Count == 0))
-                                {
-                                    Model.AskingPassword = true;
-                                    SetToBusy(false);
-                                    return;
-                                }
-
-                                // If we have several URLs, the first one different of RAINBOW is taken into account
-                                AuthenticationSSOUrl authUrl = urls.FirstOrDefault(x => (x.Type.ToUpper() != "RAINBOW"));
-
-                                // Do we have found one ?
-                                if (authUrl == null)
-                                {
-                                    Model.AskingPassword = true;
-                                    SetToBusy(false);
-                                    return;
-                                }
-
-                                // So we start SSO
-                                String uri = authUrl.LoginUrl;
-                                String callbackRedirectUri = CurrentApplication.credentials.ServerConfig.SSORedirectUrl;
-                                StartSSO(uri, callbackRedirectUri);
-                            }
-                            else
-                            {
-                                SetToBusy(false);
-
-                                if (sdkResult.Result.HttpStatusCode != 0)
-                                {
-                                    if (sdkResult.Result.IncorrectUseError != null)
-                                        SetErrorMessage(String.Format("{0}: [{1}]", sdkResult.Result.IncorrectUseError.ErrorDetails, sdkResult.Result.IncorrectUseError.ErrorCode));
-                                    else
-                                        SetErrorMessage(String.Format("Exception occurs: [{0}]", sdkResult.Result.ExceptionError.Message));
-                                }
-                                else
-                                {
-                                    SetErrorMessage("Cannot contact the server. Please check your network settings.");
-                                }
-                            }
-                        });
-                    }
-                    else
-                    {
-                        SetErrorMessage("Not a valid email address");
-
-                        Model.AskingPassword = false;
-                        Model.Connect = "Continue";
-                    }
-                }
+                SetToBusy(true);
+                
+                string redirectUri = "http://127.0.0.1:" + CurrentApplication.credentials.ServerConfig.OAuthPorts[0];
+                string uri = CurrentApplication.RbApplication.GetOAuthAuthorizationEndPoint(true, redirectUri);
+                
+                StartSSO(uri, redirectUri);
             }
         }
 
@@ -447,7 +280,6 @@ namespace WpfSSOSamples.ViewModel
 
         private void CommandEntryLoginGotFocus(object obj)
         {
-            Model.AskingPassword = false;
             Model.Connect = "Continue";
         }
 

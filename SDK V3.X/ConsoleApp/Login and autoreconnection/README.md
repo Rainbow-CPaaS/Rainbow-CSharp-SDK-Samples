@@ -2,9 +2,9 @@
 
 # Rainbow CSharp SDK v3 - Login and Auto Reconnection
 
-This console application permits to understand how to use the package [Rainbow.CSharp.SDK.Desktop](https://www.nuget.org/packages/Rainbow.CSharp.SDK.WebRTC.Desktop).
+This console application permits to understand how to use the package [Rainbow.CSharp.SDK](https://www.nuget.org/packages/Rainbow.CSharp.SDK).
 
-Documentation is available [here](https://developers.openrainbow.com/doc/sdk/csharp/webrtc.desktop/lts/guides/001_getting_started)
+Documentation is available [here](https://developers.openrainbow.com/doc/sdk/csharp/core/lts/guides/001_getting_started)
 
 ## Prerequisites
 
