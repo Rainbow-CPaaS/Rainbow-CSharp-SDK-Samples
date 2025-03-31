@@ -99,7 +99,7 @@ A Visual Studio solution centralized all of them [here](./TerminalApp/)
 <a name="WPFApplicationexample"></a>
 ## WPF Application
 
-These examples are APF Application so ther are working only on **Windows** 
+These examples are WPF Application so they are working only on **Windows** 
 
 | Project Name | Content | Description |
 | --- | --- | --- |
