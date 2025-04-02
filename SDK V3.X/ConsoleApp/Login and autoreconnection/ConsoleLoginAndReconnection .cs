@@ -41,16 +41,19 @@ Rainbow.Util.SetLogAnonymously(false);
 // Create Rainbow SDK objects
 var RbApplication = new Application(iniFolderFullPathName: logFolderPath, iniFileName: logPrefix +".ini", loggerPrefix: logPrefix);
 var RbAutoReconnection = RbApplication.GetAutoReconnection();
+var RbBubbles = RbApplication.GetBubbles();
 
 // We want to receive events from SDK
-RbApplication.AuthenticationFailed += RbApplication_AuthenticationFailed;       // Triggered when the authentication process will fail
-RbApplication.AuthenticationSucceeded += RbApplication_AuthenticationSucceeded; // Triggered when the authentication process will succeed
-RbApplication.ConnectionStateChanged += RbApplication_ConnectionStateChanged;   // Triggered when the Connection State will change
+RbApplication.AuthenticationFailed += RbApplication_AuthenticationFailed;           // Triggered when the authentication process will fail
+RbApplication.AuthenticationSucceeded += RbApplication_AuthenticationSucceeded;     // Triggered when the authentication process will succeed
+RbApplication.ConnectionStateChanged += RbApplication_ConnectionStateChanged;       // Triggered when the Connection State will change
 
 RbAutoReconnection.Cancelled += RbAutoReconnection_Cancelled;                       // Triggered when AutoReonnection service is cancelled
 RbAutoReconnection.Started += RbAutoReconnection_Started;                           // Triggered when AutoReonnection service is started
 RbAutoReconnection.MaxNbAttemptsReached += RbAutoReconnection_MaxNbAttemptsReached; // Triggered when AutoReonnection service reachde the mawimun number of attempts tryig to connect to the server
 RbAutoReconnection.TokenExpired += RbAutoReconnection_TokenExpired;                 // Triggered when the Security Token is expired
+
+RbBubbles.BubbleAffiliationsPerformed += RbBubbles_BubbleAffiliationsPerformed;     // Triggered when all bubbles have been affiliated
 
 // Set global configuration info
 RbApplication.SetApplicationInfo(credentials.ServerConfig.AppId, credentials.ServerConfig.AppSecret);
@@ -175,6 +178,13 @@ void RbApplication_AuthenticationFailed(SdkError sdkError)
 {
     // Authentication failed - we display in the console the reason
     Util.WriteRed($"{CR}Event Application.AuthenticationFailed triggered - SdkError:{sdkError}");
+}
+
+void RbBubbles_BubbleAffiliationsPerformed()
+{
+    // Bubble Affiliations Performed - we display in the console the info
+    Util.WriteBlue($"{CR}Event Bubbles_BubbleAffiliationsPerformed triggered");
+
 }
 
 void RbAutoReconnection_TokenExpired()
