@@ -93,19 +93,6 @@ async Task CheckInputKey()
                 Environment.Exit(0);
                 return;
 
-
-            case ConsoleKey.T:
-                if (RbApplication.IsConnected())
-                {
-                    // Renew tokent
-                    var taskSdkResult = await RbApplication.RenewTokenAsync();
-                    if (taskSdkResult.Success)
-                        Util.WriteGreen($"RenewTokenAsync - Done");
-                    else
-                        Util.WriteRed($"RenewTokenAsync - Error:[{taskSdkResult.Result}]");
-                }
-                return;
-
             case ConsoleKey.Q:
                 if(RbApplication.IsConnected())
                 {
