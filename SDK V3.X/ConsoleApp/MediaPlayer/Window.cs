@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Rainbow.Medias;
+using Rainbow.Example.Common;
+using FFmpeg.AutoGen;
 
 namespace ConsoleMediaPlayer
 {
@@ -19,5 +17,150 @@ namespace ConsoleMediaPlayer
 
         public Boolean VideoStopped = true;
 
+        public static void ToggleFullScreen(Window window)
+        {
+            if (window is not null && window.Handle != IntPtr.Zero)
+            {
+                window.FullScreen = !window.FullScreen;
+                SDL2.SDL_SetWindowFullscreen(window.Handle, (uint)(window.FullScreen ? SDL2.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP : 0));
+                Restore(window); // If the windows was minimized, it's no more the case
+                Raise(window);  // To have the window on top - like SetForegroundWindow()
+            }
+        }
+
+        public static void Create(Window window)
+        {
+            if (window is null || window.Handle != IntPtr.Zero)
+                return;
+
+            var flags = SDL2.SDL_WindowFlags.SDL_WINDOW_RESIZABLE | SDL2.SDL_WindowFlags.SDL_WINDOW_SHOWN;
+            window.Handle = SDL2.SDL_CreateWindow("Output", SDL2.SDL_WINDOWPOS_UNDEFINED, SDL2.SDL_WINDOWPOS_UNDEFINED, 800, 600, flags);
+
+            if (window.Handle != IntPtr.Zero)
+            {
+                window.Id = SDL2.SDL_GetWindowID(window.Handle);
+                window.Renderer = SDL2.SDL_CreateRenderer(window.Handle, -1,
+                        SDL2.SDL_RendererFlags.SDL_RENDERER_ACCELERATED | SDL2.SDL_RendererFlags.SDL_RENDERER_PRESENTVSYNC);
+                ClearRenderer(window);
+            }
+        }
+
+        public static void Destroy(Window window)
+        {
+            if (window is null) return;
+
+            DestroyTexture(window);
+            DestroyRenderer(window);
+
+            if (window.Handle != IntPtr.Zero)
+            {
+                SDL2.SDL_DestroyWindow(window.Handle);
+                window.Handle = IntPtr.Zero;
+            }
+        }
+
+        public static void Hide(Window window)
+        {
+            if (window is not null && window.Handle != IntPtr.Zero)
+                SDL2.SDL_HideWindow(window.Handle);
+        }
+
+        public static void Show(Window window)
+        {
+            if (window is not null && window.Handle != IntPtr.Zero)
+                SDL2.SDL_ShowWindow(window.Handle);
+        }
+
+        public static void Raise(Window window)
+        {
+            if (window is not null && window.Handle != IntPtr.Zero)
+                SDL2.SDL_RaiseWindow(window.Handle);
+        }
+
+        public static void Restore(Window window)
+        {
+            if (window is not null && window.Handle != IntPtr.Zero)
+                SDL2.SDL_RestoreWindow(window.Handle);
+        }
+
+        public static void UpdateTitle(Window window, string title)
+        {
+            if (window is not null && window.Handle != IntPtr.Zero)
+                SDL2.SDL_SetWindowTitle(window.Handle, title);
+        }
+
+        public static void CreateTexture(Window window, int w, int h, AVPixelFormat pixelFormat)
+        {
+            if ((window is not null && window.Renderer != IntPtr.Zero))
+            {
+                // Destroy previous texture
+                DestroyTexture(window);
+
+                var sdlFormat = SDL2Helper.GetPixelFormat(pixelFormat);
+                if (sdlFormat == SDL2.SDL_PIXELFORMAT_UNKNOWN)
+                {
+                    Util.WriteRed($"Cannot get SDL pixel format using ffmpeg video foramt:[{pixelFormat}]");
+                    return;
+                }
+
+                // Create texture
+                window.Texture = SDL2.SDL_CreateTexture(window.Renderer, sdlFormat, (int)SDL2.SDL_TextureAccess.SDL_TEXTUREACCESS_STREAMING, w, h);
+                if (window.Texture == IntPtr.Zero)
+                    Util.WriteRed($"Cannot create texture");
+            }
+            else
+                Util.WriteRed($"Cannot create texture - No window renderer");
+        }
+
+        public static void DestroyTexture(Window window)
+        {
+            if ((window is not null && window.Texture != IntPtr.Zero))
+            {
+                SDL2.SDL_DestroyTexture(window.Texture);
+                window.Texture = IntPtr.Zero;
+            }
+        }
+
+        public static void DestroyRenderer(Window window)
+        {
+            if ((window is not null && window.Renderer != IntPtr.Zero))
+            {
+                SDL2.SDL_DestroyRenderer(window.Renderer);
+                window.Renderer = IntPtr.Zero;
+            }
+        }
+
+        public static void UpdateTexture(Window window, int stride, IntPtr data)
+        {
+            if (window is not null && window.Texture != IntPtr.Zero)
+            {
+                var _ = SDL2.SDL_UpdateTexture(window.Texture, IntPtr.Zero, data, stride);
+            }
+        }
+
+        public static void ClearRenderer(Window window)
+        {
+            if (window is not null && window.Renderer != IntPtr.Zero)
+            {
+                if (SDL2.SDL_RenderClear(window.Renderer) == 0)
+                    SDL2.SDL_RenderPresent(window.Renderer);
+            }
+        }
+
+        public static void UpdateRenderer(Window window)
+        {
+            if (window is not null && window.Renderer != IntPtr.Zero && window.Texture != IntPtr.Zero)
+            {
+                window.NeedRendereUpdate = false;
+                if (SDL2.SDL_RenderCopy(window.Renderer, window.Texture, IntPtr.Zero, IntPtr.Zero) == 0)
+                    SDL2.SDL_RenderPresent(window.Renderer);
+            }
+        }
+
+        public static void CheckUpdateRenderer(Window window)
+        {
+            if (window is not null && window.NeedRendereUpdate && !window.VideoStopped)
+                UpdateRenderer(window);
+        }
     }
 }

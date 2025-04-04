@@ -105,7 +105,7 @@ namespace ConsoleMediaPlayer
                     }
                 }
 
-                CheckUpdateWindowRenderer(_outputWindow);
+                Window.CheckUpdateRenderer(_outputWindow);
 
                 // Check Keys fom Console Window
                 if (Console.KeyAvailable || simulatedKey!=0)
@@ -141,7 +141,7 @@ namespace ConsoleMediaPlayer
                             break;
 
                         case (int)ConsoleKey.F:
-                            ToggleFullScreen(_outputWindow);
+                            Window.ToggleFullScreen(_outputWindow);
                             break;
 
                         case (int)ConsoleKey.S:
@@ -170,7 +170,7 @@ namespace ConsoleMediaPlayer
             }
 
             // Destroy SDL2 window
-            DestroyWindow(_outputWindow);
+            Window.Destroy(_outputWindow);
 
             await CloseMediaInputAsync(true, true);
         }
@@ -607,7 +607,7 @@ namespace ConsoleMediaPlayer
 
             await CloseMediaInputAsync(withAudio, withVideo);
 
-            ClearWindowRenderer(_outputWindow);
+            Window.ClearRenderer(_outputWindow);
 
             var options = _currentStream.UriSettings;
 
@@ -749,9 +749,9 @@ namespace ConsoleMediaPlayer
                 _outputWindow.VideoStopped = false;
 
                 // Even if there is no video, we create/show it - it's title permits to know streams currently used
-                CreateWindow(_outputWindow);
-                ShowWindow(_outputWindow);
-                ClearWindowRenderer(_outputWindow);
+                Window.Create(_outputWindow);
+                Window.Show(_outputWindow);
+                Window.ClearRenderer(_outputWindow);
 
                 if (iMediaAudio is not null)
                 {
@@ -764,8 +764,9 @@ namespace ConsoleMediaPlayer
                     _mediaInputVideo = iMediaVideo;
                     _mediaInputVideo.OnImage += MediaInput_OnImage;
                 }
-
-                UpdateWindowTitle(_outputWindow);
+                
+                String title = $"SDK C# v3.x - Streaming Audio:[{((_mediaInputAudio is not null) ? _mediaInputAudio.Name : "NONE")}] - Video:[{((_mediaInputVideo is not null) ? $"{_mediaInputVideo.Name} - {_mediaInputVideo.Width}x{_mediaInputVideo.Height}" : "NONE")}]";
+                Window.UpdateTitle(_outputWindow, title);
 
                 Util.WriteDarkYellow($"MediaInput initialized / started");
             }
@@ -793,17 +794,17 @@ namespace ConsoleMediaPlayer
                     return;
 
                 if (_outputWindow.Texture == IntPtr.Zero)
-                    CreateTexture(_outputWindow, width, height, pixelFormat);
+                    Window.CreateTexture(_outputWindow, width, height, pixelFormat);
 
-                UpdateTexture(_outputWindow, stride, data);
-                UpdateWindowRenderer(_outputWindow);
+                Window.UpdateTexture(_outputWindow, stride, data);
+                Window.UpdateRenderer(_outputWindow);
             }));
         }
 
 #endregion MediaInput Events
 
 #region Window / Renderer / Texture
-
+/*
         static void ToggleFullScreen(Window window)
         {
             if (window is not null && window.Handle != IntPtr.Zero)
@@ -952,7 +953,7 @@ namespace ConsoleMediaPlayer
             if (window is not null && window.NeedRendereUpdate && !window.VideoStopped)
                 UpdateWindowRenderer(window);
         }
-
+*/
 #endregion Window / Renderer / Texture
 
        #region READ CONFIGURATION
