@@ -2,7 +2,7 @@
 using Rainbow.Consts;
 
 using Rainbow.Example.Common;
-using Util = Rainbow.Console.Util;
+using Util = Rainbow.Example.Common.Util;
 using Rainbow.SimpleJSON;
 
 // --------------------------------------------------
@@ -82,24 +82,24 @@ void CheckInputKey()
 void RbApplication_ConnectionStateChanged(Rainbow.Model.ConnectionState connectionState)
 {
     // We log connection state in the console - use differnte color according the status
-    ConsoleColor color;
+    String color;
     switch (connectionState.Status)
     {
         case ConnectionStatus.Connected:
-            color = ConsoleColor.Blue;
+            color = Util.BLUE;
             break;
 
         case ConnectionStatus.Disconnected:
-            color = ConsoleColor.Red;
+            color = Util.RED;
             break;
 
         case ConnectionStatus.Connecting:
         default:
-            color = ConsoleColor.Green;
+            color = Util.GREEN;
             break;
 
     }
-    Util.WriteToConsole($"{CR}Event Application.ConnectionStateChanged triggered - Connection Status: [{connectionState.Status}]", color);
+    Util.WriteToConsole($"{CR}{color}Event Application.ConnectionStateChanged triggered - Connection Status: [{connectionState.Status}]");
 }
 
 void RbApplication_AuthenticationSucceeded()

@@ -10,7 +10,7 @@ using Stateless;
 using Stateless.Graph;
 using System.Collections.Concurrent;
 using System.Text;
-
+using Util = Rainbow.Example.Common.Util;
 namespace BotLibrary
 {
     /// <summary>
@@ -189,7 +189,7 @@ namespace BotLibrary
                 .SubstateOf(State.Connected)
                 .Permit(Trigger.NextStep, State.CheckingDataAvailability);
 
-            _machine.OnUnhandledTrigger((state, trigger) => Util.WriteWarningToConsole($"[{BotName}] OnUnhandledTrigger - State: {state} with Trigger: {trigger}"));
+            _machine.OnUnhandledTrigger((state, trigger) => Util.WriteRed($"[{BotName}] OnUnhandledTrigger - State: {state} with Trigger: {trigger}"));
 
             _machine.OnTransitionCompleted(transition => {
                 // Store the trigger used
@@ -197,7 +197,7 @@ namespace BotLibrary
 
                 // Log info about transition
                 var parameters = string.Join(", ", transition.Parameters);
-                Util.WriteInfoToConsole($"[{DateTime.Now:HH:mm:ss.fff}][{_credentials.UsersConfig[0].Prefix}] State [{transition.Destination}] from [{transition.Source}] with Trigger: [{transition.Trigger}]{(String.IsNullOrEmpty(parameters) ? "" : " Parameter(s):[" + parameters + "]")}");
+                Util.WriteGreen($"[{DateTime.Now:HH:mm:ss.fff}][{_credentials.UsersConfig[0].Prefix}] State [{transition.Destination}] from [{transition.Source}] with Trigger: [{transition.Trigger}]{(String.IsNullOrEmpty(parameters) ? "" : " Parameter(s):[" + parameters + "]")}");
             });
         }
 
@@ -910,20 +910,20 @@ namespace BotLibrary
 
             if (!Credentials.FromJsonNode(jsonNodeCredentials, out _credentials))
             {
-                Util.WriteErrorToConsole($"Cannot read 'credentials' object OR invalid/missing data.");
+                Util.WriteRed($"Cannot read 'credentials' object OR invalid/missing data.");
                 return false;
             }
 
             if (!BotConfiguration.FromJsonNode(_jsonNodeBotConfiguration, out _botConfiguration))
             {
-                Util.WriteErrorToConsole($"Cannot read 'botConfiguration' object OR invalid/missing data.");
+                Util.WriteRed($"Cannot read 'botConfiguration' object OR invalid/missing data.");
                 return false;
             }
 
             // At least one administrator must be set or guests accepted
             if (!((_botConfiguration.GuestsAccepted == true) || (_botConfiguration.Administrators?.Count > 0)))
             {
-                Util.WriteErrorToConsole($"At least one administrator must be set or guests accepted");
+                Util.WriteRed($"At least one administrator must be set or guests accepted");
                 return false;
             }
 

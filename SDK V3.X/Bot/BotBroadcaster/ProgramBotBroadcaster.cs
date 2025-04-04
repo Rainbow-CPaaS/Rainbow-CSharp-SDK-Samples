@@ -6,6 +6,7 @@ using Rainbow.SimpleJSON;
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using Util = Rainbow.Example.Common.Util;
 
 namespace BotBroadcaster
 {
@@ -16,9 +17,9 @@ namespace BotBroadcaster
 
         static async Task Main()
         {
-            BotLibrary.Util.WriteDebugToConsole($"{Global.ProductName()} v{Global.FileVersion()}");
+            Util.WriteGreen($"{Global.ProductName()} v{Global.FileVersion()}");
 
-            BotLibrary.Util.WriteDebugToConsole($"[ESC] To stop the bot");
+            Util.WriteGreen($"[ESC] To stop the bot");
 
             if (!ReadExeSettings())
                 return;
@@ -42,7 +43,7 @@ namespace BotBroadcaster
             }
 
             if (!_botBroadcaster.Login())
-                BotLibrary.Util.WriteErrorToConsole("Cannot start login process");
+                Util.WriteRed("Cannot start login process");
 
             var isStopped = false;
             SdkError? sdkError = null;
@@ -62,7 +63,7 @@ namespace BotBroadcaster
                 (isStopped, sdkError) = _botBroadcaster.IsStopped();
                     
             }
-            BotLibrary.Util.WriteErrorToConsole($"Bot as stopped:{Rainbow.Util.CR}{sdkError}");
+            Util.WriteRed($"Bot as stopped:{Rainbow.Util.CR}{sdkError}");
         }
 
         static async Task<Boolean> ConfigureBot()
@@ -71,7 +72,7 @@ namespace BotBroadcaster
             String credentialsFilePath = $".{Path.DirectorySeparatorChar}config{Path.DirectorySeparatorChar}credentials.json";
             if (!File.Exists(credentialsFilePath))
             {
-                BotLibrary.Util.WriteErrorToConsole($"The file '{credentialsFilePath}' has not been found.");
+                Util.WriteRed($"The file '{credentialsFilePath}' has not been found.");
                 return false;
             }
             String jsonConfig = File.ReadAllText(credentialsFilePath);
@@ -79,7 +80,7 @@ namespace BotBroadcaster
 
             if (jsonNode?["credentials"]?.IsObject != true )
             {
-                BotLibrary.Util.WriteErrorToConsole($"Cannot get JSON object 'credentials' from file '{credentialsFilePath}'.");
+                Util.WriteRed($"Cannot get JSON object 'credentials' from file '{credentialsFilePath}'.");
                 return false;
             }
             var jsonNodeBotSettings = jsonNode["credentials"];
@@ -88,7 +89,7 @@ namespace BotBroadcaster
             String botConfigurationFilePath = $".{Path.DirectorySeparatorChar}config{Path.DirectorySeparatorChar}botConfiguration.json";
             if (!File.Exists(botConfigurationFilePath))
             {
-                BotLibrary.Util.WriteErrorToConsole($"The file '{botConfigurationFilePath}' has not been found.");
+                Util.WriteRed($"The file '{botConfigurationFilePath}' has not been found.");
                 return false;
             }
 
@@ -96,7 +97,7 @@ namespace BotBroadcaster
             jsonNode = JSON.Parse(jsonConfig);
             if (jsonNode?["botConfiguration"]?.IsObject != true)
             {
-                BotLibrary.Util.WriteErrorToConsole($"Cannot get JSON object 'botConfiguration' from file '{credentialsFilePath}'.");
+                Util.WriteRed($"Cannot get JSON object 'botConfiguration' from file '{credentialsFilePath}'.");
                 return false;
             }
             var jsonNodeBotConfiguration = jsonNode["botConfiguration"];
@@ -104,7 +105,7 @@ namespace BotBroadcaster
             _botBroadcaster = new();
             if (!(await _botBroadcaster.Configure(jsonNodeBotSettings, jsonNodeBotConfiguration)))
             {
-                BotLibrary.Util.WriteErrorToConsole($"Cannot configure bot");
+                Util.WriteRed($"Cannot configure bot");
                 return false;
             }
 
@@ -119,7 +120,7 @@ namespace BotBroadcaster
             String exeSettingsFilePath = $".{Path.DirectorySeparatorChar}config{Path.DirectorySeparatorChar}exeSettings.json";
             if (!File.Exists(exeSettingsFilePath))
             {
-                BotLibrary.Util.WriteErrorToConsole($"The file '{exeSettingsFilePath}' has not been found.");
+                Util.WriteRed($"The file '{exeSettingsFilePath}' has not been found.");
                 return false;
             }
 
@@ -128,7 +129,7 @@ namespace BotBroadcaster
 
             if ((jsonNode is null) || (!jsonNode.IsObject))
             {
-                BotLibrary.Util.WriteErrorToConsole($"Cannot get JSON data from file '{exeSettingsFilePath}'.");
+                Util.WriteRed($"Cannot get JSON data from file '{exeSettingsFilePath}'.");
                 return false;
             }
 
@@ -144,7 +145,7 @@ namespace BotBroadcaster
             }
             else
             {
-                BotLibrary.Util.WriteErrorToConsole($"Cannot read 'exeSettings' object OR invalid/missing data - file:'{exeSettingsFilePath}'.");
+                Util.WriteRed($"Cannot read 'exeSettings' object OR invalid/missing data - file:'{exeSettingsFilePath}'.");
                 return false;
             }
 

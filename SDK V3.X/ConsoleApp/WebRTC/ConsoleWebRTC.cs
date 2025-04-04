@@ -12,7 +12,7 @@ using Rainbow.WebRTC.Desktop;
 
 using Rainbow.Example.Common;
 using Stream = Rainbow.Example.Common.Stream;
-using Util = Rainbow.Console.Util;
+using Util = Rainbow.Example.Common.Util;
 
 ExeSettings? exeSettings = null;
 List<Stream>? streamsList = null;

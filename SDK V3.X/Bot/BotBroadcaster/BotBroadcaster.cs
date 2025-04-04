@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Util = Rainbow.Example.Common.Util;
 
 namespace BotBroadcaster
 {
@@ -267,7 +268,7 @@ namespace BotBroadcaster
                             {  
                                 if(streamAndDevice.UsedInConference && streamAndDevice.Stream?.MediaInConference?.Equals("audio") == true)
                                 {
-                                    BotLibrary.Util.WriteInfoToConsole($"[{BotName}] Audio Stream must be removed from conference - Id:[{streamAndDevice.Stream.Id}] - Uri:[{streamAndDevice.Stream.Uri}]");
+                                    Util.WriteGreen($"[{BotName}] Audio Stream must be removed from conference - Id:[{streamAndDevice.Stream.Id}] - Uri:[{streamAndDevice.Stream.Uri}]");
                                     streamAndDevice.MustBeRemovedFromConference = true;
                                 }
                             });
@@ -280,7 +281,7 @@ namespace BotBroadcaster
                             {
                                 if (streamAndDevice.UsedInConference && streamAndDevice.Stream?.MediaInConference?.Equals("video") == true)
                                 {
-                                    BotLibrary.Util.WriteInfoToConsole($"[{BotName}] Video Stream must be removed from conference - Id:[{streamAndDevice.Stream.Id}] - Uri:[{streamAndDevice.Stream.Uri}]");
+                                    Util.WriteGreen($"[{BotName}] Video Stream must be removed from conference - Id:[{streamAndDevice.Stream.Id}] - Uri:[{streamAndDevice.Stream.Uri}]");
                                     streamAndDevice.MustBeRemovedFromConference = true;
                                 }
                             });
@@ -293,7 +294,7 @@ namespace BotBroadcaster
                             {
                                 if (streamAndDevice.UsedInConference && streamAndDevice.Stream?.MediaInConference?.Equals("sharing") == true)
                                 {
-                                    BotLibrary.Util.WriteInfoToConsole($"[{BotName}] Sharing Stream must be removed from conference - Id:[{streamAndDevice.Stream.Id}] - Uri:[{streamAndDevice.Stream.Uri}]");
+                                    Util.WriteGreen($"[{BotName}] Sharing Stream must be removed from conference - Id:[{streamAndDevice.Stream.Id}] - Uri:[{streamAndDevice.Stream.Uri}]");
                                     streamAndDevice.MustBeRemovedFromConference = true;
                                 }
                             });
@@ -328,10 +329,10 @@ namespace BotBroadcaster
             // Display info
             if (_listConnectedDevices.Count > 0)
             {
-                BotLibrary.Util.WriteInfoToConsole($"[{BotName}] Display Info about StreamAndDevice:");
+                Util.WriteGreen($"[{BotName}] Display Info about StreamAndDevice:");
                 foreach (var streamAndDevice in _listConnectedDevices)
                 {
-                    BotLibrary.Util.WriteInfoToConsole($"[{BotName}] Id:[{streamAndDevice.Stream.Id}] - MediaInConference[{streamAndDevice.Stream.MediaInConference}] - InConf:[{streamAndDevice.UsedInConference}] - ToRemove:[{streamAndDevice.MustBeRemovedFromConference}] - ToDelet:[{streamAndDevice.MustBeDeleted}]");
+                    Util.WriteGreen($"[{BotName}] Id:[{streamAndDevice.Stream.Id}] - MediaInConference[{streamAndDevice.Stream.MediaInConference}] - InConf:[{streamAndDevice.UsedInConference}] - ToRemove:[{streamAndDevice.MustBeRemovedFromConference}] - ToDelet:[{streamAndDevice.MustBeDeleted}]");
                 }
             }
 
@@ -363,12 +364,12 @@ namespace BotBroadcaster
                         try
                         {
                             streamAndDevice.Track = _rbWebRTCDesktopFactory.CreateAudioTrack(streamAndDevice.Device);
-                            BotLibrary.Util.WriteInfoToConsole($"[{BotName}] Connection done - Id:[{streamAndDevice.Stream.Id}] - Uri:[{streamAndDevice.Stream.Uri}] - Media:[{streamAndDevice.Stream.Media}]");
+                            Util.WriteGreen($"[{BotName}] Connection done - Id:[{streamAndDevice.Stream.Id}] - Uri:[{streamAndDevice.Stream.Uri}] - Media:[{streamAndDevice.Stream.Media}]");
 
                         }
                         catch (Exception e)
                         {
-                            BotLibrary.Util.WriteErrorToConsole($"[{BotName}] Connection CANNOT BE DONE - Id:[{streamAndDevice.Stream.Id}] - Uri:[{streamAndDevice.Stream.Uri}] - Media:[{streamAndDevice.Stream.Media}] - Exception:[{e}]");
+                            Util.WriteRed($"[{BotName}] Connection CANNOT BE DONE - Id:[{streamAndDevice.Stream.Id}] - Uri:[{streamAndDevice.Stream.Uri}] - Media:[{streamAndDevice.Stream.Media}] - Exception:[{e}]");
                         }
                     }
                     else
@@ -376,11 +377,11 @@ namespace BotBroadcaster
                         try
                         {
                             streamAndDevice.Track = _rbWebRTCDesktopFactory.CreateVideoTrack(streamAndDevice.Device, forceLiveStream: streamAndDevice.Stream.ForceLiveStream);
-                            BotLibrary.Util.WriteInfoToConsole($"[{BotName}] Connection done - Id:[{streamAndDevice.Stream.Id}] - Uri:[{streamAndDevice.Stream.Uri}] - Media:[{streamAndDevice.Stream.Media}]");
+                            Util.WriteGreen($"[{BotName}] Connection done - Id:[{streamAndDevice.Stream.Id}] - Uri:[{streamAndDevice.Stream.Uri}] - Media:[{streamAndDevice.Stream.Media}]");
                         }
                         catch (Exception e)
                         {
-                            BotLibrary.Util.WriteErrorToConsole($"[{BotName}] Connection CANNOT BE DONE - Id:[{streamAndDevice.Stream.Id}] - Uri:[{streamAndDevice.Stream.Uri}] - Media:[{streamAndDevice.Stream.Media}] - Exception:[{e}]");
+                            Util.WriteRed($"[{BotName}] Connection CANNOT BE DONE - Id:[{streamAndDevice.Stream.Id}] - Uri:[{streamAndDevice.Stream.Uri}] - Media:[{streamAndDevice.Stream.Media}] - Exception:[{e}]");
                         }
                     }
                 }
@@ -412,7 +413,7 @@ namespace BotBroadcaster
                     {
                         if (streamAndDeviceNewOneToUse is not null)
                         {
-                            BotLibrary.Util.WriteInfoToConsole($"[{BotName}] Change Video in conf - Id:[{streamAndDeviceNewOneToUse.Stream.Id}]");
+                            Util.WriteGreen($"[{BotName}] Change Video in conf - Id:[{streamAndDeviceNewOneToUse.Stream.Id}]");
 
                             sdkResultBoolean = await _rbWebRTCCommunications.ChangeVideoAsync(currentCall.Id, streamAndDeviceNewOneToUse.Track as IVideoStreamTrack);
                             if(sdkResultBoolean.Success)
@@ -424,17 +425,17 @@ namespace BotBroadcaster
                         }
                         else if ( (streamAndDevicesCurrentlyUsed.Count == 0) || (streamAndDevicesCurrentlyUsedToRemove.Count != 0))
                         {
-                            BotLibrary.Util.WriteInfoToConsole($"[{BotName}] Remove Video in conf - no stream to use");
+                            Util.WriteGreen($"[{BotName}] Remove Video in conf - no stream to use");
                             sdkResultBoolean = await _rbWebRTCCommunications.RemoveVideoAsync(currentCall.Id);
                         }
                         else
                         {
-                            BotLibrary.Util.WriteInfoToConsole($"[{BotName}] Use same Video in conf");
+                            Util.WriteGreen($"[{BotName}] Use same Video in conf");
                         }
                     }
                     else
                     {
-                        BotLibrary.Util.WriteInfoToConsole($"[{BotName}] Remove Video in conf - no stream defined");
+                        Util.WriteGreen($"[{BotName}] Remove Video in conf - no stream defined");
                         sdkResultBoolean = await _rbWebRTCCommunications.RemoveVideoAsync(currentCall.Id);
                     }
                 }
@@ -452,7 +453,7 @@ namespace BotBroadcaster
                         if ( (streamAndDeviceNewOneToUse is not null) 
                             && (streamAndDeviceNewOneToUse.Stream is not null) )
                         {
-                            BotLibrary.Util.WriteInfoToConsole($"[{BotName}] Add Video in conf - Id:[{streamAndDeviceNewOneToUse.Stream.Id}]");
+                            Util.WriteGreen($"[{BotName}] Add Video in conf - Id:[{streamAndDeviceNewOneToUse.Stream.Id}]");
                             sdkResultBoolean = await _rbWebRTCCommunications.AddVideoAsync(currentCall.Id, (IVideoStreamTrack ?) streamAndDeviceNewOneToUse.Track);
                             if (sdkResultBoolean.Success)
                             {
@@ -463,7 +464,7 @@ namespace BotBroadcaster
                         }
                         else
                         {
-                            BotLibrary.Util.WriteInfoToConsole($"[{BotName}] No Video to use in conf ...");
+                            Util.WriteGreen($"[{BotName}] No Video to use in conf ...");
                         }
 
                     }
@@ -493,7 +494,7 @@ namespace BotBroadcaster
                     {
                         if (streamAndDeviceNewOneToUse is not null)
                         {
-                            BotLibrary.Util.WriteInfoToConsole($"[{BotName}] Change Sharing in conf - Id:[{streamAndDeviceNewOneToUse.Stream.Id}]");
+                            Util.WriteGreen($"[{BotName}] Change Sharing in conf - Id:[{streamAndDeviceNewOneToUse.Stream.Id}]");
 
                             sdkResultBoolean = await _rbWebRTCCommunications.ChangeSharingAsync(currentCall.Id, streamAndDeviceNewOneToUse.Track as IVideoStreamTrack);
                             if (sdkResultBoolean.Success)
@@ -505,17 +506,17 @@ namespace BotBroadcaster
                         }
                         else if ((streamAndDevicesCurrentlyUsed.Count == 0) || (streamAndDevicesCurrentlyUsedToRemove.Count != 0))
                         {
-                            BotLibrary.Util.WriteInfoToConsole($"[{BotName}] Remove Sharing in conf - no stream to use");
+                            Util.WriteGreen($"[{BotName}] Remove Sharing in conf - no stream to use");
                             sdkResultBoolean = await _rbWebRTCCommunications.RemoveSharingAsync(currentCall.Id);
                         }
                         else
                         {
-                            BotLibrary.Util.WriteInfoToConsole($"[{BotName}] Use same Sharing in conf");
+                            Util.WriteGreen($"[{BotName}] Use same Sharing in conf");
                         }
                     }
                     else
                     {
-                        BotLibrary.Util.WriteInfoToConsole($"[{BotName}] Remove Sharing in conf - no stream defined");
+                        Util.WriteGreen($"[{BotName}] Remove Sharing in conf - no stream defined");
                         sdkResultBoolean = await _rbWebRTCCommunications.RemoveSharingAsync(currentCall.Id);
                     }
                 }
@@ -532,7 +533,7 @@ namespace BotBroadcaster
 
                         if (streamAndDeviceNewOneToUse is not null)
                         {
-                            BotLibrary.Util.WriteInfoToConsole($"[{BotName}] Add Sharing in conf - Id:[{streamAndDeviceNewOneToUse.Stream.Id}]");
+                            Util.WriteGreen($"[{BotName}] Add Sharing in conf - Id:[{streamAndDeviceNewOneToUse.Stream.Id}]");
                             sdkResultBoolean = await _rbWebRTCCommunications.AddSharingAsync(currentCall.Id, streamAndDeviceNewOneToUse.Track as IVideoStreamTrack);
                             if (sdkResultBoolean.Success)
                             {
@@ -543,7 +544,7 @@ namespace BotBroadcaster
                         }
                         else
                         {
-                            BotLibrary.Util.WriteInfoToConsole($"[{BotName}] No Sharing to use in conf ...");
+                            Util.WriteGreen($"[{BotName}] No Sharing to use in conf ...");
                         }
 
                     }
@@ -577,7 +578,7 @@ namespace BotBroadcaster
                 {
                     streamAndDevice.Track.Dispose();
                     streamAndDevice.Track = null;
-                    BotLibrary.Util.WriteInfoToConsole($"[{BotName}] Track disposed  - Id:[{streamAndDevice.Stream.Id}] - Uri:[{streamAndDevice.Stream.Uri}] - Media:[{streamAndDevice.Stream.Media}]");
+                    Util.WriteGreen($"[{BotName}] Track disposed  - Id:[{streamAndDevice.Stream.Id}] - Uri:[{streamAndDevice.Stream.Uri}] - Media:[{streamAndDevice.Stream.Media}]");
                 }
             }
 
@@ -645,7 +646,7 @@ namespace BotBroadcaster
                     if (!conferencesInProgress.Contains(conference.Peer.Id))
                     {
                         conferencesInProgress.Add(conference.Peer.Id);
-                        BotLibrary.Util.WriteDebugToConsole($"[{BotName}] [ConferenceUpdated] A conference is active - Id:[{conference.Peer.Id}]");
+                        Util.WriteBlue($"[{BotName}] [ConferenceUpdated] A conference is active - Id:[{conference.Peer.Id}]");
 
                         CheckBroadcastConfiguration();
                     }
@@ -655,7 +656,7 @@ namespace BotBroadcaster
                     if (conferencesInProgress.Contains(conference.Peer.Id))
                     {
                         conferencesInProgress.Remove(conference.Peer.Id);
-                        BotLibrary.Util.WriteDebugToConsole($"[{BotName}] [ConferenceUpdated] A conference is NO MORE active - Id:[{conference.Peer.Id}]");
+                        Util.WriteBlue($"[{BotName}] [ConferenceUpdated] A conference is NO MORE active - Id:[{conference.Peer.Id}]");
 
                         CheckBroadcastConfiguration();
                     }
@@ -693,7 +694,7 @@ namespace BotBroadcaster
                     }
                 }
                 
-                BotLibrary.Util.WriteDebugToConsole($"[{BotName}] [CallUpdated] CallId:[{call.Id}] - Status:[{call.CallStatus}] - Local:[{Rainbow.Util.MediasToString(call.LocalMedias)}] - Remote:[{Rainbow.Util.MediasToString(call.RemoteMedias)}] - Conf.:[{(call.IsConference ? "True" : "False")}] - IsInitiator.:[{call.IsInitiator}]");
+                Util.WriteBlue($"[{BotName}] [CallUpdated] CallId:[{call.Id}] - Status:[{call.CallStatus}] - Local:[{Rainbow.Util.MediasToString(call.LocalMedias)}] - Remote:[{Rainbow.Util.MediasToString(call.RemoteMedias)}] - Conf.:[{(call.IsConference ? "True" : "False")}] - IsInitiator.:[{call.IsInitiator}]");
                 CheckBroadcastConfiguration();
             }
         }

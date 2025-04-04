@@ -3,7 +3,7 @@ using Rainbow;
 using System.Text;
 
 using Rainbow.Example.Common;
-using Util = Rainbow.Console.Util;
+using Util = Rainbow.Example.Common.Util;
 using Rainbow.SimpleJSON;
 
 // --------------------------------------------------

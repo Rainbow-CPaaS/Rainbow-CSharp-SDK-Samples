@@ -1,7 +1,7 @@
 ﻿using Rainbow.Example.Common;
 using Rainbow.SimpleJSON;
 
-using Util = Rainbow.Console.Util;
+using Util = Rainbow.Example.Common.Util;
 
 public static class Configuration
 {
