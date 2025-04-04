@@ -679,8 +679,12 @@ namespace ConsoleMediaPlayer
             // Remove event(s)
             if(audio && _mediaInputAudio is not null)
                 _mediaInputAudio.OnAudioSample -= MediaInput_OnAudioSample;
+
             if (video && _mediaInputVideo is not null)
             {
+                // We inform that the video is now stopped
+                _outputWindow.VideoStopped = true;
+
                 _mediaInputVideo.OnImage -= MediaInput_OnImage;
                 DestroyTexture(_outputWindow);
             }
@@ -742,6 +746,8 @@ namespace ConsoleMediaPlayer
             Util.WriteGreen($"Init/Start MediaInput with [{iMedia.Id}] ...");
             if (iMedia.Init(true))
             {
+                _outputWindow.VideoStopped = false;
+
                 // Even if there is no video, we create/show it - it's title permits to know streams currently used
                 CreateWindow(_outputWindow);
                 ShowWindow(_outputWindow);
@@ -783,7 +789,7 @@ namespace ConsoleMediaPlayer
             // /!\ Need to use Main Thread
             _actions.Add( new Action(() =>
             {
-                if (_outputWindow is null)
+                if ( _outputWindow is null || _outputWindow.VideoStopped)
                     return;
 
                 if (_outputWindow.Texture == IntPtr.Zero)
@@ -943,7 +949,7 @@ namespace ConsoleMediaPlayer
 
         static void CheckUpdateWindowRenderer(Window window)
         {
-            if (window is not null && window.NeedRendereUpdate)
+            if (window is not null && window.NeedRendereUpdate && !window.VideoStopped)
                 UpdateWindowRenderer(window);
         }
 
@@ -1021,8 +1027,8 @@ namespace ConsoleMediaPlayer
                 if (_exeSettings.UseAudioVideo)
                 {
                     Rainbow.Medias.Helper.InitExternalLibraries(_exeSettings.FfmpegLibFolderPath, true);
-                    SDL2.SDL_SetHint(SDL2.SDL_HINT_RENDER_DRIVER, "opengles");
-                    SDL2.SDL_SetHint(SDL2.SDL_HINT_RENDER_BATCHING, "1");
+                    //SDL2.SDL_SetHint(SDL2.SDL_HINT_RENDER_DRIVER, "opengles");
+                    //SDL2.SDL_SetHint(SDL2.SDL_HINT_RENDER_BATCHING, "1");
                 }
             }
             else
