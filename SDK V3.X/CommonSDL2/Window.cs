@@ -1,11 +1,11 @@
-﻿using Rainbow.Medias;
-using Rainbow.Example.Common;
-using FFmpeg.AutoGen;
+﻿using FFmpeg.AutoGen;
 
-namespace ConsoleMediaPlayer
+namespace Rainbow.Example.Common.SDL2
 {
     public class Window
     {
+#region public properties
+
         public IntPtr Handle = IntPtr.Zero;
         public uint Id = 0;
         public IntPtr Renderer = IntPtr.Zero;
@@ -17,12 +17,16 @@ namespace ConsoleMediaPlayer
 
         public Boolean VideoStopped = true;
 
+#endregion public properties
+
+#region public static methods
+
         public static void ToggleFullScreen(Window window)
         {
             if (window is not null && window.Handle != IntPtr.Zero)
             {
                 window.FullScreen = !window.FullScreen;
-                SDL2.SDL_SetWindowFullscreen(window.Handle, (uint)(window.FullScreen ? SDL2.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP : 0));
+                Rainbow.Medias.SDL2.SDL_SetWindowFullscreen(window.Handle, (uint)(window.FullScreen ? Rainbow.Medias.SDL2.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP : 0));
                 Restore(window); // If the windows was minimized, it's no more the case
                 Raise(window);  // To have the window on top - like SetForegroundWindow()
             }
@@ -33,14 +37,14 @@ namespace ConsoleMediaPlayer
             if (window is null || window.Handle != IntPtr.Zero)
                 return;
 
-            var flags = SDL2.SDL_WindowFlags.SDL_WINDOW_RESIZABLE | SDL2.SDL_WindowFlags.SDL_WINDOW_SHOWN;
-            window.Handle = SDL2.SDL_CreateWindow("Output", SDL2.SDL_WINDOWPOS_UNDEFINED, SDL2.SDL_WINDOWPOS_UNDEFINED, 800, 600, flags);
+            var flags = Rainbow.Medias.SDL2.SDL_WindowFlags.SDL_WINDOW_RESIZABLE | Rainbow.Medias.SDL2.SDL_WindowFlags.SDL_WINDOW_SHOWN;
+            window.Handle = Rainbow.Medias.SDL2.SDL_CreateWindow("Output", Rainbow.Medias.SDL2.SDL_WINDOWPOS_UNDEFINED, Rainbow.Medias.SDL2.SDL_WINDOWPOS_UNDEFINED, 800, 600, flags);
 
             if (window.Handle != IntPtr.Zero)
             {
-                window.Id = SDL2.SDL_GetWindowID(window.Handle);
-                window.Renderer = SDL2.SDL_CreateRenderer(window.Handle, -1,
-                        SDL2.SDL_RendererFlags.SDL_RENDERER_ACCELERATED | SDL2.SDL_RendererFlags.SDL_RENDERER_PRESENTVSYNC);
+                window.Id = Rainbow.Medias.SDL2.SDL_GetWindowID(window.Handle);
+                window.Renderer = Rainbow.Medias.SDL2.SDL_CreateRenderer(window.Handle, -1,
+                        Rainbow.Medias.SDL2.SDL_RendererFlags.SDL_RENDERER_ACCELERATED | Rainbow.Medias.SDL2.SDL_RendererFlags.SDL_RENDERER_PRESENTVSYNC);
                 ClearRenderer(window);
             }
         }
@@ -54,7 +58,7 @@ namespace ConsoleMediaPlayer
 
             if (window.Handle != IntPtr.Zero)
             {
-                SDL2.SDL_DestroyWindow(window.Handle);
+                Rainbow.Medias.SDL2.SDL_DestroyWindow(window.Handle);
                 window.Handle = IntPtr.Zero;
             }
         }
@@ -62,31 +66,31 @@ namespace ConsoleMediaPlayer
         public static void Hide(Window window)
         {
             if (window is not null && window.Handle != IntPtr.Zero)
-                SDL2.SDL_HideWindow(window.Handle);
+                Rainbow.Medias.SDL2.SDL_HideWindow(window.Handle);
         }
 
         public static void Show(Window window)
         {
             if (window is not null && window.Handle != IntPtr.Zero)
-                SDL2.SDL_ShowWindow(window.Handle);
+                Rainbow.Medias.SDL2.SDL_ShowWindow(window.Handle);
         }
 
         public static void Raise(Window window)
         {
             if (window is not null && window.Handle != IntPtr.Zero)
-                SDL2.SDL_RaiseWindow(window.Handle);
+                Rainbow.Medias.SDL2.SDL_RaiseWindow(window.Handle);
         }
 
         public static void Restore(Window window)
         {
             if (window is not null && window.Handle != IntPtr.Zero)
-                SDL2.SDL_RestoreWindow(window.Handle);
+                Rainbow.Medias.SDL2.SDL_RestoreWindow(window.Handle);
         }
 
         public static void UpdateTitle(Window window, string title)
         {
             if (window is not null && window.Handle != IntPtr.Zero)
-                SDL2.SDL_SetWindowTitle(window.Handle, title);
+                Rainbow.Medias.SDL2.SDL_SetWindowTitle(window.Handle, title);
         }
 
         public static void CreateTexture(Window window, int w, int h, AVPixelFormat pixelFormat)
@@ -96,27 +100,27 @@ namespace ConsoleMediaPlayer
                 // Destroy previous texture
                 DestroyTexture(window);
 
-                var sdlFormat = SDL2Helper.GetPixelFormat(pixelFormat);
-                if (sdlFormat == SDL2.SDL_PIXELFORMAT_UNKNOWN)
+                var sdlFormat = Rainbow.Medias.SDL2Helper.GetPixelFormat(pixelFormat);
+                if (sdlFormat == Rainbow.Medias.SDL2.SDL_PIXELFORMAT_UNKNOWN)
                 {
-                    Util.WriteRed($"Cannot get SDL pixel format using ffmpeg video foramt:[{pixelFormat}]");
+                    Rainbow.Example.Common.Util.WriteRed($"Cannot get SDL pixel format using ffmpeg video foramt:[{pixelFormat}]");
                     return;
                 }
 
                 // Create texture
-                window.Texture = SDL2.SDL_CreateTexture(window.Renderer, sdlFormat, (int)SDL2.SDL_TextureAccess.SDL_TEXTUREACCESS_STREAMING, w, h);
+                window.Texture = Rainbow.Medias.SDL2.SDL_CreateTexture(window.Renderer, sdlFormat, (int)Rainbow.Medias.SDL2.SDL_TextureAccess.SDL_TEXTUREACCESS_STREAMING, w, h);
                 if (window.Texture == IntPtr.Zero)
-                    Util.WriteRed($"Cannot create texture");
+                    Rainbow.Example.Common.Util.WriteRed($"Cannot create texture");
             }
             else
-                Util.WriteRed($"Cannot create texture - No window renderer");
+                Rainbow.Example.Common.Util.WriteRed($"Cannot create texture - No window renderer");
         }
 
         public static void DestroyTexture(Window window)
         {
             if ((window is not null && window.Texture != IntPtr.Zero))
             {
-                SDL2.SDL_DestroyTexture(window.Texture);
+                Rainbow.Medias.SDL2.SDL_DestroyTexture(window.Texture);
                 window.Texture = IntPtr.Zero;
             }
         }
@@ -125,7 +129,7 @@ namespace ConsoleMediaPlayer
         {
             if ((window is not null && window.Renderer != IntPtr.Zero))
             {
-                SDL2.SDL_DestroyRenderer(window.Renderer);
+                Rainbow.Medias.SDL2.SDL_DestroyRenderer(window.Renderer);
                 window.Renderer = IntPtr.Zero;
             }
         }
@@ -134,7 +138,7 @@ namespace ConsoleMediaPlayer
         {
             if (window is not null && window.Texture != IntPtr.Zero)
             {
-                var _ = SDL2.SDL_UpdateTexture(window.Texture, IntPtr.Zero, data, stride);
+                var _ = Rainbow.Medias.SDL2.SDL_UpdateTexture(window.Texture, IntPtr.Zero, data, stride);
             }
         }
 
@@ -142,8 +146,8 @@ namespace ConsoleMediaPlayer
         {
             if (window is not null && window.Renderer != IntPtr.Zero)
             {
-                if (SDL2.SDL_RenderClear(window.Renderer) == 0)
-                    SDL2.SDL_RenderPresent(window.Renderer);
+                if (Rainbow.Medias.SDL2.SDL_RenderClear(window.Renderer) == 0)
+                    Rainbow.Medias.SDL2.SDL_RenderPresent(window.Renderer);
             }
         }
 
@@ -152,8 +156,8 @@ namespace ConsoleMediaPlayer
             if (window is not null && window.Renderer != IntPtr.Zero && window.Texture != IntPtr.Zero)
             {
                 window.NeedRendereUpdate = false;
-                if (SDL2.SDL_RenderCopy(window.Renderer, window.Texture, IntPtr.Zero, IntPtr.Zero) == 0)
-                    SDL2.SDL_RenderPresent(window.Renderer);
+                if (Rainbow.Medias.SDL2.SDL_RenderCopy(window.Renderer, window.Texture, IntPtr.Zero, IntPtr.Zero) == 0)
+                    Rainbow.Medias.SDL2.SDL_RenderPresent(window.Renderer);
             }
         }
 
@@ -162,5 +166,7 @@ namespace ConsoleMediaPlayer
             if (window is not null && window.NeedRendereUpdate && !window.VideoStopped)
                 UpdateRenderer(window);
         }
+#endregion public static methods
+
     }
 }

@@ -1,5 +1,6 @@
 ﻿using FFmpeg.AutoGen;
 using Rainbow.Example.Common;
+using Rainbow.Example.Common.SDL2;
 using Rainbow.Medias;
 using Rainbow.SimpleJSON;
 using Stream = Rainbow.Example.Common.Stream;
