@@ -12,7 +12,7 @@ Documentation is available [here](https://developers.openrainbow.com/doc/sdk/csh
 - Can use audio and/or video stream using protocols like RTSP, HTTP, ...
 - To define streams, the file "streams.json" must be used. 
 - It's also possible to add to this file, streams using plugged devices like: "webcam", "screen" or "microphone"
-- Using your keyboard (the console must have the focus), you can select / update at any time which streams to use.
+- Using your keyboard, you can select / update at any time which streams to use.
 
 ## File exeSettings.json
 

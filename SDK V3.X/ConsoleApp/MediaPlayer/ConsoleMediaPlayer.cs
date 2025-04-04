@@ -1,8 +1,10 @@
-﻿using Rainbow.Example.Common;
-using FFmpeg.AutoGen;
+﻿using FFmpeg.AutoGen;
+using Rainbow.Example.Common;
 using Rainbow.Medias;
 using Rainbow.SimpleJSON;
 using Stream = Rainbow.Example.Common.Stream;
+using System.Collections.Concurrent;
+using System.Runtime.InteropServices;
 
 namespace ConsoleMediaPlayer
 {
@@ -28,13 +30,18 @@ namespace ConsoleMediaPlayer
         private static SDL2AudioOutput? _sdl2AudioOutput = null;
         private static Device? _audioOutputDevice = null;
 
-        // ---- To manage Window and Video Output
-        private static IntPtr _window = IntPtr.Zero;
-        private static IntPtr _windowRenderer = IntPtr.Zero;
-        private static IntPtr _windowTexture = IntPtr.Zero;
+        // --- To manage Window Output
+        private static Window _outputWindow = new Window();
+
+        // --- To ensure to launch action on main thread
+        private static BlockingCollection<Action> _actions = new();
 
         static async Task Main()
         {
+
+            // Need to set an unique title
+            Console.Title = $"SDK C# - MediaPlayer [{Guid.NewGuid()}]";
+
             Util.WriteDarkYellow($"{Global.ProductName()} v{Global.FileVersion()}");
 
             if (!ReadExeSettings())
@@ -56,7 +63,8 @@ namespace ConsoleMediaPlayer
         static async Task MainLoop()
         {
             // Loop until, ESC is used
-            var windowResized = false;
+            int simulatedKey = 0;
+
             while (canContinue)
             {
                 while (SDL2.SDL_PollEvent(out SDL2.SDL_Event e) > 0)
@@ -71,71 +79,98 @@ namespace ConsoleMediaPlayer
                             switch (e.window.windowEvent)
                             {
                                 case SDL2.SDL_WindowEventID.SDL_WINDOWEVENT_RESIZED:
-                                    windowResized = true;
+                                    if (e.window.windowID == _outputWindow.Id)
+                                        _outputWindow.NeedRendereUpdate = true;
                                 break;
                             }
+                            break;
+
+                        case SDL2.SDL_EventType.SDL_RENDER_TARGETS_RESET:
+                            if (e.window.windowID == _outputWindow.Id)
+                                _outputWindow.NeedRendereUpdate = true;
                             break;
 
                         case SDL2.SDL_EventType.SDL_KEYUP:
                             switch (e.key.keysym.sym)
                             {
                                 case SDL2.SDL_Keycode.SDLK_ESCAPE:
-                                    canContinue = false;
-                                break;
+                                    simulatedKey = (int)ConsoleKey.Escape;
+                                    break;
+
+                                default:
+                                    simulatedKey = ((int)ConsoleKey.A) - ((int)SDL2.SDL_Keycode.SDLK_a) + ((int)e.key.keysym.sym);
+                                    break;
                             }
                             break;
                     }
                 }
 
-                if (windowResized)
-                {
-                    windowResized = false;
-                    UpdateWindowRenderer();
-                }
+                CheckUpdateWindowRenderer(_outputWindow);
 
                 // Check Keys fom Console Window
-                if (Console.KeyAvailable)
+                if (Console.KeyAvailable || simulatedKey!=0)
                 {
-                    var userInput = Console.ReadKey(true);
-                    switch (userInput.Key)
+                    int key;
+                    if (simulatedKey != 0)
                     {
-                        case ConsoleKey.Escape:
+                        key = simulatedKey;
+                        simulatedKey = 0;
+                        FocusConsoleWindow();
+                    }
+                    else
+                    {
+                        var userInput = Console.ReadKey(true);
+                        key = (int)userInput.Key;
+                    }
+                    switch (key)
+                    {
+                        case (int)ConsoleKey.Escape:
                             canContinue = false;
                             break;
 
-                        case ConsoleKey.I:
+                        case (int)ConsoleKey.I:
                             PromptInfoMenu();
                             break;
 
-                        case ConsoleKey.A:
+                        case (int)ConsoleKey.A:
                             PromptManageAudioOutput();
                             break;
 
-                        case ConsoleKey.C:
+                        case (int)ConsoleKey.C:
                             PromptStreamSelection();
                             break;
 
-                        case ConsoleKey.S:
+                        case (int)ConsoleKey.F:
+                            ToggleFullScreen(_outputWindow);
+                            break;
+
+                        case (int)ConsoleKey.S:
                             PromptManageScreen();
                             break;
 
-                        case ConsoleKey.M:
+                        case (int)ConsoleKey.M:
                             PromptManageAudioInput();
                             break;
 
-                        case ConsoleKey.W:
+                        case (int)ConsoleKey.W:
                             PromptManageWebcam();
                             break;
 
-                        case ConsoleKey.T:
+                        case (int)ConsoleKey.T:
                             PromptTest();
                             break;
                     }
                 }
+
+                if(canContinue)
+                {
+                    if (_actions.TryTake(out var action))
+                        action.Invoke();
+                }
             }
 
             // Destroy SDL2 window
-            DestroyWindow();
+            DestroyWindow(_outputWindow);
 
             await CloseMediaInputAsync(true, true);
         }
@@ -146,6 +181,9 @@ namespace ConsoleMediaPlayer
             Util.WriteGreen($"{Rainbow.Util.CR}Console Window must have the focus to use the keyboard");
             Util.WriteYellow($"[ESC] to quit");
             Util.WriteYellow($"[I] Information message (this one)");
+            Util.WriteYellow("");
+            Util.WriteYellow($"[F] Full screen - toggle");
+            Util.WriteYellow("");
             Util.WriteYellow($"[A] Audio Ouput selection");
             Util.WriteYellow($"[C] Choose Input Stream (Audio, Video or Both)");
             Util.WriteYellow("");
@@ -569,7 +607,7 @@ namespace ConsoleMediaPlayer
 
             await CloseMediaInputAsync(withAudio, withVideo);
 
-            ClearWindowRenderer();
+            ClearWindowRenderer(_outputWindow);
 
             var options = _currentStream.UriSettings;
 
@@ -644,7 +682,7 @@ namespace ConsoleMediaPlayer
             if (video && _mediaInputVideo is not null)
             {
                 _mediaInputVideo.OnImage -= MediaInput_OnImage;
-                DestroyTexture();
+                DestroyTexture(_outputWindow);
             }
 
             if(audio)
@@ -705,9 +743,9 @@ namespace ConsoleMediaPlayer
             if (iMedia.Init(true))
             {
                 // Even if there is no video, we create/show it - it's title permits to know streams currently used
-                CreateWindow();
-                ShowWindow();
-                ClearWindowRenderer();
+                CreateWindow(_outputWindow);
+                ShowWindow(_outputWindow);
+                ClearWindowRenderer(_outputWindow);
 
                 if (iMediaAudio is not null)
                 {
@@ -721,7 +759,7 @@ namespace ConsoleMediaPlayer
                     _mediaInputVideo.OnImage += MediaInput_OnImage;
                 }
 
-                UpdateWindowTitle();
+                UpdateWindowTitle(_outputWindow);
 
                 Util.WriteDarkYellow($"MediaInput initialized / started");
             }
@@ -735,82 +773,112 @@ namespace ConsoleMediaPlayer
 
         private static void MediaInput_OnAudioSample(string mediaId, uint duration, byte[] sample)
         {
+            // /!\ Don't need to use Main Thread
             if (canContinue)
                 _sdl2AudioOutput?.QueueSample(sample);
         }
 
         private static void MediaInput_OnImage(string mediaId, int width, int height, int stride, IntPtr data, AVPixelFormat pixelFormat)
         {
-            if (canContinue)
+            // /!\ Need to use Main Thread
+            _actions.Add( new Action(() =>
             {
-                if (_windowTexture == IntPtr.Zero)
-                    CreateTexture(width, height, pixelFormat);
-                UpdateTexture(stride, data);
-                UpdateWindowRenderer();
-            }
+                if (_outputWindow is null)
+                    return;
+
+                if (_outputWindow.Texture == IntPtr.Zero)
+                    CreateTexture(_outputWindow, width, height, pixelFormat);
+
+                UpdateTexture(_outputWindow, stride, data);
+                UpdateWindowRenderer(_outputWindow);
+            }));
         }
 
 #endregion MediaInput Events
 
 #region Window / Renderer / Texture
 
-        static void CreateWindow()
+        static void ToggleFullScreen(Window window)
         {
-            if (_window != IntPtr.Zero)
+            if (window is not null && window.Handle != IntPtr.Zero)
+            {
+                window.FullScreen = !window.FullScreen;
+                SDL2.SDL_SetWindowFullscreen(window.Handle, (uint)(window.FullScreen ? SDL2.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP : 0));
+                RestoreWindow(window); // If the windows was minimized, it's no more the case
+                RaiseWindow(window);  // To have the window on top - like SetForegroundWindow()
+            }
+        }
+
+        static void CreateWindow(Window window)
+        {
+            if(window is null || window.Handle != IntPtr.Zero)
                 return;
 
             var flags = SDL2.SDL_WindowFlags.SDL_WINDOW_RESIZABLE | SDL2.SDL_WindowFlags.SDL_WINDOW_SHOWN;
-            _window = SDL2.SDL_CreateWindow("Output", SDL2.SDL_WINDOWPOS_UNDEFINED, SDL2.SDL_WINDOWPOS_UNDEFINED, 800, 600, flags);
+            window.Handle = SDL2.SDL_CreateWindow("Output", SDL2.SDL_WINDOWPOS_UNDEFINED, SDL2.SDL_WINDOWPOS_UNDEFINED, 800, 600, flags);
 
-            if (_window != IntPtr.Zero)
+            if (window.Handle != IntPtr.Zero)
             {
-                _windowRenderer = SDL2.SDL_CreateRenderer(_window, -1,
-                SDL2.SDL_RendererFlags.SDL_RENDERER_ACCELERATED | SDL2.SDL_RendererFlags.SDL_RENDERER_PRESENTVSYNC);
-                ClearWindowRenderer();
+                window.Id = SDL2.SDL_GetWindowID(window.Handle);
+                window.Renderer = SDL2.SDL_CreateRenderer(window.Handle, -1,
+                        SDL2.SDL_RendererFlags.SDL_RENDERER_ACCELERATED | SDL2.SDL_RendererFlags.SDL_RENDERER_PRESENTVSYNC);
+                ClearWindowRenderer(window);
             }
         }
 
-        static void DestroyWindow()
+        static void DestroyWindow(Window window)
         {
-            if (_windowTexture != IntPtr.Zero)
-                SDL2.SDL_DestroyTexture(_windowTexture);
-            if (_windowRenderer != IntPtr.Zero)
-                SDL2.SDL_DestroyRenderer(_windowRenderer);
-            if (_window != IntPtr.Zero)
-                SDL2.SDL_DestroyWindow(_window);
+            if (window is null) return;
+
+            DestroyTexture(window);
+            DestroyRenderer(window);
+
+            if (window.Handle != IntPtr.Zero)
+            {
+                SDL2.SDL_DestroyWindow(window.Handle);
+                window.Handle = IntPtr.Zero;
+            }
         }
 
-        static void HideWindow()
+        static void HideWindow(Window window)
         {
-            if (_window != IntPtr.Zero)
-                SDL2.SDL_HideWindow(_window);
+            if (window is not null && window.Handle != IntPtr.Zero)
+                SDL2.SDL_HideWindow(window.Handle);
         }
 
-        static void ShowWindow()
+        static void ShowWindow(Window window)
         {
-            if (_window != IntPtr.Zero)
-                SDL2.SDL_ShowWindow(_window);
+            if (window is not null && window.Handle != IntPtr.Zero)
+                SDL2.SDL_ShowWindow(window.Handle);
         }
 
-        static void UpdateWindowTitle()
+        static void RaiseWindow(Window window)
         {
-            if (_window != IntPtr.Zero)
+            if (window is not null && window.Handle != IntPtr.Zero)
+                SDL2.SDL_RaiseWindow(window.Handle);
+        }
+
+        static void RestoreWindow(Window window)
+        {
+            if (window is not null && window.Handle != IntPtr.Zero)
+                SDL2.SDL_RestoreWindow(window.Handle);
+        }
+
+        static void UpdateWindowTitle(Window window)
+        {
+            if (window is not null && window.Handle != IntPtr.Zero)
             {
                 String title = $"SDK C# v3.x - Streaming Audio:[{((_mediaInputAudio is not null) ? _mediaInputAudio.Name : "NONE")}] - Video:[{((_mediaInputVideo is not null) ? $"{_mediaInputVideo.Name} - {_mediaInputVideo.Width}x{_mediaInputVideo.Height}" : "NONE")}]";
-                SDL2.SDL_SetWindowTitle(_window, title);
+                SDL2.SDL_SetWindowTitle(window.Handle, title);
             }
         }
 
-        static void CreateTexture(int w, int h, AVPixelFormat pixelFormat)
+        static void CreateTexture(Window window, int w, int h, AVPixelFormat pixelFormat)
         {
-            if (_windowRenderer != 0)
+            if( (window is not null && window.Renderer != IntPtr.Zero) )
             {
                 // Destroy previous texture
-                if (_windowTexture != IntPtr.Zero)
-                {
-                    SDL2.SDL_DestroyTexture(_windowTexture);
-                    _windowTexture = IntPtr.Zero;
-                }
+                DestroyTexture(window);
 
                 var sdlFormat = SDL2Helper.GetPixelFormat(pixelFormat);
                 if (sdlFormat == SDL2.SDL_PIXELFORMAT_UNKNOWN)
@@ -820,52 +888,68 @@ namespace ConsoleMediaPlayer
                 }
 
                 // Create texture
-                _windowTexture = SDL2.SDL_CreateTexture(_windowRenderer, sdlFormat, (int)SDL2.SDL_TextureAccess.SDL_TEXTUREACCESS_STREAMING, w, h);
-                if (_windowTexture == IntPtr.Zero)
+                window.Texture = SDL2.SDL_CreateTexture(window.Renderer, sdlFormat, (int)SDL2.SDL_TextureAccess.SDL_TEXTUREACCESS_STREAMING, w, h);
+                if (window.Texture == IntPtr.Zero)
                     Util.WriteRed($"Cannot create texture");
             }
             else
                 Util.WriteRed($"Cannot create texture - No window renderer");
         }
 
-        static void DestroyTexture()
+        static void DestroyTexture(Window window)
         {
-            if (_windowTexture != IntPtr.Zero)
+            if ((window is not null && window.Texture != IntPtr.Zero))
             {
-                SDL2.SDL_DestroyTexture(_windowTexture);
-                _windowTexture = IntPtr.Zero;
+                SDL2.SDL_DestroyTexture(window.Texture);
+                window.Texture = IntPtr.Zero;
             }
         }
 
-        static void UpdateTexture(int stride, IntPtr data)
+        static void DestroyRenderer(Window window)
         {
-            if (_windowTexture != IntPtr.Zero)
+            if ((window is not null && window.Renderer != IntPtr.Zero))
             {
-                var _ = SDL2.SDL_UpdateTexture(_windowTexture, IntPtr.Zero, data, stride);
+                SDL2.SDL_DestroyRenderer(window.Renderer);
+                window.Renderer = IntPtr.Zero;
             }
         }
 
-        static void ClearWindowRenderer()
+        static void UpdateTexture(Window window,int stride, IntPtr data)
         {
-            if (_windowRenderer != IntPtr.Zero)
+            if (window is not null && window.Texture != IntPtr.Zero)
             {
-                if(SDL2.SDL_RenderClear(_windowRenderer) == 0)
-                    SDL2.SDL_RenderPresent(_windowRenderer);
+                var _ = SDL2.SDL_UpdateTexture(window.Texture, IntPtr.Zero, data, stride);
             }
         }
 
-        static void UpdateWindowRenderer()
+        static void ClearWindowRenderer(Window window)
         {
-            if ( (_windowRenderer != IntPtr.Zero) && (_windowTexture != IntPtr.Zero) )
-            {
-                if (SDL2.SDL_RenderCopy(_windowRenderer, _windowTexture, IntPtr.Zero, IntPtr.Zero) == 0)
-                    SDL2.SDL_RenderPresent(_windowRenderer);
+            if (window is not null && window.Renderer != IntPtr.Zero)
+            { 
+                if (SDL2.SDL_RenderClear(window.Renderer) == 0)
+                    SDL2.SDL_RenderPresent(window.Renderer);
             }
+        }
+
+        static void UpdateWindowRenderer(Window window)
+        {
+            if (window is not null && window.Renderer != IntPtr.Zero && window.Texture != IntPtr.Zero)
+            {
+                window.NeedRendereUpdate = false;
+                if (SDL2.SDL_RenderCopy(window.Renderer, window.Texture, IntPtr.Zero, IntPtr.Zero) == 0)
+                    SDL2.SDL_RenderPresent(window.Renderer);
+            }
+        }
+
+        static void CheckUpdateWindowRenderer(Window window)
+        {
+            if (window is not null && window.NeedRendereUpdate)
+                UpdateWindowRenderer(window);
         }
 
 #endregion Window / Renderer / Texture
 
-#region READ CONFIGURATION
+       #region READ CONFIGURATION
 
         static Boolean ReadStreamsSettings()
         {
@@ -935,7 +1019,11 @@ namespace ConsoleMediaPlayer
 
                 // Init external librairies: FFmpeg and SDL2
                 if (_exeSettings.UseAudioVideo)
+                {
                     Rainbow.Medias.Helper.InitExternalLibraries(_exeSettings.FfmpegLibFolderPath, true);
+                    SDL2.SDL_SetHint(SDL2.SDL_HINT_RENDER_DRIVER, "opengles");
+                    SDL2.SDL_SetHint(SDL2.SDL_HINT_RENDER_BATCHING, "1");
+                }
             }
             else
             {
@@ -946,6 +1034,23 @@ namespace ConsoleMediaPlayer
             return true;
         }
 
-#endregion READ CONFIGURATION
+    #endregion READ CONFIGURATION
+
+        [DllImport("user32.dll")]
+        public static extern bool ShowWindowAsync(HandleRef hWnd, int nCmdShow);
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        static extern bool SetForegroundWindow(IntPtr hWnd);
+        [DllImport("user32.dll", EntryPoint = "FindWindow", SetLastError = true)]
+        static extern IntPtr FindWindowByCaption(IntPtr zeroOnly, string lpWindowName);
+        public const int SW_RESTORE = 9;
+        static void FocusConsoleWindow()
+        {
+            // /!\ It's highly recommended to set a unique Title to the console to have this working
+            IntPtr handle = FindWindowByCaption(IntPtr.Zero, Console.Title);
+            ShowWindowAsync(new HandleRef(null, handle), SW_RESTORE);
+            SetForegroundWindow(handle);
+        }
+
     }
 }
