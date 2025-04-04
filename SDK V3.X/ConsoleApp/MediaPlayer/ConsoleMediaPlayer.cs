@@ -686,7 +686,7 @@ namespace ConsoleMediaPlayer
                 _outputWindow.VideoStopped = true;
 
                 _mediaInputVideo.OnImage -= MediaInput_OnImage;
-                DestroyTexture(_outputWindow);
+                Window.DestroyTexture(_outputWindow);
             }
 
             if(audio)
