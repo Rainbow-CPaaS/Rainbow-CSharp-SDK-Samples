@@ -5,8 +5,6 @@ using Rainbow.Consts;
 using Rainbow.Example.Common;
 using Util = Rainbow.Example.Common.Util;
 using Rainbow.SimpleJSON;
-using System;
-using System.Reflection;
 using Rainbow.Model;
 
 // --------------------------------------------------

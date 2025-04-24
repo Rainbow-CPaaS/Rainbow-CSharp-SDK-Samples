@@ -1,9 +1,7 @@
 ﻿using Rainbow.Consts;
 using Rainbow.Model;
-using System.Drawing;
 using System.Text;
 using Terminal.Gui;
-using static Terminal.Gui.SpinnerStyle;
 using Attribute = Terminal.Gui.Attribute;
 using Color = Terminal.Gui.Color;
 

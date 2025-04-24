@@ -1,7 +1,6 @@
 ﻿using Rainbow;
 using Rainbow.Consts;
 using Rainbow.Example.Common;
-using Rainbow.Model;
 using Terminal.Gui;
 
 internal class BotView: View
@@ -15,8 +14,6 @@ internal class BotView: View
 
     private LoginView? loginView;
     private BubbleMembersPanel? bubbleMembersPanel;
-
-    private PopoverMenu? contextMenu;
 
     internal BotView(UserConfig rbAccount)
     {

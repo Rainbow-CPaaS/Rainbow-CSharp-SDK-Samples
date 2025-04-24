@@ -2,7 +2,6 @@
 using Rainbow.Consts;
 using Rainbow.Model;
 using Terminal.Gui;
-using static System.Net.Mime.MediaTypeNames;
 
 public class PresenceView: View
 {
@@ -57,6 +56,8 @@ public class PresenceView: View
     {
         if (contact != null)
             PeerClick?.Invoke(sender, new PeerAndMouseEventEventArgs(contact, e));
+        else if (bubble != null)
+            PeerClick?.Invoke(sender, new PeerAndMouseEventEventArgs(bubble, e));
     }
 
     internal void SetContact(Contact? contact)

@@ -1,5 +1,4 @@
-﻿using System.Text;
-using Terminal.Gui;
+﻿using Terminal.Gui;
 
 /// <summary>
 ///     A Button that can expand or collapse a view.

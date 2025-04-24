@@ -1,5 +1,4 @@
-﻿using Rainbow.Delegates;
-using Terminal.Gui;
+﻿using Terminal.Gui;
 
 public partial class HybridTelephonyServiceView: View
 {
