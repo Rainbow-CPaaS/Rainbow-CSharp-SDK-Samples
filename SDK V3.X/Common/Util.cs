@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Rainbow.Example.Common
+﻿namespace Rainbow.Example.Common
 {
     /// <summary>
     /// Static class with some utility methods
