@@ -13,6 +13,13 @@ using Rainbow.WebRTC.Desktop;
 using Rainbow.Example.Common;
 using Stream = Rainbow.Example.Common.Stream;
 using Util = Rainbow.Example.Common.Util;
+using Rainbow.Example.Common.SDL2;
+using System.Collections.Concurrent;
+using System.Runtime.InteropServices;
+
+
+// Need to set an unique title
+Console.Title = $"SDK C# - WebRTC [{Guid.NewGuid()}]";
 
 ExeSettings? exeSettings = null;
 List<Stream>? streamsList = null;
@@ -108,7 +115,13 @@ AudioStreamTrack? audioRemoteTrack = null;
 VideoStreamTrack? videoRemoteTrack = null;
 VideoStreamTrack? sharingRemoteTrack = null;
 
-// To manage Window and Video Output
+// To ensure to launch action on main thread
+BlockingCollection<Action> _actions = new();
+
+// To manage Window (Video or Sharing output)
+Window _windowVideo = new();
+Window _windowSharing = new();
+
 Object lockWindowVideo = new();
 IntPtr windowVideo = IntPtr.Zero;
 IntPtr windowVideoRenderer = IntPtr.Zero;
@@ -190,7 +203,8 @@ var loginTask = RbApplication.LoginAsync(login, password); // We don't wait here
 
 await MainLoop();
 
-DestroyWindows();
+Window.Destroy(_windowVideo);
+Window.Destroy(_windowSharing);
 
 if (String.IsNullOrEmpty(currentCallId))
     await RbWebRTCCommunications.HangUpCallAsync(currentCallId);
@@ -199,8 +213,8 @@ await RbApplication.LogoutAsync();
 
 async Task MainLoop()
 {
-    Boolean windowResized = false;
-    Boolean windowEvent = false;
+    int simulatedKey = 0;
+
     do
     {
         while (SDL2.SDL_PollEvent(out SDL2.SDL_Event e) > 0)
@@ -212,100 +226,119 @@ async Task MainLoop()
                     break;
 
                 case SDL2.SDL_EventType.SDL_WINDOWEVENT:
-                    windowEvent = true;
                     switch (e.window.windowEvent)
                     {
                         case SDL2.SDL_WindowEventID.SDL_WINDOWEVENT_RESIZED:
-                            windowResized = true;
-                            break;
-                        default:
+                            if (e.window.windowID == _windowVideo.Id)
+                                _windowVideo.NeedRendereUpdate = true;
+                            else if (e.window.windowID == _windowSharing.Id)
+                                _windowSharing.NeedRendereUpdate = true;
                             break;
                     }
                     break;
+
+                case SDL2.SDL_EventType.SDL_RENDER_TARGETS_RESET:
+                    if (e.window.windowID == _windowVideo.Id)
+                        _windowVideo.NeedRendereUpdate = true;
+                    else if (e.window.windowID == _windowSharing.Id)
+                        _windowSharing.NeedRendereUpdate = true;
+                    break;
+
 
                 case SDL2.SDL_EventType.SDL_KEYUP:
                     switch (e.key.keysym.sym)
                     {
                         case SDL2.SDL_Keycode.SDLK_ESCAPE:
-                            endProgram = true;
+                            simulatedKey = (int)ConsoleKey.Escape;
+                            break;
+
+                        case SDL2.SDL_Keycode.SDLK_f:
+                            if (e.window.windowID == _windowVideo.Id)
+                                Window.ToggleFullScreen(_windowVideo);
+                            else if (e.window.windowID == _windowSharing.Id)
+                                Window.ToggleFullScreen(_windowSharing);
+                            break;
+
+                        default:
+                            simulatedKey = ((int)ConsoleKey.A) - ((int)SDL2.SDL_Keycode.SDLK_a) + ((int)e.key.keysym.sym);
                             break;
                     }
                     break;
             }
         }
 
-        if (windowResized)
+        Window.CheckUpdateRenderer(_windowVideo);
+        Window.CheckUpdateRenderer(_windowSharing);
+
+        CheckInputKey(simulatedKey);
+        simulatedKey = 0;
+
+        if (!endProgram)
         {
-            windowResized = false;
-            windowEvent = false;
-            lock (lockWindowVideo)
-                UpdateWindowRenderer(windowVideoTexture, windowVideoRenderer);
-
-            lock (lockWindowSharing)
-                UpdateWindowRenderer(windowSharingTexture, windowSharingRenderer);
+            if (_actions.TryTake(out var action))
+                action.Invoke();
         }
-        else if(windowEvent)
-        {
-            windowEvent = false;
-            lock (lockWindowVideo)
-                SDL2.SDL_RenderPresent(windowVideoRenderer);
-
-            lock (lockWindowSharing)
-                SDL2.SDL_RenderPresent(windowSharingRenderer);
-        }
-
-        CheckInputKey();
 
     } while (!endProgram); // Loop until we want to quit
 
     await Task.CompletedTask;
 }
 
-void CheckInputKey()
+void CheckInputKey(int simulatedKey)
 {
-    while (Console.KeyAvailable)
+    if (Console.KeyAvailable || simulatedKey != 0)
     {
-        var userInput = Console.ReadKey(true);
-        
-        switch (userInput.Key)
+        int key;
+        if (simulatedKey != 0)
         {
-            case ConsoleKey.Escape:
+            key = simulatedKey;
+            simulatedKey = 0;
+            FocusConsoleWindow();
+        }
+        else
+        {
+            var userInput = Console.ReadKey(true);
+            key = (int)userInput.Key;
+        }
+        switch (key)
+        {
+            case (int)ConsoleKey.Escape:
                 MenuEscape();
                 return;
 
-            case ConsoleKey.I: // Info
+            case (int)ConsoleKey.I: // Info
                 MenuDisplayInfo();
                 return;
 
-            case ConsoleKey.C: // Conference - Join/Quit or Start
+            case (int)ConsoleKey.C: // Conference - Join/Quit or Start
                 MenuConference();
                 break;
 
-            case ConsoleKey.P: // P2P - HangUp or Start
+            case (int)ConsoleKey.P: // P2P - HangUp or Start
                 MenuP2P();
                 break;
 
-            case ConsoleKey.A: // Audio input/output selection.
+            case (int)ConsoleKey.A: // Audio input/output selection.
                 MenuAudioStream();
                 break;
 
-            case ConsoleKey.V: // Video selection.
+            case (int)ConsoleKey.V: // Video selection.
                 MenuVideoStream();
                 break;
 
-            case ConsoleKey.S: // Sharing selection.
+            case (int)ConsoleKey.S: // Sharing selection.
                 MenuSharingStream();
                 break;
 
-            case ConsoleKey.D: // DataChannel: Add/Remove 
+            case (int)ConsoleKey.D: // DataChannel: Add/Remove 
                 MenuDataChannel();
                 break;
 
-            case ConsoleKey.L: // List devices used and conference info
+            case (int)ConsoleKey.L: // List devices used and conference info
                 MenuListDevicesAndConferenceInfo();
                 break;
 
-            case ConsoleKey.M:
+            case (int)ConsoleKey.M:
                 MenuMediaPublications();
                 break;
         }
@@ -425,10 +458,10 @@ void MenuMediaPublications()
                         }
                         else
                         {
-                            if(pub.Media == Media.VIDEO)
-                                CreateWindow(ref windowVideo, ref windowVideoRenderer);
+                            if (pub.Media == Media.VIDEO)
+                                Window.Create(_windowVideo);
                             else if (pub.Media == Media.SHARING)
-                                CreateWindow(ref windowSharing, ref windowSharingRenderer);
+                                Window.Create(_windowSharing);
 
                             Util.WriteGreen($"Asking to subscribe ...");
                             RbWebRTCCommunications.SubscribeToMediaPublicationAsync(pub, MediaSubStreamLevel.HIGH).ContinueWith(async task =>
@@ -2256,128 +2289,6 @@ void ListScreens()
 
 #endregion DEVICES - List audio output, audio input, webcam, screens
 
-#region Window / Renderer / Texture
-
-void CreateWindow(ref IntPtr wdw, ref IntPtr renderer)
-{
-    if (wdw != IntPtr.Zero)
-        return;
-
-    var flags = SDL2.SDL_WindowFlags.SDL_WINDOW_RESIZABLE | SDL2.SDL_WindowFlags.SDL_WINDOW_SHOWN;
-    wdw = SDL2.SDL_CreateWindow("Output", SDL2.SDL_WINDOWPOS_UNDEFINED, SDL2.SDL_WINDOWPOS_UNDEFINED, 800, 600, flags);
-
-    if (wdw != IntPtr.Zero)
-    {
-        renderer = SDL2.SDL_CreateRenderer(wdw, -1,
-                SDL2.SDL_RendererFlags.SDL_RENDERER_ACCELERATED
-                | SDL2.SDL_RendererFlags.SDL_RENDERER_PRESENTVSYNC);
-        ClearWindowRenderer(renderer);
-    }
-}
-
-void DestroyWindows()
-{
-    if (windowVideoTexture != IntPtr.Zero)
-        SDL2.SDL_DestroyTexture(windowVideoTexture);
-    if (windowSharingTexture != IntPtr.Zero)
-        SDL2.SDL_DestroyTexture(windowSharingTexture);
-
-    if (windowVideoRenderer != IntPtr.Zero)
-        SDL2.SDL_DestroyRenderer(windowVideoRenderer);
-    if (windowSharingRenderer != IntPtr.Zero)
-        SDL2.SDL_DestroyRenderer(windowSharingRenderer);
-
-    if (windowVideo != IntPtr.Zero)
-        SDL2.SDL_DestroyWindow(windowVideo);
-    if (windowSharing != IntPtr.Zero)
-        SDL2.SDL_DestroyWindow(windowSharing);
-}
-
-void HideWindow(IntPtr wdw)
-{
-    if (wdw != IntPtr.Zero)
-        SDL2.SDL_HideWindow(wdw);
-}
-
-void ShowWindow(IntPtr wdw)
-{
-    if (wdw != IntPtr.Zero)
-        SDL2.SDL_ShowWindow(wdw);
-}
-
-void UpdateWindowTitle(IntPtr wdw, String title)
-{
-    if (wdw != IntPtr.Zero)
-    {
-        var s = $"SDK C# v3.x - " + title;
-        SDL2.SDL_SetWindowTitle(wdw, s);
-    }
-}
-
-void CreateTexture(ref IntPtr texture, IntPtr renderer, int w, int h, AVPixelFormat pixelFormat)
-{
-    if (renderer != IntPtr.Zero)
-    {
-        // Destroy previous texture
-        if (texture != IntPtr.Zero)
-        {
-            SDL2.SDL_DestroyTexture(texture);
-            texture = IntPtr.Zero;
-        }
-
-        var sdlFormat = SDL2Helper.GetPixelFormat(pixelFormat);
-        if (sdlFormat == SDL2.SDL_PIXELFORMAT_UNKNOWN)
-        {
-            Util.WriteRed($"Cannot get SDL pixel format using ffmpeg video foramt:[{pixelFormat}]");
-            return;
-        }
-
-        // Create texture
-        texture = SDL2.SDL_CreateTexture(renderer, sdlFormat, (int)SDL2.SDL_TextureAccess.SDL_TEXTUREACCESS_STREAMING, w, h);
-        if (texture == IntPtr.Zero)
-            Util.WriteRed($"Cannot create texture");
-    }
-    else
-        Util.WriteRed($"Cannot create texture - No window renderer");
-}
-
-void DestroyTexture(ref IntPtr texture)
-{
-    if (texture != IntPtr.Zero)
-    {
-        SDL2.SDL_DestroyTexture(texture);
-        texture = IntPtr.Zero;
-    }
-}
-
-void UpdateTexture(IntPtr texture, int stride, IntPtr data)
-{
-    if (texture != IntPtr.Zero)
-    {
-        var _ = SDL2.SDL_UpdateTexture(texture, IntPtr.Zero, data, stride);
-    }
-}
-
-void ClearWindowRenderer(IntPtr renderer)
-{
-    if (renderer != IntPtr.Zero)
-    {
-        if (SDL2.SDL_RenderClear(renderer) == 0)
-            SDL2.SDL_RenderPresent(renderer);
-    }
-}
-
-void UpdateWindowRenderer(IntPtr texture, IntPtr renderer)
-{
-    if ((renderer != IntPtr.Zero) && (texture != IntPtr.Zero))
-    {
-        if (SDL2.SDL_RenderCopy(renderer, texture, IntPtr.Zero, IntPtr.Zero) == 0)
-            SDL2.SDL_RenderPresent(renderer);
-    }
-}
-
-#endregion Window / Renderer / Texture
-
 #region DEFINE METHODS TO RECEIVE EVENTS FROM RAINBOW SDK (Core)
 
 void RbApplication_ConnectionStateChanged(Rainbow.Model.ConnectionState connectionState)
@@ -2475,9 +2386,8 @@ void RbWebRTCCommunications_CallUpdated(Call call)
             currentCall = null;
 
             // Hide any window
-            HideWindow(windowSharing);
-            HideWindow(windowVideo);
-
+            Window.Hide(_windowSharing);
+            Window.Hide(_windowVideo);
 
             // The call is NO MORE in Progress => We Rollback presence if any
             var presenceRollback = RbContacts.GetPresenceSavedForRollback();
@@ -2583,19 +2493,23 @@ void RbWebRTCCommunications_OnTrack(string callId, MediaStreamTrackDescriptor me
 
         case Media.VIDEO:
             if (videoRemoteTrack is not null)
+            {
+                _windowVideo.VideoStopped = true;
                 videoRemoteTrack.OnImage -= VideoRemoteTrack_OnImage;
+            }
 
             if (mediaStreamTrackDescriptor.MediaStreamTrack is VideoStreamTrack videoTrack)
             {
-                UpdateWindowTitle(windowVideo, "VIDEO");
-                ShowWindow(windowVideo);
+                Window.UpdateTitle(_windowVideo, "VIDEO");
+                Window.Show(_windowVideo);
 
                 videoRemoteTrack = videoTrack;
                 videoRemoteTrack.OnImage += VideoRemoteTrack_OnImage;
+                _windowVideo.VideoStopped = false;
             }
             else
             {
-                HideWindow(windowVideo);
+                Window.Hide(_windowVideo);
                 // video remote track has been removed
                 videoRemoteTrack = null;
             }
@@ -2603,19 +2517,23 @@ void RbWebRTCCommunications_OnTrack(string callId, MediaStreamTrackDescriptor me
 
         case Media.SHARING:
             if (sharingRemoteTrack is not null)
+            {
+                _windowSharing.VideoStopped = true;
                 sharingRemoteTrack.OnImage -= SharingRemoteTrack_OnImage;
+            }
 
             if (mediaStreamTrackDescriptor.MediaStreamTrack is VideoStreamTrack sharingTrack)
             {
-                UpdateWindowTitle(windowSharing, "SHARING");
-                ShowWindow(windowSharing);
+                Window.UpdateTitle(_windowSharing, "SHARING");
+                Window.Show(_windowSharing);
 
                 sharingRemoteTrack = sharingTrack;
                 sharingRemoteTrack.OnImage += SharingRemoteTrack_OnImage;
+                _windowSharing.VideoStopped = false;
             }
             else
             {
-                HideWindow(windowSharing);
+                Window.Hide(_windowSharing);
                 // sharing remote track has been removed
                 sharingRemoteTrack = null;
             }
@@ -2665,31 +2583,34 @@ void AudioRemoteTrack_OnAudioSample(string mediaId, uint duration, byte[] sample
 
 void VideoRemoteTrack_OnImage(string mediaId, int width, int height, int stride, nint data, AVPixelFormat pixelFormat)
 {
-    if (!endProgram)
+    // /!\ Need to use Main Thread
+    _actions.Add(new Action(() =>
     {
-        lock (lockWindowVideo)
-        {
-            if (windowVideoTexture == IntPtr.Zero)
-            CreateTexture(ref windowVideoTexture, windowVideoRenderer, width, height, pixelFormat);
-        
-            UpdateTexture(windowVideoTexture, stride, data);
-            UpdateWindowRenderer(windowVideoTexture, windowVideoRenderer);
-        }
-    }
+        if (_windowVideo is null || _windowVideo.VideoStopped || endProgram)
+            return;
+
+        if (_windowSharing.Texture == IntPtr.Zero)
+            Window.CreateTexture(_windowVideo, width, height, pixelFormat);
+
+        Window.UpdateTexture(_windowVideo, stride, data);
+        Window.UpdateRenderer(_windowVideo);
+    }));
 }
 
 void SharingRemoteTrack_OnImage(string mediaId, int width, int height, int stride, nint data, AVPixelFormat pixelFormat)
 {
-    if (!endProgram)
+    // /!\ Need to use Main Thread
+    _actions.Add(new Action(() =>
     {
-        lock (lockWindowSharing)
-        {
-            if (windowSharingTexture == IntPtr.Zero)
-                CreateTexture(ref windowSharingTexture, windowSharingRenderer, width, height, pixelFormat);
-            UpdateTexture(windowSharingTexture, stride, data);
-            UpdateWindowRenderer(windowSharingTexture, windowSharingRenderer);
-        }
-    }
+        if (_windowSharing is null || _windowSharing.VideoStopped || endProgram)
+            return;
+
+        if (_windowSharing.Texture == IntPtr.Zero)
+            Window.CreateTexture(_windowSharing, width, height, pixelFormat);
+
+        Window.UpdateTexture(_windowSharing, stride, data);
+        Window.UpdateRenderer(_windowSharing);
+    }));
 }
 
 #endregion REMOTE TRACKS - Audio, Video, Sharing
@@ -2850,4 +2771,22 @@ Boolean ReadCredentials()
     }
 
     return true;
+}
+
+
+[DllImport("user32.dll")]
+static extern bool ShowWindowAsync(HandleRef hWnd, int nCmdShow);
+[DllImport("user32.dll")]
+[return: MarshalAs(UnmanagedType.Bool)]
+static extern bool SetForegroundWindow(IntPtr hWnd);
+[DllImport("user32.dll", EntryPoint = "FindWindow", SetLastError = true)]
+static extern IntPtr FindWindowByCaption(IntPtr zeroOnly, string lpWindowName);
+const int SW_RESTORE = 9;
+
+static void FocusConsoleWindow()
+{
+    // /!\ It's highly recommended to set a unique Title to the console to have this working
+    IntPtr handle = FindWindowByCaption(IntPtr.Zero, Console.Title);
+    ShowWindowAsync(new HandleRef(null, handle), SW_RESTORE);
+    SetForegroundWindow(handle);
 }

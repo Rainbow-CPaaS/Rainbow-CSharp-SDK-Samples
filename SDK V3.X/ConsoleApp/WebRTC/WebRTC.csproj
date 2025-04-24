@@ -7,14 +7,14 @@
     <Nullable>enable</Nullable>
 	<Version>0.8.2</Version>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Rainbow.CSharp.SDK.WebRTC" Version="2.1.0" />
+    <PackageReference Include="Rainbow.CSharp.SDK.WebRTC.Desktop" Version="2.1.0" />
+  </ItemGroup>
 	
   <ItemGroup>
-	<PackageReference Include="Rainbow.CSharp.SDK.WebRTC" Version="2.0.1" />
-	<PackageReference Include="Rainbow.CSharp.SDK.WebRTC.Desktop" Version="2.0.1" />
- </ItemGroup>
-	
-  <ItemGroup>
-    <ProjectReference Include="..\..\Common\Common.csproj" />
+    <ProjectReference Include="..\..\CommonSDL2\CommonSDL2.csproj" />
   </ItemGroup>
 
    <ItemGroup>

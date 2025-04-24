@@ -14,6 +14,31 @@
       "id": "toefl",
       "media": "audio+video",
       "uri": "c:\\media\\TOEFLTest.mp4"
+    },
+    {
+      "id": "max_intro",
+      "media": "audio+video",
+      "uri": "c:\\media\\max_intro.mp4"
+    },
+    {
+      "id": "Amigo_harvard",
+      "media": "audio",
+      "uri": "C:\\media\\Amigo\\Harvard list 01.wav"
+    },
+    {
+      "id": "Amigo_sampleVideo",
+      "media": "audio+video",
+      "uri": "C:\\media\\Amigo\\SampleVideo_1280x720_10mb.mp4"
+    },
+    {
+      "id": "Amigo_sports.mp4",
+      "media": "audio",
+      "uri": "C:\\media\\Amigo\\Sports.mp4"
+    },
+    {
+      "id": "Amigo_sports.wav",
+      "media": "audio",
+      "uri": "C:\\media\\Amigo\\Sports.wav"
     }
   ]
 
