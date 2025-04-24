@@ -4,6 +4,7 @@
     // Need to add a space to have a correct display
 
     public const String WARNING         = "\u26a0 "; // ⚠
+    public const String TIMER           = "\u23F1 "; // ⏱
     public const String CALENDAR        = "\u23F2 "; // ⏲
 
     public const String THREE_DOTS      = "\u2026 "; // …
@@ -15,9 +16,18 @@
     public const String CHESS_KNIGHT    = "\u2658 "; // ♘
     public const String CHESS_PAWN      = "\u2659 "; // ♙
 
+    public const String MODIFY          = "\u270F "; // ✏
+    
     public const String HAND            = "\u270B "; // ✋
+    public const String HAND_DOWN       = "\u261F "; // ☟
 
     public const String PHONE           = "\u260F "; // ☏
+
+    public const String _B_             = "\u249d "; // ⒝
+    public const String _U_             = "\u24b0 "; // ⒰
+    public const String _M_             = "\u24a8 "; // ⒨
+
+    public const String DBL_CIRCLE      = "\u2b57 "; // //⭗ U+02b57 
 
     public const String CROSSED         = "\u2715 "; // ✕
     public const String CHECKED         = "\u2713 "; // ✓
@@ -25,6 +35,10 @@
     public const String CHECKED_VIOLET_FILLED  = "\u2611 "; // ☑
     public const String CHECKED_VIOLET  = "\u2714  "; // ✔ // Need extra space to be coherent in size
     public const String CROSSED_VIOLET  = "\u2716 "; // ✖
+
+    public const String COLLAPSE        = "\u268A "; // ⚊
+    public const String EXPAND          = "\u271A "; // ✚
+
 
     public const String CROSSED_RED     = "\u274C "; // ❌
     public const String PLUS            = "\u2795 "; // ➕

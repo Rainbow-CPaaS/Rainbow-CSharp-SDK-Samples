@@ -20,6 +20,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TerminalAppS2SPresencePanel
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common", "..\Common\Common.csproj", "{93CB7228-2632-4A27-A9B8-EF99E5A6D45D}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TerminalAppHybridTelephony", "TerminalAppHybridTelephony\TerminalAppHybridTelephony.csproj", "{FC6C94F0-F3B7-4F14-AD76-45E34C3E07B1}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TerminalAppBubbleManagement", "TerminalAppBubbleManagement\TerminalAppBubbleManagement.csproj", "{4654110E-1DD3-45A5-A340-64BFD2EBB92C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -50,6 +54,14 @@ Global
 		{93CB7228-2632-4A27-A9B8-EF99E5A6D45D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{93CB7228-2632-4A27-A9B8-EF99E5A6D45D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{93CB7228-2632-4A27-A9B8-EF99E5A6D45D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FC6C94F0-F3B7-4F14-AD76-45E34C3E07B1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FC6C94F0-F3B7-4F14-AD76-45E34C3E07B1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FC6C94F0-F3B7-4F14-AD76-45E34C3E07B1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FC6C94F0-F3B7-4F14-AD76-45E34C3E07B1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4654110E-1DD3-45A5-A340-64BFD2EBB92C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4654110E-1DD3-45A5-A340-64BFD2EBB92C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4654110E-1DD3-45A5-A340-64BFD2EBB92C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4654110E-1DD3-45A5-A340-64BFD2EBB92C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

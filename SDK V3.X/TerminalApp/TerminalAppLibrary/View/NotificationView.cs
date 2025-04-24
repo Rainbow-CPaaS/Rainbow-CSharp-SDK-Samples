@@ -63,7 +63,7 @@ public class NotificationView: View
         Initialized += NotificationView_Initialized;
     }
 
-    private void NotificationView_MouseClick(object? sender, MouseEventEventArgs e)
+    private void NotificationView_MouseClick(object? sender, MouseEventArgs e)
     {
         // Create dialog
         Dialog dialog = new()
@@ -79,7 +79,7 @@ public class NotificationView: View
 
         // Create button
         Button button = new() { Text = "OK", IsDefault = true, ShadowStyle = ShadowStyle.None};
-        button.MouseClick += (s, e) => { e.MouseEvent.Handled = true; dialog.RequestStop(); };
+        button.MouseClick += (s, e) => { e.Handled = true; dialog.RequestStop(); };
 
         // Add button
         dialog.AddButton(button);

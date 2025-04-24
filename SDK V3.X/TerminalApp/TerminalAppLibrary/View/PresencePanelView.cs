@@ -17,7 +17,7 @@ public class PresencePanelView: View
 
     private readonly Object lockDisplay = new();
 
-    private ContextMenu contextMenu = new();
+    private PopoverMenu contextMenu = new();
 
     private readonly Boolean displayTitle;
     private readonly Button? settings;
@@ -113,16 +113,15 @@ public class PresencePanelView: View
             ContactsListUpated(null);
     }
 
-    private void Settings_MouseClick(object? sender, MouseEventEventArgs e)
+    private void Settings_MouseClick(object? sender, MouseEventArgs e)
     {
         e.Handled = true;
 
-        List<MenuItem> menuItems = [];
+        List<MenuItemv2> menuItems = [];
         for (int i = 0; i < 8; i++)
         {
-            MenuItem menuItem;
             int help = i+1;
-            menuItem = new MenuItem(
+            var menuItem = new MenuItemv2(
                                 $"On {help} Column{((help == 1) ? "" : "s")}",
                                 $""
                                 , () => Update(help)
@@ -130,13 +129,8 @@ public class PresencePanelView: View
             menuItems.Add(menuItem);
         }
 
-        contextMenu = new()
-        {
-            Position = e.MouseEvent.ScreenPosition,
-        };
-
-        MenuBarItem menuBarItem = new(menuItems.ToArray());
-        contextMenu.Show(menuBarItem);
+        contextMenu = new(menuItems);
+        contextMenu.MakeVisible(e.ScreenPosition);
     }
 
     public void Update(int nbColumns)
@@ -176,7 +170,8 @@ public class PresencePanelView: View
             }
 
             // Remove previous view
-            List<View> subViews = [.. Subviews];
+            //List<View> subViews = [.. Subviews];
+            var subViews = SubViews.ToList();
             while (subViews.Count > 0)
             {
                 var v = subViews[0];
@@ -188,7 +183,7 @@ public class PresencePanelView: View
                     {
                         presenceView.Visible = false;
                         presenceViewsUnused[presenceView.contact.Peer.Id] = presenceView;
-                        presenceView.ContactClick -= PresenceView_ContactClick;
+                        presenceView.PeerClick -= PresenceView_ContactClick;
                     }
                     else
                         Remove(v);
@@ -262,14 +257,14 @@ public class PresencePanelView: View
 
                         index++;
 
-                        view.ContactClick += PresenceView_ContactClick;
+                        view.PeerClick += PresenceView_ContactClick;
 
                         if (newView)
                             Add(view);
 
                         // If a contact is not in the roster, we need to update presence display to display correctly invitation status
                         if (!contact.InRoster)
-                            view.SetPresence();
+                            view.UpdateDisplay();
                     }
                 }
 
@@ -308,17 +303,11 @@ public class PresencePanelView: View
         // Dispose previous context menu
         contextMenu?.Dispose();
 
-        contextMenu = new()
-        {
-            Position = BotWindow.MousePosition,
-        };
-
-
-        List<MenuItem> menuItems = [];
+        List<MenuItemv2> menuItems = [];
 
         var contact = rbContacts.GetContact(peer);
 
-        MenuItem menuItem;
+        MenuItemv2 menuItem;
         var sentInvitation = rbInvitations.GetSentInvitation(peer);
         if( (sentInvitation != null) && (sentInvitation.Status != InvitationStatus.Pending))
             sentInvitation = null;
@@ -327,31 +316,31 @@ public class PresencePanelView: View
 
         if (contact.InRoster && (sentInvitation==null) )
         {
-            menuItem = new MenuItem(
+            menuItem = new (
                                 "Remove for my network",
                                 ""
-                                , () => { contextMenu?.Hide(); RemoveForRoster(peer); }
-                                , shortcutKey: Key.N
+                                , () => { Application.Popover?.Hide(contextMenu); RemoveForRoster(peer); }
+                                , key: Key.N
                                 );
         }
         else
         {
             if (sentInvitation == null)
             {
-                menuItem = new MenuItem(
+                menuItem = new(
                                     "Invite to join my network",
                                     ""
-                                    , () => { contextMenu?.Hide(); InviteToNetwork(peer); }
-                                    , shortcutKey: Key.N
+                                    , () => { Application.Popover?.Hide(contextMenu); InviteToNetwork(peer); }
+                                    , key: Key.N
                                     );
             }
             else
             {
-                menuItem = new MenuItem(
+                menuItem = new(
                                     "Cancel network's invitation",
                                     ""
-                                    , () => { contextMenu?.Hide(); CancelInvitationToNetwork(peer); }
-                                    , shortcutKey: Key.N
+                                    , () => { Application.Popover?.Hide(contextMenu); CancelInvitationToNetwork(peer); }
+                                    , key: Key.N
                                     );
             }
             // 
@@ -363,16 +352,17 @@ public class PresencePanelView: View
         menuItems.Add(null);
 
         var favorite = rbFavorites.GetFavorite(peer);
-        menuItem = new MenuItem(
+        menuItem = new (
                     (favorite == null) ? "Add to favorites" : "Remove from favorites",
                     $""
-                    , () => { contextMenu?.Hide(); AddOrRemoveFavorite(peer); }
-                    , shortcutKey: Key.F
+                    , () => { Application.Popover?.Hide(contextMenu); AddOrRemoveFavorite(peer); }
+                    , key: Key.F
                     );
         menuItems.Add(menuItem);
 
-        MenuBarItem menuBarItem = new(menuItems.ToArray());
-        contextMenu.Show(menuBarItem);
+        contextMenu = new(menuItems);
+        contextMenu.MakeVisible(BotWindow.MousePosition);
+        
     }
 
     private void AddOrRemoveFavorite(Peer peer)

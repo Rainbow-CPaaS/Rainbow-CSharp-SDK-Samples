@@ -15,7 +15,7 @@ public partial class LoggerView: View
     private readonly Dictionary<String, List<Regex>> regexesByColor;         // <colorName, Regex[]>
     private readonly Dictionary<String, ColorScheme> colorSchemesByColor;    // <colorName, ColorScheme>
 
-    public LoggerView()
+    public LoggerView(String title = "", Boolean btnsVisible = true)
     {
         CanFocus = true;
         ColorScheme = Tools.ColorSchemeLogger;
@@ -32,6 +32,7 @@ public partial class LoggerView: View
             Width = Dim.Fill(),
             Height = Dim.Fill(),
             TextAlignment = Alignment.Start,
+            Title = title,
             BorderStyle = LineStyle.Dotted,
             ReadOnly = false,
             Visible = true,
@@ -39,9 +40,9 @@ public partial class LoggerView: View
         };
 
         // To display with some colors
-        infoText.TextChanged += HighlightTextBasedOnKeywords;
-        infoText.DrawContent += HighlightTextBasedOnKeywords;
-        infoText.DrawContentComplete += HighlightTextBasedOnKeywords;
+        infoText.TextChanged += InfoText_TextChanged;
+        infoText.DrawingContent += HighlightTextBasedOnKeywords;
+        infoText.DrawComplete += HighlightTextBasedOnKeywords;
 
         // Create view with buttons
         View btnsView = new()
@@ -50,7 +51,8 @@ public partial class LoggerView: View
             Y = Pos.AnchorEnd(),
             Width = 24,
             Height = 1,
-            ColorScheme = Tools.ColorSchemeLogger
+            ColorScheme = Tools.ColorSchemeLogger,
+            Visible = btnsVisible
         };
 
         // Create "Clear" button
@@ -142,23 +144,29 @@ public partial class LoggerView: View
         RemoveKeysForRegex(color);
     }
 
-    private void ClearInfoTextBtn_MouseClick(object? sender, MouseEventEventArgs e)
+    private void ClearInfoTextBtn_MouseClick(object? sender, MouseEventArgs e)
     {
-        e.MouseEvent.Handled = true;
+        e.Handled = true;
         ClearText();
     }
 
-    private void CopyToClipboardInfoTextBtn_MouseClick(object? sender, MouseEventEventArgs e)
+    private void CopyToClipboardInfoTextBtn_MouseClick(object? sender, MouseEventArgs e)
     {
-        e.MouseEvent.Handled = true;
+        e.Handled = true;
         Clipboard.TrySetClipboardData(infoText.Text);
     }
 
-private static bool ContainsPosition(Match m, int pos) { return pos >= m.Index && pos < m.Index + m.Length; }
+    private static bool ContainsPosition(Match m, int pos) { return pos >= m.Index && pos < m.Index + m.Length; }
 
 #region Events received from Terminal.Gui
 
-    private void HighlightTextBasedOnKeywords(object? sender, EventArgs e)
+
+    private void InfoText_TextChanged(object? sender, EventArgs _2)
+    {
+        HighlightTextBasedOnKeywords(sender, null);
+    }
+
+    private void HighlightTextBasedOnKeywords(object? _1, DrawEventArgs _2)
     {
         lock (lockRegexes)
         {
@@ -172,6 +180,8 @@ private static bool ContainsPosition(Match m, int pos) { return pos >= m.Index &
                 }
             }
 
+            if (matches.Count == 0)
+                return;
             var pos = 0;
             for (var y = 0; y < infoText.Lines; y++)
             {
@@ -203,6 +213,8 @@ private static bool ContainsPosition(Match m, int pos) { return pos >= m.Index &
             }
         }
     }
+
+    
 
 #endregion Events received from Terminal.Gui
 }

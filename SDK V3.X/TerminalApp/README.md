@@ -27,19 +27,25 @@ They are listed in order of priority / complexity.
 | TerminAppLoginSplittedView | Login, AutoReconnection | Simple Login form with a splitted view to manage in same time two different accounts | [README](./TerminalAppLoginSplittedView/README.md) |
 | TerminAppPresencePanel | Login, AutoReconnection, (Aggregated) Presence, User and Bubble invitation | Panel to see Presence of all contatcs in the roster. Possibility to change it's own presence. Manage user and bubble invitations | [README](./TerminalAppPresencePanel/README.md) | 
 | TerminalAppS2SPresencePanel | Login, AutoReconnection, (Aggregated) Presence, User and Bubble invitation | Using S2S, Panel to see Presence of all contatcs in the roster. Possibility to change it's own presence. Manage user and bubble invitations | [README](./TerminalAppS2SPresencePanel/README.md) | 
-
+| TerminalAppHybridTelephony | Login, AutoReconnection, Hybrip Telephony | To follow/update in 3PCC (trhid party remote control) Hybrid Telephony calls. Manage Call forward, nomadic and voicemail features | [README](./TerminalAppHybridTelephony/README.md) |
+ 
 ## How to test them
 
-- Open the solution **TerminalApp.sln**
-- Set the **./TerminalAppLibrary/Resources.json** according you environment / configuration:
-	- server configuration with  **appId, appSecret and hostname**
-	- account(s) with  **botName, login, password**
-	- Eventually configurS2S Callback URL using the field **s2sCallbackURL**
-- Select as **default project**, the one you want to test
-- Compile it and test it.
+### File exeSettings.json
+
+Open the solution **TerminalApp.sln**
+
+You need to set correctly the file "exeSettings.json" like described in chapter [File exeSettings.json](./../../ConfigurationFiles.md#exeSettings.json).
+
+## File credentials.json
+
+Open the solution **TerminalApp.sln**
+
+You need to set correctly the file "credentials.json" like described in chapter [File credentials.json](./../../ConfigurationFiles.md#credentials.json).
+
+Now select as **default project**, the one you want to test. Compile it and test it.
 
 In each project a README.md describes features of the example.
-
 
 ## How it works
 

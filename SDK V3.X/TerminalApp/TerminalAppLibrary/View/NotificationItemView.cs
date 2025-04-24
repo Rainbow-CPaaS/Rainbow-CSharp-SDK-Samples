@@ -92,12 +92,12 @@ public class NotificationItemView: View
         Add(label, btnAccept, btnDecline);
     }
 
-    private void BtnAccept_MouseClick(object? sender, MouseEventEventArgs e)
+    private void BtnAccept_MouseClick(object? sender, MouseEventArgs e)
     {
         NotificationItemUpdated?.Invoke(this, new NotificationItemUpdatedEventArgs(true, _contactInvitation, InvitationContextId, _invitingContactId));
     }
 
-    private void BtnDecline_MouseClick(object? sender, MouseEventEventArgs e)
+    private void BtnDecline_MouseClick(object? sender, MouseEventArgs e)
     {
         NotificationItemUpdated?.Invoke(this, new NotificationItemUpdatedEventArgs(false, _contactInvitation, InvitationContextId, _invitingContactId));
     }

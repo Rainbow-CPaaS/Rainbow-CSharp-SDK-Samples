@@ -1,47 +1,72 @@
 ﻿using Rainbow.Model;
 using Terminal.Gui;
+using TerminalAppLibrary.Model;
 using Attribute = Terminal.Gui.Attribute;
 static public class Tools
 {
     static public Color LightGray = new Color("#DDDDDD");
 
-    static public Attribute AtributeBlackOnWhite        = new Attribute(Color.Black, Color.White);
+
+    static public Attribute AtributeDarkGrayOnGray = new Attribute(Color.DarkGray, LightGray);
     static public Attribute AtributeDarkGrayOnWhite = new Attribute(Color.DarkGray, Color.White);
 
-    static public Attribute AtributeBlackOnGray         = new Attribute(Color.Black, LightGray);
-    static public Attribute AtributeWhiteOnGray         = new Attribute(Color.White, LightGray);
-    static public Attribute AtributeBlueOnGray          = new Attribute(Color.Blue, LightGray);
-    static public Attribute AtributeGreenOnGray         = new Attribute(Color.Green, LightGray);
-    static public Attribute AtributeRedOnGray           = new Attribute(Color.Red, LightGray);
+    static public Attribute AtributeBlackOnGray = new Attribute(Color.Black, LightGray);
+    static public Attribute AtributeBlackOnWhite = new Attribute(Color.Black, Color.White);
 
-    static public ColorScheme ColorSchemeBlackOnGray    = new(AtributeBlackOnGray);
-    static public ColorScheme ColorSchemeWhiteOnGray    = new(AtributeWhiteOnGray);
+    static public Attribute AtributeWhiteOnGray = new Attribute(Color.White, LightGray);
 
-    static public ColorScheme ColorSchemeBlueOnGray     = new(AtributeBlueOnGray);
-    static public ColorScheme ColorSchemeGreenOnGray    = new(AtributeGreenOnGray);
-    static public ColorScheme ColorSchemeRedOnGray      = new(AtributeRedOnGray);
+    static public Attribute AtributeBlueOnGray = new Attribute(Color.Blue, LightGray);
+    static public Attribute AtributeBlueOnWhite = new Attribute(Color.Blue, Color.White);
 
-    static public ColorScheme ColorSchemeLoggerBlue     = new (new Attribute(Color.Blue, Color.White));
-    static public ColorScheme ColorSchemeLoggerGreen    = new(new Attribute(Color.Green, Color.White));
-    static public ColorScheme ColorSchemeLoggerRed      = new(new Attribute(Color.Red, Color.White));
+    static public Attribute AtributeGreenOnGray = new Attribute(Color.Green, LightGray);
+    static public Attribute AtributeGreenOnWhite = new Attribute(Color.Green, Color.White);
+
+    static public Attribute AtributeRedOnGray = new Attribute(Color.Red, LightGray);
+    static public Attribute AtributeRedOnWhite = new Attribute(Color.Red, Color.White);
+
+    static public ColorScheme ColorSchemeBlackOnGray = new(AtributeBlackOnGray);
+    static public ColorScheme ColorSchemeWhiteOnGray = new(AtributeWhiteOnGray);
+
+    static public ColorScheme ColorSchemeBlueOnGray = new(AtributeBlueOnGray,       // Normal
+                                                                AtributeBlueOnWhite,    // Focus
+                                                                AtributeBlueOnGray,     // Hot Normal
+                                                                AtributeDarkGrayOnGray, // Disabled 
+                                                                AtributeBlueOnGray);    // HotFocus
+
+    static public ColorScheme ColorSchemeGreenOnGray = new(AtributeGreenOnGray,      // Normal
+                                                                AtributeGreenOnWhite,   // Focus
+                                                                AtributeGreenOnGray,    // Hot Normal
+                                                                AtributeDarkGrayOnGray, // Disabled 
+                                                                AtributeGreenOnGray);   // HotFocus
+
+    static public ColorScheme ColorSchemeRedOnGray = new(AtributeRedOnGray,        // Normal
+                                                                AtributeRedOnWhite,     // Focus
+                                                                AtributeRedOnGray,      // Hot Normal
+                                                                AtributeDarkGrayOnGray, // Disabled 
+                                                                AtributeRedOnGray);     // HotFocus
+
+    static public ColorScheme ColorSchemeLoggerBlue = new(new Attribute(Color.Blue, Color.White));
+    static public ColorScheme ColorSchemeLoggerGreen = new(new Attribute(Color.Green, Color.White));
+    static public ColorScheme ColorSchemeLoggerRed = new(new Attribute(Color.Red, Color.White));
 
 
-    static public ColorScheme ColorSchemeLogger         = new(AtributeDarkGrayOnWhite,     // Normal
+    static public ColorScheme ColorSchemeLogger = new(AtributeDarkGrayOnWhite,     // Normal
                                                                 AtributeDarkGrayOnWhite,   // Focus
                                                                 AtributeDarkGrayOnWhite,   // Hot Normal
                                                                 AtributeDarkGrayOnWhite,   // Disabled 
                                                                 AtributeDarkGrayOnWhite);    // HotFocus
 
-    static public ColorScheme ColorSchemeMain           = new(AtributeBlackOnGray,     // Normal
+    static public ColorScheme ColorSchemeMain = new(AtributeBlackOnGray,     // Normal
                                                             AtributeBlackOnWhite,    // Focus
                                                             AtributeBlackOnGray,    // Hot Normal
-                                                            new Terminal.Gui.Attribute(Color.DarkGray, LightGray), // Disabled
+                                                            AtributeDarkGrayOnGray, // Disabled
                                                             AtributeBlackOnGray);   // HotFocus
 
-    static public ColorScheme ColorSchemeBlackOnWhite = new(new Terminal.Gui.Attribute(Color.Black, Color.White));
+    static public ColorScheme ColorSchemeBlackOnWhite = new(new Attribute(Color.Black, Color.White));
+    static public ColorScheme ColorSchemeWhiteOnBlack = new(new Attribute(Color.White, Color.Black));
 
-    static public ColorScheme ColorSchemeContactsPanel  = ColorSchemeRedOnGray;
-    static public ColorScheme ColorSchemePresencePanel  = ColorSchemeBlueOnGray;
+    static public ColorScheme ColorSchemeContactsPanel = ColorSchemeRedOnGray;
+    static public ColorScheme ColorSchemePresencePanel = ColorSchemeBlueOnGray;
 
     static public List<Cell> ToCellList(string str, ColorScheme? colorscheme = null)
     {
@@ -55,6 +80,59 @@ static public class Tools
         return new();
     }
 
+    static public void DisplayLoggerAsDialog(string title, string txt, List<ColorSchemeInfo>? colorSchemeInfos = null)
+    {
+
+        Terminal.Gui.Application.Invoke(() =>
+        {
+
+            // Create dialog
+            Dialog dialog = new()
+            {
+                Title = title,
+                ButtonAlignment = Alignment.Center,
+                X = Pos.Center(),
+                Y = Pos.Center(),
+                Width = Dim.Percent(80),
+                Height = Dim.Percent(80),
+                ShadowStyle = ShadowStyle.None
+            };
+
+            LoggerView loggerView = new()
+            {
+                X = Pos.Center(),
+                Y = Pos.Center(),
+                Width = Dim.Fill(4),
+                Height = Dim.Fill(2),
+            };
+            if (colorSchemeInfos is not null)
+            {
+                foreach (var colorSchemeInfo in colorSchemeInfos)
+                {
+                    loggerView.AddColorScheme(colorSchemeInfo.Color, colorSchemeInfo.ColorScheme, colorSchemeInfo.Keys);
+                }
+            }
+
+            // Create button
+            Button button = new() { Text = "OK", IsDefault = true, ShadowStyle = ShadowStyle.None };
+            button.Accepting += (s, e) => { Application.RequestStop(); e.Cancel = true; };
+
+            // Add button
+            dialog.AddButton(button);
+
+            // Add View
+            dialog.Add(loggerView);
+
+            // Add text to Logger
+            loggerView.AddText(txt);
+
+            // Display dialog and wait until it's closed
+            Terminal.Gui.Application.Run(dialog);
+
+            // Dispose dialog
+            dialog.Dispose();
+        });
+    }
 
     static public void DisplayPresenceDetails(Rainbow.Application application, Peer peer)
     {
@@ -63,29 +141,23 @@ static public class Tools
 
         var rbContacts = application.GetContacts();
 
-        // Create dialog
-        Dialog dialog = new()
-        {
-            Title = "Presence details",
-            ButtonAlignment = Alignment.Center,
-            X = Pos.Center(),
-            Y = Pos.Center(),
-            Width = Dim.Percent(80),
-            Height = Dim.Percent(80),
-            ShadowStyle = ShadowStyle.None
+        List<ColorSchemeInfo> colorSchemeInfos = new();
+
+        ColorSchemeInfo blue = new() {
+            Color = "blue",
+            ColorScheme = Tools.ColorSchemeLoggerBlue,
+            Keys = ["Resource", "Apply", "Until"]
         };
-
-        LoggerView loggerView = new()
+        ColorSchemeInfo red = new()
         {
-            X = Pos.Center(),
-            Y = Pos.Center(),
-            Width = Dim.Fill(4),
-            Height = Dim.Fill(2),
+            Color = "red",
+            ColorScheme = Tools.ColorSchemeLoggerRed,
+            Keys = ["DisplayName", "Id", "Jid", "Aggregated Presence"]
         };
+        colorSchemeInfos.Add(blue);
+        colorSchemeInfos.Add(red);
 
-        loggerView.AddColorScheme("blue", Tools.ColorSchemeLoggerBlue, "Resource", "Apply", "Until");
-        loggerView.AddColorScheme("red", Tools.ColorSchemeLoggerRed, "DisplayName", "Id", "Jid", "Aggregated Presence");
-
+        // Create text
         String txt = $"DisplayName:[{peer.DisplayName}]{Rainbow.Util.CR}Id:[{peer.Id}]{Rainbow.Util.CR}Jid:[{peer.Jid}]";
 
         // Add all presences
@@ -97,26 +169,9 @@ static public class Tools
         var aggregatedPresence = rbContacts.GetAggregatedPresence(peer);
         txt += $"{Rainbow.Util.CR}{Rainbow.Util.CR}Aggregated Presence:{Rainbow.Util.CR}{GetPresenceString(aggregatedPresence)}";
 
-        // Create button
-        Button button = new() { Text = "OK", IsDefault = true, ShadowStyle = ShadowStyle.None };
-        button.Accepting += (s, e) => { Application.RequestStop(); e.Cancel = true; };
-
-        // Add button
-        dialog.AddButton(button);
-
-        // Add View
-        dialog.Add(loggerView);
-
-        // Add text to Logger
-        loggerView.AddText(txt);
-
-        // Display dialog and wait until it's closed
-        Terminal.Gui.Application.Run(dialog);
-
-        // Dispose dialog
-        dialog.Dispose();
+        var title = "Presence details";
+        DisplayLoggerAsDialog(title, txt, colorSchemeInfos);
     }
-
 
     public static String GetPresenceString(Presence presence)
     {
@@ -127,6 +182,18 @@ static public class Tools
             calendar = "";
 
         return $"Resource:[{presence.Resource}] - Apply:[{presence.Apply}]{calendar}{Rainbow.Util.CR}\t{Emojis.TRIANGLE_RIGHT}{presence.PresenceLevel}{((presence.PresenceDetails?.Length > 0) ? (" [" + presence.PresenceDetails) + "]" : "")}";
+    }
+
+    public static ExpanderButton VerticalExpanderButton()
+    {
+        return new ExpanderButton()
+        {
+            Orientation = Orientation.Vertical,
+            Width = 4,
+            ColorScheme = Tools.ColorSchemeGreenOnGray,
+            CollapseString = $" {Emojis.MINUS} ",
+            ExpandString = $" {Emojis.PLUS} ",
+        };
     }
 
 }

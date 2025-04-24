@@ -33,7 +33,8 @@ public class LoginView: View
         { 
             Text = "Login:",
             TextAlignment = Alignment.End,
-            Width = 9
+            Width = 9,
+            Height = 1,
         };
         var passwordLabel = new Label
         {
@@ -137,20 +138,20 @@ public class LoginView: View
             BtnLogin_MouseClick_Login(null, null);
     }
 
-    private void BtnLogin_MouseClick_Login(object? sender, MouseEventEventArgs e)
+    private void BtnLogin_MouseClick_Login(object? sender, MouseEventArgs e)
     {
         if(e != null)
-            e.MouseEvent.Handled = true;
+            e.Handled = true;
 
         // Start login - don't need to manage result here. We handle events to update UI
         var _ = rbApplication.LoginAsync(loginText.Text, passwordText.Text);
     }
 
 
-    private void BtnLogin_MouseClick_Logout(object? sender, MouseEventEventArgs e)
+    private void BtnLogin_MouseClick_Logout(object? sender, MouseEventArgs e)
     {
         if (e != null)
-            e.MouseEvent.Handled = true;
+            e.Handled = true;
 
         // Start logout - don't need to manage result here. We handle events to update UI
         var _ = rbApplication.LogoutAsync();

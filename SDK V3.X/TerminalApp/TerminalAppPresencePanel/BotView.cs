@@ -22,7 +22,7 @@ internal class BotView: View
     private PresencePanelView? presencePanelView;
     private PresencePanelView? contactsPanelView;
 
-    private ContextMenu? contextMenu;
+    private PopoverMenu? contextMenu;
 
     private Button? testButton;
     private int testNumber = 0;
@@ -150,7 +150,7 @@ internal class BotView: View
 
             Add(presenceView);
 
-            presenceView.ContactClick += PresenceView_ContactClick;
+            presenceView.PeerClick += PresenceView_ContactClick;
         }
     }
 
@@ -243,11 +243,11 @@ internal class BotView: View
         }
     }
 
-    private void TestButton_MouseClick(object? sender, MouseEventEventArgs e)
+    private void TestButton_MouseClick(object? sender, MouseEventArgs e)
     {
-        if (e.MouseEvent.Flags == MouseFlags.Button1Clicked)
+        if (e.Flags == MouseFlags.Button1Clicked)
         {
-            e.MouseEvent.Handled = true;
+            e.Handled = true;
         }
     }
 
@@ -273,11 +273,11 @@ internal class BotView: View
     {
         String[] stdItems = ["Online", "Away", "Invisible", "Dnd", "", "Busy - Audio", "Busy - Video", "Busy - Sharing"];
 
-        List<MenuItem> menuItems = [];
+        List<MenuItemv2> menuItems = [];
         for (int i = 0; i < stdItems.Length; i++)
         {
             var name = stdItems[i];
-            MenuItem menuItem;
+            MenuItemv2 menuItem;
             if (name == "")
 #pragma warning disable CS8625
                 menuItems.Add(null);
@@ -299,11 +299,11 @@ internal class BotView: View
                     shortcut = new Key(help).NoShift;
                 }
 
-                menuItem = new MenuItem(
+                menuItem = new (
                                     name,
                                     ""
                                     , () => UpdatePresence(name)
-                                    , shortcutKey: shortcut
+                                    , key: shortcut
                                     ); ;
                 menuItems.Add(menuItem);
             }
@@ -312,18 +312,13 @@ internal class BotView: View
         // Dispose previoues context menu (if any)
         contextMenu?.Dispose();
 
-        contextMenu = new()
-        {
-            Position = BotWindow.MousePosition,
-        };
-
-        MenuBarItem menuBarItem = new(menuItems.ToArray());
-        contextMenu.Show(menuBarItem);
+        contextMenu = new(menuItems);
+        contextMenu.MakeVisible(BotWindow.MousePosition);
     }
 
     private void UpdatePresence(String strPresence)
     {
-        contextMenu?.Hide();
+        Terminal.Gui.Application.Popover?.Hide(contextMenu);
 
         Presence? presence;
 

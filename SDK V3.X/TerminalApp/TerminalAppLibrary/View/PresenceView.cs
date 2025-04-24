@@ -2,119 +2,192 @@
 using Rainbow.Consts;
 using Rainbow.Model;
 using Terminal.Gui;
+using static System.Net.Mime.MediaTypeNames;
 
 public class PresenceView: View
 {
-    private readonly Label labelField;
-    private readonly PresenceColorView presenceColorView;
+    private Label labelField;
+    private PresenceColorView? presenceColorView;
 
-    private readonly Rainbow.Application rbApplication;
-    private readonly Contacts rbContacts;
-    private readonly Invitations rbInvitations;
-    internal Contact contact;
+    private Rainbow.Application rbApplication;
+    private Contacts rbContacts;
+    private Invitations rbInvitations;
+    
+    internal Contact? contact;
+    internal Bubble? bubble;
 
-    public event EventHandler<PeerAndMouseEventEventArgs>? ContactClick;
+    public event EventHandler<PeerAndMouseEventEventArgs>? PeerClick;
 
-    public PresenceView(Rainbow.Application application, Contact contact)
+    public PresenceView(Rainbow.Application application, Bubble? bubble)
+    {
+        InitPresenceView(application);
+        SetBubble(bubble);
+    }
+
+    public PresenceView(Rainbow.Application application, Contact? contact)
+    {
+        InitPresenceView(application);
+        SetContact(contact);
+    }
+
+    private void InitPresenceView(Rainbow.Application application)
     {
         rbApplication = application;
         rbContacts = rbApplication.GetContacts();
         rbInvitations = rbApplication.GetInvitations();
 
-        Boolean currentUser = (rbContacts.GetCurrentContact().Peer.Id == contact?.Peer.Id);
-
-        presenceColorView = new(currentUser);
-
         labelField = new()
         {
-            X = Pos.Right(presenceColorView) + 1,
-            Y = Pos.Left(presenceColorView),
-            Width = Dim.Auto(DimAutoStyle.Text),
+            X = 2,
+            Y = 0,
+            Width = Dim.Fill(),
             Height = 1,
-            TextAlignment = Alignment.Start,
-            Text = contact?.Peer.DisplayName
+            TextAlignment = Alignment.Start
         };
 
-        Width = Dim.Auto(DimAutoStyle.Content);
+        Width = Dim.Fill();
+        Height = 1;
 
-        Add(presenceColorView, labelField);
-
-        MouseClick                      += View_MouseClick;
-        labelField.MouseClick           += View_MouseClick;
-        presenceColorView.MouseClick    += View_MouseClick;
-
-        this.contact = contact;
-        SetPresence(); ;
-
-        rbContacts.ContactAggregatedPresenceUpdated += RbContacts_ContactAggregatedPresenceUpdated;
+        Add(labelField);
+        MouseClick += View_MouseClick;
+        labelField.MouseClick += View_MouseClick;
     }
 
-    private void View_MouseClick(object? sender, MouseEventEventArgs e)
+    private void View_MouseClick(object? sender, MouseEventArgs e)
     {
         if (contact != null)
-            ContactClick?.Invoke(sender, new PeerAndMouseEventEventArgs(contact, e.MouseEvent));
+            PeerClick?.Invoke(sender, new PeerAndMouseEventEventArgs(contact, e));
     }
 
     internal void SetContact(Contact? contact)
     {
-        this.contact = contact;
-        SetPresence();
+        if (bubble is not null)
+        {
+            Remove(presenceColorView);
+            presenceColorView = null;
+        }
+        bubble = null;
+
+        if (contact is not null)
+        {
+            var displayName = contact?.Peer?.DisplayName;
+            var currentUser = (rbContacts.GetCurrentContact().Peer.Id == contact?.Peer.Id);
+            presenceColorView = new(currentUser, false);
+
+            // Need to check event ContactAggregatedPresenceUpdated ?
+            if (this.contact is null)
+                rbContacts.ContactAggregatedPresenceUpdated += RbContacts_ContactAggregatedPresenceUpdated;
+
+            this.contact = contact;
+            Add(presenceColorView);
+            presenceColorView.MouseClick += View_MouseClick;
+            UpdateDisplay();
+        }
+        else
+        {
+            Remove(presenceColorView);
+            presenceColorView = null;
+        }        
     }
 
-    internal void SetPresence()
+    internal void SetBubble(Bubble? bubble)
     {
-        if (contact == null)
+        if (contact is not null)
+        {
+            rbContacts.ContactAggregatedPresenceUpdated -= RbContacts_ContactAggregatedPresenceUpdated;
+            Remove(presenceColorView);
+            presenceColorView = null;
+        }
+        contact = null;
+
+        if (bubble is not null)
+        {
+            presenceColorView = new(false, true);
+            this.bubble = bubble;
+            Add(presenceColorView);
+            presenceColorView.MouseClick += View_MouseClick;
+            UpdateDisplay();
+        }
+        else
+        {
+            Remove(presenceColorView);
+            presenceColorView = null;
+        }
+    }
+
+    internal String GetDisplayName(Peer peer)
+    {
+        if (String.IsNullOrEmpty(peer?.DisplayName))
+            return "";
+        else
+            return peer.DisplayName;
+    }
+
+    internal void UpdateDisplay()
+    {
+        if (presenceColorView is null)
             return;
 
-        if (!contact.InRoster == true)
+        if (contact is not null)
         {
-            var invitation = rbInvitations.GetSentInvitation(contact);
-            if ((invitation != null) && (invitation.Status != InvitationStatus.Pending))
-                invitation = null;
-
-            if (invitation == null)
+            if (!contact.InRoster)
             {
-                presenceColorView.SetPresence(null);
+                var invitation = rbInvitations.GetSentInvitation(contact);
+                if ((invitation != null) && (invitation.Status != InvitationStatus.Pending))
+                    invitation = null;
+
+                if (invitation == null)
+                {
+                    presenceColorView.SetPresence(null);
+                }
+                else
+                    presenceColorView.SetInvitationInProgress();
             }
             else
-                presenceColorView.SetInvitationInProgress();
+            {
+
+                Presence? aggregatedPresence;
+                Dictionary<String, Presence> presences;
+                aggregatedPresence = rbContacts.GetAggregatedPresence(contact);
+                presences = rbContacts.GetPresencesList(contact);
+
+                presenceColorView.SetPresence(aggregatedPresence);
+
+                if (presences.TryGetValue("calendar", out var calendarPresence))
+                {
+                    if ((calendarPresence.PresenceLevel != PresenceLevel.Online) && calendarPresence.Until > DateTime.UtcNow)
+                    {
+                        labelField.ColorScheme = Tools.ColorSchemePresencePanel;
+                        labelField.Text = $"{Emojis.CALENDAR} {GetDisplayName(contact.Peer)}";
+                        return;
+                    }
+                }
+            }
 
             labelField.ColorScheme = Tools.ColorSchemeMain;
-            labelField.Text = contact.Peer.DisplayName;
-            
-            return;
+            labelField.Text = GetDisplayName(contact.Peer);
         }
-
-        Presence? aggregatedPresence;
-        Dictionary<String, Presence> presences;
-        aggregatedPresence = rbContacts.GetAggregatedPresence(contact);
-        presences = rbContacts.GetPresencesList(contact);
-
-        presenceColorView.SetPresence(aggregatedPresence);
-
-        if (presences.TryGetValue("calendar", out var calendarPresence))
+        else if(bubble is not null)
         {
-            if ((calendarPresence.PresenceLevel != PresenceLevel.Online) && calendarPresence.Until > DateTime.UtcNow)
-            {
-                labelField.ColorScheme = Tools.ColorSchemePresencePanel;
-                labelField.Text =  $"{Emojis.CALENDAR} {contact.Peer.DisplayName}";
-                return;
-            }
+            presenceColorView.SetPresence(null);
+            labelField.ColorScheme = Tools.ColorSchemeMain;
+            labelField.Text = GetDisplayName(bubble.Peer);
         }
-
-        labelField.ColorScheme = Tools.ColorSchemeMain;
-        labelField.Text = contact.Peer.DisplayName;
+        else
+        {
+            labelField.Text = "";
+        }
     }
 
     private void RbContacts_ContactAggregatedPresenceUpdated(Presence presence)
     {
-        if (presence.Contact?.Peer?.Id == contact?.Peer.Id)
+        if((contact is not null) && (presence.Contact?.Peer?.Id == contact.Peer?.Id))
         {
             contact.InRoster = (presence.PresenceLevel != PresenceLevel.Unavailable);
 
             Terminal.Gui.Application.Invoke(() =>
             {
-                SetPresence();
+                UpdateDisplay();
             });
         }
     }

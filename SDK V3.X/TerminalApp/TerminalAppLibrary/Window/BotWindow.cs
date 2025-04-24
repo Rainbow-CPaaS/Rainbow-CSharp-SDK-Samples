@@ -145,7 +145,8 @@ public class BotWindow : Window
         Terminal.Gui.Application.MouseEvent += ApplicationMouseEvent;
     }
 
-    private void ApplicationMouseEvent(object? sender, MouseEvent a) { BotWindow.MousePosition = a.Position; }
+
+    private void ApplicationMouseEvent(object? sender, MouseEventArgs a) { BotWindow.MousePosition = a.Position; }
 
     private static void SetOnLeft(View leftView)
     {
@@ -174,7 +175,7 @@ public class BotWindow : Window
                 Button button = new() { Text = name, IsDefault = (name == "Ok"), ShadowStyle = ShadowStyle.None };
                 button.MouseClick += (s, e) =>
                 {
-                    e.MouseEvent.Handled = true;
+                    e.Handled = true;
                     buttonClicked = name;
                     Application.RequestStop();
                 };

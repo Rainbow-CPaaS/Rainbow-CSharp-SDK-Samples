@@ -3,6 +3,7 @@ using Rainbow.Model;
 using System.Drawing;
 using System.Text;
 using Terminal.Gui;
+using static Terminal.Gui.SpinnerStyle;
 using Attribute = Terminal.Gui.Attribute;
 using Color = Terminal.Gui.Color;
 
@@ -13,10 +14,12 @@ public class PresenceColorView : View
     char c = ' ';
 
     readonly Boolean forCurrentUser;
+    readonly Boolean isBubble;
 
-    public PresenceColorView(Boolean forCurrentUser)
+    public PresenceColorView(Boolean forCurrentUser, Boolean isBubble = false)
     {
         this.forCurrentUser = forCurrentUser;
+        this.isBubble = isBubble;
 
         X = Pos.Left(this);
         Y = Pos.Top(this);
@@ -24,13 +27,13 @@ public class PresenceColorView : View
         Height = 1;
     }
 
-    public override void OnDrawContent(Rectangle bounds)
-    {
-        base.OnDrawContent(bounds);
+    protected override bool OnDrawingContent(DrawContext? context) {
+        base.OnDrawingContent(context);
 
         var attr = new Attribute(foreground, background);
         Driver.SetAttribute(attr);
         AddRune(0, 0, (Rune)c);
+        return true;
     }
 
     public void SetInvitationInProgress()
@@ -38,11 +41,17 @@ public class PresenceColorView : View
         c = Emojis.THREE_DOTS[0];
         background = new Color(255, 255, 255);
         foreground = new Color(0, 0, 0);
-        SetNeedsDisplay();
+        SetNeedsDraw();
     }
 
     public void SetPresence(Presence? presence)
     {
+        if(isBubble)
+        {
+            SetPresenceColor(Tools.LightGray, Color.Black, Emojis.DBL_CIRCLE[0]);
+            return;
+        }
+
         char chr = ' ';
         Color? background = null;
         Color? foreground = null;
@@ -114,6 +123,6 @@ public class PresenceColorView : View
             c = chr;
         }
 
-        SetNeedsDisplay();
+        SetNeedsDraw();
     }
 }
