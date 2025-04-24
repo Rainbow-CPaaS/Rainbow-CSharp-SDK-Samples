@@ -290,44 +290,50 @@ namespace BotLibrary
                 {
                     try
                     {
-                        // Two ways to receive a BotConfiguration:
-                        //  - alternative content as JSON
-                        //  - file attachment with ".json" extension
+                        var isAdmin = await IsAdministrator(message.FromContact?.Peer?.Jid);
 
-                        // Check AlternatContent
-                        if(message.AlternativeContent?.Count > 0)
+                        if (isAdmin)
                         {
-                            foreach(var alternativeContent in message.AlternativeContent)
+                            // Two ways to receive a BotConfiguration:
+                            //  - alternative content as JSON
+                            //  - file attachment with ".json" extension
+
+                            // Check AlternatContent
+                            if (message.AlternativeContent?.Count > 0)
                             {
-                                if (alternativeContent.Type == HttpRequestDescriptor.MIME_TYPE_JSON)
+                                foreach (var alternativeContent in message.AlternativeContent)
                                 {
-                                    var result = await IsValidJSONBotConfiguration(alternativeContent.Content, "message", message);
-                                    if (result)
-                                        return;
+                                    if (alternativeContent.Type == HttpRequestDescriptor.MIME_TYPE_JSON)
+                                    {
+                                        var result = await IsValidJSONBotConfiguration(alternativeContent.Content, "message", message);
+                                        if (result)
+                                            return;
+                                    }
+                                }
+                            }
+
+                            // Check File Attachment
+                            if (message.FileAttachment is not null)
+                            {
+                                // Need to get file descriptor
+                                var fileDescriptor = await DownloadFileDescriptorAsync(message.FileAttachment.Id);
+
+                                if (fileDescriptor?.FileName.EndsWith(".json") == true)
+                                {
+                                    // Download the file as String / JSON file
+                                    var json = await DownloadJsonFileAsync(fileDescriptor);
+                                    if (!String.IsNullOrEmpty(json))
+                                    {
+                                        var result = await IsValidJSONBotConfiguration(json, "message", message);
+                                        if (result)
+                                            return;
+                                    }
                                 }
                             }
                         }
 
-                        // Check File Attachment
-                        if (message.FileAttachment is not null)
-                        {
-                            // Need to get file descriptor
-                            var fileDescriptor = await DownloadFileDescriptorAsync(message.FileAttachment.Id);
-
-                            if (fileDescriptor?.FileName.EndsWith(".json") == true)
-                            {
-                                // Download the file as String / JSON file
-                                var json = await DownloadJsonFileAsync(fileDescriptor);
-                                if (!String.IsNullOrEmpty(json))
-                                {
-                                    var result = await IsValidJSONBotConfiguration(json, "message", message);
-                                    if (result)
-                                        return;
-                                }
-                            }
-                        }
-
-                        await InstantMessageReceivedAsync(message);
+                        if(isAdmin || _botConfiguration.InstantMessageAutoAccept)
+                            await InstantMessageReceivedAsync(message);
                     }
                     catch (Exception ex)
                     {
@@ -348,19 +354,24 @@ namespace BotLibrary
                 {
                     try
                     {
-                        if(applicationMessage.XmlElements?.Count > 0)
+                        var isAdmin = await IsAdministrator(applicationMessage.FromJid);
+                        if (isAdmin)
                         {
-                            var xmlElement = applicationMessage.XmlElements[0];
-                            if (xmlElement.Name == BOT_CONFIGURATION)
+                            if (applicationMessage.XmlElements?.Count > 0)
                             {
-                                var json = xmlElement.InnerText;
-                                var result = await IsValidJSONBotConfiguration(json, "applicationMessage", applicationMessage);
-                                if (result)
-                                    return;
+                                var xmlElement = applicationMessage.XmlElements[0];
+                                if (xmlElement.Name == BOT_CONFIGURATION)
+                                {
+                                    var json = xmlElement.InnerText;
+                                    var result = await IsValidJSONBotConfiguration(json, "applicationMessage", applicationMessage);
+                                    if (result)
+                                        return;
+                                }
                             }
                         }
 
-                        await ApplicationMessageReceivedAsync(applicationMessage);
+                        if(isAdmin || _botConfiguration.ApplicationMessageAutoAccept)
+                            await ApplicationMessageReceivedAsync(applicationMessage);
                     }
                     catch (Exception ex)
                     {
@@ -381,15 +392,20 @@ namespace BotLibrary
                 {
                     try
                     {
-                        if (ackMessage.Action == BOT_CONFIGURATION && ackMessage.MimeType == HttpRequestDescriptor.MIME_TYPE_JSON)
+                        var isAdmin = await IsAdministrator(ackMessage.FromJid);
+                        if (isAdmin)
                         {
-                            var json = ackMessage.Content;
-                            var result = await IsValidJSONBotConfiguration(json, "ackMessage", ackMessage);
-                            if (result)
-                                return;
+                            if (ackMessage.Action == BOT_CONFIGURATION && ackMessage.MimeType == HttpRequestDescriptor.MIME_TYPE_JSON)
+                            {
+                                var json = ackMessage.Content;
+                                var result = await IsValidJSONBotConfiguration(json, "ackMessage", ackMessage);
+                                if (result)
+                                    return;
+                            }
                         }
 
-                        await AckMessageReceivedAsync(ackMessage);
+                        if (isAdmin || _botConfiguration.AckMessageAutoAccept)
+                            await AckMessageReceivedAsync(ackMessage);
                     }
                     catch (Exception ex)
                     {
@@ -787,21 +803,17 @@ namespace BotLibrary
         /// <summary>
         /// Event raised when the current user received an AckMessage
         /// </summary>
-        private async void RbInstantMessaging_AckMessageReceived(AckMessage ackMessage)
+        private void RbInstantMessaging_AckMessageReceived(AckMessage ackMessage)
         {
             // We don't want to manage AckMessage coming from ourself
             if (ackMessage.FromJid.Equals(_currentContact?.Peer?.Jid, StringComparison.InvariantCultureIgnoreCase) == true)
                 return;
 
-            var isAdmin = await IsAdministrator(ackMessage.FromJid);
-            if(isAdmin)
-            {
-                // Queue Ack Message
-                _queueAckMessagesReceived.Enqueue(ackMessage);
-                var trigger = Trigger.NextStep;
-                if (_machine.CanFire(trigger))
-                    FireTrigger(trigger);
-            }
+            // Queue Ack Message
+            _queueAckMessagesReceived.Enqueue(ackMessage);
+            var trigger = Trigger.NextStep;
+            if (_machine.CanFire(trigger))
+                FireTrigger(trigger);
         }
 
         /// <summary>
@@ -812,36 +824,28 @@ namespace BotLibrary
             // We don't want to manage AckMessage coming from ourself
             if (applicationMessage.FromJid.Equals(_currentContact?.Peer?.Jid, StringComparison.InvariantCultureIgnoreCase) == true)
                 return;
-
-            var isAdmin = await IsAdministrator(applicationMessage.FromJid);
-            if (isAdmin)
-            {
-                // Queue ApplicationMessage
-                _queueApplicationMessagesReceived.Enqueue(applicationMessage);
-                var trigger = Trigger.NextStep;
-                if (_machine.CanFire(trigger))
-                    FireTrigger(trigger);
-            }
+            
+            // Queue ApplicationMessage
+            _queueApplicationMessagesReceived.Enqueue(applicationMessage);
+            var trigger = Trigger.NextStep;
+            if (_machine.CanFire(trigger))
+                FireTrigger(trigger);
         }
 
         /// <summary>
         /// Event raised when the current user received a Instant Message
         /// </summary>
-        private async void RbInstantMessaging_MessageReceived(Message message, Boolean _carbonCopy)
+        private void RbInstantMessaging_MessageReceived(Message message, Boolean _carbonCopy)
         {
             // We don't want to manage message coming from ourself
             if (message.FromContact?.Peer?.Jid?.Equals(_currentContact?.Peer.Jid, StringComparison.InvariantCultureIgnoreCase) == true)
                 return;
 
-            var isAdmin = await IsAdministrator(message.FromContact?.Peer?.Jid);
-            if (isAdmin)
-            {
-                // Queue Instant Message
-                _queueInstantMessagesReceived.Enqueue(message);
-                var trigger = Trigger.NextStep;
-                if (_machine.CanFire(trigger))
-                    FireTrigger(trigger);
-            }
+            // Queue Instant Message
+            _queueInstantMessagesReceived.Enqueue(message);
+            var trigger = Trigger.NextStep;
+            if (_machine.CanFire(trigger))
+                FireTrigger(trigger);
         }
 
     #endregion EVENTS RAISED FROM RAINBOW OBJECTS

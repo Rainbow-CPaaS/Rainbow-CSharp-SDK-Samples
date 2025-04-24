@@ -124,6 +124,9 @@ Here the minimal/mandatory structure is described.
       ],
       "guestsAccepted": false
     },
+    "instantMessageAutoAccept": false,
+    "ackMessageAutoAccept": false,
+    "applicationMessageAutoAccept": false,
     "bubbleInvitationAutoAccept": true,
     "userInvitationAutoAccept": true
   }
@@ -137,6 +140,9 @@ Here the minimal/mandatory structure is described.
         - **login**: String (can be null/empty or not set) - Login of the Rainbow Account.
         - NOTE: **id** is used first then **jid** and finally **login**. At least one of them must be set.
     - **guestsAccepted**: Boolean (false by default) - If set to True any guest account can send command to the bot.
+- **instantMessageAutoAccept**: Boolean (false by default) - If set to true, the bot will accept any Instant Message (even if not sent by one to the administrators).
+- **ackMessageAutoAccept**: Boolean (false by default) - If set to true, the bot will accept any AckMessage (even if not sent by one to the administrators).
+- **applicationMessageAutoAccept**: Boolean (false by default) - If set to true, the bot will accept any ApplicationMessage (even if not sent by one to the administrators).
 - **bubbleInvitationAutoAccept**: Boolean (true by default) - If set to true, the bot will accept automatically of Bubble invitations.
 - **userInvitationAutoAccept**: Boolean (true by default) - If set to true, the bot will accept automatically of User invitations.
 - **bot**: To define which bot must take into account this configuration (can be null/empty or not set - so will target any bot)
@@ -288,6 +294,8 @@ public (BotLibrary.State state, Boolean canContinue, String message) CheckBotSta
 The term **BotConfiguration update** means that the configuration of the Bot has been updated (by **AckMessage**, **ApplicationMessage**, **InstantMessage** or **InternalMessage**) or at startup (using **Configure()** method). 
 
 This update is based on a JSON structure defined in [file botConfiguration.json](#botConfiguration.json).
+
+**The update is done only** if it has been asked by one of the administrator. (even if **instantMessageAutoAccept**, **ackMessageAutoAccept** or **applicationMessageAutoAccept** are set to true)  
 
 The method **BotConfigurationUpdatedAsync()** is called with **BotConfigurationUpdate** object as parameter.
 

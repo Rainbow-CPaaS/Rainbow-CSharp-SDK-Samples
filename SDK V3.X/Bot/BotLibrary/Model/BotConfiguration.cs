@@ -11,6 +11,12 @@ namespace BotLibrary.Model
 
         public Boolean GuestsAccepted { get; set; }
 
+        public Boolean InstantMessageAutoAccept { get; set; }
+
+        public Boolean AckMessageAutoAccept { get; set; }
+
+        public Boolean ApplicationMessageAutoAccept { get; set; }
+
         public Boolean BubbleInvitationAutoAccept { get; set; }
 
         public Boolean UserInvitationAutoAccept { get; set; }
@@ -21,6 +27,11 @@ namespace BotLibrary.Model
         {
             Administrators = null;
             GuestsAccepted = false;
+
+            InstantMessageAutoAccept = false;
+            AckMessageAutoAccept = false;
+            ApplicationMessageAutoAccept = false;
+
             BubbleInvitationAutoAccept = true;
             UserInvitationAutoAccept = true;
             Bot = null;
@@ -49,6 +60,16 @@ namespace BotLibrary.Model
                     if(jsonNodeAdministrators.HasKey("guestsAccepted"))
                         botConfiguration.GuestsAccepted = jsonNodeAdministrators["guestsAccepted"];
                 }
+
+                if (jsonNode.HasKey("instantMessageAutoAccept"))
+                    botConfiguration.InstantMessageAutoAccept = jsonNode["instantMessageAutoAccept"];
+
+                if (jsonNode.HasKey("ackMessageAutoAccept"))
+                    botConfiguration.AckMessageAutoAccept = jsonNode["ackMessageAutoAccept"];
+
+                if (jsonNode.HasKey("applicationMessageAutoAccept"))
+                    botConfiguration.ApplicationMessageAutoAccept = jsonNode["applicationMessageAutoAccept"];
+
                 if (jsonNode.HasKey("userInvitationAutoAccept"))
                     botConfiguration.UserInvitationAutoAccept = jsonNode["userInvitationAutoAccept"];
 
