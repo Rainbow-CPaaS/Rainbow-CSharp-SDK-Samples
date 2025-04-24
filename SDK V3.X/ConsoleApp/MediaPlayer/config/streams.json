@@ -19,6 +19,12 @@
       "connected": false
     },
     {
+      "id": "sports",
+      "media": "audio+video",
+      "uri": "C:\\media\\Amigo\\Sports.mp4",
+      "connected": false
+    },
+    {
       "id": "rtsp",
       "media": "audio+video",
       "uri": "rtsp://rtsp.stream/movie",
