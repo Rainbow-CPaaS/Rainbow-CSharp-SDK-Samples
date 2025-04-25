@@ -15,7 +15,7 @@ public class PresenceView: View
     internal Contact? contact;
     internal Bubble? bubble;
 
-    public event EventHandler<PeerAndMouseEventEventArgs>? PeerClick;
+    public event EventHandler<PeerAndMouseEventArgs>? PeerClick;
 
     public PresenceView(Rainbow.Application application, Bubble? bubble)
     {
@@ -55,9 +55,9 @@ public class PresenceView: View
     private void View_MouseClick(object? sender, MouseEventArgs e)
     {
         if (contact != null)
-            PeerClick?.Invoke(sender, new PeerAndMouseEventEventArgs(contact, e));
+            PeerClick?.Invoke(sender, new PeerAndMouseEventArgs(contact, e));
         else if (bubble != null)
-            PeerClick?.Invoke(sender, new PeerAndMouseEventEventArgs(bubble, e));
+            PeerClick?.Invoke(sender, new PeerAndMouseEventArgs(bubble, e));
     }
 
     internal void SetContact(Contact? contact)

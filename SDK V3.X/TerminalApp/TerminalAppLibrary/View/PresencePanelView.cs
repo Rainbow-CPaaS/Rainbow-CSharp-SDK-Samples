@@ -283,7 +283,7 @@ public class PresencePanelView: View
         }
     }
 
-    private void PresenceView_ContactClick(object? sender, PeerAndMouseEventEventArgs e)
+    private void PresenceView_ContactClick(object? sender, PeerAndMouseEventArgs e)
     {
         if (e.MouseEvent.Flags == MouseFlags.Button1DoubleClicked)
         {

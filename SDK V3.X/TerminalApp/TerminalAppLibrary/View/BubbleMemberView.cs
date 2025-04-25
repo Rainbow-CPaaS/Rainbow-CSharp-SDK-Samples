@@ -16,6 +16,8 @@ public class BubbleMemberView: View
     BubbleMember bubbleMember;
     Contact? contact;
 
+    public event EventHandler<PeerAndMouseEventArgs>? PeerClick;
+
     public BubbleMemberView(Rainbow.Application application, Bubble bubble, BubbleMember bubbleMember)
     {
         rbApplication = application;
@@ -53,6 +55,22 @@ public class BubbleMemberView: View
 
         rbContacts.ContactsAdded += RbContacts_ContactsAdded;
         rbBubbles.BubbleMemberUpdated += RbBubbles_BubbleMemberUpdated;
+
+
+        MouseClick += View_MouseClick;
+        lblPrivilege.MouseClick += View_MouseClick;
+        presenceView.PeerClick += PresenceView_PeerClick;
+    }
+
+    private void PresenceView_PeerClick(object? sender, PeerAndMouseEventArgs e)
+    {
+        PeerClick?.Invoke(sender, e);
+    }
+
+    private void View_MouseClick(object? sender, MouseEventArgs e)
+    {
+        if (bubbleMember != null)
+            PeerClick?.Invoke(sender, new PeerAndMouseEventArgs(bubbleMember, e));
     }
 
     private void UpdateDisplay(Boolean updatePresenceView)

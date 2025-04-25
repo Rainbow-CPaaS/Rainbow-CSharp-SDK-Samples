@@ -13,6 +13,10 @@ internal class BotView: View
     private readonly Bubbles rbBubbles;
 
     private LoginView? loginView;
+    private ItemSelector? bubbleSelector;
+    private Label? lblBubble;
+    private Label? lblBubbleSelector;
+    private Label? lblBubbleSelectorArrow;
     private BubbleMembersPanel? bubbleMembersPanel;
 
     internal BotView(UserConfig rbAccount)
@@ -80,15 +84,30 @@ internal class BotView: View
         };
         Add(loginView);
 
-        bubbleMembersPanel = new(rbApplication, null)
+        bubbleSelector = new("Select Bubble")
         {
             X = Pos.Center(),
-            Y = Pos.Center(),
-            Height = Dim.Percent(90),
+            Y = 1,
+            Height = 3,
             Width = 50,
             Visible = false
         };
-        Add(bubbleMembersPanel);
+        bubbleSelector.SelectedItemUpdated += BubbleSelector_ItemSelected;
+
+        bubbleMembersPanel = new(rbApplication, null)
+        {
+            X = Pos.Center(),
+            Y = Pos.Bottom(bubbleSelector),
+            Height = Dim.Fill(1),
+            Width = 50,
+            Visible = false
+        };
+        Add(bubbleSelector, bubbleMembersPanel);
+    }
+
+    private void BubbleSelector_ItemSelected(object? sender, Item item)
+    {
+        bubbleMembersPanel?.SetBubble(rbBubbles.GetBubbleById(item.Id));
     }
 
 #region Events received from Rainbow SDK
@@ -105,11 +124,15 @@ internal class BotView: View
                     Title = rbAccount.Prefix;
 
                     loginView.Visible = false;
+                    bubbleSelector.Visible = true;
                     bubbleMembersPanel.Visible = true;
 
                     var bubbles = rbBubbles.GetAllBubbles();
                     if (bubbles?.Count() > 0)
+                    {
+                        bubbleSelector.SetItems(bubbles.Select(b => b.Peer).ToList());
                         bubbleMembersPanel.SetBubble(bubbles[0]);
+                    }
                     break;
 
                 case ConnectionStatus.Connecting:
@@ -120,6 +143,7 @@ internal class BotView: View
                     Title = $"{rbAccount.Prefix} - [Disconnected]";
 
                     loginView.Visible = true;
+                    bubbleSelector.Visible = false;
                     bubbleMembersPanel.Visible = false;
                     break;
             }

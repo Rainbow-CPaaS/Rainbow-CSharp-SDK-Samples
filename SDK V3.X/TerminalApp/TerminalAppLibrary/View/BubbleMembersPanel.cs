@@ -1,7 +1,6 @@
 ﻿using Rainbow;
 using Rainbow.Consts;
 using Rainbow.Model;
-using System.Collections.Immutable;
 using Terminal.Gui;
 
 public class BubbleMembersPanel: View
@@ -16,6 +15,10 @@ public class BubbleMembersPanel: View
     private readonly Bubbles rbBubbles;
 
     private Bubble? bubble;
+    private Contact? currentUser;
+
+    private PopoverMenu? contextMenu;
+    private Boolean isModerator;
 
     private readonly Object lockDisplay = new();
     private readonly Label lblOrganizers;
@@ -63,25 +66,50 @@ public class BubbleMembersPanel: View
         SetBubble(bubble);
     }
 
+    private BubbleMemberView AddBubbleMemberView(View previousView, BubbleMember bubbleMember)
+    {
+        var bubbleMemberView = new BubbleMemberView(rbApplication, bubble, bubbleMember)
+        {
+            X = 0,
+            Y = Pos.Bottom(previousView),
+            Width = Dim.Fill()
+        };
+        bubbleMemberView.PeerClick += BubbleMemberView_PeerClick;
+        Add(bubbleMemberView);
+        bubbleMembersView.Add(bubbleMember.Peer.Id, bubbleMemberView);
+        return bubbleMemberView;
+    }
+
     private void UpdateDisplay()
     {
         lock (lockDisplay)
         {
-            // Set default display
-            
+            currentUser ??= rbApplication.GetContacts().GetCurrentContact();
+
+            // Set default display / value
             lblOrganizers.Height = 0;
             lblMembers.Height = 0;
             lblMembers.Y = 0;
+            isModerator = false;
 
             // Remove previous BubbleMemberView
             foreach (var bubbleMemberView in bubbleMembersView.Values)
             {
+                bubbleMemberView.PeerClick -= BubbleMemberView_PeerClick;
                 Remove(bubbleMemberView);
             }
             bubbleMembersView.Clear();
 
             if (bubble is null)
                 return;
+
+            var o = rbBubbles.IsOwner(bubble);
+            isModerator = o is not null && o.Value == true;
+            if (!isModerator)
+            {
+                var m = rbBubbles.IsModerator(bubble);
+                isModerator = m is not null && m.Value == true;
+            }
 
             // Set title
             if (!String.IsNullOrEmpty(bubble.Peer?.DisplayName))
@@ -99,6 +127,7 @@ public class BubbleMembersPanel: View
 
                 int nbOrganizers = 0;
                 int nbStdMembers = 0;
+
                 // Manage Owner
                 var owner = bubbleMembers.FirstOrDefault(m => m.Privilege == BubbleMemberPrivilege.Owner);
                 if (owner is not null)
@@ -109,22 +138,12 @@ public class BubbleMembersPanel: View
                         lblOrganizers.Height = 1;
                         previousView = lblOrganizers;
                     }
-
-                    var bubbleMemberView = new BubbleMemberView(rbApplication, bubble, owner)
-                    {
-                        X = 0,
-                        Y = Pos.Bottom(previousView),
-                        Width = Dim.Fill()
-                    };
-                    Add(bubbleMemberView);
-                    bubbleMembersView.Add(owner.Peer.Id, bubbleMemberView);
-
-                    previousView = bubbleMemberView;
+                    previousView = AddBubbleMemberView(previousView, owner);
                 }
 
                 // Manage Moderators
                 var moderators = bubbleMembers.Where(m => m.Privilege == BubbleMemberPrivilege.Moderator).ToList();
-                if (moderators is not null)
+                if (moderators.Count > 0)
                 {
                     // Display Label
                     if (previousView is null)
@@ -135,21 +154,13 @@ public class BubbleMembersPanel: View
                     foreach(var moderator in moderators)
                     {
                         nbOrganizers++;
-                        var bubbleMemberView = new BubbleMemberView(rbApplication, bubble, moderator)
-                        {
-                            X = 0,
-                            Y = Pos.Bottom(previousView),
-                            Width = Dim.Fill()
-                        };
-                        Add(bubbleMemberView);
-                        bubbleMembersView.Add(moderator.Peer.Id, bubbleMemberView);
-                        previousView = bubbleMemberView;
+                        previousView = AddBubbleMemberView(previousView, moderator);
                     }
                 }
 
                 // Manage std members
                 var stdMembers = bubbleMembers.Where(m => m.Privilege == BubbleMemberPrivilege.User).ToList();
-                if (stdMembers is not null)
+                if (stdMembers.Count > 0)
                 {
                     // Display label
                     lblMembers.Height = 1;
@@ -162,15 +173,7 @@ public class BubbleMembersPanel: View
                     foreach (var stdMember in stdMembers)
                     {
                         nbStdMembers++;
-                        var bubbleMemberView = new BubbleMemberView(rbApplication, bubble, stdMember)
-                        {
-                            X = 0,
-                            Y = Pos.Bottom(previousView),
-                            Width = Dim.Fill()
-                        };
-                        Add(bubbleMemberView);
-                        bubbleMembersView.Add(stdMember.Peer.Id, bubbleMemberView);
-                        previousView = bubbleMemberView;
+                        previousView = AddBubbleMemberView(previousView, stdMember);
                     }
                 }
 
@@ -183,6 +186,86 @@ public class BubbleMembersPanel: View
                     lblMembers.Text = $"{LBL_MEMBERS} ({nbStdMembers})";
                 else
                     lblMembers.Text = LBL_MEMBER;
+            }
+        }
+    }
+
+    private void UpdateMember(BubbleMember bubbleMember, String action)
+    {
+        if (!isModerator)
+            return;
+
+        switch(action)
+        {
+            case "promote":
+                var _1 = rbBubbles.UpdateMemberPrivilegeAsync(bubble, bubbleMember, BubbleMemberPrivilege.Moderator);
+                break;
+
+            case "demote":
+                var _2 = rbBubbles.UpdateMemberPrivilegeAsync(bubble, bubbleMember, BubbleMemberPrivilege.User);
+                break;
+
+            case "remove":
+                var _3 = rbBubbles.RemoveMemberAsync(bubble, bubbleMember);
+                break;
+        }
+    }
+
+    private void BubbleMemberView_PeerClick(object? sender, PeerAndMouseEventArgs e)
+    {
+        // Left click: do nothing
+        // Right click:
+        //  - if current user is a moderator:
+        //      - promote / demote user
+        //      - remove member
+
+        if (!isModerator)
+        { 
+            e.MouseEvent.Handled = true;
+            return;
+        }
+
+        // Right Click
+        if(e.MouseEvent.Flags == MouseFlags.Button3Clicked)
+        {
+            if (bubble is not null && e.Peer is not null && e.Peer.Id != currentUser.Peer?.Id)
+            {
+                if (bubble.Users.TryGetValue(e.Peer.Id, out BubbleMember? bubbleMember))
+                {
+                    List<MenuItemv2> menuItems = [];
+
+                    if(bubbleMember.Privilege == BubbleMemberPrivilege.User)
+                    {
+                        var item = new MenuItemv2(
+                                            "Promote to organizer role"
+                                            , ""
+                                            , () => UpdateMember(bubbleMember, "promote")
+                                            , key: new Key("p").NoShift
+                                            );
+                        menuItems.Add(item);
+                    }
+                    else
+                    {
+                        var item = new MenuItemv2(
+                                            "Demote to member role"
+                                            , ""
+                                            , () => UpdateMember(bubbleMember, "demote")
+                                            , key: new Key("d").NoShift
+                                            );
+                        menuItems.Add(item);
+                    }
+
+                    var menuItem = new MenuItemv2(
+                                            "Remove member"
+                                            , ""
+                                            , () => UpdateMember(bubbleMember, "remove")
+                                            , key: new Key("r").NoShift
+                                            );
+                    menuItems.Add(menuItem);
+
+                    contextMenu = new(menuItems);
+                    contextMenu.MakeVisible(e.MouseEvent.ScreenPosition);
+                }
             }
         }
     }

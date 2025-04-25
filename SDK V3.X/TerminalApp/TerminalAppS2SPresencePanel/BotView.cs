@@ -263,7 +263,7 @@ internal class BotView: View
         }
     }
 
-    private void PresenceView_ContactClick(object? sender, PeerAndMouseEventEventArgs e)
+    private void PresenceView_ContactClick(object? sender, PeerAndMouseEventArgs e)
     {
         if (e.MouseEvent.Flags == MouseFlags.Button3Clicked)
         {
