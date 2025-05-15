@@ -1,22 +1,20 @@
 ![Rainbow](../../../logo_rainbow.png)
 
-# Rainbow CSharp SDK Samples - Terminal Application - Bubble Management
+# Rainbow CSharp SDK Samples - Terminal Application - Search
 
-- WORK IN PROGRESS - 
-
-This example permits to understand:
-- How to list bubble members
-- Promote / Demote members
-- Deny / Accept contacts in the wiating room / lobby
-- Invite new members
+This example permits to understand how to search contact by name.
+The result is splitted in different parts:
+	- from my network
+	- from my company
+	- from my personal directory
+	- not from my company
+	- and from other directories
 
 You need first to set configuration files:
 - **../TerminalAppLibrary/exeSettings.json**: see chapter [File exeSettings.json](./../../ConfigurationFiles.md#exeSettings.json) - no need here to use external dependencies.
 - **../TerminalAppLibrary/credentials.json**: see chapter [File credentials.json](./../../ConfigurationFiles.md#credentials.json).
 
-One loggued, the first bubble found is used to display its members. You can select any existing bubble
-
-From the members list, a right click open a context menu to manage them (if you are a moderator of the bubble)
+One loggued, a text field permits to start the search by name.
 
 ## How it works
 
@@ -24,9 +22,10 @@ From the members list, a right click open a context menu to manage them (if you 
 
 **BotView** inherits from **View** and display the **LoginView** available from the **TerminallAppLibrary**.
 
-Once loggued, the **LoginView** is hidden and replaced by several views available from the **TerminallAppLibrary**.
-- **ConversationPanelView** 
-- **BubbleMembersPanel** 
-- **ItemSelector**
+Once loggued, the **LoginView** is hidden and replaced by :
+- a view called **viewFieldSearch** which contains **lblFieldSearch** and **textFieldSearch**.
+- a **SearchResultsView** available from the **TerminallAppLibrary**
+
+When the text typed in **textFieldSearch** is updated, a new search is performed.
 
 **Main.cs** specify the **IBotViewFactory** for the **BotWindow** and use this window as main for Terminal.Gui.Application.

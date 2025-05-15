@@ -14,7 +14,8 @@ public partial class HybridTelephonyCallForwardView : View
     readonly RadioGroup radioGroupDestination; 
     readonly TextField textFieldPhoneNumber;
     readonly Button btnSet;
-    readonly Label lblFwdType;
+    readonly ItemSelector callForwardSelector;
+
     private PopoverMenu contextMenu = new();
 
     readonly List<string> listFwdType = ["Forwarding Immediate", "Forward on busy", "Forward on no reply", "Forward on busy/no reply"];
@@ -50,15 +51,14 @@ public partial class HybridTelephonyCallForwardView : View
             RadioLabels = ["Disable", "Enable - Type:"]
         };
 
-        lblFwdType = new()
+        callForwardSelector = new()
         {
             X = Pos.Right(radioGroupEnable) + 1,
             Y = Pos.Bottom(radioGroupEnable) - 1,
-            ColorScheme = Tools.ColorSchemeBlueOnGray
+            Width = Dim.Fill()
         };
-        UpdateFwdType(0);
-
-        lblFwdType.MouseClick += BtnFwdType_MouseClick;
+        callForwardSelector.SetItems(listFwdType);
+        callForwardSelector.SelectedItemUpdated += CallFwdSelector_SelectedItemUpdated;
 
         radioGroupDestination = new RadioGroup()
         {
@@ -106,15 +106,20 @@ public partial class HybridTelephonyCallForwardView : View
         Height = Dim.Auto(DimAutoStyle.Content);
         Width = Dim.Auto(DimAutoStyle.Content);
 
-        Add(radioGroupEnable, lblFwdType, radioGroupDestination, textFieldPhoneNumber, btnSet, lblInactive);
+        Add(radioGroupEnable, callForwardSelector, radioGroupDestination, textFieldPhoneNumber, btnSet, lblInactive);
 
         UpdateDisplay();
+    }
+
+    private void CallFwdSelector_SelectedItemUpdated(object? sender, Item e)
+    {
+        fwdTypeIndexSelected = (int.Parse(e.Id));
     }
 
     private void UpdateFwdType(int index)
     {
         fwdTypeIndexSelected = index;
-        lblFwdType.Text = listFwdType[fwdTypeIndexSelected] + " " + Emojis.TRIANGLE_DOWN;
+        callForwardSelector.SetItemSelected(index);
     }
 
     private void UpdateDisplay()
@@ -150,7 +155,7 @@ public partial class HybridTelephonyCallForwardView : View
         radioGroupEnable.Height = available ? Dim.Auto(DimAutoStyle.Content) : 0;
         radioGroupDestination.Height = available ? Dim.Auto(DimAutoStyle.Content) : 0;
         textFieldPhoneNumber.Height = available ? 1 : 0;
-        lblFwdType.Height = available ? 1 : 0;
+        callForwardSelector.Height = available ? 1 : 0;
         btnSet.Height = available ? 1 : 0;
 
         if (available && callForwardStatus is not null)

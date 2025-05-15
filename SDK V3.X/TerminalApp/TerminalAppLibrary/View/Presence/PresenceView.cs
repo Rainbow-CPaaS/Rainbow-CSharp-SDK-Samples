@@ -5,51 +5,95 @@ using Terminal.Gui;
 
 public class PresenceView: View
 {
-    private Label labelField;
+    private Label labelDisplayName;
+    private Label labelCompany;
+
     private PresenceColorView? presenceColorView;
 
     private Rainbow.Application rbApplication;
     private Contacts rbContacts;
+    private Bubbles rbBubbles;
     private Invitations rbInvitations;
-    
+
+    internal String? currentCompanyId;
     internal Contact? contact;
     internal Bubble? bubble;
 
     public event EventHandler<PeerAndMouseEventArgs>? PeerClick;
 
+#pragma warning disable CS8618
+    public PresenceView(Rainbow.Application application)
+#pragma warning restore CS8618
+    {
+        InitPresenceView(application);
+    }
+
+#pragma warning disable CS8618
+    public PresenceView(Rainbow.Application application, Conversation? conversation)
+#pragma warning restore CS8618
+    {
+        InitPresenceView(application);
+        SetConversation(conversation);
+    }
+
+#pragma warning disable CS8618
     public PresenceView(Rainbow.Application application, Bubble? bubble)
+#pragma warning restore CS8618
     {
         InitPresenceView(application);
         SetBubble(bubble);
     }
 
+#pragma warning disable CS8618
     public PresenceView(Rainbow.Application application, Contact? contact)
+#pragma warning restore CS8618
     {
         InitPresenceView(application);
         SetContact(contact);
+    }
+
+    private Boolean IsInSameCompany(Contact contact)
+    {
+        if (contact.CompanyName is null)
+            return true;
+
+        currentCompanyId ??= rbContacts.GetCompany()?.Id;
+        return currentCompanyId is not null && (currentCompanyId == contact.CompanyId);
     }
 
     private void InitPresenceView(Rainbow.Application application)
     {
         rbApplication = application;
         rbContacts = rbApplication.GetContacts();
+        rbBubbles = rbApplication.GetBubbles();
         rbInvitations = rbApplication.GetInvitations();
 
-        labelField = new()
+        labelDisplayName = new()
         {
             X = 2,
             Y = 0,
-            Width = Dim.Fill(),
+            Width = Dim.Auto(DimAutoStyle.Text),
             Height = 1,
             TextAlignment = Alignment.Start
         };
 
+        labelCompany = new()
+        {
+            X = Pos.Right(labelDisplayName) + 1,
+            Y = 0,
+            Width = Dim.Auto(DimAutoStyle.Text),
+            Height = 1,
+            TextAlignment = Alignment.Start,
+            ColorScheme = Tools.ColorSchemeDarkGrayOnGray
+        };
+
+
         Width = Dim.Fill();
         Height = 1;
 
-        Add(labelField);
+        Add(labelDisplayName, labelCompany);
         MouseClick += View_MouseClick;
-        labelField.MouseClick += View_MouseClick;
+        labelDisplayName.MouseClick += View_MouseClick;
     }
 
     private void View_MouseClick(object? sender, MouseEventArgs e)
@@ -60,7 +104,7 @@ public class PresenceView: View
             PeerClick?.Invoke(sender, new PeerAndMouseEventArgs(bubble, e));
     }
 
-    internal void SetContact(Contact? contact)
+    public void SetContact(Contact? contact)
     {
         if (bubble is not null)
         {
@@ -71,8 +115,13 @@ public class PresenceView: View
 
         if (contact is not null)
         {
-            var displayName = contact?.Peer?.DisplayName;
-            var currentUser = (rbContacts.GetCurrentContact().Peer.Id == contact?.Peer.Id);
+            // Get contact from cache
+            var newContact = rbContacts.GetContactById(contact.Peer?.Id);
+            if(newContact is not null)
+                contact = newContact;
+
+            var displayName = contact.Peer?.DisplayName;
+            var currentUser = (rbContacts.GetCurrentContact().Peer.Id == contact.Peer?.Id);
             presenceColorView = new(currentUser, false);
 
             // Need to check event ContactAggregatedPresenceUpdated ?
@@ -82,7 +131,10 @@ public class PresenceView: View
             this.contact = contact;
             Add(presenceColorView);
             presenceColorView.MouseClick += View_MouseClick;
-            UpdateDisplay();
+            Terminal.Gui.Application.Invoke(() =>
+            {
+                UpdateDisplay();
+            });
         }
         else
         {
@@ -91,7 +143,7 @@ public class PresenceView: View
         }        
     }
 
-    internal void SetBubble(Bubble? bubble)
+    public void SetBubble(Bubble? bubble)
     {
         if (contact is not null)
         {
@@ -107,7 +159,10 @@ public class PresenceView: View
             this.bubble = bubble;
             Add(presenceColorView);
             presenceColorView.MouseClick += View_MouseClick;
-            UpdateDisplay();
+            Terminal.Gui.Application.Invoke(() =>
+            {
+                UpdateDisplay();
+            });
         }
         else
         {
@@ -116,7 +171,21 @@ public class PresenceView: View
         }
     }
 
-    internal String GetDisplayName(Peer peer)
+    public void SetConversation(Conversation? conversation)
+    {
+        if (conversation?.Peer.Type == EntityType.Bubble)
+        {
+            var bubble = rbBubbles.GetBubble(conversation.Peer);
+            SetBubble(bubble);
+        }
+        else if (conversation?.Peer.Type == EntityType.User)
+        {
+            var contact = rbContacts.GetContact(conversation.Peer);
+            SetContact(contact);
+        }
+    }
+
+    internal static String GetDisplayName(Peer peer)
     {
         if (String.IsNullOrEmpty(peer?.DisplayName))
             return "";
@@ -131,6 +200,15 @@ public class PresenceView: View
 
         if (contact is not null)
         {
+            
+
+            if (IsInSameCompany(contact))
+            { 
+                labelCompany.Text = contact.GuestMode ? "(is guest)" : "";
+                    }
+            else
+                labelCompany.Text = $"({contact.CompanyName}{(contact.GuestMode ? " - is guest": "")})";
+
             if (!contact.InRoster)
             {
                 var invitation = rbInvitations.GetSentInvitation(contact);
@@ -158,25 +236,26 @@ public class PresenceView: View
                 {
                     if ((calendarPresence.PresenceLevel != PresenceLevel.Online) && calendarPresence.Until > DateTime.UtcNow)
                     {
-                        labelField.ColorScheme = Tools.ColorSchemePresencePanel;
-                        labelField.Text = $"{Emojis.CALENDAR} {GetDisplayName(contact.Peer)}";
+                        labelDisplayName.ColorScheme = Tools.ColorSchemePresencePanel;
+                        labelDisplayName.Text = $"{Emojis.CALENDAR} {GetDisplayName(contact.Peer)}";
                         return;
                     }
                 }
             }
 
-            labelField.ColorScheme = Tools.ColorSchemeMain;
-            labelField.Text = GetDisplayName(contact.Peer);
+            labelDisplayName.ColorScheme = Tools.ColorSchemeMain;
+            labelDisplayName.Text = GetDisplayName(contact.Peer);
+            
         }
         else if(bubble is not null)
         {
             presenceColorView.SetPresence(null);
-            labelField.ColorScheme = Tools.ColorSchemeMain;
-            labelField.Text = GetDisplayName(bubble.Peer);
+            labelDisplayName.ColorScheme = Tools.ColorSchemeMain;
+            labelDisplayName.Text = GetDisplayName(bubble.Peer);
         }
         else
         {
-            labelField.Text = "";
+            labelDisplayName.Text = "";
         }
     }
 
@@ -191,12 +270,5 @@ public class PresenceView: View
                 UpdateDisplay();
             });
         }
-    }
-
-    ~PresenceView()
-    {
-        MouseClick -= View_MouseClick;
-        labelField.MouseClick -= View_MouseClick;
-        presenceColorView.MouseClick -= View_MouseClick;
     }
 }

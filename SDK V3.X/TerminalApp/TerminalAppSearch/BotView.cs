@@ -1,6 +1,7 @@
 ﻿using Rainbow;
 using Rainbow.Consts;
 using Rainbow.Example.Common;
+using Rainbow.Model;
 using Terminal.Gui;
 
 internal class BotView: View
@@ -10,17 +11,15 @@ internal class BotView: View
     private readonly Rainbow.Application rbApplication;
     private readonly AutoReconnection rbAutoReconnection;
     private readonly Contacts rbContacts;
-    private readonly Bubbles rbBubbles;
-    private readonly Conversations rbConversations;
+    private readonly Invitations rbInvitations;
+    private readonly Contact currentContact;
 
     private LoginView? loginView;
 
-    private View? viewRight;
-    private ItemSelector? bubbleSelector;
-    private BubbleMembersPanel? bubbleMembersPanel;
-
-    private View? viewLeft;
-    private ConversationPanelView? conversationPanelView;
+    private SearchResultsView? searchResultsView;
+    private View? viewFieldSearch;
+    private Label? lblFieldSearch;
+    private TextField? textFieldSearch;
 
     internal BotView(UserConfig rbAccount)
     {
@@ -40,8 +39,8 @@ internal class BotView: View
 
         rbAutoReconnection = rbApplication.GetAutoReconnection();
         rbContacts = rbApplication.GetContacts();
-        rbBubbles = rbApplication.GetBubbles();
-        rbConversations = rbApplication.GetConversations();
+        rbInvitations = rbApplication.GetInvitations();
+        currentContact = rbContacts.GetCurrentContact();
 
         // Set global configuration info
         rbApplication.SetApplicationInfo(Configuration.Credentials.ServerConfig.AppId, Configuration.Credentials.ServerConfig.AppSecret);
@@ -86,71 +85,59 @@ internal class BotView: View
             Height = Dim.Percent(90),
             Width = Dim.Percent(90)
         };
-        Add(loginView);
 
-        viewLeft = new()
+        viewFieldSearch = new()
         {
-            X = 0,
-            Y = 2,
-            Width = Dim.Percent(50) - 1,
-            Height = Dim.Fill(),
-            Visible = false,
-            CanFocus = true
-        };
-        //conversationItemView = new(rbApplication);
-        conversationPanelView = new(rbApplication);
-        conversationPanelView.PeerClick += ConversationPanelView_PeerClick;
-
-        viewLeft.Add(conversationPanelView);
-
-        viewRight = new()
-        {
-            X = Pos.Right(viewLeft) + 2,
+            X = Pos.Center(),
             Y = 1,
-            Width = Dim.Fill(),
-            Height = Dim.Fill(),
-            Visible = false
+            Width = Dim.Percent(80),
+            Height = 1,
+            Visible = false,
+            CanFocus = true,
         };
 
-        bubbleSelector = new("Select Bubble")
+        lblFieldSearch = new()
         {
             X = 0,
             Y = 0,
-            Height = 1,
-            Width = Dim.Fill()
+            Text = "Search by name:",
+            Width = Dim.Auto(DimAutoStyle.Text),
+            Height = 1
         };
-        bubbleSelector.SelectedItemUpdated += BubbleSelector_ItemSelected;
 
-        bubbleMembersPanel = new(rbApplication, null)
+        textFieldSearch = new()
         {
-            X = 0,
-            Y = Pos.Bottom(bubbleSelector),
-            Height = Dim.Fill(),
-            Width = Dim.Fill()
+            X = Pos.Right(lblFieldSearch) + 1,
+            Y = 0,
+            Width = Dim.Fill(1),
+            Text = "",
+            TextAlignment = Alignment.Start,
+            ColorScheme = Tools.ColorSchemeBlackOnWhite,
+            ReadOnly = false
         };
-        viewRight.Add(bubbleSelector, bubbleMembersPanel);
+        textFieldSearch.TextChanged += TextFieldSearch_TextChanged;
+        viewFieldSearch.Add(lblFieldSearch, textFieldSearch);
 
-        Add(viewLeft, viewRight);
+        searchResultsView = new(rbApplication)
+        { 
+            X = Pos.Center(), 
+            Y = Pos.Bottom(viewFieldSearch),
+            Height = Dim.Fill(2),
+            Width = viewFieldSearch.Width,
+            Visible = false
+        };
+
+        Add(loginView, viewFieldSearch, searchResultsView);
     }
 
-    private void ConversationPanelView_PeerClick(object? sender, PeerAndMouseEventArgs e)
+    private void TextFieldSearch_TextChanged(object? sender, EventArgs e)
     {
-        if( (e.Peer.Type == EntityType.Bubble) && (bubbleSelector is not null) )
-        {
-            var bubble = rbBubbles.GetBubbleById(e.Peer.Id);
-            bubbleSelector.SetItemSelected(bubble);
-        }
+        if (searchResultsView is null)
+            return;
+
+        searchResultsView.SearchMembersByName(textFieldSearch.Text);
     }
 
-    private void BubbleSelector_ItemSelected(object? sender, Item item)
-    {
-        var bubble = rbBubbles.GetBubbleById(item.Id);
-        bubbleMembersPanel?.SetBubble(bubble);
-
-        var conversation = rbConversations.GetConversation(bubble);
-        if (conversation is not null)
-            conversationPanelView?.SetSelectedConversation(conversation);
-    }
 
 #region Events received from Rainbow SDK
     void RbApplication_ConnectionStateChanged(Rainbow.Model.ConnectionState connectionState)
@@ -158,7 +145,7 @@ internal class BotView: View
         if (loginView == null)
             return;
 
-        Terminal.Gui.Application.Invoke(() =>
+        Terminal.Gui.Application.Invoke(async () =>
         {
             switch (connectionState.Status)
             {
@@ -166,12 +153,8 @@ internal class BotView: View
                     Title = rbAccount.Prefix;
 
                     loginView.Visible = false;
-                    viewRight.Visible = true;
-                    viewLeft.Visible = true;
-
-                    List<String> bubbleMemberStatusList = [BubbleMemberStatus.Accepted];
-                    var bubbles = rbBubbles.GetAllBubbles(bubbleMemberStatusList);
-                    bubbleSelector?.SetItems(bubbles?.Select(b => b.Peer).ToList());
+                    viewFieldSearch.Visible = true;
+                    searchResultsView.Visible = true;
                     break;
 
                 case ConnectionStatus.Connecting:
@@ -182,8 +165,8 @@ internal class BotView: View
                     Title = $"{rbAccount.Prefix} - [Disconnected]";
 
                     loginView.Visible = true;
-                    viewRight.Visible = false;
-                    viewLeft.Visible = false;
+                    viewFieldSearch.Visible = false;
+                    searchResultsView.Visible = false;
                     break;
             }
         });

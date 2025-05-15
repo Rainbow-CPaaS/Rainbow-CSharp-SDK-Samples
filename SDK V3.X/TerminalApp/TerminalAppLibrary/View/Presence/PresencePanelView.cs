@@ -8,7 +8,7 @@ public class PresencePanelView: View
     private readonly Rainbow.Contacts rbContacts;
     private readonly Rainbow.Favorites rbFavorites;
     private readonly Rainbow.Invitations rbInvitations;
-    private readonly Contact currentContact;
+    private Contact? currentContact;
 
     private readonly Dictionary<string, PresenceView> presenceViewsUnused;
 
@@ -31,6 +31,7 @@ public class PresencePanelView: View
         rbContacts = rbApplication.GetContacts();
         rbFavorites = rbApplication.GetFavorites();
         rbInvitations = rbApplication.GetInvitations();
+
         currentContact = rbContacts.GetCurrentContact();
 
         presenceViewsUnused = [];
@@ -109,7 +110,8 @@ public class PresencePanelView: View
 
     private void RbInvitations_InvitationSent(Invitation invitation)
     {
-        if(invitation.InvitingUserId == currentContact.Peer.Id)
+        currentContact ??= rbContacts.GetCurrentContact();
+        if (invitation.InvitingUserId == currentContact?.Peer?.Id)
             ContactsListUpated(null);
     }
 
@@ -135,6 +137,7 @@ public class PresencePanelView: View
 
     public void Update(int nbColumns)
     {
+        currentContact ??= rbContacts.GetCurrentContact();
         if (nbColumns != this.nbColumns)
             Update(contactsList, nbColumns);
     }
@@ -143,11 +146,15 @@ public class PresencePanelView: View
     {
         lock (lockDisplay)
         {
-            forTest_count++;
-
             // Store new info
             this.contactsList = contactsList;
             this.nbColumns = nbColumns;
+
+            currentContact ??= rbContacts.GetCurrentContact();
+            if (currentContact is null)
+                return;
+
+            forTest_count++;
 
             // Avoid to display the current contact
             if (contactsList != null)

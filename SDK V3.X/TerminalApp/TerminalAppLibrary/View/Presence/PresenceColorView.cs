@@ -1,6 +1,5 @@
 ﻿using Rainbow.Consts;
 using Rainbow.Model;
-using System.Text;
 using Terminal.Gui;
 using Attribute = Terminal.Gui.Attribute;
 using Color = Terminal.Gui.Color;
@@ -23,15 +22,7 @@ public class PresenceColorView : View
         Y = Pos.Top(this);
         Width = 1;
         Height = 1;
-    }
-
-    protected override bool OnDrawingContent(DrawContext? context) {
-        base.OnDrawingContent(context);
-
-        var attr = new Attribute(foreground, background);
-        Driver.SetAttribute(attr);
-        AddRune(0, 0, (Rune)c);
-        return true;
+        Text = " ";
     }
 
     public void SetInvitationInProgress()
@@ -39,7 +30,8 @@ public class PresenceColorView : View
         c = Emojis.THREE_DOTS[0];
         background = new Color(255, 255, 255);
         foreground = new Color(0, 0, 0);
-        SetNeedsDraw();
+
+        SetPresenceColor(background, foreground, c);
     }
 
     public void SetPresence(Presence? presence)
@@ -114,13 +106,18 @@ public class PresenceColorView : View
         if ((bgd == null) || (fgd == null))
             return;
 
-        if ((bgd != background) || (fgd != foreground) || (chr != c))
+        if ((bgd != background) || (fgd != foreground))
         {
             background = bgd.Value;
             foreground = fgd.Value;
-            c = chr;
+            ColorScheme = new(new Attribute(foreground, background));
         }
 
-        SetNeedsDraw();
+        if (chr != c)
+        {
+            c = chr;
+            Text = chr.ToString();
+        }
     }
+
 }

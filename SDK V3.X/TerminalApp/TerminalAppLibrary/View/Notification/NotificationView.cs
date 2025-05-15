@@ -13,7 +13,7 @@ public class NotificationView: View
     private readonly List<(String invitationId, String invitingContactId)> contactsInvitations;
 
     private int counter;
-    private readonly String currentContactId;
+    private Contact? currentContact;
 
     private readonly NotificationPanelView notificationPanelView;
 
@@ -24,7 +24,7 @@ public class NotificationView: View
         rbContacts = rbApplication.GetContacts();
         rbInvitations = rbApplication.GetInvitations();
 
-        currentContactId = rbContacts.GetCurrentContact().Peer.Id;
+        currentContact = rbContacts.GetCurrentContact();
 
         bubblesInvitations  = [];
         contactsInvitations = [];
@@ -211,8 +211,9 @@ public class NotificationView: View
 
     private void RbInvitations_InvitationAccepted(Rainbow.Model.Invitation invitation)
     {
+        currentContact ??= rbContacts.GetCurrentContact();
         // We remove from the view only invitation where the current user is invited
-        if (invitation.InvitedUserId == currentContactId)
+        if (invitation.InvitedUserId == currentContact?.Peer.Id)
             RemoveInvitation(true, invitation.Id);
     }
 

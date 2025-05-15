@@ -59,13 +59,15 @@ They are listed in order of priority / complexity.
 | Login, AutoReconnection, Events, **OAuth** | Login and AutoReconnection management with OAuth | [README](./ConsoleApp/Login%20with%20OAuth/README.md) |
 | Bubbles, Contacts | Get information about Bubbles and Contacts | [README](./ConsoleApp/Get%20basic%20contacts%20and%20bubbles%20info/README.md) |
 | Contacts, Presence | Get the presence of your contacts and modify yours | [README](./ConsoleApp/Get%20and%20set%20presence/README.md) |
-| Contacts, Presence, Multi-Instance | Using presence, detect if users are connected using an UCaaS Rainbow Application or not | [README](./ConsoleApp/Detect%20UCaaS%20connection/README.md) |
-| Guest, GuestMode, Company Link, Bubble Link, Contacts, Organisations, Companies | Manage Contacts, Guests and GuestMode (need admin account)  | [README](./ConsoleApp/Manage%20Users%20and%20Guests/README.md) |
-| Conversations, InstantMessaging, Bubbles, Contacts | Manage Conversations, Send/Reveive Messages, Receipts | [README](./ConsoleApp/Conversations%20and%20IM/README.md) |
+| Contacts, Presence | Get the presence of your contacts and modify yours | [README](./ConsoleApp/Get%20and%20set%20presence/README.md) |
+| **Search**, Contacts | Search contacts by display name, tag, phone number or email | [README](./ConsoleApp/Search/README.md) |
+| **Avatars**, Bubbles, Channels, Contacts | Get last **Avatars** of Bubbles, Channels and Contacts| [README](./ConsoleApp/Avatars/README.md) |
+| **Guest, GuestMode**, Company Link, Bubble Link, Contacts, Organisations, Companies | Manage Contacts, Guests and GuestMode (need admin account)  | [README](./ConsoleApp/Manage%20Users%20and%20Guests/README.md) |
+| Conversations, **InstantMessaging**, Bubbles, Contacts | Manage Conversations, Send/Reveive Messages, Receipts | [README](./ConsoleApp/Conversations%20and%20IM/README.md) |
 | **S2S**, Conversations, InstantMessaging, Bubbles, Contacts | In S2S, Manage Conversations, Send/Reveive Messages, Receipts | [README](./ConsoleApp/Conversations%20and%20IM-S2S/README.md) |
-| InstantMessaging, Bubbles, Contacts | Fetch all messages archived from a Peer | [README](./ConsoleApp/Fetch%20messages%20from%20peer/README.md) |
-| Audio, Video, Local / Remote Media | Simple media Player | [README](./ConsoleApp/MediaPlayer/README.md) |
-| Audio, Video, Sharing, Conference, WebRTC| Allow to cerate/join conference, add/remove audio/video/sharing, subscribe to remote audio/video/sharing | [README](./ConsoleApp/WebRTC/README.md) |
+| **InstantMessaging**, Bubbles, Contacts | Fetch all messages archived from a Peer | [README](./ConsoleApp/Fetch%20messages%20from%20peer/README.md) |
+| **Audio, Video, Local / Remote Media** | Simple media Player | [README](./ConsoleApp/MediaPlayer/README.md) |
+| **Audio, Video, Sharing, Conference, WebRTC**| Allow to create/join conference, to make/answer P2P call, add/remove audio/video/sharing, subscribe to remote audio/video/sharing | [README](./ConsoleApp/WebRTC/README.md) |
 
 <a name="Botexamples"></a>
 ## Bot examples
@@ -94,7 +96,10 @@ A Visual Studio solution centralized all of them [here](./TerminalApp/)
 | [TerminAppLogin](./TerminalApp/TerminalAppLogin/README.md) | Login, AutoReconnection | Simple Login form to understand basic features and switch between different accounts |
 | [TerminAppLoginSplittedView](./TerminalApp/TerminalAppLoginSplittedView/README.md) | Login, AutoReconnection | Simple Login form with a splitted view to manage in same time two different accounts |
 | [TerminAppPresencePanel](./TerminalApp/TerminalAppPresencePanel/README.md) | Login, AutoReconnection, (Aggregated) Presence, User and Bubble invitation | Panel to see Presence of all contatcs in the roster. Possibility to change it's own presence. Manage user and bubble invitations | 
-| [TerminalAppS2SPresencePanel](./TerminalApp/TerminalAppS2SPresencePanel/README.md) | Login, AutoReconnection, (Aggregated) Presence, User and Bubble invitation | Using S2S, Panel to see Presence of all contatcs in the roster. Possibility to change it's own presence. Manage user and bubble invitations | 
+| [TerminalAppS2SPresencePanel](./TerminalApp/TerminalAppS2SPresencePanel/README.md) | Login, AutoReconnection, (Aggregated) Presence, User and Bubble invitation | Using S2S, Panel to see Presence of all contatcs in the roster. Possibility to change it's own presence. Manage user and bubble invitations |
+| [TerminalAppSearch](./TerminalApp/TerminalAppSearch/README.md) | Login, AutoReconnection, Search | Panel to search contact by name | 
+| [TerminalAppHybridTelephony](./TerminalApp/TerminalAppHybridTelephony/README.md) | Login, AutoReconnection, Hybrip Telephony | To follow/update in 3PCC (trhid party remote control) Hybrid Telephony calls. Manage Call forward, nomadic and voicemail features |
+| [TerminalAppBubbleManagement](./TerminalApp/TerminalAppBubbleManagement/README.md) | Login, AutoReconnection, Conversation, Bubble, Bubble Link, Waiting Room / Lobby | To list bubble's members, to promote / demote them, to accept / deny contact in waiting romm / lobby |
 
 <a name="WPFApplicationexample"></a>
 ## WPF Application

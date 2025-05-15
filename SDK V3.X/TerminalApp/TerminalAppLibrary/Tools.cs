@@ -1,4 +1,5 @@
 ﻿using Rainbow.Model;
+using System.Text;
 using Terminal.Gui;
 using TerminalAppLibrary.Model;
 using Attribute = Terminal.Gui.Attribute;
@@ -25,6 +26,7 @@ static public class Tools
     static public Attribute AtributeRedOnWhite = new Attribute(Color.Red, Color.White);
 
     static public ColorScheme ColorSchemeBlackOnGray = new(AtributeBlackOnGray);
+    static public ColorScheme ColorSchemeDarkGrayOnGray = new(AtributeDarkGrayOnGray);
     static public ColorScheme ColorSchemeWhiteOnGray = new(AtributeWhiteOnGray);
 
     static public ColorScheme ColorSchemeBlueOnGray = new(AtributeBlueOnGray,       // Normal
@@ -64,6 +66,7 @@ static public class Tools
 
     static public ColorScheme ColorSchemeBlackOnWhite = new(new Attribute(Color.Black, Color.White));
     static public ColorScheme ColorSchemeWhiteOnBlack = new(new Attribute(Color.White, Color.Black));
+    static public ColorScheme ColorSchemeWhiteOnBlue = new(new Attribute(Color.White, Color.Blue));
 
     static public ColorScheme ColorSchemeContactsPanel = ColorSchemeRedOnGray;
     static public ColorScheme ColorSchemePresencePanel = ColorSchemeBlueOnGray;
@@ -196,5 +199,12 @@ static public class Tools
         };
     }
 
+    public static void InitTerminalGuiApplication()
+    {
+        Console.OutputEncoding = Encoding.Default;
+        var _forceDriver = "v2net"; // v2win
+        Terminal.Gui.Application.ForceDriver = _forceDriver;
+        Terminal.Gui.Application.Init(driverName: _forceDriver);
+    }
 }
 

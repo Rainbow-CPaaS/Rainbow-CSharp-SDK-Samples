@@ -180,41 +180,75 @@ async Task MenuSearchContactAsync()
                         else
                         {
                             Util.WriteGreen($"Searching for [{str}] by {mode} ...");
-                            SdkResult<SearchContactsResult> sdkResult;
+                            SdkResult<List<ContactFound>> sdkResult;
 
                             switch (selection)
                             {
                                 default:
                                 case 0:
-                                    sdkResult = await RbContacts.SearchContactsByDisplayNameAsync(str, 20, withPresence: true);
+                                    sdkResult = await RbContacts.SearchByDisplayNameAsync(str, 20, withPresence: true);
                                     break;
                                 case 1:
-                                    sdkResult = await RbContacts.SearchContactsByTagAsync(str, 20, withPresence: true);
+                                    sdkResult = await RbContacts.SearchByTagAsync(str, 20, withPresence: true);
                                     break;
                                 case 2:
-                                    sdkResult = await RbContacts.SearchContactsByPhoneNumberAsync(str);
+                                    sdkResult = await RbContacts.SearchByPhoneNumberAsync(str);
                                     break;
                                 case 3:
-                                    sdkResult = await RbContacts.SearchContactsByEmailsAsync([str]);
+                                    sdkResult = await RbContacts.SearchByEmailsAsync([str]);
                                     break;
                             }
 
                             if (sdkResult.Success)
                             {
-                                int nb = 0;
-                                var rainbowContacts = sdkResult.Data.ContactsList;
-                                var directoryContacts = sdkResult.Data.DirectoryContactsList;
-                                var phoneBookContacts = sdkResult.Data.PhonebooksList;
-                                var office365Contacts = sdkResult.Data.O365AdContactsList;
+                                String currentContactId = RbContacts.GetCurrentContact().Peer.Id;
+                                String currentCompanyId = RbContacts.GetCompany().Id;
+
+                                List<ContactFound> searchContactsResult = sdkResult.Data;
+                                List<string> contactsId = [currentContactId];
+
+                                int nbElements = 0;
+
+                                var inMyNetWork = searchContactsResult
+                                            .Where(c => c.InRoster // In My Network
+                                                && !contactsId.Contains(c.Peer.Id)) // Avoid some Id contacts
+                                            .ToList();
+                                // Add Contacts Id
+                                contactsId.AddRange(inMyNetWork.Select(c => c.Peer.Id));
+
+                                var inMyCompany = searchContactsResult
+                                            .Where(c => c.CompanyId == currentCompanyId && c.Type == "Contact" // In My Company
+                                                && !contactsId.Contains(c.Peer.Id)) // Avoid some Id contacts
+                                            .ToList();
+                                // Add Contacts Id
+                                contactsId.AddRange(inMyCompany.Select(c => c.Peer.Id));
+
+                                var notInMyCompany = searchContactsResult
+                                            .Where(c => c.CompanyId != currentCompanyId && c.Type == "Contact" // NOT In My Company
+                                                && !contactsId.Contains(c.Peer.Id)) // Avoid some Id contacts
+                                            .ToList();
+                                // Add Contacts Id
+                                contactsId.AddRange(notInMyCompany.Select(c => c.Peer.Id));
+
+                                var personalDirectory = searchContactsResult
+                                            .Where(c => c.Type == "DirectoryContact" && c.SubType == "user"
+                                                && !contactsId.Contains(c.Peer.Id)) // Avoid some Id contacts
+                                            .ToList();
+                                // Add Contacts Id
+                                contactsId.AddRange(personalDirectory.Select(c => c.Peer.Id));
+
+                                // Get all other contacts
+                                var otherDirectories = searchContactsResult
+                                            .Where(c => !contactsId.Contains(c.Peer.Id)) // Avoid some Id contacts
+                                            .ToList();
 
                                 Util.WriteWhite($"Searching Result:");
 
-                                // Rainbow Contacts:
-                                nb = (rainbowContacts is null) ? 0 : rainbowContacts.Count;
-                                Util.WriteToConsole($"{Util.WHITE}Rainbow contacts - found: {Util.BLUE}{nb}");
-                                if (rainbowContacts is not null)
+                                // Manage inMyNetWork results
+                                if (inMyNetWork.Count > 0)
                                 {
-                                    foreach (var rbContact in rainbowContacts)
+                                    Util.WriteToConsole($"{Util.WHITE}In my network: {Util.BLUE}{inMyNetWork.Count}");
+                                    foreach (var rbContact in inMyNetWork)
                                     {
                                         var aboutCompany = "";
                                         if (rbContact.CompanyId == company.Id)
@@ -225,54 +259,50 @@ async Task MenuSearchContactAsync()
                                         var aboutPresence = "";
                                         if (!String.IsNullOrEmpty(rbContact.Presence))
                                             aboutPresence = $"{Util.WHITE} - Presence:[{rbContact.Presence}]";
-
                                         Util.WriteToConsole($"\t{Util.WHITE}{rbContact.ToString(DetailsLevel.Small)}{aboutCompany}{aboutPresence}");
                                     }
                                 }
 
-
-                                // Directory Contacts:
-                                nb = (directoryContacts is null) ? 0 : directoryContacts.Count;
-                                Util.WriteToConsole($"{Util.WHITE}Directory contacts - found: {Util.BLUE}{nb}");
-                                if (directoryContacts is not null)
+                                // Manage inMyCompany results
+                                if (inMyCompany.Count > 0)
                                 {
-                                    foreach (var directoryContact in directoryContacts)
+                                    Util.WriteToConsole($"{Util.WHITE}In my company: {Util.BLUE}{inMyCompany.Count}");
+                                    foreach (var rbContact in inMyCompany)
                                     {
-                                        var aboutCompany = "";
-                                        if (directoryContact.CompanyId == company.Id)
-                                            aboutCompany = $" {Util.BLUE}[In your company]";
-                                        else
-                                            aboutCompany = $" {Util.GREEN}[Not in you company]";
-
-                                        var displayName = comparers.GetDisplayName(directoryContact.FirstName, directoryContact.LastName);
-
-                                        Util.WriteToConsole($"\t{Util.WHITE}{displayName}{aboutCompany}");
+                                        var aboutPresence = "";
+                                        if (!String.IsNullOrEmpty(rbContact.Presence))
+                                            aboutPresence = $"{Util.WHITE} - Presence:[{rbContact.Presence}]";
+                                        Util.WriteToConsole($"\t{Util.WHITE}{rbContact.ToString(DetailsLevel.Small)}{aboutPresence}");
                                     }
                                 }
 
-                                // Phonebooks Contacts:
-                                nb = (phoneBookContacts is null) ? 0 : phoneBookContacts.Count;
-                                Util.WriteToConsole($"{Util.WHITE}Phonebook contacts - found: {Util.BLUE}{nb}");
-                                if (phoneBookContacts is not null)
+                                // Manage personalDirectory results
+                                if (personalDirectory.Count > 0)
                                 {
-                                    foreach (var phonebookContact in phoneBookContacts)
+                                    Util.WriteToConsole($"{Util.WHITE}In my personal directory: {Util.BLUE}{personalDirectory.Count}");
+                                    foreach (var rbContact in personalDirectory)
                                     {
-                                        var displayName = comparers.GetDisplayName(phonebookContact.FirstName, phonebookContact.LastName);
-
-                                        Util.WriteToConsole($"\t{Util.WHITE}{displayName}");
+                                        Util.WriteToConsole($"\t{Util.WHITE}{rbContact.ToString(DetailsLevel.Small)}");
                                     }
                                 }
 
-                                // Office365 Contacts:
-                                nb = (office365Contacts is null) ? 0 : office365Contacts.Count;
-                                Util.WriteToConsole($"{Util.WHITE}Office365 contacts - found: {Util.BLUE}{nb}");
-                                if (office365Contacts is not null)
+                                // Manage notInMyCompany results
+                                if (notInMyCompany.Count > 0)
                                 {
-                                    foreach (var office365Contact in office365Contacts)
+                                    Util.WriteToConsole($"{Util.WHITE}In other companies: {Util.BLUE}{notInMyCompany.Count}");
+                                    foreach (var rbContact in notInMyCompany)
                                     {
-                                        var displayName = comparers.GetDisplayName(office365Contact.FirstName, office365Contact.LastName);
+                                        Util.WriteToConsole($"\t{Util.WHITE}{rbContact.ToString(DetailsLevel.Small)}");
+                                    }
+                                }
 
-                                        Util.WriteToConsole($"\t{Util.WHITE}{displayName}");
+                                // Manage otherDirectories results
+                                if (otherDirectories.Count > 0)
+                                {
+                                    Util.WriteToConsole($"{Util.WHITE}In other directories: {Util.BLUE}{otherDirectories.Count}");
+                                    foreach (var rbContact in otherDirectories)
+                                    {
+                                        Util.WriteToConsole($"\t{Util.WHITE}{rbContact.ToString(DetailsLevel.Small)}");
                                     }
                                 }
                             }

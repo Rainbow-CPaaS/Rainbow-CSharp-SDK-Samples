@@ -99,6 +99,7 @@ internal class RainbowBot
     {
         Rainbow.Util.RaiseEvent(() => ConnectionFailed, _rbApplication, sdkError);
 
+        /*
         // EXAMPLE TO POST DATA USING HTTP
         Dictionary<String, object> bodyDico = new()
         {
@@ -115,6 +116,7 @@ internal class RainbowBot
         {
             // it was not possible to make REST request to my server ...
         }
+        */
     }
 
     private void RbContacts_ContactPresenceUpdated(Rainbow.Model.Presence presence)
@@ -167,7 +169,7 @@ internal class RainbowBot
 
         Rainbow.Util.RaiseEvent(() => ConnectionStateChanged, _rbApplication, connectionState);
 
-
+        /*
         // EXAMPLE TO POST DATA USING HTTP
         Dictionary<String, object> bodyDico = new()
         {
@@ -184,7 +186,7 @@ internal class RainbowBot
         {
             // it was not possible to make REST request to my server ...
         }
-
+        */
     }
 
     private void RbAutoReconnection_Cancelled(Rainbow.SdkError sdkError)

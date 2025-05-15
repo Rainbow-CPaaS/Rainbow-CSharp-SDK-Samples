@@ -1,4 +1,5 @@
-﻿using Rainbow.Delegates;
+﻿using Rainbow.Consts;
+using Rainbow.Delegates;
 using Rainbow.Enums;
 using Rainbow.Model;
 using System.Data;
@@ -6,15 +7,21 @@ using Terminal.Gui;
 
 public partial class HybridTelephonyMakeCallView : View
 {
+    private const String DESKTOP = "desktop";
     public event StringDelegate? ErrorOccurred;
 
     const string LBL_ANY = "Any";
 
     readonly Rainbow.Application rbApplication;
     readonly Rainbow.HybridTelephony rbHybridTelephony;
+    readonly Rainbow.Contacts rbContacts;
 
     readonly View viewLeft;
     readonly View viewRight;
+
+    readonly View viewAutoAccept;
+    readonly ItemSelector autoAcceptCallOnDesktop;
+    readonly Button btnAutoAccept;
 
     readonly Label lblPhoneNumber;
     readonly TextField textFieldPhoneNumber;
@@ -42,6 +49,9 @@ public partial class HybridTelephonyMakeCallView : View
     {
         this.rbApplication = rbApplication;
         rbHybridTelephony = rbApplication.GetHybridTelephony();
+        rbContacts = rbApplication.GetContacts();
+
+        rbContacts.UserSettingsUpdated += RbContacts_UserSettingsUpdated;
 
         rbHybridTelephony.HybridTelephonyStatusUpdated += RbHybridTelephony_HybridTelephonyStatusUpdated;
         rbHybridTelephony.HybridPBXAgentInfoUpdated += RbHybridTelephony_HybridPBXAgentInfoUpdated;
@@ -54,10 +64,41 @@ public partial class HybridTelephonyMakeCallView : View
 
         Border.Add(Tools.VerticalExpanderButton());
 
-        viewLeft = new()
+        viewAutoAccept = new()
+        {
+            X = Pos.Center(),
+            Y = 0,
+            Width = Dim.Auto(DimAutoStyle.Content),
+            Height = 1,
+            CanFocus = true,
+        };
+        List<String> options = ["ON", "OFF"];
+        autoAcceptCallOnDesktop = new("Auto-Accept call on Rainbow Web/Desktop application")
         {
             X = 0,
             Y = 0,
+            Width = 60,
+            Height = 1
+        };
+        autoAcceptCallOnDesktop.SetItems(options);
+
+        btnAutoAccept = new()
+        {
+            X = Pos.Right(autoAcceptCallOnDesktop),
+            Y = 0,
+            Text = "Set",
+            ShadowStyle = ShadowStyle.None,
+            ColorScheme = Tools.ColorSchemeBlueOnGray,
+            Enabled = true,
+        };
+        btnAutoAccept.MouseClick += BtnAutoAccept_MouseClick;
+
+        viewAutoAccept.Add(autoAcceptCallOnDesktop, btnAutoAccept);
+
+        viewLeft = new()
+        {
+            X = 0,
+            Y = Pos.Bottom(viewAutoAccept),
             Width = Dim.Percent(50),
             Height = Dim.Auto(DimAutoStyle.Content),
             CanFocus = true,
@@ -112,7 +153,7 @@ public partial class HybridTelephonyMakeCallView : View
         viewRight = new()
         {
             X = Pos.Percent(50),
-            Y = 0,
+            Y = Pos.Bottom(viewAutoAccept),
             Width = Dim.Percent(50),
             Height = Dim.Auto(DimAutoStyle.Content),
             CanFocus = true,
@@ -141,7 +182,7 @@ public partial class HybridTelephonyMakeCallView : View
         lblCorrelator = new()
         {
             X = 1,
-            Y = Pos.Bottom(lblResource),
+            Y = 2,
             Text = "Correlator:",
             TextAlignment = Alignment.End,
             Width = 15,
@@ -182,13 +223,42 @@ public partial class HybridTelephonyMakeCallView : View
             Height = 1
         };
 
-        Add(viewLeft, viewRight, btnMakeCall, lblInactive);
+        Add(viewAutoAccept, viewLeft, viewRight, btnMakeCall, lblInactive);
 
         Height = Dim.Auto(DimAutoStyle.Content);
         Width = Dim.Fill(0);
 
         UpdateDisplay();
         UpdateResource(LBL_ANY);
+    }
+
+    private void RbContacts_UserSettingsUpdated()
+    {
+        Terminal.Gui.Application.Invoke(() =>
+        {
+            UpdateDisplay();
+        });
+    }
+
+    private void BtnAutoAccept_MouseClick(object? sender, MouseEventArgs e)
+    {
+        var item = autoAcceptCallOnDesktop.ItemSelected;
+        if (item is not null)
+        {
+            var _ = rbContacts.UpdateUserSettingAsync(UserSetting.AutoAnswer, (item.Id == "0"));
+            if (item.Id == "0")
+            {
+                _ = rbContacts.UpdateUserSettingAsync(UserSetting.AutoAnswerByDeviceType, DESKTOP);
+            }
+        }
+    }
+
+    private Boolean IsAutoAcceptUserSettingSet()
+    {
+        Boolean? autoAnswer = rbContacts.GetUserSettingBooleanValue(UserSetting.AutoAnswer);
+        String ? autoAnswerByDeviceType = rbContacts.GetUserSettingStringValue(UserSetting.AutoAnswerByDeviceType);
+        return (autoAnswer is not null) && (autoAnswer.Value)
+            && (autoAnswerByDeviceType is not null) && (autoAnswerByDeviceType == DESKTOP);
     }
 
     private void UpdateDisplay()
@@ -200,6 +270,7 @@ public partial class HybridTelephonyMakeCallView : View
 
             if (!serviceAvailable.Value)
             {
+
                 lblInactive.Text = HybridTelephonyServiceView.SERVICE_NOT_AVAILABLE;
                 lblInactive.ColorScheme = Tools.ColorSchemeRedOnGray;
             }
@@ -208,6 +279,11 @@ public partial class HybridTelephonyMakeCallView : View
                 lblInactive.Text = HybridTelephonyServiceView.SERVICE_DISABLED;
                 lblInactive.ColorScheme = Tools.ColorSchemeGreenOnGray;
             }
+
+            if(available)
+            {
+                autoAcceptCallOnDesktop.SetItemSelected(IsAutoAcceptUserSettingSet() ? 0 : 1 );
+            }
         }
         else
         {
@@ -215,7 +291,13 @@ public partial class HybridTelephonyMakeCallView : View
             lblInactive.ColorScheme = Tools.ColorSchemeGreenOnGray;
         }
 
+        // /!\ DUE TO RAINBOW DESKTOP / WEBCLIENT RESTRICTION, Resource is not taken well into account - we hide it fro the moment
+        // Instead we can set "Auto-Accept" 
+        lblResource.Height = 0;
+        lblResourceSelection.Height = 0;
+
         lblInactive.Height = available ? 0 : 1;
+        viewAutoAccept.Height = available ? 1 : 0;
         viewLeft.Height = available ? Dim.Auto(DimAutoStyle.Content) : 0;
         viewRight.Height = available ? Dim.Auto(DimAutoStyle.Content) : 0;
         btnMakeCall.Height = available ? 1 : 0;

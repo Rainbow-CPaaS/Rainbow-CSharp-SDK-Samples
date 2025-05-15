@@ -24,9 +24,6 @@ internal class BotView: View
 
     private PopoverMenu? contextMenu;
 
-    private Button? testButton;
-    private int testNumber = 0;
-
     internal BotView(UserConfig rbAccount)
     {
         this.rbAccount = rbAccount;
@@ -91,8 +88,13 @@ internal class BotView: View
             Height = Dim.Percent(90),
             Width = Dim.Percent(90)
         };
-
         Add(loginView);
+
+        AddPresenceView();
+        AddPresencePanelView();
+        AddPanelsSelection();
+        AddNotificationView();
+        AddContactsPanelView();
     }
 
     void AddPresencePanelView()
@@ -103,10 +105,10 @@ internal class BotView: View
             {
                 X = 0,
                 Y = Pos.Bottom(presenceView) + 1,
+                Visible = false
             };
             Add(presencePanelView);
         }
-        presencePanelView.Visible = true;
     }
 
     void AddContactsPanelView()
@@ -117,10 +119,10 @@ internal class BotView: View
             {
                 X = 0,
                 Y = Pos.Bottom(presenceView) + 1,
+                Visible = false
             };
             Add(contactsPanelView);
         }
-        contactsPanelView.Visible = true;
     }
     
     void AddNotificationView()
@@ -130,7 +132,8 @@ internal class BotView: View
             notificationView = new NotificationView(rbApplication)
             {
                 X = Pos.AnchorEnd() - 2,
-                Y = 0
+                Y = 0,
+                Visible = false
             };
             Add(notificationView);
         }
@@ -140,12 +143,13 @@ internal class BotView: View
     {
         if (presenceView == null)
         {
-            presenceView = new PresenceView(rbApplication, rbContacts.GetCurrentContact())
+            presenceView = new PresenceView(rbApplication)
             {
                 X = Pos.Center(),
                 Y = 0,
-                //Width = 50,
+                Width = 50,
                 Height = 1,
+                Visible = false
             };
 
             Add(presenceView);
@@ -163,7 +167,8 @@ internal class BotView: View
                 X = Pos.Center(),
                 Y = 1,
                 Height = 1,
-                Width = Dim.Auto(DimAutoStyle.Content)
+                Width = Dim.Auto(DimAutoStyle.Content),
+                Visible = false
             };
 
             var contactsPanelSelection = new Button()
@@ -178,9 +183,8 @@ internal class BotView: View
             };
             contactsPanelSelection.MouseClick += (sender, me) =>
             {
-                if (presencePanelView != null)
-                    presencePanelView.Visible = false;
-                AddContactsPanelView();
+                presencePanelView.Visible = false;
+                contactsPanelView.Visible = true;
             };
 
             var presencePanelSelection = new Button()
@@ -195,51 +199,12 @@ internal class BotView: View
             };
             presencePanelSelection.MouseClick += (sender, me) =>
             {
-                if (contactsPanelView != null)
-                    contactsPanelView.Visible = false;
-                AddPresencePanelView();
+                presencePanelView.Visible = true;
+                contactsPanelView.Visible = false;
             };
 
             panelsSelection.Add(contactsPanelSelection, presencePanelSelection);
             Add(panelsSelection);
-        }
-    }
-
-    void RemovePanelsSelection()
-    {
-        if (panelsSelection != null)
-        {
-            Remove(panelsSelection);
-            panelsSelection = null;
-        }
-    }
-
-    void AddTestButton()
-    {
-        if (testButton == null)
-        {
-            testButton = new()
-            {
-                X = 2,
-                Y = 1,
-                Text = "Test",
-                Height = 1,
-                Width = Dim.Auto(DimAutoStyle.Text),
-                ShadowStyle = ShadowStyle.None,
-                ColorScheme = Tools.ColorSchemeBlackOnWhite
-            };
-            testButton.MouseClick += TestButton_MouseClick;
-
-            Add(testButton);
-        }
-    }
-
-    void RemoveTestButton()
-    {
-        if (testButton != null)
-        {
-            Remove(testButton);
-            testButton = null;
         }
     }
 
@@ -341,31 +306,13 @@ internal class BotView: View
         }
     }
 
-    void RemoveNotificationView()
+    void ToggleVisibility(bool visible)
     {
-        if (notificationView != null)
-        {
-            Remove(notificationView);
-            notificationView = null;
-        }
-    }
-
-    void RemovePresenceView()
-    {
-        if (presenceView != null)
-        {
-            Remove(presenceView);
-            presenceView = null;
-        }
-    }
-
-    void RemovePresencePanelView()
-    {
-        if (presencePanelView != null)
-        {
-            Remove(presencePanelView);
-            presencePanelView = null;
-        }
+        loginView.Visible = visible;
+        presenceView.Visible = !visible;
+        presencePanelView.Visible = !visible;
+        panelsSelection.Visible = !visible;
+        notificationView.Visible = !visible;
     }
 
 #region Events received from Rainbow SDK
@@ -374,26 +321,20 @@ internal class BotView: View
         if (loginView == null)
             return;
 
-        Terminal.Gui.Application.Invoke(async () =>
+        Terminal.Gui.Application.Invoke(() =>
         {
             switch (connectionState.Status)
             {
                 case ConnectionStatus.Connected:
                     // Ask more info to the server about contacts invitations
-                    var task1 = rbInvitations.GetReceivedInvitationsAsync(InvitationStatus.Pending);
-                    var task2 = rbInvitations.GetSentInvitationsAsync(InvitationStatus.Pending);
-                    Task[] tasks = [task1, task2];
-                    await Task.WhenAll(tasks);
+                    var _1 =  rbInvitations.GetReceivedInvitationsAsync(InvitationStatus.Pending);
+                    var _2 = rbInvitations.GetSentInvitationsAsync(InvitationStatus.Pending);
 
                     Title = rbAccount.Prefix;
 
-                    loginView.Visible = false;
-                    AddPresenceView();
-                    AddPresencePanelView();
-                    AddPanelsSelection();
-                    AddNotificationView();
+                    ToggleVisibility(false);
+                    presenceView.SetContact(rbContacts.GetCurrentContact());
 
-                    //AddTestButton();
                     break;
 
                 case ConnectionStatus.Connecting:
@@ -403,13 +344,7 @@ internal class BotView: View
                 case ConnectionStatus.Disconnected:
                     Title = $"{rbAccount.Prefix} - [Disconnected]";
 
-                    loginView.Visible = true;
-                    RemovePresenceView();
-                    RemovePresencePanelView();
-                    RemovePanelsSelection();
-                    RemoveNotificationView();
-
-                    RemoveTestButton();
+                    ToggleVisibility(true);
                     break;
             }
         });

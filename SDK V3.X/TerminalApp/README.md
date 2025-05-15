@@ -21,13 +21,16 @@ This environment is based on the [Rainbow service](https://www.openrainbow.com/)
 
 They are listed in order of priority / complexity.
 
-| Project Name | Content | Description | |
-| --- | --- | --- | --- |
-| TerminAppLogin | Login, AutoReconnection | Simple Login form to understand basic features and switch between different accounts  | [README](./TerminalAppLogin/README.md) |
-| TerminAppLoginSplittedView | Login, AutoReconnection | Simple Login form with a splitted view to manage in same time two different accounts | [README](./TerminalAppLoginSplittedView/README.md) |
-| TerminAppPresencePanel | Login, AutoReconnection, (Aggregated) Presence, User and Bubble invitation | Panel to see Presence of all contatcs in the roster. Possibility to change it's own presence. Manage user and bubble invitations | [README](./TerminalAppPresencePanel/README.md) | 
-| TerminalAppS2SPresencePanel | Login, AutoReconnection, (Aggregated) Presence, User and Bubble invitation | Using S2S, Panel to see Presence of all contatcs in the roster. Possibility to change it's own presence. Manage user and bubble invitations | [README](./TerminalAppS2SPresencePanel/README.md) | 
-| TerminalAppHybridTelephony | Login, AutoReconnection, Hybrip Telephony | To follow/update in 3PCC (trhid party remote control) Hybrid Telephony calls. Manage Call forward, nomadic and voicemail features | [README](./TerminalAppHybridTelephony/README.md) |
+
+ | Project Name | Content | Description |
+| --- | --- | --- | 
+| [TerminAppLogin](./TerminalApp/TerminalAppLogin/README.md) | Login, AutoReconnection | Simple Login form to understand basic features and switch between different accounts |
+| [TerminAppLoginSplittedView](./TerminalApp/TerminalAppLoginSplittedView/README.md) | Login, AutoReconnection | Simple Login form with a splitted view to manage in same time two different accounts |
+| [TerminAppPresencePanel](./TerminalApp/TerminalAppPresencePanel/README.md) | Login, AutoReconnection, (Aggregated) Presence, User and Bubble invitation | Panel to see Presence of all contatcs in the roster. Possibility to change it's own presence. Manage user and bubble invitations | 
+| [TerminalAppS2SPresencePanel](./TerminalApp/TerminalAppS2SPresencePanel/README.md) | Login, AutoReconnection, (Aggregated) Presence, User and Bubble invitation | Using S2S, Panel to see Presence of all contatcs in the roster. Possibility to change it's own presence. Manage user and bubble invitations |
+| [TerminAppSearch](./TerminAppSearch/README.md) | Login, AutoReconnection, Search | Panel to search contact by name | 
+| [TerminalAppHybridTelephony](./TerminalApp/TerminalAppHybridTelephony/README.md) | Login, AutoReconnection, Hybrip Telephony | To follow/update in 3PCC (trhid party remote control) Hybrid Telephony calls. Manage Call forward, nomadic and voicemail features |
+| [TerminalAppBubbleManagement](./TerminalAppBubbleManagement/README.md) | Login, AutoReconnection, Conversation, Bubble, Bubble Link, Waiting Room / Lobby | To list bubble's members, to promote / demote them, to accept / deny contact in waiting romm / lobby |
  
 ## How to test them
 

@@ -576,7 +576,7 @@ To specify which stream/media is broadcasted and in which conference, the struct
 - **administrators** object, **bubbleInvitationAutoAccept** and **userInvitationAutoAccept**: see [file botConfiguration.json](#botConfiguration.json)
 - **streams**: to define one of several streams and how to connect / use them. Using same structure as described in chapter [File streams.json](./../ConfigurationFiles.md#streams.json)
 - **conference**: 
-    - To define the conference to use. If null or not provided, the bot will not be a conference.
+    - To define the conference to use. If null or not provided, the bot will not join a conference.
     - if a conference is defined but it's not yet active, the bot will wait and join it when it's started.
     - if a conference is defined but cannot be found by the bot, it will not join the conference.
     - **id**: String (cannot be null/empty) - Id of the bubble/conference

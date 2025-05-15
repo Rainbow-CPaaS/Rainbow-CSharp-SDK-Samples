@@ -14,6 +14,7 @@ public static class Configuration
 
     public static Boolean Initialize()
     {
+        Tools.InitTerminalGuiApplication();
         return ParseConfigFile();
     }
 

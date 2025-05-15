@@ -16,7 +16,6 @@ internal class RainbowAdminBot
 
     public UserConfig RainbowAccount { get; private set; }
 
-
     private Rainbow.Application _rbApplication;
     private AutoReconnection _rbAutoReconnection;
     private Administration _rbAdministration;
@@ -103,6 +102,7 @@ internal class RainbowAdminBot
     {
         Rainbow.Util.RaiseEvent(() => ConnectionFailed, _rbApplication, sdkError);
 
+        /*
         // EXAMPLE TO POST DATA USING HTTP
         Dictionary<String, object> bodyDico = new()
         {
@@ -115,10 +115,11 @@ internal class RainbowAdminBot
         var body = JSON.ToJson(bodyDico);
 
         var sdkResult = await MakeRestRequestAsync(requestUri, requestMethod, body);
-        if(!sdkResult.Success)
+        if (!sdkResult.Success)
         {
             // it was not possible to make REST request to my server ...
         }
+        */
     }
 
     private async void RbApplication_ConnectionStateChanged(Rainbow.Model.ConnectionState connectionState)
@@ -138,6 +139,7 @@ internal class RainbowAdminBot
             var _ = CheckSIPDevicesAsync();
         }
 
+        /*
         // EXAMPLE TO POST DATA USING HTTP
         Dictionary<String, object> bodyDico = new()
         {
@@ -154,6 +156,7 @@ internal class RainbowAdminBot
         {
             // it was not possible to make REST request to my server ...
         }
+        */
     }
 
     private void RbAutoReconnection_Cancelled(Rainbow.SdkError sdkError)
