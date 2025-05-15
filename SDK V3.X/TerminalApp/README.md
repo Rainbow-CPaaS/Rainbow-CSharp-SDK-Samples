@@ -21,8 +21,7 @@ This environment is based on the [Rainbow service](https://www.openrainbow.com/)
 
 They are listed in order of priority / complexity.
 
-
- | Project Name | Content | Description |
+| Project Name | Content | Description |
 | --- | --- | --- | 
 | [TerminAppLogin](./TerminalApp/TerminalAppLogin/README.md) | Login, AutoReconnection | Simple Login form to understand basic features and switch between different accounts |
 | [TerminAppLoginSplittedView](./TerminalApp/TerminalAppLoginSplittedView/README.md) | Login, AutoReconnection | Simple Login form with a splitted view to manage in same time two different accounts |

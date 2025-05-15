@@ -8,61 +8,61 @@ static public class Tools
     static public Color LightGray = new Color("#DDDDDD");
 
 
-    static public Attribute AtributeDarkGrayOnGray = new Attribute(Color.DarkGray, LightGray);
-    static public Attribute AtributeDarkGrayOnWhite = new Attribute(Color.DarkGray, Color.White);
+    static public Attribute AttributeDarkGrayOnGray = new Attribute(Color.DarkGray, LightGray);
+    static public Attribute AttributeDarkGrayOnWhite = new Attribute(Color.DarkGray, Color.White);
 
-    static public Attribute AtributeBlackOnGray = new Attribute(Color.Black, LightGray);
-    static public Attribute AtributeBlackOnWhite = new Attribute(Color.Black, Color.White);
+    static public Attribute AttributeBlackOnGray = new Attribute(Color.Black, LightGray);
+    static public Attribute AttributeBlackOnWhite = new Attribute(Color.Black, Color.White);
 
-    static public Attribute AtributeWhiteOnGray = new Attribute(Color.White, LightGray);
+    static public Attribute AttributeWhiteOnGray = new Attribute(Color.White, LightGray);
 
-    static public Attribute AtributeBlueOnGray = new Attribute(Color.Blue, LightGray);
-    static public Attribute AtributeBlueOnWhite = new Attribute(Color.Blue, Color.White);
+    static public Attribute AttributeBlueOnGray = new Attribute(Color.Blue, LightGray);
+    static public Attribute AttributeBlueOnWhite = new Attribute(Color.Blue, Color.White);
 
-    static public Attribute AtributeGreenOnGray = new Attribute(Color.Green, LightGray);
-    static public Attribute AtributeGreenOnWhite = new Attribute(Color.Green, Color.White);
+    static public Attribute AttributeGreenOnGray = new Attribute(Color.Green, LightGray);
+    static public Attribute AttributeGreenOnWhite = new Attribute(Color.Green, Color.White);
 
-    static public Attribute AtributeRedOnGray = new Attribute(Color.Red, LightGray);
-    static public Attribute AtributeRedOnWhite = new Attribute(Color.Red, Color.White);
+    static public Attribute AttributeRedOnGray = new Attribute(Color.Red, LightGray);
+    static public Attribute AttributeRedOnWhite = new Attribute(Color.Red, Color.White);
 
-    static public ColorScheme ColorSchemeBlackOnGray = new(AtributeBlackOnGray);
-    static public ColorScheme ColorSchemeDarkGrayOnGray = new(AtributeDarkGrayOnGray);
-    static public ColorScheme ColorSchemeWhiteOnGray = new(AtributeWhiteOnGray);
+    static public ColorScheme ColorSchemeBlackOnGray = new(AttributeBlackOnGray);
+    static public ColorScheme ColorSchemeDarkGrayOnGray = new(AttributeDarkGrayOnGray);
+    static public ColorScheme ColorSchemeWhiteOnGray = new(AttributeWhiteOnGray);
 
-    static public ColorScheme ColorSchemeBlueOnGray = new(AtributeBlueOnGray,       // Normal
-                                                                AtributeBlueOnWhite,    // Focus
-                                                                AtributeBlueOnGray,     // Hot Normal
-                                                                AtributeDarkGrayOnGray, // Disabled 
-                                                                AtributeBlueOnGray);    // HotFocus
+    static public ColorScheme ColorSchemeBlueOnGray = new(AttributeBlueOnGray,       // Normal
+                                                                AttributeBlueOnWhite,    // Focus
+                                                                AttributeBlueOnGray,     // Hot Normal
+                                                                AttributeDarkGrayOnGray, // Disabled 
+                                                                AttributeBlueOnGray);    // HotFocus
 
-    static public ColorScheme ColorSchemeGreenOnGray = new(AtributeGreenOnGray,      // Normal
-                                                                AtributeGreenOnWhite,   // Focus
-                                                                AtributeGreenOnGray,    // Hot Normal
-                                                                AtributeDarkGrayOnGray, // Disabled 
-                                                                AtributeGreenOnGray);   // HotFocus
+    static public ColorScheme ColorSchemeGreenOnGray = new(AttributeGreenOnGray,      // Normal
+                                                                AttributeGreenOnWhite,   // Focus
+                                                                AttributeGreenOnGray,    // Hot Normal
+                                                                AttributeDarkGrayOnGray, // Disabled 
+                                                                AttributeGreenOnGray);   // HotFocus
 
-    static public ColorScheme ColorSchemeRedOnGray = new(AtributeRedOnGray,        // Normal
-                                                                AtributeRedOnWhite,     // Focus
-                                                                AtributeRedOnGray,      // Hot Normal
-                                                                AtributeDarkGrayOnGray, // Disabled 
-                                                                AtributeRedOnGray);     // HotFocus
+    static public ColorScheme ColorSchemeRedOnGray = new(AttributeRedOnGray,        // Normal
+                                                                AttributeRedOnWhite,     // Focus
+                                                                AttributeRedOnGray,      // Hot Normal
+                                                                AttributeDarkGrayOnGray, // Disabled 
+                                                                AttributeRedOnGray);     // HotFocus
 
     static public ColorScheme ColorSchemeLoggerBlue = new(new Attribute(Color.Blue, Color.White));
     static public ColorScheme ColorSchemeLoggerGreen = new(new Attribute(Color.Green, Color.White));
     static public ColorScheme ColorSchemeLoggerRed = new(new Attribute(Color.Red, Color.White));
 
 
-    static public ColorScheme ColorSchemeLogger = new(AtributeDarkGrayOnWhite,     // Normal
-                                                                AtributeDarkGrayOnWhite,   // Focus
-                                                                AtributeDarkGrayOnWhite,   // Hot Normal
-                                                                AtributeDarkGrayOnWhite,   // Disabled 
-                                                                AtributeDarkGrayOnWhite);    // HotFocus
+    static public ColorScheme ColorSchemeLogger = new(AttributeDarkGrayOnWhite,     // Normal
+                                                                AttributeDarkGrayOnWhite,   // Focus
+                                                                AttributeDarkGrayOnWhite,   // Hot Normal
+                                                                AttributeDarkGrayOnWhite,   // Disabled 
+                                                                AttributeDarkGrayOnWhite);    // HotFocus
 
-    static public ColorScheme ColorSchemeMain = new(AtributeBlackOnGray,     // Normal
-                                                            AtributeBlackOnWhite,    // Focus
-                                                            AtributeBlackOnGray,    // Hot Normal
-                                                            AtributeDarkGrayOnGray, // Disabled
-                                                            AtributeBlackOnGray);   // HotFocus
+    static public ColorScheme ColorSchemeMain = new(AttributeBlackOnGray,     // Normal
+                                                            AttributeBlackOnWhite,    // Focus
+                                                            AttributeBlackOnGray,    // Hot Normal
+                                                            AttributeDarkGrayOnGray, // Disabled
+                                                            AttributeBlackOnGray);   // HotFocus
 
     static public ColorScheme ColorSchemeBlackOnWhite = new(new Attribute(Color.Black, Color.White));
     static public ColorScheme ColorSchemeWhiteOnBlack = new(new Attribute(Color.White, Color.Black));
@@ -118,7 +118,7 @@ static public class Tools
 
             // Create button
             Button button = new() { Text = "OK", IsDefault = true, ShadowStyle = ShadowStyle.None };
-            button.Accepting += (s, e) => { Application.RequestStop(); e.Cancel = true; };
+            button.Accepting += (s, e) => { Application.RequestStop(); e.Handled = true; };
 
             // Add button
             dialog.AddButton(button);
