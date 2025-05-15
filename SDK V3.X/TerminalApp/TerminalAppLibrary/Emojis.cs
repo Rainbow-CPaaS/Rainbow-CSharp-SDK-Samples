@@ -3,6 +3,18 @@
     // Check "CharacterMap.cs" from UICatalog example of Terminalg.GUI to check Emoji availables
     // Need to add a space to have a correct display
 
+    public const String ONE_MEMBER      = "👤";
+    public const String TWO_MEMBERS     = "👥";
+    public const String SETTINGS        = "🛠️";
+    public const String LINK            = "🔗";
+    public const String FILES           = "📄";
+    public const String MODERATOR       = "🜲";
+    public const String WAITING         = TIMER;
+    public const String NOTIFICATION    = "🔔";
+    public const String NO_NOTIFICATION = "🔕";
+    public const String TAG             = "🔖";
+    public const String CONFERENCE      = "🗣️";
+
     public const String WARNING         = "\u26a0 "; // ⚠
     public const String TIMER           = "\u23F1 "; // ⏱
     public const String CALENDAR        = "\u23F2 "; // ⏲

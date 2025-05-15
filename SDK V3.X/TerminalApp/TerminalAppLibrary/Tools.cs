@@ -206,5 +206,29 @@ static public class Tools
         Terminal.Gui.Application.ForceDriver = _forceDriver;
         Terminal.Gui.Application.Init(driverName: _forceDriver);
     }
+
+    public static Boolean IsOwner(Rainbow.Application? rbApplication, Bubble? bubble)
+    {
+        if ((rbApplication is null) || (bubble is null))
+            return false;
+
+        var o = rbApplication.GetBubbles().IsOwner(bubble);
+        return o is not null && o.Value == true;
+    }
+
+    public static Boolean IsModerator(Rainbow.Application? rbApplication, Bubble? bubble)
+    {
+        if ((rbApplication is null) || (bubble is null))
+            return false;
+
+        var isOwner = IsOwner(rbApplication, bubble);
+        var isModerator = isOwner;
+        if (!isModerator)
+        {
+            var m = rbApplication.GetBubbles().IsModerator(bubble);
+            isModerator = m is not null && m.Value == true;
+        }
+        return isModerator;
+    }
 }
 

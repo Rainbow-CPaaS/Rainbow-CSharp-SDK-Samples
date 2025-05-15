@@ -130,19 +130,19 @@ public class BubbleMemberView: View
             var colorScheme = Tools.ColorSchemeBlueOnGray;
             String txt;
             if (bubbleMember.Status != BubbleMemberStatus.Accepted)
-                txt = Emojis.TIMER;
+                txt = Emojis.WAITING;
             else
                 txt = "  ";
 
             switch (bubbleMember.Privilege)
             {
                 case BubbleMemberPrivilege.Owner:
-                    txt += Emojis.CHESS_KING;
+                    txt += Emojis.MODERATOR;
                     colorScheme = Tools.ColorSchemeRedOnGray;
                     break;
 
                 case BubbleMemberPrivilege.Moderator:
-                    txt += Emojis.CHESS_TOWER;
+                    txt += Emojis.MODERATOR;
                     break;
 
                 case BubbleMemberPrivilege.User:

@@ -17,7 +17,7 @@ internal class BotView: View
 
     private View? viewRight;
     private ItemSelector? bubbleSelector;
-    private BubbleMembersPanel? bubbleMembersPanel;
+    private BubblePanel? bubblePanel;
 
     private View? viewLeft;
     private ConversationPanelView? conversationPanelView;
@@ -121,14 +121,14 @@ internal class BotView: View
         };
         bubbleSelector.SelectedItemUpdated += BubbleSelector_ItemSelected;
 
-        bubbleMembersPanel = new(rbApplication, null)
+        bubblePanel = new(rbApplication, null)
         {
             X = 0,
             Y = Pos.Bottom(bubbleSelector),
             Height = Dim.Fill(),
             Width = Dim.Fill()
         };
-        viewRight.Add(bubbleSelector, bubbleMembersPanel);
+        viewRight.Add(bubbleSelector, bubblePanel);
 
         Add(viewLeft, viewRight);
     }
@@ -145,7 +145,7 @@ internal class BotView: View
     private void BubbleSelector_ItemSelected(object? sender, Item item)
     {
         var bubble = rbBubbles.GetBubbleById(item.Id);
-        bubbleMembersPanel?.SetBubble(bubble);
+        bubblePanel?.SetBubble(bubble);
 
         var conversation = rbConversations.GetConversation(bubble);
         if (conversation is not null)

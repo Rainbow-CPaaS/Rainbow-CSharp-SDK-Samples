@@ -35,9 +35,6 @@ public class BubbleMembersPanel: View
     private readonly Label lblRooms;
     private readonly Label lblMembers;
 
-    private Boolean optionsOpened = false;
-    private readonly Button btnOptions;
-
     public BubbleMembersPanel(Rainbow.Application application, Bubble? bubble)
     {
         rbApplication = application;
@@ -58,17 +55,6 @@ public class BubbleMembersPanel: View
 
         scrollableView = new();
         scrollableView.VerticalScrollBar.AutoShow = true;
-
-        btnOptions = new()
-        {
-            X = Pos.AnchorEnd() - 2,
-            Y = 0,
-            Text = "View Options",
-            Visible = false,
-            ShadowStyle = ShadowStyle.None,
-            ColorScheme = Tools.ColorSchemeLoggerBlue
-        };
-        btnOptions.MouseClick += BtnOptions_MouseClick;
 
         lblWaitingRoom = new()
         {
@@ -104,14 +90,12 @@ public class BubbleMembersPanel: View
 
         scrollableView.Add(lblWaitingRoom, lblOrganizers, lblRooms, lblMembers);
 
-        Border.Add(btnOptions);
-
         Add(scrollableView);
 
         Height = Dim.Fill();
         Width = Dim.Fill();
 
-        BorderStyle = LineStyle.Dotted;
+        //BorderStyle = LineStyle.Dotted;
         CanFocus = true;
 
         SetBubble(bubble);
@@ -153,19 +137,13 @@ public class BubbleMembersPanel: View
 
     private Boolean IsOwner()
     {
-        var o = rbBubbles.IsOwner(bubble);
-        return o is not null && o.Value == true;
+        isOwner = Tools.IsOwner(rbApplication, bubble);
+        return isOwner;
     }
 
     private Boolean IsModerator()
     {
-        var isOwner = IsOwner();
-        var isModerator = isOwner;
-        if (!isModerator)
-        {
-            var m = rbBubbles.IsModerator(bubble);
-            isModerator = m is not null && m.Value == true;
-        }
+        isModerator = Tools.IsModerator(rbApplication, bubble);
         return isModerator;
     }
 
@@ -182,7 +160,6 @@ public class BubbleMembersPanel: View
             lblRooms.Y = 0;
             lblMembers.Height = 0;
             lblMembers.Y = 0;
-            
 
             // Remove previous BubbleMemberView
             foreach (var bubbleMemberView in bubbleMembersViewList.Values)
@@ -198,14 +175,8 @@ public class BubbleMembersPanel: View
                 return;
             }
 
-            isModerator = IsModerator();
-            btnOptions.Visible = isModerator;
-
-            // Set title
-            if (!String.IsNullOrEmpty(bubble.Peer?.DisplayName))
-                Title = bubble.Peer.DisplayName;
-            else
-                Title = "";
+            IsOwner();
+            IsModerator();
 
             View? previousView = null;
 
@@ -418,8 +389,6 @@ public class BubbleMembersPanel: View
 
     public void SetBubble(Bubble ? bubble)
     {
-        optionsOpened = false;
-
         if( (bubble?.HasLobby == true) && IsModerator())
         {
             rbBubbles.GetContactsInLobbyAsync(bubble).ContinueWith(task =>
@@ -450,15 +419,6 @@ public class BubbleMembersPanel: View
             scrollableView.Viewport = scrollableView.Viewport with { Y = 0 };
             UpdateDisplay();
         });        
-    }
-
-    private void BtnOptions_MouseClick(object? sender, MouseEventArgs e)
-    {
-        if (e != null)
-            e.Handled = true;
-
-        optionsOpened = !optionsOpened;
-        btnOptions.Text = optionsOpened ? "Close Options" : "View Options";
     }
 
     private void BubbleMemberView_PeerClick(object? sender, PeerAndMouseEventArgs e)
