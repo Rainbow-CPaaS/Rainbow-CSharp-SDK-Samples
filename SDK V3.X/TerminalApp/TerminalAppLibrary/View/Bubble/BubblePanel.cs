@@ -18,12 +18,7 @@ public class BubblePanel : View
     private Boolean isOwner;
     private Boolean isModerator;
 
-    private readonly View viewOptions;
-    private readonly Label lblConference;
-    private readonly Label lblMembers;
-    private readonly Label lblSettings;
-    private readonly Label lblLink;
-    private readonly Label lblFiles;
+    private readonly EmojiButtonsPanel emojiButtonsPanel;
 
     private String? optionSelected;
     private Boolean conferenceInProgress = false;
@@ -53,71 +48,35 @@ public class BubblePanel : View
 
         Add(bubbleConferencePanel, bubbleMembersPanel, bubbleSettingsPanel, bubbleLinkPanel, bubbleFilesPanel);
 
-        viewOptions = new()
+        emojiButtonsPanel = new()
         {
             X = Pos.AnchorEnd() - 2,
-            Y = 0,
-            Width = Dim.Auto(DimAutoStyle.Content),
-            Height = 1
+            CanFocus = true,
         };
+        emojiButtonsPanel.Add("conference", Emojis.CONFERENCE);
+        emojiButtonsPanel.Add("members", Emojis.TWO_MEMBERS, isSelected: true);
+        emojiButtonsPanel.Add("settings", Emojis.SETTINGS);
+        emojiButtonsPanel.Add("link", Emojis.LINK);
+        emojiButtonsPanel.Add("files", Emojis.FILES);
 
-        lblConference = new()
-        {
-            X = 0,
-            Y = 0,
-            Width = 4,
-            Text = Emojis.CONFERENCE,
-            TextAlignment = Alignment.Center
-        };
-        lblConference.MouseClick += LblConference_MouseClick;
+        emojiButtonsPanel.SelectionUpdated += EmojiButtonsPanel_SelectionUpdated;
 
-        lblMembers = new()
-        {
-            X = Pos.Right(lblConference),
-            Y = 0,
-            Width = 4,
-            Text = Emojis.TWO_MEMBERS,
-            TextAlignment = Alignment.Center
-        };
-        lblMembers.MouseClick += LblMembers_MouseClick;
-
-        lblSettings = new()
-        {
-            X = Pos.Right(lblMembers),
-            Y = 0,
-            Width = 4,
-            Text = Emojis.SETTINGS,
-            TextAlignment = Alignment.Center
-        };
-        lblSettings.MouseClick += LblSettings_MouseClick;
-
-        lblLink = new()
-        {
-            X = Pos.Right(lblSettings),
-            Y = 0,
-            Width = 4,
-            Text = Emojis.LINK,
-            TextAlignment = Alignment.Center
-        };
-        lblLink.MouseClick += LblLink_MouseClick;
-
-        lblFiles = new()
-        {
-            X = Pos.Right(lblLink),
-            Y = 0,
-            Width = 4,
-            Text = Emojis.FILES,
-            TextAlignment = Alignment.Center
-        };        
-        lblFiles.MouseClick += LblFiles_MouseClick;
-
-        viewOptions.Add(lblConference, lblMembers, lblSettings, lblLink, lblFiles);
-        Border.Add(viewOptions);
+        Border.Add(emojiButtonsPanel);
+        Border.CanFocus = true;
 
         BorderStyle = LineStyle.Dotted;
         CanFocus = true;
 
         SetBubble(bubble);
+    }
+
+    private void EmojiButtonsPanel_SelectionUpdated(object? sender, string e)
+    {
+        if (e != optionSelected)
+        {
+            optionSelected = e;
+            UpdateDisplay();
+        }
     }
 
     private void RbConferences_ConferenceRemoved(Conference conference)
@@ -168,6 +127,7 @@ public class BubblePanel : View
     public void SetBubble(Bubble? bubble)
     {
         optionSelected = "members";
+        emojiButtonsPanel.Selected = optionSelected;
         bubbleMembersPanel.SetBubble(bubble);
 
         Terminal.Gui.Application.Invoke(() =>
@@ -191,75 +151,19 @@ public class BubblePanel : View
                 Title = "";
 
             // Display correct panel
-            lblConference.Visible = true;
-            lblConference.Width = conferenceInProgress ? 4 : 0;
+            emojiButtonsPanel.SetVisible("conference", conferenceInProgress);
             bubbleConferencePanel.Visible = optionSelected == "conference";
-            lblConference.ColorScheme = bubbleConferencePanel.Visible ? Tools.ColorSchemeBlackOnWhite : Tools.ColorSchemeMain;
 
             bubbleMembersPanel.Visible = optionSelected == "members";
-            lblMembers.ColorScheme = bubbleMembersPanel.Visible ? Tools.ColorSchemeBlackOnWhite: Tools.ColorSchemeMain;
-            
-            lblSettings.Width = isModerator ? 4 : 0;
-            bubbleSettingsPanel.Visible = optionSelected == "settings";
-            lblSettings.ColorScheme = bubbleSettingsPanel.Visible ? Tools.ColorSchemeBlackOnWhite : Tools.ColorSchemeMain;
 
-            lblLink.Width = isModerator ? 4 : 0;
+            emojiButtonsPanel.SetVisible("settings", isModerator);
+            bubbleSettingsPanel.Visible = optionSelected == "settings";
+
+            emojiButtonsPanel.SetVisible("link", isModerator);
             bubbleLinkPanel.Visible = optionSelected == "link";
-            lblLink.ColorScheme = bubbleLinkPanel.Visible ? Tools.ColorSchemeBlackOnWhite : Tools.ColorSchemeMain;
 
             bubbleFilesPanel.Visible = optionSelected == "files";
-            lblFiles.ColorScheme = bubbleFilesPanel.Visible ? Tools.ColorSchemeBlackOnWhite : Tools.ColorSchemeMain;
         }
     }
 
-    private void LblConference_MouseClick(object? sender, MouseEventArgs e)
-    {
-        if (e.Flags == MouseFlags.Button1Clicked)
-        {
-            e.Handled = true;
-            optionSelected = "conference";
-            UpdateDisplay();
-        }
-    }
-
-    private void LblLink_MouseClick(object? sender, MouseEventArgs e)
-    {
-        if (e.Flags == MouseFlags.Button1Clicked)
-        {
-            e.Handled = true;
-            optionSelected = "link";
-            UpdateDisplay();
-        }        
-    }
-
-    private void LblFiles_MouseClick(object? sender, MouseEventArgs e)
-    {
-        if (e.Flags == MouseFlags.Button1Clicked)
-        {
-            e.Handled = true;
-            optionSelected = "files";
-            UpdateDisplay();
-        }
-        
-    }
-
-    private void LblSettings_MouseClick(object? sender, MouseEventArgs e)
-    {
-        if (e.Flags == MouseFlags.Button1Clicked)
-        {
-            e.Handled = true;
-            optionSelected = "settings";
-            UpdateDisplay();
-        }
-    }
-
-    private void LblMembers_MouseClick(object? sender, MouseEventArgs e)
-    {
-        if (e.Flags == MouseFlags.Button1Clicked)
-        {
-            e.Handled = true;
-            optionSelected = "members";
-            UpdateDisplay();
-        }
-    }
 }

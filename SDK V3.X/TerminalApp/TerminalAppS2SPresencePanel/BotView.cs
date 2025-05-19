@@ -39,6 +39,10 @@ internal class BotView : View
         rbApplication = new Rainbow.Application(iniFolderFullPathName: rbAccount.IniFolderPath, iniFileName: iniFileName, loggerPrefix: prefix);
 
         rbApplication.Restrictions.LogRestRequest = true;
+        rbApplication.Restrictions.LogEvent = true;
+
+        // S2S is used in this example - specifi the callback ULR
+        rbApplication.SetS2SCallbackUrl(Configuration.ExeSettings.S2SCallbackURL);
 
         rbAutoReconnection = rbApplication.GetAutoReconnection();
         rbContacts = rbApplication.GetContacts();

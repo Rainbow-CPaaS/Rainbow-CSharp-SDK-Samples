@@ -28,6 +28,7 @@ public class PresencePanelView: View
     public PresencePanelView(Rainbow.Application rbApplication, int nbColumns = 4, Boolean displayTitle = true, Boolean rosterOnly = true)
     {
         this.rbApplication = rbApplication;
+
         rbContacts = rbApplication.GetContacts();
         rbFavorites = rbApplication.GetFavorites();
         rbInvitations = rbApplication.GetInvitations();
@@ -74,7 +75,9 @@ public class PresencePanelView: View
         else
             contactsList = rbContacts.GetAllContacts();
 
-        if(!displayRoster)
+        rbApplication.ConnectionStateChanged += RbApplication_ConnectionStateChanged;
+
+        if (!displayRoster)
             rbContacts.ContactsAdded    += ContactsListUpated;
         rbContacts.RosterContactsAdded  += ContactsListUpated;
         rbContacts.RosterContactsRemoved+= ContactsListUpated;
@@ -86,8 +89,15 @@ public class PresencePanelView: View
             rbInvitations.InvitationSent += RbInvitations_InvitationSent;
         }
 
-
         Update(contactsList, nbColumns);
+    }
+
+    private void RbApplication_ConnectionStateChanged(ConnectionState connectionState)
+    {
+        if(connectionState.Status == ConnectionStatus.Connected)
+            currentContact = rbContacts.GetCurrentContact();
+
+        ContactsListUpated(null);
     }
 
     private void ContactsListUpated(List<Contact> contacts)

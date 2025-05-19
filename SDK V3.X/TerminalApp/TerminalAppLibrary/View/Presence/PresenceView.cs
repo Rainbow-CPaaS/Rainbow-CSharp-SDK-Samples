@@ -19,6 +19,9 @@ public class PresenceView: View
     internal Contact? contact;
     internal Bubble? bubble;
 
+    internal Boolean isGuest;
+    internal Boolean askingGuestInfo = false;
+
     public event EventHandler<PeerAndMouseEventArgs>? PeerClick;
 
 #pragma warning disable CS8618
@@ -116,9 +119,26 @@ public class PresenceView: View
         if (contact is not null)
         {
             // Get contact from cache
-            var newContact = rbContacts.GetContactById(contact.Peer?.Id);
-            if(newContact is not null)
-                contact = newContact;
+            var contactFromCache = rbContacts.GetContactById(contact.Peer?.Id);
+            if(contactFromCache is not null)
+                contact = contactFromCache;
+
+            if (contact.GuestMode)
+                isGuest = true;
+            else
+            {
+                if (contact.Guest is null)
+                {
+                    if(!askingGuestInfo)
+                    {
+                        askingGuestInfo = true;
+                        Task.Run(() => { rbContacts.GetContactByIdAsync(contact.Peer.Id); });
+                    }
+                    isGuest = false;
+                }
+                else
+                    isGuest = contact.Guest.Value;
+            }
 
             var displayName = contact.Peer?.DisplayName;
             var currentUser = (rbContacts.GetCurrentContact().Peer.Id == contact.Peer?.Id);
@@ -126,9 +146,15 @@ public class PresenceView: View
 
             // Need to check event ContactAggregatedPresenceUpdated ?
             if (this.contact is null)
+            {
                 rbContacts.ContactAggregatedPresenceUpdated += RbContacts_ContactAggregatedPresenceUpdated;
+                rbContacts.ContactsAdded += RbContacts_ContactsAdded;
+                rbContacts.ContactUpdated += RbContacts_ContactUpdated;
+            }
 
             this.contact = contact;
+            
+
             Add(presenceColorView);
             presenceColorView.MouseClick += View_MouseClick;
             Terminal.Gui.Application.Invoke(() =>
@@ -138,6 +164,8 @@ public class PresenceView: View
         }
         else
         {
+            this.contact = null;
+            isGuest = false;
             Remove(presenceColorView);
             presenceColorView = null;
         }        
@@ -148,6 +176,8 @@ public class PresenceView: View
         if (contact is not null)
         {
             rbContacts.ContactAggregatedPresenceUpdated -= RbContacts_ContactAggregatedPresenceUpdated;
+            rbContacts.ContactsAdded -= RbContacts_ContactsAdded;
+            rbContacts.ContactUpdated -= RbContacts_ContactUpdated;
             Remove(presenceColorView);
             presenceColorView = null;
         }
@@ -200,14 +230,12 @@ public class PresenceView: View
 
         if (contact is not null)
         {
-            
-
             if (IsInSameCompany(contact))
             { 
-                labelCompany.Text = contact.GuestMode ? "(is guest)" : "";
-                    }
+                labelCompany.Text = isGuest ? "(is guest)" : "";
+            }
             else
-                labelCompany.Text = $"({contact.CompanyName}{(contact.GuestMode ? " - is guest": "")})";
+                labelCompany.Text = $"({contact.CompanyName}{(isGuest ? " - is guest": "")})";
 
             if (!contact.InRoster)
             {
@@ -269,6 +297,36 @@ public class PresenceView: View
             {
                 UpdateDisplay();
             });
+        }
+    }
+
+    private void RbContacts_ContactsAdded(List<Contact> contacts)
+    {
+        if (contact is null) return;
+
+        var newContact = contacts.FirstOrDefault(c => c.Peer.Id == contact.Peer.Id);
+        if(newContact is not null)
+        {
+            if (newContact.Guest is null)
+            {
+                var _ = rbContacts.GetContactByIdAsync(contact.Peer.Id);
+            }
+            else
+                SetContact(newContact);
+        }
+    }
+
+    private void RbContacts_ContactUpdated(Contact contactUpdated)
+    {
+        if (contact is null) return;
+        if (contactUpdated.Peer.Id == contact.Peer.Id)
+        {
+            if (contactUpdated.Guest is null)
+            {
+                var _ = rbContacts.GetContactByIdAsync(contactUpdated.Peer.Id);
+            }
+            else
+                SetContact(contactUpdated);
         }
     }
 }

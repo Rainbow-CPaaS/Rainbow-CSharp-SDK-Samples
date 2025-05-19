@@ -91,14 +91,17 @@ internal class BotView: View
         viewLeft = new()
         {
             X = 0,
-            Y = 2,
+            Y = 1,
             Width = Dim.Percent(50) - 1,
             Height = Dim.Fill(),
             Visible = false,
             CanFocus = true
         };
-        //conversationItemView = new(rbApplication);
-        conversationPanelView = new(rbApplication);
+
+        conversationPanelView = new(rbApplication)
+        {
+            Y = 1
+        };
         conversationPanelView.PeerClick += ConversationPanelView_PeerClick;
 
         viewLeft.Add(conversationPanelView);
@@ -131,6 +134,8 @@ internal class BotView: View
         viewRight.Add(bubbleSelector, bubblePanel);
 
         Add(viewLeft, viewRight);
+
+        CanFocus = true;
     }
 
     private void ConversationPanelView_PeerClick(object? sender, PeerAndMouseEventArgs e)
