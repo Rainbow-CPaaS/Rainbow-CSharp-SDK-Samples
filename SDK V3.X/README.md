@@ -38,7 +38,7 @@ To have more info about the SDK:
 ### Configuration files
 All this examples are using one or several configuration files in JSON format.
 
-Their structures are explained [here](./ConfigurationFiles.md) 
+Their structures are explained [here](./ConfigurationFiles.md). 
 
 <a name="ConsoleApplicationexamples"></a>
 ## Console Application examples
