@@ -4,13 +4,16 @@
 
 ## Bugs / Restrictions known:
 - limit automatically video fps/size according media (video vs sharing) when a file is used to avoid bad display for remote (already done when webcam or screen is used).
-- When starting a conf, once a remote Peer join it, MediaPublication list no more contain Audio media (fixed in Rainbow.CSharp.SDK > v3.0.0)
 - Window to display Video / Sharing:
 	- ratio is not changed according remote stream
-	- not closed if remote stream has been closed (in P2P call only) (fixed in Rainbow.CSharp.SDK.WebRTC > v2.0.0)
 - "Streams.json": 
 	- Media supported: 'audio', 'video', 'audio+video'
 	- UriType supported: 'other' (or null/empty value)
+
+## [0.8.3]
+- Enhancement: 
+	- allow to set RTP Audio options using "rtpAudioOptions.json"
+	- allow to set RTP Video options using "rtpVideoOptions.json"
 
 ## [0.8.2]
 - Enhancement: allow to select a stream from "streams.json" for any media input (audio, video or sharing)

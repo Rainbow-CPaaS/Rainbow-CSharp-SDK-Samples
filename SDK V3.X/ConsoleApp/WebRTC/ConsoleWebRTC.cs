@@ -135,7 +135,7 @@ IntPtr windowSharingTexture = IntPtr.Zero;
 Task RbTask = Task.CompletedTask;
 
 // Create Rainbow Application ROOT object
-var RbApplication = new Rainbow.Application(exeSettings.LogFolderPath, loggerPrefix: credentials.UsersConfig[0].Prefix + "_");
+var RbApplication = new Rainbow.Application(exeSettings.LogFolderPath);
 
 // Define Restrictions
 RbApplication.Restrictions.LogRestRequest = true;
@@ -168,6 +168,9 @@ if(RbWebRTCCommunications is null)
     Util.WriteRed("Cannot create WebRTCCommunications service ... We quit.");
     return;
 }
+
+var log = Rainbow.LogFactory.CreateLogger("FFmpeg", RbApplication.LoggerPrefix);
+Rainbow.Medias.Helper.SetFFmpegLog(log, Microsoft.Extensions.Logging.LogLevel.Debug);
 
 // Set events that we want to follow
 RbApplication.ConnectionStateChanged += RbApplication_ConnectionStateChanged; // Triggered when the Connection State will change
@@ -222,7 +225,7 @@ async Task MainLoop()
             switch (e.type)
             {
                 case SDL2.SDL_EventType.SDL_QUIT:
-                    endProgram = true;
+                    // Does nothing - it's necessary to unsubscribe to media publication
                     break;
 
                 case SDL2.SDL_EventType.SDL_WINDOWEVENT:
@@ -338,6 +341,10 @@ void CheckInputKey(int simulatedKey)
                 MenuListDevicesAndConferenceInfo();
                 break;
 
+            case (int)ConsoleKey.O: // Update options for RTP Audio/Video stream
+                MenuRTPStreamOptions();
+                break;
+
             case (int)ConsoleKey.M:
                 MenuMediaPublications();
                 break;
@@ -366,6 +373,7 @@ void MenuDisplayInfo()
 
     Util.WriteYellow("");
     Util.WriteYellow("[L] (List) to list devices used/available and call info (conference or P2P)");
+    Util.WriteYellow("[O] (Options) to update options for RTP Audio/Video streams (very advanced tests)");
 }
 
 void MenuMediaPublications()
@@ -446,7 +454,7 @@ void MenuMediaPublications()
                                     Util.WriteDarkYellow("Previous Video MediaPublication has been unsubscribed");
 
                                     Util.WriteGreen($"Asking to subscribe to the new Video MediaPublication ...");
-                                    sdkResult = await RbWebRTCCommunications.SubscribeToMediaPublicationAsync(pub);
+                                    sdkResult = await RbWebRTCCommunications.SubscribeToMediaPublicationAsync(pub, MediaSubStreamLevel.HIGH);
                                     if (sdkResult.Success)
                                         Util.WriteDarkYellow("MediaPublication has been subscribed");
                                     else
@@ -1707,6 +1715,64 @@ void MenuListDevicesAndConferenceInfo()
     ListScreens();
     Util.WriteYellow("");
     ListWebCams();
+}
+
+ 
+void MenuRTPStreamOptions()
+{
+    if(RbWebRTCDesktopFactory is not null)
+    {
+        var audioOptionsFilename = $".{Path.DirectorySeparatorChar}config{Path.DirectorySeparatorChar}rtpAudioOptions.json";
+        if (File.Exists(audioOptionsFilename))
+        {
+            try
+            {
+                var content = File.ReadAllText(audioOptionsFilename);
+                Dictionary<String, String>? audioOptions = JSON.Parse(content);
+
+                if (audioOptions?.Count > 0)
+                {
+                    RbWebRTCDesktopFactory.SetRTPAudioOptions(audioOptions);
+                    Util.WriteDarkYellow("RTP Audio Options updated");
+                }
+                else
+                {
+                    RbWebRTCDesktopFactory.SetRTPAudioOptions(null);
+                    Util.WriteDarkYellow("RTP Audio Options has been reset");
+                }
+            }
+            catch
+            {
+
+            }
+        }
+
+        var videoOptionsFilename = $".{Path.DirectorySeparatorChar}config{Path.DirectorySeparatorChar}rtpVideoOptions.json";
+        if (File.Exists(videoOptionsFilename))
+        {
+            try
+            {
+                var content = File.ReadAllText(videoOptionsFilename);
+                Dictionary<String, String>? videoOptions = JSON.Parse(content);
+                if (videoOptions?.Count > 0)
+                {
+                    RbWebRTCDesktopFactory.SetRTPVideoOptions(videoOptions);
+                    Util.WriteDarkYellow("RTP Video Options updated");
+                }
+                else
+                {
+                    RbWebRTCDesktopFactory.SetRTPVideoOptions(null);
+                    Util.WriteDarkYellow("RTP Video Options has been reset");
+                }
+            }
+            catch
+            {
+
+            }
+        }
+
+
+    }
 }
 
 void DisplayP2PInfo()

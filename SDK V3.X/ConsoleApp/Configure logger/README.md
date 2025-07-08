@@ -1,6 +1,6 @@
 ![Rainbow](./../../../logo_rainbow.png)
 
-# Rainbow CSharp SDK v3 - Configure Multiple Loggers
+# Rainbow CSharp SDK v3 - Configure Logger
 
 This console application permits to understand how to use the package [Rainbow.CSharp.SDK](https://www.nuget.org/packages/Rainbow.CSharp.SDK).
 

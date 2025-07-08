@@ -9,27 +9,27 @@ using Rainbow.SimpleJSON;
 using Rainbow.Example.Common;
 
 ExeSettings? exeSettings = null;
-Credentials? credentialsUsers = null;
-Credentials? credentialsAdmin = null;
+Credentials? credentials = null;
 
 if ((!ReadExeSettings()) || (exeSettings is null))
     return;
 
-credentialsUsers = ReadCredentials("credentials.json");
-if (credentialsUsers is null)
-    return;
-
-credentialsAdmin = ReadCredentials("credentials-Admin.json");
-if (credentialsAdmin is null)
+credentials = ReadCredentials("credentials.json");
+if (credentials is null)
     return;
 
 // --------------------------------------------------
 
-Object consoleLockObject = new(); // To lock until the current console display is performed
-
 Console.OutputEncoding = Encoding.UTF8; // We want to display UTF8 on the console
 
-List<RainbowBot> rainbowBots = new ();
+// Check if a Callback URL has been set
+if (String.IsNullOrEmpty(exeSettings.S2SCallbackURL))
+{
+    Util.WriteRed($"No Callback URL has been set. This example needs one to create a WebHook.\r\n Ensure to set one using 'exeSettings.json' file and 's2sCallbackURL' property.");
+    return;
+}
+else
+    Util.WriteBlue($"Callback URL used to create the WebHook:{exeSettings.S2SCallbackURL}");
 
 
 // Set folder / directory path
@@ -38,31 +38,15 @@ var logFullPath = Path.GetFullPath(exeSettings.LogFolderPath);
 Util.WriteBlue($"Logs files will be stored in folder:[{logFullPath}]{Rainbow.Util.CR}");
 
 Util.WriteBlue($"Use [ESC] at anytime to quit{Rainbow.Util.CR}");
+Util.WriteBlue($"Use [S] to have Company Event Subscription Status (once created)");
 
 // Create admin bot
-var adminBot = new RainbowAdminBot(credentialsAdmin.ServerConfig, credentialsAdmin.UsersConfig[0]);
-adminBot.ConnectionStateChanged += (connectionState) => RainbowBot_ConnectionStateChanged(adminBot.RainbowAccount, connectionState);
-adminBot.ConnectionFailed += (sdkError) => RainbowBot_ConnectionFailed(adminBot.RainbowAccount, sdkError);
-adminBot.SIPDeviceStatusChanged += AdminBot_SIPDeviceStatusChanged;
-
-
-
-foreach (var account in credentialsUsers.UsersConfig)
-{
-    var rainbowBot = new RainbowBot(credentialsUsers.ServerConfig, account);
-    rainbowBots.Add(rainbowBot);
-
-    // Set events we want to follow 
-    rainbowBot.ConnectionStateChanged += (connectionState) => RainbowBot_ConnectionStateChanged(rainbowBot.RainbowAccount, connectionState);
-    rainbowBot.ConnectionFailed += (sdkError) => RainbowBot_ConnectionFailed(rainbowBot.RainbowAccount, sdkError);
-    
-    rainbowBot.AccountUsedOnAnotherDevice += (accountUsedOnAnotherDevice) => RainbowBot_AccountUsedOnAnotherDevice(rainbowBot.RainbowAccount, accountUsedOnAnotherDevice);
-}
-
+var adminBot = new RainbowAdminBot(credentials.ServerConfig, credentials.UsersConfig[0], exeSettings.S2SCallbackURL);
+adminBot.ConnectionStateChanged += (connectionState) => AdminBot_ConnectionStateChanged(adminBot.RainbowAccount, connectionState);
+adminBot.ConnectionFailed += (sdkError) => AdminBot_ConnectionFailed(adminBot.RainbowAccount, sdkError);
 
 do
 {
-    
     CheckInputKey();
     await Task.Delay(200);
 } while (true);
@@ -80,27 +64,26 @@ void CheckInputKey()
                 Util.WriteYellow($"Asked to end process using [ESC] key");
                 System.Environment.Exit(0);
                 return;
+
+            case ConsoleKey.S:
+                Task.Run(async () =>
+                {
+                    var sdkResult = await adminBot.GetCompanyEventSubscriptionStatusAsync();
+                    if (sdkResult.Success)
+                        Util.WriteGreen($"GetCompanyEventSubscriptionStatusAsync:[{sdkResult.Data}]");
+                    else
+                        Util.WriteRed($"GetCompanyEventSubscriptionStatusAsync - Error:[{sdkResult.Success}]");
+                });
+                return;
         }
     }
 }
 
 #region EVENTS TRIGGERED BY RainbowAdminBot
 
-void AdminBot_SIPDeviceStatusChanged(SIPDeviceStatus sipDeviceStatus)
+void AdminBot_ConnectionStateChanged(UserConfig rainbowAccount, ConnectionState connectionState)
 {
-    var log = $"Device status changed: Registered[{sipDeviceStatus.Registered}] - ShortNumber:[{sipDeviceStatus.DeviceShortNumber}] - Peer:[{sipDeviceStatus.Peer.ToString("small")}]";
-    if (sipDeviceStatus.Registered)
-        Util.WriteDarkYellow(log);
-    else
-        Util.WriteRed(log);
-}
-#endregion EVENTS TRIGGERED BY RainbowAdminBot
-
-#region EVENTS TRIGGERED BY RainbowBot
-
-void RainbowBot_ConnectionStateChanged(UserConfig rainbowAccount, ConnectionState connectionState)
-{
-    switch(connectionState.Status)
+    switch (connectionState.Status)
     {
         case ConnectionStatus.Connected:
             Util.WriteDarkYellow($"Bot using [{rainbowAccount.Login}] is connected{Rainbow.Util.CR}");
@@ -111,27 +94,18 @@ void RainbowBot_ConnectionStateChanged(UserConfig rainbowAccount, ConnectionStat
             break;
 
         case ConnectionStatus.Disconnected:
-            Util.WriteRed ($"Bot using [{rainbowAccount.Login}] is disconnected{Rainbow.Util.CR}");
+            Util.WriteRed($"Bot using [{rainbowAccount.Login}] is disconnected{Rainbow.Util.CR}");
             break;
     }
 }
 
-void RainbowBot_ConnectionFailed(UserConfig rainbowAccount, SdkError sdkError)
+void AdminBot_ConnectionFailed(UserConfig rainbowAccount, SdkError sdkError)
 {
     Util.WriteRed($"Bot using [{rainbowAccount.Login}] is not connected - Error:[{sdkError}]{Rainbow.Util.CR}");
 }
 
-void RainbowBot_AccountUsedOnAnotherDevice(UserConfig rainbowAccount, Boolean accountUsedOnAnotherDevice)
-{
-    if (accountUsedOnAnotherDevice)
-        Util.WriteDarkYellow($"[{rainbowAccount.Login}] is connected using another device{Rainbow.Util.CR}");
-    else
-        Util.WriteRed($"[{rainbowAccount.Login}] is NOT connected using another device{Rainbow.Util.CR}");
-}
 
-
-#endregion EVENTS TRIGGERED BY RainbowBot
-
+#endregion EVENTS TRIGGERED BY RainbowAdminBot
 
 Boolean ReadExeSettings()
 {

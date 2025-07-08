@@ -532,7 +532,7 @@ async Task MenuBubbleLinkAsync()
         String firstName = Rainbow.Util.GetGUID().Substring(0, 5);
         String lastName = "USER bubble link";
                 
-        var sdkResultContact = await RbAdministration.CreateUserWithBubbleLinkAsync(link, loginEmail, pwd, firstName, lastName, null, true);
+        var sdkResultContact = await RbAdministration.CreateUserWithBubbleLinkAsync(link, loginEmail, pwd, firstName, lastName, null, null, true);
         if (sdkResultContact.Success)
         {
             var contactCreated = sdkResultContact.Data;

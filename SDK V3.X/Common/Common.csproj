@@ -8,10 +8,9 @@
 
   <ItemGroup>
     <PackageReference Include="NLog.Extensions.Logging" Version="5.3.15" />
+    <PackageReference Include="Rainbow.CSharp.SDK" Version="3.4.0" />
 <!--
-    <ProjectReference Include="..\..\..\rainbow-csharp-sdk-test\SDK\SDK.csproj" />
+	<ProjectReference Include="..\..\..\rainbow-csharp-sdk-test\SDK\SDK.csproj" />
 -->
-	<PackageReference Include="Rainbow.CSharp.SDK" Version="3.3.0" />
-
 </ItemGroup>
 </Project>

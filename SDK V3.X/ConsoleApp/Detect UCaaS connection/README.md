@@ -22,9 +22,14 @@ To have more info about the SDK:
 
 ## Features
 
-Using an admin account and one or several standard users, it possible to know:
-- If one this standard user is connected (or not) to Rainbow using a standard Rainbow application (a UCaaS application)
-- Using the admin account, it's also possibe to know if one on this standard user is using a Hub Device and if this device is connected or not
+Using an admin account and one or several standard users, it's possible to know:
+- From the admin account:
+	- Connection state with the Rainbow server
+	- Device states (Hub Telephony contaxt only) of all users in the company: device registered (in service) or not (out of service)
+	
+- From a standard user:
+	- Connection state with the Rainbow server
+	- If this user is also connected on Rainbow using another device
 
 ## File exeSettings.json
 

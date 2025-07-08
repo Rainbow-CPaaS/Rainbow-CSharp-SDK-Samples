@@ -1,0 +1,5 @@
+{
+  "sdp_flags": "custom_io",
+  "reorder_queue_size": "0",
+  "fflags":  "+discardcorrupt+genpts+nofillin+nobuffer"
+}
