@@ -35,6 +35,10 @@ All bots are using a [state machine](#StateMachine) to simplify the complexity a
 
 - [Bot BasicMessages](#BotBasicMessages): Simple bot which auto-answers to all administrators messages.
 
+- [Bot AdaptiveCards](#BotAdaptiveCards): Using Adaptive Cards, share / manage MCQ test (multiple choice question) with one or several accounts
+    - [Extended BotConfiguration](#BotAdaptiveCardsExtendedBotConfiguration)
+    - [Features](#BotAdaptiveCardsFeatures)
+
 - [Bot Broadcaster](#BotBroadcaster): Permits to easily broadcast stream(s) in a conference according administrators messages.
     - [Extended BotConfiguration](#ExtendedBotConfiguration)
     - [Features](#BotBroadcasterFeatures)
@@ -483,6 +487,73 @@ namespace BotBasic
         }
 }
 ```
+
+<a name="BotAdaptiveCards"></a>
+## Bot AdaptiveCards
+
+Thanks to inheritance, this bot provides all features of [Bot Base](#Implementedfeatures).
+
+It permits also to share / manage MCQ test (multiple choice question) with one or several accounts using Adaptive Cards.
+
+It's necessary to extend the Bot configuration to specify which accounts must receive the test by IM.
+
+<a name="BotAdaptiveCardsExtendedBotConfiguration"></a>
+### Extended BotConfiguration
+To specify which account must receive the test, the structure of [file botConfiguration.json](#botConfiguration.json) as been extended.
+```javascript
+{
+  "botConfiguration": {
+    "administrators": {
+      "rainbowAccounts": [
+        {
+          "id": "123456454",
+          "jid": "9856460@openrainbow.com",
+          "login": "my_user1@my_domain.com"
+        }
+      ],
+      "guestsAccepted": false
+    },
+    "bubbleInvitationAutoAccept": true,
+    "userInvitationAutoAccept": true,
+
+    "mcqAccounts": [
+      {
+        "id": "id1",
+        "jid": "jid1",
+        "login": "user1@mydomian.com"
+
+      },
+      {
+        "id": "id2",
+        "jid": "jid2",
+        "login": "user2@mydomian.com"
+      }
+    ]
+  }
+}
+```
+**Details:**
+- **administrators** object, **bubbleInvitationAutoAccept** and **userInvitationAutoAccept**: see [file botConfiguration.json](#botConfiguration.json)
+- **mcqAccounts**: 
+    - To define one or several accounts (2 in this example) which must receive the MCQ
+    - **id**: String (cannot be null/empty) - Id of the Contact
+    - **jid**: String (cannot be null/empty) - Jid of the Contact
+    - **login**: String (cannot be null/empty) - email address of the Contact
+    - NOTE: 
+        - At east one of **id**, **jid** or **login** must be defined.
+        - when using **login**, the search is performed using the cache only.
+        - when using **id** and/or **jid**, if not found in cache the bot asks info from server
+        - User first **id**, then **jid** and finally **login** to get the Contact
+
+<a name="BotAdaptiveCardsFeatures"></a>
+### Features
+
+For each account defined, the bot search the contact associated.
+
+For each contact found, a MCQ test is started:
+- An adaptive card is sent to the contact asking him to start the test
+- Once the user accepts it, the same adaptive card is edited to display question waiting answer of the contact
+- A summary is sent when all questions have been answered to know the number of valid response and what are the correct answers
 
 <a name="BotBroadcaster"></a>
 ## Bot Broadcaster

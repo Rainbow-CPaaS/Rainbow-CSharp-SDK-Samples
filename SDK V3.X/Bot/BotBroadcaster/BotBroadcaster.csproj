@@ -20,9 +20,13 @@
   </ItemGroup>
 
   <ItemGroup>
-	<PackageReference Include="Rainbow.CSharp.SDK.WebRTC" Version="2.0.1" />
-	<PackageReference Include="Rainbow.CSharp.SDK.WebRTC.Desktop" Version="2.0.1" />
+	<PackageReference Include="Rainbow.CSharp.SDK.WebRTC" Version="2.2.0" />
+	<PackageReference Include="Rainbow.CSharp.SDK.WebRTC.Desktop" Version="2.2.0" />
 	<ProjectReference Include="..\BotLibrary\BotLibrary.csproj" />
+<!--	  
+	<ProjectReference Include="..\..\..\..\rainbow-csharp-sdk-test\SDK.WebRTC.Desktop\SDK.WebRTC.Desktop.csproj" />
+	<ProjectReference Include="..\..\..\..\rainbow-csharp-sdk-test\SDK.WebRTC\SDK.WebRTC.csproj" />
+-->
   </ItemGroup>
 
 </Project>

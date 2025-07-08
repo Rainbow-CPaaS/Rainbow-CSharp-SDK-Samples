@@ -51,5 +51,20 @@ namespace BotLibrary.Model
 
             return result;
         }
+
+        public override string ToString()
+        {
+            String result = "";
+            if (!String.IsNullOrEmpty(Id))
+                result += $"Id:[{Id}] ";
+
+            if (!String.IsNullOrEmpty(Jid))
+                result += $"Jid:[{Jid}] ";
+
+            if (!String.IsNullOrEmpty(Id))
+                result += $"Login:[{Login}] ";
+
+            return result.Trim();
+        }
     }
 }

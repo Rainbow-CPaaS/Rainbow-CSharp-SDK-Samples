@@ -819,7 +819,7 @@ namespace BotLibrary
         /// <summary>
         /// Event raised when the current user received an ApplicationMessage
         /// </summary>
-        private async void RbInstantMessaging_ApplicationMessageReceived(ApplicationMessage applicationMessage)
+        private void RbInstantMessaging_ApplicationMessageReceived(ApplicationMessage applicationMessage)
         {
             // We don't want to manage AckMessage coming from ourself
             if (applicationMessage.FromJid.Equals(_currentContact?.Peer?.Jid, StringComparison.InvariantCultureIgnoreCase) == true)

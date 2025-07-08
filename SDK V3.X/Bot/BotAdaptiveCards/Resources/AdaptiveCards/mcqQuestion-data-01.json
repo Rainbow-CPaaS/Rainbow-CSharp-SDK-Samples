@@ -1,0 +1,28 @@
+{
+    "title": "Question 1/5",
+    "question": "What was the first emoticon ever used?",
+    "questionId": "01",
+    "buttonTitle": "Submit",
+    "information": "Answered",
+    "messageToDisplay": "Question 1/5 answered",
+    "userAnswer": "",
+    "items": [
+        {
+            "choice": "😀",
+            "value": "A"
+        },
+        {
+            "choice": "🙂",
+            "value": "B",
+            "correct":  true
+        },
+        {
+            "choice": "🙁",
+            "value": "C"
+        },
+        {
+            "choice": "😛",
+            "value": "D"
+        }
+    ]
+}

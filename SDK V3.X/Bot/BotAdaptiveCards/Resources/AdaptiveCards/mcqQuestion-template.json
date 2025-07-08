@@ -1,0 +1,69 @@
+{
+    "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+    "type": "AdaptiveCard",
+    "version": "1.5",
+    "body": [
+        {
+            "type": "TextBlock",
+            "size": "large",
+            "weight": "bolder",
+            "text": " ${title}",
+            "horizontalAlignment": "center",
+            "wrap": true,
+            "style": "heading"
+        },
+        {
+            "type": "TextBlock",
+            "size": "medium",
+            "weight": "bolder",
+            "text": " ${question}",
+            "horizontalAlignment": "left",
+            "wrap": true,
+            "style": "heading"
+        },
+        {
+            "type": "Input.ChoiceSet",
+            "id": "MCQSelection",
+            "label": "",
+            "value": "${userAnswer}",
+            "size": "medium",
+            "weight": "bolder",
+            "style": "expanded",
+            "isRequired": true,
+            "errorMessage": "Selection is required",
+            "choices": [
+                {
+                    "$data": "${items}",
+                    "title": "${choice}",
+                    "value": "${value}"
+                }
+            ]
+        },
+        {
+            "type": "TextBlock",
+            "id":  "Information",
+            "size": "Medium",
+            "weight": "Bolder",
+            "text": "${information}",
+            "horizontalAlignment": "Center",
+            "wrap": true,
+            "style": "heading",
+            "color": "Good",
+            "isVisible": false
+        }
+    ],
+    "actions": [
+        {
+            "type": "Action.Submit",
+            "title": "${buttonTitle}",
+            "data": {
+                "rainbow": {
+                    "type": "messageBack",
+                    "value": {},
+                    "text": ""
+                },
+                "questionId": "${questionId}"
+            }
+        }
+    ]
+}

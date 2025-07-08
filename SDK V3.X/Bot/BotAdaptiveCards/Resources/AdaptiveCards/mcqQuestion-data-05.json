@@ -1,0 +1,32 @@
+{
+    "title": "Question 5/5",
+    "question": "What kind of malware is designed to take advantage of a security hole before it is known?",
+    "questionId": "05",
+    "buttonTitle": "Submit",
+    "information": "Answered",
+    "messageToDisplay": "Question 5/5 answered",
+    "userAnswer": "",
+    "items": [
+        {
+            "choice": "Zero-day exploit",
+            "value": "A",
+            "correct":  true
+        },
+        {
+            "choice": "Virus",
+            "value": "B"
+        },
+        {
+            "choice": "Ransomware",
+            "value": "C"
+        },
+        {
+            "choice": "Trojan horse",
+            "value": "D"
+        }
+    ]
+}
+ 
+ 
+ 
+ 

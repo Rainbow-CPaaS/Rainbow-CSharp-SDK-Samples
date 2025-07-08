@@ -1,0 +1,24 @@
+{
+  "botConfiguration": {
+    "administrators": {
+      "rainbowAccounts": [
+        {
+          "login": "admin.account@my.domain.com"
+        }
+      ],
+      "guestsAccepted": true
+    },
+    "acceptMessagesFromOurSelf": false,
+    "instantMessageAutoAccept": true,
+    "ackMessageAutoAccept": false,
+    "applicationMessageAutoAccept": false,
+    "bubbleInvitationAutoAccept": true,
+    "userInvitationAutoAccept": true,
+
+    "mcqAccounts": [
+      {
+        "login": "irlesuser2@sophia.com"
+      }
+    ]
+  }
+}

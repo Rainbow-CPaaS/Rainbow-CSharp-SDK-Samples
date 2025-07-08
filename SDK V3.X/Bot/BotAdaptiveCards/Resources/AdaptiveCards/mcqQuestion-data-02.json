@@ -1,0 +1,28 @@
+{
+    "title": "Question 2/5",
+    "question": "What technology is used to record cryptocurrency transactions?",
+    "questionId": "02",
+    "buttonTitle": "Submit",
+    "information": "Answered",
+    "messageToDisplay": "Question 2/5 answered",
+    "userAnswer": "",
+    "items": [
+        {
+            "choice": "Digital wallet",
+            "value": "A"
+        },
+        {
+            "choice": "Mining",
+            "value": "B"
+        },
+        {
+            "choice": "Blockchain",
+            "value": "C",
+            "correct":  true
+        },
+        {
+            "choice": "Token",
+            "value": "D"
+        }
+    ]
+}
