@@ -1,6 +1,9 @@
 ﻿using Rainbow.Consts;
 using Rainbow.Model;
-using Terminal.Gui;
+using Terminal.Gui.Drawing;
+using Terminal.Gui.Input;
+using Terminal.Gui.ViewBase;
+using Terminal.Gui.Views;
 
 public class PresencePanelView: View
 {
@@ -50,11 +53,7 @@ public class PresencePanelView: View
             else
                 Title = $"Contacts";
         }
-        if (displayRoster)
-            ColorScheme = Tools.ColorSchemePresencePanel;
-        else
-            ColorScheme = Tools.ColorSchemeContactsPanel;
-
+        
         BorderStyle = LineStyle.Dotted;
         Height = Dim.Fill();
         Width = Dim.Fill();
@@ -107,7 +106,7 @@ public class PresencePanelView: View
         else
             contactsList = rbContacts.GetAllContacts();
 
-        Terminal.Gui.Application.Invoke(() =>
+        Terminal.Gui.App.Application.Invoke(() =>
         {
             Update(contactsList, nbColumns);
         });
@@ -336,7 +335,7 @@ public class PresencePanelView: View
             menuItem = new (
                                 "Remove for my network",
                                 ""
-                                , () => { Application.Popover?.Hide(contextMenu); RemoveForRoster(peer); }
+                                , () => { Terminal.Gui.App.Application.Popover?.Hide(contextMenu); RemoveForRoster(peer); }
                                 , key: Key.N
                                 );
         }
@@ -347,7 +346,7 @@ public class PresencePanelView: View
                 menuItem = new(
                                     "Invite to join my network",
                                     ""
-                                    , () => { Application.Popover?.Hide(contextMenu); InviteToNetwork(peer); }
+                                    , () => { Terminal.Gui.App.Application.Popover?.Hide(contextMenu); InviteToNetwork(peer); }
                                     , key: Key.N
                                     );
             }
@@ -356,7 +355,7 @@ public class PresencePanelView: View
                 menuItem = new(
                                     "Cancel network's invitation",
                                     ""
-                                    , () => { Application.Popover?.Hide(contextMenu); CancelInvitationToNetwork(peer); }
+                                    , () => { Terminal.Gui.App.Application.Popover?.Hide(contextMenu); CancelInvitationToNetwork(peer); }
                                     , key: Key.N
                                     );
             }
@@ -372,7 +371,7 @@ public class PresencePanelView: View
         menuItem = new (
                     (favorite == null) ? "Add to favorites" : "Remove from favorites",
                     $""
-                    , () => { Application.Popover?.Hide(contextMenu); AddOrRemoveFavorite(peer); }
+                    , () => { Terminal.Gui.App.Application.Popover?.Hide(contextMenu); AddOrRemoveFavorite(peer); }
                     , key: Key.F
                     );
         menuItems.Add(menuItem);

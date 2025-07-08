@@ -19,6 +19,11 @@ if (String.IsNullOrEmpty(Configuration.ExeSettings.S2SCallbackURL))
 
 // We want to log S2S specfic entries in a log file
 NLogConfigurator.AddLogger("S2S");
+
+// We want to log info from EmbedIo: cf. https://github.com/unosquare/embedio/issues/475#issuecomment-818469296
+Swan.Logging.Logger.NoLogging();
+Swan.Logging.Logger.RegisterLogger<SwanLogger>();
+
 var webServer = CreateWebServer("http://localhost:9870", Configuration.ExeSettings.S2SCallbackURL);
 var _ = webServer.RunAsync();
 
@@ -27,10 +32,10 @@ var _ = webServer.RunAsync();
 BotWindow.BotViewFactory = new BotViewFactory();
 
 // Use "BotWindow" as main window for Terminal.Gui.Application
-Terminal.Gui.Application.Run<BotWindow>().Dispose();
+Terminal.Gui.App.Application.Run<BotWindow>().Dispose();
 
 // Before the application exits, reset Terminal.Gui for clean shutdown
-Terminal.Gui.Application.Shutdown();
+Terminal.Gui.App.Application.Shutdown();
 
 webServer.DisposeSafely();
 

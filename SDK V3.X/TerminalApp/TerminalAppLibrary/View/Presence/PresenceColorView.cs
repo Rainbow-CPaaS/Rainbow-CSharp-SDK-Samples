@@ -1,13 +1,11 @@
 ﻿using Rainbow.Consts;
 using Rainbow.Model;
-using Terminal.Gui;
-using Attribute = Terminal.Gui.Attribute;
-using Color = Terminal.Gui.Color;
+using Terminal.Gui.Drawing;
+using Terminal.Gui.ViewBase;
+using Terminal.Gui.Configuration;
 
 public class PresenceColorView : View
 {
-    Color background;
-    Color foreground;
     char c = ' ';
 
     readonly Boolean forCurrentUser;
@@ -27,91 +25,104 @@ public class PresenceColorView : View
 
     public void SetInvitationInProgress()
     {
-        c = Emojis.THREE_DOTS[0];
-        background = new Color(255, 255, 255);
-        foreground = new Color(0, 0, 0);
-
-        SetPresenceColor(background, foreground, c);
+        SetPresenceColor("InvitationInProgress", Emojis.THREE_DOTS[0]);
     }
 
     public void SetPresence(Presence? presence)
     {
         if(isBubble)
         {
-            SetPresenceColor(Tools.LightGray, Color.Black, Emojis.DBL_CIRCLE[0]);
+            SetPresenceColor("Bubble", Emojis.DBL_CIRCLE[0]);
             return;
         }
 
         char chr = ' ';
-        Color? background = null;
-        Color? foreground = null;
 
-        if ( (presence == null) || (presence.PresenceLevel == PresenceLevel.Unavailable) )
-            background = Tools.LightGray;
+        if ((presence == null) || (presence.PresenceLevel == PresenceLevel.Unavailable))
+            SetPresenceColor("Unavailable", chr);
         else
         {
             switch (presence.PresenceLevel)
             {
                 case PresenceLevel.Online:
-                    background = new Color(92, 163, 0);
                     if (presence.Resource.StartsWith("mobile_"))
-                    {
-                        foreground = new Color(255, 255, 255);
                         chr = 'M';
-                    }
+                    SetPresenceColor("Online", chr);
                     break;
 
                 case PresenceLevel.Offline:
                 case PresenceLevel.Xa:
-                    background = new Color(255, 255, 255);
                     if (forCurrentUser)
-                    {
-                        foreground = new Color(0, 0, 0);
                         chr = 'I';
-                    }
+                    SetPresenceColor("Offline", chr);
                     break;
 
                 case PresenceLevel.Away:
-                    background = new Color(242, 199, 68);
+                    SetPresenceColor("Away", chr);
                     break;
 
                 case PresenceLevel.Dnd:
-                    background = new Color(243, 72, 63);
-                    foreground = new Color(255, 255, 255);
                     chr = 'D';
+                    SetPresenceColor("DndOrBusy", chr);
                     break;
 
                 case PresenceLevel.Busy:
-                    background = new Color(243, 72, 63);
                     if (presence.PresenceDetails?.Length > 0)
                     {
-                        foreground = new Color(255, 255, 255);
-
                         if (presence.PresenceDetails == PresenceDetails.Phone)
                             chr = 'A';
                         else
                             chr = presence.PresenceDetails.ToUpper()[0];
                     }
+                    SetPresenceColor("DndOrBusy", chr);
                     break;
             }
         }
-
-        if (foreground == null)
-            foreground = background;
-        SetPresenceColor(background, foreground, chr);
     }
 
-    private void SetPresenceColor(Color? bgd, Color? fgd, char chr)
+    private void SetScheme(string schemeName)
     {
-        if ((bgd == null) || (fgd == null))
-            return;
-
-        if ((bgd != background) || (fgd != foreground))
+        if (SchemeName != schemeName)
         {
-            background = bgd.Value;
-            foreground = fgd.Value;
-            ColorScheme = new(new Attribute(foreground, background));
+            SchemeName = schemeName;
+            Scheme scheme;
+            switch (schemeName)
+            {
+                case "InvitationInProgress":
+                    scheme = SchemeManager.GetScheme("PresenceInvitationInProgress");
+                    break;
+                case "Bubble":
+                    scheme = SchemeManager.GetScheme(Tools.DEFAULT_SCHEME_NAME);
+                    break;
+                case "Unavailable":
+                    scheme = SchemeManager.GetScheme(Tools.DEFAULT_SCHEME_NAME); // /!\ seems not necessary to use specific Scheme
+                    break;
+                case "Online":
+                    scheme = SchemeManager.GetScheme("PresenceOnline");
+                    break;
+                case "Offline":
+                    scheme = SchemeManager.GetScheme("PresenceOffline");
+                    break;
+                case "Away":
+                    scheme = SchemeManager.GetScheme("PresenceAway");
+                    break;
+                case "DndOrBusy":
+                    scheme = SchemeManager.GetScheme("PresenceDndOrBusy");
+                    break;
+
+                default:
+                    // This case should never occurs - just in case
+                    scheme = SchemeManager.GetScheme(Tools.DEFAULT_SCHEME_NAME);
+                    break;
+            }
+
+            SetScheme(scheme);
         }
+    }
+
+    private void SetPresenceColor(String schemeName, char chr)
+    {
+        SetScheme(schemeName);
 
         if (chr != c)
         {
@@ -119,5 +130,4 @@ public class PresenceColorView : View
             Text = chr.ToString();
         }
     }
-
 }

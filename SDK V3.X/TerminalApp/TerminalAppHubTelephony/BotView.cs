@@ -8,19 +8,21 @@ using Terminal.Gui.ViewBase;
 internal class BotView: View
 {
     internal UserConfig rbAccount;
-
+    
     private readonly ILogger log;
+
     private readonly Rainbow.Application rbApplication;
     private readonly AutoReconnection rbAutoReconnection;
 
     private LoginView? loginView; // To display login/pwd and connection progression
 
-    private HybridTelephonyMakeCallView hybridTelephonyMakeCallView;        // To display Hybrid Telephony Make call view
-    private HybridTelephonyPanelCallView hybridTelephonyPanelCallView;      // To display Hybrid Telephony Call in progress
-    private HybridTelephonyServiceView hybridTelephonyServiceView;          // To display Hybrid Telephony Service status (if any)
-    private HybridTelephonyCallForwardView hybridTelephonyCallForwardView;  // To display Hybrid Telephony Call Forward settings (if any)
-    private HybridTelephonyNomadicView hybridTelephonyNomadicView;          // To display Hybrid Telephony Nomadic settings (if any)
-    private HybridTelephonyVoiceMailView hybridTelephonyVoiceMailView;      // To display Hybrid Telephony Voice Mail settings (if any)
+    private HubTelephonyServiceView hubTelephonyServiceView;          // To display Hub Telephony Service status (if any)
+    private HubTelephonyMakeCallView hubTelephonyMakeCallView;        // To display Hub Telephony Make call view
+    private HubTelephonyPanelCallView hubTelephonyPanelCallView;      // To display Hub Telephony Call in progress
+    /*
+    private HybridTelephonyCallForwardView hubTelephonyCallForwardView;  // To display Hub Telephony Call Forward settings (if any)
+    private HybridTelephonyVoiceMailView hubTelephonyVoiceMailView;      // To display Hub Telephony Voice Mail settings (if any)
+    */
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
     internal BotView(UserConfig rbAccount)
@@ -38,13 +40,13 @@ internal class BotView: View
 
         // Create Rainbow SDK objects
         rbApplication = new Rainbow.Application(iniFolderFullPathName: rbAccount.IniFolderPath, iniFileName: iniFileName, loggerPrefix: prefix);
-        log.LogInformation("[Terminal Application]: {ProductName} v{ClientVersion}]", Global.ProductName(), Global.FileVersion());
-        
+        log.LogInformation("[Terminal Application]: {ProductName} v{ClientVersion}", Global.ProductName(), Global.FileVersion());
+
         rbAutoReconnection = rbApplication.GetAutoReconnection();
 
         // Set some Restrictions
-        rbApplication.Restrictions.UseHybridTelephony = true;
-        rbApplication.Restrictions.UseHubTelephony = false;
+        rbApplication.Restrictions.UseHybridTelephony = false;
+        rbApplication.Restrictions.UseHubTelephony = true;
         rbApplication.Restrictions.LogRestRequest = true;
 
         // Set global configuration info
@@ -83,60 +85,34 @@ internal class BotView: View
         int leftPartPercent = 40;
         int rightPartPercent = 100 - leftPartPercent;
 
-        hybridTelephonyServiceView = new(rbApplication)
+        hubTelephonyServiceView = new(rbApplication)
         {
             X = 0,
             Y = 1,
             Width = Dim.Percent(leftPartPercent),
-            Visible = true
+            Visible = false
         };
+        Add(hubTelephonyServiceView);
 
-        hybridTelephonyCallForwardView = new(rbApplication)
+        hubTelephonyMakeCallView = new(rbApplication)
         {
-            X = Pos.Left(hybridTelephonyServiceView),
-            Y = Pos.Bottom(hybridTelephonyServiceView) + 1,
-            Width = Dim.Percent(leftPartPercent),
-            Visible = true
-        };
-        hybridTelephonyCallForwardView.ErrorOccurred += HybridTelephonyCallForwardView_ErrorOccurred;
-
-        hybridTelephonyNomadicView = new(rbApplication)
-        {
-            X = Pos.Left(hybridTelephonyCallForwardView),
-            Y = Pos.Bottom(hybridTelephonyCallForwardView) + 1,
-            Width = Dim.Percent(leftPartPercent),
-            Visible = true
-        };
-        hybridTelephonyNomadicView.ErrorOccurred += HybridTelephonyNomadicView_ErrorOccurred;
-
-        hybridTelephonyVoiceMailView = new(rbApplication)
-        {
-            X = Pos.Left(hybridTelephonyNomadicView),
-            Y = Pos.Bottom(hybridTelephonyNomadicView) + 1,
-            Width = Dim.Percent(leftPartPercent),
-            Visible = true
-        };
-
-        hybridTelephonyMakeCallView = new(rbApplication)
-        {
-            X = Pos.Right(hybridTelephonyServiceView),
+            X = Pos.Right(hubTelephonyServiceView),
             Y = 1,
             Width = Dim.Percent(rightPartPercent),
-            Visible = true
+            Visible = false
         };
-        hybridTelephonyMakeCallView.ErrorOccurred += HybridTelephonyMakeCallView_ErrorOccurred;
+        hubTelephonyMakeCallView.ErrorOccurred += HubTelephonyMakeCallView_ErrorOccurred;
+        Add(hubTelephonyMakeCallView);
 
-        hybridTelephonyPanelCallView = new(rbApplication)
+        hubTelephonyPanelCallView = new(rbApplication)
         {
-            X = Pos.Right(hybridTelephonyServiceView),
-            Y = Pos.Bottom(hybridTelephonyMakeCallView) + 1,
+            X = Pos.Right(hubTelephonyServiceView),
+            Y = Pos.Bottom(hubTelephonyMakeCallView),
             Width = Dim.Percent(rightPartPercent),
-            Visible = true
+            Visible = false
         };
-        hybridTelephonyPanelCallView.ErrorOccurred += HybridTelephonyPanelCallView_ErrorOccurred;
-
-
-        Add(hybridTelephonyServiceView, hybridTelephonyCallForwardView, hybridTelephonyNomadicView, hybridTelephonyVoiceMailView, hybridTelephonyMakeCallView, hybridTelephonyPanelCallView);
+        hubTelephonyPanelCallView.ErrorOccurred += HubTelephonyPanelCallView_ErrorOccurred;
+        Add(hubTelephonyPanelCallView);
 
         // Login View
         loginView = new(rbAccount, rbApplication, true)
@@ -146,43 +122,29 @@ internal class BotView: View
             Height = Dim.Percent(90),
             Width = Dim.Percent(90)
         };
-
         Add(loginView);
 
         UpdateViews(true);
     }
 
-    private void HybridTelephonyPanelCallView_ErrorOccurred(string value)
+    private void HubTelephonyPanelCallView_ErrorOccurred(string value)
     {
-        Tools.DisplayLoggerAsDialog("Error from 'Call in progress' view", value);
+        Tools.DisplayLoggerAsDialog("Error from 'Call In progress' view", value);
     }
 
-    private void HybridTelephonyMakeCallView_ErrorOccurred(string value)
+    private void HubTelephonyMakeCallView_ErrorOccurred(string value)
     {
         Tools.DisplayLoggerAsDialog("Error from 'Make Call' view", value);
     }
 
-    private void HybridTelephonyNomadicView_ErrorOccurred(string value)
-    {
-        Tools.DisplayLoggerAsDialog("Error from 'Nomadic' view", value);
-    }
-
-    private void HybridTelephonyCallForwardView_ErrorOccurred(string value)
-    {
-        Tools.DisplayLoggerAsDialog("Error from 'Call forward' view", value);
-    }
-
     void UpdateViews(bool loginViewVisible)
     {
-        if(loginView is not null) 
+        if (loginView is not null)
             loginView.Visible = loginViewVisible;
 
-        hybridTelephonyServiceView.Visible = !loginViewVisible;
-        hybridTelephonyCallForwardView.Visible = !loginViewVisible;
-        hybridTelephonyNomadicView.Visible = !loginViewVisible;
-        hybridTelephonyMakeCallView.Visible = !loginViewVisible;
-        hybridTelephonyPanelCallView.Visible = !loginViewVisible;
-        hybridTelephonyVoiceMailView.Visible = !loginViewVisible;
+        hubTelephonyServiceView.Visible = !loginViewVisible;
+        hubTelephonyMakeCallView.Visible = !loginViewVisible;
+        hubTelephonyPanelCallView.Visible = !loginViewVisible;
     }
 
 #region Events received from Rainbow SDK
@@ -191,7 +153,7 @@ internal class BotView: View
         if (loginView == null)
             return;
 
-        Terminal.Gui.App.Application.Invoke(() =>
+        Terminal.Gui.App.Application.Invoke(async () =>
         {
             switch (connectionState.Status)
             {

@@ -1,11 +1,7 @@
 ﻿using Rainbow;
 using Rainbow.Model;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Terminal.Gui;
+using Terminal.Gui.ViewBase;
+using Terminal.Gui.Views;
 
 public  class BubbleFilesPanel: View
 {
@@ -31,7 +27,7 @@ public  class BubbleFilesPanel: View
             Height = 1,
             Text = "Not done yet ...",
             TextAlignment = Alignment.Center,
-            ColorScheme = Tools.ColorSchemeDarkGrayOnGray
+            SchemeName = "DarkGray"
         };
         Add(lblInProgress);
 
@@ -50,7 +46,7 @@ public  class BubbleFilesPanel: View
 
     public void SetBubble(Bubble? bubble)
     {
-        Terminal.Gui.Application.Invoke(() =>
+        Terminal.Gui.App.Application.Invoke(() =>
         {
             this.bubble = bubble;
             UpdateDisplay();

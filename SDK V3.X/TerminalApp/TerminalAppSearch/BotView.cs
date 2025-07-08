@@ -2,7 +2,9 @@
 using Rainbow.Consts;
 using Rainbow.Example.Common;
 using Rainbow.Model;
-using Terminal.Gui;
+using Terminal.Gui.Drawing;
+using Terminal.Gui.ViewBase;
+using Terminal.Gui.Views;
 
 internal class BotView: View
 {
@@ -61,8 +63,6 @@ internal class BotView: View
         Title = rbAccount.Prefix;
         CanFocus = true;
 
-        ColorScheme = Tools.ColorSchemeMain;
-
         X = 0;
         Width = Dim.Fill();
 
@@ -112,7 +112,6 @@ internal class BotView: View
             Width = Dim.Fill(1),
             Text = "",
             TextAlignment = Alignment.Start,
-            ColorScheme = Tools.ColorSchemeBlackOnWhite,
             ReadOnly = false
         };
         textFieldSearch.TextChanged += TextFieldSearch_TextChanged;
@@ -145,7 +144,7 @@ internal class BotView: View
         if (loginView == null)
             return;
 
-        Terminal.Gui.Application.Invoke(async () =>
+        Terminal.Gui.App.Application.Invoke(async () =>
         {
             switch (connectionState.Status)
             {

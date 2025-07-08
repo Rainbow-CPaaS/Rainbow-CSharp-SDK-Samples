@@ -1,6 +1,9 @@
 ﻿using Rainbow.Delegates;
 using Rainbow.Model;
-using Terminal.Gui;
+using Terminal.Gui.Drawing;
+using Terminal.Gui.Input;
+using Terminal.Gui.ViewBase;
+using Terminal.Gui.Views;
 
 public partial class HybridTelephonyNomadicView: View
 {
@@ -53,7 +56,6 @@ public partial class HybridTelephonyNomadicView: View
             Width = Dim.Fill(1),
             Text = "",
             TextAlignment = Alignment.Start,
-            ColorScheme = Tools.ColorSchemeBlackOnWhite
         };
 
         btnSet = new Button
@@ -62,7 +64,7 @@ public partial class HybridTelephonyNomadicView: View
             X = Pos.Align(Alignment.Center),
             Y = Pos.Bottom(radioGroup) + 1,
             ShadowStyle = ShadowStyle.None,
-            ColorScheme = Tools.ColorSchemeBlueOnGray
+            SchemeName = "BrightBlue"
         };
         btnSet.MouseClick += BtnSet_MouseClick;
 
@@ -94,9 +96,9 @@ public partial class HybridTelephonyNomadicView: View
         {
             if(canUseOfficePhone)
             {
-                rbHybridTelephony.DeactivateHybridNomadicStatusAsync().ContinueWith(task =>
+                Task.Run(async () =>
                 {
-                    var sdkResultBoolean = task.Result;
+                    var sdkResultBoolean = await rbHybridTelephony.DeactivateHybridNomadicStatusAsync();
                     if (!sdkResultBoolean.Success)
                     {
                         UpdateDisplay();
@@ -106,9 +108,9 @@ public partial class HybridTelephonyNomadicView: View
             }
             else if (computerModeAvailable)
             {
-                rbHybridTelephony.ActivateHybridNomadicStatusToComputerAsync().ContinueWith(task =>
+                Task.Run(async () =>
                 {
-                    var sdkResultBoolean = task.Result;
+                    var sdkResultBoolean = await rbHybridTelephony.ActivateHybridNomadicStatusToComputerAsync();
                     if (!sdkResultBoolean.Success)
                     {
                         UpdateDisplay();
@@ -118,9 +120,9 @@ public partial class HybridTelephonyNomadicView: View
             }
             else
             {
-                rbHybridTelephony.ActivateHybridNomadicStatusToPhoneNumberAsync(textFieldPhoneNumber.Text).ContinueWith(task =>
+                Task.Run(async () =>
                 {
-                    var sdkResultBoolean = task.Result;
+                    var sdkResultBoolean = await rbHybridTelephony.ActivateHybridNomadicStatusToPhoneNumberAsync(textFieldPhoneNumber.Text);
                     if (!sdkResultBoolean.Success)
                     {
                         UpdateDisplay();
@@ -133,9 +135,9 @@ public partial class HybridTelephonyNomadicView: View
         {
             if (canUseOfficePhone && computerModeAvailable)
             {
-                rbHybridTelephony.ActivateHybridNomadicStatusToComputerAsync().ContinueWith(task =>
+                Task.Run(async () =>
                 {
-                    var sdkResultBoolean = task.Result;
+                    var sdkResultBoolean = await rbHybridTelephony.ActivateHybridNomadicStatusToComputerAsync();
                     if (!sdkResultBoolean.Success)
                     {
                         UpdateDisplay();
@@ -145,9 +147,9 @@ public partial class HybridTelephonyNomadicView: View
             }
             else if (canUseOfficePhone || computerModeAvailable)
             {
-                rbHybridTelephony.ActivateHybridNomadicStatusToPhoneNumberAsync(textFieldPhoneNumber.Text).ContinueWith(task =>
+                Task.Run(async () =>
                 {
-                    var sdkResultBoolean = task.Result;
+                    var sdkResultBoolean = await rbHybridTelephony.ActivateHybridNomadicStatusToPhoneNumberAsync(textFieldPhoneNumber.Text);
                     if (!sdkResultBoolean.Success)
                     {
                         UpdateDisplay();
@@ -158,9 +160,9 @@ public partial class HybridTelephonyNomadicView: View
         }
         else if (radioGroup.SelectedItem == 2)
         {
-            rbHybridTelephony.ActivateHybridNomadicStatusToPhoneNumberAsync(textFieldPhoneNumber.Text).ContinueWith(task =>
+            Task.Run(async () =>
             {
-                var sdkResultBoolean = task.Result;
+                var sdkResultBoolean = await rbHybridTelephony.ActivateHybridNomadicStatusToPhoneNumberAsync(textFieldPhoneNumber.Text);
                 if (!sdkResultBoolean.Success)
                 {
                     UpdateDisplay();
@@ -183,24 +185,24 @@ public partial class HybridTelephonyNomadicView: View
 
             if (!serviceAvailable.Value)
             {
-                lblInactive.Text = HybridTelephonyServiceView.SERVICE_NOT_AVAILABLE;
-                lblInactive.ColorScheme = Tools.ColorSchemeRedOnGray;
+                lblInactive.Text = Labels.SERVICE_NOT_AVAILABLE;
+                lblInactive.SchemeName = "Red";
             }
             else if (!nomadicStatus.Available)
             {
-                lblInactive.Text = HybridTelephonyServiceView.NOMADIC_NOT_AVAILABLE;
-                lblInactive.ColorScheme = Tools.ColorSchemeRedOnGray;
+                lblInactive.Text = Labels.NOMADIC_NOT_AVAILABLE;
+                lblInactive.SchemeName = "Red";
             }
             else if (!available)
             {
-                lblInactive.Text = HybridTelephonyServiceView.SERVICE_DISABLED;
-                lblInactive.ColorScheme = Tools.ColorSchemeGreenOnGray;
+                lblInactive.Text = Labels.SERVICE_DISABLED;
+                lblInactive.SchemeName = "Green";
             }
         }
         else
         {
-            lblInactive.Text = HybridTelephonyServiceView.FEATURE_CHECKING;
-            lblInactive.ColorScheme = Tools.ColorSchemeGreenOnGray;
+            lblInactive.Text = Labels.FEATURE_CHECKING;
+            lblInactive.SchemeName = "Green";
         }
 
         lblInactive.Height = available ? 0 : 1;
@@ -273,7 +275,7 @@ public partial class HybridTelephonyNomadicView: View
 
     private void RbHybridTelephony_HybridTelephonyStatusUpdated(Boolean? available)
     {
-        Terminal.Gui.Application.Invoke(() =>
+        Terminal.Gui.App.Application.Invoke(() =>
         {
             serviceAvailable = available;
             UpdateDisplay();
@@ -282,7 +284,7 @@ public partial class HybridTelephonyNomadicView: View
 
     private void RbHybridTelephony_HybridNomadicStatusUpdated(HybridNomadicStatus nomadicStatus)
     {
-        Terminal.Gui.Application.Invoke(() =>
+        Terminal.Gui.App.Application.Invoke(() =>
         {
             this.nomadicStatus = nomadicStatus;
             UpdateDisplay();
@@ -290,9 +292,9 @@ public partial class HybridTelephonyNomadicView: View
         
     }
 
-    private void RbHybridTelephony_HybridPBXAgentInfoUpdated(Rainbow.Model.HybridPbxAgentInfo pbxAgentInfo)
+    private void RbHybridTelephony_HybridPBXAgentInfoUpdated(Rainbow.Model.PbxAgentInfo pbxAgentInfo)
     {
-        Terminal.Gui.Application.Invoke(() =>
+        Terminal.Gui.App.Application.Invoke(() =>
         {
             serviceEnabled = pbxAgentInfo.XmppAgentStatus == "started";
             if (serviceEnabled)

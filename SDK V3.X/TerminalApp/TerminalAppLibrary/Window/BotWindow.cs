@@ -1,7 +1,11 @@
 ﻿using Rainbow.Example.Common;
 using System.Drawing;
 using System.Globalization;
-using Terminal.Gui;
+using Terminal.Gui.App;
+using Terminal.Gui.Drawing;
+using Terminal.Gui.Input;
+using Terminal.Gui.ViewBase;
+using Terminal.Gui.Views;
 using RuntimeEnvironment = Microsoft.DotNet.PlatformAbstractions.RuntimeEnvironment;
 
 // Defines a top-level window with border and title
@@ -89,7 +93,7 @@ public class BotWindow : Window
         {
             CanFocus = false,
             Title = "Quit",
-            Key = Application.QuitKey
+            Key = Terminal.Gui.App.Application.QuitKey
         };
 
         if (Configuration.UseSplittedView && nbAccounts > 2)
@@ -142,7 +146,7 @@ public class BotWindow : Window
         // Need to manage Loaded event
         Loaded += LoadedHandler;
 
-        Terminal.Gui.Application.MouseEvent += ApplicationMouseEvent;
+        Terminal.Gui.App.Application.MouseEvent += ApplicationMouseEvent;
     }
 
 
@@ -162,7 +166,7 @@ public class BotWindow : Window
 
     private void SelectBotOnPanel(Boolean? onLeft)
     {
-        Application.Invoke(() =>
+        Terminal.Gui.App.Application.Invoke(() =>
         {
             if (BotViewFactory == null) return;
 
@@ -305,7 +309,7 @@ public class BotWindow : Window
     {
         if (ShVersion is { })
         {
-            ShVersion.Title = $"{RuntimeEnvironment.OperatingSystem} {RuntimeEnvironment.OperatingSystemVersion}, {Driver.GetVersionInfo()}";
+            ShVersion.Title = $"{RuntimeEnvironment.OperatingSystem} {RuntimeEnvironment.OperatingSystemVersion}, {Terminal.Gui.App.Application.Driver?.GetVersionInfo()}";
         }
     }
 }

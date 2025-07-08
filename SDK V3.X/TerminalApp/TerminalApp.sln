@@ -26,6 +26,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TerminalAppBubbleManagement
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TerminalAppSearch", "TerminalAppSearch\TerminalAppSearch.csproj", "{B410AF3E-7945-4E7D-8E4C-7DCF8A3980EC}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TerminalAppHubTelephony", "TerminalAppHubTelephony\TerminalAppHubTelephony.csproj", "{5C33B0DD-AA2B-4268-9D58-FED85C4317DF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -68,6 +70,10 @@ Global
 		{B410AF3E-7945-4E7D-8E4C-7DCF8A3980EC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B410AF3E-7945-4E7D-8E4C-7DCF8A3980EC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B410AF3E-7945-4E7D-8E4C-7DCF8A3980EC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5C33B0DD-AA2B-4268-9D58-FED85C4317DF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5C33B0DD-AA2B-4268-9D58-FED85C4317DF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5C33B0DD-AA2B-4268-9D58-FED85C4317DF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5C33B0DD-AA2B-4268-9D58-FED85C4317DF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

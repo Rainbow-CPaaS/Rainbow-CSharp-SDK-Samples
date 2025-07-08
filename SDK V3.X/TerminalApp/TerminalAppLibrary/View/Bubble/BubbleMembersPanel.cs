@@ -1,7 +1,9 @@
 ﻿using Rainbow;
 using Rainbow.Consts;
 using Rainbow.Model;
-using Terminal.Gui;
+using Terminal.Gui.Input;
+using Terminal.Gui.ViewBase;
+using Terminal.Gui.Views;
 
 public class BubbleMembersPanel: View
 {
@@ -351,9 +353,9 @@ public class BubbleMembersPanel: View
         switch(action)
         {
             case "owner":
-                rbBubbles.CheckChangeOwnerAsync(bubble, bubbleMember).ContinueWith( task =>
+                Task.Run(async () =>
                 {
-                    var sdkResult = task.Result;
+                    var sdkResult = await rbBubbles.CheckChangeOwnerAsync(bubble, bubbleMember);
                     if(sdkResult.Success) 
                     {
                         var _0 = rbBubbles.ChangeOwnerAsync(bubble, bubbleMember);
@@ -391,15 +393,15 @@ public class BubbleMembersPanel: View
     {
         if( (bubble?.HasLobby == true) && IsModerator())
         {
-            rbBubbles.GetContactsInLobbyAsync(bubble).ContinueWith(task =>
+            Task.Run(async () =>
             {
-                var sdkResult = task.Result;
+                var sdkResult = await rbBubbles.GetContactsInLobbyAsync(bubble);
                 if (sdkResult.Success)
                 {
                     contactsInLobby = sdkResult.Data;
                     if (contactsInLobby.Contacts?.Count > 0)
                     {
-                        Terminal.Gui.Application.Invoke(() =>
+                        Terminal.Gui.App.Application.Invoke(() =>
                         {
                             this.bubble = bubble;
                             scrollableView.Viewport = scrollableView.Viewport with { Y = 0 };
@@ -413,7 +415,7 @@ public class BubbleMembersPanel: View
             contactsInLobby = null;
 
 
-        Terminal.Gui.Application.Invoke(() =>
+        Terminal.Gui.App.Application.Invoke(() =>
         {
             this.bubble = bubble;
             scrollableView.Viewport = scrollableView.Viewport with { Y = 0 };
@@ -443,6 +445,13 @@ public class BubbleMembersPanel: View
         {
             if (bubble is not null && e.Peer is not null && e.Peer.Id != currentUser?.Peer?.Id)
             {
+                // Cannot manage member if bublle is associated to a Hub Telephony Group
+                if(bubble.IsOwnedByGroup)
+                {
+                    e.MouseEvent.Handled = true;
+                    return;
+                }
+
                 if (bubble.Users.TryGetValue(e.Peer.Id, out BubbleMember? bubbleMember))
                 {
                     List<MenuItemv2> menuItems = [];
@@ -528,6 +537,8 @@ public class BubbleMembersPanel: View
                 }
             }
         }
+
+        e.MouseEvent.Handled = true;
     }
 
     protected override bool OnMouseEvent(MouseEventArgs mouseEvent)
@@ -560,7 +571,7 @@ public class BubbleMembersPanel: View
     private void RbBubbles_BubbleLobbyUpdated(ContactsInLobby contactsInLobby)
     {
         this.contactsInLobby = contactsInLobby;
-        Terminal.Gui.Application.Invoke(() =>
+        Terminal.Gui.App.Application.Invoke(() =>
         {
             UpdateDisplay();
         });
@@ -568,7 +579,7 @@ public class BubbleMembersPanel: View
 
     private void RbBubbles_BubbleInfoUpdated(Bubble bubble)
     {
-        Terminal.Gui.Application.Invoke(() =>
+        Terminal.Gui.App.Application.Invoke(() =>
         {
             this.bubble = bubble;
             UpdateDisplay();
@@ -577,7 +588,7 @@ public class BubbleMembersPanel: View
 
     private void RbBubbles_BubbleMemberUpdated(Bubble bubble, BubbleMember member)
     {
-        Terminal.Gui.Application.Invoke(() =>
+        Terminal.Gui.App.Application.Invoke(() =>
         {
             this.bubble = bubble;
             UpdateDisplay();

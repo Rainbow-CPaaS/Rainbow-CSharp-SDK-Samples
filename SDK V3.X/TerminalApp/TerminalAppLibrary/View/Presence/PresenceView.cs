@@ -1,7 +1,9 @@
 ﻿using Rainbow;
 using Rainbow.Consts;
 using Rainbow.Model;
-using Terminal.Gui;
+using Terminal.Gui.Input;
+using Terminal.Gui.ViewBase;
+using Terminal.Gui.Views;
 
 public class PresenceView: View
 {
@@ -87,7 +89,7 @@ public class PresenceView: View
             Width = Dim.Auto(DimAutoStyle.Text),
             Height = 1,
             TextAlignment = Alignment.Start,
-            ColorScheme = Tools.ColorSchemeDarkGrayOnGray
+            SchemeName = "DarkGray"
         };
 
 
@@ -141,7 +143,7 @@ public class PresenceView: View
             }
 
             var displayName = contact.Peer?.DisplayName;
-            var currentUser = (rbContacts.GetCurrentContact().Peer.Id == contact.Peer?.Id);
+            var currentUser = (rbContacts.GetCurrentContact()?.Peer?.Id == contact.Peer?.Id);
             presenceColorView = new(currentUser, false);
 
             // Need to check event ContactAggregatedPresenceUpdated ?
@@ -157,7 +159,7 @@ public class PresenceView: View
 
             Add(presenceColorView);
             presenceColorView.MouseClick += View_MouseClick;
-            Terminal.Gui.Application.Invoke(() =>
+            Terminal.Gui.App.Application.Invoke(() =>
             {
                 UpdateDisplay();
             });
@@ -189,7 +191,7 @@ public class PresenceView: View
             this.bubble = bubble;
             Add(presenceColorView);
             presenceColorView.MouseClick += View_MouseClick;
-            Terminal.Gui.Application.Invoke(() =>
+            Terminal.Gui.App.Application.Invoke(() =>
             {
                 UpdateDisplay();
             });
@@ -264,21 +266,21 @@ public class PresenceView: View
                 {
                     if ((calendarPresence.PresenceLevel != PresenceLevel.Online) && calendarPresence.Until > DateTime.UtcNow)
                     {
-                        labelDisplayName.ColorScheme = Tools.ColorSchemePresencePanel;
+                        labelDisplayName.SchemeName = "BrightBlue";
                         labelDisplayName.Text = $"{Emojis.CALENDAR} {GetDisplayName(contact.Peer)}";
                         return;
                     }
                 }
             }
 
-            labelDisplayName.ColorScheme = Tools.ColorSchemeMain;
+            labelDisplayName.SchemeName = Tools.DEFAULT_SCHEME_NAME;
             labelDisplayName.Text = GetDisplayName(contact.Peer);
             
         }
         else if(bubble is not null)
         {
             presenceColorView.SetPresence(null);
-            labelDisplayName.ColorScheme = Tools.ColorSchemeMain;
+            labelDisplayName.SchemeName = Tools.DEFAULT_SCHEME_NAME;
             labelDisplayName.Text = GetDisplayName(bubble.Peer);
         }
         else
@@ -293,7 +295,7 @@ public class PresenceView: View
         {
             contact.InRoster = (presence.PresenceLevel != PresenceLevel.Unavailable);
 
-            Terminal.Gui.Application.Invoke(() =>
+            Terminal.Gui.App.Application.Invoke(() =>
             {
                 UpdateDisplay();
             });

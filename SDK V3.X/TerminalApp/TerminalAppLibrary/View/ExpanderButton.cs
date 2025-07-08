@@ -1,4 +1,7 @@
-﻿using Terminal.Gui;
+﻿using Terminal.Gui.App;
+using Terminal.Gui.Input;
+using Terminal.Gui.ViewBase;
+using Terminal.Gui.Views;
 
 /// <summary>
 ///     A Button that can expand or collapse a view.
@@ -38,8 +41,9 @@ public class ExpanderButton : Button
         KeyBindings.Add(Key.F4, Command.Toggle);
 
         Orientation = Orientation.Vertical;
+        
 
-        HighlightStyle = HighlightStyle.None;
+        //HighlightStyle = HighlightStyle.None;
 
         Initialized += ExpanderButton_Initialized;
 

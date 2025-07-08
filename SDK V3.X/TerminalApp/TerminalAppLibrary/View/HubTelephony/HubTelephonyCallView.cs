@@ -7,12 +7,12 @@ using Terminal.Gui.Input;
 using Terminal.Gui.ViewBase;
 using Terminal.Gui.Views;
 
-public partial class HybridTelephonyCallView : View
+public partial class HubTelephonyCallView : View
 {
     public event StringDelegate? ErrorOccurred;
 
     readonly Rainbow.Application rbApplication;
-    readonly Rainbow.HybridTelephony rbHybridTelephony;
+    readonly Rainbow.HubTelephony rbHubTelephony;
 
     readonly View viewLeft;
     readonly View viewRight;
@@ -24,15 +24,13 @@ public partial class HybridTelephonyCallView : View
     readonly Label lblDevice;
     readonly TextField textFieldDevice;
 
-    readonly Label lblLocalMedia;
-    readonly TextField textFieldLocalMedia;
-    readonly Label lblRemoteMedia;
-    readonly TextField textFieldRemoteMedia;
+    readonly Label lblType;
+    readonly TextField textFieldType;
+    readonly Label lblDirection;
+    readonly TextField textFieldDirection;
 
-    readonly Label lblIsConference;
-    readonly CheckBox checkBoxIsConference;
-
-    readonly LoggerView participants;
+    readonly Label lblParticipant;
+    readonly TextField textFieldParticipant;
 
     readonly View viewButtons;
     readonly Button btnAnswer;  // Answer
@@ -43,16 +41,17 @@ public partial class HybridTelephonyCallView : View
     readonly Label labelDTMF;   
     readonly TextField textFieldDTMF; 
 
-    Call? currentCall;
-    Call? otherCall;
+    HubCall? currentCall;
+    HubCall? otherCall;
 
-    public HybridTelephonyCallView(Rainbow.Application rbApplication, int index)
+    public HubTelephonyCallView(Rainbow.Application rbApplication, int index)
     {
-        int maxLeftLabelLength = 10;
+        int viewLeftPercent = 65;
+        int maxLeftLabelLength = 14;
         int maxRightLabelLength = 15;
 
         this.rbApplication = rbApplication;
-        rbHybridTelephony = rbApplication.GetHybridTelephony();
+        rbHubTelephony = rbApplication.GetHubTelephony();
 
         Title = $"Call {index}";
         BorderStyle = LineStyle.Dotted;
@@ -61,16 +60,16 @@ public partial class HybridTelephonyCallView : View
         viewLeft = new()
         {
             X = 0,
-            Y = 0,
-            Width = Dim.Percent(50),
+            Y = 1,
+            Width = Dim.Percent(viewLeftPercent),
             Height = Dim.Auto(DimAutoStyle.Content),
             CanFocus = true,
         };
 
         lblId = new()
         {
-            X = 1,
-            Y = 1,
+            X = 0,
+            Y = 0,
             Text = Labels.CALL_ID + ":",
             TextAlignment = Alignment.End,
             Width = maxLeftLabelLength,
@@ -90,7 +89,7 @@ public partial class HybridTelephonyCallView : View
 
         lblStatus = new()
         {
-            X = 1,
+            X = 0,
             Y = Pos.Bottom(lblId),
             Text = Labels.CALL_STATUS + ":",
             TextAlignment = Alignment.End,
@@ -111,7 +110,7 @@ public partial class HybridTelephonyCallView : View
 
         lblDevice = new()
         {
-            X = 1,
+            X = 0,
             Y = Pos.Bottom(lblStatus),
             Text = Labels.DEVICE + ":",
             TextAlignment = Alignment.End,
@@ -134,27 +133,27 @@ public partial class HybridTelephonyCallView : View
 
         viewRight = new()
         {
-            X = Pos.Percent(50),
-            Y = 0,
-            Width = Dim.Percent(50),
+            X = Pos.Right(viewLeft),
+            Y = 1,
+            Width = Dim.Fill(),
             Height = Dim.Auto(DimAutoStyle.Content),
             CanFocus = true,
         };
 
-        lblLocalMedia = new()
+        lblType = new()
         {
-            X = 1,
-            Y = 1,
-            Text = "Local Media:",
+            X = 0,
+            Y = 0,
+            Text = Labels.TYPE + ":",
             TextAlignment = Alignment.End,
             Width = maxRightLabelLength,
             Height = 1
         };
 
-        textFieldLocalMedia = new()
+        textFieldType = new()
         {
-            X = Pos.Right(lblLocalMedia) + 1,
-            Y = Pos.Top(lblLocalMedia),
+            X = Pos.Right(lblType) + 1,
+            Y = Pos.Top(lblType),
             Text = "",
             TextAlignment = Alignment.Start,
             Width = Dim.Fill(1),
@@ -162,20 +161,20 @@ public partial class HybridTelephonyCallView : View
             ReadOnly = true
         };
 
-        lblRemoteMedia = new()
+        lblDirection = new()
         {
-            X = 1,
-            Y = Pos.Bottom(lblLocalMedia),
-            Text = "Remote Media:",
+            X = 0,
+            Y = Pos.Bottom(lblType),
+            Text = Labels.DIRECTION + ":",
             TextAlignment = Alignment.End,
             Width = maxRightLabelLength,
             Height = 1
         };
 
-        textFieldRemoteMedia = new()
+        textFieldDirection = new()
         {
-            X = Pos.Right(lblRemoteMedia) + 1,
-            Y = Pos.Top(lblRemoteMedia),
+            X = Pos.Right(lblDirection) + 1,
+            Y = Pos.Top(lblDirection),
             Text = "",
             TextAlignment = Alignment.Start,
             Width = Dim.Fill(1),
@@ -183,41 +182,31 @@ public partial class HybridTelephonyCallView : View
             ReadOnly = true
         };
 
-        lblIsConference = new()
+        viewRight.Add(lblType, textFieldType, lblDirection, textFieldDirection);
+
+        lblParticipant = new()
         {
-            X = 1,
-            Y = Pos.Bottom(lblRemoteMedia),
-            Text = Labels.IS_CONFERENCE,
+            Text = Labels.PARTICIPANT + ":",
             TextAlignment = Alignment.End,
-            Width = maxRightLabelLength,
-            Height = 1
+            X = 0,
+            Y = Pos.Bottom(viewLeft),
+            Width = maxLeftLabelLength,
+            Height = 1            
         };
 
-        checkBoxIsConference = new()
+        textFieldParticipant = new()
         {
-            X = Pos.Right(lblIsConference),
-            Y = Pos.Top(lblIsConference),
-            Text = " ",
-            TextAlignment = Alignment.End,
-            Width = 2,
-            Height = 1,
-            Enabled = false,
-        };
-
-        viewRight.Add(lblLocalMedia, textFieldLocalMedia, lblRemoteMedia, textFieldRemoteMedia, lblIsConference, checkBoxIsConference);
-
-        participants = new(title: "Participants", btnsVisible: false)
-        {
-            X = Pos.Left(viewLeft) + 1,
-            Y = Pos.Bottom(viewLeft) + 1,
+            X = Pos.Right(lblParticipant) + 1,
+            Y = lblParticipant.Y,
             Width = Dim.Fill(1),
-            Height = 5
+            Height = 1,
+            ReadOnly = true
         };
 
         viewButtons = new()
         {
             X = Pos.Center(),
-            Y = Pos.Bottom(participants) + 1,
+            Y = Pos.Bottom(textFieldParticipant) + 1,
             Width = Dim.Auto(DimAutoStyle.Content),
             Height = Dim.Auto(DimAutoStyle.Content),
             CanFocus = true,
@@ -287,7 +276,7 @@ public partial class HybridTelephonyCallView : View
         {
             X = Pos.Right(btnDtmf) + 2,
             Y = 0,
-            Text = Labels.DTMF + ":",
+            Text = Labels.DTMF,
             TextAlignment = Alignment.End,
             Width = 5,
             Height = 1,
@@ -305,7 +294,7 @@ public partial class HybridTelephonyCallView : View
         };
         viewButtons.Add(btnAnswer, btnHold, btnRelease, btnToVM, btnDtmf, labelDTMF, textFieldDTMF);
 
-        Add(viewLeft, viewRight, participants, viewButtons);
+        Add(viewLeft, viewRight, lblParticipant, textFieldParticipant, viewButtons);
 
         Height = Dim.Auto(DimAutoStyle.Content);
         Width = Dim.Fill(0);
@@ -313,169 +302,51 @@ public partial class HybridTelephonyCallView : View
         UpdateDisplay(null, null);
     }
 
-    private void BtnDtmf_MouseClick(object? sender, MouseEventArgs e)
-    {
-        if (currentCall is not null)
-        {
-            //if (currentCall.CallStatus == CallStatus.ACTIVE)
-            {
-                Task.Run(async () =>
-                {
-                    var sdkResultBoolean = await rbHybridTelephony.SendDtmfAsync(currentCall, textFieldDTMF.Text);
-                    if (!sdkResultBoolean.Success)
-                    {
-                        Rainbow.Util.RaiseEvent(() => ErrorOccurred, rbApplication, sdkResultBoolean.Result.ToString());
-                    }
-                });
-            }
-        }
-    }
-
-    private void BtnToVM_MouseClick(object? sender, MouseEventArgs e)
-    {
-        if (currentCall is not null)
-        {
-            //if (currentCall.CallStatus == CallStatus.RINGING_INCOMING)
-            {
-                Task.Run(async () =>
-                {
-                    var sdkResultBoolean = await rbHybridTelephony.DeflectCallToMevoAsync(currentCall);
-                    if (!sdkResultBoolean.Success)
-                    {
-                        Rainbow.Util.RaiseEvent(() => ErrorOccurred, rbApplication, sdkResultBoolean.Result.ToString());
-                    }
-                });
-            }
-        }
-    }
-
-    private void BtnRelease_MouseClick(object? sender, MouseEventArgs e)
-    {
-        if (currentCall is not null)
-        {
-            //if (currentCall.CallStatus == CallStatus.RINGING_INCOMING)
-            {
-                Task.Run(async () =>
-                {
-                    var sdkResultBoolean = await rbHybridTelephony.ReleaseCallAsync(currentCall);
-                    if (!sdkResultBoolean.Success)
-                    {
-                        Rainbow.Util.RaiseEvent(() => ErrorOccurred, rbApplication, sdkResultBoolean.Result.ToString());
-                    }
-                });
-            }
-        }
-    }
-
-    private void BtnHold_MouseClick(object? sender, MouseEventArgs e)
-    {
-        if(currentCall is not null)
-        {
-            if(currentCall.CallStatus == CallStatus.PUT_ON_HOLD)
-            {
-                if (otherCall?.CallStatus == CallStatus.ACTIVE)
-                {
-                    Task.Run(async () =>
-                    {
-                        var sdkResultBoolean = await rbHybridTelephony.AlternateCallAsync(otherCall, currentCall);
-                        if (!sdkResultBoolean.Success)
-                        {
-                            Rainbow.Util.RaiseEvent(() => ErrorOccurred, rbApplication, sdkResultBoolean.Result.ToString());
-                        }
-                    });
-                }
-                else
-                {
-                    Task.Run(async () =>
-                    {
-                        var sdkResultBoolean = await rbHybridTelephony.RetrieveCallAsync(currentCall);
-                        if (!sdkResultBoolean.Success)
-                        {
-                            Rainbow.Util.RaiseEvent(() => ErrorOccurred, rbApplication, sdkResultBoolean.Result.ToString());
-                        }
-                    });
-                }
-            }
-            else if (currentCall.CallStatus == CallStatus.ACTIVE)
-            {
-                if (otherCall?.CallStatus == CallStatus.PUT_ON_HOLD)
-                {
-                    Task.Run(async () =>
-                    {
-                        var sdkResultBoolean = await rbHybridTelephony.AlternateCallAsync(currentCall, otherCall);
-                        if (!sdkResultBoolean.Success)
-                        {
-                            Rainbow.Util.RaiseEvent(() => ErrorOccurred, rbApplication, sdkResultBoolean.Result.ToString());
-                        }
-                    });
-                }
-                else
-                {
-                    Task.Run(async () =>
-                    {
-                        var sdkResultBoolean = await rbHybridTelephony.HoldCallAsync(currentCall);
-                        if (!sdkResultBoolean.Success)
-                        {
-                            Rainbow.Util.RaiseEvent(() => ErrorOccurred, rbApplication, sdkResultBoolean.Result.ToString());
-                        }
-                    });
-                }
-            }
-        }
-    }
-
-    private void BtnAnswer_MouseClick(object? sender, MouseEventArgs e)
-    {
-        if (currentCall is not null)
-        {
-            //if (currentCall.CallStatus == CallStatus.RINGING_INCOMING)
-            {
-                Task.Run(async () =>
-                {
-                    var sdkResultBoolean = await rbHybridTelephony.AnswerCallAsync(currentCall);
-                    if (!sdkResultBoolean.Success)
-                    {
-                        Rainbow.Util.RaiseEvent(() => ErrorOccurred, rbApplication, sdkResultBoolean.Result.ToString());
-                    }
-                });
-            }
-        }
-    }
-
-    public void UpdateDisplay(Call? call, Call? otherCall)
+    public void UpdateDisplay(HubCall? call, HubCall? otherCall)
     {
         currentCall = call;
         this.otherCall = otherCall;
 
         // Voice mail is available ?
-        var VMAvailable = rbHybridTelephony.VoiceMailAvailable();
+        var VMAvailable = rbHubTelephony.VoiceMailAvailable();
 
         if (call is not null)
         {
-            textFieldId.Text = call.Id;
+            textFieldId.Text = (call.CallId is null) ? "" : call.CallId;
             textFieldStatus.Text = call.CallStatus.ToString();
-            textFieldLocalMedia.Text = Util.MediasToString(call.LocalMedias);
-            textFieldRemoteMedia.Text = Util.MediasToString(call.RemoteMedias);
-            checkBoxIsConference.CheckedState = call.IsConference ? CheckState.Checked : CheckState.UnChecked;
+            textFieldType.Text = (call.Type is null) ? "" : call.Type;
+            textFieldDirection.Text = (call.Direction is null) ? "" : call.Direction;
 
-            // List participants
-            if ((call.Participants != null) && (call.Participants.Count > 0))
+            var devicesInCall = call.Legs?.Values.Where(l => !l.Op.Equals("ended")).Select(l => l.DeviceId).ToList();
+            List<HubDevice>? devicesKnown = null;
+            if (devicesInCall?.Count > 0)
+                devicesKnown = rbHubTelephony.GetDevices()?.Values.Where(d => devicesInCall.Contains(d.DeviceId)).ToList();
+            List<String> deviceName = new();
+            if (devicesKnown?.Count > 0)
             {
-                String output = "";
-                int nb = 1;
-                foreach (CallParticipant participant in call.Participants)
+                foreach (var device in devicesKnown)
                 {
-                    if (nb > 1)
-                        output += Util.CR;
-
-                    if (participant.Peer.DisplayName == participant.Peer.PhoneNumber)
-                        output += nb + ") " + participant.Peer.DisplayName;
+                    if (device.IsSipDevice())
+                        deviceName.Add(Labels.OFFICE_PHONE);
                     else
-                        output += nb + ") " + participant.Peer.DisplayName + " - " + participant.Peer.PhoneNumber;
-                    nb++;
+                        deviceName.Add(Labels.COMPUTER);
                 }
-                participants.ClearText();
-                participants.AddText(output);
+                textFieldDevice.Text = String.Join(", ", deviceName);
+            }
+            else
+                textFieldDevice.Text = "";
+
+
+            if ((call.EndPoints != null) && (call.EndPoints.Count > 0))
+            {
+                HubEndPoint endPoint = call.EndPoints.Values.First();
+                if (endPoint is not null)
+                {
+                    String output = Util.LogOnOneLine(((HubPartyInfo)endPoint).ToString());
+                    textFieldParticipant.Text = output;
+                }
+                else
+                    textFieldParticipant.Text = "";
             }
 
             switch (call.CallStatus)
@@ -491,7 +362,7 @@ public partial class HybridTelephonyCallView : View
                     labelDTMF.Enabled = false;
                     textFieldDTMF.ReadOnly = true;
 
-                    participants.ClearText();
+                    textFieldParticipant.Text = "";
                     break;
 
                 case CallStatus.RINGING_INCOMING:
@@ -521,7 +392,7 @@ public partial class HybridTelephonyCallView : View
 
                 case CallStatus.ACTIVE:
                     btnAnswer.Enabled = false;
-                    btnHold.Enabled = !call.IsConference; 
+                    btnHold.Enabled = true; //TODO - check about conference !call.IsConference; 
                     btnHold.Text = "Hold";
                     btnRelease.Enabled = true;
                     btnToVM.Enabled = false;
@@ -558,7 +429,8 @@ public partial class HybridTelephonyCallView : View
                     btnAnswer.Enabled = false;
                     btnHold.Enabled = true;
                     btnHold.Text = "Unhold";
-                    btnRelease.Enabled = false;
+                    //btnRelease.Enabled = false;
+                    btnRelease.Enabled = true;
                     btnToVM.Enabled = false;
                     btnDtmf.Enabled = false;
                     labelDTMF.Enabled = false;
@@ -571,8 +443,164 @@ public partial class HybridTelephonyCallView : View
 
             viewButtons.Draw();
         }
-
     }
+
+    private void BtnDtmf_MouseClick(object? sender, MouseEventArgs e)
+    {
+        e.Handled = true;
+        if (currentCall is not null)
+        {
+            //if (currentCall.CallStatus == CallStatus.ACTIVE)
+            {
+                Task.Run(async () =>
+                {
+                    var sdkResultBoolean = await rbHubTelephony.SendDtmfAsync(currentCall, textFieldDTMF.Text);
+                    if (!sdkResultBoolean.Success)
+                    {
+                        Rainbow.Util.RaiseEvent(() => ErrorOccurred, rbApplication, sdkResultBoolean.Result.ToString());
+                    }
+                });
+            }
+        }
+    }
+
+    private void BtnToVM_MouseClick(object? sender, MouseEventArgs e)
+    {
+        e.Handled = true;
+        if (currentCall is not null)
+        {
+            //if (currentCall.CallStatus == CallStatus.RINGING_INCOMING)
+            {
+                Task.Run(async () =>
+                {
+                    var sdkResultBoolean = await rbHubTelephony.DeflectCallToMevoAsync(currentCall);
+                    if (!sdkResultBoolean.Success)
+                    {
+                        Rainbow.Util.RaiseEvent(() => ErrorOccurred, rbApplication, sdkResultBoolean.Result.ToString());
+                    }
+                });
+            }
+        }
+    }
+
+    private void BtnRelease_MouseClick(object? sender, MouseEventArgs e)
+    {
+        e.Handled = true;
+        if (currentCall is not null)
+        {
+            //if (currentCall.CallStatus == CallStatus.RINGING_INCOMING)
+            {
+                Task.Run(async () =>
+                {
+                    var sdkResultBoolean = await rbHubTelephony.ReleaseCallAsync(currentCall);
+                    if (!sdkResultBoolean.Success)
+                    {
+                        Rainbow.Util.RaiseEvent(() => ErrorOccurred, rbApplication, sdkResultBoolean.Result.ToString());
+                    }
+                });
+            }
+        }
+    }
+
+    private void BtnHold_MouseClick(object? sender, MouseEventArgs e)
+    {
+        e.Handled = true;
+        if (currentCall is not null)
+        {
+            if(currentCall.CallStatus == CallStatus.PUT_ON_HOLD)
+            {
+                Task.Run(async () =>
+                {
+                    var sdkResultBoolean = await rbHubTelephony.RetrieveCallAsync(currentCall);
+                    if (!sdkResultBoolean.Success)
+                    {
+                        Rainbow.Util.RaiseEvent(() => ErrorOccurred, rbApplication, sdkResultBoolean.Result.ToString());
+                    }
+                });
+
+                /*
+                if (otherCall?.CallStatus == CallStatus.ACTIVE)
+                {
+                    Task.Run(async () =>
+                    {
+                        //var sdkResultBoolean = await rbHubTelephony.AlternateCallAsync(otherCall, currentCall);
+                        //if (!sdkResultBoolean.Success)
+                        //{
+                        //    Rainbow.Util.RaiseEvent(() => ErrorOccurred, rbApplication, sdkResultBoolean.Result.ToString());
+                        //}
+                    });
+                }
+                else
+                {
+                    Task.Run(async () =>
+                    {
+                        //var sdkResultBoolean = await rbHubTelephony.RetrieveCallAsync(currentCall);
+                        //if (!sdkResultBoolean.Success)
+                        //{
+                        //    Rainbow.Util.RaiseEvent(() => ErrorOccurred, rbApplication, sdkResultBoolean.Result.ToString());
+                        //}
+                    });
+                }*/
+            }
+            else if (currentCall.CallStatus == CallStatus.ACTIVE)
+            {
+                Task.Run(async () =>
+                {
+                    var sdkResultBoolean = await rbHubTelephony.HoldCallAsync(currentCall);
+                    if (!sdkResultBoolean.Success)
+                    {
+                        Rainbow.Util.RaiseEvent(() => ErrorOccurred, rbApplication, sdkResultBoolean.Result.ToString());
+                    }
+                });
+
+                /*
+                if (otherCall?.CallStatus == CallStatus.PUT_ON_HOLD)
+                {
+                    Task.Run(async () =>
+                    {
+                        //var sdkResultBoolean = await rbHubTelephony.AlternateCallAsync(currentCall, otherCall);
+                        //if (!sdkResultBoolean.Success)
+                        //{
+                        //    Rainbow.Util.RaiseEvent(() => ErrorOccurred, rbApplication, sdkResultBoolean.Result.ToString());
+                        //}
+                    });
+                }
+                else
+                {
+                    Task.Run(async () =>
+                    {
+                        //var sdkResultBoolean = await rbHubTelephony.HoldCallAsync(currentCall);
+                        //if (!sdkResultBoolean.Success)
+                        //{
+                        //    Rainbow.Util.RaiseEvent(() => ErrorOccurred, rbApplication, sdkResultBoolean.Result.ToString());
+                        //}
+                    });
+                }
+                */
+            }
+        }
+    }
+
+    private void BtnAnswer_MouseClick(object? sender, MouseEventArgs e)
+    {
+        e.Handled = true;
+        if (currentCall is not null)
+        {
+            //if (currentCall.CallStatus == CallStatus.RINGING_INCOMING)
+            {
+                Task.Run(async () =>
+                {
+                    var sdkResultBoolean = await rbHubTelephony.AnswerCallAsync(currentCall);
+                    if (!sdkResultBoolean.Success)
+                    {
+                        Rainbow.Util.RaiseEvent(() => ErrorOccurred, rbApplication, sdkResultBoolean.Result.ToString());
+                    }
+                });
+            }
+        }
+    }
+
+    
 
 }
 

@@ -1,7 +1,10 @@
 ﻿using Rainbow.Consts;
 using Rainbow.Delegates;
 using Rainbow.Model;
-using Terminal.Gui;
+using Terminal.Gui.Drawing;
+using Terminal.Gui.Input;
+using Terminal.Gui.ViewBase;
+using Terminal.Gui.Views;
 
 public partial class HybridTelephonyCallForwardView : View
 {
@@ -55,7 +58,8 @@ public partial class HybridTelephonyCallForwardView : View
         {
             X = Pos.Right(radioGroupEnable) + 1,
             Y = Pos.Bottom(radioGroupEnable) - 1,
-            Width = Dim.Fill()
+            Width = Dim.Fill(),
+            CanFocus = true
         };
         callForwardSelector.SetItems(listFwdType);
         callForwardSelector.SelectedItemUpdated += CallFwdSelector_SelectedItemUpdated;
@@ -80,7 +84,6 @@ public partial class HybridTelephonyCallForwardView : View
             Width = Dim.Fill(1),
             Text = "",
             TextAlignment = Alignment.Start,
-            ColorScheme = Tools.ColorSchemeBlackOnWhite
         };
 
         btnSet = new Button
@@ -89,7 +92,7 @@ public partial class HybridTelephonyCallForwardView : View
             X = Pos.Align(Alignment.Center),
             Y = Pos.Bottom(radioGroupDestination) + 1,
             ShadowStyle = ShadowStyle.None,
-            ColorScheme = Tools.ColorSchemeBlueOnGray
+            SchemeName = "BrightBlue"
         };
 
         btnSet.MouseClick += BtnSet_MouseClick;
@@ -131,24 +134,24 @@ public partial class HybridTelephonyCallForwardView : View
 
             if (!serviceAvailable.Value)
             {
-                lblInactive.Text = HybridTelephonyServiceView.SERVICE_NOT_AVAILABLE;
-                lblInactive.ColorScheme = Tools.ColorSchemeRedOnGray;
+                lblInactive.Text = Labels.SERVICE_NOT_AVAILABLE;
+                lblInactive.SchemeName = "Red";
             }
             else if (!callForwardStatus.Available)
             {
-                lblInactive.Text = HybridTelephonyServiceView.CALL_FWD_NOT_AVAILABLE;
-                lblInactive.ColorScheme = Tools.ColorSchemeRedOnGray;
+                lblInactive.Text = Labels.CALL_FWD_NOT_AVAILABLE;
+                lblInactive.SchemeName = "Red";
             }
             else if (!available)
             {
-                lblInactive.Text = HybridTelephonyServiceView.SERVICE_DISABLED;
-                lblInactive.ColorScheme = Tools.ColorSchemeGreenOnGray;
+                lblInactive.Text = Labels.SERVICE_DISABLED;
+                lblInactive.SchemeName = "Green";
             }
         }
         else
         {
-            lblInactive.Text = HybridTelephonyServiceView.FEATURE_CHECKING;
-            lblInactive.ColorScheme = Tools.ColorSchemeGreenOnGray;
+            lblInactive.Text = Labels.FEATURE_CHECKING;
+            lblInactive.SchemeName = "Green";
         }
 
         lblInactive.Height = available ? 0 : 1;
@@ -247,7 +250,7 @@ public partial class HybridTelephonyCallForwardView : View
         List<MenuItemv2> menuItems = [];
         int nb = listFwdType.Count;
 
-        if (rbHybridTelephony.GetHybridPBXAgentInformation()?.IsOXO == true)
+        if (rbHybridTelephony.GetHybridPBXAgentInformation()?.Type.Equals("OXO", StringComparison.InvariantCultureIgnoreCase) == true)
             nb = 1;
 
         for (int i = 0; i < nb; i++)
@@ -270,9 +273,9 @@ public partial class HybridTelephonyCallForwardView : View
         // Do we want to disable call fwd ?
         if(radioGroupEnable.SelectedItem == 0)
         {
-            rbHybridTelephony.DeactivateHybridCallForwardAsync().ContinueWith( task =>
+            Task.Run(async () =>
             {
-                var sdkResultBoolean = task.Result;
+                var sdkResultBoolean = await rbHybridTelephony.DeactivateHybridCallForwardAsync();
                 if(!sdkResultBoolean.Success)
                 {
                     UpdateDisplay();
@@ -282,17 +285,15 @@ public partial class HybridTelephonyCallForwardView : View
         }
         else if (radioGroupEnable.SelectedItem == 1)
         {
-
-
             var VMAvailable = rbHybridTelephony.VoiceMailAvailable();
             if(VMAvailable)
             {
                 // Activate on VM
                 if(radioGroupDestination.SelectedItem == 0)
                 {
-                    rbHybridTelephony.ActivateHybridCallForwardOnVoiceMailAsync(callForwardType: IndexToFwdType(fwdTypeIndexSelected)).ContinueWith(task =>
+                    Task.Run(async () =>
                     {
-                        var sdkResultBoolean = task.Result;
+                        var sdkResultBoolean = await rbHybridTelephony.ActivateHybridCallForwardOnVoiceMailAsync(callForwardType: IndexToFwdType(fwdTypeIndexSelected));
                         if (!sdkResultBoolean.Success)
                         {
                             UpdateDisplay();
@@ -303,9 +304,9 @@ public partial class HybridTelephonyCallForwardView : View
                 // Activate on Phone Number
                 else if (radioGroupDestination.SelectedItem == 1)
                 {
-                    rbHybridTelephony.ActivateHybridCallForwardOnPhoneNumberAsync(textFieldPhoneNumber.Text, callForwardType: IndexToFwdType(fwdTypeIndexSelected)).ContinueWith(task =>
+                    Task.Run(async () =>
                     {
-                        var sdkResultBoolean = task.Result;
+                        var sdkResultBoolean = await rbHybridTelephony.ActivateHybridCallForwardOnPhoneNumberAsync(textFieldPhoneNumber.Text, callForwardType: IndexToFwdType(fwdTypeIndexSelected));
                         if (!sdkResultBoolean.Success)
                         {
                             UpdateDisplay();
@@ -319,9 +320,9 @@ public partial class HybridTelephonyCallForwardView : View
                 // Activate on Phone Number
                 if (radioGroupDestination.SelectedItem == 0)
                 {
-                    rbHybridTelephony.ActivateHybridCallForwardOnPhoneNumberAsync(textFieldPhoneNumber.Text, callForwardType: IndexToFwdType(fwdTypeIndexSelected)).ContinueWith(task =>
+                    Task.Run(async () =>
                     {
-                        var sdkResultBoolean = task.Result;
+                        var sdkResultBoolean = await rbHybridTelephony.ActivateHybridCallForwardOnPhoneNumberAsync(textFieldPhoneNumber.Text, callForwardType: IndexToFwdType(fwdTypeIndexSelected));
                         if (!sdkResultBoolean.Success)
                         {
                             UpdateDisplay();
@@ -340,7 +341,7 @@ public partial class HybridTelephonyCallForwardView : View
 
     private void RbHybridTelephony_HybridCallForwardStatusUpdated(HybridCallForwardStatus callForwardStatus)
     {
-        Terminal.Gui.Application.Invoke(() =>
+        Terminal.Gui.App.Application.Invoke(() =>
         {
             this.callForwardStatus = callForwardStatus;
             UpdateDisplay();
@@ -349,16 +350,16 @@ public partial class HybridTelephonyCallForwardView : View
 
     private void RbHybridTelephony_HybridTelephonyStatusUpdated(Boolean? available)
     {
-        Terminal.Gui.Application.Invoke(() =>
+        Terminal.Gui.App.Application.Invoke(() =>
         {
             serviceAvailable = available;
             UpdateDisplay();
         });
     }
 
-    private void RbHybridTelephony_HybridPBXAgentInfoUpdated(Rainbow.Model.HybridPbxAgentInfo pbxAgentInfo)
+    private void RbHybridTelephony_HybridPBXAgentInfoUpdated(Rainbow.Model.PbxAgentInfo pbxAgentInfo)
     {
-        Terminal.Gui.Application.Invoke(() =>
+        Terminal.Gui.App.Application.Invoke(() =>
         {
             serviceEnabled = pbxAgentInfo.XmppAgentStatus == "started";
             if (serviceEnabled)

@@ -2,7 +2,10 @@
 using Rainbow.Consts;
 using Rainbow.Example.Common;
 using Rainbow.Model;
-using Terminal.Gui;
+using Terminal.Gui.Drawing;
+using Terminal.Gui.Input;
+using Terminal.Gui.ViewBase;
+using Terminal.Gui.Views;
 
 internal class BotView : View
 {
@@ -67,8 +70,6 @@ internal class BotView : View
     {
         Title = rbAccount.Prefix;
         CanFocus = true;
-
-        ColorScheme = Tools.ColorSchemeMain;
 
         X = 0;
         Width = Dim.Fill();
@@ -183,7 +184,6 @@ internal class BotView : View
                 Width = Dim.Auto(DimAutoStyle.Text),
                 Text = "Contacts",
                 ShadowStyle = ShadowStyle.None,
-                ColorScheme = Tools.ColorSchemeBlackOnWhite
             };
             contactsPanelSelection.MouseClick += (sender, me) =>
             {
@@ -199,7 +199,6 @@ internal class BotView : View
                 Width = Dim.Auto(DimAutoStyle.Text),
                 Text = "Roster",
                 ShadowStyle = ShadowStyle.None,
-                ColorScheme = Tools.ColorSchemeBlackOnWhite
             };
             presencePanelSelection.MouseClick += (sender, me) =>
             {
@@ -287,7 +286,7 @@ internal class BotView : View
 
     private void UpdatePresence(String strPresence)
     {
-        Terminal.Gui.Application.Popover?.Hide(contextMenu);
+        Terminal.Gui.App.Application.Popover?.Hide(contextMenu);
 
         Presence? presence;
 
@@ -325,7 +324,7 @@ internal class BotView : View
         if (loginView == null)
             return;
 
-        Terminal.Gui.Application.Invoke(() =>
+        Terminal.Gui.App.Application.Invoke(() =>
         {
             switch (connectionState.Status)
             {

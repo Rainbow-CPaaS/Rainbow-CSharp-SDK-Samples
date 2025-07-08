@@ -1,7 +1,11 @@
 ﻿using Rainbow.Model;
 using System.Collections.ObjectModel;
 using System.Drawing;
-using Terminal.Gui;
+using System.Text;
+using Terminal.Gui.Drawing;
+using Terminal.Gui.Input;
+using Terminal.Gui.ViewBase;
+using Terminal.Gui.Views;
 
 public class Item
 {
@@ -40,9 +44,11 @@ public class Item
 
 public class ItemSelector: View
 {
-    private Label lbl;
-    private Label lblSelector;
-    private Label lblArrow;
+    public const String LBL_NONE = "NONE";
+
+    private View lbl;
+    private View lblSelector;
+    private View lblArrow;
     private PopoverMenu contextMenu;
 
     private ListViewSelector categoryList;
@@ -50,7 +56,6 @@ public class ItemSelector: View
 
     List<Item>? items;
     Item? itemSelected;
-
 
     public event EventHandler<Item>? SelectedItemUpdated;
 
@@ -67,8 +72,9 @@ public class ItemSelector: View
             Y = 0,
             Height = 1,
             Width = (label is null) ? 0 : label.Length + 1,
+            SchemeName = Tools.DEFAULT_SCHEME_NAME,
+            HotKeySpecifier = (Rune)0xffff,
             Text = $"{label}:",
-            ColorScheme = Tools.ColorSchemeBlackOnGray
         };
 
         lblSelector = new()
@@ -83,7 +89,8 @@ public class ItemSelector: View
                     if (spaceAvailable < 0) spaceAvailable = 0;
                     return Math.Min(textLength, spaceAvailable); 
                 }),
-            ColorScheme = Tools.ColorSchemeBlueOnGray
+            CanFocus = true,
+            HotKeySpecifier = (Rune)0xffff, // We don't want any HotKey
         };
         lblSelector.MouseClick += View_MouseClick;
 
@@ -93,8 +100,7 @@ public class ItemSelector: View
             Y = 0,
             Height = 1,
             Width = 2,
-            Text = Emojis.TRIANGLE_DOWN,
-            ColorScheme = Tools.ColorSchemeBlueOnGray
+            Text = Emojis.EXPAND,
         };
         lblArrow.MouseClick += View_MouseClick;
 
@@ -113,7 +119,7 @@ public class ItemSelector: View
                         {
                             var delta = (categoryList?.VerticalScrollBar.Visible == true) ? 4 : 3;
                             var nbElements = maxItemLength + delta;
-                            var spaceAvailable = Application.Screen.Width - lblSelector.FrameToScreen().X;
+                            var spaceAvailable = Terminal.Gui.App.Application.Screen.Width - lblSelector.FrameToScreen().X;
                             return spaceAvailable - Math.Min(nbElements, spaceAvailable);
                         })),
             Height = Dim.Fill(
@@ -121,15 +127,13 @@ public class ItemSelector: View
                          {
                              var delta = (categoryList?.HorizontalScrollBar.Visible == true) ? 4 : 3;
                              var nbElements = ((this.items is null) ? 0 : this.items.Count) + delta;
-                             var spaceAvailable = Application.Screen.Height - lblSelector.FrameToScreen().Y;
+                             var spaceAvailable = Terminal.Gui.App.Application.Screen.Height - lblSelector.FrameToScreen().Y;
                              return spaceAvailable - Math.Min(nbElements, spaceAvailable);
                          })),
             AllowsMarking = false,
             CanFocus = true,
             BorderStyle = LineStyle.Rounded,
             SuperViewRendersLineCanvas = false,
-            Source = new ListWrapper<Item>(null),
-            ColorScheme = Tools.ColorSchemeBlueOnGray // /!\ Need to be set !!!
         };
         categoryList.VerticalScrollBar.AutoShow = true;
         categoryList.HorizontalScrollBar.AutoShow = true;
@@ -138,11 +142,23 @@ public class ItemSelector: View
         categoryList.SameItemSelected += CategoryList_SameItemSelected;
 
         // Create contextMenu
-        contextMenu = new();
+        contextMenu = new()
+        {
+            CanFocus = true,
+            SchemeName = "BrightBlue"
+        };
         contextMenu.Add(categoryList);
+        contextMenu.VisibleChanged += ContextMenu_VisibleChanged;
 
         this.itemSelected = itemSelected;
         SetItems(items);
+        CanFocus = true;
+        SchemeName = "BrightBlue";
+    }
+
+    private void ContextMenu_VisibleChanged(object? sender, EventArgs e)
+    {
+        lblArrow.Text = contextMenu.Visible ? Emojis.COLLAPSE : Emojis.EXPAND;
     }
 
     protected override void OnViewportChanged(DrawEventArgs e)
@@ -152,7 +168,7 @@ public class ItemSelector: View
 
     public void HideViewSelection()
     {
-        Application.Popover?.Hide(contextMenu);
+        Terminal.Gui.App.Application.Popover?.Hide(contextMenu);
     }
 
     public void ShowViewSelection()
@@ -166,7 +182,6 @@ public class ItemSelector: View
 
     private void View_MouseClick(object? sender, MouseEventArgs e)
     {
-        //categoryList.SelectedItem = -1;
         e.Handled = true;
         ShowViewSelection();
     }
@@ -175,15 +190,17 @@ public class ItemSelector: View
     {
         HideViewSelection();
 
-        itemSelected = (Item)e.Value;
-
-        Terminal.Gui.Application.Invoke(() =>
+        if (itemSelected?.Id != ((Item)e.Value).Id)
         {
-            UpdateDisplay();
-        });
+            itemSelected = (Item)e.Value;
 
-        //if (SetItemSelected((Item) e.Value))
-        SelectedItemUpdated?.Invoke(this, (Item)e.Value);
+            Terminal.Gui.App.Application.Invoke(() =>
+            {
+                UpdateDisplay();
+            });
+
+            SelectedItemUpdated?.Invoke(this, (Item)e.Value);
+        }
     }
 
     private void CategoryList_SameItemSelected(object? sender, EventArgs e)
@@ -195,7 +212,7 @@ public class ItemSelector: View
     {
         if (itemSelected is null)
         {
-            lblSelector.Text = "NONE";
+            lblSelector.Text = LBL_NONE;
             lblSelector.Enabled = false;
             lblArrow.Width = 0;
         }
@@ -231,24 +248,23 @@ public class ItemSelector: View
             var strings = items.Select(i => i.ToString());
             maxItemLength = strings.Aggregate("", (max, cur) => max.Length > cur.Length ? max : cur).Length;
 
-            categoryList.Source = new ListWrapper<Item>(new ObservableCollection<Item>(items));
             categoryList.SelectedItem = 0;
+            categoryList.SetSource(new ObservableCollection<Item>(items));
         }
         else
         {
             maxItemLength = 0;
-            categoryList.Source = new ListWrapper<Item>(null);
+            categoryList.SetSource(new ObservableCollection<Item>());
         }
 
         // Do we need to update the display ?
-        if (previousItemSelected?.Id == itemSelected?.Id)
+        if ( (previousItemSelected is not null) &&  previousItemSelected?.Id == itemSelected?.Id)
             return;
 
-        Terminal.Gui.Application.Invoke(() =>
+        Terminal.Gui.App.Application.Invoke(() =>
         {
             UpdateDisplay();
         });
-        
     }
 
     public void SetItems(List<Peer>? peers)
@@ -283,24 +299,34 @@ public class ItemSelector: View
         SetItems(items);
     }
 
+    public Boolean SetItemSelected(Item? item)
+    {
+        if ((item is not null) && (items is not null))
+        {
+            var index = items.FindIndex(x => x.Id == item.Id);
+            if (index >= 0)
+                return SetItemSelected(index);
+        }
+        return false;
+    }
 
     public Boolean SetItemSelected(Peer? peer)
     {
         if ((peer is not null) && (items is not null))
         {
             var index = items.FindIndex(x => x.Id == peer.Id);
-            if (index > 0)
+            if (index >= 0)
                 return SetItemSelected(index);
         }
         return false;
     }
 
-    public Boolean SetItemSelected(Item? item)
+    public Boolean SetItemSelected(String? element)
     {
-        if ( (item is not null) && (items is not null))
+        if (!String.IsNullOrEmpty(element) && (items is not null))
         {
-            var index = items.FindIndex(x => x.Id == item.Id);
-            if (index > 0)
+            var index = items.FindIndex(x => x.Text == element);
+            if (index >= 0)
                 return SetItemSelected(index);
         }
         return false;
@@ -311,12 +337,15 @@ public class ItemSelector: View
         if((index >= 0) && (items?.Count > index))
         {
             var item = items[index];
+            lblSelector.Text = item.Text;
+
             if (item.Id != itemSelected?.Id)
             {
                 itemSelected = items[index];
-                Terminal.Gui.Application.Invoke(() =>
+                Terminal.Gui.App.Application.Invoke(() =>
                 {
-                    categoryList.SelectedItem = index;
+                    if(categoryList.SelectedItem != index)
+                        categoryList.SelectedItem = index;
                     UpdateDisplay();
                 });
                 return true;

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Terminal.Gui;
+﻿using Terminal.Gui.ViewBase;
 
 public class EmojiButtonsPanel: View
 {
@@ -13,17 +8,17 @@ public class EmojiButtonsPanel: View
     private Dictionary<String, EmojiButton> emojiButtonsList;
     private EmojiButton? lastEmojiButton;
 
-    private readonly ColorScheme colorSchemeDefault;
-    private readonly ColorScheme colorSchemeSelected;
-    private readonly ColorScheme colorSchemeOver;
+    private readonly String colorSchemeDefault;
+    private readonly String colorSchemeSelected;
+    private readonly String colorSchemeOver;
 
     public event EventHandler<String>? SelectionUpdated;
 
-    public EmojiButtonsPanel(ColorScheme? colorSchemeDefault = null, ColorScheme? colorSchemeSelected = null, ColorScheme? colorSchemeOver = null)
+    public EmojiButtonsPanel(String? colorSchemeDefault = null, String? colorSchemeSelected = null, String? colorSchemeOver = null)
     {
-        colorSchemeDefault ??= Tools.ColorSchemeMain;
-        colorSchemeSelected ??= Tools.ColorSchemeBlackOnWhite;
-        colorSchemeOver ??= Tools.ColorSchemeBlueOnGray;
+        this.colorSchemeDefault ??= Tools.DEFAULT_SCHEME_NAME;
+        this.colorSchemeSelected ??= "OnLightBlue";
+        this.colorSchemeOver ??= "OnLightBlue";
 
         emojiButtonsList = new();
 

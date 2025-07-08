@@ -1,4 +1,7 @@
-﻿using Terminal.Gui;
+﻿using Terminal.Gui.Drawing;
+using Terminal.Gui.Input;
+using Terminal.Gui.ViewBase;
+using Terminal.Gui.Views;
 
 public class NotificationItemView: View
 {
@@ -30,11 +33,11 @@ public class NotificationItemView: View
             invitingContactDisplayName = string.Concat(invitingContactDisplayName.AsSpan(0, 27), "...");
 
 
-        cells = Tools.ToCellList(invitingContactDisplayName, Tools.ColorSchemeBlueOnGray);
+        cells = Tools.ToCellList(invitingContactDisplayName, Tools.AttributeBrightBlue);
 
         if (contactInvitation)
         {
-            cells.AddRange(Tools.ToCellList(" would like to add you to their network.", Tools.ColorSchemeMain));
+            cells.AddRange(Tools.ToCellList(" would like to add you to their network.", Tools.AttributeBlack));
         }
         else
         {
@@ -49,8 +52,8 @@ public class NotificationItemView: View
             if (bubbleDisplayName.Length > 30)
                 bubbleDisplayName = string.Concat(bubbleDisplayName.AsSpan(0, 27), "...");
 
-            cells.AddRange(Tools.ToCellList(" invites you to the bubble ", Tools.ColorSchemeMain));
-            cells.AddRange(Tools.ToCellList(bubbleDisplayName, Tools.ColorSchemeGreenOnGray));
+            cells.AddRange(Tools.ToCellList(" invites you to the bubble ", Tools.AttributeBlack));
+            cells.AddRange(Tools.ToCellList(bubbleDisplayName, Tools.AttributeGreen));
         }
 
         var label = new TextView()
@@ -60,8 +63,7 @@ public class NotificationItemView: View
             Multiline = false,
             ReadOnly = true,
             Height = 1,
-            Width = Dim.Fill(25),
-            ColorScheme = Tools.ColorSchemeMain,
+            Width = Dim.Fill(25)
         };
         label.Load(cells);
 
@@ -71,8 +73,7 @@ public class NotificationItemView: View
             Y = 0,
             Height = 1,
             Width = Dim.Auto(DimAutoStyle.Text),
-            Text = $" {Emojis.CHECKED_VIOLET}Accept ",
-            ColorScheme = Tools.ColorSchemeBlackOnWhite,
+            Text = $" {Emojis.CHECKED_VIOLET}Accept "
         };
         btnAccept.MouseClick += BtnAccept_MouseClick;
 
@@ -82,8 +83,7 @@ public class NotificationItemView: View
             Y = 0,
             Height = 1,
             Width = Dim.Auto(DimAutoStyle.Text),
-            Text = $" {Emojis.CROSSED_RED}Decline ",
-            ColorScheme = Tools.ColorSchemeBlackOnWhite,
+            Text = $" {Emojis.CROSSED_RED}Decline "
         };
         btnDecline.MouseClick += BtnDecline_MouseClick;
 

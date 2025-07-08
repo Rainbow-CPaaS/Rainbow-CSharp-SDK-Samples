@@ -3,7 +3,10 @@ using Rainbow.Delegates;
 using Rainbow.Enums;
 using Rainbow.Model;
 using System.Data;
-using Terminal.Gui;
+using Terminal.Gui.Drawing;
+using Terminal.Gui.Input;
+using Terminal.Gui.ViewBase;
+using Terminal.Gui.Views;
 
 public partial class HybridTelephonyMakeCallView : View
 {
@@ -72,13 +75,14 @@ public partial class HybridTelephonyMakeCallView : View
             Height = 1,
             CanFocus = true,
         };
-        List<String> options = ["ON", "OFF"];
-        autoAcceptCallOnDesktop = new("Auto-Accept call on Rainbow Web/Desktop application")
+        List<String> options = [Labels.ON, Labels.OFF];
+        autoAcceptCallOnDesktop = new(Labels.AUTO_ACCEPT_CALL_UCAAS)
         {
             X = 0,
             Y = 0,
             Width = 60,
-            Height = 1
+            Height = 1,
+            CanFocus = true
         };
         autoAcceptCallOnDesktop.SetItems(options);
 
@@ -88,7 +92,7 @@ public partial class HybridTelephonyMakeCallView : View
             Y = 0,
             Text = "Set",
             ShadowStyle = ShadowStyle.None,
-            ColorScheme = Tools.ColorSchemeBlueOnGray,
+            SchemeName = "BrightBlue",
             Enabled = true,
         };
         btnAutoAccept.MouseClick += BtnAutoAccept_MouseClick;
@@ -123,7 +127,6 @@ public partial class HybridTelephonyMakeCallView : View
             Width = Dim.Fill(1),
             Height = 1,
             ReadOnly = false,
-            ColorScheme = Tools.ColorSchemeBlackOnWhite
         };
 
         lblSubject = new()
@@ -145,7 +148,6 @@ public partial class HybridTelephonyMakeCallView : View
             Width = Dim.Fill(1),
             Height = 1,
             ReadOnly = false,
-            ColorScheme = Tools.ColorSchemeBlackOnWhite
         };
 
         viewLeft.Add(lblPhoneNumber, textFieldPhoneNumber, lblSubject, textFieldSubject);
@@ -175,7 +177,7 @@ public partial class HybridTelephonyMakeCallView : View
             X = Pos.Right(lblResource) + 1,
             Y = Pos.Top(lblResource),
             ShadowStyle = ShadowStyle.None,
-            ColorScheme = Tools.ColorSchemeBlueOnGray
+            SchemeName = "BrightBlue"
         };
         lblResourceSelection.MouseClick += LblResourceSelection_MouseClick;
 
@@ -198,7 +200,6 @@ public partial class HybridTelephonyMakeCallView : View
             Width = Dim.Fill(1),
             Height = 1,
             ReadOnly = false,
-            ColorScheme = Tools.ColorSchemeBlackOnWhite
         };
 
         viewRight.Add(lblResource, lblResourceSelection, lblCorrelator, textFieldCorrelator);
@@ -209,7 +210,7 @@ public partial class HybridTelephonyMakeCallView : View
             X = Pos.Center(),
             Y = Pos.Bottom(viewRight) + 1,
             ShadowStyle = ShadowStyle.None,
-            ColorScheme = Tools.ColorSchemeBlueOnGray,
+            SchemeName = "BrightBlue",
             Enabled = true,
         };
         btnMakeCall.MouseClick += BtnMakeCall_MouseClick;
@@ -234,7 +235,7 @@ public partial class HybridTelephonyMakeCallView : View
 
     private void RbContacts_UserSettingsUpdated()
     {
-        Terminal.Gui.Application.Invoke(() =>
+        Terminal.Gui.App.Application.Invoke(() =>
         {
             UpdateDisplay();
         });
@@ -271,13 +272,13 @@ public partial class HybridTelephonyMakeCallView : View
             if (!serviceAvailable.Value)
             {
 
-                lblInactive.Text = HybridTelephonyServiceView.SERVICE_NOT_AVAILABLE;
-                lblInactive.ColorScheme = Tools.ColorSchemeRedOnGray;
+                lblInactive.Text = Labels.SERVICE_NOT_AVAILABLE;
+                lblInactive.SchemeName = "Red";
             }
             else if (!available)
             {
-                lblInactive.Text = HybridTelephonyServiceView.SERVICE_DISABLED;
-                lblInactive.ColorScheme = Tools.ColorSchemeGreenOnGray;
+                lblInactive.Text = Labels.SERVICE_DISABLED;
+                lblInactive.SchemeName = "Green";
             }
 
             if(available)
@@ -287,8 +288,8 @@ public partial class HybridTelephonyMakeCallView : View
         }
         else
         {
-            lblInactive.Text = HybridTelephonyServiceView.FEATURE_CHECKING;
-            lblInactive.ColorScheme = Tools.ColorSchemeGreenOnGray;
+            lblInactive.Text = Labels.FEATURE_CHECKING;
+            lblInactive.SchemeName = "Green";
         }
 
         // /!\ DUE TO RAINBOW DESKTOP / WEBCLIENT RESTRICTION, Resource is not taken well into account - we hide it fro the moment
@@ -305,6 +306,8 @@ public partial class HybridTelephonyMakeCallView : View
 
     private void BtnMakeCall_MouseClick(object? sender, MouseEventArgs e)
     {
+        e.Handled = true;
+
         var resource = currentResource;
         if (resource == LBL_ANY)
             resource = "";
@@ -327,9 +330,9 @@ public partial class HybridTelephonyMakeCallView : View
         // If there is not a call in progress we make a simple call
         if (!callInProgress)
         {
-            rbHybridTelephony.MakeCallAsync(textFieldPhoneNumber.Text, subject: textFieldSubject.Text, resource: resource, correlatorData: textFieldCorrelator.Text).ContinueWith(task =>
+            Task.Run(async () =>
             {
-                var sdkResultBoolean = task.Result;
+                var sdkResultBoolean = await rbHybridTelephony.MakeCallAsync(textFieldPhoneNumber.Text, subject: textFieldSubject.Text, resource: resource, correlatorData: textFieldCorrelator.Text);
                 if (!sdkResultBoolean.Success)
                 {
                     Rainbow.Util.RaiseEvent(() => ErrorOccurred, rbApplication, sdkResultBoolean.Result.ToString());
@@ -338,9 +341,9 @@ public partial class HybridTelephonyMakeCallView : View
         }
         else
         {
-            rbHybridTelephony.ConsultationCallAsync(call, textFieldPhoneNumber.Text, correlatorData: textFieldCorrelator.Text).ContinueWith(task =>
+            Task.Run(async () =>
             {
-                var sdkResultBoolean = task.Result;
+                var sdkResultBoolean = await rbHybridTelephony.ConsultationCallAsync(call, textFieldPhoneNumber.Text, correlatorData: textFieldCorrelator.Text);
                 if (!sdkResultBoolean.Success)
                 {
                     Rainbow.Util.RaiseEvent(() => ErrorOccurred, rbApplication, sdkResultBoolean.Result.ToString());
@@ -401,16 +404,16 @@ public partial class HybridTelephonyMakeCallView : View
 
     private void RbHybridTelephony_HybridTelephonyStatusUpdated(Boolean? available)
     {
-        Terminal.Gui.Application.Invoke(() =>
+        Terminal.Gui.App.Application.Invoke(() =>
         {
             serviceAvailable = available;
             UpdateDisplay();
         });
     }
 
-    private void RbHybridTelephony_HybridPBXAgentInfoUpdated(Rainbow.Model.HybridPbxAgentInfo pbxAgentInfo)
+    private void RbHybridTelephony_HybridPBXAgentInfoUpdated(Rainbow.Model.PbxAgentInfo pbxAgentInfo)
     {
-        Terminal.Gui.Application.Invoke(() =>
+        Terminal.Gui.App.Application.Invoke(() =>
         {
             serviceEnabled = pbxAgentInfo.XmppAgentStatus == "started";
             if (serviceEnabled)

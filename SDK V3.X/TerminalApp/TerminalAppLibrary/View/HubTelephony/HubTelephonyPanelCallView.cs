@@ -6,37 +6,36 @@ using Terminal.Gui.Input;
 using Terminal.Gui.ViewBase;
 using Terminal.Gui.Views;
 
-public partial class HybridTelephonyPanelCallView : View
+public partial class HubTelephonyPanelCallView : View
 {
     public event StringDelegate? ErrorOccurred;
 
     readonly Rainbow.Application rbApplication;
-    readonly Rainbow.HybridTelephony rbHybridTelephony;
+    readonly Rainbow.HubTelephony rbHubTelephony;
 
-    readonly HybridTelephonyCallView viewCall1;
-    readonly HybridTelephonyCallView viewCall2;
+    readonly HubTelephonyCallView viewCall1;
+    readonly HubTelephonyCallView viewCall2;
 
     readonly View viewTransferOrConference;
     readonly Button btnTransfer;
-    readonly Button btnConference;
 
     readonly Label lblInactive;
 
     Boolean? serviceAvailable = null;
     Boolean serviceEnabled = false;
 
-    Call? pbxCall1;
-    Call? pbxCall2;
+    HubCall? pbxCall1;
+    HubCall? pbxCall2;
 
-    public HybridTelephonyPanelCallView(Rainbow.Application rbApplication)
+    public HubTelephonyPanelCallView(Rainbow.Application rbApplication)
     {
         this.rbApplication = rbApplication;
-        rbHybridTelephony = rbApplication.GetHybridTelephony();
+        rbHubTelephony = rbApplication.GetHubTelephony();
 
-        rbHybridTelephony.HybridTelephonyStatusUpdated += RbHybridTelephony_HybridTelephonyStatusUpdated;
-        rbHybridTelephony.HybridPBXAgentInfoUpdated += RbHybridTelephony_HybridPBXAgentInfoUpdated;
+        rbHubTelephony.TelephonyStatusUpdated += RbHubTelephony_TelephonyStatusUpdated;
+        rbHubTelephony.PBXAgentInfoUpdated += RbHubTelephony_PBXAgentInfoUpdated;
 
-        rbHybridTelephony.HybridCallUpdated += RbHybridTelephony_HybridCallUpdated;
+        rbHubTelephony.CallUpdated += RbHybridTelephony_HybridCallUpdated;
 
         Title = Labels.CALL_IN_PROGRESS;
         BorderStyle = LineStyle.Dotted;
@@ -51,6 +50,7 @@ public partial class HybridTelephonyPanelCallView : View
             Width = Dim.Fill(1),
             CanFocus = true,
         };
+        viewCall1.ErrorOccurred += ViewCall_ErrorOccurred;
 
         viewCall2 = new(rbApplication, 2)
         {
@@ -59,6 +59,7 @@ public partial class HybridTelephonyPanelCallView : View
             Width = Dim.Fill(1),
             CanFocus = true,
         };
+        viewCall2.ErrorOccurred += ViewCall_ErrorOccurred;
 
         viewTransferOrConference = new()
         {
@@ -80,20 +81,20 @@ public partial class HybridTelephonyPanelCallView : View
             Enabled = false
         };
         btnTransfer.MouseClick += BtnTransfer_MouseClick;
-
-        btnConference = new()
-        {
-            X = Pos.Right(btnTransfer) + 2,
-            Y = 0,
-            Text = Labels.CONFERENCE,
-            TextAlignment = Alignment.Center,
-            ShadowStyle = ShadowStyle.None,
-            SchemeName = "BrightBlue",
-            Enabled = false
-        };
-        btnConference.MouseClick += BtnConference_MouseClick;
-
-        viewTransferOrConference.Add(btnTransfer, btnConference);
+        viewTransferOrConference.Add(btnTransfer);
+        
+        //btnConference = new()
+        //{
+        //    X = Pos.Right(btnTransfer) + 2,
+        //    Y = 0,
+        //    Text = Labels.CONFERENCE,
+        //    TextAlignment = Alignment.Center,
+        //    ShadowStyle = ShadowStyle.None,
+        //    SchemeName = "BrightBlue",
+        //    Enabled = false
+        //};
+        //btnConference.MouseClick += BtnConference_MouseClick;
+        //viewTransferOrConference.Add(btnConference);
 
         lblInactive = new Label
         {
@@ -112,52 +113,20 @@ public partial class HybridTelephonyPanelCallView : View
         UpdateDisplay();
     }
 
-    private void BtnConference_MouseClick(object? sender, MouseEventArgs e)
+    private void ViewCall_ErrorOccurred(string value)
     {
-        if ((pbxCall1 != null)
-                    && (pbxCall2 != null))
-        {
-            // Need to get hold call and active call
-            Call? holdCall = null;
-            Call? activeCall = null;
-            Boolean canDoAction = false;
-
-            if ((pbxCall1.CallStatus == CallStatus.ACTIVE) && (pbxCall2.CallStatus == CallStatus.PUT_ON_HOLD))
-            {
-                holdCall = pbxCall2;
-                activeCall = pbxCall1;
-                canDoAction = true;
-            }
-            else if ((pbxCall1.CallStatus == CallStatus.PUT_ON_HOLD) && (pbxCall2.CallStatus == CallStatus.ACTIVE))
-            {
-                holdCall = pbxCall1;
-                activeCall = pbxCall2;
-                canDoAction = true;
-            }
-
-            if (canDoAction)
-            {
-                // Conference call
-                Task.Run(async () =>
-                {
-                    var sdkResultBoolean = await rbHybridTelephony.ConferenceCallAsync(activeCall, holdCall);
-                    if (!sdkResultBoolean.Success)
-                    {
-                        Rainbow.Util.RaiseEvent(() => ErrorOccurred, rbApplication, sdkResultBoolean.Result.ToString());
-                    }
-                });
-            }
-        }
+        ErrorOccurred?.Invoke(value);
     }
 
     private void BtnTransfer_MouseClick(object? sender, MouseEventArgs e)
     {
+        e.Handled = true;
         if ((pbxCall1 != null)
                     && (pbxCall2 != null))
         {
             // Need to get hold call and active call
-            Call? holdCall = null;
-            Call? activeCall = null;
+            HubCall? holdCall = null;
+            HubCall? activeCall = null;
             Boolean canDoAction = false;
 
             if ((pbxCall1.CallStatus == CallStatus.ACTIVE) && (pbxCall2.CallStatus == CallStatus.PUT_ON_HOLD))
@@ -178,7 +147,7 @@ public partial class HybridTelephonyPanelCallView : View
                 // Transfer call
                 Task.Run(async () =>
                 {
-                    var sdkResultBoolean = await rbHybridTelephony.TransferCallAsync(activeCall, holdCall);
+                    var sdkResultBoolean = await rbHubTelephony.TransferCallAsync(activeCall, holdCall);
                     if (!sdkResultBoolean.Success)
                     {
                         Rainbow.Util.RaiseEvent(() => ErrorOccurred, rbApplication, sdkResultBoolean.Result.ToString());
@@ -218,14 +187,14 @@ public partial class HybridTelephonyPanelCallView : View
         viewTransferOrConference.Height = available ? 1 : 0;
     }
 
-    private void UpdateDisplay(Call call)
+    private void UpdateDisplay(HubCall call)
     {
         if ((pbxCall2 != null)
-                    && (pbxCall2.Id == call.Id))
+                    && (pbxCall2.CallId == call.CallId))
         {
             pbxCall2 = call;
         }
-        else if ((pbxCall1 is null) || (pbxCall1.Id == call.Id))
+        else if ((pbxCall1 is null) || (pbxCall1.CallId == call.CallId))
         {
             pbxCall1 = call;
         }
@@ -245,7 +214,7 @@ public partial class HybridTelephonyPanelCallView : View
             enableAdvanceAction = ((pbxCall1.CallStatus == CallStatus.ACTIVE) && (pbxCall2.CallStatus == CallStatus.PUT_ON_HOLD))
                                     || ((pbxCall1.CallStatus == CallStatus.PUT_ON_HOLD) && (pbxCall2.CallStatus == CallStatus.ACTIVE));
         }
-        btnTransfer.Enabled = btnConference.Enabled = enableAdvanceAction;
+        btnTransfer.Enabled = enableAdvanceAction;
 
         // Clear Pbx call if necessary
         if (pbxCall1?.CallStatus == CallStatus.UNKNOWN)
@@ -255,7 +224,7 @@ public partial class HybridTelephonyPanelCallView : View
             pbxCall2 = null;
     }
 
-    private void RbHybridTelephony_HybridTelephonyStatusUpdated(Boolean? available)
+    private void RbHubTelephony_TelephonyStatusUpdated(Boolean available)
     {
         Terminal.Gui.App.Application.Invoke(() =>
         {
@@ -264,7 +233,7 @@ public partial class HybridTelephonyPanelCallView : View
         });
     }
 
-    private void RbHybridTelephony_HybridPBXAgentInfoUpdated(Rainbow.Model.PbxAgentInfo pbxAgentInfo)
+    private void RbHubTelephony_PBXAgentInfoUpdated(Rainbow.Model.PbxAgentInfo pbxAgentInfo)
     {
         Terminal.Gui.App.Application.Invoke(() =>
         {
@@ -275,7 +244,7 @@ public partial class HybridTelephonyPanelCallView : View
         });
     }
 
-    private void RbHybridTelephony_HybridCallUpdated(Call call)
+    private void RbHybridTelephony_HybridCallUpdated(HubCall call)
     {
         Terminal.Gui.App.Application.Invoke(() =>
         {

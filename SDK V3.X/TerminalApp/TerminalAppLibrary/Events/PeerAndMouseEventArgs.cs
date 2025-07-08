@@ -1,5 +1,5 @@
 ﻿using Rainbow.Model;
-using Terminal.Gui;
+using Terminal.Gui.Input;
 
 public class PeerAndMouseEventArgs(Peer peer, MouseEventArgs me)
 {

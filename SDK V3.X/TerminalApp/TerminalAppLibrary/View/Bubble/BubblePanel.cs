@@ -1,12 +1,6 @@
-﻿using Rainbow;
-using Rainbow.Model;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Terminal.Gui;
-using static System.Net.Mime.MediaTypeNames;
+﻿using Rainbow.Model;
+using Terminal.Gui.Drawing;
+using Terminal.Gui.ViewBase;
 
 public class BubblePanel : View
 {
@@ -90,7 +84,7 @@ public class BubblePanel : View
             if (optionSelected == "conference")
                 optionSelected = "members";
 
-            Terminal.Gui.Application.Invoke(() =>
+            Terminal.Gui.App.Application.Invoke(() =>
             {
                 UpdateDisplay();
             });
@@ -105,7 +99,7 @@ public class BubblePanel : View
         if (bubble.Peer.Id == conference.Peer.Id)
         {
             conferenceInProgress = true;
-            Terminal.Gui.Application.Invoke(() =>
+            Terminal.Gui.App.Application.Invoke(() =>
             {
                 UpdateDisplay();
             });
@@ -130,7 +124,7 @@ public class BubblePanel : View
         emojiButtonsPanel.Selected = optionSelected;
         bubbleMembersPanel.SetBubble(bubble);
 
-        Terminal.Gui.Application.Invoke(() =>
+        Terminal.Gui.App.Application.Invoke(() =>
         {
             this.bubble = bubble;
             UpdateDisplay();

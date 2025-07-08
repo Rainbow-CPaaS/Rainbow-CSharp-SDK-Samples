@@ -1,5 +1,5 @@
 ﻿using Rainbow.Example.Common;
-using Terminal.Gui;
+using Terminal.Gui.ViewBase;
 
 
 public interface IBotViewFactory

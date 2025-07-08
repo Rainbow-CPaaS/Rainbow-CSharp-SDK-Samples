@@ -1,6 +1,9 @@
 ﻿using Rainbow;
 using Rainbow.Model;
-using Terminal.Gui;
+using Terminal.Gui.Drawing;
+using Terminal.Gui.Input;
+using Terminal.Gui.ViewBase;
+using Terminal.Gui.Views;
 
 
 public class ConversationPanelView: View
@@ -146,7 +149,7 @@ public class ConversationPanelView: View
                         X = 0,
                         Y = Pos.Bottom(newView),
                         Width = Dim.Fill(1),
-                        ColorScheme = Tools.ColorSchemeDarkGrayOnGray
+                        SchemeName = Tools.DEFAULT_SCHEME_NAME
                     };
                     scrollableViewRecentConversations.Add(line);
                     previousView = line;
@@ -200,7 +203,7 @@ public class ConversationPanelView: View
 
     private void RbConversations_ConversationRemovedOrCreated(Conversation conversation)
     {
-        Terminal.Gui.Application.Invoke(() =>
+        Terminal.Gui.App.Application.Invoke(() =>
         {
             UpdateDisplay();
         });
@@ -217,7 +220,7 @@ public class ConversationPanelView: View
 
     private void RbApplication_ConnectionStateChanged(ConnectionState connectionState)
     {
-        Terminal.Gui.Application.Invoke(() =>
+        Terminal.Gui.App.Application.Invoke(() =>
         {
             UpdateDisplay();
         });

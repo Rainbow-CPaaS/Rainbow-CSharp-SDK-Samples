@@ -59,7 +59,9 @@ They are listed in order of priority / complexity.
 | Login, AutoReconnection, Events, **OAuth** | Login and AutoReconnection management with OAuth | [README](./ConsoleApp/Login%20with%20OAuth/README.md) |
 | Bubbles, Contacts | Get information about Bubbles and Contacts | [README](./ConsoleApp/Get%20basic%20contacts%20and%20bubbles%20info/README.md) |
 | Contacts, Presence | Get the presence of your contacts and modify yours | [README](./ConsoleApp/Get%20and%20set%20presence/README.md) |
-| Contacts, Presence | Get the presence of your contacts and modify yours | [README](./ConsoleApp/Get%20and%20set%20presence/README.md) |
+| Contacts, Presence, **Web Hook**, Admin Account | Using admin account and a WebHook, permits to get presence level of all users in the company (using WebHook) | [README](./ConsoleApp/Global%20Presence%20Level/README.md) |
+| **Hub Telephony**, Device state, Admin Account, Presence | Using admin account permits to get status (in / out of service) of all SIP devices of the company (using REST API only - bad way)  | [README](./ConsoleApp/Detect%20UCaaS%20connection/README.md) |
+| **Hub Telephony**, **Web Hook**, Device state, Admin Account, Presence | Using admin account permits to get status (in / out of service) of all SIP devices of the company (using WebHook - correct way) | [README](./ConsoleApp/Hub%20Devices%20Status/README.md) |
 | **Search**, Contacts | Search contacts by display name, tag, phone number or email | [README](./ConsoleApp/Search/README.md) |
 | **Avatars**, Bubbles, Channels, Contacts | Get last **Avatars** of Bubbles, Channels and Contacts| [README](./ConsoleApp/Avatars/README.md) |
 | **Guest, GuestMode**, Company Link, Bubble Link, Contacts, Organisations, Companies | Manage Contacts, Guests and GuestMode (need admin account)  | [README](./ConsoleApp/Manage%20Users%20and%20Guests/README.md) |
@@ -82,7 +84,8 @@ A more detailed [README](./Bot/README.md) is available.
 | --- | --- | --- |
 | BotLibrary | Base for all other Bots | Authentication, Connection,  Auto-reconnection, Bubble and User invitations, BotConfiguration updates |
 | BotBasicMessages | Auto Answer | Small example to understand how to use BotLibrary.BotBase class |
-| BotBroadcaster | Medias Broadcast in Conference | Advanced example and **ready to use** to have a Bot which can grab streams and broadcast them in a conference | 
+| BotAdaptiveCards | **Adaptive cards** | Demonstrate how to use Adaptive Cards using a MCQ (multiple choice question) Test  |
+| BotBroadcaster | **Medias Broadcast** in Conference | Advanced example and **ready to use** to have a Bot which can grab streams and broadcast them in a conference | 
 
 <a name="TerminalApplicationexamples"></a>
 ## Terminal Application examples
@@ -97,9 +100,10 @@ A Visual Studio solution centralized all of them [here](./TerminalApp/)
 | [TerminAppLoginSplittedView](./TerminalApp/TerminalAppLoginSplittedView/README.md) | Login, AutoReconnection | Simple Login form with a splitted view to manage in same time two different accounts |
 | [TerminAppPresencePanel](./TerminalApp/TerminalAppPresencePanel/README.md) | Login, AutoReconnection, (Aggregated) Presence, User and Bubble invitation | Panel to see Presence of all contatcs in the roster. Possibility to change it's own presence. Manage user and bubble invitations | 
 | [TerminalAppS2SPresencePanel](./TerminalApp/TerminalAppS2SPresencePanel/README.md) | Login, AutoReconnection, (Aggregated) Presence, User and Bubble invitation | Using S2S, Panel to see Presence of all contatcs in the roster. Possibility to change it's own presence. Manage user and bubble invitations |
-| [TerminalAppSearch](./TerminalApp/TerminalAppSearch/README.md) | Login, AutoReconnection, Search | Panel to search contact by name | 
-| [TerminalAppHybridTelephony](./TerminalApp/TerminalAppHybridTelephony/README.md) | Login, AutoReconnection, Hybrip Telephony | To follow/update in 3PCC (trhid party remote control) Hybrid Telephony calls. Manage Call forward, nomadic and voicemail features |
-| [TerminalAppBubbleManagement](./TerminalApp/TerminalAppBubbleManagement/README.md) | Login, AutoReconnection, Conversation, Bubble, Bubble Link, Waiting Room / Lobby | To list bubble's members, to promote / demote them, to accept / deny contact in waiting romm / lobby |
+| [TerminalAppSearch](./TerminalApp/TerminalAppSearch/README.md) | Login, AutoReconnection, Search | Panel to search contact by name |
+| [TerminalAppBubbleManagement](./TerminalApp/TerminalAppBubbleManagement/README.md) | Login, AutoReconnection, Conversation, Bubble, Bubble Link, Waiting Room / Lobby | To list bubble's members, to promote / demote them, to accept / deny contact in waiting romm / lobby | 
+| [TerminalAppHubTelephony](./TerminalApp/TerminalAppHubTelephony/README.md) | Login, AutoReconnection, Hub Telephony | To follow/update in 3PCC (third party call control) Hybrid Telephony calls. |
+| [TerminalAppHybridTelephony](./TerminalApp/TerminalAppHybridTelephony/README.md) | Login, AutoReconnection, Hybrid Telephony | To follow/update in 3PCC (third party call control) Hybrid Telephony calls. Manage Call forward, nomadic and voicemail features |
 
 <a name="WPFApplicationexample"></a>
 ## WPF Application

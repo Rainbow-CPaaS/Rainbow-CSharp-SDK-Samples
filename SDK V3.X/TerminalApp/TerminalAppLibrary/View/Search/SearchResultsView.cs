@@ -1,7 +1,8 @@
 ﻿using Rainbow;
-using Rainbow.Consts;
 using Rainbow.Model;
-using Terminal.Gui;
+using Terminal.Gui.Drawing;
+using Terminal.Gui.ViewBase;
+using Terminal.Gui.Views;
 
 public class SearchResultsView: View
 {
@@ -57,7 +58,6 @@ public class SearchResultsView: View
             Text = LBL_SEARCH_IN_PROGRESS,
             Width = Dim.Auto(DimAutoStyle.Text),
             Height = 1,
-            ColorScheme = Tools.ColorSchemeDarkGrayOnGray
         };
 
         lblMyNetwork = new()
@@ -67,7 +67,6 @@ public class SearchResultsView: View
             Text = LBL_MY_NETWORK,
             Width = Dim.Auto(DimAutoStyle.Text),
             Height = 1,
-            ColorScheme = Tools.ColorSchemeBlackOnGray
         };
 
         lblMyCompany = new()
@@ -77,7 +76,6 @@ public class SearchResultsView: View
             Text = LBL_MY_COMPANY,
             Width = Dim.Auto(DimAutoStyle.Text),
             Height = 1,
-            ColorScheme = Tools.ColorSchemeBlackOnGray
         };
 
         lblPersonalDirectory = new()
@@ -87,7 +85,6 @@ public class SearchResultsView: View
             Text = LBL_PERSONAL_DIRECTORY,
             Width = Dim.Auto(DimAutoStyle.Text),
             Height = 1,
-            ColorScheme = Tools.ColorSchemeBlackOnGray
         };
 
         lblOtherCompanies = new()
@@ -97,7 +94,6 @@ public class SearchResultsView: View
             Text = LBL_OTHER_COMPANIES,
             Width = Dim.Auto(DimAutoStyle.Text),
             Height = 1,
-            ColorScheme = Tools.ColorSchemeBlackOnGray
         };
 
         lblOtherDirectories = new()
@@ -107,7 +103,6 @@ public class SearchResultsView: View
             Text = LBL_OTHER_DIRECTORIES,
             Width = Dim.Auto(DimAutoStyle.Text),
             Height = 1,
-            ColorScheme = Tools.ColorSchemeBlackOnGray
         };
 
         scrollableView.Add(lblSearchInProgress, lblMyNetwork, lblMyCompany, lblOtherCompanies, lblOtherDirectories);
@@ -393,7 +388,7 @@ public class SearchResultsView: View
         if (String.IsNullOrEmpty(name))
         {
             searchInProgress = null;
-            Terminal.Gui.Application.Invoke(() =>
+            Terminal.Gui.App.Application.Invoke(() =>
             {
                 UpdateDisplay();
             });
@@ -408,7 +403,7 @@ public class SearchResultsView: View
     {
         searchInProgress = true;
         searchContactsResult = null;
-        Terminal.Gui.Application.Invoke(() =>
+        Terminal.Gui.App.Application.Invoke(() =>
         {
             UpdateDisplay();
         });
@@ -419,7 +414,7 @@ public class SearchResultsView: View
         searchContactsResult = sdkResult.Success ? sdkResult.Data : null;
         //TODO - enhance display in case there is an error in search 
 
-        Terminal.Gui.Application.Invoke(() =>
+        Terminal.Gui.App.Application.Invoke(() =>
         {
             UpdateDisplay();
         });

@@ -1,4 +1,7 @@
-﻿using Terminal.Gui;
+﻿using Rainbow.Model;
+using Terminal.Gui.Drawing;
+using Terminal.Gui.ViewBase;
+using Terminal.Gui.Views;
 
 public partial class HybridTelephonyVoiceMailView : View
 {
@@ -14,7 +17,7 @@ public partial class HybridTelephonyVoiceMailView : View
     Boolean? serviceAvailable = null;
     Boolean serviceEnabled = false;
     Boolean isVMAvailable = false;
-    int nbVM = 0;
+    uint nbVM = 0;
 
     public HybridTelephonyVoiceMailView(Rainbow.Application rbApplication)
     {
@@ -50,7 +53,7 @@ public partial class HybridTelephonyVoiceMailView : View
             TextAlignment = Alignment.Start,
             Width = Dim.Auto(DimAutoStyle.Text),
             Height = 1,
-            ColorScheme = Tools.ColorSchemeBlueOnGray
+            SchemeName = "BrightBlue"
         };
 
         lblPhoneNumber = new Label
@@ -71,7 +74,7 @@ public partial class HybridTelephonyVoiceMailView : View
             TextAlignment = Alignment.Start,
             Width = Dim.Auto(DimAutoStyle.Text),
             Height = 1,
-            ColorScheme = Tools.ColorSchemeBlueOnGray
+            SchemeName = "BrightBlue"
         };
 
         lblInactive = new Label
@@ -102,24 +105,24 @@ public partial class HybridTelephonyVoiceMailView : View
 
             if (!serviceAvailable.Value)
             {
-                lblInactive.Text = HybridTelephonyServiceView.SERVICE_NOT_AVAILABLE;
-                lblInactive.ColorScheme = Tools.ColorSchemeRedOnGray;
+                lblInactive.Text = Labels.SERVICE_NOT_AVAILABLE;
+                lblInactive.SchemeName = "Red";
             }
             else if (!isVMAvailable)
             {
-                lblInactive.Text = HybridTelephonyServiceView.VM_NOT_AVAILABLE;
-                lblInactive.ColorScheme = Tools.ColorSchemeRedOnGray;
+                lblInactive.Text = Labels.VM_NOT_AVAILABLE;
+                lblInactive.SchemeName = "Red";
             }
             else if (!available)
             {
-                lblInactive.Text = HybridTelephonyServiceView.SERVICE_DISABLED;
-                lblInactive.ColorScheme = Tools.ColorSchemeGreenOnGray;
+                lblInactive.Text = Labels.SERVICE_DISABLED;
+                lblInactive.SchemeName = "Green";
             }
         }
         else
         {
-            lblInactive.Text = HybridTelephonyServiceView.FEATURE_CHECKING;
-            lblInactive.ColorScheme = Tools.ColorSchemeGreenOnGray;
+            lblInactive.Text = Labels.FEATURE_CHECKING;
+            lblInactive.SchemeName = "Green";
         }
 
         lblInactive.Height = available ? 0 : 1;
@@ -135,16 +138,16 @@ public partial class HybridTelephonyVoiceMailView : View
 
     private void RbHybridTelephony_HybridTelephonyStatusUpdated(Boolean? available)
     {
-        Terminal.Gui.Application.Invoke(() =>
+        Terminal.Gui.App.Application.Invoke(() =>
         {
             serviceAvailable = available;
             UpdateDisplay();
         });
     }
 
-    private void RbHybridTelephony_HybridPBXAgentInfoUpdated(Rainbow.Model.HybridPbxAgentInfo pbxAgentInfo)
+    private void RbHybridTelephony_HybridPBXAgentInfoUpdated(Rainbow.Model.PbxAgentInfo pbxAgentInfo)
     {
-        Terminal.Gui.Application.Invoke(() =>
+        Terminal.Gui.App.Application.Invoke(() =>
         {
             serviceEnabled = pbxAgentInfo.XmppAgentStatus == "started";
             if (serviceEnabled)
@@ -153,11 +156,11 @@ public partial class HybridTelephonyVoiceMailView : View
         });
     }
 
-    private void RbHybridTelephony_HybridVoiceMessagesNumberUpdated(int nb)
+    private void RbHybridTelephony_HybridVoiceMessagesNumberUpdated(VoiceMessageNumber voiceMessageNumber)
     {
-        Terminal.Gui.Application.Invoke(() =>
+        Terminal.Gui.App.Application.Invoke(() =>
         {
-            nbVM = nb;
+            nbVM = voiceMessageNumber.New;
             UpdateDisplay();
         });
     }

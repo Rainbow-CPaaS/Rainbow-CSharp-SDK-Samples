@@ -1,7 +1,8 @@
 ﻿using Rainbow;
 using Rainbow.Consts;
 using Rainbow.Example.Common;
-using Terminal.Gui;
+using Terminal.Gui.Drawing;
+using Terminal.Gui.ViewBase;
 
 internal class BotView: View
 {
@@ -61,8 +62,6 @@ internal class BotView: View
     {
         Title = rbAccount.Prefix;
         CanFocus = true;
-
-        ColorScheme = Tools.ColorSchemeMain;
 
         X = 0;
         Width = Dim.Fill();
@@ -163,7 +162,7 @@ internal class BotView: View
         if (loginView == null)
             return;
 
-        Terminal.Gui.Application.Invoke(() =>
+        Terminal.Gui.App.Application.Invoke(() =>
         {
             switch (connectionState.Status)
             {

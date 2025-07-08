@@ -1,5 +1,6 @@
 ﻿using System.Drawing;
-using Terminal.Gui;
+using Terminal.Gui.Input;
+using Terminal.Gui.ViewBase;
 
 public  class ScrollableView: View
 {

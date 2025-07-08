@@ -1,4 +1,7 @@
-﻿using Terminal.Gui;
+﻿using Terminal.Gui.Configuration;
+using Terminal.Gui.Input;
+using Terminal.Gui.ViewBase;
+using Terminal.Gui.Views;
 
 public class EmojiButton : View
 {
@@ -11,13 +14,13 @@ public class EmojiButton : View
     private Boolean mouseOver = false;
 
     private readonly Label lbl;
-    private readonly ColorScheme colorSchemeDefault;
-    private readonly ColorScheme colorSchemeSelected;
-    private readonly ColorScheme colorSchemeOver;
+    private readonly String colorSchemeDefault;
+    private readonly String colorSchemeSelected;
+    private readonly String colorSchemeOver;
 
     public event EventHandler<String>? ButtonClick;
 
-    public EmojiButton(String id, String emoji, int width, Boolean selected, ColorScheme colorSchemeDefault, ColorScheme colorSchemeSelected, ColorScheme colorSchemeOver)
+    public EmojiButton(String id, String emoji, int width, Boolean selected, String colorSchemeDefault, String colorSchemeSelected, String colorSchemeOver)
     {
         this.id = id;
         this.emoji = $" {emoji} ";
@@ -33,7 +36,7 @@ public class EmojiButton : View
             Text = this.emoji,
             TextAlignment = Alignment.Center,
             CanFocus = true,
-            ColorScheme = colorSchemeDefault
+            SchemeName = colorSchemeDefault
         };
 
         lbl.MouseClick += EmojiButton_MouseClick;
@@ -66,29 +69,23 @@ public class EmojiButton : View
     {
         lock (lockDisplay)
         {
+            String text;
+            String schemeName;
+
             if (selected)
             {
-                lbl.Text = $"[{emoji}]";
-                lbl.ColorScheme = colorSchemeSelected;
-                ColorScheme = colorSchemeSelected;
+                text = $"[{emoji}]";
+                schemeName = colorSchemeSelected;
             }
             else
             {
-                if (mouseOver)
-                {
-                    lbl.Text = $"_{emoji}_";
-                    lbl.ColorScheme = colorSchemeOver;
-                    ColorScheme = colorSchemeOver;
-                }
-                else
-                {
-                    lbl.Text = emoji;
-                    lbl.ColorScheme = colorSchemeDefault;
-                    ColorScheme = colorSchemeDefault;
-                }
+                text = mouseOver ? $" {emoji} " : emoji;
+                schemeName = mouseOver ? colorSchemeOver : colorSchemeDefault;
             }
-            //lbl.SetNeedsDraw();
-            //SetNeedsDraw();
+
+            lbl.Text = text;
+            lbl.SetScheme(SchemeManager.GetScheme(schemeName));
+            SetScheme(SchemeManager.GetScheme(schemeName));
         }
     }
 

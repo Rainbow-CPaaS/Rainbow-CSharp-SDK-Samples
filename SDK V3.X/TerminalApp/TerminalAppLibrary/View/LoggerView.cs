@@ -1,5 +1,10 @@
 ﻿using System.Text.RegularExpressions;
-using Terminal.Gui;
+using Terminal.Gui.App;
+using Terminal.Gui.Configuration;
+using Terminal.Gui.Drawing;
+using Terminal.Gui.Input;
+using Terminal.Gui.ViewBase;
+using Terminal.Gui.Views;
 
 public partial class LoggerView: View
 {
@@ -11,18 +16,21 @@ public partial class LoggerView: View
 
     private readonly Object lockRegexes = new();
 
-    private readonly Dictionary<String, List<String>> keysByColor;           // <colorName, List<String>>
-    private readonly Dictionary<String, List<Regex>> regexesByColor;         // <colorName, Regex[]>
-    private readonly Dictionary<String, ColorScheme> colorSchemesByColor;    // <colorName, ColorScheme>
+    private readonly Dictionary<String, List<String>> keysById;                     // <id, List<String>>
+    private readonly Dictionary<String, List<Regex>> regexesById;                   // <id, Regex[]>
+    private readonly Dictionary<String, Terminal.Gui.Drawing.Scheme> schemesById;   // <id, Scheme>
+
+    private readonly Scheme baseScheme;
 
     public LoggerView(String title = "", Boolean btnsVisible = true)
     {
-        CanFocus = true;
-        ColorScheme = Tools.ColorSchemeLogger;
+        baseScheme = SchemeManager.GetScheme(Tools.DEFAULT_SCHEME_NAME);
 
-        colorSchemesByColor = [];
-        keysByColor = [];
-        regexesByColor = [];
+        CanFocus = true;
+
+        schemesById = [];
+        keysById = [];
+        regexesById = [];
 
         // Create Ouput Text Field - to see the progress and eventually error
         infoText = new TextView
@@ -36,7 +44,6 @@ public partial class LoggerView: View
             BorderStyle = LineStyle.Dotted,
             ReadOnly = false,
             Visible = true,
-            ColorScheme = Tools.ColorSchemeLogger,
         };
 
         // To display with some colors
@@ -51,7 +58,6 @@ public partial class LoggerView: View
             Y = Pos.AnchorEnd(),
             Width = 24,
             Height = 1,
-            ColorScheme = Tools.ColorSchemeLogger,
             Visible = btnsVisible
         };
 
@@ -61,7 +67,6 @@ public partial class LoggerView: View
             Text = $"{Emojis.CLEAR}Clear",
             Y = 0,
             X = 0,
-            ColorScheme = Tools.ColorSchemeLogger,
             ShadowStyle = ShadowStyle.None
         };
         clearInfoTextBtn.MouseClick += ClearInfoTextBtn_MouseClick;
@@ -72,7 +77,6 @@ public partial class LoggerView: View
             Text = $"{Emojis.COPY}Copy ",
             Y = 0,
             X = Pos.AnchorEnd(),
-            ColorScheme = Tools.ColorSchemeLogger,
             ShadowStyle = ShadowStyle.None
         };
         copyToClipboardInfoTextBtn.MouseClick += CopyToClipboardInfoTextBtn_MouseClick;
@@ -93,12 +97,12 @@ public partial class LoggerView: View
         infoText.Text = txt + Environment.NewLine + infoText.Text;
     }
 
-    public void AddColorScheme(String color,  ColorScheme colorScheme, params String[] key)
+    public void AddScheme(String id, String schemeName, params String[] key)
     {
         lock(lockRegexes)
-            colorSchemesByColor[color] = colorScheme;
+            schemesById[id] = SchemeManager.GetScheme(schemeName);
 
-        AddKeyForRegex(color, key);
+        AddKeyForRegex(id, key);
     }
     
     public void AddKeyForRegex(String color, params String[] key)
@@ -108,10 +112,10 @@ public partial class LoggerView: View
             if ((key == null) || (key.Length == 0))
                 return;
 
-            if (!keysByColor.TryGetValue(color, out List<String>? keys))
+            if (!keysById.TryGetValue(color, out List<String>? keys))
                 keys = [];
 
-            if (!regexesByColor.TryGetValue(color, out List<Regex> ? regexes))
+            if (!regexesById.TryGetValue(color, out List<Regex> ? regexes))
                 regexes = [];
 
             foreach (var keyItem in key)
@@ -123,8 +127,8 @@ public partial class LoggerView: View
                 regexes.Add(new Regex($@"\b{keyItem}\b", RegexOptions.IgnoreCase));
             }
 
-            keysByColor[color] = keys;
-            regexesByColor[color] = regexes;
+            keysById[color] = keys;
+            regexesById[color] = regexes;
         }
     }
 
@@ -132,15 +136,15 @@ public partial class LoggerView: View
     {
         lock(lockRegexes)
         {
-            keysByColor.Remove(color);
-            regexesByColor.Remove(color);
+            keysById.Remove(color);
+            regexesById.Remove(color);
         }
     }
 
     public void RemoveColorScheme(String color)
     {
         lock (lockRegexes)
-            colorSchemesByColor.Remove(color);
+            schemesById.Remove(color);
         RemoveKeysForRegex(color);
     }
 
@@ -171,11 +175,11 @@ public partial class LoggerView: View
         lock (lockRegexes)
         {
             Dictionary<String, Match[]> matches = [];
-            foreach (string color in regexesByColor.Keys)
+            foreach (string color in regexesById.Keys)
             {
-                if (colorSchemesByColor.ContainsKey(color))
+                if (schemesById.ContainsKey(color))
                 {
-                    Match[] m = regexesByColor[color].SelectMany(r => r.Matches(infoText.Text)).ToArray();
+                    Match[] m = regexesById[color].SelectMany(r => r.Matches(infoText.Text)).ToArray();
                     matches.Add(color, m);
                 }
             }
@@ -196,13 +200,13 @@ public partial class LoggerView: View
                         Match[] match = matches[color];
                         if (match.Any(m => ContainsPosition(m, pos)))
                         {
-                            cell.Attribute = Tools.ToAttribute(colorSchemesByColor[color]);
+                            cell.Attribute = schemesById[color].Normal;
                             oneMatch = true;
                             break;
                         }
                     }
                     if (!oneMatch)
-                        cell.Attribute = Tools.ToAttribute(Tools.ColorSchemeLogger);
+                        cell.Attribute = baseScheme.Normal;
 
                     line[x] = cell;
                     pos++;

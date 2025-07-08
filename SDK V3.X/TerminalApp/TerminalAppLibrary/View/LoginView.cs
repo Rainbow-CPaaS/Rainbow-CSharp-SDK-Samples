@@ -1,7 +1,9 @@
 ﻿using Rainbow;
 using Rainbow.Consts;
 using Rainbow.Example.Common;
-using Terminal.Gui;
+using Terminal.Gui.Input;
+using Terminal.Gui.ViewBase;
+using Terminal.Gui.Views;
 
 public class LoginView: View
 {
@@ -80,7 +82,6 @@ public class LoginView: View
             IsDefault = true,
             Enabled = ButtonLoginEnabled(),
             ShadowStyle = ShadowStyle.None,
-            ColorScheme = Tools.ColorSchemeBlackOnWhite
         };
 
         if (withDetails)
@@ -93,9 +94,9 @@ public class LoginView: View
                 Height = Dim.Fill(),
             };
 
-            loggerView.AddColorScheme("green", Tools.ColorSchemeLoggerGreen, LoggerView.DEBUG);
-            loggerView.AddColorScheme("blue", Tools.ColorSchemeLoggerBlue, LoggerView.INFO);
-            loggerView.AddColorScheme("red", Tools.ColorSchemeLoggerRed, LoggerView.WARN);
+            loggerView.AddScheme("green", "Green" , LoggerView.DEBUG);
+            loggerView.AddScheme("blue", "BrightBlue", LoggerView.INFO);
+            loggerView.AddScheme("red", "Red", LoggerView.WARN);
         }
 
         // When text is changed, enable/disable Login Button
@@ -127,7 +128,7 @@ public class LoginView: View
     private void Log(String level, String txt)
     {
         if (loggerView != null)
-            Terminal.Gui.Application.Invoke(() => loggerView.AddText($"{level} - {txt}"));
+            Terminal.Gui.App.Application.Invoke(() => loggerView.AddText($"{level} - {txt}"));
     }
 
 #region Events received from Terminal.Gui
@@ -168,7 +169,7 @@ public class LoginView: View
 
     void RbApplication_ConnectionStateChanged(Rainbow.Model.ConnectionState connectionState)
     {
-        Terminal.Gui.Application.Invoke(() =>
+        Terminal.Gui.App.Application.Invoke(() =>
         {
             switch (connectionState.Status)
             {

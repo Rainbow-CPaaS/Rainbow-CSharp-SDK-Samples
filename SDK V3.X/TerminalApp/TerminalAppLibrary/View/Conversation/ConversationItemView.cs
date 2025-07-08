@@ -1,7 +1,10 @@
 ﻿using Rainbow;
 using Rainbow.Consts;
 using Rainbow.Model;
-using Terminal.Gui;
+using Terminal.Gui.Configuration;
+using Terminal.Gui.Input;
+using Terminal.Gui.ViewBase;
+using Terminal.Gui.Views;
 
 public class ConversationItemView: View
 {
@@ -62,7 +65,7 @@ public class ConversationItemView: View
         {
             X = Pos.Func(() => Frame.Width - lblUnread.Text.Length),
             Y = 0,
-            ColorScheme = Tools.ColorSchemeRedOnGray
+            SchemeName = "Red"
         };
 
         lblLastMessage = new()
@@ -92,14 +95,14 @@ public class ConversationItemView: View
     public void SetSelected(Boolean selected)
     {
         isSelected = selected;
-        viewIsSelected.ColorScheme = (isSelected) ? Tools.ColorSchemeWhiteOnBlue : Tools.ColorSchemeWhiteOnGray;
+        viewIsSelected.SetScheme(SchemeManager.GetScheme((isSelected) ? "OnBrightBlue" : Tools.DEFAULT_SCHEME_NAME));
     }
 
     private void UpdateDisplay()
     {
         if (conversation is not null)
         {
-            viewIsSelected.ColorScheme = (isSelected) ? Tools.ColorSchemeWhiteOnBlue : Tools.ColorSchemeWhiteOnGray;
+            SetSelected(isSelected);
 
             String txt;
             var nb = conversation.UnreadMessageNumber;
@@ -146,7 +149,7 @@ public class ConversationItemView: View
         if (isSelected is not null)
             this.isSelected = isSelected.Value;
 
-        Terminal.Gui.Application.Invoke(() =>
+        Terminal.Gui.App.Application.Invoke(() =>
         {
             UpdateDisplay();
         });
@@ -168,7 +171,7 @@ public class ConversationItemView: View
         var newValue = rbContacts.GetUserSettingBooleanValue(UserSetting.DisplayNameOrderFirstNameFirst);
         if (displayFirstNameFirst != newValue)
         {
-            Terminal.Gui.Application.Invoke(() =>
+            Terminal.Gui.App.Application.Invoke(() =>
             {
                 displayFirstNameFirst = newValue;
                 UpdateDisplay();
@@ -183,7 +186,7 @@ public class ConversationItemView: View
             var contactFound = contacts.FirstOrDefault(c => c.Peer.Id == conversation?.Peer?.Id);
             if(contactFound is not null)
             {
-                Terminal.Gui.Application.Invoke(() =>
+                Terminal.Gui.App.Application.Invoke(() =>
                 {
                     UpdateDisplay();
                 });

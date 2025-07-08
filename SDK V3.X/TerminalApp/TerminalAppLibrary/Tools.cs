@@ -1,92 +1,29 @@
 ﻿using Rainbow.Model;
 using System.Text;
-using Terminal.Gui;
+using Terminal.Gui.App;
+using Terminal.Gui.Configuration;
+using Terminal.Gui.Drawing;
+using Terminal.Gui.ViewBase;
+using Terminal.Gui.Views;
 using TerminalAppLibrary.Model;
-using Attribute = Terminal.Gui.Attribute;
+using Attribute = Terminal.Gui.Drawing.Attribute;
 static public class Tools
 {
-    static public Color LightGray = new Color("#DDDDDD");
+    static public String DEFAULT_SCHEME_NAME = "Base";
 
+    static public Attribute AttributeBlack = new Attribute(Color.Black, StandardColor.RaisinBlack);
+    static public Attribute AttributeRed = new Attribute(Color.Red, StandardColor.RaisinBlack);
+    static public Attribute AttributeGreen = new Attribute(Color.Green, StandardColor.RaisinBlack);
+    static public Attribute AttributeBrightBlue = new Attribute(Color.BrightBlue, StandardColor.RaisinBlack);
 
-    static public Attribute AttributeDarkGrayOnGray = new Attribute(Color.DarkGray, LightGray);
-    static public Attribute AttributeDarkGrayOnWhite = new Attribute(Color.DarkGray, Color.White);
-
-    static public Attribute AttributeBlackOnGray = new Attribute(Color.Black, LightGray);
-    static public Attribute AttributeBlackOnWhite = new Attribute(Color.Black, Color.White);
-
-    static public Attribute AttributeWhiteOnGray = new Attribute(Color.White, LightGray);
-
-    static public Attribute AttributeBlueOnGray = new Attribute(Color.Blue, LightGray);
-    static public Attribute AttributeBlueOnWhite = new Attribute(Color.Blue, Color.White);
-
-    static public Attribute AttributeGreenOnGray = new Attribute(Color.Green, LightGray);
-    static public Attribute AttributeGreenOnWhite = new Attribute(Color.Green, Color.White);
-
-    static public Attribute AttributeRedOnGray = new Attribute(Color.Red, LightGray);
-    static public Attribute AttributeRedOnWhite = new Attribute(Color.Red, Color.White);
-
-    static public ColorScheme ColorSchemeBlackOnGray = new(AttributeBlackOnGray);
-    static public ColorScheme ColorSchemeDarkGrayOnGray = new(AttributeDarkGrayOnGray);
-    static public ColorScheme ColorSchemeWhiteOnGray = new(AttributeWhiteOnGray);
-
-    static public ColorScheme ColorSchemeBlueOnGray = new(AttributeBlueOnGray,       // Normal
-                                                                AttributeBlueOnWhite,    // Focus
-                                                                AttributeBlueOnGray,     // Hot Normal
-                                                                AttributeDarkGrayOnGray, // Disabled 
-                                                                AttributeBlueOnGray);    // HotFocus
-
-    static public ColorScheme ColorSchemeGreenOnGray = new(AttributeGreenOnGray,      // Normal
-                                                                AttributeGreenOnWhite,   // Focus
-                                                                AttributeGreenOnGray,    // Hot Normal
-                                                                AttributeDarkGrayOnGray, // Disabled 
-                                                                AttributeGreenOnGray);   // HotFocus
-
-    static public ColorScheme ColorSchemeRedOnGray = new(AttributeRedOnGray,        // Normal
-                                                                AttributeRedOnWhite,     // Focus
-                                                                AttributeRedOnGray,      // Hot Normal
-                                                                AttributeDarkGrayOnGray, // Disabled 
-                                                                AttributeRedOnGray);     // HotFocus
-
-    static public ColorScheme ColorSchemeLoggerBlue = new(new Attribute(Color.Blue, Color.White));
-    static public ColorScheme ColorSchemeLoggerGreen = new(new Attribute(Color.Green, Color.White));
-    static public ColorScheme ColorSchemeLoggerRed = new(new Attribute(Color.Red, Color.White));
-
-
-    static public ColorScheme ColorSchemeLogger = new(AttributeDarkGrayOnWhite,     // Normal
-                                                                AttributeDarkGrayOnWhite,   // Focus
-                                                                AttributeDarkGrayOnWhite,   // Hot Normal
-                                                                AttributeDarkGrayOnWhite,   // Disabled 
-                                                                AttributeDarkGrayOnWhite);    // HotFocus
-
-    static public ColorScheme ColorSchemeMain = new(AttributeBlackOnGray,     // Normal
-                                                            AttributeBlackOnWhite,    // Focus
-                                                            AttributeBlackOnGray,    // Hot Normal
-                                                            AttributeDarkGrayOnGray, // Disabled
-                                                            AttributeBlackOnGray);   // HotFocus
-
-    static public ColorScheme ColorSchemeBlackOnWhite = new(new Attribute(Color.Black, Color.White));
-    static public ColorScheme ColorSchemeWhiteOnBlack = new(new Attribute(Color.White, Color.Black));
-    static public ColorScheme ColorSchemeWhiteOnBlue = new(new Attribute(Color.White, Color.Blue));
-
-    static public ColorScheme ColorSchemeContactsPanel = ColorSchemeRedOnGray;
-    static public ColorScheme ColorSchemePresencePanel = ColorSchemeBlueOnGray;
-
-    static public List<Cell> ToCellList(string str, ColorScheme? colorscheme = null)
+    static public List<Cell> ToCellList(string str, Attribute ? attribute = null)
     {
-        return Cell.ToCellList(str, ToAttribute(colorscheme));
-    }
-
-    static public Terminal.Gui.Attribute ToAttribute(ColorScheme? colorscheme = null)
-    {
-        if (colorscheme != null)
-            return new Terminal.Gui.Attribute(colorscheme.Normal.Foreground, colorscheme.Normal.Background);
-        return new();
+        return Cell.ToCellList(str, attribute);
     }
 
     static public void DisplayLoggerAsDialog(string title, string txt, List<ColorSchemeInfo>? colorSchemeInfos = null)
     {
-
-        Terminal.Gui.Application.Invoke(() =>
+        Application.Invoke(() =>
         {
 
             // Create dialog
@@ -112,7 +49,7 @@ static public class Tools
             {
                 foreach (var colorSchemeInfo in colorSchemeInfos)
                 {
-                    loggerView.AddColorScheme(colorSchemeInfo.Color, colorSchemeInfo.ColorScheme, colorSchemeInfo.Keys);
+                    loggerView.AddScheme(colorSchemeInfo.Color, colorSchemeInfo.SchemeName, colorSchemeInfo.Keys);
                 }
             }
 
@@ -130,7 +67,7 @@ static public class Tools
             loggerView.AddText(txt);
 
             // Display dialog and wait until it's closed
-            Terminal.Gui.Application.Run(dialog);
+            Terminal.Gui.App.Application.Run(dialog);
 
             // Dispose dialog
             dialog.Dispose();
@@ -148,13 +85,13 @@ static public class Tools
 
         ColorSchemeInfo blue = new() {
             Color = "blue",
-            ColorScheme = Tools.ColorSchemeLoggerBlue,
+            SchemeName = Tools.DEFAULT_SCHEME_NAME,
             Keys = ["Resource", "Apply", "Until"]
         };
         ColorSchemeInfo red = new()
         {
             Color = "red",
-            ColorScheme = Tools.ColorSchemeLoggerRed,
+            SchemeName = "Red",
             Keys = ["DisplayName", "Id", "Jid", "Aggregated Presence"]
         };
         colorSchemeInfos.Add(blue);
@@ -193,18 +130,44 @@ static public class Tools
         {
             Orientation = Orientation.Vertical,
             Width = 4,
-            ColorScheme = Tools.ColorSchemeGreenOnGray,
-            CollapseString = $" {Emojis.MINUS} ",
-            ExpandString = $" {Emojis.PLUS} ",
+            CollapseString = $" {Emojis.COLLAPSE} ",
+            ExpandString = $" {Emojis.EXPAND} ",
         };
     }
 
     public static void InitTerminalGuiApplication()
     {
+        String tuiConfig = $".{Path.DirectorySeparatorChar}config{Path.DirectorySeparatorChar}tui_config.json";
+        if (File.Exists(tuiConfig))
+        {
+            String jsonConfig = File.ReadAllText(tuiConfig);
+
+            ConfigurationManager.RuntimeConfig = jsonConfig;
+            ConfigurationManager.Enable(ConfigLocations.Runtime);
+            //ConfigurationManager.Apply();
+
+            //ThemeManager.Theme = "Base";
+        }
+
         Console.OutputEncoding = Encoding.Default;
-        var _forceDriver = "v2net"; // v2win
-        Terminal.Gui.Application.ForceDriver = _forceDriver;
-        Terminal.Gui.Application.Init(driverName: _forceDriver);
+
+        Boolean isWindows = false;
+        try
+        {
+            var osDesc = System.Runtime.InteropServices.RuntimeInformation.OSDescription;
+            isWindows = osDesc.Contains("windows", StringComparison.InvariantCultureIgnoreCase);
+        }
+        catch (Exception exc)
+        {
+        }
+
+        if (isWindows)
+        {
+            var _forceDriver = "v2net"; /* "v2win"; */
+            Terminal.Gui.App.Application.ForceDriver = _forceDriver;
+            Terminal.Gui.App.Application.Init(driverName: _forceDriver);
+        }
+
     }
 
     public static Boolean IsOwner(Rainbow.Application? rbApplication, Bubble? bubble)

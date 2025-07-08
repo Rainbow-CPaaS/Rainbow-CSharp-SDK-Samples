@@ -1,5 +1,5 @@
 ﻿using Rainbow.Model;
-using Terminal.Gui;
+using Terminal.Gui.ViewBase;
 
 public class SearchResultItem: View
 {

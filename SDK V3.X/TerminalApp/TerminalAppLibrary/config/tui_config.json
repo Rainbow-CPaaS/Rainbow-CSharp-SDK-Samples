@@ -1,0 +1,99 @@
+{
+  "$schema": "https://gui-cs.github.io/Terminal.GuiV2Docs/schemas/tui-config-schema.json",
+  "Themes": [
+    {
+      "Default": {
+        "Schemes": [
+          {
+            "DarkGray": {
+              "Normal": {
+                "Foreground": "DarkGray",
+                "Background": "RaisinBlack"
+              }
+            }
+          },
+          {
+            "BrightBlue": {
+              "Normal": {
+                "Foreground": "BrightBlue",
+                "Background": "RaisinBlack"
+              }
+            }
+          },
+          {
+            "OnBrightBlue": {
+              "Normal": {
+                "Foreground": "RaisinBlack",
+                "Background": "BrightBlue"
+              }
+            }
+          },
+          {
+            "OnLightBlue": {
+              "Normal": {
+                "Foreground": "RaisinBlack",
+                "Background": "LightBlue"
+              }
+            }
+          },
+          {
+            "Red": {
+              "Normal": {
+                "Foreground": "Red",
+                "Background": "RaisinBlack"
+              }
+            }
+          },
+          {
+            "Green": {
+              "Normal": {
+                "Foreground": "Green",
+                "Background": "RaisinBlack"
+              }
+            }
+          },
+          {
+            "PresenceOnline": {
+              "Normal": {
+                "Foreground": "White",
+                "Background": "#5CA300"
+              }
+            }
+          },
+          {
+            "PresenceOffline": {
+              "Normal": {
+                "Foreground": "#DDDDDD",
+                "Background": "#DDDDDD"
+              }
+            }
+          },
+          {
+            "PresenceAway": {
+              "Normal": {
+                "Foreground": "#F2C744",
+                "Background": "#F2C744"
+              }
+            }
+          },
+          {
+            "PresenceDndOrBusy": {
+              "Normal": {
+                "Foreground": "White",
+                "Background": "#F3483F"
+              }
+            }
+          },
+          {
+            "PresenceInvitationInProgress": {
+              "Normal": {
+                "Foreground": "Black",
+                "Background": "Black"
+              }
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

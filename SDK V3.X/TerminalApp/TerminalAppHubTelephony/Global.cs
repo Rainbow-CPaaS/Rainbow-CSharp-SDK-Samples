@@ -20,7 +20,7 @@ internal static class Global
         {
         }
 
-        _productName ??= "TerminalAppHybridTelephony(backup)";
+        _productName ??= "TerminalAppHubTelephony(backup)";
         _fileVersion ??= "0.0.0.1";
     }
 

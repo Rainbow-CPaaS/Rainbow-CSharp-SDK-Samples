@@ -2,29 +2,30 @@
 using Terminal.Gui.ViewBase;
 using Terminal.Gui.Views;
 
-public partial class HybridTelephonyServiceView: View
+public partial class HubTelephonyServiceView: View
 {
     readonly Rainbow.Application rbApplication;
-    readonly Rainbow.HybridTelephony rbHybridTelephony;
+    readonly Rainbow.HubTelephony rbHubTelephony;
 
     readonly Label lblPbxAgent;
     readonly Label lblPbxAgentValue;
     readonly Label lblPbxId;
     readonly Label lblPbxIdValue;
+
     readonly Label lblInactive;
 
     Boolean? serviceAvailable = null;
     Boolean serviceEnabled = false;
 
-    public HybridTelephonyServiceView(Rainbow.Application rbApplication)
+    public HubTelephonyServiceView(Rainbow.Application rbApplication)
     {
         this.rbApplication = rbApplication;
-        rbHybridTelephony = rbApplication.GetHybridTelephony();
+        rbHubTelephony = rbApplication.GetHubTelephony();
 
-        rbHybridTelephony.HybridTelephonyStatusUpdated += RbHybridTelephony_HybridTelephonyStatusUpdated;
-        rbHybridTelephony.HybridPBXAgentInfoUpdated += RbHybridTelephony_HybridPBXAgentInfoUpdated;
+        rbHubTelephony.TelephonyStatusUpdated += RbHubTelephony_HybridTelephonyStatusUpdated;
+        rbHubTelephony.PBXAgentInfoUpdated += RbHubTelephony_HybridPBXAgentInfoUpdated;
 
-        Title = $"Hybrid Telephony Service";
+        Title = $"Hub Telephony Service";
         BorderStyle = LineStyle.Dotted;
         CanFocus = true;
 
@@ -121,12 +122,12 @@ public partial class HybridTelephonyServiceView: View
 
         if (available)
         {
-            lblPbxAgentValue.Text = rbHybridTelephony.GetHybridPBXAgentInformation()?.Version;
-            lblPbxIdValue.Text = rbHybridTelephony.GetHybridPBXAgentInformation()?.PbxId;
+            lblPbxAgentValue.Text = rbHubTelephony.GetPBXAgentInformation()?.Version;
+            lblPbxIdValue.Text = rbHubTelephony.GetPBXAgentInformation()?.PbxId;
         }
     }
 
-    private void RbHybridTelephony_HybridTelephonyStatusUpdated(Boolean? available)
+    private void RbHubTelephony_HybridTelephonyStatusUpdated(Boolean available)
     {
         Terminal.Gui.App.Application.Invoke(() =>
         {
@@ -135,7 +136,7 @@ public partial class HybridTelephonyServiceView: View
         });
     }
 
-    private void RbHybridTelephony_HybridPBXAgentInfoUpdated(Rainbow.Model.PbxAgentInfo pbxAgentInfo)
+    private void RbHubTelephony_HybridPBXAgentInfoUpdated(Rainbow.Model.PbxAgentInfo pbxAgentInfo)
     {
         Terminal.Gui.App.Application.Invoke(() =>
         {

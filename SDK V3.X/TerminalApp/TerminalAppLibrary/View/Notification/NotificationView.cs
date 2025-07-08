@@ -1,6 +1,8 @@
 ﻿using Rainbow.Consts;
 using Rainbow.Model;
-using Terminal.Gui;
+using Terminal.Gui.Input;
+using Terminal.Gui.ViewBase;
+using Terminal.Gui.Views;
 
 public class NotificationView: View
 {
@@ -88,7 +90,7 @@ public class NotificationView: View
         dialog.Add(notificationPanelView);
 
         // Display dialog and wait until it's closed
-        Terminal.Gui.Application.Run(dialog);
+        Terminal.Gui.App.Application.Run(dialog);
 
         dialog.Remove(notificationPanelView);
 
@@ -139,7 +141,7 @@ public class NotificationView: View
 
             bubblesInvitations.Add((invitationContextId, contactId));
         }
-        Terminal.Gui.Application.Invoke(() =>
+        Terminal.Gui.App.Application.Invoke(() =>
         {
             CheckCounter(++counter);
 
@@ -149,7 +151,7 @@ public class NotificationView: View
 
     private void RemoveInvitation(Boolean contactInvitation, String invitationContextId)
     {
-        Terminal.Gui.Application.Invoke(() =>
+        Terminal.Gui.App.Application.Invoke(() =>
         {
             int nb;
             if (contactInvitation)

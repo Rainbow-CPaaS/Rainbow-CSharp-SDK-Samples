@@ -1,10 +1,11 @@
 ﻿using EmbedIO;
 using Microsoft.Extensions.Logging;
+using Swan.Logging;
 
 public class CallbackWebModule : WebModuleBase
 {
     // Define log object - use same repository than the SDK
-    private static readonly ILogger log = Rainbow.LogFactory.CreateLogger("CallbackWebModule");
+    private static readonly Microsoft.Extensions.Logging.ILogger log = Rainbow.LogFactory.CreateLogger("CallbackWebModule");
 
     private Rainbow.S2SEventPipe s2sEventPipe;
 
@@ -30,4 +31,26 @@ public class CallbackWebModule : WebModuleBase
     }
 
     public override bool IsFinalHandler { get; } = true;
+}
+
+public class SwanLogger : Swan.Logging.ILogger
+{
+    const String LOGGER_NAME = "S2S";
+
+    public Microsoft.Extensions.Logging.ILogger log = null;
+
+    Swan.Logging.LogLevel Swan.Logging.ILogger.LogLevel => Swan.Logging.LogLevel.Debug;
+
+    public void Dispose()
+    {
+
+    }
+
+    public void Log(LogMessageReceivedEventArgs logEvent)
+    {
+        log ??= Rainbow.LogFactory.CreateLogger(LOGGER_NAME);
+        log.LogDebug(logEvent.Message);
+
+
+    }
 }

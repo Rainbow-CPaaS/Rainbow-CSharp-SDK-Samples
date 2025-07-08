@@ -1,7 +1,9 @@
 ﻿using Rainbow;
 using Rainbow.Consts;
 using Rainbow.Model;
-using Terminal.Gui;
+using Terminal.Gui.Input;
+using Terminal.Gui.ViewBase;
+using Terminal.Gui.Views;
 
 public class BubbleMemberView: View
 {
@@ -127,7 +129,7 @@ public class BubbleMemberView: View
 
         if (bubbleMember is not null)
         {
-            var colorScheme = Tools.ColorSchemeBlueOnGray;
+            String schemeName = Tools.DEFAULT_SCHEME_NAME;
             String txt;
             if (bubbleMember.Status != BubbleMemberStatus.Accepted)
                 txt = Emojis.WAITING;
@@ -138,11 +140,12 @@ public class BubbleMemberView: View
             {
                 case BubbleMemberPrivilege.Owner:
                     txt += Emojis.MODERATOR;
-                    colorScheme = Tools.ColorSchemeRedOnGray;
+                    schemeName = "Red";
                     break;
 
                 case BubbleMemberPrivilege.Moderator:
                     txt += Emojis.MODERATOR;
+                    schemeName = "BrightBlue";
                     break;
 
                 case BubbleMemberPrivilege.User:
@@ -150,7 +153,7 @@ public class BubbleMemberView: View
                     break;
             }
             lblPrivilege.Text = txt;
-            lblPrivilege.ColorScheme = colorScheme;
+            lblPrivilege.SchemeName = schemeName;
         }
     }
 
@@ -162,7 +165,7 @@ public class BubbleMemberView: View
             {
                 bubbleMember = member;
 
-                Terminal.Gui.Application.Invoke(() =>
+                Terminal.Gui.App.Application.Invoke(() =>
                 {
                     UpdateDisplay(false);
                 });
@@ -183,7 +186,7 @@ public class BubbleMemberView: View
             Boolean updatePresenceView = this.contact is null;
 
             this.contact = contactFound;
-            Terminal.Gui.Application.Invoke(() =>
+            Terminal.Gui.App.Application.Invoke(() =>
             {
                 UpdateDisplay(updatePresenceView);
             });
