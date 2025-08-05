@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging.Abstractions;
 using NLog.Config;
 using NLog.Extensions.Logging;
 
@@ -36,17 +36,13 @@ namespace Rainbow.Example.Common
                 prefix = [""];
 
             // Check new prefix
-            var newPrefix = prefix.ToList().Except(prefixUsed);
+            var newPrefix = prefix.ToList().Except(prefixUsed).ToList();
             if (newPrefix.Count() == 0)
                 return true; // No new prefix added
 
-            // Add new ones
-            prefixUsed.AddRange(newPrefix);
-
-            // Set "" always at the end
-            if (prefixUsed.Contains(""))
-                prefixUsed.Remove("");
-            prefixUsed.Add("");
+            // Add default logger / rule if there is not yet a configuration
+            if (NLog.LogManager.Configuration is null)
+                newPrefix.Add("");
 
             // Check Directory
             if (String.IsNullOrEmpty(Directory))
@@ -62,7 +58,7 @@ namespace Rainbow.Example.Common
             string loggers = "";
             string targets = "";
 
-            foreach (String prefixItem in prefixUsed)
+            foreach (String prefixItem in newPrefix)
             {
                 targets += logTargetContent.Replace("[$PREFIX]", prefixItem) + "\r\n";
 
@@ -81,18 +77,29 @@ namespace Rainbow.Example.Common
 
             try
             {
+                // Set Logger factory to Rainbow SDK only once
+                if (Rainbow.LogFactory.Get() == NullLoggerFactory.Instance)
+                {
+                    var factory = new NLogLoggerFactory();
+                    
+                    Rainbow.LogFactory.Set(factory);
+                }
+
                 // Create NLog configuration using XML file content
                 XmlLoggingConfiguration config = XmlLoggingConfiguration.CreateFromXmlString(logConfigContent);
-                if (config.InitializeSucceeded == true)
+
+                if (NLog.LogManager.Configuration is null)
+                    NLog.LogManager.Configuration = config;
+                else
                 {
-                    // Create Logger factory
-                    var factory = LoggerFactory.Create(builder => builder.AddNLog(config));
-
-                    // Set Logger factory to Rainbow SDK
-                    Rainbow.LogFactory.Set(factory);
-
-                    return true;
+                    foreach(var rule in config.LoggingRules)
+                    {
+                        NLog.LogManager.Configuration.AddRule(rule);
+                    }
+                    
+                    NLog.LogManager.ReconfigExistingLoggers();
                 }
+                return true;
             }
             catch { }
 
