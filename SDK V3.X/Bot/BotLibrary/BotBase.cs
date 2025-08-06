@@ -110,7 +110,7 @@ namespace BotLibrary
         /// </summary>
         private void ConfigureStateMachine()
         {
-            // Configure the Configured state
+            // Configure the Created state
             _machine.Configure(State.Created)
                 .Permit(Trigger.Configure, State.NotConnected);
 
@@ -119,7 +119,7 @@ namespace BotLibrary
                 .OnEntryAsync(OnEntryStoppedAsync)
                 .Permit(Trigger.StartLogin, State.Connecting);
 
-            // Configure the Disconnected state
+            // Configure the NotConnected state
             _machine.Configure(State.NotConnected)
                 .Permit(Trigger.StartLogin, State.Connecting)
                 .Permit(Trigger.Stop, State.Stopped);
@@ -130,7 +130,7 @@ namespace BotLibrary
                 .Permit(Trigger.Connect, State.Connected)
                 .Permit(Trigger.AuthenticationSucceeded, State.Authenticated);
 
-            // Configure the Connecting state
+            // Configure the Authenticated state
             _machine.Configure(State.Authenticated)
                 .Permit(Trigger.Connect, State.Connected)
                 .Permit(Trigger.Disconnect, State.NotConnected);
@@ -141,7 +141,7 @@ namespace BotLibrary
                 .Permit(Trigger.NextStep, State.CheckingDataAvailability)
                 .Permit(Trigger.Disconnect, State.NotConnected);
 
-            // Configure the ManageBubbleInvitations state
+            // Configure the CheckingDataAvailability state
             _machine.Configure(State.CheckingDataAvailability)
                 .OnEntryAsync(OnEntryCheckDataAvailabilityAsync)
                 .SubstateOf(State.Connected)
@@ -152,38 +152,38 @@ namespace BotLibrary
                 .Permit(Trigger.ApplicationMessage, State.ManageApplicationMessageReceived)
                 .Permit(Trigger.InternalMessage, State.ManageInternalMessageReceived)
                 .Permit(Trigger.InstantMessage, State.ManageInstantMessageReceived);
-            
-            // Configure the ManageBubbleInvitations state
+
+            // Configure the ManageBubbleInvitationReceived state
             _machine.Configure(State.ManageBubbleInvitationReceived)
                 .OnEntryAsync(OnEntryManageBubbleInvitationReceivedAsync)
                 .SubstateOf(State.Connected)
                 .Permit(Trigger.NextStep, State.CheckingDataAvailability);
 
-            // Configure the ManageUserInvitations state
+            // Configure the ManageUserInvitationReceived state
             _machine.Configure(State.ManageUserInvitationReceived)
                 .OnEntryAsync(OnEntryManageUserInvitationReceivedAsync)
                 .SubstateOf(State.Connected)
                 .Permit(Trigger.NextStep, State.CheckingDataAvailability);
-            
-            // Configure the SubStateManageMessages state
+
+            // Configure the ManageAckMessageReceived state
             _machine.Configure(State.ManageAckMessageReceived)
                 .OnEntryAsync(OnEntryManageAckMessageReceivedAsync)
                 .SubstateOf(State.Connected)
                 .Permit(Trigger.NextStep, State.CheckingDataAvailability);
 
-            // Configure the SubStateManageMessages state
+            // Configure the ManageApplicationMessageReceived state
             _machine.Configure(State.ManageApplicationMessageReceived)
                 .OnEntryAsync(OnEntryManageApplicationMessageReceivedAsync)
                 .SubstateOf(State.Connected)
                 .Permit(Trigger.NextStep, State.CheckingDataAvailability);
 
-            // Configure the SubStateManageMessages state
+            // Configure the ManageInternalMessageReceived state
             _machine.Configure(State.ManageInternalMessageReceived)
                 .OnEntryAsync(OnEntryManageInternalMessageReceivedAsync)
                 .SubstateOf(State.Connected)
                 .Permit(Trigger.NextStep, State.CheckingDataAvailability);
 
-            // Configure the SubStateManageMessages state
+            // Configure the ManageInstantMessageReceived state
             _machine.Configure(State.ManageInstantMessageReceived)
                 .OnEntryAsync(OnEntryManageInstantMessageReceivedAsync)
                 .SubstateOf(State.Connected)
