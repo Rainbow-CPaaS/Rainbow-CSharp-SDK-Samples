@@ -17,7 +17,7 @@ namespace Rainbow.Example.Common
     public static class NLogConfigurator
     {
         private static List<String> prefixUsed;
-
+            
         static NLogConfigurator()
         {
             prefixUsed = new();
@@ -40,9 +40,12 @@ namespace Rainbow.Example.Common
             if (newPrefix.Count() == 0)
                 return true; // No new prefix added
 
-            // Add default logger / rule if there is not yet a configuration
-            if (NLog.LogManager.Configuration is null)
-                newPrefix.Add("");
+            // Store new prefix
+            prefixUsed.AddRange(newPrefix);
+
+            // Ensure to have "" as prefix in the end
+            newPrefix.Remove("");
+            newPrefix.Add("");
 
             // Check Directory
             if (String.IsNullOrEmpty(Directory))
@@ -88,17 +91,20 @@ namespace Rainbow.Example.Common
                 // Create NLog configuration using XML file content
                 XmlLoggingConfiguration config = XmlLoggingConfiguration.CreateFromXmlString(logConfigContent);
 
-                if (NLog.LogManager.Configuration is null)
-                    NLog.LogManager.Configuration = config;
-                else
+                NLog.LogManager.Configuration ??= new();
+
+                // Need to remove previous rules "*" and "WEBRTC" (if any)
+                NLog.LogManager.Configuration.RemoveRuleByName("*");
+                NLog.LogManager.Configuration.RemoveRuleByName("WEBRTC");
+
+                foreach (var rule in config.LoggingRules)
                 {
-                    foreach(var rule in config.LoggingRules)
-                    {
-                        NLog.LogManager.Configuration.AddRule(rule);
-                    }
-                    
-                    NLog.LogManager.ReconfigExistingLoggers();
+                    rule.RuleName = rule.LoggerNamePattern;
+                    NLog.LogManager.Configuration.AddRule(rule);
                 }
+                    
+                NLog.LogManager.ReconfigExistingLoggers();
+
                 return true;
             }
             catch { }
