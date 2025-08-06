@@ -32,84 +32,87 @@ namespace Rainbow.Example.Common
         /// <returns><see cref="Boolean"/> - True on success</returns>
         public static Boolean AddLogger(params String[] prefix)
         {
-            if ((prefix == null) || (prefix.Length == 0))
-                prefix = [""];
-
-            // Check new prefix
-            var newPrefix = prefix.ToList().Except(prefixUsed).ToList();
-            if (newPrefix.Count() == 0)
-                return true; // No new prefix added
-
-            // Store new prefix
-            prefixUsed.AddRange(newPrefix);
-
-            // Ensure to have "" as prefix in the end
-            newPrefix.Remove("");
-            newPrefix.Add("");
-
-            // Check Directory
-            if (String.IsNullOrEmpty(Directory))
-                Directory = "./";
-            else if (!Directory.EndsWith("/"))
-                Directory += "/";
-
-            // Get content of the log file configuration
-            String logConfigContent = XmlContent;
-            String logLoggerContent = LoggerContent;
-            String logTargetContent = TargetContent;
-
-            string loggers = "";
-            string targets = "";
-
-            foreach (String prefixItem in newPrefix)
+            lock(prefixUsed)
             {
-                targets += logTargetContent.Replace("[$PREFIX]", prefixItem) + "\r\n";
+                if ((prefix == null) || (prefix.Length == 0))
+                    prefix = [""];
 
-                if (prefixItem == "")
+                // Check new prefix
+                var newPrefix = prefix.ToList().Except(prefixUsed).ToList();
+                if (newPrefix.Count() == 0)
+                    return true; // No new prefix added
+
+                // Store new prefix
+                prefixUsed.AddRange(newPrefix);
+
+                // Ensure to have "" as prefix in the end
+                newPrefix.Remove("");
+                newPrefix.Add("");
+
+                // Check Directory
+                if (String.IsNullOrEmpty(Directory))
+                    Directory = "./";
+                else if (!Directory.EndsWith("/"))
+                    Directory += "/";
+
+                // Get content of the log file configuration
+                String logConfigContent = XmlContent;
+                String logLoggerContent = LoggerContent;
+                String logTargetContent = TargetContent;
+
+                string loggers = "";
+                string targets = "";
+
+                foreach (String prefixItem in newPrefix)
                 {
-                    loggers += logLoggerContent.Replace("[$PREFIX]", prefixItem)
-                                    .Replace("final=\"true\"", "") + "\r\n";
+                    targets += logTargetContent.Replace("[$PREFIX]", prefixItem) + "\r\n";
+
+                    if (prefixItem == "")
+                    {
+                        loggers += logLoggerContent.Replace("[$PREFIX]", prefixItem)
+                                        .Replace("final=\"true\"", "") + "\r\n";
+                    }
+                    else
+                        loggers += logLoggerContent.Replace("[$PREFIX]", prefixItem) + "\r\n";
                 }
-                else
-                    loggers += logLoggerContent.Replace("[$PREFIX]", prefixItem) + "\r\n";
-            }
 
-            logConfigContent = logConfigContent.Replace("<!--RULES-->", loggers)
-                                        .Replace("<!--TARGETS-->", targets)
-                                        .Replace("[$DIRECTORY]", Directory);
+                logConfigContent = logConfigContent.Replace("<!--RULES-->", loggers)
+                                            .Replace("<!--TARGETS-->", targets)
+                                            .Replace("[$DIRECTORY]", Directory);
 
-            try
-            {
-                // Set Logger factory to Rainbow SDK only once
-                if (Rainbow.LogFactory.Get() == NullLoggerFactory.Instance)
+                try
                 {
-                    var factory = new NLogLoggerFactory();
+                    // Set Logger factory to Rainbow SDK only once
+                    if (Rainbow.LogFactory.Get() == NullLoggerFactory.Instance)
+                    {
+                        var factory = new NLogLoggerFactory();
                     
-                    Rainbow.LogFactory.Set(factory);
-                }
+                        Rainbow.LogFactory.Set(factory);
+                    }
 
-                // Create NLog configuration using XML file content
-                XmlLoggingConfiguration config = XmlLoggingConfiguration.CreateFromXmlString(logConfigContent);
+                    // Create NLog configuration using XML file content
+                    XmlLoggingConfiguration config = XmlLoggingConfiguration.CreateFromXmlString(logConfigContent);
 
-                NLog.LogManager.Configuration ??= new();
+                    NLog.LogManager.Configuration ??= new();
 
-                // Need to remove previous rules "*" and "WEBRTC" (if any)
-                NLog.LogManager.Configuration.RemoveRuleByName("*");
-                NLog.LogManager.Configuration.RemoveRuleByName("WEBRTC");
+                    // Need to remove previous rules "*" and "WEBRTC" (if any)
+                    NLog.LogManager.Configuration.RemoveRuleByName("*");
+                    NLog.LogManager.Configuration.RemoveRuleByName("WEBRTC");
 
-                foreach (var rule in config.LoggingRules)
-                {
-                    rule.RuleName = rule.LoggerNamePattern;
-                    NLog.LogManager.Configuration.AddRule(rule);
-                }
+                    foreach (var rule in config.LoggingRules)
+                    {
+                        rule.RuleName = rule.LoggerNamePattern;
+                        NLog.LogManager.Configuration.AddRule(rule);
+                    }
                     
-                NLog.LogManager.ReconfigExistingLoggers();
+                    NLog.LogManager.ReconfigExistingLoggers();
 
-                return true;
+                    return true;
+                }
+                catch { }
+
+                return false;
             }
-            catch { }
-
-            return false;
         }
 
         /// <summary>
