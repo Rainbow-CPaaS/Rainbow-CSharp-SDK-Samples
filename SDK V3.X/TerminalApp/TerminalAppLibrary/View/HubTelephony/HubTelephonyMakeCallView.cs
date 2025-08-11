@@ -20,7 +20,7 @@ public partial class HubTelephonyMakeCallView : View
 
     Contact? currentContact = null;
 
-    HubDevice? selectedCurrentDevice = null;
+    //HubDevice? selectedCurrentDevice = null;
     HubDevice? selectedPhoneUsed = null;
     String? selectedResource = null;
     List<String> resources = new List<String>();
@@ -358,8 +358,8 @@ public partial class HubTelephonyMakeCallView : View
 
         if(selectedPhoneUsed is null)
             selectedPhoneUsed = currentDevice;
-        if(selectedCurrentDevice is null)
-            selectedCurrentDevice = currentDevice;
+        //if(selectedCurrentDevice is null)
+        //    selectedCurrentDevice = currentDevice;
 
         HubDevice? firstDevice = null;
         List<Item> items = new();
@@ -393,7 +393,7 @@ public partial class HubTelephonyMakeCallView : View
                 if (item.Id == selectedPhoneUsed?.DeviceId)
                     itemSelectedPhoneUsed = item;
 
-                if (item.Id == selectedCurrentDevice?.DeviceId)
+                if (item.Id == currentDevice?.DeviceId)
                     itemSelectedCurrentPhone = item;
             }
         }
@@ -420,7 +420,7 @@ public partial class HubTelephonyMakeCallView : View
                 else
                 {
                     itemSelectorCurrentDevice.SetItemSelected(0);
-                    selectedCurrentDevice = firstDevice;
+                    //selectedCurrentDevice = firstDevice;
                 }
             }
             else
@@ -429,7 +429,7 @@ public partial class HubTelephonyMakeCallView : View
                 selectedPhoneUsed = null;
 
                 itemSelectorCurrentDevice.SetItems((List<Item>?) null);
-                selectedCurrentDevice = null;
+                //selectedCurrentDevice = null;
             }
 
             CheckDeviceAndResourceSelection();
@@ -539,7 +539,7 @@ private void CheckDeviceAndResourceSelection()
             var device = devices?.FirstOrDefault(d => d.DeviceId == item.Id);
             if (device is not null)
             {
-                selectedCurrentDevice = device;
+                //selectedCurrentDevice = device;
 
                 Task.Run(async () =>
                 {
