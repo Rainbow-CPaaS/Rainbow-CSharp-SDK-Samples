@@ -7,10 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Rainbow.CSharp.SDK.Medias" Version="1.5.0" />
+    <PackageReference Include="Rainbow.CSharp.SDK.Medias" Version="1.6.0" />
 <!--
     <ProjectReference Include="..\..\..\rainbow-csharp-sdk-test\SDK.Medias\SDK.Medias.csproj" />
 -->
-    <ProjectReference Include="..\Common\Common.csproj" />
+	  <ProjectReference Include="..\Common\Common.csproj" />
   </ItemGroup>
 </Project>

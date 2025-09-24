@@ -14,7 +14,7 @@ namespace Rainbow.Example.Common
             UsersConfig = [];
         }
 
-        public static Boolean FromJsonNode(JSONNode jsonNode, out Credentials credentials)
+        public static Boolean FromJsonNode(JSONNode jsonNode, out Credentials credentials, Boolean credentialsCanBeEmpty = false)
         {
             if (jsonNode is not null)
             {
@@ -25,7 +25,11 @@ namespace Rainbow.Example.Common
                 else
                     return false;
 
-                Boolean needCredentials = !( (credentials.ServerConfig.OAuthPorts?.Count > 0) || !String.IsNullOrEmpty(credentials.ServerConfig.SSORedirectUrl) );
+                Boolean needCredentials;
+                if (credentialsCanBeEmpty)
+                    needCredentials = false;
+                else
+                    needCredentials = !( (credentials.ServerConfig.OAuthPorts?.Count > 0) || !String.IsNullOrEmpty(credentials.ServerConfig.SSORedirectUrl) );
 
                 if (jsonNode["usersConfig"]?.IsArray == true)
                 {

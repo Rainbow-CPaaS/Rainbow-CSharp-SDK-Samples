@@ -136,7 +136,7 @@ namespace Rainbow.Example.Common.SDL2
 
         public static void UpdateTexture(Window window, int stride, IntPtr data)
         {
-            if (window is not null && window.Texture != IntPtr.Zero)
+            if (window is not null && window.Texture != IntPtr.Zero && data != IntPtr.Zero)
             {
                 var _ = Rainbow.Medias.SDL2.SDL_UpdateTexture(window.Texture, IntPtr.Zero, data, stride);
             }

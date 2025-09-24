@@ -39,7 +39,7 @@ namespace Rainbow.Example.Common
 
                 // Check new prefix
                 var newPrefix = prefix.ToList().Except(prefixUsed).ToList();
-                if (newPrefix.Count() == 0)
+                if (!newPrefix.Any())
                     return true; // No new prefix added
 
                 // Store new prefix

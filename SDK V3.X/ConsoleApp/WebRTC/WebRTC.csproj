@@ -14,14 +14,13 @@
 	
   <ItemGroup>
 	<ProjectReference Include="..\..\CommonSDL2\CommonSDL2.csproj" />
-
-	<PackageReference Include="Rainbow.CSharp.SDK.WebRTC" Version="2.2.0" />
-	<PackageReference Include="Rainbow.CSharp.SDK.WebRTC.Desktop" Version="2.2.0" />
-<!--	  
-    <ProjectReference Include="..\..\..\..\rainbow-csharp-sdk-test\SDK.WebRTC.Desktop\SDK.WebRTC.Desktop.csproj" />
-    <ProjectReference Include="..\..\..\..\rainbow-csharp-sdk-test\SDK.WebRTC\SDK.WebRTC.csproj" />
--->    
-  </ItemGroup>
+	<PackageReference Include="Rainbow.CSharp.SDK.WebRTC.Desktop" Version="2.3.0" />
+	<PackageReference Include="Rainbow.CSharp.SDK.WebRTC" Version="2.3.0" />  
+<!--
+	<ProjectReference Include="..\..\..\..\rainbow-csharp-sdk-test\SDK.WebRTC\SDK.WebRTC.csproj" />
+	<ProjectReference Include="..\..\..\..\rainbow-csharp-sdk-test\SDK.WebRTC.Desktop\SDK.WebRTC.Desktop.csproj" />
+-->
+</ItemGroup>
 
    <ItemGroup>
     <None Update="CHANGELOG.md">

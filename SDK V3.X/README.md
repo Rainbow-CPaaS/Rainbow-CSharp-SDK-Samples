@@ -68,6 +68,9 @@ They are listed in order of priority / complexity.
 | Conversations, **InstantMessaging**, Bubbles, Contacts | Manage Conversations, Send/Reveive Messages, Receipts | [README](./ConsoleApp/Conversations%20and%20IM/README.md) |
 | **S2S**, Conversations, InstantMessaging, Bubbles, Contacts | In S2S, Manage Conversations, Send/Reveive Messages, Receipts | [README](./ConsoleApp/Conversations%20and%20IM-S2S/README.md) |
 | **InstantMessaging**, Bubbles, Contacts | Fetch all messages archived from a Peer | [README](./ConsoleApp/Fetch%20messages%20from%20peer/README.md) |
+| **Customer Care**, administrator | As administrator asks log request for user | [README](./ConsoleApp/LogRequest%20as%20Admin/README.md) |
+| **Customer Care** | As user auto-accept log request asked from an administrator | [README](./ConsoleApp/LogRequest%20as%20User/README.md) |
+| **SMS**, administrator | Send SMS | [README](./ConsoleApp/Sms/README.md) |
 | **Audio, Video, Local / Remote Media** | Simple media Player | [README](./ConsoleApp/MediaPlayer/README.md) |
 | **Audio, Video, Sharing, Conference, WebRTC**| Allow to create/join conference, to make/answer P2P call, add/remove audio/video/sharing, subscribe to remote audio/video/sharing | [README](./ConsoleApp/WebRTC/README.md) |
 

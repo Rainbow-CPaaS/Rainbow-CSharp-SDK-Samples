@@ -78,7 +78,6 @@ Organisation? organisationManaged = null;
 Boolean noneOrganization = false;
 Company? companyManaged = null;
 Contact? userManaged = null;
-Contact? guestManaged = null;
 Bubble? bubbleManaged = null;
 
 // ------------------------------------------------
@@ -119,13 +118,8 @@ async Task CheckInputKey()
                 MenuDisplayInfo();
                 return;
 
-            case ConsoleKey.G:
-                await MenuUserOrGuestAsync(true);
-                MenuDisplayInfo();
-                return;
-
             case ConsoleKey.U:
-                await MenuUserOrGuestAsync(false);
+                await MenuUserAsync();
                 MenuDisplayInfo();
                 return;
 
@@ -548,7 +542,7 @@ async Task MenuBubbleLinkAsync()
     }
 }
 
-async Task MenuUserOrGuestAsync(Boolean manageGuest)
+async Task MenuUserAsync()
 {
     if (companyManaged is null)
     {
@@ -561,7 +555,7 @@ async Task MenuUserOrGuestAsync(Boolean manageGuest)
         }
     }
 
-    Util.WriteYellow($"{CR}Do you want to [A]dd, [L]ist/delete {(manageGuest ? "guests" : "users")} in company:[{companyManaged.Name}] or [C]ancel ?");
+    Util.WriteYellow($"{CR}Do you want to [A]dd, [L]ist/delete users in company:[{companyManaged.Name}] or [C]ancel ?");
 
     Boolean canContinue = true;
     while (canContinue)
@@ -573,11 +567,11 @@ async Task MenuUserOrGuestAsync(Boolean manageGuest)
             {
                 case ConsoleKey.A:
                     canContinue = false;
-                    await MenuCreateUserOrGuestAsync(manageGuest);
+                    await MenuCreateUserAsync();
                     break;
 
                 case ConsoleKey.L:
-                    await MenuListUserOrGuestAsync(manageGuest);
+                    await MenuListUserAsync();
                     canContinue = false;
                     break;
 
@@ -591,7 +585,7 @@ async Task MenuUserOrGuestAsync(Boolean manageGuest)
     }
 }
 
-async Task MenuCreateUserOrGuestAsync(Boolean manageGuest)
+async Task MenuCreateUserAsync()
 {
     if (companyManaged is null)
     {
@@ -604,40 +598,24 @@ async Task MenuCreateUserOrGuestAsync(Boolean manageGuest)
         }
     }
 
-
     String firstName = Rainbow.Util.GetGUID().Substring(0, 5);
-    String lastName = manageGuest ? "GUEST" : "USER";
+    String lastName ="USER";
 
-    if (manageGuest)
+    Util.WriteDarkYellow("Creating user ...");
+    String loginEmail = Rainbow.Util.GetGUID().Substring(0, 16) + "@sdk.drop.me";
+    String pwd = Rainbow.Util.GetGUID().ToUpper() + "!a";
+
+    var sdkResultContact = await RbAdministration.CreateUserAsync(loginEmail, pwd,  firstName, lastName, null, companyManaged.Id, true, false);
+    if (sdkResultContact.Success)
     {
-        Util.WriteDarkYellow("Creating guest ...");
-        var sdkResultGuestCreated = await RbAdministration.CreateGuestUserAsync(firstName, lastName, companyId: companyManaged.Id);
-        if (sdkResultGuestCreated.Success)
-        {
-            var guestCreated = sdkResultGuestCreated.Data;
-            Util.WriteGreen($"Guest created - Login:[{guestCreated.LoginEmail}] - Pwd:[{guestCreated.Password}] - {Rainbow.Util.LogOnOneLine(guestCreated.ToString(DetailsLevel.Medium))}");
-        }
-        else
-            Util.WriteRed($"CreateGuestUserAsync - Error:[{sdkResultGuestCreated.Result}]");
+        var contact = sdkResultContact.Data;
+        Util.WriteGreen($"User created - Login:[{loginEmail}] - Pwd:[{pwd}] - {Rainbow.Util.LogOnOneLine(contact.ToString(DetailsLevel.Medium))}");
     }
     else
-    {
-        Util.WriteDarkYellow("Creating user ...");
-        String loginEmail = Rainbow.Util.GetGUID().Substring(0, 16) + "@sdk.drop.me";
-        String pwd = Rainbow.Util.GetGUID().ToUpper() + "!a";
-
-        var sdkResultContact = await RbAdministration.CreateUserAsync(loginEmail, pwd,  firstName, lastName, null, companyManaged.Id, true, false);
-        if (sdkResultContact.Success)
-        {
-            var contact = sdkResultContact.Data;
-            Util.WriteGreen($"User created - Login:[{loginEmail}] - Pwd:[{pwd}] - {Rainbow.Util.LogOnOneLine(contact.ToString(DetailsLevel.Medium))}");
-        }
-        else
-            Util.WriteRed($"CreateUserAsync - Error:[{sdkResultContact.Result}]");
-    }
+        Util.WriteRed($"CreateUserAsync - Error:[{sdkResultContact.Result}]");
 }
 
-async Task MenuListUserOrGuestAsync(Boolean manageGuest)
+async Task MenuListUserAsync()
 {
     Boolean canContinue = true;
     int offset = 0;
@@ -645,10 +623,8 @@ async Task MenuListUserOrGuestAsync(Boolean manageGuest)
     List<Contact> usersList = [];
 
     List<String>? roles = null;
-    if (manageGuest)
-        roles = [Rainbow.Enums.Role.Guest];
 
-    Util.WriteDarkYellow($"{CR}Asking list of {(manageGuest ? "guests" : "users")} for Company [{companyManaged.Name}] ...");
+    Util.WriteDarkYellow($"{CR}Asking list of users for Company [{companyManaged.Name}] ...");
 
     while (canContinue)
     {
@@ -669,11 +645,11 @@ async Task MenuListUserOrGuestAsync(Boolean manageGuest)
 
     if (usersList.Count == 0)
     {
-        Util.WriteGreen($"None {(manageGuest ? "guest" : "user")} ...");
+        Util.WriteGreen($"None user ...");
         return;
     }
 
-    Util.WriteYellow($"{CR}List of {(manageGuest ? "Guests" : "Users")} - Total[{usersList.Count}]):");
+    Util.WriteYellow($"{CR}List of Users - Total[{usersList.Count}]):");
     foreach (var contact in usersList)
     {
         Util.WriteYellow($"\t- {Rainbow.Util.LogOnOneLine(contact.ToString(DetailsLevel.Medium))}");
@@ -682,7 +658,7 @@ async Task MenuListUserOrGuestAsync(Boolean manageGuest)
     canContinue = true;
     while (canContinue)
     {
-        Util.WriteYellow($"{CR}Enter Id to select a {(manageGuest ? "guest" : "user")} - empty string to cancel");
+        Util.WriteYellow($"{CR}Enter Id to select a user - empty string to cancel");
 
         var str = Console.ReadLine();
         if (!String.IsNullOrEmpty(str))
@@ -690,22 +666,14 @@ async Task MenuListUserOrGuestAsync(Boolean manageGuest)
             var result = usersList.Find(contact => contact.Peer.Id.Equals(str, StringComparison.InvariantCultureIgnoreCase));
 
             if (result is null)
-                Util.WriteYellow($"No {(manageGuest ? "guest" : "user")} found ...");
+                Util.WriteYellow($"None user ...");
             else
             {
-                if (manageGuest)
-                {
-                    guestManaged = result;
-                    Util.WriteYellow($"Guest found and now managed: [{guestManaged.ToString(DetailsLevel.Medium)}]");
-                }
-                else
-                {
-                    userManaged = result;
-                    Util.WriteYellow($"User found and now managed: [{userManaged.ToString(DetailsLevel.Medium)}]");
-                }
+                userManaged = result;
+                Util.WriteYellow($"User found and now managed: [{userManaged.ToString(DetailsLevel.Medium)}]");
 
                 Util.WriteRed($"Do you want to delete it ? (can not be undone !) [Y]");
-                string userId = manageGuest ? guestManaged.Peer.Id : userManaged.Peer.Id;
+                string userId = userManaged.Peer.Id;
                 while (true)
                 {
                     if (Console.KeyAvailable)
@@ -717,13 +685,13 @@ async Task MenuListUserOrGuestAsync(Boolean manageGuest)
                                 Util.WriteDarkYellow($"Delete in progress ...");
                                 var sdkResult = await RbAdministration.DeleteUserAsync(userId);
                                 if (sdkResult.Success)
-                                    Util.WriteGreen($"{(manageGuest ? "guest" : "user")} has been deleted");
+                                    Util.WriteGreen($"user has been deleted");
                                 else
                                     Util.WriteRed($"DeleteUserAsync - Error:[{sdkResult.Result}]");
                                 return;
 
                             default:
-                                Util.WriteGreen($"{(manageGuest ? "guest" : "user")} not deleted");
+                                Util.WriteGreen($"user has been deleted");
                                 return;
                         }
                     }
@@ -733,7 +701,7 @@ async Task MenuListUserOrGuestAsync(Boolean manageGuest)
         }
         else
         {
-            Util.WriteYellow($"Cancel {(manageGuest ? "guest" : "user")} search ...");
+            Util.WriteYellow($"Cancel user search ...");
             canContinue = false;
         }
     }

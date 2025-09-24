@@ -125,22 +125,7 @@ public class PresenceView: View
             if(contactFromCache is not null)
                 contact = contactFromCache;
 
-            if (contact.GuestMode)
-                isGuest = true;
-            else
-            {
-                if (contact.Guest is null)
-                {
-                    if(!askingGuestInfo)
-                    {
-                        askingGuestInfo = true;
-                        Task.Run(() => { rbContacts.GetContactByIdAsync(contact.Peer.Id); });
-                    }
-                    isGuest = false;
-                }
-                else
-                    isGuest = contact.Guest.Value;
-            }
+            isGuest = contact.GuestMode;
 
             var displayName = contact.Peer?.DisplayName;
             var currentUser = (rbContacts.GetCurrentContact()?.Peer?.Id == contact.Peer?.Id);
@@ -307,9 +292,9 @@ public class PresenceView: View
         if (contact is null) return;
 
         var newContact = contacts.FirstOrDefault(c => c.Peer.Id == contact.Peer.Id);
-        if(newContact is not null)
+        if (newContact is not null)
         {
-            if (newContact.Guest is null)
+            if (!newContact.FormatFull)
             {
                 var _ = rbContacts.GetContactByIdAsync(contact.Peer.Id);
             }
@@ -323,7 +308,7 @@ public class PresenceView: View
         if (contact is null) return;
         if (contactUpdated.Peer.Id == contact.Peer.Id)
         {
-            if (contactUpdated.Guest is null)
+            if (!contactUpdated.FormatFull)
             {
                 var _ = rbContacts.GetContactByIdAsync(contactUpdated.Peer.Id);
             }

@@ -141,16 +141,19 @@ var RbApplication = new Rainbow.Application(exeSettings.LogFolderPath);
 RbApplication.Restrictions.LogRestRequest = true;
 RbApplication.Restrictions.LogEvent = true;
 
-RbApplication.Restrictions.UseBubbles = true;
 RbApplication.Restrictions.AcceptBubbleInvitation = true;
 RbApplication.Restrictions.AcceptUserInvitation = true;
+RbApplication.Restrictions.UseBubbles = true;
 RbApplication.Restrictions.UseWebRTC = true;
+RbApplication.Restrictions.UseHubTelephony = true;
+RbApplication.Restrictions.UseHybridTelephony = false;
 
 // Create Rainbow SDK objects
 var RbConferences       = RbApplication.GetConferences();
 var RbContacts          = RbApplication.GetContacts();
 var RbBubbles           = RbApplication.GetBubbles();
 var RbAutoReconnection  = RbApplication.GetAutoReconnection();
+var RbHubTelephony      = RbApplication.GetHubTelephony();
 
 var RbWebRTCDesktopFactory = new Rainbow.WebRTC.Desktop.WebRTCFactory();
 WebRTCCommunications? RbWebRTCCommunications;
@@ -313,6 +316,10 @@ void CheckInputKey(int simulatedKey)
                 MenuDisplayInfo();
                 return;
 
+            case (int)ConsoleKey.H: // Info
+                MenuHubTelephony();
+                return;
+
             case (int)ConsoleKey.C: // Conference - Join/Quit or Start
                 MenuConference();
                 break;
@@ -358,9 +365,12 @@ void MenuDisplayInfo()
     Util.WriteYellow("[ESC] at anytime to quit");
     Util.WriteYellow("[I] (Info) Display this info");
 
+    //Util.WriteYellow("");
+    //Util.WriteYellow("[H] (Hub Telephony)");
+
     Util.WriteYellow("");
     Util.WriteYellow("[C] (Conference) to start, join or quit a conference");
-    Util.WriteYellow("[P] (P2P) to start or hang up a P2P call");
+    Util.WriteYellow("[P] (P2P) to start or hang up a WebRTC P2P call");
 
     Util.WriteYellow("");
     Util.WriteYellow("[A] (Audio) to manage Audio (Input / Ouput)");
@@ -601,6 +611,27 @@ void MenuP2P()
                 }
             }
         }
+    };
+
+    RbTask = Task.Run(action);
+}
+
+void MenuHubTelephony()
+{
+    if (!RbTask.IsCompleted)
+    {
+        Util.WriteRed("Task is already in progress");
+        return;
+    }
+
+    Action action = async () =>
+    {
+        //Util.WriteGreen("Registering as Hub Telephony Device ...");
+        //var sdkResultBoolean = await RbHubTelephony.RegisterAsDeviceAsync();
+        //if(sdkResultBoolean.Success)
+        //    Util.WriteBlue($"Registration Hub Telephony Device done");
+        //else
+        //    Util.WriteRed($"Cannot register as Hub Telephony Device - Error[{sdkResultBoolean.Result}]");
     };
 
     RbTask = Task.Run(action);
@@ -1520,9 +1551,9 @@ void MenuSharingStream()
                             else
                             {
                                 canContinue = false;
-                                if (Rainbow.Util.MediasWithSharing(currentCall.RemoteMedias))
-                                    Util.WriteRed($"A call is in progress with already a sharing. Cannot set another one");
-                                else
+                                //if (Rainbow.Util.MediasWithSharing(currentCall.RemoteMedias))
+                                //    Util.WriteRed($"A call is in progress with already a sharing. Cannot set another one");
+                                //else
                                 {
                                     Util.WriteGreen("Asking to add sharing ...");
                                     await AddSharingAsync();
@@ -1648,11 +1679,11 @@ void MenuSharingStream()
             else // currentScreen != null
             {
                 Boolean success = true;
-                if ((currentCall?.IsActive() == true) && Rainbow.Util.MediasWithSharing(currentCall.RemoteMedias) && !Rainbow.Util.MediasWithSharing(currentCall.LocalMedias))
-                {
-                    Util.WriteRed($"A call is in progress with already a sharing. Cannot set another one");
-                }
-                else
+                //if ((currentCall?.IsActive() == true) && Rainbow.Util.MediasWithSharing(currentCall.RemoteMedias) && !Rainbow.Util.MediasWithSharing(currentCall.LocalMedias))
+                //{
+                //    Util.WriteRed($"A call is in progress with already a sharing. Cannot set another one");
+                //}
+                //else
                 {
                     try
                     {
@@ -1717,7 +1748,6 @@ void MenuListDevicesAndConferenceInfo()
     ListWebCams();
 }
 
- 
 void MenuRTPStreamOptions()
 {
     if(RbWebRTCDesktopFactory is not null)
@@ -2498,7 +2528,7 @@ void RbWebRTCCommunications_CallUpdated(Call call)
 void RbWebRTCCommunications_OnMediaPublicationUpdated(MediaPublication mediaPublication, Rainbow.WebRTC.MediaPublicationStatus status)
 {
     Util.WriteDateTime();
-    Util.WriteBlue($"[OnMediaPublicationUpdated] Status:[{status}] - MediaPublication:[{mediaPublication}]");
+    Util.WriteBlue($"[OnMediaPublicationUpdated] Status:[{status}] - MediaPublication:[{mediaPublication.ToString(DetailsLevel.Full)}]");
 }
 
 void RbWebRTCCommunications_OnDataChannel(string callId, Rainbow.WebRTC.DataChannelDescriptor dataChannelDescriptor)
@@ -2533,7 +2563,7 @@ void RbWebRTCCommunications_OnTrack(string callId, MediaStreamTrackDescriptor me
         return;
 
     Util.WriteDateTime();
-    Util.WriteBlue($"[OnTrack] {(mediaStreamTrackDescriptor.MediaStreamTrack is null ? "REMOVED" : "ADDED / UPDATED")} {Rainbow.Util.MediasToString(mediaStreamTrackDescriptor.Media)} {(mediaStreamTrackDescriptor.LocalTrack ? "LOCAL" : "REMOTE")} track - Peer:[{mediaStreamTrackDescriptor.Peer.DisplayName}] ");
+    Util.WriteBlue($"[OnTrack] {(mediaStreamTrackDescriptor.MediaStreamTrack is null ? "REMOVED" : "ADDED / UPDATED")} {mediaStreamTrackDescriptor.ToString()}");
 
     // We don't want here to manage local track
     if (mediaStreamTrackDescriptor.LocalTrack)
