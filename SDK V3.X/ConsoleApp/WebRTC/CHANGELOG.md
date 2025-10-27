@@ -10,6 +10,10 @@
 	- Media supported: 'audio', 'video', 'audio+video'
 	- UriType supported: 'other' (or null/empty value)
 
+## [0.8.4]
+- Fix: 
+	- Ensure to use Main Thread to manage Window used for Video / Sharing display
+
 ## [0.8.3]
 - Enhancement: 
 	- allow to set RTP Audio options using "rtpAudioOptions.json"

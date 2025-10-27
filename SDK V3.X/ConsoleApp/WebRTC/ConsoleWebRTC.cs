@@ -3,19 +3,18 @@ using FFmpeg.AutoGen;
 using Rainbow;
 using Rainbow.Consts;
 using Rainbow.Enums;
+using Rainbow.Example.Common;
+using Rainbow.Example.Common.SDL2;
 using Rainbow.Medias;
 using Rainbow.Model;
 using Rainbow.SimpleJSON;
 using Rainbow.WebRTC;
 using Rainbow.WebRTC.Abstractions;
 using Rainbow.WebRTC.Desktop;
-
-using Rainbow.Example.Common;
-using Stream = Rainbow.Example.Common.Stream;
-using Util = Rainbow.Example.Common.Util;
-using Rainbow.Example.Common.SDL2;
 using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
+using Stream = Rainbow.Example.Common.Stream;
+using Util = Rainbow.Example.Common.Util;
 
 
 // Need to set an unique title
@@ -361,7 +360,7 @@ void CheckInputKey(int simulatedKey)
 
 void MenuDisplayInfo()
 {
-    Util.WriteYellow("");
+    Util.WriteDarkYellow($"{CR}{Global.ProductName()} v{Global.FileVersion()}");
     Util.WriteYellow("[ESC] at anytime to quit");
     Util.WriteYellow("[I] (Info) Display this info");
 
@@ -399,66 +398,64 @@ void MenuMediaPublications()
         Util.WriteRed("currentCallId is null/empty...");
         return;
     }
-
-    var publications = RbWebRTCCommunications.GetMediaPublicationsAvailable(currentCallId);
-    if(publications?.Count > 0)
+    Action action = async () =>
     {
-        var currentUserId = RbContacts.GetCurrentContact().Peer.Id;
-
-        Boolean selected = false;
-        while (!selected)
+        var publications = RbWebRTCCommunications.GetMediaPublicationsAvailable(currentCallId);
+        if(publications?.Count > 0)
         {
-            Util.WriteYellow($"Select MediaPublication to subscribe / unsubscribe:");
-            Util.WriteDarkYellow($"NOTE: For VIDEO only can one be subscribed - if any, the previous one is replaced by the new one");
-            int index = 0;
-            foreach (var pub in publications)
-            {
-                var displayname = (pub.Peer.Id == currentUserId) ? "YOURSELF" : pub.Peer.DisplayName;
+            var currentUserId = RbContacts.GetCurrentContact().Peer.Id;
+            Boolean selected = false;
 
-                if (RbWebRTCCommunications.IsSubscribedToMediaPublication(pub))
-                    Util.WriteYellow($"\t[{index++}] - UNSUBSCRIBE TO - Media:[{Rainbow.Util.MediasToString(pub.Media)}] - Peer:[{displayname}]");
-                else
-                    Util.WriteYellow($"\t[{index++}] - SUBSCRIBE   TO - Media:[{Rainbow.Util.MediasToString(pub.Media)}] - Peer:[{displayname}]");
-            }
-            Util.WriteYellow($"\t[C] - Cancel");
-            var consoleKey = Console.ReadKey(true);
-            if (char.IsDigit(consoleKey.KeyChar))
+            while (!selected)
             {
-                var selection = int.Parse(consoleKey.KeyChar.ToString());
-                if ((selection >= 0) && (selection < index))
+                Util.WriteYellow($"Select MediaPublication to subscribe / unsubscribe:");
+                Util.WriteDarkYellow($"NOTE: For VIDEO only can one be subscribed - if any, the previous one is replaced by the new one");
+                int index = 0;
+                foreach (var pub in publications)
                 {
-                    selected = true;
-                    var pub = publications[selection];
+                    var displayname = (pub.Peer.Id == currentUserId) ? "YOURSELF" : pub.Peer.DisplayName;
 
-                    Util.WriteDarkYellow($"MediaPublication selected: Media:[{Rainbow.Util.MediasToString(pub.Media)}] - Peer:[{pub.Peer.DisplayName}]");
+                    var subscribeStatus = (RbWebRTCCommunications.IsSubscribedToMediaPublication(pub)) ? "UNSUBSCRIBE" : "SUBSCRIBE";
+                    var dynamicFeed = (pub.Peer.Type == Rainbow.Consts.EntityType.DynamicFeed) ? " (DynamicFeed)" : "";
 
-                    if (RbWebRTCCommunications.IsSubscribedToMediaPublication(pub))
+                    Util.WriteYellow($"\t[{index++}] - {subscribeStatus} TO - Media:[{Rainbow.Util.MediasToString(pub.Media)}{dynamicFeed}] - Peer:[{displayname}]");
+                }
+
+
+                Util.WriteYellow($"\t[C] - Cancel");
+                var consoleKey = Console.ReadKey(true);
+                if (char.IsDigit(consoleKey.KeyChar))
+                {
+                    var selection = int.Parse(consoleKey.KeyChar.ToString());
+                    if ((selection >= 0) && (selection < index))
                     {
-                        Util.WriteGreen($"Asking to unsubscribe ...");
-                        RbWebRTCCommunications.UnsubscribeToMediaPublicationAsync(pub).ContinueWith(async task =>
+                        selected = true;
+                        var pub = publications[selection];
+
+                        Util.WriteDarkYellow($"MediaPublication selected: Media:[{Rainbow.Util.MediasToString(pub.Media)}] - Peer:[{pub.Peer.DisplayName}]");
+
+                        if (RbWebRTCCommunications.IsSubscribedToMediaPublication(pub))
                         {
-                            var sdkResult = await task;
+                            Util.WriteGreen($"Asking to unsubscribe ...");
+                            var sdkResult = await RbWebRTCCommunications.UnsubscribeToMediaPublicationAsync(pub);
                             if (sdkResult.Success)
                                 Util.WriteDarkYellow("MediaPublication has been unsubscribed");
                             else
                                 Util.WriteDarkYellow($"MediaPublication has NOT been unsubscribed:{sdkResult.Result}");
-                        });
-                    }
-                    else
-                    {
-                        // We ensure we can subscribe to our own subscription
-                        RbWebRTCCommunications.AllowToSubscribeToHisOwnMediaPublication(currentCallId, true);
-
-                        // In this application, we restrict subscription to only one VIDEO MediaPublication
-                        var mediaPublicationsSubcribed = RbWebRTCCommunications.GetMediaPublicationsSubscribed(currentCallId);
-                        var previousMP = mediaPublicationsSubcribed?.Find(mp => (mp.Media == Media.VIDEO) && (mp.Peer.Id != pub.Peer.Id));
-                        if ((pub.Media == Media.VIDEO && previousMP is not null))
+                        }
+                        else
                         {
-                            Util.WriteGreen($"First asking to unsubscribe to previous Vide MediaPublication ...");
+                            // We ensure we can subscribe to our own subscription
+                            RbWebRTCCommunications.AllowToSubscribeToHisOwnMediaPublication(currentCallId, true);
 
-                            RbWebRTCCommunications.UnsubscribeToMediaPublicationAsync(previousMP).ContinueWith(async task =>
+                            // In this application, we restrict subscription to only one VIDEO MediaPublication
+                            var mediaPublicationsSubcribed = RbWebRTCCommunications.GetMediaPublicationsSubscribed(currentCallId);
+                            var previousMP = mediaPublicationsSubcribed?.Find(mp => (mp.Media == Media.VIDEO) && (mp.Peer.Id != pub.Peer.Id));
+                            if ((pub.Media == Media.VIDEO && previousMP is not null))
                             {
-                                var sdkResult = await task;
+                                Util.WriteGreen($"First asking to unsubscribe to previous Video MediaPublication ...");
+
+                                var sdkResult = await RbWebRTCCommunications.UnsubscribeToMediaPublicationAsync(previousMP);
                                 if (sdkResult.Success)
                                 {
                                     Util.WriteDarkYellow("Previous Video MediaPublication has been unsubscribed");
@@ -472,43 +469,65 @@ void MenuMediaPublications()
                                 }
                                 else
                                     Util.WriteDarkYellow($"Previous Video MediaPublication has NOT been unsubscribed:{sdkResult.Result}");
-                            });
-                        }
-                        else
-                        {
-                            if (pub.Media == Media.VIDEO)
-                                Window.Create(_windowVideo);
-                            else if (pub.Media == Media.SHARING)
-                                Window.Create(_windowSharing);
-
-                            Util.WriteGreen($"Asking to subscribe ...");
-                            RbWebRTCCommunications.SubscribeToMediaPublicationAsync(pub, MediaSubStreamLevel.HIGH).ContinueWith(async task =>
+                            }
+                            
+                            //else
                             {
-                                var sdkResult = await task;
+                                Boolean dynamicFeed = false;
+                                // If Video we ask to use DynamicFeed or not 
+                                if ( (pub.Media == Media.VIDEO) && (currentCall.IsConference))
+                                {
+                                    Util.WriteYellow($"Do you want to subscribd to the Dynamic Feed Y/N ?");
+                                    consoleKey = Console.ReadKey(true);
+                                    dynamicFeed = consoleKey.KeyChar.ToString().Equals("y", StringComparison.InvariantCultureIgnoreCase);
+                                }
+
+                                // /!\ Need to use Main Thread
+                                if (pub.Media == Media.VIDEO)
+                                {
+                                    _actions.Add(new Action(() =>
+                                    {
+                                        Window.Create(_windowVideo);
+                                    }));
+                                }
+                                else if (pub.Media == Media.SHARING)
+                                {
+                                    _actions.Add(new Action(() =>
+                                    {
+                                        Window.Create(_windowSharing);
+                                    }));
+                                }
+
+                                if (dynamicFeed)
+                                    pub.Peer.Type = Rainbow.Consts.EntityType.DynamicFeed;
+
+                                Util.WriteGreen($"Asking to subscribe ...");
+                                var sdkResult = await RbWebRTCCommunications.SubscribeToMediaPublicationAsync(pub, MediaSubStreamLevel.HIGH);
                                 if (sdkResult.Success)
                                     Util.WriteDarkYellow("MediaPublication has been subscribed");
                                 else
                                     Util.WriteDarkYellow($"MediaPublication has NOT been subscribed:{sdkResult.Result}");
-                            });
+                            }
                         }
                     }
+                    else
+                        Util.WriteDarkYellow($"Bad key used ...");
+                }
+                else if (consoleKey.Key == ConsoleKey.C)
+                {
+                    selected = true;
+                    Util.WriteDarkYellow($"Cancel used ...");
                 }
                 else
                     Util.WriteDarkYellow($"Bad key used ...");
             }
-            else if (consoleKey.Key == ConsoleKey.C)
-            {
-                selected = true;
-                Util.WriteDarkYellow($"Cancel used ...");
-            }
-            else
-                Util.WriteDarkYellow($"Bad key used ...");
         }
-    }
-    else
-    {
-        Util.WriteRed("No MediaPublication available");
-    }
+        else
+        {
+            Util.WriteRed("No MediaPublication available");
+        }
+    };
+    RbTask = Task.Run(action);
 }
 
 void MenuP2P()
@@ -2454,7 +2473,7 @@ void RbConferences_ConferenceRemoved(Conference conference)
 
 #region DEFINE METHODS TO RECEIVE EVENTS FROM SDK WebRTC
 
-void RbWebRTCCommunications_CallUpdated(Call call)
+async void RbWebRTCCommunications_CallUpdated(Call call)
 {
     if (call == null)
     {
@@ -2482,21 +2501,21 @@ void RbWebRTCCommunications_CallUpdated(Call call)
             currentCall = null;
 
             // Hide any window
-            Window.Hide(_windowSharing);
-            Window.Hide(_windowVideo);
+            _actions.Add(new Action(() =>
+            {
+                Window.Hide(_windowSharing);
+                Window.Hide(_windowVideo);
+            }));
 
             // The call is NO MORE in Progress => We Rollback presence if any
             var presenceRollback = RbContacts.GetPresenceSavedForRollback();
             if (presenceRollback is not null)
             {
-                RbContacts.RollbackPresenceSavedAsync().ContinueWith(async task =>
-                {
-                    var sdkResult = await task;
-                    if (sdkResult.Success)
-                        Util.WriteBlue($"Rollback presence to [{presenceRollback.ToString(DetailsLevel.Small)}]");
-                    else
-                        Util.WriteRed($"Cannot rollback presence to [{presenceRollback.ToString(DetailsLevel.Small)}] - Error:[{sdkResult.Result}]");
-                });
+                var sdkResult = await RbContacts.RollbackPresenceSavedAsync();
+                if (sdkResult.Success)
+                    Util.WriteBlue($"Rollback presence to [{presenceRollback.ToString(DetailsLevel.Small)}]");
+                else
+                    Util.WriteRed($"Cannot rollback presence to [{presenceRollback.ToString(DetailsLevel.Small)}] - Error:[{sdkResult.Result}]");
             }
         }
         else
@@ -2506,18 +2525,12 @@ void RbWebRTCCommunications_CallUpdated(Call call)
             if ( !call.IsRinging() )
             {
                 // The call is NOT IN RINGING STATE  => We update presence according media
-                RbContacts.SetBusyPresenceAccordingMediasAsync(call.LocalMedias).ContinueWith(async task =>
+                var sdkResult = await RbContacts.SetBusyPresenceAccordingMediasAsync(call.LocalMedias);
+                if (sdkResult.Success)
                 {
-                    var sdkResult = await task;
-                    if (sdkResult.Success)
-                    {
-                        // Needs SDK v3.1
-                        //var presence = sdkResult.Data; 
-                        //Util.WriteBlue($"Busy presence updated according local media:[{Rainbow.Util.MediasToString(call.LocalMedias)}] - Presence:[{presence.ToString(DetailsLevel.Small)}]");
-                        
-                        Util.WriteBlue($"Busy presence updated according local media:[{Rainbow.Util.MediasToString(call.LocalMedias)}]");
-                    }
-                });
+                    var presence = sdkResult.Data;
+                    Util.WriteBlue($"Busy presence updated according local media:[{Rainbow.Util.MediasToString(call.LocalMedias)}] - Presence:[{presence.ToString(DetailsLevel.Small)}]");
+                }
             }
         }
         Util.WriteDateTime();
@@ -2590,48 +2603,66 @@ void RbWebRTCCommunications_OnTrack(string callId, MediaStreamTrackDescriptor me
         case Media.VIDEO:
             if (videoRemoteTrack is not null)
             {
-                _windowVideo.VideoStopped = true;
-                videoRemoteTrack.OnImage -= VideoRemoteTrack_OnImage;
+                _actions.Add(new Action(() =>
+                {
+                    _windowVideo.VideoStopped = true;
+                    videoRemoteTrack.OnImage -= VideoRemoteTrack_OnImage;
+                }));
             }
 
             if (mediaStreamTrackDescriptor.MediaStreamTrack is VideoStreamTrack videoTrack)
             {
-                Window.UpdateTitle(_windowVideo, "VIDEO");
-                Window.Show(_windowVideo);
+                _actions.Add(new Action(() =>
+                {
+                    Window.UpdateTitle(_windowVideo, "VIDEO");
+                    Window.Show(_windowVideo);
 
-                videoRemoteTrack = videoTrack;
-                videoRemoteTrack.OnImage += VideoRemoteTrack_OnImage;
-                _windowVideo.VideoStopped = false;
+                    videoRemoteTrack = videoTrack;
+                    videoRemoteTrack.OnImage += VideoRemoteTrack_OnImage;
+                    _windowVideo.VideoStopped = false;
+                }));
             }
             else
             {
-                Window.Hide(_windowVideo);
-                // video remote track has been removed
-                videoRemoteTrack = null;
+                _actions.Add(new Action(() =>
+                {
+                    Window.Hide(_windowVideo);
+                    // video remote track has been removed
+                    videoRemoteTrack = null;
+                }));
             }
             break;
 
         case Media.SHARING:
             if (sharingRemoteTrack is not null)
             {
-                _windowSharing.VideoStopped = true;
-                sharingRemoteTrack.OnImage -= SharingRemoteTrack_OnImage;
+                _actions.Add(new Action(() =>
+                {
+                    _windowSharing.VideoStopped = true;
+                    sharingRemoteTrack.OnImage -= SharingRemoteTrack_OnImage;
+                }));
             }
 
             if (mediaStreamTrackDescriptor.MediaStreamTrack is VideoStreamTrack sharingTrack)
             {
-                Window.UpdateTitle(_windowSharing, "SHARING");
-                Window.Show(_windowSharing);
+                _actions.Add(new Action(() =>
+                {
+                    Window.UpdateTitle(_windowSharing, "SHARING");
+                    Window.Show(_windowSharing);
 
-                sharingRemoteTrack = sharingTrack;
-                sharingRemoteTrack.OnImage += SharingRemoteTrack_OnImage;
-                _windowSharing.VideoStopped = false;
+                    sharingRemoteTrack = sharingTrack;
+                    sharingRemoteTrack.OnImage += SharingRemoteTrack_OnImage;
+                    _windowSharing.VideoStopped = false;
+                }));
             }
             else
             {
-                Window.Hide(_windowSharing);
-                // sharing remote track has been removed
-                sharingRemoteTrack = null;
+                _actions.Add(new Action(() =>
+                {
+                    Window.Hide(_windowSharing);
+                    // sharing remote track has been removed
+                    sharingRemoteTrack = null;
+                }));
             }
             break;
     }
