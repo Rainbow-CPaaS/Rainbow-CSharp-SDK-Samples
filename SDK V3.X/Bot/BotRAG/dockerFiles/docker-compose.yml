@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  botrag:
+    build: .
+    container_name: botrag.rainbow
+    volumes:
+      # Monter des fichiers individuels
+      - ./config/botConfiguration.json:/app/config/botConfiguration.json:ro
+      - ./config/credentials.json:/app/config/credentials.json:ro
+      - ./config/exeSettings.json:/app/config/exeSettings.json:ro
+      - ./config/promptBody.json:/app/config/promptBody.json:ro
+    restart: unless-stopped

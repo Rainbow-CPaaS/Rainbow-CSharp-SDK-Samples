@@ -1,0 +1,11 @@
+# Specify image
+FROM ubuntu/dotnet-runtime:8.0-24.04_stable
+
+# Define working directory
+WORKDIR /app
+
+# Copy published file to your application
+COPY ./publish .
+
+# Define entry point 
+ENTRYPOINT ["dotnet", "BotRAG.dll"]
