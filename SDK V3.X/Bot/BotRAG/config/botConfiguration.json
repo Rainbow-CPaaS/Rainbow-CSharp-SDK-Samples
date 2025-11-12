@@ -1,0 +1,50 @@
+{
+  "botConfiguration": {
+    "administrators": {
+      "rainbowAccounts": [
+        {
+          "login": "myAccount@myDomain.com"
+        }
+      ],
+      "guestsAccepted": true
+    },
+    "instantMessageAutoAccept": true,
+    "privateMessageAutoAccept": true,
+    "ackMessageAutoAccept": false,
+    "applicationMessageAutoAccept": false,
+    "bubbleInvitationAutoAccept": true,
+    "userInvitationAutoAccept": true,
+
+    "ragConfig": {
+      "host": "api1.nlp.chapsvisiondev.com",
+      "login": "rainbow",
+      "password": "0vertheRainbow2025!",
+      "repository": "rainbow",
+
+      "__comment_maxFileSizeInBytes": "if set to -1 there is no restriction on size for files or recording - 5242880 => 5Mo",
+      "maxFileSizeInBytes": 5242880,
+
+      "__comment_maxFilesByBubble_maxRecordingsByBubble_and_maxMessagesByBubble": "if set to -1 there is no limit (all info availabe will be processed)",
+      "maxFilesByBubble": -1,
+      "maxRecordingsByBubble": -1,
+      "maxMessagesByBubble": -1,
+
+      "avoidVideoFile": false,
+      "avoidAudioFile": false,
+      "avoidImageFile": false,
+      "avoidArchiveFile": true,
+      "archiveFiles": [ "arc", "bz", "bz2", "gz", "jar", "rar", "tar", "zip", "7z" ],
+
+      "llm": "llama3",
+      "promptBodyFile": "./config/promptBody.json",
+
+      "__comment_chunckSize": "minimum caracters to get from RAG query before to send data to client",
+      "chunckSize": 200,
+
+      "__comment_bubbleNamesAllowed_part1": "if not specified / null / empty list, all bubbles where the bot is a member is managed. !!! CASE SENSITIVE !!!",
+      "__comment_bubbleNamesAllowed_part2": "* can be used as wildcard at the end of a name to allow creation/management of bubble of the fly",
+      "bubbleNamesAllowed": [
+      ]
+    }
+  }
+}

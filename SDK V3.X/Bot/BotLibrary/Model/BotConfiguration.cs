@@ -13,6 +13,8 @@ namespace BotLibrary.Model
 
         public Boolean InstantMessageAutoAccept { get; set; }
 
+        public Boolean PrivateMessageAutoAccept { get; set; }
+
         public Boolean AckMessageAutoAccept { get; set; }
 
         public Boolean ApplicationMessageAutoAccept { get; set; }
@@ -29,6 +31,7 @@ namespace BotLibrary.Model
             GuestsAccepted = false;
 
             InstantMessageAutoAccept = false;
+            PrivateMessageAutoAccept = false;
             AckMessageAutoAccept = false;
             ApplicationMessageAutoAccept = false;
 
@@ -63,6 +66,9 @@ namespace BotLibrary.Model
 
                 if (jsonNode.HasKey("instantMessageAutoAccept"))
                     botConfiguration.InstantMessageAutoAccept = jsonNode["instantMessageAutoAccept"];
+
+                if (jsonNode.HasKey("privateMessageAutoAccept"))
+                    botConfiguration.PrivateMessageAutoAccept = jsonNode["privateMessageAutoAccept"];
 
                 if (jsonNode.HasKey("ackMessageAutoAccept"))
                     botConfiguration.AckMessageAutoAccept = jsonNode["ackMessageAutoAccept"];

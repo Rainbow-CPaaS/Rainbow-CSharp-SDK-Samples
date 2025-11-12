@@ -111,6 +111,11 @@
             WriteToConsole(BLUE + message);
         }
 
+        public static void WriteGray(String message)
+        {
+            WriteToConsole(GRAY + message);
+        }
+
         public static void WriteToConsole(String message)
         {
             lock (consoleLockObject)

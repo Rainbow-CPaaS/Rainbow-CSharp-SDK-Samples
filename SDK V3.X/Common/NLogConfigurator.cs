@@ -51,9 +51,9 @@ namespace Rainbow.Example.Common
 
                 // Check Directory
                 if (String.IsNullOrEmpty(Directory))
-                    Directory = "./";
-                else if (!Directory.EndsWith("/"))
-                    Directory += "/";
+                    Directory = "." + Path.DirectorySeparatorChar;
+                else if (!Directory.EndsWith(Path.DirectorySeparatorChar))
+                    Directory += Path.DirectorySeparatorChar;
 
                 // Get content of the log file configuration
                 String logConfigContent = XmlContent;
@@ -90,6 +90,8 @@ namespace Rainbow.Example.Common
                         Rainbow.LogFactory.Set(factory);
                     }
 
+                    //Util.WriteBlue($"Log settings used:\r\n{logConfigContent}");
+
                     // Create NLog configuration using XML file content
                     XmlLoggingConfiguration config = XmlLoggingConfiguration.CreateFromXmlString(logConfigContent);
 
@@ -109,7 +111,10 @@ namespace Rainbow.Example.Common
 
                     return true;
                 }
-                catch { }
+                catch (Exception ex) 
+                { 
+                    Console.WriteLine("NLogConfigurator.AddLogger failed: [{exception}]", ex);
+                }
 
                 return false;
             }
@@ -118,9 +123,9 @@ namespace Rainbow.Example.Common
         /// <summary>
         /// To specify where log files will be stored
         /// 
-        /// Default value: "./"
+        /// Default value: "." + Path.DirectorySeparatorChar;
         /// </summary>
-        public static String Directory = "./";
+        public static String Directory = "." + Path.DirectorySeparatorChar;
 
         /// <summary>
         /// Main structure of the XML configuration file for NLog

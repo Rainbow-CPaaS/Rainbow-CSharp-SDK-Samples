@@ -34,6 +34,7 @@ namespace BotLibrary
 
         ManageAckMessageReceived,
         ManageApplicationMessageReceived,
+        ManagePrivateMessageReceived,
         ManageInstantMessageReceived,
         ManageInternalMessageReceived,
     }
@@ -54,6 +55,7 @@ namespace BotLibrary
         BubbleInvitation,
         AckMessage,
         InstantMessage,
+        PrivateMessage,
         ApplicationMessage,
         InternalMessage,
 
@@ -64,7 +66,7 @@ namespace BotLibrary
 
     public class BotBase
     {
-        internal ILogger log;
+        public ILogger log;
 
         private const String BOT_CONFIGURATION = "botConfiguration";
 
@@ -79,6 +81,7 @@ namespace BotLibrary
         private readonly ConcurrentQueue<BubbleInvitation> _queueBubbleInvitationsReceived;
         private readonly ConcurrentQueue<Invitation> _queueUserInvitationsReceived;
 
+        private readonly ConcurrentQueue<Message> _queuePrivateMessagesReceived;
         private readonly ConcurrentQueue<Message> _queueInstantMessagesReceived;
         private readonly ConcurrentQueue<AckMessage> _queueAckMessagesReceived;
         private readonly ConcurrentQueue<ApplicationMessage> _queueApplicationMessagesReceived;
@@ -151,6 +154,7 @@ namespace BotLibrary
                 .Permit(Trigger.AckMessage, State.ManageAckMessageReceived)
                 .Permit(Trigger.ApplicationMessage, State.ManageApplicationMessageReceived)
                 .Permit(Trigger.InternalMessage, State.ManageInternalMessageReceived)
+                .Permit(Trigger.PrivateMessage, State.ManagePrivateMessageReceived)
                 .Permit(Trigger.InstantMessage, State.ManageInstantMessageReceived);
 
             // Configure the ManageBubbleInvitationReceived state
@@ -180,6 +184,12 @@ namespace BotLibrary
             // Configure the ManageInternalMessageReceived state
             _machine.Configure(State.ManageInternalMessageReceived)
                 .OnEntryAsync(OnEntryManageInternalMessageReceivedAsync)
+                .SubstateOf(State.Connected)
+                .Permit(Trigger.NextStep, State.CheckingDataAvailability);
+
+            // Configure the ManagePrivateMessageReceived state
+            _machine.Configure(State.ManagePrivateMessageReceived)
+                .OnEntryAsync(OnEntryManagePrivateMessageReceivedAsync)
                 .SubstateOf(State.Connected)
                 .Permit(Trigger.NextStep, State.CheckingDataAvailability);
 
@@ -346,6 +356,70 @@ namespace BotLibrary
                 FireTrigger(trigger);
         }
 
+        private async Task OnEntryManagePrivateMessageReceivedAsync()
+        {
+            if (_queuePrivateMessagesReceived.TryDequeue(out Message? message))
+            {
+                if (message is not null)
+                {
+                    try
+                    {
+                        var isAdmin = await IsAdministrator(message.FromContact?.Peer?.Jid);
+
+                        if (isAdmin)
+                        {
+                            // Two ways to receive a BotConfiguration:
+                            //  - alternative content as JSON
+                            //  - file attachment with ".json" extension
+
+                            // Check AlternatContent
+                            if (message.AlternativeContent?.Count > 0)
+                            {
+                                foreach (var alternativeContent in message.AlternativeContent)
+                                {
+                                    if (alternativeContent.Type == HttpRequestDescriptor.MIME_TYPE_JSON)
+                                    {
+                                        var result = await IsValidJSONBotConfiguration(alternativeContent.Content, "message", message);
+                                        if (result)
+                                            return;
+                                    }
+                                }
+                            }
+
+                            // Check File Attachment
+                            if (message.FileAttachment is not null)
+                            {
+                                // Need to get file descriptor
+                                var fileDescriptor = await DownloadFileDescriptorAsync(message.FileAttachment.Id);
+
+                                if (fileDescriptor?.FileName.EndsWith(".json") == true)
+                                {
+                                    // Download the file as String / JSON file
+                                    var json = await DownloadJsonFileAsync(fileDescriptor);
+                                    if (!String.IsNullOrEmpty(json))
+                                    {
+                                        var result = await IsValidJSONBotConfiguration(json, "message", message);
+                                        if (result)
+                                            return;
+                                    }
+                                }
+                            }
+                        }
+
+                        if (isAdmin || _botConfiguration.PrivateMessageAutoAccept)
+                            await PrivateMessageReceivedAsync(message);
+                    }
+                    catch (Exception ex)
+                    {
+                        log.LogWarning("[OnEntryManageInstantMessageReceivedAsync] Exception occured when calling [InstantMessageReceivedAsync] - Exception:[{Exception}]", ex);
+                    }
+                }
+            }
+            var trigger = Trigger.NextStep;
+            if (_machine.CanFire(trigger))
+                FireTrigger(trigger);
+        }
+
         private async Task OnEntryManageApplicationMessageReceivedAsync()
         {
             if (_queueApplicationMessagesReceived.TryDequeue(out ApplicationMessage? applicationMessage))
@@ -480,6 +554,9 @@ namespace BotLibrary
             else if (!_queueInternalMessagesReceived.IsEmpty)
                 trigger = (Trigger.InternalMessage);
 
+            else if (!_queuePrivateMessagesReceived.IsEmpty)
+                trigger = (Trigger.PrivateMessage);
+
             else if (!_queueInstantMessagesReceived.IsEmpty)
                 trigger = (Trigger.InstantMessage);
 
@@ -552,6 +629,7 @@ namespace BotLibrary
             _queueAckMessagesReceived.Clear();
             _queueApplicationMessagesReceived.Clear();
             _queueInternalMessagesReceived.Clear();
+            _queuePrivateMessagesReceived.Clear();
             _queueInstantMessagesReceived.Clear();            
         }
 
@@ -561,7 +639,6 @@ namespace BotLibrary
         private void SetRainbowRestrictions()
         {
             //TODO - need to be defined by a configuration file
-
             // Since we are using a Bot we want to send automatically a Read Receipt when a message has been received
             _rbApplication.Restrictions.SendReadReceipt = true;
 
@@ -575,14 +652,14 @@ namespace BotLibrary
             _rbApplication.Restrictions.EventMode = SdkEventMode.XMPP;
 
             // We want to use conference features
-            _rbApplication.Restrictions.UseConferences = true;
+            _rbApplication.Restrictions.UseConferences = false;
 
             // We want to use WebRTC
-            _rbApplication.Restrictions.UseWebRTC = true;
-
+            _rbApplication.Restrictions.UseWebRTC = false;
 
             _rbApplication.Restrictions.LogRestRequest = true;
-            
+            Rainbow.Util.SetLogAnonymously(false);
+
             _rbApplication.Restrictions.UseBubbles = true;
 
             Rainbow.Util.SetLogAnonymously(false);
@@ -622,7 +699,7 @@ namespace BotLibrary
             _rbInstantMessaging.AckMessageReceived -= RbInstantMessaging_AckMessageReceived;
             _rbInstantMessaging.ApplicationMessageReceived -= RbInstantMessaging_ApplicationMessageReceived;
             _rbInstantMessaging.MessageReceived -= RbInstantMessaging_MessageReceived;
-            
+            _rbInstantMessaging.PrivateMessageReceived -= RbInstantMessaging_PrivateMessageReceived;
 
             _rbBubbles.BubbleInvitationReceived -= RbBubbles_BubbleInvitationReceived;
             _rbInvitations.InvitationReceived -= RbInvitations_InvitationReceived;
@@ -642,6 +719,7 @@ namespace BotLibrary
             _rbInstantMessaging.AckMessageReceived += RbInstantMessaging_AckMessageReceived;
             _rbInstantMessaging.ApplicationMessageReceived += RbInstantMessaging_ApplicationMessageReceived;
             _rbInstantMessaging.MessageReceived += RbInstantMessaging_MessageReceived;
+            _rbInstantMessaging.PrivateMessageReceived += RbInstantMessaging_PrivateMessageReceived;
 
             _rbBubbles.BubbleInvitationReceived += RbBubbles_BubbleInvitationReceived;
             _rbInvitations.InvitationReceived += RbInvitations_InvitationReceived;
@@ -848,6 +926,22 @@ namespace BotLibrary
                 FireTrigger(trigger);
         }
 
+        /// <summary>
+        /// Event raised when the current user received a Private Message
+        /// </summary>
+        private void RbInstantMessaging_PrivateMessageReceived(Message message, bool carbonCopy)
+        {
+            // We don't want to manage message coming from ourself
+            if (message.FromContact?.Peer?.Jid?.Equals(_currentContact?.Peer.Jid, StringComparison.InvariantCultureIgnoreCase) == true)
+                return;
+
+            // Queue Private Message
+            _queuePrivateMessagesReceived.Enqueue(message);
+            var trigger = Trigger.NextStep;
+            if (_machine.CanFire(trigger))
+                FireTrigger(trigger);
+        }
+
     #endregion EVENTS RAISED FROM RAINBOW OBJECTS
 
 #endregion PRIVATE API
@@ -869,6 +963,7 @@ namespace BotLibrary
             _queueUserInvitationsReceived = new ();
 
             _queueInstantMessagesReceived = new();
+            _queuePrivateMessagesReceived = new();
             _queueApplicationMessagesReceived = new();
             _queueAckMessagesReceived = new();
             _queueInternalMessagesReceived = new();
@@ -938,7 +1033,10 @@ namespace BotLibrary
             if (!NLogConfigurator.AddLogger(loggerPrefix))
                 return false;
 
-            log = Rainbow.LogFactory.CreateLogger<Application>(loggerPrefix);
+            //Rainbow.Util.CR = " - ";
+            //Rainbow.Util.SetLogElementSeparator(" - ");
+
+            log = Rainbow.LogFactory.CreateLogger<BotBase>(loggerPrefix);
 
             // Create Rainbow Application (root object of the SDK)
             _rbApplication = new Rainbow.Application(_credentials.UsersConfig[0].IniFolderPath, prefix + ".ini", loggerPrefix);
@@ -1190,6 +1288,12 @@ namespace BotLibrary
 
         // Called when an InstantMessage is received. If it contains a BotConfiguration update, BotConfigurationUpdatedAsync method is called instead
         public virtual async Task InstantMessageReceivedAsync(Message message)
+        {
+            await Task.CompletedTask;
+        }
+
+        // Called when an PrivateMessage is received. If it contains a BotConfiguration update, BotConfigurationUpdatedAsync method is called instead
+        public virtual async Task PrivateMessageReceivedAsync(Message message)
         {
             await Task.CompletedTask;
         }

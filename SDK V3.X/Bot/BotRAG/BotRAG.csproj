@@ -1,0 +1,42 @@
+﻿<Project Sdk="Microsoft.NET.Sdk;Microsoft.NET.Sdk.Publish">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <Version>0.4.5</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="config\promptBody.json" />
+  </ItemGroup>
+
+    <ItemGroup>
+    <Content Include="config\botConfiguration.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="config\credentials.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="config\exeSettings.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="config\promptBody.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.2" /> 
+      <PackageReference Include="System.Data.SQLite" Version="2.0.2" />
+    </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BotLibrary\BotLibrary.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Properties\PublishProfiles\" />
+  </ItemGroup>
+  
+</Project>
