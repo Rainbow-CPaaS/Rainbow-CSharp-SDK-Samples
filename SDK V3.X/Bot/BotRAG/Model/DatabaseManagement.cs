@@ -53,10 +53,10 @@ namespace BotRAG.Model
         {
             try
             {
-                Directory.CreateDirectory(".\\database");
+                Directory.CreateDirectory("./database");
 
                 // Create a new database connection:
-                SQLiteConnection sqlite_conn = new SQLiteConnection("Data Source=.\\database\\database.db;Version=3;New=True;Compress=True;");
+                SQLiteConnection sqlite_conn = new SQLiteConnection("Data Source=./database/database.db;Version=3;New=True;Compress=True;");
                 
                 // Open the connection:
                 sqlite_conn.Open();

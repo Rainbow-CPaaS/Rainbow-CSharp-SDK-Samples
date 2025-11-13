@@ -3,15 +3,11 @@ using Rainbow;
 using Rainbow.Model;
 using Rainbow.SimpleJSON;
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Net.NetworkInformation;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -136,7 +132,11 @@ namespace BotRAG
 
                 return await UploadFileThenProcessAsync(stream, fileDescriptor.Id+Path.GetExtension(filePath), fileDescriptor.TypeMIME, metadata, subpath);
             }
-            return (false, null);
+            else
+            {
+                _log.LogWarning("ragError - UploadFileThenProcessAsync - Unable to open file stream - FilePath:[{FilePath}]", filePath);
+            }
+        return (false, null);
         }
 
         private async Task<(Boolean result, String? ragDocumentId)> UploadFileThenProcessAsync(Stream stream, String streamName, String typeMime, Dictionary<String, String> metadata, String? subpath = null)
@@ -552,16 +552,17 @@ namespace BotRAG
             return stream;
         }
 
-        private static FileStream? GenerateStreamFromFile(string filePath)
+        private FileStream? GenerateStreamFromFile(string filePath)
         {
             try
             {
-                return System.IO.File.OpenRead(filePath);
+                return new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
             }
-            catch
+            catch (Exception ex)
             {
-                return null;
+                _log.LogWarning("ragError - GenerateStreamFromFile - Unable to open file stream - FilePath:[{FilePath}] - Exception:[{Exception}]", filePath, ex);
             }
+            return null;
         }
 
 #endregion STATIC Methods

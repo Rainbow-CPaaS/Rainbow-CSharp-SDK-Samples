@@ -10,6 +10,8 @@ namespace Rainbow.Example.Common
 
         public String LogFolderPath { get; set; }
 
+        public Boolean LogOnConsole { get; set; }
+
         public String S2SCallbackURL { get; set; }
 
         public String CultureInfo { get; set; }
@@ -18,7 +20,8 @@ namespace Rainbow.Example.Common
         {
             UseAudioVideo = false;
             FfmpegLibFolderPath = "";
-            LogFolderPath = ".\\";
+            LogFolderPath = "./";
+            LogOnConsole = false;
             S2SCallbackURL = "";
             CultureInfo = "";
         }
@@ -32,6 +35,7 @@ namespace Rainbow.Example.Common
                 settings.FfmpegLibFolderPath = jsonNode["ffmpegLibFolderPath"];
 
                 settings.LogFolderPath = jsonNode["logFolderPath"];
+                settings.LogOnConsole = jsonNode["logOnConsole"];
 
                 settings.S2SCallbackURL = jsonNode["s2sCallbackURL"];
 

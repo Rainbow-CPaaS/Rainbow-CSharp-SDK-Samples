@@ -551,7 +551,7 @@ namespace BotRAG.Model
 
                     _log.LogInformation("File uploaded - FileId:[{Id}] - Peer:[{Peer}]", fileDescriptor.Id, _bubblePeer.Jid);
 
-                    string filePath = Path.Combine($".\\bubbles\\{_bubblePeer.Id}", fileDescriptor.FileName);
+                    string filePath = Path.Combine($".{Path.DirectorySeparatorChar}bubbles{Path.DirectorySeparatorChar}{_bubblePeer.Id}", fileDescriptor.FileName);
                     (Boolean result, ragDocumentId) = await StoreFileOnRAGAsync(fileDescriptor, filePath);
                     if(result)
                         status = "processed";
@@ -610,7 +610,6 @@ namespace BotRAG.Model
                 _log.LogWarning("File NOT stored on RAG - FileId:[{Id}] - Peer:[{Peer}] - Cannot get Owner", fileDescriptor.Id, _bubblePeer.Jid);
                 return (false, null);
             }
-
             return await RAGClient.Instance.UploadFileThenProcessAsync(_bubblePeer, owner, fileDescriptor, filePath);
         }
 

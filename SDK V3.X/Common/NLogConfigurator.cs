@@ -58,7 +58,7 @@ namespace Rainbow.Example.Common
                 // Get content of the log file configuration
                 String logConfigContent = XmlContent;
                 String logLoggerContent = LoggerContent;
-                String logTargetContent = TargetContent;
+                String logTargetContent = OutputOnConsole ? TargetContentOnConsole : TargetContent;
 
                 string loggers = "";
                 string targets = "";
@@ -127,6 +127,8 @@ namespace Rainbow.Example.Common
         /// </summary>
         public static String Directory = "." + Path.DirectorySeparatorChar;
 
+        public static Boolean OutputOnConsole = false;
+
         /// <summary>
         /// Main structure of the XML configuration file for NLog
         /// </summary>
@@ -183,5 +185,26 @@ namespace Rainbow.Example.Common
     maxArchiveFiles=""10""
     layout=""${longdate} | ${level:uppercase=true:padding=-5} | ${threadid:padding=-3} | ${callsite:className=True:fileName=False:includeSourcePath=False:methodName=True:padding=70:fixedLength=True:alignmentOnTruncation=Right}: ${callsite-linenumber:padding=-4} | ${message}""
     />";
+
+
+        /// <summary>
+        /// By default define 2 targets (one for each logger - see <see cref="LoggerContent"/>)
+        /// Each target, define a file with 5242880 octets maximum and up to 10 archived files
+        /// </summary>
+        public static String TargetContentOnConsole =
+    @"<target
+    xsi:type=""Console""
+    encoding=""utf-8""
+    name=""[$PREFIX]RAINBOW_WEBRTC_TARGET""
+    layout=""${longdate} | ${level:uppercase=true:padding=-5} | ${threadid:padding=-3} | ${callsite:className=True:fileName=False:includeSourcePath=False:methodName=True:padding=70:fixedLength=True:alignmentOnTruncation=Right}: ${callsite-linenumber:padding=-4} | ${message}""
+    />
+
+<target
+    xsi:type=""Console""
+    encoding=""utf-8""
+    name=""[$PREFIX]RAINBOW_DEFAULT_TARGET""
+    layout=""${longdate} | ${level:uppercase=true:padding=-5} | ${threadid:padding=-3} | ${callsite:className=True:fileName=False:includeSourcePath=False:methodName=True:padding=70:fixedLength=True:alignmentOnTruncation=Right}: ${callsite-linenumber:padding=-4} | ${message}""
+    />";
+
     }
 }
