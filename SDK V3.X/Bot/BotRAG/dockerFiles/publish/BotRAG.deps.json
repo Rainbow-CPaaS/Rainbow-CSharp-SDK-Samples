@@ -6,7 +6,7 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v8.0": {
-      "BotRAG/0.4.5": {
+      "BotRAG/0.4.6": {
         "dependencies": {
           "BotLibrary": "0.0.2",
           "SQLitePCLRaw.bundle_e_sqlite3": "3.0.2",
@@ -413,7 +413,7 @@
     }
   },
   "libraries": {
-    "BotRAG/0.4.5": {
+    "BotRAG/0.4.6": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
