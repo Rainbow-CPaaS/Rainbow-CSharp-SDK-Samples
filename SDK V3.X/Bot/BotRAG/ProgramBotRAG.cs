@@ -127,8 +127,9 @@ namespace BotRag
             if (ExeSettings.FromJsonNode(jsonNode["exeSettings"], out _exeSettings))
             {
                 // Set where log files must be stored
-                Util.WriteBlue($"For logs, folder used:[{_exeSettings.LogFolderPath}]");
+                Util.WriteBlue($"For logs, folder used:[{_exeSettings.LogFolderPath}] - LogOnConsole:[{_exeSettings.LogOnConsole}]");
                 NLogConfigurator.Directory = _exeSettings.LogFolderPath;
+                NLogConfigurator.OutputOnConsole = _exeSettings.LogOnConsole;
             }
             else
             {
