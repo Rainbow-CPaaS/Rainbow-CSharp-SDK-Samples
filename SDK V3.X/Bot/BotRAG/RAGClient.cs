@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -66,7 +67,7 @@ namespace BotRAG
         {
             if (String.IsNullOrEmpty(_bearerToken)) return false;
 
-            var uri = $"https://{Configuration.Instance.Host}/api/v1/auth/user_token";
+            var uri = $"https://{Configuration.Instance.Host}/api/v1/auth/user_token?dummy=" + Rainbow.Util.GetGUID();
             using System.Net.Http.HttpClient client = new();
 
             // Bearer Token header if needed
@@ -74,8 +75,22 @@ namespace BotRAG
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
             using HttpResponseMessage response = await client.GetAsync(uri);
-            //var token = await response.Content.ReadAsStringAsync();
-            return (response.StatusCode != System.Net.HttpStatusCode.OK);
+            
+            if (response.StatusCode != System.Net.HttpStatusCode.OK)
+            {
+                String content = "";
+                try
+                {
+                    content = await response.Content.ReadAsStringAsync();
+                }
+                catch { }
+
+                _log.LogWarning("CheckTokenAsync - StatusCode:[{StatusCode}] - Response:[{Response}] - Current Token:[{Token}]", response.StatusCode, content, _bearerToken);
+                return false;
+            }
+
+            _log.LogDebug("CheckTokenAsync - StatusCode:[{StatusCode}] - Current Token:[{Token}]", response.StatusCode, _bearerToken);
+            return true;
         }
 
         public async Task<Boolean> RenewTokenAsync()
@@ -103,9 +118,13 @@ namespace BotRAG
             String token_type = jsonNode["token_type"];
 
             if (!token_type.Equals("bearer", StringComparison.InvariantCultureIgnoreCase))
+            {
+                _log.LogWarning("RenewTokenAsync - Cannot renew token - Response:[{Response}]", token);
                 return false;
+            }
 
             _bearerToken = access_token;
+            _log.LogInformation("RenewTokenAsync - Token:[{Token}]", _bearerToken);
             return true;
         }
 
@@ -293,7 +312,7 @@ namespace BotRAG
                 if (!response.IsSuccessStatusCode)
                 {
                     var responseContent = await response.Content.ReadAsStringAsync(_tokenSource.Token);
-                    _log.LogWarning("ragError - call_assistant_conversation failed - Uri:[{Uri}] - StatusCode:[{StatusCode}] - Body:[{Body}]] - ResponseContent:[{Content}] ", uri, response.StatusCode, content, responseContent);
+                    _log.LogWarning("ragError - call_assistant_conversation failed - Uri:[{Uri}] - StatusCode:[{StatusCode}] - Body:[{Body}]] - Token:[{Token}] - ResponseContent:[{Content}]", uri, response.StatusCode, content, _bearerToken, responseContent);
                     if (!forceCreate)
                         return (await Query(peerContactAsking, peerBubbleContext, query, true));
                     else
@@ -309,7 +328,7 @@ namespace BotRAG
                                             t.Minutes,
                                             t.Seconds,
                                             t.Milliseconds);
-                    _log.LogInformation("call_assistant_conversation - Uri:[{Uri}] - Body:[{Content}] - ElapsedTime:[{ElapsedTime}] (to get header)", uri, content, elapsedTime);
+                    _log.LogInformation("call_assistant_conversation - Uri:[{Uri}] - Body:[{Content}] - Token:[{Token}] - ElapsedTime:[{ElapsedTime}] (to get header)", uri, content, _bearerToken, elapsedTime);
 
                     var stream = await response.Content.ReadAsStreamAsync(_tokenSource.Token);
                     StreamReader streamReader = new(stream, true);
