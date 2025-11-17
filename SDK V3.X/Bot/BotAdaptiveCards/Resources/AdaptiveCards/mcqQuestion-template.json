@@ -8,7 +8,7 @@
             "size": "large",
             "weight": "bolder",
             "text": " ${title}",
-            "color": "good",
+            "color": "accent",
             "horizontalAlignment": "center",
             "wrap": true,
             "style": "heading"
@@ -18,7 +18,7 @@
             "size": "medium",
             "weight": "bolder",
             "text": " ${question}",
-            "color": "attention",
+            "color": "default",
             "horizontalAlignment": "left",
             "wrap": true,
             "style": "heading"
@@ -28,8 +28,6 @@
             "id": "MCQSelection",
             "label": "",
             "value": "${userAnswer}",
-            "size": "medium",
-            "weight": "bolder",
             "style": "expanded",
             "isRequired": true,
             "errorMessage": "Selection is required",

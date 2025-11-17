@@ -407,25 +407,28 @@ namespace BotAdaptiveCards
                     userHasAnswered = userAnswer;
                 }
 
-                (String? message, List<MessageAlternativeContent>? alternativeContent) = CreateMCQQuestionAdaptiveCard(questionIndex, userHasAnswered);
-                if ((message != null) && (alternativeContent != null))
+                if ((questionIndex >= 0) && (questionIndex <= MAX_MCQ_QUESTION))
                 {
-                    if (accountMCQStatus.LastAdaptativeCardMessage != null)
+                    (String? message, List<MessageAlternativeContent>? alternativeContent) = CreateMCQQuestionAdaptiveCard(questionIndex, userHasAnswered);
+                    if ((message != null) && (alternativeContent != null))
                     {
-                        var sdkResult = await _rbInstantMessaging.EditMessageAsync(accountMCQStatus.LastAdaptativeCardMessage, message, alternativeContent);
+                        if (accountMCQStatus.LastAdaptativeCardMessage != null)
+                        {
+                            var sdkResult = await _rbInstantMessaging.EditMessageAsync(accountMCQStatus.LastAdaptativeCardMessage, message, alternativeContent);
 
-                        return true;
+                            return true;
+                        }
+                        else
+                        {
+                            Console.WriteLine($"We don't have a valid Message from the previoude Adaptative Card send.");
+                            return false;
+                        }
                     }
                     else
                     {
-                        Console.WriteLine($"We don't have a valid Message from the previoude Adaptative Card send.");
+                        Console.WriteLine($"We have a problem to create Adaptive Card for question [{questionIndex}]");
                         return false;
                     }
-                }
-                else
-                {
-                    Console.WriteLine($"We have a problem to create Adaptive Card for question [{questionIndex}]");
-                    return false;
                 }
             }
 
