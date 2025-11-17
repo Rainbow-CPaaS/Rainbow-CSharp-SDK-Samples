@@ -10,6 +10,12 @@
 	- Media supported: 'audio', 'video', 'audio+video'
 	- UriType supported: 'other' (or null/empty value)
 
+## [0.8.5]
+- Enhancement: 
+	- Enhance the way to subscribe / unsubscribe DynamicFeed
+	- When Closing Video / Sharing window, the associated MediaPublication is unsubscribed
+	- Audio Input Empty Track is now set by default on startup
+
 ## [0.8.4]
 - Fix: 
 	- Ensure to use Main Thread to manage Window used for Video / Sharing display

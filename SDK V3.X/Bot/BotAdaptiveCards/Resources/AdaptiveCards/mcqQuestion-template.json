@@ -8,6 +8,7 @@
             "size": "large",
             "weight": "bolder",
             "text": " ${title}",
+            "color": "good",
             "horizontalAlignment": "center",
             "wrap": true,
             "style": "heading"
@@ -17,6 +18,7 @@
             "size": "medium",
             "weight": "bolder",
             "text": " ${question}",
+            "color": "attention",
             "horizontalAlignment": "left",
             "wrap": true,
             "style": "heading"
@@ -45,10 +47,10 @@
             "size": "Medium",
             "weight": "Bolder",
             "text": "${information}",
-            "horizontalAlignment": "Center",
+            "horizontalAlignment": "center",
             "wrap": true,
             "style": "heading",
-            "color": "Good",
+            "color": "good",
             "isVisible": false
         }
     ],

@@ -87,7 +87,7 @@ Call? currentCall = null;
 List<String> conferencesInProgress = [];
 
 Device? currentAudioInput = null;
-Boolean useEmptyTrack = false;
+Boolean useEmptyTrack = true;   // By default use empty track for audio input
 Device? currentAudioOutput = null;
 Device? currentWebCam = null;
 Device? currentScreen = null;
@@ -106,6 +106,7 @@ TimeSpan delayDCMsg = TimeSpan.FromMilliseconds(2000);
 Timer dcSendWatcher = new Timer((_state) => SendDataOnDc(), null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
 
 IAudioStreamTrack? audioTrack = null;
+
 IVideoStreamTrack? videoTrack = null;
 IVideoStreamTrack? sharingTrack = null;
 
@@ -155,6 +156,12 @@ var RbAutoReconnection  = RbApplication.GetAutoReconnection();
 var RbHubTelephony      = RbApplication.GetHubTelephony();
 
 var RbWebRTCDesktopFactory = new Rainbow.WebRTC.Desktop.WebRTCFactory();
+
+// By default use empty track for audio input
+currentAudioInput = null;
+useEmptyTrack = true;   
+audioTrack = RbWebRTCDesktopFactory.CreateEmptyAudioTrack();
+
 WebRTCCommunications? RbWebRTCCommunications;
 try
 {
@@ -211,7 +218,7 @@ await MainLoop();
 Window.Destroy(_windowVideo);
 Window.Destroy(_windowSharing);
 
-if (String.IsNullOrEmpty(currentCallId))
+if (!String.IsNullOrEmpty(currentCallId))
     await RbWebRTCCommunications.HangUpCallAsync(currentCallId);
 
 await RbApplication.LogoutAsync();
@@ -238,6 +245,16 @@ async Task MainLoop()
                                 _windowVideo.NeedRendereUpdate = true;
                             else if (e.window.windowID == _windowSharing.Id)
                                 _windowSharing.NeedRendereUpdate = true;
+                            break;
+                        case SDL2.SDL_WindowEventID.SDL_WINDOWEVENT_CLOSE:
+                            if (e.window.windowID == _windowVideo.Id)
+                            {
+                                var _ = UnsubscribeToMediaAsync(Media.VIDEO);
+                            }
+                            else if (e.window.windowID == _windowSharing.Id)
+                            {
+                                var _ = UnsubscribeToMediaAsync(Media.SHARING);
+                            }
                             break;
                     }
                     break;
@@ -401,7 +418,7 @@ void MenuMediaPublications()
     Action action = async () =>
     {
         var publications = RbWebRTCCommunications.GetMediaPublicationsAvailable(currentCallId);
-        if(publications?.Count > 0)
+        if (publications?.Count > 0)
         {
             var currentUserId = RbContacts.GetCurrentContact().Peer.Id;
             Boolean selected = false;
@@ -413,12 +430,17 @@ void MenuMediaPublications()
                 int index = 0;
                 foreach (var pub in publications)
                 {
-                    var displayname = (pub.Peer.Id == currentUserId) ? "YOURSELF" : pub.Peer.DisplayName;
-
                     var subscribeStatus = (RbWebRTCCommunications.IsSubscribedToMediaPublication(pub)) ? "UNSUBSCRIBE" : "SUBSCRIBE";
-                    var dynamicFeed = (pub.Peer.Type == Rainbow.Consts.EntityType.DynamicFeed) ? " (DynamicFeed)" : "";
 
-                    Util.WriteYellow($"\t[{index++}] - {subscribeStatus} TO - Media:[{Rainbow.Util.MediasToString(pub.Media)}{dynamicFeed}] - Peer:[{displayname}]");
+                    if ((pub.Peer.Type == Rainbow.Consts.EntityType.DynamicFeed))
+                    {
+                        Util.WriteYellow($"\t[{index++}] - {subscribeStatus} TO - Media:[DynamicFeed]");
+                    }
+                    else
+                    {
+                        var displayname = (pub.Peer.Id == currentUserId) ? "YOURSELF" : pub.Peer.DisplayName;
+                        Util.WriteYellow($"\t[{index++}] - {subscribeStatus} TO - Media:[{Rainbow.Util.MediasToString(pub.Media)}] - Peer:[{displayname}]");
+                    }
                 }
 
 
@@ -432,7 +454,16 @@ void MenuMediaPublications()
                         selected = true;
                         var pub = publications[selection];
 
-                        Util.WriteDarkYellow($"MediaPublication selected: Media:[{Rainbow.Util.MediasToString(pub.Media)}] - Peer:[{pub.Peer.DisplayName}]");
+
+                        if ((pub.Peer.Type == Rainbow.Consts.EntityType.DynamicFeed))
+                        {
+                            Util.WriteYellow($"MediaPublication selected: [DynamicFeed]");
+                        }
+                        else
+                        {
+                            var displayname = (pub.Peer.Id == currentUserId) ? "YOURSELF" : pub.Peer.DisplayName;
+                            Util.WriteDarkYellow($"MediaPublication selected: Media:[{Rainbow.Util.MediasToString(pub.Media)}] - Peer:[{displayname}]");
+                        }
 
                         if (RbWebRTCCommunications.IsSubscribedToMediaPublication(pub))
                         {
@@ -450,7 +481,7 @@ void MenuMediaPublications()
 
                             // In this application, we restrict subscription to only one VIDEO MediaPublication
                             var mediaPublicationsSubcribed = RbWebRTCCommunications.GetMediaPublicationsSubscribed(currentCallId);
-                            var previousMP = mediaPublicationsSubcribed?.Find(mp => (mp.Media == Media.VIDEO) && (mp.Peer.Id != pub.Peer.Id));
+                            var previousMP = mediaPublicationsSubcribed?.Find(mp => (mp.Media == Media.VIDEO));// && (mp.Peer.Id != pub.Peer.Id));
                             if ((pub.Media == Media.VIDEO && previousMP is not null))
                             {
                                 Util.WriteGreen($"First asking to unsubscribe to previous Video MediaPublication ...");
@@ -470,18 +501,8 @@ void MenuMediaPublications()
                                 else
                                     Util.WriteDarkYellow($"Previous Video MediaPublication has NOT been unsubscribed:{sdkResult.Result}");
                             }
-                            
-                            //else
+                            else
                             {
-                                Boolean dynamicFeed = false;
-                                // If Video we ask to use DynamicFeed or not 
-                                if ( (pub.Media == Media.VIDEO) && (currentCall.IsConference))
-                                {
-                                    Util.WriteYellow($"Do you want to subscribd to the Dynamic Feed Y/N ?");
-                                    consoleKey = Console.ReadKey(true);
-                                    dynamicFeed = consoleKey.KeyChar.ToString().Equals("y", StringComparison.InvariantCultureIgnoreCase);
-                                }
-
                                 // /!\ Need to use Main Thread
                                 if (pub.Media == Media.VIDEO)
                                 {
@@ -497,9 +518,6 @@ void MenuMediaPublications()
                                         Window.Create(_windowSharing);
                                     }));
                                 }
-
-                                if (dynamicFeed)
-                                    pub.Peer.Type = Rainbow.Consts.EntityType.DynamicFeed;
 
                                 Util.WriteGreen($"Asking to subscribe ...");
                                 var sdkResult = await RbWebRTCCommunications.SubscribeToMediaPublicationAsync(pub, MediaSubStreamLevel.HIGH);
@@ -844,7 +862,7 @@ async Task SubMenuAudioInputStream()
                     if (useEmptyTrack)
                         Util.WriteYellow($"A call is in progress WITH your EMPTY Audio track");
                     else //if (currentAudioInput != null)
-                        Util.WriteYellow($"A call is in progress WITH your AUDIO Input: {currentAudioInput.Name} [{currentAudioInput.Path}]");
+                        Util.WriteYellow($"A call is in progress WITH your AUDIO Input: {currentAudioInput?.Name} [{currentAudioInput?.Path}]");
                 }
                 Util.WriteYellow("\t[S] - Select another one and use it in the call");
                 Util.WriteYellow("\t[C] - Cancel");
@@ -882,7 +900,7 @@ async Task SubMenuAudioInputStream()
                     if(useEmptyTrack)
                         Util.WriteYellow($"A call is in progress WITHOUT your AUDIO INPUT: EMPTY TRACK");
                     else //if(currentAudioInput is not null)
-                        Util.WriteYellow($"A call is in progress WITHOUT your AUDIO INPUT: {currentAudioInput.Name} [{currentAudioInput.Path}]");
+                        Util.WriteYellow($"A call is in progress WITHOUT your AUDIO INPUT: {currentAudioInput?.Name} [{currentAudioInput?.Path}]");
                     Util.WriteYellow("\t[A] - Add it to the call");
                 }
                 Util.WriteYellow("\t[S] - Select stream and use it as AUDIO INPUT in the call");
@@ -943,7 +961,7 @@ async Task SubMenuAudioInputStream()
             if (useEmptyTrack)
                 Util.WriteYellow($"Current stream used has AUDIO INPUT: EMPTY TRACK");
             else
-                Util.WriteYellow($"Current stream used has AUDIO INPUT: {currentAudioInput.Name} [{currentAudioInput.Path}]");
+                Util.WriteYellow($"Current stream used has AUDIO INPUT: {currentAudioInput?.Name} [{currentAudioInput?.Path}]");
         }
         Util.WriteYellow($"Select stream to use has AUDIO INPUT:");
         int index = 0;
@@ -971,11 +989,11 @@ async Task SubMenuAudioInputStream()
             {
                 selected = true;
                 useEmptyTrack = false;
-                audioInputUpdated = currentAudioInput?.Path != audioInputDevices[selection].Path;
+                audioInputUpdated = currentAudioInput?.Path != audioInputDevices?[selection]?.Path;
                 if (audioInputUpdated)
                 {
-                    currentAudioInput = audioInputDevices[selection];
-                    Util.WriteDarkYellow($"Stream used as Audio Input selected: {currentAudioInput.Name} ({currentAudioInput.Path})]");
+                    currentAudioInput = audioInputDevices?[selection];
+                    Util.WriteDarkYellow($"Stream used as Audio Input selected: {currentAudioInput?.Name} ({currentAudioInput?.Path})]");
                 }
                 else
                     Util.WriteDarkYellow($"Same Stream selected");
@@ -1145,11 +1163,11 @@ void SubMenuAudioOutputStream()
             if ((selection >= 0) && (selection < index))
             {
                 selected = true;
-                audioOutputUpdated = currentAudioOutput?.Path != audioOutputDevices[selection].Path;
+                audioOutputUpdated = currentAudioOutput?.Path != audioOutputDevices?[selection]?.Path;
                 if (audioOutputUpdated)
                 {
-                    currentAudioOutput = audioOutputDevices[selection];
-                    Util.WriteDarkYellow($"Stream used as Audio Output selected: {currentAudioOutput.Name} ({currentAudioOutput.Path})]");
+                    currentAudioOutput = audioOutputDevices?[selection];
+                    Util.WriteDarkYellow($"Stream used as Audio Output selected: {currentAudioOutput?.Name} ({currentAudioOutput?.Path})]");
                 }
                 else
                     Util.WriteDarkYellow($"Same Stream selected");
@@ -1382,11 +1400,11 @@ void MenuVideoStream()
                 if ((selection >= 0) && (selection < index))
                 {
                     selected = true;
-                    webcamUpdated = currentWebCam?.Path != webcamDevices[selection].Path;
+                    webcamUpdated = currentWebCam?.Path != webcamDevices?[selection]?.Path;
                     if (webcamUpdated)
                     {
-                        currentWebCam = webcamDevices[selection];
-                        Util.WriteDarkYellow($"Stream used as Video selected: {currentWebCam.Name} ({currentWebCam.Path})]");
+                        currentWebCam = webcamDevices?[selection];
+                        Util.WriteDarkYellow($"Stream used as Video selected: {currentWebCam?.Name} ({currentWebCam?.Path})]");
                     }
                     else
                         Util.WriteDarkYellow($"Same Stream selected");
@@ -1414,6 +1432,7 @@ void MenuVideoStream()
             {
                 webcamUpdated = true;
                 currentWebCam = null;
+                videoStream = null;
                 selected = true;
                 Util.WriteDarkYellow($"No more video used ...");
             }
@@ -1634,11 +1653,11 @@ void MenuSharingStream()
                 if ((selection >= 0) && (selection < index))
                 {
                     selected = true;
-                    screenUpdated = currentScreen?.Name != screenDevices[selection].Name;
+                    screenUpdated = currentScreen?.Name != screenDevices?[selection]?.Name;
                     if (screenUpdated)
                     {
-                        currentScreen = screenDevices[selection];
-                        Util.WriteDarkYellow($"Stream used as Sharing selected: {currentScreen.Name} ({currentScreen.Path})]");
+                        currentScreen = screenDevices?[selection];
+                        Util.WriteDarkYellow($"Stream used as Sharing selected: {currentScreen?.Name} ({currentScreen?.Path})]");
                     }
                     else
                         Util.WriteDarkYellow($"Same Stream selected");
@@ -1976,6 +1995,29 @@ void MenuEscape()
     RbTask = Task.Run(action);
 }
 
+async Task UnsubscribeToMediaAsync(int media)
+{
+    if (String.IsNullOrEmpty(currentCallId)) return;
+
+    var publications = RbWebRTCCommunications.GetMediaPublicationsSubscribed(currentCallId);
+    if (publications?.Count > 0)
+    {
+        foreach (var pub in publications)
+        {
+            if (pub.Media == media)
+            {
+                Util.WriteGreen($"Asking to unsubscribe {Rainbow.Util.MediasToString(media)} MediaPublication ...");
+                var sdkResult = await RbWebRTCCommunications.UnsubscribeToMediaPublicationAsync(pub);
+                if (sdkResult.Success)
+                    Util.WriteDarkYellow($"Previous {Rainbow.Util.MediasToString(media)} MediaPublication has been unsubscribed");
+                else
+                    Util.WriteDarkYellow($"Previous {Rainbow.Util.MediasToString(media)} MediaPublication has NOT been unsubscribed:{sdkResult.Result}");
+                return;
+            }
+        }
+    }
+}
+
 #region AUDIO INPUT - add, remove in the call
 
 async Task<Boolean> AddAudioInputAsync()
@@ -2110,7 +2152,7 @@ void SendDataOnDc()
 
 #endregion DATACHANNEL - add, remove in the call, send / receive data
 
-#region VIDEO - add, remove, update in the call
+#region LOCAL VIDEO - add, remove, update in the call
 async Task<Boolean> RemoveVideoAsync()
 {
     if (currentCall?.IsActive() == true)
@@ -2192,9 +2234,9 @@ async Task<Boolean> UpdateVideoAsync()
     }
 }
 
-#endregion VIDEO - add, remove, update in the call
+#endregion LOCAL VIDEO - add, remove, update in the call
 
-#region SHARING - add, remove, update in the call
+#region LOCAL SHARING - add, remove, update in the call
 
 async Task<Boolean> RemoveSharingAsync()
 {
@@ -2606,7 +2648,8 @@ void RbWebRTCCommunications_OnTrack(string callId, MediaStreamTrackDescriptor me
                 _actions.Add(new Action(() =>
                 {
                     _windowVideo.VideoStopped = true;
-                    videoRemoteTrack.OnImage -= VideoRemoteTrack_OnImage;
+                    if(videoRemoteTrack is not null)
+                        videoRemoteTrack.OnImage -= VideoRemoteTrack_OnImage;
                 }));
             }
 
@@ -2618,7 +2661,8 @@ void RbWebRTCCommunications_OnTrack(string callId, MediaStreamTrackDescriptor me
                     Window.Show(_windowVideo);
 
                     videoRemoteTrack = videoTrack;
-                    videoRemoteTrack.OnImage += VideoRemoteTrack_OnImage;
+                    if (videoRemoteTrack is not null)
+                        videoRemoteTrack.OnImage += VideoRemoteTrack_OnImage;
                     _windowVideo.VideoStopped = false;
                 }));
             }
@@ -2639,7 +2683,8 @@ void RbWebRTCCommunications_OnTrack(string callId, MediaStreamTrackDescriptor me
                 _actions.Add(new Action(() =>
                 {
                     _windowSharing.VideoStopped = true;
-                    sharingRemoteTrack.OnImage -= SharingRemoteTrack_OnImage;
+                    if (sharingRemoteTrack is not null)
+                        sharingRemoteTrack.OnImage -= SharingRemoteTrack_OnImage;
                 }));
             }
 
@@ -2651,7 +2696,8 @@ void RbWebRTCCommunications_OnTrack(string callId, MediaStreamTrackDescriptor me
                     Window.Show(_windowSharing);
 
                     sharingRemoteTrack = sharingTrack;
-                    sharingRemoteTrack.OnImage += SharingRemoteTrack_OnImage;
+                    if (sharingRemoteTrack is not null)
+                        sharingRemoteTrack.OnImage += SharingRemoteTrack_OnImage;
                     _windowSharing.VideoStopped = false;
                 }));
             }

@@ -239,7 +239,7 @@ namespace BotRAG
 
                     result = result.TrimEnd('\r').TrimEnd('\n');
 
-                    _log.LogDebug("upload_then_process_any - Result:[{result}]", result);
+                    _log.LogDebug("upload_then_process_any - Uri:[{Uri}] - Result:[{result}]", uri, result);
                     return (true, ragDocumentId);
                 }
             }

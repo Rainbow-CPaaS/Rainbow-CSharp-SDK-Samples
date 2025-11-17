@@ -758,12 +758,14 @@ namespace ConsoleMediaPlayer
                 {
                     _mediaInputAudio = iMediaAudio;
                     _mediaInputAudio.OnAudioSample += MediaInput_OnAudioSample;
+                    _mediaInputAudio.OnEndOfFile += MediaInputAudio_OnEndOfFile;
                 }
 
                 if (iMediaVideo is not null)
                 {
                     _mediaInputVideo = iMediaVideo;
                     _mediaInputVideo.OnImage += MediaInput_OnImage;
+                    _mediaInputVideo.OnEndOfFile += MediaInputVideo_OnEndOfFile;
                 }
                 
                 String title = $"SDK C# v3.x - Streaming Audio:[{((_mediaInputAudio is not null) ? _mediaInputAudio.Name : "NONE")}] - Video:[{((_mediaInputVideo is not null) ? $"{_mediaInputVideo.Name} - {_mediaInputVideo.Width}x{_mediaInputVideo.Height}" : "NONE")}]";
@@ -800,6 +802,16 @@ namespace ConsoleMediaPlayer
                 Window.UpdateTexture(_outputWindow, stride, data);
                 Window.UpdateRenderer(_outputWindow);
             }));
+        }
+
+        private static void MediaInputAudio_OnEndOfFile(string mediaId)
+        {
+            Util.WriteGreen("Audio MediaInput reached End of File");
+        }
+
+        private static void MediaInputVideo_OnEndOfFile(string mediaId)
+        {
+            Util.WriteGreen("Video MediaInput reached End of File");
         }
 
 #endregion MediaInput Events
