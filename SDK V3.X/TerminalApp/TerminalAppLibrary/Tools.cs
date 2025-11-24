@@ -130,8 +130,8 @@ static public class Tools
         {
             Orientation = Orientation.Vertical,
             Width = 4,
-            CollapseString = $" {Emojis.COLLAPSE} ",
-            ExpandString = $" {Emojis.EXPAND} ",
+            CollapseString = $" {Emojis.MINUS} ",
+            ExpandString = $" {Emojis.PLUS} "
         };
     }
 
