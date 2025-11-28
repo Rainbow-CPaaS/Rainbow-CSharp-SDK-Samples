@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
     <Nullable>enable</Nullable>
 	<Version>0.0.2</Version>
   </PropertyGroup>
@@ -20,13 +20,13 @@
   </ItemGroup>
 
   <ItemGroup>
-	<PackageReference Include="Rainbow.CSharp.SDK.WebRTC" Version="2.2.0" />
-	<PackageReference Include="Rainbow.CSharp.SDK.WebRTC.Desktop" Version="2.2.0" />
-	<ProjectReference Include="..\BotLibrary\BotLibrary.csproj" />
+    <ProjectReference Include="..\BotLibrary\BotLibrary.csproj" />
 <!--	  
 	<ProjectReference Include="..\..\..\..\rainbow-csharp-sdk-test\SDK.WebRTC.Desktop\SDK.WebRTC.Desktop.csproj" />
 	<ProjectReference Include="..\..\..\..\rainbow-csharp-sdk-test\SDK.WebRTC\SDK.WebRTC.csproj" />
 -->
-  </ItemGroup>
+	<PackageReference Include="Rainbow.CSharp.SDK.WebRTC.Desktop" Version="2.4.0" />
+	<PackageReference Include="Rainbow.CSharp.SDK.WebRTC" Version="2.4.0" />
+</ItemGroup>
 
 </Project>

@@ -652,17 +652,17 @@ namespace BotLibrary
             _rbApplication.Restrictions.EventMode = SdkEventMode.XMPP;
 
             // We want to use conference features
-            _rbApplication.Restrictions.UseConferences = false;
+            _rbApplication.Restrictions.UseConferences = true;
 
             // We want to use WebRTC
-            _rbApplication.Restrictions.UseWebRTC = false;
+            _rbApplication.Restrictions.UseWebRTC = true;
 
             _rbApplication.Restrictions.LogRestRequest = true;
-            Rainbow.Util.SetLogAnonymously(false);
+            
+            //Rainbow.Util.SetLogElementSeparator(" - ");
+            //Rainbow.Util.SetLogAnonymously(false);
 
             _rbApplication.Restrictions.UseBubbles = true;
-
-            Rainbow.Util.SetLogAnonymously(false);
         }
 
         /// <summary>

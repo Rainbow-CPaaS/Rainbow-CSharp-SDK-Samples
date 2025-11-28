@@ -105,7 +105,7 @@ A Visual Studio solution centralized all of them [here](./TerminalApp/)
 | [TerminalAppS2SPresencePanel](./TerminalApp/TerminalAppS2SPresencePanel/README.md) | Login, AutoReconnection, (Aggregated) Presence, User and Bubble invitation | Using S2S, Panel to see Presence of all contatcs in the roster. Possibility to change it's own presence. Manage user and bubble invitations |
 | [TerminalAppSearch](./TerminalApp/TerminalAppSearch/README.md) | Login, AutoReconnection, Search | Panel to search contact by name |
 | [TerminalAppBubbleManagement](./TerminalApp/TerminalAppBubbleManagement/README.md) | Login, AutoReconnection, Conversation, Bubble, Bubble Link, Waiting Room / Lobby | To list bubble's members, to promote / demote them, to accept / deny contact in waiting romm / lobby | 
-| [TerminalAppHubTelephony](./TerminalApp/TerminalAppHubTelephony/README.md) | Login, AutoReconnection, Hub Telephony | To follow/update in 3PCC (third party call control) Hybrid Telephony calls. |
+| [TerminalAppHubTelephony](./TerminalApp/TerminalAppHubTelephony/README.md) | Login, AutoReconnection, Hub Telephony | To follow/update in 3PCC (third party call control) Hub Telephony calls. |
 | [TerminalAppHybridTelephony](./TerminalApp/TerminalAppHybridTelephony/README.md) | Login, AutoReconnection, Hybrid Telephony | To follow/update in 3PCC (third party call control) Hybrid Telephony calls. Manage Call forward, nomadic and voicemail features |
 
 <a name="WPFApplicationexample"></a>

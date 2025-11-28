@@ -8,7 +8,7 @@
       ],
       "guestsAccepted": true
     },
-    "instantMessageAutoAccept": false,
+    "instantMessageAutoAccept": true,
     "ackMessageAutoAccept": false,
     "applicationMessageAutoAccept": false,
     "bubbleInvitationAutoAccept": true,

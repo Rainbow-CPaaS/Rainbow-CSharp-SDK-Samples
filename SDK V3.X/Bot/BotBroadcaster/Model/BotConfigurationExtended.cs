@@ -9,12 +9,12 @@ namespace BotBroadcaster.Model
     {
         public Dictionary<String, Stream> Streams { get; set; }
 
-        public Conference? Conference { get; set; }
+        public List<Conference> Conferences { get; set; }
 
         public BotConfigurationExtended() : base()
         {
             Streams = new();
-            Conference = new();
+            Conferences = new();
         }
 
         public static Boolean FromJsonNode(JSONNode jsonNode, out BotConfigurationExtended botConfigurationExtended)
@@ -40,9 +40,18 @@ namespace BotBroadcaster.Model
                     }
                 }
 
-                // Parse "conference"
-                if (Conference.FromJsonNode(jsonNode["conference"], out Conference? conference))
-                    botConfigurationExtended.Conference = conference;
+                // Parse "conferences"
+                if (jsonNode["conferences"]?.IsArray == true)
+                {
+                    foreach (JSONNode jsConf in jsonNode["conferences"])
+                    {
+                        if (Conference.FromJsonNode(jsConf, out Conference? conference))
+                        {
+                            if (conference is not null)
+                                botConfigurationExtended.Conferences.Add(conference);
+                        }
+                    }
+                }
 
                 return true;
             }

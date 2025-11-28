@@ -1,4 +1,6 @@
 ﻿using Rainbow;
+using Rainbow.Consts;
+using Rainbow.Model;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -19,7 +21,7 @@ namespace BotBasic
         {
             // Here we answer to all ApplicationMessage using a default message
 
-            String senderDisplayName = await GetSenderDisplayName(applicationMessage.FromJid);
+            String senderDisplayName = await GetDisplayName(applicationMessage.FromJid, EntityType.User);
 
             // Create and send an ApplicationMessage as answer
             List<XmlElement> xmlElements = [];
@@ -33,22 +35,40 @@ namespace BotBasic
         {
             // Here we answer to InstantMessage using a default message
 
-            String senderDisplayName = await GetSenderDisplayName(message.FromContact?.Peer?.Jid);
+            String senderDisplayName = await GetDisplayName(message.FromContact?.Peer?.Jid, EntityType.User);
 
             // Create and send an answer
-            String answer = $"Hi, It's an auto-answer from 'BotBasic' SDK C# example. InstantMessage received has been sent by {senderDisplayName}.";
+            String answer = $"Hi, It's an auto-answer from 'BotBasic' SDK C# example. InstantMessage received has been sent by {senderDisplayName}";
+            if (message.ToBubble is not null)
+            {
+                answer += $" in Bubble {await GetDisplayName(message.ToBubble.Peer?.Jid, EntityType.Bubble)}";
+            }
+
             await Application.GetInstantMessaging().AnswerToMessageAsync(message, answer);
         }
-#endregion Messages - AckMessage, ApplicationMessage, InstantMessage, InternalMessage
+        #endregion Messages - AckMessage, ApplicationMessage, InstantMessage, InternalMessage
 
-        private async Task<String> GetSenderDisplayName(String? jid)
+        private async Task<String> GetDisplayName(String? jid, String entityType)
         {
-            // Get the sender as Contact
-            var contact = await Application.GetContacts().GetContactByJidInCacheFirstAsync(jid);
-            if (String.IsNullOrEmpty(contact?.Peer?.DisplayName))
+            Peer? peer = null;
+            if (jid is not null)
+            { 
+                switch (entityType)
+                {
+                    case EntityType.User:
+                        peer = await Application.GetContacts().GetContactByJidInCacheFirstAsync(jid);
+                        break;
+
+                    case EntityType.Bubble:
+                        peer = await Application.GetBubbles().GetBubbleByJidInCacheFirstAsync(jid);
+                        break;
+                }
+            }
+
+            if (String.IsNullOrEmpty(peer?.DisplayName))
                 return "an unknown contact";
             else
-                return $"[{contact.Peer.DisplayName}]";
+                return $"[{peer.DisplayName}]";
         }
     }
 }

@@ -2,10 +2,10 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-	<Version>0.8.4</Version>
+	<Version>0.8.5</Version>
   </PropertyGroup>
 
 	<PropertyGroup>
@@ -14,12 +14,12 @@
 	
   <ItemGroup>
 	<ProjectReference Include="..\..\CommonSDL2\CommonSDL2.csproj" />
-	<PackageReference Include="Rainbow.CSharp.SDK.WebRTC.Desktop" Version="2.3.0" />
-	<PackageReference Include="Rainbow.CSharp.SDK.WebRTC" Version="2.3.0" />
 <!--
 	<ProjectReference Include="..\..\..\..\rainbow-csharp-sdk-test\SDK.WebRTC\SDK.WebRTC.csproj" />
 	<ProjectReference Include="..\..\..\..\rainbow-csharp-sdk-test\SDK.WebRTC.Desktop\SDK.WebRTC.Desktop.csproj" />
 -->
+	<PackageReference Include="Rainbow.CSharp.SDK.WebRTC.Desktop" Version="2.4.0" />
+	<PackageReference Include="Rainbow.CSharp.SDK.WebRTC" Version="2.4.0" />
 </ItemGroup>
 
    <ItemGroup>
