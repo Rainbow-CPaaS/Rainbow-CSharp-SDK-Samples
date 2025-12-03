@@ -12,6 +12,5 @@
 <!--
     <ProjectReference Include="..\..\..\rainbow-csharp-sdk-test\SDK\SDK.csproj" />
 -->
-
   </ItemGroup>
 </Project>

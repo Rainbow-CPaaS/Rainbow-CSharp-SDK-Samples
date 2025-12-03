@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Rainbow.CSharp.SDK.Common" Version="3.2.0" />
+    <PackageReference Include="Rainbow.CSharp.SDK.Common" Version="3.3.0" />
     <ProjectReference Include="..\..\Common\Common.csproj" />
   </ItemGroup>
 
