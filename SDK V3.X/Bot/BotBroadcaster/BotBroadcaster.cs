@@ -32,7 +32,6 @@ namespace BotBroadcaster
         BotConfigurationUpdate? _currentBotConfigurationUpdate = null;
         BotConfigurationExtended? _currentBotConfigurationExtended = null;
         BotConfigurationUpdate? _nextBotConfigurationUpdate = null;
-        Boolean _checkBotConfigurationInprogress = false;
 
         Timer? _botConfigurationTimer = null;
 
@@ -84,15 +83,32 @@ namespace BotBroadcaster
             return _nextBotConfigurationUpdate is not null;
         }
 
+
+        public Boolean broadcastConfigurationMustBeCheckedAgain = false;
+
         private void CheckBroadcastConfiguration()
         {
-            if (!RbTask.IsCompleted) return;
-
             Boolean result = true;
+
+            if (!RbTask.IsCompleted)
+            {
+                broadcastConfigurationMustBeCheckedAgain = (currentCallsList.Count == 0);
+                return;
+            }
+            
 
             Action action = async () =>
             {
-                if(currentCallsList.Count > 0)
+                if (IsNewConfigAvailable())
+                {
+                    UpdateBroadcastConfiguration();
+                    return;
+                }
+
+                // Ensure to set id / jid for conference if it's not the case
+                UpdateConferenceSettings();
+
+                if (currentCallsList.Count > 0)
                 {
                     foreach(var call in currentCallsList.Values.ToList())
                     {
@@ -106,12 +122,6 @@ namespace BotBroadcaster
                         if ((call.CallStatus == Rainbow.Enums.CallStatus.CONNECTING)
                             || (call.CallStatus == Rainbow.Enums.CallStatus.UNKNOWN))
                             continue;
-
-                        if (IsNewConfigAvailable())
-                        {
-                            UpdateBroadcastConfiguration();
-                            return;
-                        }
 
                         result = await QuitConferenceIfNecessaryAsync(call);
 
@@ -131,6 +141,7 @@ namespace BotBroadcaster
                 else
                 {
                     await JoinConferenceIfNecessaryAsync();
+                    await ConnectOrDisconnectRemoteMediasAsync(null);
                 }
             };
 
@@ -139,27 +150,45 @@ namespace BotBroadcaster
                 if (IsNewConfigAvailable())
                     UpdateBroadcastConfiguration();
 
-                if (result)
+                if (result && !broadcastConfigurationMustBeCheckedAgain)
                     _botConfigurationTimer?.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
                 else
+                {
+                    broadcastConfigurationMustBeCheckedAgain = false;
                     _botConfigurationTimer?.Change(TimeSpan.FromMilliseconds(200), Timeout.InfiniteTimeSpan);
+                }
             });
         }
 
         private Bubble? GetBubble(string id, string jid, string name)
         {
+            if (_rbBubbles is null)
+                return null;
+
             Bubble? result = null;
 
-            if (!String.IsNullOrEmpty(id))
-                result = _rbBubbles?.GetBubbleById(id);
-
-            if ( result is null && (!String.IsNullOrEmpty(jid)) )
-                result = _rbBubbles?.GetBubbleByJid(jid);
-
-            if (result is null && (!String.IsNullOrEmpty(name)))
-                result = _rbBubbles?.GetAllBubbles().Find(b => b.Peer.DisplayName.Equals(name, StringComparison.InvariantCultureIgnoreCase));
-
+            result = _rbBubbles.GetBubbleById(id);
+            result ??= _rbBubbles.GetBubbleByJid(jid);
+            result ??= _rbBubbles.GetAllBubbles().Find(b => b.Peer.DisplayName.Equals(name, StringComparison.InvariantCultureIgnoreCase));
             return result;
+        }
+
+        private void UpdateConferenceSettings()
+        {
+            if (_currentBotConfigurationExtended?.Conferences?.Count > 0)
+            {
+                foreach (var conference in _currentBotConfigurationExtended.Conferences)
+                {
+                    Bubble? bubble = GetBubble(conference.Id, conference.Jid, conference.Name);
+                    if (bubble is null)
+                        continue;
+                    
+                    // If a bubble has been found, about the settings
+                    conference.Id = bubble.Peer.Id;
+                    conference.Jid = bubble.Peer.Jid;
+                    conference.Name = bubble.Peer.DisplayName;
+                }
+            }
         }
 
         private async Task<Boolean> QuitConferenceIfNecessaryAsync(Call call)
@@ -173,8 +202,7 @@ namespace BotBroadcaster
                 {
                     foreach(var conference in _currentBotConfigurationExtended.Conferences)
                     {
-                        Bubble? bubble = GetBubble(conference.Id, conference.Jid, conference.Name);
-                        if (bubble?.Peer.Id == call.Id)
+                        if(conference.Id == call.Id)
                         {
                             needToQuit = false;
                             break;
@@ -199,21 +227,17 @@ namespace BotBroadcaster
             {
                 foreach(var conference in _currentBotConfigurationExtended.Conferences)
                 {
-                    if(conference is not null)
+                    if(conference?.Id is not null)
                     {
-                        var bubble = GetBubble(conference.Id, conference.Jid, conference.Name);
-                        if (bubble is not null)
+                        if (conferencesInProgress.Contains(conference.Id) && !currentCallsList.ContainsKey(conference.Id))
                         {
-                            if (conferencesInProgress.Contains(bubble.Peer.Id) && !currentCallsList.ContainsKey(bubble.Peer.Id))
-                            {
-                                // TODO - manage presence
-                                _rbContacts?.SavePresenceForRollback();
+                            // TODO - manage presence
+                            _rbContacts?.SavePresenceForRollback();
 
-                                // Always join with Audio Empty Track
-                                var emptyAudioTrack = _rbWebRTCDesktopFactory.CreateEmptyAudioTrack();
-                                var sdkResult = await _rbWebRTCCommunications.JoinConferenceAsync(bubble.Peer.Id, emptyAudioTrack);
-                                return (sdkResult.Success);
-                            }
+                            // Always join with Audio Empty Track
+                            var emptyAudioTrack = _rbWebRTCDesktopFactory.CreateEmptyAudioTrack();
+                            var sdkResult = await _rbWebRTCCommunications.JoinConferenceAsync(conference.Id, emptyAudioTrack);
+                            return (sdkResult.Success);
                         }
                     }
                 }
@@ -221,7 +245,7 @@ namespace BotBroadcaster
             return true;
         }
 
-        private async Task<Boolean> ConnectOrDisconnectRemoteMediasAsync(Call call)
+        private async Task<Boolean> ConnectOrDisconnectRemoteMediasAsync(Call? call)
         {
             if ((_rbWebRTCCommunications is null) || (_rbWebRTCDesktopFactory is null)) return false;
 
@@ -229,7 +253,7 @@ namespace BotBroadcaster
 
             // From configuration get streams to connect
             List<Stream>? allStreamsToConnect = null;
-            if (_currentBotConfigurationExtended?.Streams is not null)
+            if (_currentBotConfigurationExtended?.Streams is not null && call is not null)
             {
                 allStreamsToConnect = _currentBotConfigurationExtended?.Streams.Values.Where(s => s.Connected).ToList();
                 allStreamsToConnect ??= [];
@@ -244,16 +268,26 @@ namespace BotBroadcaster
 
                     if (audioStream is not null)
                     {
-                        audioStream.MediaInConference = "audio";
+                        if ( (videoStream is not null) && (videoStream.Id == audioStream.Id))
+                            audioStream.MediaInConference = "audio+video";
+                        else
+                            audioStream.MediaInConference = "audio";
                         allStreamsToConnect.RemoveAll(s => s.Id == audioStream.Id);
                         allStreamsToConnect.Add(audioStream);
                     }
 
                     if (videoStream is not null)
                     {
-                        videoStream.MediaInConference = "video";
-                        allStreamsToConnect.RemoveAll(s => s.Id == videoStream.Id);
-                        allStreamsToConnect.Add(videoStream);
+                        if ((audioStream is not null) && (videoStream.Id == audioStream.Id))
+                        {
+                            // Nothing to do here - done previously
+                        }
+                        else
+                        {
+                            videoStream.MediaInConference = "video";
+                            allStreamsToConnect.RemoveAll(s => s.Id == videoStream.Id);
+                            allStreamsToConnect.Add(videoStream);
+                        }
                     }
 
                     if (sharingStream is not null)
@@ -283,11 +317,11 @@ namespace BotBroadcaster
                         // Before we add it, we need first to set MustBeRemovedFromConference for previous items
 
                         // for Audio
-                        if(newStream.MediaInConference?.Equals("audio") == true)
+                        if(newStream.MediaInConference?.Contains("audio") == true)
                         {
                             _listConnectedDevices.ForEach(streamAndDevice =>
                             {  
-                                if(streamAndDevice.UsedInConference && streamAndDevice.Stream?.MediaInConference?.Equals("audio") == true)
+                                if(streamAndDevice.UsedInConference && streamAndDevice.Stream?.MediaInConference?.Contains("audio") == true)
                                 {
                                     Util.WriteGreen($"[{BotName}] Audio Stream must be removed from conference - Id:[{streamAndDevice.Stream.Id}] - Uri:[{streamAndDevice.Stream.Uri}]");
                                     streamAndDevice.MustBeRemovedFromConference = true;
@@ -296,11 +330,11 @@ namespace BotBroadcaster
                         }
 
                         // for Video
-                        if (newStream.MediaInConference?.Equals("video") == true)
+                        if (newStream.MediaInConference?.Contains("video") == true)
                         {
                             _listConnectedDevices.ForEach(streamAndDevice =>
                             {
-                                if (streamAndDevice.UsedInConference && streamAndDevice.Stream?.MediaInConference?.Equals("video") == true)
+                                if (streamAndDevice.UsedInConference && streamAndDevice.Stream?.MediaInConference?.Contains("video") == true)
                                 {
                                     Util.WriteGreen($"[{BotName}] Video Stream must be removed from conference - Id:[{streamAndDevice.Stream.Id}] - Uri:[{streamAndDevice.Stream.Uri}]");
                                     streamAndDevice.MustBeRemovedFromConference = true;
@@ -309,11 +343,11 @@ namespace BotBroadcaster
                         }
 
                         // for sharing
-                        if (newStream.MediaInConference?.Equals("sharing") == true)
+                        if (newStream.MediaInConference?.Contains("sharing") == true)
                         {
                             _listConnectedDevices.ForEach(streamAndDevice =>
                             {
-                                if (streamAndDevice.UsedInConference && streamAndDevice.Stream?.MediaInConference?.Equals("sharing") == true)
+                                if (streamAndDevice.UsedInConference && streamAndDevice.Stream?.MediaInConference?.Contains("sharing") == true)
                                 {
                                     Util.WriteGreen($"[{BotName}] Sharing Stream must be removed from conference - Id:[{streamAndDevice.Stream.Id}] - Uri:[{streamAndDevice.Stream.Uri}]");
                                     streamAndDevice.MustBeRemovedFromConference = true;
@@ -363,7 +397,7 @@ namespace BotBroadcaster
                 if (streamAndDevice.Stream is null) continue;
                 if (streamAndDevice.MustBeDeleted) continue;
 
-                if ( (streamAndDevice.Device is null) || (streamAndDevice.Track is null) )
+                if ( (streamAndDevice.Device is null) || (streamAndDevice.VideoTrack is null) )
                 {
                     Boolean withAudio = streamAndDevice.Stream.Media.Contains("audio", StringComparison.InvariantCultureIgnoreCase);
                     Boolean withVideo = streamAndDevice.Stream.Media.Contains("video", StringComparison.InvariantCultureIgnoreCase);
@@ -379,12 +413,21 @@ namespace BotBroadcaster
                     if (withAudio && withVideo)
                     {
                         // TODO - audio and video with same stream
+                        try
+                        {
+                            (streamAndDevice.AudioTrack, streamAndDevice.VideoTrack) = _rbWebRTCDesktopFactory.CreateAudioAndVideoTrack(streamAndDevice.Device, false, forceLiveStream: streamAndDevice.Stream.ForceLiveStream);
+                            Util.WriteGreen($"[{BotName}] Connection done - Id:[{streamAndDevice.Stream.Id}] - Uri:[{streamAndDevice.Stream.Uri}] - Media:[{streamAndDevice.Stream.Media}]");
+                        }
+                        catch (Exception e)
+                        {
+                            Util.WriteRed($"[{BotName}] Connection CANNOT BE DONE - Id:[{streamAndDevice.Stream.Id}] - Uri:[{streamAndDevice.Stream.Uri}] - Media:[{streamAndDevice.Stream.Media}] - Exception:[{e}]");
+                        }
                     }
                     else if (withAudio)
                     {
                         try
                         {
-                            streamAndDevice.Track = _rbWebRTCDesktopFactory.CreateAudioTrack(streamAndDevice.Device);
+                            streamAndDevice.VideoTrack = _rbWebRTCDesktopFactory.CreateAudioTrack(streamAndDevice.Device);
                             Util.WriteGreen($"[{BotName}] Connection done - Id:[{streamAndDevice.Stream.Id}] - Uri:[{streamAndDevice.Stream.Uri}] - Media:[{streamAndDevice.Stream.Media}]");
 
                         }
@@ -397,7 +440,7 @@ namespace BotBroadcaster
                     {
                         try
                         {
-                            streamAndDevice.Track = _rbWebRTCDesktopFactory.CreateVideoTrack(streamAndDevice.Device, forceLiveStream: streamAndDevice.Stream.ForceLiveStream);
+                            streamAndDevice.VideoTrack = _rbWebRTCDesktopFactory.CreateVideoTrack(streamAndDevice.Device, forceLiveStream: streamAndDevice.Stream.ForceLiveStream);
                             Util.WriteGreen($"[{BotName}] Connection done - Id:[{streamAndDevice.Stream.Id}] - Uri:[{streamAndDevice.Stream.Uri}] - Media:[{streamAndDevice.Stream.Media}]");
                         }
                         catch (Exception e)
@@ -415,17 +458,74 @@ namespace BotBroadcaster
                 SdkResult<Boolean> sdkResultBoolean;
 
                 //////////////////////////
-                ///
+                //
+                // Check by media - AUDIO - START
+                //
+                var audioStreamAndDevices = _listConnectedDevices.FindAll(streamAndDevice =>
+                            (streamAndDevice.AudioTrack is not null)
+                            && (streamAndDevice.Stream?.MediaInConference?.Contains("audio", StringComparison.InvariantCultureIgnoreCase) == true));
+
+                // Get stream details
+                var streamAndDeviceNewOneToUse = audioStreamAndDevices.FirstOrDefault(s => (!s.UsedInConference) && (!s.MustBeRemovedFromConference));
+                var streamAndDevicesCurrentlyUsed = audioStreamAndDevices.FindAll(s => (s.UsedInConference) && (!s.MustBeRemovedFromConference));
+                var streamAndDevicesCurrentlyUsedToRemove = audioStreamAndDevices.FindAll(s => (s.UsedInConference) && (s.MustBeRemovedFromConference));
+
+                // Do we have already a video ?
+                if (call is not null && Rainbow.Util.MediasWithAudio(call.LocalMedias))
+                {
+                    if (audioStreamAndDevices?.Count > 0)
+                    {
+                        if (streamAndDeviceNewOneToUse is not null)
+                        {
+                            Util.WriteGreen($"[{BotName}] Change Audio in conf - Id:[{streamAndDeviceNewOneToUse.Stream.Id}]");
+
+                            sdkResultBoolean = await _rbWebRTCCommunications.ChangeAudioAsync(call.Id, streamAndDeviceNewOneToUse.AudioTrack as IAudioStreamTrack);
+                            if (sdkResultBoolean.Success)
+                            {
+                                streamAndDeviceNewOneToUse.UsedInConference = true;
+                                streamAndDevicesCurrentlyUsed.ForEach(s => { s.UsedInConference = false; s.MustBeRemovedFromConference = true; }); // /!\ Shoud contains none
+                                streamAndDevicesCurrentlyUsedToRemove?.ForEach(s => { s.UsedInConference = false; s.MustBeRemovedFromConference = true; });
+                            }
+                        }
+                        else if ((streamAndDevicesCurrentlyUsed.Count == 0) || (streamAndDevicesCurrentlyUsedToRemove.Count != 0))
+                        {
+                            //Util.WriteGreen($"[{BotName}] Remove Audio in conf - no stream to use");
+                            Util.WriteRed($"[{BotName}] Remove Audio in conf - no stream to use");
+                            //sdkResultBoolean = await _rbWebRTCCommunications.RemoveVideoAsync(call.Id);
+                        }
+                        else
+                        {
+                            Util.WriteGreen($"[{BotName}] Use same Audio in conf");
+                        }
+                    }
+                    else
+                    {
+                        Util.WriteGreen($"[{BotName}] No Audio in conf");
+                        //sdkResultBoolean = await _rbWebRTCCommunications.RemoveVideoAsync(call.Id);
+                    }
+                }
+                else
+                {
+                   // Thre is always AUDIO ....
+                }
+                //
+                // Check by media - AUDIO - END
+                //
+                //////////////////////////
+
+
+                //////////////////////////
+                //
                 // Check by media - VIDEO - START
                 //
                 var videoStreamAndDevices = _listConnectedDevices.FindAll(streamAndDevice =>
-                            (streamAndDevice.Track is not null)
-                            && ( streamAndDevice.Stream?.MediaInConference?.Equals("video", StringComparison.InvariantCultureIgnoreCase) == true) );
+                            (streamAndDevice.VideoTrack is not null)
+                            && ( streamAndDevice.Stream?.MediaInConference?.Contains("video", StringComparison.InvariantCultureIgnoreCase) == true) );
 
                 // Get stream details
-                var streamAndDeviceNewOneToUse = videoStreamAndDevices.FirstOrDefault(s => (!s.UsedInConference) && (!s.MustBeRemovedFromConference));
-                var streamAndDevicesCurrentlyUsed = videoStreamAndDevices.FindAll(s => (s.UsedInConference) && (!s.MustBeRemovedFromConference));
-                var streamAndDevicesCurrentlyUsedToRemove = videoStreamAndDevices.FindAll(s => (s.UsedInConference) && (s.MustBeRemovedFromConference));
+                streamAndDeviceNewOneToUse = videoStreamAndDevices.FirstOrDefault(s => (!s.UsedInConference) && (!s.MustBeRemovedFromConference));
+                streamAndDevicesCurrentlyUsed = videoStreamAndDevices.FindAll(s => (s.UsedInConference) && (!s.MustBeRemovedFromConference));
+                streamAndDevicesCurrentlyUsedToRemove = videoStreamAndDevices.FindAll(s => (s.UsedInConference) && (s.MustBeRemovedFromConference));
 
                 // Do we have already a video ?
                 if (call is not null && Rainbow.Util.MediasWithVideo(call.LocalMedias))
@@ -436,7 +536,7 @@ namespace BotBroadcaster
                         {
                             Util.WriteGreen($"[{BotName}] Change Video in conf - Id:[{streamAndDeviceNewOneToUse.Stream.Id}]");
 
-                            sdkResultBoolean = await _rbWebRTCCommunications.ChangeVideoAsync(call.Id, streamAndDeviceNewOneToUse.Track as IVideoStreamTrack);
+                            sdkResultBoolean = await _rbWebRTCCommunications.ChangeVideoAsync(call.Id, streamAndDeviceNewOneToUse.VideoTrack as IVideoStreamTrack);
                             if(sdkResultBoolean.Success)
                             {
                                 streamAndDeviceNewOneToUse.UsedInConference = true;
@@ -475,7 +575,7 @@ namespace BotBroadcaster
                             && (streamAndDeviceNewOneToUse.Stream is not null) )
                         {
                             Util.WriteGreen($"[{BotName}] Add Video in conf - Id:[{streamAndDeviceNewOneToUse.Stream.Id}]");
-                            sdkResultBoolean = await _rbWebRTCCommunications.AddVideoAsync(call.Id, (IVideoStreamTrack ?) streamAndDeviceNewOneToUse.Track);
+                            sdkResultBoolean = await _rbWebRTCCommunications.AddVideoAsync(call.Id, (IVideoStreamTrack ?) streamAndDeviceNewOneToUse.VideoTrack);
                             if (sdkResultBoolean.Success)
                             {
                                 streamAndDeviceNewOneToUse.UsedInConference = true;
@@ -490,7 +590,7 @@ namespace BotBroadcaster
 
                     }
                 }
-                ///
+                //
                 // Check by media - VIDEO - END
                 //
                 //////////////////////////
@@ -500,8 +600,8 @@ namespace BotBroadcaster
                 // Check by media - SHARING - START
                 //
                 var sharingStreamAndDevices = _listConnectedDevices.FindAll(streamAndDevice =>
-                            (streamAndDevice.Track is not null)
-                            && (streamAndDevice.Stream?.MediaInConference?.Equals("sharing", StringComparison.InvariantCultureIgnoreCase) == true));
+                            (streamAndDevice.VideoTrack is not null)
+                            && (streamAndDevice.Stream?.MediaInConference?.Contains("sharing", StringComparison.InvariantCultureIgnoreCase) == true));
 
                 // Get stream details
                 streamAndDeviceNewOneToUse = sharingStreamAndDevices.FirstOrDefault(s => (!s.UsedInConference) && (!s.MustBeRemovedFromConference));
@@ -517,7 +617,7 @@ namespace BotBroadcaster
                         {
                             Util.WriteGreen($"[{BotName}] Change Sharing in conf - Id:[{streamAndDeviceNewOneToUse.Stream.Id}]");
 
-                            sdkResultBoolean = await _rbWebRTCCommunications.ChangeSharingAsync(call.Id, streamAndDeviceNewOneToUse.Track as IVideoStreamTrack);
+                            sdkResultBoolean = await _rbWebRTCCommunications.ChangeSharingAsync(call.Id, streamAndDeviceNewOneToUse.VideoTrack as IVideoStreamTrack);
                             if (sdkResultBoolean.Success)
                             {
                                 streamAndDeviceNewOneToUse.UsedInConference = true;
@@ -555,7 +655,7 @@ namespace BotBroadcaster
                         if (streamAndDeviceNewOneToUse is not null)
                         {
                             Util.WriteGreen($"[{BotName}] Add Sharing in conf - Id:[{streamAndDeviceNewOneToUse.Stream.Id}]");
-                            sdkResultBoolean = await _rbWebRTCCommunications.AddSharingAsync(call.Id, streamAndDeviceNewOneToUse.Track as IVideoStreamTrack);
+                            sdkResultBoolean = await _rbWebRTCCommunications.AddSharingAsync(call.Id, streamAndDeviceNewOneToUse.VideoTrack as IVideoStreamTrack);
                             if (sdkResultBoolean.Success)
                             {
                                 streamAndDeviceNewOneToUse.UsedInConference = true;
@@ -570,7 +670,7 @@ namespace BotBroadcaster
 
                     }
                 }
-                ///
+                //
                 // Check by media - SHARING - END
                 //
                 //////////////////////////
@@ -595,10 +695,17 @@ namespace BotBroadcaster
                     || (!streamAndDevice.MustBeDeleted) 
                     || (streamAndDevice.UsedInConference)) continue;
 
-                if (streamAndDevice.Track is not null)
+                if (streamAndDevice.VideoTrack is not null)
                 {
-                    streamAndDevice.Track.Dispose();
-                    streamAndDevice.Track = null;
+                    streamAndDevice.VideoTrack.Dispose();
+                    streamAndDevice.VideoTrack = null;
+                    Util.WriteGreen($"[{BotName}] Track disposed  - Id:[{streamAndDevice.Stream.Id}] - Uri:[{streamAndDevice.Stream.Uri}] - Media:[{streamAndDevice.Stream.Media}]");
+                }
+
+                if (streamAndDevice.AudioTrack is not null)
+                {
+                    streamAndDevice.AudioTrack.Dispose();
+                    streamAndDevice.AudioTrack = null;
                     Util.WriteGreen($"[{BotName}] Track disposed  - Id:[{streamAndDevice.Stream.Id}] - Uri:[{streamAndDevice.Stream.Uri}] - Media:[{streamAndDevice.Stream.Media}]");
                 }
             }
@@ -668,8 +775,6 @@ namespace BotBroadcaster
                     {
                         conferencesInProgress.Add(conference.Peer.Id);
                         Util.WriteBlue($"[{BotName}] [ConferenceUpdated] A conference is active - Id:[{conference.Peer.Id}]");
-
-                        CheckBroadcastConfiguration();
                     }
                 }
                 else
@@ -678,10 +783,9 @@ namespace BotBroadcaster
                     {
                         conferencesInProgress.Remove(conference.Peer.Id);
                         Util.WriteBlue($"[{BotName}] [ConferenceUpdated] A conference is NO MORE active - Id:[{conference.Peer.Id}]");
-
-                        CheckBroadcastConfiguration();
                     }
                 }
+                CheckBroadcastConfiguration();
             }
         }
 

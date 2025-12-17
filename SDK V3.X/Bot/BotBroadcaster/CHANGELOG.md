@@ -2,6 +2,12 @@
 
 # Rainbow CSharp SDK v3 - Bot Broadcaster
 
+##  [0.0.3]
+- FIX: Conference name can now be used (full name must be set)
+- FIX: Tracks were not disposed when the conference is stopped
+- **streams**:
+    - **media**: now "audio", "video" and "audio+video" are managed
+
 ##  [0.0.2]
 - use **credentials.json** (renamed from **botCredentials.json**)
 - Add **bot** object in JSON to specify which bot must use the configuration - see chapter [File botConfiguration.json](../README.md#botConfiguration.json) for details.

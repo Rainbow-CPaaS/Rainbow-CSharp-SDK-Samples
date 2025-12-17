@@ -11,7 +11,9 @@ namespace BotBroadcaster.Model
 
         internal Device? Device { get; set; } // The device created using the Stream object
 
-        internal IMediaStreamTrack? Track { get; set; } // Track (audio or video) created using the device
+        internal IMediaStreamTrack? AudioTrack { get; set; } // Audio Track created using the device
+
+        internal IMediaStreamTrack? VideoTrack { get; set; } // Video Track created using the device
 
         internal Boolean UsedInConference{ get; set; } // To know if this track is currently used in the conference
 
@@ -24,7 +26,8 @@ namespace BotBroadcaster.Model
             Stream = stream;
             Device = device;
 
-            Track = null;
+            AudioTrack = null;
+            VideoTrack = null;
             UsedInConference = false;
             MustBeRemovedFromConference = false;
             MustBeDeleted = false;
