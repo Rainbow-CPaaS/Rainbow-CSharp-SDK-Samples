@@ -55,6 +55,8 @@ namespace Rainbow.Example.Common
         /// </summary>
         public string? VideoFilter { get; set; }
 
+        public JSONNode? VideoFilterJsonNode { get; set; }
+
         /// <summary>
         /// Can help in very rare case - false by default
         /// </summary>
@@ -106,9 +108,16 @@ namespace Rainbow.Example.Common
                     UriType = jsonNode["uriType"],
                     UriSettings = jsonNode["uriSettings"],
                     Connected = jsonNode["connected"],
-                    VideoFilter = jsonNode["videoFilter"],
+                    //VideoFilter = jsonNode["videoFilter"],
                     ForceLiveStream = jsonNode["forceLiveStream"],
                 };
+
+                if (jsonNode["videoFilter"]?.IsObject == true)
+                {
+                    stream.VideoFilterJsonNode = jsonNode["videoFilter"];
+                }
+                else
+                    stream.VideoFilter = jsonNode["videoFilter"];
 
                 // Check validity
                 if (String.IsNullOrEmpty(stream.Id))
@@ -195,7 +204,18 @@ namespace Rainbow.Example.Common
 
         public override string ToString()
         {
-            string result = $"Id:[{Id}] - Media:[{Media}] - Uri:[{Uri}] - UriType:[{UriType}] - UriSettings:[{((UriSettings is null) ? "None" : String.Join(", ", UriSettings))}] - ForceLiveStream:[{ForceLiveStream}]";
+            string result = $"Id:[{Id}] - Media:[{Media}]";
+
+            if (VideoComposition is not null)
+                result += $" - VideoComposition:[{String.Join(", ", VideoComposition)}]";
+            else
+            {
+                var uriType = UriType.Equals("other") ? "" : $" - UriType:[{UriType}]" ;
+                var uriSettings = UriSettings is null ? "" : $" - UriSettings:[{((UriSettings is null) ? "None" : String.Join(", ", UriSettings))}]";
+                var forceLiveStream = ForceLiveStream is null ? "" : $" - ForceLiveStream:[{ForceLiveStream.Value}]";
+
+                result += $" - Uri:[{Uri}]{uriType}{uriSettings}{forceLiveStream}";
+            }
             return result;
         }
     }

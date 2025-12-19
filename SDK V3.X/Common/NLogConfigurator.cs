@@ -17,10 +17,19 @@ namespace Rainbow.Example.Common
     public static class NLogConfigurator
     {
         private static List<String> prefixUsed;
-            
+           
         static NLogConfigurator()
         {
-            prefixUsed = new();
+            prefixUsed = [];
+        }
+
+        public static Boolean DeleteLogDirectory()
+        {
+            try
+            {
+                System.IO.Directory.Delete(Directory, true);
+                return true;
+            } catch { return false; }
         }
 
         /// <summary>
@@ -52,20 +61,26 @@ namespace Rainbow.Example.Common
                 // Check Directory
                 if (String.IsNullOrEmpty(Directory))
                     Directory = "." + Path.DirectorySeparatorChar;
-                else if (!Directory.EndsWith(Path.DirectorySeparatorChar))
+                else if (!Directory.EndsWith(Path.DirectorySeparatorChar+""))
                     Directory += Path.DirectorySeparatorChar;
 
                 // Get content of the log file configuration
                 String logConfigContent = XmlContent;
                 String logLoggerContent = LoggerContent;
                 String logTargetContent = OutputOnConsole ? TargetContentOnConsole : TargetContent;
-
+                
                 string loggers = "";
                 string targets = "";
 
                 foreach (String prefixItem in newPrefix)
                 {
-                    targets += logTargetContent.Replace("[$PREFIX]", prefixItem) + "\r\n";
+                    String layout;
+                    if (OutputOnConsole)
+                        layout = Layout.Replace("[$PREFIX]", "| " + prefixItem);
+                    else
+                        layout = Layout.Replace("[$PREFIX]", "");
+
+                    targets += logTargetContent.Replace("[$PREFIX]", prefixItem).Replace("[$LAYOUT]", layout) + "\r\n";
 
                     if (prefixItem == "")
                     {
@@ -164,7 +179,7 @@ namespace Rainbow.Example.Common
         /// Each target, define a file with 5242880 octets maximum and up to 10 archived files
         /// </summary>
         public static String TargetContent =
-    @"<target
+@"<target
     xsi:type=""File""
     encoding=""utf-8""
     name=""[$PREFIX]RAINBOW_WEBRTC_TARGET""
@@ -172,7 +187,7 @@ namespace Rainbow.Example.Common
     archiveFileName=""[$DIRECTORY][$PREFIX]RainbowSdk_WebRTC_{###}.log""
     archiveAboveSize=""5242880""
     maxArchiveFiles=""10""
-    layout=""${longdate} | ${level:uppercase=true:padding=-5} | ${threadid:padding=-3} | ${callsite:className=True:fileName=False:includeSourcePath=False:methodName=True:padding=70:fixedLength=True:alignmentOnTruncation=Right}: ${callsite-linenumber:padding=-4} | ${message}""
+    [$LAYOUT]
     />
 
 <target
@@ -183,28 +198,28 @@ namespace Rainbow.Example.Common
     archiveFileName=""[$DIRECTORY][$PREFIX]RainbowSdk_{###}.log""
     archiveAboveSize=""5242880""
     maxArchiveFiles=""10""
-    layout=""${longdate} | ${level:uppercase=true:padding=-5} | ${threadid:padding=-3} | ${callsite:className=True:fileName=False:includeSourcePath=False:methodName=True:padding=70:fixedLength=True:alignmentOnTruncation=Right}: ${callsite-linenumber:padding=-4} | ${message}""
+    [$LAYOUT]
     />";
-
 
         /// <summary>
         /// By default define 2 targets (one for each logger - see <see cref="LoggerContent"/>)
         /// Each target, define a file with 5242880 octets maximum and up to 10 archived files
         /// </summary>
         public static String TargetContentOnConsole =
-    @"<target
+@"<target
     xsi:type=""Console""
     encoding=""utf-8""
     name=""[$PREFIX]RAINBOW_WEBRTC_TARGET""
-    layout=""${longdate} | ${level:uppercase=true:padding=-5} | ${threadid:padding=-3} | ${callsite:className=True:fileName=False:includeSourcePath=False:methodName=True:padding=70:fixedLength=True:alignmentOnTruncation=Right}: ${callsite-linenumber:padding=-4} | ${message}""
+    [$LAYOUT]
     />
 
 <target
     xsi:type=""Console""
     encoding=""utf-8""
     name=""[$PREFIX]RAINBOW_DEFAULT_TARGET""
-    layout=""${longdate} | ${level:uppercase=true:padding=-5} | ${threadid:padding=-3} | ${callsite:className=True:fileName=False:includeSourcePath=False:methodName=True:padding=70:fixedLength=True:alignmentOnTruncation=Right}: ${callsite-linenumber:padding=-4} | ${message}""
+    [$LAYOUT]
     />";
 
+        public static String Layout = "layout=\"${longdate} [$PREFIX]| ${level:format=FirstCharacter} | ${threadid:padding=-3} | ${callsite:className=True:includeNamespace=False:fileName=False:includeSourcePath=False:methodName=True:padding=40:fixedLength=True:alignmentOnTruncation=Right} | ${message}\"";
     }
 }
