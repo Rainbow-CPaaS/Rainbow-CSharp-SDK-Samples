@@ -2,6 +2,19 @@
 
 # Rainbow CSharp SDK v3 - MediaPlayer
 
+##  [0.6.0]
+- Configuration structure added
+    - **streams**
+        - **media**: "composition" is now supported
+        - **videoComposition**: is now supported
+        - **videoFilter**: is now supported
+    - Add **autoPlay** option (in **stream.json** file) in order to start automatically the streaming specified when the file is loaded and on application startup
+- Options added/updated:
+    - **H** to display info/help menu (before it was **I**)
+    - **I** for Input Stream selection (before it was **C**)
+    - **L** to reload the file **streams.json**
+    - **C** to cancel / stop current streaming
+
 ##  [0.5.0]
 - Improve Window management (avoid crash when the window is resized / updated)
 - Add **F** option to toggle to full screen (or the opposite)

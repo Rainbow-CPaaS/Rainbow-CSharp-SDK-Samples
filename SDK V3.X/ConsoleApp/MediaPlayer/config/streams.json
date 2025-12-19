@@ -19,15 +19,127 @@
       "connected": false
     },
     {
-      "id": "sports",
+      "id": "video PY",
       "media": "audio+video",
-      "uri": "C:\\media\\Amigo\\Sports.mp4",
+      "uri": "c:\\media\\videotestorig.mp4",
+      "connected": false
+    },
+    {
+      "id": "jamie",
+      "media": "audio+video",
+      "uri": "c:\\media\\caissedesdepots.mp4",
+      "connected": false
+    },
+    {
+      "id": "armello",
+      "media": "audio+video",
+      "uri": "c:\\media\\Armello_Trailer.webm",
+      "connected": false
+    },
+    {
+      "id": "compo1",
+      "media": "composition",
+      "videoComposition": [ "joy_and_heron", "toefl" ],
+      "videoFilter": "[0]setpts=PTS-STARTPTS,scale=1920:-2,fps=10[o0]; [1]setpts=PTS-STARTPTS,scale=320:240,fps=10[o1]; [o0][o1]overlay=x=W-w:y=0[overlay]; [overlay]fps=10",
+      "connected": false
+    },
+    {
+      "id": "compo2",
+      "media": "composition",
+      "videoComposition": [ "joy_and_heron", "toefl" ],
+      "videoFilter": "[0]setpts=PTS-STARTPTS,scale=1920:-2,fps=10[o0]; [1]setpts=PTS-STARTPTS,scale=320:-2,fps=10[o1]; [o0][o1]overlay=x=W-w:y=0[overlay]; [overlay]fps=10",
+      "connected": false
+    },
+    {
+      "id": "compo_overlay_0",
+      "media": "composition",
+      "videoComposition": [ "joy_and_heron", "toefl" ],
+      "videoFilter": {
+        "type": "overlay",
+        "data": {
+          "size": "1920x1080",
+          "fps": 10,
+          "sizeOverlay": "320x240",
+          "positionOverlay": "BR"
+        }
+      },
+      "connected": false
+    },
+    {
+      "id": "compo_overlay_1",
+      "media": "composition",
+      "videoComposition": [ "rtsp", "toefl" ],
+      "videoFilter": {
+        "type": "overlay",
+        "data": {
+          "size": "1920x1080",
+          "fps": 10,
+          "sizeOverlay": "320x240",
+          "positionOverlay": "BR"
+        }
+      },
+      "connected": false
+    },
+    {
+      "id": "compo_mosaic_0",
+      "media": "composition",
+      "videoComposition": [ "joy_and_heron", "toefl", "big_buck_bunny", "video PY", "jamie", "armello" ],
+      "videoFilter": {
+        "type": "mosaic",
+        "data": {
+          "fps": 10,
+          "sizeVignette": "320x240",
+          "layout": "G"
+        }
+      },
+      "connected": false
+    },
+    {
+      "id": "compo_mosaic_1",
+      "media": "composition",
+      "videoComposition": [ "joy_and_heron", "toefl", "big_buck_bunny", "video PY", "jamie", "armello" ],
+      "videoFilter": {
+        "type": "mosaic",
+        "data": {
+          "fps": 10,
+          "sizeVignette": "320x240",
+          "layout": "M+2V+3H"
+        }
+      },
+      "connected": false
+    },
+    {
+      "id": "compo_mosaic_2",
+      "media": "composition",
+      "videoComposition": [ "joy_and_heron", "toefl", "big_buck_bunny" ],
+      "videoFilter": {
+        "type": "mosaic",
+        "data": {
+          "fps": 10,
+          "sizeVignette": "320x240",
+          "layout": "M+2V"
+        }
+      },
+      "connected": false
+    },
+    {
+      "id": "compo_mosaic_3",
+      "media": "composition",
+      "videoComposition": [ "joy_and_heron", "toefl", "big_buck_bunny" ],
+      "videoFilter": {
+        "type": "mosaic",
+        "data": {
+          "fps": 10,
+          "sizeVignette": "320x240",
+          "layout": "M+2H"
+        }
+      },
       "connected": false
     },
     {
       "id": "rtsp",
       "media": "audio+video",
-      "uri": "rtsp://rtsp.stream/movie",
+      "uri": "rtsp://rtspstream:IVE3c03eUA2maZR5OqGRx@zephyr.rtsp.stream/movie",
       "uriSettings": {
         "rtsp_transport": "tcp",
         "max_delay": "0"
@@ -35,6 +147,6 @@
       "connected": false,
       "forceLiveStream": false
     }
-  ]
-
+  ],
+  "autoPlay": "compo_mosaic_3"
 }
