@@ -58,8 +58,12 @@ namespace Rainbow.Example.Common.SDL2
 
             if (window.Handle != IntPtr.Zero)
             {
-                Rainbow.Medias.SDL2.SDL_DestroyWindow(window.Handle);
-                window.Handle = IntPtr.Zero;
+                try
+                {
+                    Rainbow.Medias.SDL2.SDL_DestroyWindow(window.Handle);
+                    window.Handle = IntPtr.Zero;
+                }
+                catch { }
             }
         }
 
@@ -100,17 +104,21 @@ namespace Rainbow.Example.Common.SDL2
                 // Destroy previous texture
                 DestroyTexture(window);
 
-                var sdlFormat = Rainbow.Medias.SDL2Helper.GetPixelFormat(pixelFormat);
-                if (sdlFormat == Rainbow.Medias.SDL2.SDL_PIXELFORMAT_UNKNOWN)
+                try
                 {
-                    Rainbow.Example.Common.Util.WriteRed($"Cannot get SDL pixel format using ffmpeg video foramt:[{pixelFormat}]");
-                    return;
-                }
+                    var sdlFormat = Rainbow.Medias.SDL2Helper.GetPixelFormat(pixelFormat);
+                    if (sdlFormat == Rainbow.Medias.SDL2.SDL_PIXELFORMAT_UNKNOWN)
+                    {
+                        Rainbow.Example.Common.Util.WriteRed($"Cannot get SDL pixel format using ffmpeg video foramt:[{pixelFormat}]");
+                        return;
+                    }
 
-                // Create texture
-                window.Texture = Rainbow.Medias.SDL2.SDL_CreateTexture(window.Renderer, sdlFormat, (int)Rainbow.Medias.SDL2.SDL_TextureAccess.SDL_TEXTUREACCESS_STREAMING, w, h);
-                if (window.Texture == IntPtr.Zero)
-                    Rainbow.Example.Common.Util.WriteRed($"Cannot create texture");
+                    // Create texture
+                    window.Texture = Rainbow.Medias.SDL2.SDL_CreateTexture(window.Renderer, sdlFormat, (int)Rainbow.Medias.SDL2.SDL_TextureAccess.SDL_TEXTUREACCESS_STREAMING, w, h);
+                    if (window.Texture == IntPtr.Zero)
+                        Rainbow.Example.Common.Util.WriteRed($"Cannot create texture");
+                }
+                catch { }
             }
             else
                 Rainbow.Example.Common.Util.WriteRed($"Cannot create texture - No window renderer");
@@ -120,8 +128,12 @@ namespace Rainbow.Example.Common.SDL2
         {
             if ((window is not null && window.Texture != IntPtr.Zero))
             {
-                Rainbow.Medias.SDL2.SDL_DestroyTexture(window.Texture);
-                window.Texture = IntPtr.Zero;
+                try
+                { 
+                    Rainbow.Medias.SDL2.SDL_DestroyTexture(window.Texture);
+                    window.Texture = IntPtr.Zero;
+                }
+                catch { }
             }
         }
 
@@ -129,8 +141,12 @@ namespace Rainbow.Example.Common.SDL2
         {
             if ((window is not null && window.Renderer != IntPtr.Zero))
             {
-                Rainbow.Medias.SDL2.SDL_DestroyRenderer(window.Renderer);
-                window.Renderer = IntPtr.Zero;
+                try
+                { 
+                    Rainbow.Medias.SDL2.SDL_DestroyRenderer(window.Renderer);
+                    window.Renderer = IntPtr.Zero;
+                }
+                catch { }
             }
         }
 
@@ -138,7 +154,11 @@ namespace Rainbow.Example.Common.SDL2
         {
             if (window is not null && window.Texture != IntPtr.Zero && data != IntPtr.Zero)
             {
-                var _ = Rainbow.Medias.SDL2.SDL_UpdateTexture(window.Texture, IntPtr.Zero, data, stride);
+                try
+                {
+                    var _ = Rainbow.Medias.SDL2.SDL_UpdateTexture(window.Texture, IntPtr.Zero, data, stride);
+                }
+                catch { }
             }
         }
 
@@ -146,8 +166,11 @@ namespace Rainbow.Example.Common.SDL2
         {
             if (window is not null && window.Renderer != IntPtr.Zero)
             {
-                if (Rainbow.Medias.SDL2.SDL_RenderClear(window.Renderer) == 0)
-                    Rainbow.Medias.SDL2.SDL_RenderPresent(window.Renderer);
+                try { 
+                    if (Rainbow.Medias.SDL2.SDL_RenderClear(window.Renderer) == 0)
+                        Rainbow.Medias.SDL2.SDL_RenderPresent(window.Renderer);
+                }
+                catch { }
             }
         }
 
@@ -155,9 +178,13 @@ namespace Rainbow.Example.Common.SDL2
         {
             if (window is not null && window.Renderer != IntPtr.Zero && window.Texture != IntPtr.Zero)
             {
-                window.NeedRendereUpdate = false;
-                if (Rainbow.Medias.SDL2.SDL_RenderCopy(window.Renderer, window.Texture, IntPtr.Zero, IntPtr.Zero) == 0)
-                    Rainbow.Medias.SDL2.SDL_RenderPresent(window.Renderer);
+                try
+                {
+                    window.NeedRendereUpdate = false;
+                    if (Rainbow.Medias.SDL2.SDL_RenderCopy(window.Renderer, window.Texture, IntPtr.Zero, IntPtr.Zero) == 0)
+                        Rainbow.Medias.SDL2.SDL_RenderPresent(window.Renderer);
+                }
+                catch { }
             }
         }
 
