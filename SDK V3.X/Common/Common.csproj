@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
+    <LangVersion>latest</LangVersion>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
@@ -10,7 +11,7 @@
     <PackageReference Include="NLog.Extensions.Logging" Version="6.0.2" />
 	<PackageReference Include="Rainbow.CSharp.SDK" Version="3.6.0" />
 <!--
-    <ProjectReference Include="..\..\..\rainbow-csharp-sdk-test\SDK\SDK.csproj" />
+	<ProjectReference Include="..\..\..\rainbow-csharp-sdk-test\SDK\SDK.csproj" />
 -->
-  </ItemGroup>
+</ItemGroup>
 </Project>
