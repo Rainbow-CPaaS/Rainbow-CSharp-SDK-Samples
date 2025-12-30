@@ -2,6 +2,11 @@
 
 # Rainbow CSharp SDK v3 - MediaPlayer
 
+##  [0.7.0]
+- Configuration structure added
+    - Add **autoPlayAudio** and rename **autoPlayVideo** option (from **autoPlay**)  (in **stream.json** file) in order to start automatically the streaming specified when the file is loaded and on application startup- 
+- Possibility to set/removet audio or video streams independently
+
 ##  [0.6.0]
 - Configuration structure added
     - **streams**
@@ -12,7 +17,7 @@
 - Options added/updated:
     - **H** to display info/help menu (before it was **I**)
     - **I** for Input Stream selection (before it was **C**)
-    - **L** to reload the file **streams.json**
+    - **L** to load / reload the file **streams.json**
     - **C** to cancel / stop current streaming
 
 ##  [0.5.0]

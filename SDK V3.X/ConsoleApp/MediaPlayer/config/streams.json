@@ -139,7 +139,7 @@
     {
       "id": "rtsp",
       "media": "audio+video",
-      "uri": "rtsp://rtspstream:IVE3c03eUA2maZR5OqGRx@zephyr.rtsp.stream/movie",
+      "uri": "rtsp://my.domain.com/movie",
       "uriSettings": {
         "rtsp_transport": "tcp",
         "max_delay": "0"
@@ -148,5 +148,7 @@
       "forceLiveStream": false
     }
   ],
-  "autoPlay": "compo_mosaic_3"
+
+  "autoPlayAudio": "toefl",
+  "autoPlayVideo": "compo_mosaic_2"
 }

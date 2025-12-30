@@ -1,12 +1,12 @@
-﻿using FFmpeg.AutoGen;
+﻿using CommonSDL2;
+using FFmpeg.AutoGen;
 using Rainbow.Example.Common;
 using Rainbow.Example.Common.SDL2;
 using Rainbow.Medias;
 using Rainbow.SimpleJSON;
-using Stream = Rainbow.Example.Common.Stream;
 using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
-using System.Drawing;
+using Stream = Rainbow.Example.Common.Stream;
 
 namespace ConsoleMediaPlayer
 {
@@ -15,22 +15,19 @@ namespace ConsoleMediaPlayer
 
     internal partial class ConsoleMediaPlayer
     {
-        // --- To store settings and to know which Stream is selected
+        // --- To store settings 
         private static ExeSettings? _exeSettings;
-        private static List<Stream>? _streamsList;
+        private static String _autoPlayAudio = "";
+        private static String _autoPlayVideo = "";
+
+        // --- path to file "streams.json"
         private static String _streamsFilePath = "";
 
-        private static String autoPlay = "";
-
-        // --- IMedia used / created for Input based on the selected Stream
-        private static IMediaAudio? _mediaInputAudio;
-        private static IMediaVideo? _mediaInputVideo;
-
-        // --- IMedia used / created to have composition
-        private static readonly List<IMediaVideo> _mediaInputVideoListForComposition = [];
-
         // --- To know if we need to quit the application or not
-        private static Boolean canContinue = true;
+        private static Boolean _canContinue = true;
+
+        // --- To manage streams (Audio, Video, Composition)
+        private static StreamManager _streamManager = new();
 
         // --- To manage Audio Output
         private static SDL2AudioOutput? _sdl2AudioOutput = null;
@@ -44,7 +41,6 @@ namespace ConsoleMediaPlayer
 
         static async Task Main()
         {
-
             // Need to set an unique title
             Console.Title = $"SDK C# - MediaPlayer [{Guid.NewGuid()}]";
 
@@ -57,7 +53,14 @@ namespace ConsoleMediaPlayer
                 return;
 
             if (_exeSettings is null) return;
-            if ((_streamsList is null) || (_streamsList.Count == 0)) return;
+            if ((_streamManager.streamsList is null) || (_streamManager.streamsList.Count == 0)) return;
+
+            _streamManager.OnAudioEndOfFile += StreamManager_OnAudioEndOfFile;
+            _streamManager.OnVideoEndOfFile += StreamManager_OnVideoEndOfFile;
+            _streamManager.OnVideoStateChanged += StreamManager_OnVideoStateChanged;
+            _streamManager.OnAudioStateChanged += StreamManager_OnAudioStateChanged;
+            _streamManager.OnImage += StreamManager_OnImage;
+            _streamManager.OnAudioSample += StreamManager_OnAudioSample;
 
             PromptStreamsInfo();
 
@@ -73,14 +76,14 @@ namespace ConsoleMediaPlayer
             // Loop until, ESC is used
             int simulatedKey = 0;
 
-            while (canContinue)
+            while (_canContinue)
             {
                 while (SDL2.SDL_PollEvent(out SDL2.SDL_Event e) > 0)
                 {
                     switch (e.type)
                     {
                         case SDL2.SDL_EventType.SDL_QUIT:
-                            canContinue = false;
+                            _canContinue = false;
                         break;
 
                         case SDL2.SDL_EventType.SDL_WINDOWEVENT:
@@ -130,10 +133,12 @@ namespace ConsoleMediaPlayer
                         var userInput = Console.ReadKey(true);
                         key = (int)userInput.Key;
                     }
+
+
                     switch (key)
                     {
                         case (int)ConsoleKey.Escape:
-                            canContinue = false;
+                            _canContinue = false;
                             break;
 
                         case (int)ConsoleKey.H:
@@ -178,18 +183,90 @@ namespace ConsoleMediaPlayer
                     }
                 }
 
-                if(canContinue)
+                if(_canContinue)
                 {
                     if (_actions.TryTake(out var action))
                         action.Invoke();
                 }
             }
 
-            await CloseMediaInputsAsync();
+            // No more use streams
+            await _streamManager.UseStreamsAsync(null, null);
 
             // Destroy SDL2 window
             Window.Destroy(_outputWindow);
         }
+
+#region StreamManager events
+
+        private static void StreamManager_OnAudioSample(string mediaId, uint duration, byte[] sample)
+        {
+            // /!\ Don't need to use Main Thread
+            if (_canContinue)
+                _sdl2AudioOutput?.QueueSample(sample);
+        }
+
+        private static void StreamManager_OnImage(string mediaId, int width, int height, int stride, nint data, AVPixelFormat pixelFormat)
+        {
+            // /!\ Need to use Main Thread
+            _actions.Add(new Action(() =>
+            {
+                if (_outputWindow is null || _outputWindow.VideoStopped)
+                    return;
+
+                if (_outputWindow.Texture == IntPtr.Zero)
+                    Window.CreateTexture(_outputWindow, width, height, pixelFormat);
+
+                Window.UpdateTexture(_outputWindow, stride, data);
+                Window.UpdateRenderer(_outputWindow);
+            }));
+        }
+
+        private static void StreamManager_OnAudioStateChanged(string mediaId, bool isStarted, bool isPaused)
+        {
+            UpdateWindowTitle();
+        }
+
+        private static void StreamManager_OnVideoStateChanged(string mediaId, bool isStarted, bool isPaused)
+        {
+            if (isStarted)
+            {
+                _outputWindow.VideoStopped = false;
+
+                Window.Create(_outputWindow);
+                Window.Show(_outputWindow);
+                Window.Restore(_outputWindow);
+                Window.Raise(_outputWindow);
+
+                Window.ClearRenderer(_outputWindow);
+
+                UpdateWindowTitle();
+            }
+            else
+            {
+                // remove any actions
+                while (_actions.TryTake(out _)) { }
+
+                // We inform that the video is now stopped
+                _outputWindow.VideoStopped = true;
+
+                Window.DestroyTexture(_outputWindow);
+
+                Window.Hide(_outputWindow);
+            }
+        }
+
+        private static void StreamManager_OnVideoEndOfFile(string mediaId)
+        {
+            Util.WriteGreen($"Video MediaInput Id:{mediaId} reached End of File");
+        }
+
+        private static void StreamManager_OnAudioEndOfFile(string mediaId)
+        {
+            Util.WriteGreen($"Audio MediaInput Id:{mediaId} reached End of File");
+        }
+
+#endregion StreamManager events
 
 #region Prompts
         static void PromptHelpMenu()
@@ -203,7 +280,7 @@ namespace ConsoleMediaPlayer
             Util.WriteYellow($"[C] Cancel /Stop current streaming");
             Util.WriteYellow("");
             Util.WriteYellow($"[A] Audio Ouput selection");
-            Util.WriteYellow($"[I] Input Stream seletion(Audio, Video or Both)");
+            Util.WriteYellow($"[I] Input Stream selection (Audio, Video or Both)");
             Util.WriteYellow("");
             Util.WriteYellow($"[S] Screen management");
             Util.WriteYellow($"[M] Microphone (Audio Input) management");
@@ -212,17 +289,15 @@ namespace ConsoleMediaPlayer
 
         static void UseStreamSetToAutoPlay()
         {
-            if (!String.IsNullOrEmpty(autoPlay))
-            {
-                var stream = _streamsList?.FirstOrDefault(s => s.Id == autoPlay);
-                if (stream is not null)
-                {
-                    Util.WriteGreen($"Auto play set to Stream:[{autoPlay}]. Trying to start it ...");
-                    var _ = UseStreamAsync(stream);
-                }
-                else
-                    Util.WriteRed($"Auto play set to Stream:[{autoPlay}] but config is not correct - ensure this stream is well defined");
-            }
+            Stream? audioStream;
+            Stream? videoStream;
+
+            audioStream = _streamManager.streamsList?.FirstOrDefault(s => s.Id == _autoPlayAudio);
+            videoStream = _streamManager.streamsList?.FirstOrDefault(s => s.Id == _autoPlayVideo);
+
+            Util.WriteGreen($"Auto play set to Audio:[{_autoPlayAudio}] - Video:[{_autoPlayVideo}]. Trying to set config ...");
+
+            var _ = _streamManager.UseStreamsAsync(videoStream, audioStream);
         }
 
         static void PromptLoadStreamSettings()
@@ -235,25 +310,24 @@ namespace ConsoleMediaPlayer
 
         static void PromptCancelStreaming()
         {
-            var _ = CloseMediaInputsAsync().ContinueWith((task) =>
-            {
-                Window.Hide(_outputWindow);
-            });
+            var _ = _streamManager.UseStreamsAsync(null, null);
         }
 
         static void PromptInputStreamSelection()
         {
-            if (_streamsList?.Count > 0)
+            if (_streamManager.streamsList?.Count > 0)
             {
                 var selected = false;
                 List<Stream>? subStreams = null;
                 String category = "";
+                String categoryInfo = "";
                 while (!selected)
                 {
                     Util.WriteYellow($"{Rainbow.Util.CR}Do you want to select Stream with:");
-                    Util.WriteYellow($"\t[B] Audio AND Video");
+                    Util.WriteYellow($"\t[B] (Both) Audio AND Video");
                     Util.WriteYellow($"\t[A] Audio");
                     Util.WriteYellow($"\t[V] Video");
+                    Util.WriteYellow($"\t[R] Remove Stream");
                     Util.WriteYellow($"\t[C] Cancel");
 
                     var consoleKey = Console.ReadKey(true);
@@ -261,23 +335,53 @@ namespace ConsoleMediaPlayer
                     {
                         case ConsoleKey.A:
                             category = "audio";
+                            categoryInfo = "with [audio]";
                             selected = true;
                             Util.WriteDarkYellow($"Any with Audio selected ...");
-                            subStreams = _streamsList.FindAll(s => s.Media.Contains("audio"));
+                            subStreams = _streamManager.streamsList.FindAll(s => s.Media.Contains("audio"));
                             break;
 
                         case ConsoleKey.V:
                             category = "video";
+                            categoryInfo = "with [video]";
                             selected = true;
                             Util.WriteDarkYellow($"Any with Video selected ...");
-                            subStreams = _streamsList.FindAll(s => s.Media.Contains("video") || s.Media.Contains("composition"));
+                            subStreams = _streamManager.streamsList.FindAll(s => s.Media.Contains("video") || s.Media.Contains("composition"));
                             break;
 
                         case ConsoleKey.B:
                             category = "audio+video";
+                            categoryInfo = "with [audio+video]";
                             selected = true;
                             Util.WriteDarkYellow($"Audio and Video selected ...");
-                            subStreams = _streamsList.FindAll(s => s.Media == "audio+video");
+                            subStreams = _streamManager.streamsList.FindAll(s => s.Media == "audio+video");
+                            break;
+
+                        case ConsoleKey.R:
+                            category = categoryInfo = "to remove";
+                            selected = true;
+
+                            subStreams = [];
+                            if (_streamManager.currentAudioStream is not null)
+                            {
+                                var s = Stream.FromStream(_streamManager.currentAudioStream);
+                                s.Media = "audio";
+                                subStreams.Add(s);
+                            }
+                            if (_streamManager.currentVideoStream is not null)
+                            {
+                                var s = Stream.FromStream(_streamManager.currentVideoStream);
+                                s.Media = "video";
+                                subStreams.Add(s);
+                            }
+
+                            if (subStreams.Count > 0)
+                                Util.WriteDarkYellow($"Remove stream selected ...");
+                            else
+                            {
+                                Util.WriteGreen($"No stream to remove");
+                                return;
+                            }
                             break;
 
                         case ConsoleKey.C:
@@ -310,7 +414,7 @@ namespace ConsoleMediaPlayer
                         withNextPage = (maxIndex < count);
                         withPreviousPage = (page > 0);
 
-                        Util.WriteYellow($"{Rainbow.Util.CR}Select the stream with [{category}]:");
+                        Util.WriteYellow($"{Rainbow.Util.CR}Select the stream {categoryInfo}:");
                         for (index = startIndex; index < maxIndex; index++)
                         {
                             var stream = subStreams[index];
@@ -354,11 +458,30 @@ namespace ConsoleMediaPlayer
                                     {
                                         var stream = Stream.FromStream(subStreams[selection + (page * 10)]);
 
-                                        // We restrict the use on one media here if specified by end-user
-                                        if ((category == "audio") || (category == "video"))
-                                            stream.Media = category;
+                                        Task? task = null;
+                                        switch(category)
+                                        {
+                                            case "to remove":
+                                                if (stream.Id == _streamManager.currentAudioStream?.Id)
+                                                    task = _streamManager.UseStreamsAsync(_streamManager.currentVideoStream, null);
+                                                else
+                                                    task = _streamManager.UseStreamsAsync(null, _streamManager.currentAudioStream);
+                                                break;
 
-                                        var _ = UseStreamAsync(stream);
+                                            case "audio":
+                                                task = _streamManager.UseStreamsAsync(_streamManager.currentVideoStream, stream);
+                                                break;
+                                            case "video":
+                                                task = _streamManager.UseStreamsAsync(stream, _streamManager.currentAudioStream);
+                                                break;
+                                            case "audio+video":
+                                                task = _streamManager.UseStreamsAsync(stream, stream);
+                                                break;
+                                            default:
+                                                Util.WriteRed($"category not managed: {category}");
+                                                break;
+
+                                        }
                                         return;
                                     }
                                 }
@@ -411,7 +534,7 @@ namespace ConsoleMediaPlayer
             }
 
             // Display info about streams defined as device
-            var streamAsDevice = _streamsList?.FindAll(s => s.UriType == type);
+            var streamAsDevice = _streamManager.streamsList?.FindAll(s => s.UriType == type);
             if (streamAsDevice?.Count > 0)
             {
                 Util.WriteBlue($"{Rainbow.Util.CR}List of streams defined as [{type}] correctly set in config file: (doesn't mean they can be really used)");
@@ -427,7 +550,7 @@ namespace ConsoleMediaPlayer
             var consoleKey = Console.ReadKey(true);
             if (consoleKey.Key == ConsoleKey.Y)
             {
-                _streamsList?.RemoveAll(s => s.UriType == type);
+                _streamManager.streamsList?.RemoveAll(s => s.UriType == type);
                 int index = 1;
                 foreach (var device in devices)
                 {
@@ -442,14 +565,14 @@ namespace ConsoleMediaPlayer
                         Uri = device.Name,
                         UriType = type,
                     };
-                    _streamsList ??= [];
-                    _streamsList.Add(stream);
+                    _streamManager.streamsList ??= [];
+                    _streamManager.streamsList.Add(stream);
                 }
 
                 // Create array
-                _streamsList ??= [];
+                _streamManager.streamsList ??= [];
                 var jsonArray = new JSONArray();
-                foreach (var stream in _streamsList)
+                foreach (var stream in _streamManager.streamsList)
                 {
                     var jnode = Stream.ToJsonNode(stream);
                     if (jnode is not null)
@@ -584,11 +707,11 @@ namespace ConsoleMediaPlayer
 
         static void PromptStreamsInfo()
         {
-            if (_streamsList is null) return;
+            if (_streamManager.streamsList is null) return;
 
             Util.WriteBlue($"{Rainbow.Util.CR}List of streams correctly set in config file: (doesn't mean they can be really used)");
             int index = 1;
-            foreach (var stream in _streamsList)
+            foreach (var stream in _streamManager.streamsList)
             {
                 Util.WriteBlue($"{index++:00} - {stream}");
                 //index++;
@@ -602,427 +725,11 @@ namespace ConsoleMediaPlayer
 
 #endregion Prompts
 
-#region MediaInput management
-
-        static Device? GetDevice(string name, string type)
+        static void UpdateWindowTitle()
         {
-            List<Device>? devices = null;
-
-            switch (type)
-            {
-                case "webcam":
-                    devices = Rainbow.Medias.Devices.GetWebcamDevices(false).Select(s => (Device)s).ToList();
-                    break;
-
-                case "screen":
-                    devices = Rainbow.Medias.Devices.GetScreenDevices(false).Select(s => (Device)s).ToList();
-                    break;
-
-                case "microphone":
-                    devices = Rainbow.Medias.Devices.GetAudioInputDevices();
-                    break;
-            }
-
-            return devices?.FirstOrDefault(d => d.Name == name);
+            String title = $"SDK C# v3.x - Streaming Audio:[{((_streamManager.mediaInputAudio is not null) ? _streamManager.mediaInputAudio.Name : "NONE")}] - Video:[{((_streamManager.mediaInputVideo is not null) ? $"{_streamManager.mediaInputVideo.Name} - {_streamManager.mediaInputVideo.Width}x{_streamManager.mediaInputVideo.Height}" : "NONE")}]";
+            Window.UpdateTitle(_outputWindow, title);
         }
-
-        static ScreenDevice? GetScreenDevice(string name)
-        {
-            var device = GetDevice(name, "screen");
-            return (ScreenDevice?)device;
-        }
-
-        static WebcamDevice? GetWebcamDevice(string name)
-        {
-            var device = GetDevice(name, "webcam");
-            return (WebcamDevice?)device;
-
-        }
-
-        static Device? GetMicrophoneDevice(string name)
-        {
-            var device = GetDevice(name, "microphone");
-            return device;
-        }
-
-        static async Task<IMediaVideo?> GetMediaInputComposition(Stream stream)
-        {
-            Boolean success = true;
-            List<Size> videoSize = [];
-
-            if ( (_streamsList is null) || (stream is null) || (stream.VideoComposition is null) )
-                return null;
-
-            Util.WriteGreen($"Trying to create composition ...");
-            foreach(var id in stream.VideoComposition)
-            {
-                Util.WriteGreen($"For composition, creating MediaInput for Stream:[{id}] ...");
-                var s = _streamsList.FirstOrDefault(s => s.Id == id);
-                if (s is not null)
-                {
-                    (var _, var iMediaVideo) = await GetMediaInputs(s, false);
-                    if (iMediaVideo?.Init(true) == true)
-                    {
-                        _mediaInputVideoListForComposition.Add(iMediaVideo);
-
-                        var size = new Size(iMediaVideo.Width, iMediaVideo.Height);
-                        videoSize.Add(size);
-                    }
-                    else
-                    {
-                        // Cannot start 
-                        Util.WriteRed($"For composition, MediaInput cannot be created for Stream:[{id}]");
-                        success = false;
-                        break;
-                    }
-                }
-                else
-                {
-                    Util.WriteRed($"For composition, no Stream:[{id}] defined ...");
-                    success = false;
-                    break;
-                }
-            }
-
-            if(success)
-            {
-                String? filter = null;
-                var result = new MediaFiltered("mediaFiltered", _mediaInputVideoListForComposition, null);
-
-                // Check if we have a filter already defined or we need to create it using a "template" ?
-                if (stream.VideoFilterJsonNode is not null)
-                {
-                    Util.WriteGreen($"For composition, using \"template\" to create video filter ...");
-
-                    // We need to get size of media inputs used.
-                    String type = stream.VideoFilterJsonNode["type"];
-                    var node = stream.VideoFilterJsonNode["data"];
-
-                    if (node is not null)
-                    {
-                        Size? size;
-                        int fps;
-
-                        switch (type)
-                        {
-                            case "mosaic":
-                                // Get fps
-                                fps = node["fps"];
-                                if (fps == 0)
-                                    fps = 10;
-
-                                // Get size of vignette
-                                size = VideoFilter.SizeFromString(node["sizeVignette"]);
-                                if (size is null)
-                                    size = videoSize[0];
-
-                                // Get layout
-                                String layout = node["layout"];
-                                if (String.IsNullOrEmpty(layout))
-                                    layout = "G";
-
-                                filter = VideoFilter.FilterToMosaic(
-                                    srcVideoSize: videoSize,
-                                    vignette: size.Value,
-                                    layout: layout,
-                                    fps: fps
-                                    );
-
-                                break;
-
-                            case "overlay":
-
-                                // Get size
-                                size = VideoFilter.SizeFromString(node["size"]);
-                                if (size is null)
-                                    size = videoSize[0];
-
-                                // Get fps
-                                fps = node["fps"];
-                                if (fps == 0)
-                                    fps = 10;
-
-                                // Get overlay size
-                                var sizeOverlay = VideoFilter.SizeFromString(node["sizeOverlay"]);
-                                if (sizeOverlay == null)
-                                    sizeOverlay = new Size((int)(videoSize[0].Width / 4), (int)(videoSize[0].Height / 4));
-
-                                // Get overlay position
-                                String positionOverLay = node["positionOverlay"];
-                                if (String.IsNullOrEmpty(positionOverLay))
-                                    positionOverLay = "TR";
-
-                                filter = VideoFilter.FilterToOverlay(
-                                    srcMain: videoSize[0],
-                                    srcOverlay: videoSize[1],
-                                    dst: size.Value,
-                                    dstOverlay: sizeOverlay.Value,
-                                    dstOverlayPosition: positionOverLay,
-                                    fps: fps
-                                    );
-                                break;
-                        }
-                    }
-                    if (filter is null)
-                        Util.WriteRed($"For composition, using \"template\" cannot create video filter ...");
-                    else
-                        Util.WriteRed($"For composition, using \"template\" filter created:\r\n{filter}");
-                }
-                else
-                    filter = stream.VideoFilter;
-
-                if (!String.IsNullOrEmpty(filter))
-                {
-                    if (result.SetVideoFilter(stream.VideoComposition, filter))
-                    {
-                        if (result.Init(true))
-                            return result;
-                        else
-                            Util.WriteRed($"For composition, cannot init MediaFiltered ...");
-                    }
-                    else
-                        Util.WriteRed($"For composition, video filter defined is incorrect:\r\n{stream.VideoFilter}");
-                }
-            }
-
-            Util.WriteGreen($"Closing all stream used in composition ...");
-            await CloseMediaInputsUsedInCompostionAsync();
-            return null;
-            
-        }
-
-        // Central point to create MediaInput (Audio, Video, Composition)
-        static async Task<(IMediaAudio? audioInput, IMediaVideo? videoInput)> GetMediaInputs(Stream stream, bool closePreviousMediaInput)
-        {
-            IMediaAudio? audioInput = null;
-            IMediaVideo? videoInput = null;
-            if ((_streamsList is null) || (stream is null)) return (audioInput, videoInput);
-
-            // Close previous media inputs
-            if (closePreviousMediaInput)
-            {
-                await CloseMediaInputsAsync();
-                Window.ClearRenderer(_outputWindow);
-            }
-
-            Boolean withComposition = stream.Media.Contains("composition");
-            Boolean withAudio = stream.Media.Contains("audio");
-            Boolean withVideo = withComposition || stream.Media.Contains("video");
-            
-            var options = stream.UriSettings;
-
-            List<String> settings = [];
-            if (options is not null)
-            {
-                foreach (var key in options.Keys)
-                    settings.Add(key + ":" + options[key]);
-            }
-
-            String id = withAudio ? (withVideo ? "audio+video" : "audio") : (withVideo ? "video" : "");
-
-            switch (stream.UriType)
-            {
-                case "webcam":
-                    var webcamDevice = GetWebcamDevice(stream.Uri);
-                    if (webcamDevice is not null)
-                    {
-                        videoInput = MediaInput.FromWebcamDevice(webcamDevice, false);
-                        if (videoInput is null)
-                            Util.WriteRed($"Cannot create and/or start MediaInput using this webcamDevice:[{webcamDevice}]");
-                    }
-                    else
-                        Util.WriteRed($"Cannot get a webcamDevice with uri:[{stream.Uri}]");
-                    break;
-
-                case "screen":
-                    var screenDevice = GetScreenDevice(stream.Uri);
-                    if (screenDevice is not null)
-                    {
-                        videoInput = MediaInput.FromScreenDevice(screenDevice, false);
-                        if(videoInput is null)
-                            Util.WriteRed($"Cannot create and/or start MediaInput using this screenDevice:[{screenDevice}]");
-                    }
-                    else
-                        Util.WriteRed($"Cannot get a screenDevice with uri:[{stream.Uri}]");
-                    break;
-
-                case "microphone":
-                    var microphoneDevice = GetMicrophoneDevice(stream.Uri);
-                    if (microphoneDevice is not null)
-                    {
-                        audioInput = new SDL2AudioInput(microphoneDevice);
-                        if (audioInput is null)
-                            Util.WriteRed($"Cannot create and/or start MediaInput using this screenDevice:[{microphoneDevice}]");
-                    }
-                    else
-                        Util.WriteRed($"Cannot get a screenDevice with uri:[{stream.Uri}]");
-                    break;
-
-                default:
-                    if(withComposition)
-                    {
-                        videoInput = await GetMediaInputComposition(stream);
-                    }
-                    else
-                    {
-                        Util.WriteGreen($"Creating InputStreamDevice: {stream} ...");
-                        var inputStreamDevice = new InputStreamDevice(stream.Id, stream.Id, stream.Uri, withVideo: withVideo, withAudio: withAudio, loop: true, options: options);
-
-                        Util.WriteGreen($"Creating MediaInput for [{stream.Id}] ...");
-                        var mediaInput = new MediaInput(inputStreamDevice, forceLivestream: stream.ForceLiveStream);
-                        if (withVideo)
-                            videoInput = mediaInput;
-                        if (withAudio)
-                            audioInput = mediaInput;
-                    }
-                    break;
-                }
-
-            return (audioInput, videoInput);
-        }
-
-        static async Task CloseMediaInputsUsedInCompostionAsync()
-        {
-            // Close MediaInput used in Composition
-            if (_mediaInputVideoListForComposition.Count > 0)
-            {
-                Util.WriteGreen("Stopping previous Video MediaInput used for Composition ...");
-                foreach (var mediaInput in _mediaInputVideoListForComposition)
-                {
-                    mediaInput?.Dispose();
-                }
-                _mediaInputVideoListForComposition.Clear();
-                Util.WriteDarkYellow("Previous Video MediaInput used for Composition are stoppped and disposed");
-            }
-        }
-
-        static async Task CloseMediaInputsAsync()
-        {
-            // Close Audio MediaInputs
-            if (_mediaInputAudio is not null)
-            {
-                _mediaInputAudio.OnAudioSample -= MediaInput_OnAudioSample;
-
-                // Clear queue
-                _sdl2AudioOutput?.ClearQueue();
-
-                // Check if media input Audio and Video are related
-                if ((_mediaInputVideo is not null) && (_mediaInputVideo.Id == _mediaInputAudio.Id))
-                {
-                    _mediaInputAudio = null;
-                    Util.WriteDarkYellow("Previous Audio MediaInput will be stoppped and disposed in same time than the previous Video MediaInput");
-                }
-                else
-                {
-                    Util.WriteGreen("Stopping previous Audio MediaInput ...");
-                    await _mediaInputAudio.StopAsync();
-                    _mediaInputAudio.Dispose();
-                    _mediaInputAudio = null;
-                    Util.WriteDarkYellow("Previous Audio MediaInput stoppped and disposed");
-                }
-            }
-
-            // Close Video MediaInputs
-            if (_mediaInputVideo is not null)
-            {
-                // We inform that the video is now stopped
-                _outputWindow.VideoStopped = true;
-
-                _mediaInputVideo.OnImage -= MediaInput_OnImage;
-                
-                Window.DestroyTexture(_outputWindow);
-
-                Util.WriteGreen("Stopping previous Video MediaInput ...");
-                _mediaInputVideo.Dispose();
-                _mediaInputVideo = null;
-                Util.WriteDarkYellow("Previous Video MediaInput stoppped and disposed");
-            }
-
-            await CloseMediaInputsUsedInCompostionAsync();
-        }
-
-        static async Task UseStreamAsync(Stream? stream)
-        {
-            if (stream is null) return;
-
-            (var iMediaAudio, var  iMediaVideo) = await GetMediaInputs(stream, true);
-            var iMedia = (iMediaAudio is null) ? (IMedia?)iMediaVideo : (IMedia?)iMediaAudio;
-            if (iMedia is null) return;
-
-            Util.WriteGreen($"Init/Start MediaInput with [{iMedia.Id}] ...");
-            if (iMedia.Init(true))
-            {
-                _outputWindow.VideoStopped = false;
-
-                // Even if there is no video, we create/show it - it's title permits to know streams currently used
-                Window.Create(_outputWindow);
-                Window.Show(_outputWindow);
-                Window.Restore(_outputWindow);
-                Window.Raise(_outputWindow);
-
-                Window.ClearRenderer(_outputWindow);
-
-                if (iMediaAudio is not null)
-                {
-                    _mediaInputAudio = iMediaAudio;
-                    _mediaInputAudio.OnAudioSample += MediaInput_OnAudioSample;
-                    _mediaInputAudio.OnEndOfFile += MediaInputAudio_OnEndOfFile;
-                }
-
-                if (iMediaVideo is not null)
-                {
-                    _mediaInputVideo = iMediaVideo;
-                    _mediaInputVideo.OnImage += MediaInput_OnImage;
-                    _mediaInputVideo.OnEndOfFile += MediaInputVideo_OnEndOfFile;
-                }
-                
-                String title = $"SDK C# v3.x - Streaming Audio:[{((_mediaInputAudio is not null) ? _mediaInputAudio.Name : "NONE")}] - Video:[{((_mediaInputVideo is not null) ? $"{_mediaInputVideo.Name} - {_mediaInputVideo.Width}x{_mediaInputVideo.Height}" : "NONE")}]";
-                Window.UpdateTitle(_outputWindow, title);
-
-                Util.WriteDarkYellow($"MediaInput initialized / started");
-            }
-            else
-                Util.WriteRed($"MediaInput cannot be initialized / started !");
-        }
-
-#endregion MediaInput management
-
-#region MediaInput Events
-
-        private static void MediaInput_OnAudioSample(string mediaId, uint duration, byte[] sample)
-        {
-            // /!\ Don't need to use Main Thread
-            if (canContinue)
-                _sdl2AudioOutput?.QueueSample(sample);
-        }
-
-        private static void MediaInput_OnImage(string mediaId, int width, int height, int stride, IntPtr data, AVPixelFormat pixelFormat)
-        {
-            // /!\ Need to use Main Thread
-            _actions.Add( new Action(() =>
-            {
-                if ( _outputWindow is null || _outputWindow.VideoStopped)
-                    return;
-
-                if (_outputWindow.Texture == IntPtr.Zero)
-                    Window.CreateTexture(_outputWindow, width, height, pixelFormat);
-
-                Window.UpdateTexture(_outputWindow, stride, data);
-                Window.UpdateRenderer(_outputWindow);
-            }));
-        }
-
-        private static void MediaInputAudio_OnEndOfFile(string mediaId)
-        {
-            Util.WriteGreen("Audio MediaInput reached End of File");
-        }
-
-        private static void MediaInputVideo_OnEndOfFile(string mediaId)
-        {
-            Util.WriteGreen("Video MediaInput reached End of File");
-        }
-
-#endregion MediaInput Events
 
 #region READ CONFIGURATION
 
@@ -1048,7 +755,7 @@ namespace ConsoleMediaPlayer
             if (jsonExeSettings?.IsArray == true)
             {
                 List<Stream> compositionsList = [];
-                _streamsList = [];
+                _streamManager.streamsList = [];
                 foreach (var node in jsonExeSettings.Values)
                 {
                     if (Stream.FromJsonNode(node, out Stream stream))
@@ -1056,7 +763,7 @@ namespace ConsoleMediaPlayer
                         if (stream.Media.Equals("composition"))
                             compositionsList.Add(stream);
                         else
-                            _streamsList.Add(stream);
+                            _streamManager.streamsList.Add(stream);
                     }
                 }
 
@@ -1066,13 +773,13 @@ namespace ConsoleMediaPlayer
                     if (stream.VideoComposition is null)
                         continue;
 
-                    var streamsFound = _streamsList.Where(x => stream.VideoComposition.Contains(x.Id) == true).ToList();
+                    var streamsFound = _streamManager.streamsList.Where(x => stream.VideoComposition.Contains(x.Id) == true).ToList();
                     if (streamsFound.Count == stream.VideoComposition.Count)
-                        _streamsList.Add(stream);
+                        _streamManager.streamsList.Add(stream);
                 }
 
 
-                if (_streamsList.Count == 0)
+                if (_streamManager.streamsList.Count == 0)
                 {
                     Util.WriteRed($"Cannot read 'streams' object (no Stream object created) - file:'{_streamsFilePath}'.");
                     return false;
@@ -1084,7 +791,8 @@ namespace ConsoleMediaPlayer
                 return false;
             }
 
-            autoPlay = jsonNode["autoPlay"];
+            _autoPlayAudio = jsonNode["autoPlayAudio"];
+            _autoPlayVideo = jsonNode["autoPlayVideo"];
 
             return true;
         }
