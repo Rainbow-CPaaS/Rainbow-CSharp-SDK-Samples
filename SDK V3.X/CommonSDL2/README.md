@@ -2,7 +2,6 @@
  
 # Rainbow CSharp SDK examples - v3.x - Rainbow.Example.Common.SDL2
 
-
 This project is compatible with Linux, Mac OS and Windows thanks to SDL2  
 
 It's used:
