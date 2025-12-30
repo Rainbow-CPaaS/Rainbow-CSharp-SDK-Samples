@@ -57,6 +57,9 @@ namespace Rainbow.Example.Common
 
         public JSONNode? VideoFilterJsonNode { get; set; }
 
+        // Video Filter used in the conference - not set directly in JSON
+        public string? VideoFilterInConference { get; set; }
+
         /// <summary>
         /// Can help in very rare case - false by default
         /// </summary>
@@ -72,7 +75,11 @@ namespace Rainbow.Example.Common
             VideoComposition = null;
             Connected = false;
             VideoFilter = null;
+            VideoFilterJsonNode = null;
             ForceLiveStream = null;
+
+            VideoFilterInConference = null;
+            MediaInConference = null;
         }
 
         public static Stream FromStream(Stream other)
@@ -87,10 +94,12 @@ namespace Rainbow.Example.Common
                 VideoComposition = other.VideoComposition,
                 Connected = other.Connected,
                 VideoFilter = other.VideoFilter,
+                VideoFilterJsonNode = other.VideoFilterJsonNode,
                 ForceLiveStream = other.ForceLiveStream,
 
                 // Internal property
                 MediaInConference = other.MediaInConference,
+                VideoFilterInConference = other.VideoFilterInConference,
             };
             return result;
         }
@@ -193,6 +202,7 @@ namespace Rainbow.Example.Common
                 || (other.Media != Media)
                 || (other.Uri != Uri)
                 || (other.VideoFilter != VideoFilter)
+                || (other.VideoFilterJsonNode?.ToString() != VideoFilterJsonNode?.ToString())
                 || (other.ForceLiveStream != ForceLiveStream)
                 || (other.MediaInConference != MediaInConference)
                 || ((VideoComposition is not null) && (other.VideoComposition is not null) && (!VideoComposition.SequenceEqual(other.VideoComposition)))

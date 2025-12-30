@@ -70,7 +70,6 @@
         public static string STRIKE = System.Console.IsOutputRedirected ? "" : "\x1b[9m";
         public static string NO_STRIKE = System.Console.IsOutputRedirected ? "" : "\x1b[29m";
 
-
         public static void WriteDateTime()
         {
             WriteDarkYellow($"[{DateTime.Now:HH:mm:ss.fff}]");
