@@ -224,6 +224,8 @@ namespace ConsoleMediaPlayer
 
         private static void StreamManager_OnAudioStateChanged(string mediaId, bool isStarted, bool isPaused)
         {
+            if (!isStarted)
+                _sdl2AudioOutput?.ClearQueue();
             UpdateWindowTitle();
         }
 
