@@ -86,16 +86,15 @@ namespace CommonSDL2
         public async Task UseStreamsAsync(Stream? streamForVideo, Stream? streamForAudio = null)
         {
             Boolean withComposition = false;
-            IMediaAudio? iMediaAudio;
-            IMediaVideo? iMediaVideo;
+            IMediaVideo? iMediaVideo = null;
 
             // --- Manage Video in priority ---
             if (streamForVideo is null)
             {
+                await UseAudioStreamAsync(streamForAudio);
+
                 await CloseVideoInputsAsync();
                 await CloseMediaInputsNotUsedInCompostionAsync();
-
-                await UseAudioStreamAsync(streamForAudio);
             }
             else
             {
@@ -109,11 +108,22 @@ namespace CommonSDL2
                     withComposition = streamForVideo.Media.Contains("composition");
                     if (!withComposition)
                     {
-                        // Close media inputs previously used in composition
-                        await CloseMediaInputsNotUsedInCompostionAsync();
+                        iMediaVideo = GetVideoMediaAlreadyOpened(streamForVideo.Id);
+                        if (iMediaVideo is not null)
+                        {
+                            if ( (mediaInputVideo is not null) && (iMediaVideo.Id != mediaInputVideo.Id) )
+                                await CloseVideoInputsAsync();
+
+                            // Close media inputs previously used in composition
+                            await CloseMediaInputsNotUsedInCompostionAsync(iMediaVideo.Id);
+                        }
+                        else
+                            // Close media inputs previously used in composition
+                            await CloseMediaInputsNotUsedInCompostionAsync();
                     }
 
-                    (iMediaAudio, iMediaVideo) = await GetMediaInputs(streamForVideo);
+                    if (iMediaVideo is null)
+                        (_, iMediaVideo) = await GetMediaInputs(streamForVideo);
 
                     if (iMediaVideo is not null)
                     {
@@ -137,14 +147,11 @@ namespace CommonSDL2
                         {
                             Util.WriteRed($"MediaInput cannot be initialized / started !");
                         }
-
                     }
                     else
                     {
                         await CloseVideoInputsAsync();
                     }
-
-                    
 
                     await UseAudioStreamAsync(streamForAudio);
                 }
@@ -170,21 +177,31 @@ namespace CommonSDL2
                     var mi = _mediaInputVideoListForComposition.FirstOrDefault(m => m.Id == s.Id);
                     if (mi is null)
                     {
-                        Util.WriteGreen($"For composition, creating MediaInput for Stream:[{id}] ...");
-                        (var _, var iMediaVideo) = await GetMediaInputs(s);
-                        if (iMediaVideo?.Init(true) == true)
+                        mi = GetVideoMediaAlreadyOpened(id);
+                        if (mi is not null)
                         {
-                            _mediaInputVideoListForComposition.Add(iMediaVideo);
-
-                            var size = new Size(iMediaVideo.Width, iMediaVideo.Height);
+                            _mediaInputVideoListForComposition.Add(mi);
+                            var size = new Size(mi.Width, mi.Height);
                             videoSize.Add(size);
                         }
                         else
                         {
-                            // Cannot start 
-                            Util.WriteRed($"For composition, MediaInput cannot be created for Stream:[{id}]");
-                            success = false;
-                            break;
+                            Util.WriteGreen($"For composition, creating MediaInput for Stream:[{id}] ...");
+                            (var _, var iMediaVideo) = await GetMediaInputs(s);
+                            if (iMediaVideo?.Init(true) == true)
+                            {
+                                _mediaInputVideoListForComposition.Add(iMediaVideo);
+
+                                var size = new Size(iMediaVideo.Width, iMediaVideo.Height);
+                                videoSize.Add(size);
+                            }
+                            else
+                            {
+                                // Cannot start 
+                                Util.WriteRed($"For composition, MediaInput cannot be created for Stream:[{id}]");
+                                success = false;
+                                break;
+                            }
                         }
                     }
                     else
@@ -379,6 +396,19 @@ namespace CommonSDL2
                     }
                     else
                     {
+                        // Check if audio can be re-used
+                        audioInput = GetAudioMediaAlreadyOpened(stream.Id);
+
+                        // Check if video can be re-used
+                        videoInput = GetVideoMediaAlreadyOpened(stream.Id);
+
+                        if ((withVideo && videoInput is not null)
+                            || (withAudio && audioInput is not null))
+                        {
+                            Util.WriteDarkYellow($"Not necessary to create new MediaInput - use previous stream");
+                            return (audioInput, videoInput);
+                        }
+
                         Util.WriteGreen($"Creating InputStreamDevice: {stream} ...");
                         var inputStreamDevice = new InputStreamDevice(stream.Id, stream.Id, stream.Uri, withVideo: withVideo, withAudio: withAudio, loop: true, options: options);
 
@@ -393,6 +423,29 @@ namespace CommonSDL2
             }
 
             return (audioInput, videoInput);
+        }
+
+        private IMediaAudio? GetAudioMediaAlreadyOpened(String id)
+        {
+            if ((mediaInputAudio is not null) && (mediaInputAudio.Id == id))
+                return mediaInputAudio;
+
+            if ((mediaInputVideo is not null) && (mediaInputVideo.Id == id))
+                return (IMediaAudio ?) mediaInputVideo;
+
+            var m = _mediaInputVideoListForComposition.FirstOrDefault(m => m.Id == id);
+            return (IMediaAudio?)m;
+        }
+
+        private IMediaVideo? GetVideoMediaAlreadyOpened(String id)
+        {
+            if ((mediaInputVideo is not null) && (mediaInputVideo.Id == id))
+                return mediaInputVideo;
+
+            if ((mediaInputAudio is not null) && (mediaInputAudio.Id == id))
+                return (IMediaVideo ?) mediaInputAudio;
+
+            return _mediaInputVideoListForComposition.FirstOrDefault(m => m.Id == id);
         }
 
         private async Task CloseAudioInputsAsync()
@@ -437,12 +490,22 @@ namespace CommonSDL2
 
                 OnVideoStateChanged?.Invoke(mediaInputVideo.Id, false, false);
 
-                Util.WriteGreen($"Stopping previous Video MediaInput Id:{mediaInputVideo.Id} ...");
-                mediaInputVideo.Dispose();
-                mediaInputVideo = null;
-                Util.WriteDarkYellow("Previous Video MediaInput stoppped and disposed");
+                // Check if media input Audio and Video are related
+                if ( (mediaInputAudio is not null) && (mediaInputVideo.Id == mediaInputAudio.Id) 
+                    || (_mediaInputVideoListForComposition.FirstOrDefault(m => m.Id == mediaInputVideo.Id) is not null) )
+                {
+                    mediaInputVideo = null;
+                    Util.WriteDarkYellow("Previous Video MediaInput will be stoppped and disposed later - used in composition, by audio or by video (not for composition)");
+                }
+                else
+                {
+                    Util.WriteGreen($"Stopping previous Video MediaInput Id:{mediaInputVideo.Id} ...");
+                    mediaInputVideo.Dispose();
+                    mediaInputVideo = null;
+                    Util.WriteDarkYellow("Previous Video MediaInput stoppped and disposed");
 
-                await Task.Delay(200);
+                    await Task.Delay(200);
+                }
             }
             else
                 OnVideoStateChanged?.Invoke("", false, false);
@@ -463,8 +526,18 @@ namespace CommonSDL2
                     {
                         if (!idsInComposition.Contains(mediaInput.Id))
                         {
-                            Util.WriteDarkYellow($"Stop / Dispose previous Video MediaInput Id:{mediaInput.Id} (no more used in composition)");
-                            mediaInput.Dispose();
+                            // Check if it's related to Audio or Video
+
+                            if (((mediaInputVideo is not null) && (mediaInputVideo.Id == mediaInput.Id))
+                                || ((mediaInputAudio is not null) && (mediaInputAudio.Id == mediaInput.Id)))
+                            {
+                                Util.WriteDarkYellow($"DON'T Dispose previous Video MediaInput Id:{mediaInput.Id} (used for Audio or Video - without composition)");
+                            }
+                            else
+                            {
+                                Util.WriteDarkYellow($"Stop / Dispose previous Video MediaInput Id:{mediaInput.Id} (no more used in composition)");
+                                mediaInput.Dispose();
+                            }
                         }
                         else
                         {
