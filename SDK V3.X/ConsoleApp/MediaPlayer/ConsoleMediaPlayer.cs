@@ -19,7 +19,8 @@ namespace ConsoleMediaPlayer
         private static ExeSettings? _exeSettings;
         private static String _autoPlayAudio = "";
         private static String _autoPlayVideo = "";
-
+        private static String _autoPlaySharing = "";
+        
         // --- path to file "streams.json"
         private static String _streamsFilePath = "";
 
@@ -27,14 +28,15 @@ namespace ConsoleMediaPlayer
         private static Boolean _canContinue = true;
 
         // --- To manage streams (Audio, Video, Composition)
-        private static StreamManager _streamManager = new();
+        private static readonly StreamManager _streamManager = new();
 
         // --- To manage Audio Output
         private static SDL2AudioOutput? _sdl2AudioOutput = null;
         private static Device? _audioOutputDevice = null;
 
-        // --- To manage Window Output
-        private static readonly Window _outputWindow = new();
+        // --- To manage Window Output - Video or Sharing
+        private static readonly Window _outputVideoWindow = new();
+        private static readonly Window _outputSharingWindow = new();
 
         // --- To ensure to launch action on main thread
         private static readonly BlockingCollection<Action> _actions = [];
@@ -55,12 +57,17 @@ namespace ConsoleMediaPlayer
             if (_exeSettings is null) return;
             if ((_streamManager.streamsList is null) || (_streamManager.streamsList.Count == 0)) return;
 
-            _streamManager.OnAudioEndOfFile += StreamManager_OnAudioEndOfFile;
-            _streamManager.OnVideoEndOfFile += StreamManager_OnVideoEndOfFile;
-            _streamManager.OnVideoStateChanged += StreamManager_OnVideoStateChanged;
-            _streamManager.OnAudioStateChanged += StreamManager_OnAudioStateChanged;
-            _streamManager.OnImage += StreamManager_OnImage;
             _streamManager.OnAudioSample += StreamManager_OnAudioSample;
+            _streamManager.OnAudioStateChanged += StreamManager_OnAudioStateChanged;
+            _streamManager.OnAudioEndOfFile += StreamManager_OnAudioEndOfFile;
+
+            _streamManager.OnVideoImage += StreamManager_OnVideoImage;
+            _streamManager.OnVideoStateChanged += StreamManager_OnVideoStateChanged;
+            _streamManager.OnVideoEndOfFile += StreamManager_OnVideoEndOfFile;
+
+            _streamManager.OnSharingImage += StreamManager_OnSharingImage;
+            _streamManager.OnSharingStateChanged += StreamManager_OnSharingStateChanged;
+            _streamManager.OnSharingEndOfFile += StreamManager_OnSharingEndOfFile;
 
             PromptStreamsInfo();
 
@@ -90,15 +97,19 @@ namespace ConsoleMediaPlayer
                             switch (e.window.windowEvent)
                             {
                                 case SDL2.SDL_WindowEventID.SDL_WINDOWEVENT_RESIZED:
-                                    if (e.window.windowID == _outputWindow.Id)
-                                        _outputWindow.NeedRendereUpdate = true;
-                                break;
+                                    if (e.window.windowID == _outputVideoWindow.Id)
+                                        _outputVideoWindow.NeedRendererUpdate = true;
+                                    else if (e.window.windowID == _outputSharingWindow.Id)
+                                        _outputSharingWindow.NeedRendererUpdate = true;
+                                    break;
                             }
                             break;
 
                         case SDL2.SDL_EventType.SDL_RENDER_TARGETS_RESET:
-                            if (e.window.windowID == _outputWindow.Id)
-                                _outputWindow.NeedRendereUpdate = true;
+                            if (e.window.windowID == _outputVideoWindow.Id)
+                                _outputVideoWindow.NeedRendererUpdate = true;
+                            else if (e.window.windowID == _outputSharingWindow.Id)
+                                _outputSharingWindow.NeedRendererUpdate = true;
                             break;
 
                         case SDL2.SDL_EventType.SDL_KEYUP:
@@ -116,7 +127,8 @@ namespace ConsoleMediaPlayer
                     }
                 }
 
-                Window.CheckUpdateRenderer(_outputWindow);
+                Window.CheckUpdateRenderer(_outputVideoWindow);
+                Window.CheckUpdateRenderer(_outputSharingWindow);
 
                 // Check Keys fom Console Window
                 if (Console.KeyAvailable || simulatedKey!=0)
@@ -158,7 +170,7 @@ namespace ConsoleMediaPlayer
                             break;
 
                         case (int)ConsoleKey.F:
-                            Window.ToggleFullScreen(_outputWindow);
+                            Window.ToggleFullScreen(_outputVideoWindow);
                             break;
 
                         case (int)ConsoleKey.C:
@@ -191,10 +203,11 @@ namespace ConsoleMediaPlayer
             }
 
             // No more use streams
-            await _streamManager.UseStreamsAsync(null, null);
+            await _streamManager.UseStreamsAsync(null, null, null);
 
             // Destroy SDL2 window
-            Window.Destroy(_outputWindow);
+            Window.Destroy(_outputVideoWindow);
+            Window.Destroy(_outputSharingWindow);
         }
 
 #region StreamManager events
@@ -206,43 +219,54 @@ namespace ConsoleMediaPlayer
                 _sdl2AudioOutput?.QueueSample(sample);
         }
 
-        private static void StreamManager_OnImage(string mediaId, int width, int height, int stride, nint data, AVPixelFormat pixelFormat)
+        private static void StreamManager_OnAudioStateChanged(string mediaId, bool isStarted, bool isPaused)
+        {
+            if (!isStarted)
+            {
+                if (_sdl2AudioOutput is not null)
+                {
+                    Util.WriteDarkYellow("Clear Sdl2AudioOutput queue");
+                    _sdl2AudioOutput.ClearQueue();
+                }
+            }
+            UpdateVideoWindowTitle();
+        }
+
+        private static void StreamManager_OnAudioEndOfFile(string mediaId)
+        {
+            Util.WriteGreen($"Audio MediaInput Id:{mediaId} reached End of File");
+        }
+
+        private static void StreamManager_OnVideoImage(string mediaId, int width, int height, int stride, nint data, AVPixelFormat pixelFormat)
         {
             // /!\ Need to use Main Thread
             _actions.Add(new Action(() =>
             {
-                if (_outputWindow is null || _outputWindow.VideoStopped)
+                if (_outputVideoWindow is null || _outputVideoWindow.VideoStopped)
                     return;
 
-                if (_outputWindow.Texture == IntPtr.Zero)
-                    Window.CreateTexture(_outputWindow, width, height, pixelFormat);
+                if (_outputVideoWindow.Texture == IntPtr.Zero)
+                    Window.CreateTexture(_outputVideoWindow, width, height, pixelFormat);
 
-                Window.UpdateTexture(_outputWindow, stride, data);
-                Window.UpdateRenderer(_outputWindow);
+                Window.UpdateTexture(_outputVideoWindow, stride, data);
+                Window.UpdateRenderer(_outputVideoWindow);
             }));
-        }
-
-        private static void StreamManager_OnAudioStateChanged(string mediaId, bool isStarted, bool isPaused)
-        {
-            if (!isStarted)
-                _sdl2AudioOutput?.ClearQueue();
-            UpdateWindowTitle();
         }
 
         private static void StreamManager_OnVideoStateChanged(string mediaId, bool isStarted, bool isPaused)
         {
             if (isStarted)
             {
-                _outputWindow.VideoStopped = false;
+                _outputVideoWindow.VideoStopped = false;
 
-                Window.Create(_outputWindow);
-                Window.Show(_outputWindow);
-                Window.Restore(_outputWindow);
-                Window.Raise(_outputWindow);
+                Window.Create(_outputVideoWindow);
+                Window.Show(_outputVideoWindow);
+                Window.Restore(_outputVideoWindow);
+                Window.Raise(_outputVideoWindow);
 
-                Window.ClearRenderer(_outputWindow);
+                Window.ClearRenderer(_outputVideoWindow);
 
-                UpdateWindowTitle();
+                UpdateVideoWindowTitle();
             }
             else
             {
@@ -250,11 +274,11 @@ namespace ConsoleMediaPlayer
                 while (_actions.TryTake(out _)) { }
 
                 // We inform that the video is now stopped
-                _outputWindow.VideoStopped = true;
+                _outputVideoWindow.VideoStopped = true;
 
-                Window.DestroyTexture(_outputWindow);
+                Window.DestroyTexture(_outputVideoWindow);
 
-                Window.Hide(_outputWindow);
+                Window.Hide(_outputVideoWindow);
             }
         }
 
@@ -263,9 +287,54 @@ namespace ConsoleMediaPlayer
             Util.WriteGreen($"Video MediaInput Id:{mediaId} reached End of File");
         }
 
-        private static void StreamManager_OnAudioEndOfFile(string mediaId)
+        private static void StreamManager_OnSharingImage(string mediaId, int width, int height, int stride, nint data, AVPixelFormat pixelFormat)
         {
-            Util.WriteGreen($"Audio MediaInput Id:{mediaId} reached End of File");
+            // /!\ Need to use Main Thread
+            _actions.Add(new Action(() =>
+            {
+                if (_outputSharingWindow is null || _outputSharingWindow.VideoStopped)
+                    return;
+
+                if (_outputSharingWindow.Texture == IntPtr.Zero)
+                    Window.CreateTexture(_outputSharingWindow, width, height, pixelFormat);
+
+                Window.UpdateTexture(_outputSharingWindow, stride, data);
+                Window.UpdateRenderer(_outputSharingWindow);
+            }));
+        }
+
+        private static void StreamManager_OnSharingStateChanged(string mediaId, bool isStarted, bool isPaused)
+        {
+            if (isStarted)
+            {
+                _outputSharingWindow.VideoStopped = false;
+
+                Window.Create(_outputSharingWindow);
+                Window.Show(_outputSharingWindow);
+                Window.Restore(_outputSharingWindow);
+                Window.Raise(_outputSharingWindow);
+
+                Window.ClearRenderer(_outputSharingWindow);
+
+                UpdateSharingWindowTitle();
+            }
+            else
+            {
+                // remove any actions
+                while (_actions.TryTake(out _)) { }
+
+                // We inform that the video is now stopped
+                _outputSharingWindow.VideoStopped = true;
+
+                Window.DestroyTexture(_outputSharingWindow);
+
+                Window.Hide(_outputSharingWindow);
+            }
+        }
+
+        private static void StreamManager_OnSharingEndOfFile(string mediaId)
+        {
+            Util.WriteGreen($"Sharing MediaInput Id:{mediaId} reached End of File");
         }
 
 #endregion StreamManager events
@@ -293,13 +362,15 @@ namespace ConsoleMediaPlayer
         {
             Stream? audioStream;
             Stream? videoStream;
+            Stream? sharingStream;
 
             audioStream = _streamManager.streamsList?.FirstOrDefault(s => s.Id == _autoPlayAudio);
             videoStream = _streamManager.streamsList?.FirstOrDefault(s => s.Id == _autoPlayVideo);
+            sharingStream = _streamManager.streamsList?.FirstOrDefault(s => s.Id == _autoPlaySharing);
 
-            Util.WriteGreen($"Auto play set to Audio:[{_autoPlayAudio}] - Video:[{_autoPlayVideo}]. Trying to set config ...");
+            Util.WriteGreen($"Auto play set to Audio:[{_autoPlayAudio}] - Video:[{_autoPlayVideo}] - Sharing:[{_autoPlaySharing}]. Trying to set config ...");
 
-            var _ = _streamManager.UseStreamsAsync(videoStream, audioStream);
+            var _ = _streamManager.UseStreamsAsync(audioStream, videoStream, sharingStream);
         }
 
         static void PromptLoadStreamSettings()
@@ -312,7 +383,7 @@ namespace ConsoleMediaPlayer
 
         static void PromptCancelStreaming()
         {
-            var _ = _streamManager.UseStreamsAsync(null, null);
+            var _ = _streamManager.UseStreamsAsync(null, null, null);
         }
 
         static void PromptInputStreamSelection()
@@ -465,19 +536,19 @@ namespace ConsoleMediaPlayer
                                         {
                                             case "to remove":
                                                 if (stream.Id == _streamManager.currentAudioStream?.Id)
-                                                    task = _streamManager.UseStreamsAsync(_streamManager.currentVideoStream, null);
+                                                    task = _streamManager.UseStreamsAsync(null, _streamManager.currentVideoStream, _streamManager.currentAudioStream);
                                                 else
-                                                    task = _streamManager.UseStreamsAsync(null, _streamManager.currentAudioStream);
+                                                    task = _streamManager.UseStreamsAsync(_streamManager.currentAudioStream, null, _streamManager.currentAudioStream);
                                                 break;
 
                                             case "audio":
-                                                task = _streamManager.UseStreamsAsync(_streamManager.currentVideoStream, stream);
+                                                task = _streamManager.UseStreamsAsync(stream, _streamManager.currentVideoStream, _streamManager.currentAudioStream);
                                                 break;
                                             case "video":
-                                                task = _streamManager.UseStreamsAsync(stream, _streamManager.currentAudioStream);
+                                                task = _streamManager.UseStreamsAsync(_streamManager.currentAudioStream, stream, _streamManager.currentAudioStream);
                                                 break;
                                             case "audio+video":
-                                                task = _streamManager.UseStreamsAsync(stream, stream);
+                                                task = _streamManager.UseStreamsAsync(stream, stream, _streamManager.currentAudioStream);
                                                 break;
                                             default:
                                                 Util.WriteRed($"category not managed: {category}");
@@ -727,13 +798,19 @@ namespace ConsoleMediaPlayer
 
 #endregion Prompts
 
-        static void UpdateWindowTitle()
+        static void UpdateVideoWindowTitle()
         {
             String title = $"SDK C# v3.x - Streaming Audio:[{((_streamManager.mediaInputAudio is not null) ? _streamManager.mediaInputAudio.Name : "NONE")}] - Video:[{((_streamManager.mediaInputVideo is not null) ? $"{_streamManager.mediaInputVideo.Name} - {_streamManager.mediaInputVideo.Width}x{_streamManager.mediaInputVideo.Height}" : "NONE")}]";
-            Window.UpdateTitle(_outputWindow, title);
+            Window.UpdateTitle(_outputVideoWindow, title);
         }
 
-#region READ CONFIGURATION
+        static void UpdateSharingWindowTitle()
+        {
+            String title = $"SDK C# v3.x - Streaming Audio:[{((_streamManager.mediaInputAudio is not null) ? _streamManager.mediaInputAudio.Name : "NONE")}] - Sharing:[{((_streamManager.mediaInputSharing is not null) ? $"{_streamManager.mediaInputSharing.Name} - {_streamManager.mediaInputSharing.Width}x{_streamManager.mediaInputSharing.Height}" : "NONE")}]";
+            Window.UpdateTitle(_outputSharingWindow, title);
+        }
+
+    #region READ CONFIGURATION
 
         static Boolean ReadStreamsSettings()
         {
@@ -795,7 +872,7 @@ namespace ConsoleMediaPlayer
 
             _autoPlayAudio = jsonNode["autoPlayAudio"];
             _autoPlayVideo = jsonNode["autoPlayVideo"];
-
+            _autoPlaySharing = jsonNode["autoPlaySharing"];
             return true;
         }
 

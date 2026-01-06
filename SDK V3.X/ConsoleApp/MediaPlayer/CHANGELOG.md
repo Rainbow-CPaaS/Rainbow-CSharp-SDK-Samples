@@ -4,7 +4,7 @@
 
 ##  [0.7.0]
 - Configuration structure added
-    - Add **autoPlayAudio** and rename **autoPlayVideo** option (from **autoPlay**)  (in **stream.json** file) in order to start automatically the streaming specified when the file is loaded and on application startup- 
+    - Add **autoPlayAudio**, **autoPlayVideo** and **autoPlaySharing**  ( before only **autoPlay** option was avaialble for video)  (in **stream.json** file) in order to start automatically the streaming specified when the file is 're)loaded and on application startup 
 - Possibility to set/removet audio or video streams independently
 
 ##  [0.6.0]
