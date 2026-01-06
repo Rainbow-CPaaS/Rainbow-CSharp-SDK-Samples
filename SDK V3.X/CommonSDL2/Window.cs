@@ -13,7 +13,7 @@ namespace Rainbow.Example.Common.SDL2
 
         public Boolean FullScreen = false; // True if the window is full screen
 
-        public Boolean NeedRendereUpdate = false; // True if it's necessary to update the renderer
+        public Boolean NeedRendererUpdate = false; // True if it's necessary to update the renderer
 
         public Boolean VideoStopped = true;
 
@@ -180,7 +180,7 @@ namespace Rainbow.Example.Common.SDL2
             {
                 try
                 {
-                    window.NeedRendereUpdate = false;
+                    window.NeedRendererUpdate = false;
                     if (Rainbow.Medias.SDL2.SDL_RenderCopy(window.Renderer, window.Texture, IntPtr.Zero, IntPtr.Zero) == 0)
                         Rainbow.Medias.SDL2.SDL_RenderPresent(window.Renderer);
                 }
@@ -190,7 +190,7 @@ namespace Rainbow.Example.Common.SDL2
 
         public static void CheckUpdateRenderer(Window window)
         {
-            if (window is not null && window.NeedRendereUpdate && !window.VideoStopped)
+            if (window is not null && window.NeedRendererUpdate && !window.VideoStopped)
                 UpdateRenderer(window);
         }
 #endregion public static methods
