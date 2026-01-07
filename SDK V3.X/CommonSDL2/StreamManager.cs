@@ -12,17 +12,20 @@ namespace CommonSDL2
 {
     public class StreamManager
     {
+        private SemaphoreSlim semaphoreUseOfStremSlim = new SemaphoreSlim(1, 1);
+
         // --- To store list of available Streams
         public List<Stream>? streamsList;
 
-        // --- To know which Stream is currently used / played
-        public Stream? currentAudioStream;
-        public Stream? currentVideoStream;
-        public Stream? currentSharingStream;
+        // --- To know which Streams are currently used / played
+        public Stream? currentAudioStream;  // Used for audio   => events OnAudioSample / OnAudioStateChanged / OnAudioEndOfFile will be used
+        public Stream? currentVideoStream;  // Used for video   => events OnVideoImage / OnVideoStateChanged / OnVideoEndOfFile will be used
+        public Stream? currentSharingStream;// Used for sharing => events OnSharingImage / OnSharingStateChanged / OnSharingEndOfFile will be used
+        public Stream[] otherStreams = [];  // Streams to stay opened even if not used for audio/video/sharing
 
         // --- IMedia used / created 
-        private List<IMediaAudio> _mediaForAudio = [];
-        private List<IMediaVideo> _mediaVideoOrSharing = [];
+        private List<IMediaAudio> _mediasForAudio = [];
+        private List<IMediaVideo> _mediasForVideo = [];
 
         // --- IMedia used / created for Input based on the selected Stream
         public IMediaAudio? mediaInputAudio;
@@ -41,70 +44,91 @@ namespace CommonSDL2
         public event StateDelegate? OnSharingStateChanged;
         public event EndOfFileDelegate? OnSharingEndOfFile;
 
-        private List<IMediaVideo> GetListOfVideoOrSharingUsed()
+        private void StoreAudioMedia(List<IMediaAudio> storageAudio, params IMediaAudio?[] mediaAudios)
+        {
+            if (mediaAudios?.Length > 0)
+            {
+                foreach (var mediaVideo in mediaAudios)
+                {
+                    if ((mediaVideo is null) || (!mediaVideo.IsStarted))
+                        continue;
+
+                    var m = storageAudio.FirstOrDefault(m => m.Id == mediaVideo.Id);
+                    if (m is null)
+                        storageAudio.Add(mediaVideo);
+                }
+            }
+        }
+
+        private void StoreVideoMedia(List<IMediaVideo> storageVideoOrSharing, params IMediaVideo?[] mediaVideos)
+        {
+            if (mediaVideos?.Length > 0)
+            {
+                foreach (var mediaVideo in mediaVideos)
+                {
+                    if ((mediaVideo is null) || (!mediaVideo.IsStarted))
+                        continue;
+
+                    var m = storageVideoOrSharing.FirstOrDefault(m => m.Id == mediaVideo.Id);
+                    if (m is null)
+                        storageVideoOrSharing.Add(mediaVideo);
+                }
+            }
+        }
+
+        private List<IMediaVideo> GetListOfVideosMediaUsed()
         {
             List<IMediaVideo> result = [];
-            StoreVideoOrSharingMedia(mediaInputVideo, ref result);
-            StoreVideoOrSharingMedia(mediaInputSharing, ref result);
-            foreach(var video in _mediaVideoOrSharing)
-                StoreVideoOrSharingMedia(video, ref result);
+            StoreVideoMedia(result, mediaInputVideo);
+            StoreVideoMedia(result, mediaInputSharing);
+            foreach(var video in _mediasForVideo)
+                StoreVideoMedia(result, video);
 
             return result;
         }
 
-        private List<IMediaAudio> GetListOfAudioUsed()
+        private List<IMediaAudio> GetListOfAudiosMediaUsed()
         {
             List<IMediaAudio> result = [];
-            StoreAudioMedia(mediaInputAudio, ref result);
-            foreach (var audio in _mediaForAudio)
-                StoreAudioMedia(audio, ref result);
+            StoreAudioMedia(result, mediaInputAudio);
+            foreach (var audio in _mediasForAudio)
+                StoreAudioMedia(result, audio);
 
             return result;
         }
 
-        private void StoreVideoOrSharingMedia(IMediaVideo? mediaVideo, ref List<IMediaVideo> storageVideoOrSharing)
+        public async Task UseMainStreamAsync(int media, Stream? stream = null )
         {
-            if ( (mediaVideo is null) || (!mediaVideo.IsStarted))
-                return;
+            if (media == Rainbow.Consts.Media.NONE)
+                await UseStreamsAsync(null, null, null, otherStreams);
+            else
+            {
+                Stream? streamAudio = Rainbow.Util.MediasWithAudio(media) ? stream : currentAudioStream;
+                Stream? streamVideo = Rainbow.Util.MediasWithVideo(media) ? stream : currentVideoStream;
+                Stream? streamSharing = Rainbow.Util.MediasWithSharing(media) ? stream : currentSharingStream;
 
-            var m = storageVideoOrSharing.FirstOrDefault(m => m.Id == mediaVideo.Id);
-            if (m is null)
-                storageVideoOrSharing.Add(mediaVideo);
+                await UseStreamsAsync(streamAudio, streamVideo, streamSharing);
+            }
         }
 
-        private void StoreVideoOrSharingMedia(List<IMediaVideo> subMediaVideo, ref List<IMediaVideo> storageVideoOrSharing)
+        public async Task UseOtherStreamsAsync(params Stream[] otherStreams)
         {
-            if (subMediaVideo is null) return;
-            foreach (var mediaVideo in subMediaVideo)
-                StoreVideoOrSharingMedia(mediaVideo, ref storageVideoOrSharing);
+            await UseStreamsAsync(currentAudioStream, currentVideoStream, currentSharingStream, otherStreams);
         }
 
-        private void StoreAudioMedia(IMediaAudio? mediaAudio, ref List<IMediaAudio> storageAudio)
-        {
-            if ((mediaAudio is null) || (!mediaAudio.IsStarted))
-                return;
 
-            var m = storageAudio.FirstOrDefault(m => m.Id == mediaAudio.Id);
-            if (m is null)
-                storageAudio.Add(mediaAudio);
-        }
-
-        private void StoreAudioMedia(List<IMediaAudio> subMediaAudio, ref List<IMediaAudio> storageAudio)
+        private async Task UseStreamsAsync(Stream? streamForAudio, Stream? streamForVideo, Stream? streamForSharing, params Stream[] otherStreams)
         {
-            if (subMediaAudio is null) return;
-            foreach (var mediaAudio in subMediaAudio)
-                StoreAudioMedia(mediaAudio, ref storageAudio);
-        }
+            // Ensure to call this method only when it's previous called is already finished
+            await semaphoreUseOfStremSlim.WaitAsync();
 
-        public async Task UseStreamsAsync(Stream? streamForAudio, Stream? streamForVideo, Stream? streamForSharing)
-        {
             // Get list of media used
-            List<IMediaAudio> audiosUsed = GetListOfAudioUsed();
-            List<IMediaVideo> videosUsed = GetListOfVideoOrSharingUsed();
+            List<IMediaAudio> audiosUsed = GetListOfAudiosMediaUsed();
+            List<IMediaVideo> videosUsed = GetListOfVideosMediaUsed();
 
             // Clear storage
-            _mediaForAudio.Clear();
-            _mediaVideoOrSharing.Clear();
+            _mediasForAudio.Clear();
+            _mediasForVideo.Clear();
 
             await UseAudioStreamAsync(streamForAudio, audiosUsed, videosUsed);
             currentAudioStream = (mediaInputAudio is null) ? null : streamForAudio;
@@ -115,7 +139,16 @@ namespace CommonSDL2
             await UseSharingStreamAsync(streamForSharing, audiosUsed, videosUsed);
             currentSharingStream = (mediaInputSharing is null) ? null : streamForSharing;
 
-            await CloseMediaNotUsedAsync(audiosUsed, videosUsed);
+            await Task.Delay(200); // Add a small delay to let some times to close windows according streams in progress
+            await CloseMediasNotUsedAsync(audiosUsed, videosUsed);
+
+            // Unlock the semaphore
+            try
+            {
+                if (semaphoreUseOfStremSlim.CurrentCount == 0)
+                    semaphoreUseOfStremSlim.Release();
+            }
+            catch { }
         }
 
         private async Task<Boolean> UseAudioStreamAsync(Stream? streamForAudio, List<IMediaAudio> audiosUsed, List<IMediaVideo> videosUsed)
@@ -130,18 +163,18 @@ namespace CommonSDL2
             // Do we use the same audio input ?
             if (mediaInputAudio?.Id == streamForAudio.Id)
             {
-                StoreAudioMedia(mediaInputAudio, ref _mediaForAudio);
+                StoreAudioMedia(_mediasForAudio, mediaInputAudio);
                 if(mediaInputAudio is IMediaVideo video)
-                    StoreVideoOrSharingMedia(video, ref _mediaVideoOrSharing);
+                    StoreVideoMedia(_mediasForVideo, video);
 
                 if (streamForAudio.VideoComposition is not null)
                 {
                     foreach (var id in streamForAudio.VideoComposition)
                     {
                         var subVideo = videosUsed.FirstOrDefault(m => m.Id == id);
-                        StoreVideoOrSharingMedia(subVideo, ref _mediaVideoOrSharing);
+                        StoreVideoMedia(_mediasForVideo, subVideo);
                         var subAudio = audiosUsed.FirstOrDefault(m => m.Id == id);
-                        StoreAudioMedia(subAudio, ref _mediaForAudio);
+                        StoreAudioMedia(_mediasForAudio, subAudio);
                     }
                 }
                 return true;
@@ -178,10 +211,10 @@ namespace CommonSDL2
                 if (iMediaAudio.IsStarted || iMediaAudio.Init(true))
                 {
                     // Store audio/video media
-                    StoreAudioMedia(iMediaAudio, ref _mediaForAudio);
-                    StoreAudioMedia(subAudios, ref _mediaForAudio);
-                    StoreVideoOrSharingMedia(iMediaVideo, ref _mediaVideoOrSharing);
-                    StoreVideoOrSharingMedia(subVideos, ref _mediaVideoOrSharing);
+                    StoreAudioMedia(_mediasForAudio, iMediaAudio);
+                    StoreAudioMedia(_mediasForAudio, subAudios.ToArray());
+                    StoreVideoMedia(_mediasForVideo, iMediaVideo);
+                    StoreVideoMedia(_mediasForVideo, subVideos.ToArray());
 
                     mediaInputAudio = iMediaAudio;
 
@@ -209,18 +242,18 @@ namespace CommonSDL2
             // Do we use the same video input ?
             if (mediaInputVideo?.Id == streamForVideo.Id)
             {
-                StoreVideoOrSharingMedia(mediaInputVideo, ref _mediaVideoOrSharing);
+                StoreVideoMedia(_mediasForVideo, mediaInputVideo);
                 if (mediaInputVideo is IMediaAudio audio)
-                    StoreAudioMedia(audio, ref _mediaForAudio);
+                    StoreAudioMedia(_mediasForAudio, audio);
 
                 if(streamForVideo.VideoComposition is not null)
                 { 
                     foreach(var id in streamForVideo.VideoComposition)
                     {
                         var subVideo = videosUsed.FirstOrDefault(m => m.Id == id);
-                        StoreVideoOrSharingMedia(subVideo, ref _mediaVideoOrSharing);
+                        StoreVideoMedia(_mediasForVideo, subVideo);
                         var subAudio = audiosUsed.FirstOrDefault(m => m.Id == id);
-                        StoreAudioMedia(subAudio, ref _mediaForAudio);
+                        StoreAudioMedia(_mediasForAudio, subAudio);
                     }
                 }
                 return true;
@@ -256,10 +289,10 @@ namespace CommonSDL2
                 if (iMediaVideo.IsStarted || iMediaVideo.Init(true))
                 {
                     // Store audio/video media
-                    StoreAudioMedia(iMediaAudio, ref _mediaForAudio);
-                    StoreAudioMedia(subAudios, ref _mediaForAudio);
-                    StoreVideoOrSharingMedia(iMediaVideo, ref _mediaVideoOrSharing);
-                    StoreVideoOrSharingMedia(subVideos, ref _mediaVideoOrSharing);
+                    StoreAudioMedia(_mediasForAudio, iMediaAudio);
+                    StoreAudioMedia(_mediasForAudio, subAudios.ToArray());
+                    StoreVideoMedia(_mediasForVideo, iMediaVideo);
+                    StoreVideoMedia(_mediasForVideo, subVideos.ToArray());
 
                     mediaInputVideo = iMediaVideo;
 
@@ -287,18 +320,18 @@ namespace CommonSDL2
             // Do we use the same Sharing input ?
             if (mediaInputSharing?.Id == streamForSharing.Id)
             {
-                StoreVideoOrSharingMedia(mediaInputSharing, ref _mediaVideoOrSharing);
+                StoreVideoMedia(_mediasForVideo, mediaInputSharing);
                 if (mediaInputSharing is IMediaAudio audio)
-                    StoreAudioMedia(audio, ref _mediaForAudio);
+                    StoreAudioMedia(_mediasForAudio, audio);
 
                 if (streamForSharing.VideoComposition is not null)
                 {
                     foreach (var id in streamForSharing.VideoComposition)
                     {
                         var subVideo = videosUsed.FirstOrDefault(m => m.Id == id);
-                        StoreVideoOrSharingMedia(subVideo, ref _mediaVideoOrSharing);
+                        StoreVideoMedia(_mediasForVideo, subVideo);
                         var subAudio = audiosUsed.FirstOrDefault(m => m.Id == id);
-                        StoreAudioMedia(subAudio, ref _mediaForAudio);
+                        StoreAudioMedia(_mediasForAudio, subAudio);
                     }
                 }
                 return true;
@@ -334,10 +367,10 @@ namespace CommonSDL2
                 if (iMediaSharing.IsStarted || iMediaSharing.Init(true))
                 {
                     // Store audio/video media
-                    StoreAudioMedia(iMediaAudio, ref _mediaForAudio);
-                    StoreAudioMedia(subAudios, ref _mediaForAudio);
-                    StoreVideoOrSharingMedia(iMediaSharing, ref _mediaVideoOrSharing);
-                    StoreVideoOrSharingMedia(subVideos, ref _mediaVideoOrSharing);
+                    StoreAudioMedia(_mediasForAudio, iMediaAudio);
+                    StoreAudioMedia(_mediasForAudio, subAudios.ToArray());
+                    StoreVideoMedia(_mediasForVideo, iMediaSharing);
+                    StoreVideoMedia(_mediasForVideo, subVideos.ToArray());
 
                     mediaInputSharing = iMediaSharing;
 
@@ -381,10 +414,10 @@ namespace CommonSDL2
                             if (iMediaVideo.IsStarted || iMediaVideo.Init(true) == true)
                             {
                                 // Store audio/video media
-                                StoreAudioMedia(iMediaAudio, ref mediaAudioList);
-                                StoreAudioMedia(subAudios, ref mediaAudioList);
-                                StoreVideoOrSharingMedia(iMediaVideo, ref mediaVideoList);
-                                StoreVideoOrSharingMedia(subVideos, ref mediaVideoList);
+                                StoreAudioMedia(mediaAudioList, iMediaAudio);
+                                StoreAudioMedia(mediaAudioList, subAudios.ToArray());
+                                StoreVideoMedia(mediaVideoList, iMediaVideo);
+                                StoreVideoMedia(mediaVideoList, subVideos.ToArray());
 
                                 var size = new Size(iMediaVideo.Width, iMediaVideo.Height);
                                 videoSize.Add(size);
@@ -849,14 +882,14 @@ namespace CommonSDL2
                 OnSharingStateChanged?.Invoke("", false, false);
         }
 
-        private async Task CloseMediaNotUsedAsync(List<IMediaAudio> audioPreviouslyUsed, List<IMediaVideo> videoOrSharingPreviouslyUsed)
+        private async Task CloseMediasNotUsedAsync(List<IMediaAudio> audioPreviouslyUsed, List<IMediaVideo> videoOrSharingPreviouslyUsed)
         {
             // _mediaForAudio and _mediaVideoOrSharing contains list of medias currently used.
 
             foreach(var audio in audioPreviouslyUsed)
             {
-                var resultAudio = _mediaForAudio.FirstOrDefault(m => m.Id == audio.Id);
-                var resultVideo = _mediaVideoOrSharing.FirstOrDefault(m => m.Id == audio.Id);
+                var resultAudio = _mediasForAudio.FirstOrDefault(m => m.Id == audio.Id);
+                var resultVideo = _mediasForVideo.FirstOrDefault(m => m.Id == audio.Id);
                 var resultPreviouslyUsed = videoOrSharingPreviouslyUsed.FirstOrDefault(m => m.Id == audio.Id);
                 if ( (resultAudio is null) && (resultVideo is null))
                 {
@@ -872,8 +905,8 @@ namespace CommonSDL2
 
             foreach (var video in videoOrSharingPreviouslyUsed)
             {
-                var resultAudio = _mediaForAudio.FirstOrDefault(m => m.Id == video.Id);
-                var resultVideo = _mediaVideoOrSharing.FirstOrDefault(m => m.Id == video.Id);
+                var resultAudio = _mediasForAudio.FirstOrDefault(m => m.Id == video.Id);
+                var resultVideo = _mediasForVideo.FirstOrDefault(m => m.Id == video.Id);
                 if ((resultAudio is null) && (resultVideo is null))
                 {
                     Util.WriteDarkYellow($"Dispose previous Video MediaInput Id:{video.Id} (no more used)");
