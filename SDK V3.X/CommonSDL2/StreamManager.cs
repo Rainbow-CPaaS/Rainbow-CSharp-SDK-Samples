@@ -12,7 +12,7 @@ namespace CommonSDL2
 {
     public class StreamManager
     {
-        private SemaphoreSlim semaphoreUseOfStremSlim = new SemaphoreSlim(1, 1);
+        private readonly SemaphoreSlim semaphoreUseOfStremSlim = new (1, 1);
 
         // --- To store list of available Streams
         public List<Stream>? streamsList;
@@ -24,8 +24,8 @@ namespace CommonSDL2
         public Stream[] otherStreams = [];  // Streams to stay opened even if not used for audio/video/sharing
 
         // --- IMedia used / created 
-        private List<IMediaAudio> _mediasForAudio = [];
-        private List<IMediaVideo> _mediasForVideo = [];
+        private readonly List<IMediaAudio> _mediasForAudio = [];
+        private readonly List<IMediaVideo> _mediasForVideo = [];
 
         // --- IMedia used / created for Input based on the selected Stream
         public IMediaAudio? mediaInputAudio;
@@ -44,59 +44,16 @@ namespace CommonSDL2
         public event StateDelegate? OnSharingStateChanged;
         public event EndOfFileDelegate? OnSharingEndOfFile;
 
-        private void StoreAudioMedia(List<IMediaAudio> storageAudio, params IMediaAudio?[] mediaAudios)
-        {
-            if (mediaAudios?.Length > 0)
-            {
-                foreach (var mediaVideo in mediaAudios)
-                {
-                    if ((mediaVideo is null) || (!mediaVideo.IsStarted))
-                        continue;
-
-                    var m = storageAudio.FirstOrDefault(m => m.Id == mediaVideo.Id);
-                    if (m is null)
-                        storageAudio.Add(mediaVideo);
-                }
-            }
-        }
-
-        private void StoreVideoMedia(List<IMediaVideo> storageVideoOrSharing, params IMediaVideo?[] mediaVideos)
-        {
-            if (mediaVideos?.Length > 0)
-            {
-                foreach (var mediaVideo in mediaVideos)
-                {
-                    if ((mediaVideo is null) || (!mediaVideo.IsStarted))
-                        continue;
-
-                    var m = storageVideoOrSharing.FirstOrDefault(m => m.Id == mediaVideo.Id);
-                    if (m is null)
-                        storageVideoOrSharing.Add(mediaVideo);
-                }
-            }
-        }
-
-        private List<IMediaVideo> GetListOfVideosMediaUsed()
-        {
-            List<IMediaVideo> result = [];
-            StoreVideoMedia(result, mediaInputVideo);
-            StoreVideoMedia(result, mediaInputSharing);
-            foreach(var video in _mediasForVideo)
-                StoreVideoMedia(result, video);
-
-            return result;
-        }
-
-        private List<IMediaAudio> GetListOfAudiosMediaUsed()
-        {
-            List<IMediaAudio> result = [];
-            StoreAudioMedia(result, mediaInputAudio);
-            foreach (var audio in _mediasForAudio)
-                StoreAudioMedia(result, audio);
-
-            return result;
-        }
-
+        /// <summary>
+        /// To define which stream to use for main medias (audio, video, sharing) depending of "media" parameter
+        /// 
+        /// Same stream can be used for several main medias.
+        /// 
+        /// If **media** parameter is set Rainbow.Consts.Media.None, all main medias are stopped/closed.
+        /// </summary>
+        /// <param name="media"><see cref="int"/>media(s) to use - see <see cref="Rainbow.Consts.Media"/> for possible values</param>
+        /// <param name="stream">Stream object to use for media(s) specified. Null can be specified to stoppped/closed specified medias</param>
+        /// <returns><see cref="Task"/></returns>
         public async Task UseMainStreamAsync(int media, Stream? stream = null )
         {
             if (media == Rainbow.Consts.Media.NONE)
@@ -111,11 +68,17 @@ namespace CommonSDL2
             }
         }
 
+        /// <summary>
+        /// List of all Streams to keep opened even if not used for main medias (audio, video, sharing).
+        /// 
+        /// If you want to keep open a stream used as main media but which is no more needed as main media, you need to add it also in this list.
+        /// </summary>
+        /// <param name="otherStreams"><see cref="Stream"/>Stream as params. Set Empty to stopped / closed all previous streams specified if they are not used as main media(s)</param>
+        /// <returns><see cref="Task"/></returns>
         public async Task UseOtherStreamsAsync(params Stream[] otherStreams)
         {
             await UseStreamsAsync(currentAudioStream, currentVideoStream, currentSharingStream, otherStreams);
         }
-
 
         private async Task UseStreamsAsync(Stream? streamForAudio, Stream? streamForVideo, Stream? streamForSharing, params Stream[] otherStreams)
         {
@@ -130,13 +93,12 @@ namespace CommonSDL2
             _mediasForAudio.Clear();
             _mediasForVideo.Clear();
 
-            await UseAudioStreamAsync(streamForAudio, audiosUsed, videosUsed);
+            await UseMainMediaStreamAsync(streamForAudio, Rainbow.Consts.Media.AUDIO, audiosUsed, videosUsed);
+            await UseMainMediaStreamAsync(streamForVideo, Rainbow.Consts.Media.VIDEO, audiosUsed, videosUsed);
+            await UseMainMediaStreamAsync(streamForSharing, Rainbow.Consts.Media.SHARING, audiosUsed, videosUsed);
+
             currentAudioStream = (mediaInputAudio is null) ? null : streamForAudio;
-
-            await UseVideoStreamAsync(streamForVideo, audiosUsed, videosUsed);
-            currentVideoStream = (mediaInputVideo is null) ? null : streamForVideo;
-
-            await UseSharingStreamAsync(streamForSharing, audiosUsed, videosUsed);
+            currentVideoStream = (mediaInputVideo is null) ? null : streamForVideo; 
             currentSharingStream = (mediaInputSharing is null) ? null : streamForSharing;
 
             await Task.Delay(200); // Add a small delay to let some times to close windows according streams in progress
@@ -151,104 +113,44 @@ namespace CommonSDL2
             catch { }
         }
 
-        private async Task<Boolean> UseAudioStreamAsync(Stream? streamForAudio, List<IMediaAudio> audiosUsed, List<IMediaVideo> videosUsed)
+        private async Task<Boolean> UseMainMediaStreamAsync(Stream? stream, int media, List<IMediaAudio> audiosUsed, List<IMediaVideo> videosUsed)
         {
-            if (streamForAudio is null)
+            IMedia? mediaInput;
+            switch (media)
             {
-                // Close previous Audio MediaInput
-                await StopAudioInputAsync();
+                case Rainbow.Consts.Media.AUDIO:
+                    mediaInput = mediaInputAudio;
+                    break;
+                case Rainbow.Consts.Media.VIDEO:
+                    mediaInput = mediaInputVideo;
+                    break;
+                case Rainbow.Consts.Media.SHARING:
+                    mediaInput = mediaInputSharing;
+                    break;
+                default:
+                    Util.WriteRed($"Invalid media specified Media:[{media}]");
+                    return false;
+            }
+
+            if (stream is null)
+            {
+                // Close previous Main Video MediaInput
+                await StopMainMediaInputAsync(media);
                 return true;
             }
 
-            // Do we use the same audio input ?
-            if (mediaInputAudio?.Id == streamForAudio.Id)
-            {
-                StoreAudioMedia(_mediasForAudio, mediaInputAudio);
-                if(mediaInputAudio is IMediaVideo video)
-                    StoreVideoMedia(_mediasForVideo, video);
-
-                if (streamForAudio.VideoComposition is not null)
-                {
-                    foreach (var id in streamForAudio.VideoComposition)
-                    {
-                        var subVideo = videosUsed.FirstOrDefault(m => m.Id == id);
-                        StoreVideoMedia(_mediasForVideo, subVideo);
-                        var subAudio = audiosUsed.FirstOrDefault(m => m.Id == id);
-                        StoreAudioMedia(_mediasForAudio, subAudio);
-                    }
-                }
-                return true;
-            }
-
-            // Close previous Audio MediaInput
-            await StopAudioInputAsync();
-
-            IMediaAudio? iMediaAudio;
-            IMediaVideo? iMediaVideo;
-            List<IMediaAudio> subAudios = [];
-            List<IMediaVideo> subVideos = [];
-
-            // Try to get audio input from audios list
-            iMediaAudio = audiosUsed.FirstOrDefault(m => m.Id == streamForAudio.Id);
-
-            // If not exists, try to create it
-            if (iMediaAudio is null)
-                (iMediaAudio, iMediaVideo, subAudios, subVideos) = await GetMediaInputs(streamForAudio, audiosUsed, videosUsed);
-            else
-            {
-                if (iMediaAudio is IMediaVideo v)
-                    iMediaVideo = v;
-                else
-                    iMediaVideo = null;
-            }
-
-            if (iMediaAudio is not null)
-            {
-                if (iMediaAudio.IsStarted)
-                    Util.WriteDarkYellow($"Re-Use Audio MediaInput with [{iMediaAudio.Id}] ...");
-                else
-                    Util.WriteGreen($"Trying to Init/Start Audio MediaInput with [{iMediaAudio.Id}] ...");
-                if (iMediaAudio.IsStarted || iMediaAudio.Init(true))
-                {
-                    // Store audio/video media
-                    StoreAudioMedia(_mediasForAudio, iMediaAudio);
-                    StoreAudioMedia(_mediasForAudio, subAudios.ToArray());
-                    StoreVideoMedia(_mediasForVideo, iMediaVideo);
-                    StoreVideoMedia(_mediasForVideo, subVideos.ToArray());
-
-                    mediaInputAudio = iMediaAudio;
-
-                    OnAudioStateChanged?.Invoke(mediaInputAudio.Id, true, false);
-
-                    mediaInputAudio.OnAudioSample += MediaInput_OnAudioSample;
-                    mediaInputAudio.OnEndOfFile += MediaInput_OnAudioEndOfFile;
-
-                    Util.WriteDarkYellow($"MediaInput Audio initialized / started [{iMediaAudio.Id}]");
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        private async Task<Boolean> UseVideoStreamAsync(Stream? streamForVideo, List<IMediaAudio> audiosUsed, List<IMediaVideo> videosUsed)
-        {
-            if (streamForVideo is null)
-            {
-                // Close previous Video MediaInput
-                await StopVideoInputAsync();
-                return true;
-            }
+            String str = Rainbow.Util.MediasToString(media);
+            Boolean needAudio = media == Rainbow.Consts.Media.AUDIO;
 
             // Do we use the same video input ?
-            if (mediaInputVideo?.Id == streamForVideo.Id)
+            if (mediaInput?.Id == stream.Id)
             {
-                StoreVideoMedia(_mediasForVideo, mediaInputVideo);
-                if (mediaInputVideo is IMediaAudio audio)
-                    StoreAudioMedia(_mediasForAudio, audio);
+                StoreAudioMedia(_mediasForAudio, mediaInput as IMediaAudio);
+                StoreVideoMedia(_mediasForVideo, mediaInput as IMediaVideo);
 
-                if(streamForVideo.VideoComposition is not null)
-                { 
-                    foreach(var id in streamForVideo.VideoComposition)
+                if (stream.VideoComposition is not null)
+                {
+                    foreach (var id in stream.VideoComposition)
                     {
                         var subVideo = videosUsed.FirstOrDefault(m => m.Id == id);
                         StoreVideoMedia(_mediasForVideo, subVideo);
@@ -259,34 +161,52 @@ namespace CommonSDL2
                 return true;
             }
 
-            // Close previous Audio MediaInput
-            await StopVideoInputAsync();
+            // Close previous Main MediaInput
+            await StopMainMediaInputAsync(media);
 
-            IMediaAudio? iMediaAudio;
-            IMediaVideo? iMediaVideo;
+            IMediaAudio? iMediaAudio = null;
+            IMediaVideo? iMediaVideo = null;
             List<IMediaAudio> subAudios = [];
             List<IMediaVideo> subVideos = [];
 
             // Try to get video input from videos list
-            iMediaVideo = videosUsed.FirstOrDefault(m => m.Id == streamForVideo.Id);
+            if(needAudio)
+                iMediaAudio = audiosUsed.FirstOrDefault(m => m.Id == stream.Id);
+            else
+                iMediaVideo = videosUsed.FirstOrDefault(m => m.Id == stream.Id);
 
-            if (iMediaVideo is null)
-                (iMediaAudio, iMediaVideo, subAudios, subVideos) = await GetMediaInputs(streamForVideo, audiosUsed, videosUsed);
+            if ( (needAudio && iMediaAudio is null) || ( (!needAudio) && iMediaVideo is null) )
+                (iMediaAudio, iMediaVideo, subAudios, subVideos) = await GetMediaInputs(stream, audiosUsed, videosUsed);
             else
             {
-                if (iMediaVideo is IMediaAudio a)
-                    iMediaAudio = a;
+                if (needAudio)
+                {
+                    if (iMediaAudio is IMediaVideo v)
+                        iMediaVideo = v;
+                    else
+                        iMediaVideo = null;
+                }
                 else
-                    iMediaAudio = null;
+                {
+                    if (iMediaVideo is IMediaAudio a)
+                        iMediaAudio = a;
+                    else
+                        iMediaAudio = null;
+                }
             }
 
-            if (iMediaVideo is not null)
+            if (needAudio)
+                mediaInput = iMediaAudio;
+            else
+                mediaInput = iMediaVideo;
+
+            if (mediaInput is not null)
             {
-                if(iMediaVideo.IsStarted)
-                    Util.WriteDarkYellow($"Re-Use Video MediaInput with [{iMediaVideo.Id}] ...");
+                if (mediaInput.IsStarted)
+                    Util.WriteDarkYellow($"Re-Use {str} MediaInput with [{mediaInput.Id}] ...");
                 else
-                    Util.WriteDarkYellow($"Trying to Init/start Video MediaInput with [{iMediaVideo.Id}] ...");
-                if (iMediaVideo.IsStarted || iMediaVideo.Init(true))
+                    Util.WriteDarkYellow($"Trying to Init/start {str} MediaInput with [{mediaInput.Id}] ...");
+                if (mediaInput.IsStarted || mediaInput.Init(true))
                 {
                     // Store audio/video media
                     StoreAudioMedia(_mediasForAudio, iMediaAudio);
@@ -294,92 +214,9 @@ namespace CommonSDL2
                     StoreVideoMedia(_mediasForVideo, iMediaVideo);
                     StoreVideoMedia(_mediasForVideo, subVideos.ToArray());
 
-                    mediaInputVideo = iMediaVideo;
+                    StartMainMediaInputAsync(media, mediaInput);
 
-                    OnVideoStateChanged?.Invoke(iMediaVideo.Id, true, false);
-
-                    mediaInputVideo.OnImage += MediaInput_OnVideoImage;
-                    mediaInputVideo.OnEndOfFile += MediaInput_OnVideoEndOfFile;
-
-                    Util.WriteDarkYellow($"MediaInput Video initialized / started [{iMediaVideo.Id}]");
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        private async Task<Boolean> UseSharingStreamAsync(Stream? streamForSharing, List<IMediaAudio> audiosUsed, List<IMediaVideo> videosUsed)
-        {
-            if (streamForSharing is null)
-            {
-                // Close previous Sharing MediaInput
-                await StopSharingInputAsync();
-                return true;
-            }
-
-            // Do we use the same Sharing input ?
-            if (mediaInputSharing?.Id == streamForSharing.Id)
-            {
-                StoreVideoMedia(_mediasForVideo, mediaInputSharing);
-                if (mediaInputSharing is IMediaAudio audio)
-                    StoreAudioMedia(_mediasForAudio, audio);
-
-                if (streamForSharing.VideoComposition is not null)
-                {
-                    foreach (var id in streamForSharing.VideoComposition)
-                    {
-                        var subVideo = videosUsed.FirstOrDefault(m => m.Id == id);
-                        StoreVideoMedia(_mediasForVideo, subVideo);
-                        var subAudio = audiosUsed.FirstOrDefault(m => m.Id == id);
-                        StoreAudioMedia(_mediasForAudio, subAudio);
-                    }
-                }
-                return true;
-            }
-
-            // Close previous Audio MediaInput
-            await StopSharingInputAsync();
-
-            IMediaAudio? iMediaAudio;
-            IMediaVideo? iMediaSharing;
-            List<IMediaAudio> subAudios = [];
-            List<IMediaVideo> subVideos = [];
-
-            // Try to get audio input from stored audio list
-            iMediaSharing = videosUsed.FirstOrDefault(m => m.Id == streamForSharing.Id);
-
-            if (iMediaSharing is null)
-                (iMediaAudio, iMediaSharing, subAudios, subVideos) = await GetMediaInputs(streamForSharing, audiosUsed, videosUsed);
-            else
-            {
-                if (iMediaSharing is IMediaAudio a)
-                    iMediaAudio = a;
-                else
-                    iMediaAudio = null;
-            }
-
-            if (iMediaSharing is not null)
-            {
-                if (iMediaSharing.IsStarted)
-                    Util.WriteDarkYellow($"Re-Use Video MediaInput with [{iMediaSharing.Id}] ...");
-                else
-                    Util.WriteDarkYellow($"Trying to Init/start Video MediaInput with [{iMediaSharing.Id}] ...");
-                if (iMediaSharing.IsStarted || iMediaSharing.Init(true))
-                {
-                    // Store audio/video media
-                    StoreAudioMedia(_mediasForAudio, iMediaAudio);
-                    StoreAudioMedia(_mediasForAudio, subAudios.ToArray());
-                    StoreVideoMedia(_mediasForVideo, iMediaSharing);
-                    StoreVideoMedia(_mediasForVideo, subVideos.ToArray());
-
-                    mediaInputSharing = iMediaSharing;
-
-                    OnSharingStateChanged?.Invoke(iMediaSharing.Id, true, false);
-
-                    mediaInputSharing.OnImage += MediaInput_OnSharingImage;
-                    mediaInputSharing.OnEndOfFile += MediaInput_OnSharingEndOfFile;
-
-                    Util.WriteDarkYellow($"MediaInput Sharing initialized / started [{iMediaSharing.Id}]");
+                    Util.WriteDarkYellow($"MediaInput {str} initialized / started [{mediaInput.Id}]");
                     return true;
                 }
             }
@@ -563,179 +400,6 @@ namespace CommonSDL2
             return (null, mediaAudioList, mediaVideoList);
         }
 
-        //private async Task<IMediaVideo?> GetMediaInputComposition(Stream stream)
-        //{
-        //    Boolean success = true;
-        //    List<Size> videoSize = [];
-
-        //    if ((streamsList is null) || (stream is null) || (stream.VideoComposition is null))
-        //        return null;
-
-        //    Util.WriteGreen($"Trying to create composition ...");
-        //    foreach (var id in stream.VideoComposition)
-        //    {
-        //        var s = streamsList.FirstOrDefault(s => s.Id == id);
-        //        if (s is not null)
-        //        {
-        //            // Check if this media Input is already in used in the composition
-        //            var mi = _mediaVideoListForComposition.FirstOrDefault(m => m.Id == s.Id);
-        //            if (mi is null)
-        //            {
-        //                mi = GetVideoMediaAlreadyOpened(id);
-        //                if (mi is not null)
-        //                {
-        //                    _mediaVideoListForComposition.Add(mi);
-        //                    var size = new Size(mi.Width, mi.Height);
-        //                    videoSize.Add(size);
-        //                }
-        //                else
-        //                {
-        //                    Util.WriteGreen($"For composition, creating MediaInput for Stream:[{id}] ...");
-        //                    (var _, var iMediaVideo) = await GetMediaInputs(s, false);
-        //                    if (iMediaVideo?.Init(true) == true)
-        //                    {
-        //                        _mediaVideoListForComposition.Add(iMediaVideo);
-
-        //                        var size = new Size(iMediaVideo.Width, iMediaVideo.Height);
-        //                        videoSize.Add(size);
-        //                    }
-        //                    else
-        //                    {
-        //                        // Cannot start 
-        //                        Util.WriteRed($"For composition, MediaInput cannot be created for Stream:[{id}]");
-        //                        success = false;
-        //                        break;
-        //                    }
-        //                }
-        //            }
-        //            else
-        //            {
-        //                var size = new Size(mi.Width, mi.Height);
-        //                videoSize.Add(size);
-
-        //                Util.WriteDarkYellow($"For composition, re-use MediaInput with Stream:[{id}] ...");
-        //            }
-        //        }
-        //        else
-        //        {
-        //            Util.WriteRed($"For composition, no Stream:[{id}] defined ...");
-        //            success = false;
-        //            break;
-        //        }
-        //    }
-
-        //    if (success)
-        //    {
-        //        // Close media inputs which are not used in current composition
-        //        await CloseMediaInputsNotUsedInCompostionAsync(stream.VideoComposition.ToArray());
-
-        //        String? filter = null;
-        //        var mediaFiltered = new MediaFiltered("mediaFiltered", _mediaVideoListForComposition, null);
-
-        //        // Check if we have a filter already defined or we need to create it using a "template" ?
-        //        if (stream.VideoFilterJsonNode is not null)
-        //        {
-        //            Util.WriteGreen($"For composition, using \"template\" to create video filter ...");
-
-        //            // We need to get size of media inputs used.
-        //            String type = stream.VideoFilterJsonNode["type"];
-        //            var node = stream.VideoFilterJsonNode["data"];
-
-        //            if (node is not null)
-        //            {
-        //                Size? size;
-        //                int fps;
-
-        //                switch (type)
-        //                {
-        //                    case "mosaic":
-        //                        // Get fps
-        //                        fps = node["fps"];
-        //                        if (fps == 0)
-        //                            fps = 10;
-
-        //                        // Get size of vignette
-        //                        size = VideoFilter.SizeFromString(node["sizeVignette"]);
-        //                        size ??= videoSize[0];
-
-        //                        // Get layout
-        //                        String layout = node["layout"];
-        //                        if (String.IsNullOrEmpty(layout))
-        //                            layout = "G";
-
-        //                        filter = VideoFilter.FilterToMosaic(
-        //                            srcVideoSize: videoSize,
-        //                            vignette: size.Value,
-        //                            layout: layout,
-        //                            fps: fps
-        //                            );
-
-        //                        break;
-
-        //                    case "overlay":
-
-        //                        // Get size
-        //                        size = VideoFilter.SizeFromString(node["size"]);
-        //                        size ??= videoSize[0];
-
-        //                        // Get fps
-        //                        fps = node["fps"];
-        //                        if (fps == 0)
-        //                            fps = 10;
-
-        //                        // Get overlay size
-        //                        var sizeOverlay = VideoFilter.SizeFromString(node["sizeOverlay"]);
-        //                        sizeOverlay ??= new Size((int)(videoSize[0].Width / 4), (int)(videoSize[0].Height / 4));
-
-        //                        // Get overlay position
-        //                        String positionOverLay = node["positionOverlay"];
-        //                        if (String.IsNullOrEmpty(positionOverLay))
-        //                            positionOverLay = "TR";
-
-        //                        filter = VideoFilter.FilterToOverlay(
-        //                            srcMain: videoSize[0],
-        //                            srcOverlay: videoSize[1],
-        //                            dst: size.Value,
-        //                            dstOverlay: sizeOverlay.Value,
-        //                            dstOverlayPosition: positionOverLay,
-        //                            fps: fps
-        //                            );
-        //                        break;
-        //                }
-        //            }
-        //            if (filter is null)
-        //                Util.WriteRed($"For composition, using \"template\" cannot create video filter ...");
-        //            else
-        //                Util.WriteRed($"For composition, using \"template\" filter created:\r\n{filter}");
-        //        }
-        //        else
-        //            filter = stream.VideoFilter;
-
-        //        if (!String.IsNullOrEmpty(filter))
-        //        {
-        //            if (mediaFiltered.SetVideoFilter(stream.VideoComposition, filter))
-        //            {
-        //                if (mediaFiltered.Init(true))
-        //                {
-        //                    // Store filter used
-        //                    stream.VideoFilterInConference = filter;
-        //                    return mediaFiltered;
-        //                }
-        //                else
-        //                    Util.WriteRed($"For composition, cannot init MediaFiltered ...");
-        //            }
-        //            else
-        //                Util.WriteRed($"For composition, video filter defined is incorrect:\r\n{stream.VideoFilter}");
-        //        }
-        //    }
-
-        //    Util.WriteGreen($"Closing all stream used in composition ...");
-        //    await CloseMediaInputsNotUsedInCompostionAsync();
-        //    return null;
-
-        //}
-
-        // Central point to create MediaInput (Audio, Video, Composition)
         private async Task<(IMediaAudio? audioInput, IMediaVideo? videoInput, List<IMediaAudio> subMediaAudioList, List<IMediaVideo> subMediaVideoList)> GetMediaInputs(Stream? stream, List<IMediaAudio> audiosUsed, List<IMediaVideo> videosUsed)
         {
             IMediaAudio? audioInput = null;
@@ -834,52 +498,144 @@ namespace CommonSDL2
             return (audioInput, videoInput, subMediaAudioList, subMediaVideoList);
         }
 
-        private async Task StopAudioInputAsync()
+        static private void StoreAudioMedia(List<IMediaAudio> storageAudio, params IMediaAudio?[] mediaAudios)
         {
-            // Close Audio MediaInputs
-            if (mediaInputAudio is not null)
+            if (mediaAudios?.Length > 0)
             {
-                mediaInputAudio.OnAudioSample -= MediaInput_OnAudioSample;
-                mediaInputAudio.OnEndOfFile -= MediaInput_OnAudioEndOfFile;
+                foreach (var mediaVideo in mediaAudios)
+                {
+                    if ((mediaVideo is null) || (!mediaVideo.IsStarted))
+                        continue;
 
-                OnAudioStateChanged?.Invoke(mediaInputAudio.Id, false, false);
-                
-                mediaInputAudio = null;
+                    var m = storageAudio.FirstOrDefault(m => m.Id == mediaVideo.Id);
+                    if (m is null)
+                        storageAudio.Add(mediaVideo);
+                }
             }
-            else
-                OnAudioStateChanged?.Invoke("", false, false);
         }
 
-        private async Task StopVideoInputAsync()
+        static private void StoreVideoMedia(List<IMediaVideo> storageVideoOrSharing, params IMediaVideo?[] mediaVideos)
         {
-            // Close Video MediaInputs
-            if (mediaInputVideo is not null)
+            if (mediaVideos?.Length > 0)
             {
-                mediaInputVideo.OnImage -= MediaInput_OnVideoImage;
-                mediaInputVideo.OnEndOfFile -= MediaInput_OnVideoEndOfFile;
+                foreach (var mediaVideo in mediaVideos)
+                {
+                    if ((mediaVideo is null) || (!mediaVideo.IsStarted))
+                        continue;
 
-                OnVideoStateChanged?.Invoke(mediaInputVideo.Id, false, false);
-
-                mediaInputVideo = null;
+                    var m = storageVideoOrSharing.FirstOrDefault(m => m.Id == mediaVideo.Id);
+                    if (m is null)
+                        storageVideoOrSharing.Add(mediaVideo);
+                }
             }
-            else
-                OnVideoStateChanged?.Invoke("", false, false);
         }
 
-        private async Task StopSharingInputAsync()
+        private List<IMediaVideo> GetListOfVideosMediaUsed()
         {
-            // Close Sharing MediaInputs
-            if (mediaInputSharing is not null)
+            List<IMediaVideo> result = [];
+            StoreVideoMedia(result, mediaInputVideo);
+            StoreVideoMedia(result, mediaInputSharing);
+            foreach (var video in _mediasForVideo)
+                StoreVideoMedia(result, video);
+
+            return result;
+        }
+
+        private List<IMediaAudio> GetListOfAudiosMediaUsed()
+        {
+            List<IMediaAudio> result = [];
+            StoreAudioMedia(result, mediaInputAudio);
+            foreach (var audio in _mediasForAudio)
+                StoreAudioMedia(result, audio);
+
+            return result;
+        }
+
+        private void StartMainMediaInputAsync(int media, IMedia iMedia)
+        {
+            switch (media)
             {
-                mediaInputSharing.OnImage -= MediaInput_OnSharingImage;
-                mediaInputSharing.OnEndOfFile -= MediaInput_OnSharingEndOfFile;
+                case Rainbow.Consts.Media.AUDIO:
+                    mediaInputAudio = iMedia as IMediaAudio;
+                    if (mediaInputAudio is null) return;
 
-                OnSharingStateChanged?.Invoke(mediaInputSharing.Id, false, false);
+                    OnAudioStateChanged?.Invoke(iMedia.Id, true, false);
 
-                mediaInputSharing = null;
+                    mediaInputAudio.OnAudioSample += MediaInput_OnAudioSample;
+                    mediaInputAudio.OnEndOfFile += MediaInput_OnAudioEndOfFile;
+                    break;
+
+                case Rainbow.Consts.Media.VIDEO:
+                    mediaInputVideo = iMedia as IMediaVideo;
+                    if (mediaInputVideo is null) return;
+
+                    OnVideoStateChanged?.Invoke(iMedia.Id, true, false);
+
+                    mediaInputVideo.OnImage += MediaInput_OnVideoImage;
+                    mediaInputVideo.OnEndOfFile += MediaInput_OnVideoEndOfFile;
+                    break;
+
+                case Rainbow.Consts.Media.SHARING:
+                    mediaInputSharing = iMedia as IMediaVideo;
+                    if (mediaInputSharing is null) return;
+
+                    OnSharingStateChanged?.Invoke(iMedia.Id, true, false);
+
+                    mediaInputSharing.OnImage += MediaInput_OnSharingImage;
+                    mediaInputSharing.OnEndOfFile += MediaInput_OnSharingEndOfFile;
+                    break;
             }
-            else
-                OnSharingStateChanged?.Invoke("", false, false);
+        }
+
+        private async Task StopMainMediaInputAsync(int media)
+        {
+            switch(media)
+            {
+                case Rainbow.Consts.Media.AUDIO:
+                    // Close Audio MediaInputs
+                    if (mediaInputAudio is not null)
+                    {
+                        mediaInputAudio.OnAudioSample -= MediaInput_OnAudioSample;
+                        mediaInputAudio.OnEndOfFile -= MediaInput_OnAudioEndOfFile;
+
+                        OnAudioStateChanged?.Invoke(mediaInputAudio.Id, false, false);
+
+                        mediaInputAudio = null;
+                    }
+                    else
+                        OnAudioStateChanged?.Invoke("", false, false);
+                    break;
+
+                case Rainbow.Consts.Media.VIDEO:
+                    // Close Video MediaInputs
+                    if (mediaInputVideo is not null)
+                    {
+                        mediaInputVideo.OnImage -= MediaInput_OnVideoImage;
+                        mediaInputVideo.OnEndOfFile -= MediaInput_OnVideoEndOfFile;
+
+                        OnVideoStateChanged?.Invoke(mediaInputVideo.Id, false, false);
+
+                        mediaInputVideo = null;
+                    }
+                    else
+                        OnVideoStateChanged?.Invoke("", false, false);
+                    break;
+
+                case Rainbow.Consts.Media.SHARING:
+                    // Close Sharing MediaInputs
+                    if (mediaInputSharing is not null)
+                    {
+                        mediaInputSharing.OnImage -= MediaInput_OnSharingImage;
+                        mediaInputSharing.OnEndOfFile -= MediaInput_OnSharingEndOfFile;
+
+                        OnSharingStateChanged?.Invoke(mediaInputSharing.Id, false, false);
+
+                        mediaInputSharing = null;
+                    }
+                    else
+                        OnSharingStateChanged?.Invoke("", false, false);
+                    break;
+            }
         }
 
         private async Task CloseMediasNotUsedAsync(List<IMediaAudio> audioPreviouslyUsed, List<IMediaVideo> videoOrSharingPreviouslyUsed)
@@ -898,8 +654,6 @@ namespace CommonSDL2
 
                     Util.WriteDarkYellow($"Dispose previous Audio MediaInput Id:{audio.Id} (no more used)");
                     audio.Dispose();
-
-
                 }
             }
 
