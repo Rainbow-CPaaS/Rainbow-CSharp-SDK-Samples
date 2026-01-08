@@ -82,8 +82,10 @@ namespace ConsoleMediaPlayer
         {
             // Loop until, ESC is used
             int simulatedKey = 0;
+            Action? action;
 
-            while (_canContinue)
+            // We loop until we need to quit AND there is no more action to process (to ensure to deal correctly with window management)
+            while (_canContinue || _actions.Count > 0)
             {
                 while (SDL2.SDL_PollEvent(out SDL2.SDL_Event e) > 0)
                 {
@@ -150,6 +152,7 @@ namespace ConsoleMediaPlayer
                     switch (key)
                     {
                         case (int)ConsoleKey.Escape:
+                            PromptCancelStreaming();
                             _canContinue = false;
                             break;
 
@@ -195,18 +198,12 @@ namespace ConsoleMediaPlayer
                     }
                 }
 
-                if(_canContinue)
+                if (_actions.TryTake(out action))
                 {
-                    if (_actions.TryTake(out var action))
-                    {
-                        // /!\ Action must be performed on Main Thread !!!
-                        action.Invoke();
-                    }
+                    // /!\ Action must be performed on Main Thread !!!
+                    action.Invoke();
                 }
             }
-
-            // No more use streams
-            await StopStreams();
 
             // Destroy SDL2 window
             Window.Destroy(_outputVideoWindow);
