@@ -128,6 +128,8 @@ namespace BotBasic
             {
                 // Set where log files must be stored
                 NLogConfigurator.Directory = _exeSettings.LogFolderPath;
+                NLogConfigurator.DeleteLogDirectory();
+                //NLogConfigurator.OutputOnConsole = true;
             }
             else
             {

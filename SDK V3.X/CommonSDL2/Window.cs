@@ -1,6 +1,6 @@
 ﻿using FFmpeg.AutoGen;
 
-namespace Rainbow.Example.Common.SDL2
+namespace Rainbow.Example.CommonSDL2
 {
     public class Window
     {

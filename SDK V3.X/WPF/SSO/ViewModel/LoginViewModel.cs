@@ -259,12 +259,12 @@ namespace WpfSSOSamples.ViewModel
             }
         }
         
-        private async void StartSSO(String uri, String redirectUri)
+        private async void StartSSO(String uri, String redirectUri, String logoutUrl)
         {
             // Ensure to be on UI Thread
             if (System.Windows.Application.Current.Dispatcher.Thread != Thread.CurrentThread)
             {
-                System.Windows.Application.Current.Dispatcher.Invoke(new Action(() => { StartSSO(uri, redirectUri); }));
+                System.Windows.Application.Current.Dispatcher.Invoke(new Action(() => { StartSSO(uri, redirectUri, logoutUrl); }));
                 return;
             }
 
@@ -299,7 +299,7 @@ namespace WpfSSOSamples.ViewModel
                     String token = browserResult.Token;
 
                     // Now start login with this token
-                    var sdkResult = await CurrentApplication.RbApplication.LoginWithTokenAsync(token);
+                    var sdkResult = await CurrentApplication.RbApplication.LoginWithTokenAsync(token, logoutUrl);
                     if (!sdkResult.Success)
                     {
                         SetErrorMessage("Login to RB using Token failed");
@@ -409,7 +409,7 @@ namespace WpfSSOSamples.ViewModel
                                 // So we start SSO
                                 String uri = authUrl.LoginUrl;
                                 String callbackRedirectUri = CurrentApplication.credentials.ServerConfig.SSORedirectUrl;
-                                StartSSO(uri, callbackRedirectUri);
+                                StartSSO(uri, callbackRedirectUri, authUrl.LogoutUrl);
                             }
                             else
                             {

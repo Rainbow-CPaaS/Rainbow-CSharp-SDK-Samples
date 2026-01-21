@@ -224,6 +224,9 @@ public class PresenceView: View
             else
                 labelCompany.Text = $"({contact.CompanyName}{(isGuest ? " - is guest": "")})";
 
+            var text = GetDisplayName(contact.Peer);
+            var schemeName = Tools.DEFAULT_SCHEME_NAME;
+
             if (!contact.InRoster)
             {
                 var invitation = rbInvitations.GetSentInvitation(contact);
@@ -247,19 +250,24 @@ public class PresenceView: View
 
                 presenceColorView.SetPresence(aggregatedPresence);
 
+                // Add "calendar" emoji (if necessary)
                 if (presences.TryGetValue("calendar", out var calendarPresence))
                 {
                     if ((calendarPresence.PresenceLevel != PresenceLevel.Online) && calendarPresence.Until > DateTime.UtcNow)
                     {
-                        labelDisplayName.SchemeName = "BrightBlue";
-                        labelDisplayName.Text = $"{Emojis.CALENDAR} {GetDisplayName(contact.Peer)}";
-                        return;
+                        schemeName = "BrightBlue";
+                        text = $"{Emojis.CALENDAR} {text}";
                     }
                 }
+
+                // Add "presentation" emoji (if necessary)
+                if ((aggregatedPresence.PresenceLevel == PresenceLevel.Dnd)
+                    && (aggregatedPresence.PresenceDetails == PresenceDetails.Presentation))
+                    text = $"{Emojis.PRESENTATION} {text}";
             }
 
-            labelDisplayName.SchemeName = Tools.DEFAULT_SCHEME_NAME;
-            labelDisplayName.Text = GetDisplayName(contact.Peer);
+            labelDisplayName.SchemeName = schemeName;
+            labelDisplayName.Text = text;
             
         }
         else if(bubble is not null)

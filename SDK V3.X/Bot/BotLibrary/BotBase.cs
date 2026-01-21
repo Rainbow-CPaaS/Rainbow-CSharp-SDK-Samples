@@ -11,6 +11,7 @@ using Stateless.Graph;
 using System.Collections.Concurrent;
 using System.Text;
 using Util = Rainbow.Example.Common.Util;
+
 namespace BotLibrary
 {
     /// <summary>
@@ -239,8 +240,7 @@ namespace BotLibrary
                     _jsonNodeBotConfiguration = jsonNodeBotConfiguration;
 
                     // Need to avoid to loose info about optional values
-                    if (botConfiguration.Administrators is null)
-                        botConfiguration.Administrators = _botConfiguration.Administrators;
+                    botConfiguration.Administrators ??= _botConfiguration.Administrators;
 
                     botConfiguration.GuestsAccepted = _botConfiguration.GuestsAccepted;
                     botConfiguration.UserInvitationAutoAccept = _botConfiguration.UserInvitationAutoAccept;
@@ -657,11 +657,14 @@ namespace BotLibrary
             // We want to use WebRTC
             _rbApplication.Restrictions.UseWebRTC = true;
 
-            _rbApplication.Restrictions.LogRestRequest = true;
-            
-            //Rainbow.Util.SetLogElementSeparator(" - ");
-            //Rainbow.Util.SetLogAnonymously(false);
+            _rbApplication.Restrictions.LogEvent = true;
+            _rbApplication.Restrictions.LogEventParameters = true;
+            //_rbApplication.Restrictions.LogEventRaised = false;
+            _rbApplication.Restrictions.LogEventStackTrace = true;
 
+            _rbApplication.Restrictions.LogRestRequest = true;
+            //_rbApplication.Restrictions.LogRestRequestOnError = false;
+            
             _rbApplication.Restrictions.UseBubbles = true;
         }
 

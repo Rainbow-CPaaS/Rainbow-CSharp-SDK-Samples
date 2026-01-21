@@ -237,7 +237,7 @@ internal class BotView: View
 
     private void DisplayPresenceContextMenu()
     {
-        String[] stdItems = ["Online", "Away", "Invisible", "Dnd", "", "Busy - Audio", "Busy - Video", "Busy - Sharing"];
+        String[] stdItems = ["Online", "Away", "Away - Inactive", "Invisible", "Dnd", "Dnd - Presentation", "Busy - Audio", "Busy - Video", "Busy - Sharing"];
 
         List<MenuItemv2> menuItems = [];
         for (int i = 0; i < stdItems.Length; i++)

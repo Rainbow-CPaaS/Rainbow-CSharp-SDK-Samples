@@ -4,7 +4,7 @@ using Rainbow;
 using Rainbow.Consts;
 using Rainbow.Enums;
 using Rainbow.Example.Common;
-using Rainbow.Example.Common.SDL2;
+using Rainbow.Example.CommonSDL2;
 using Rainbow.Medias;
 using Rainbow.Model;
 using Rainbow.SimpleJSON;
@@ -242,9 +242,9 @@ async Task MainLoop()
                     {
                         case SDL2.SDL_WindowEventID.SDL_WINDOWEVENT_RESIZED:
                             if (e.window.windowID == _windowVideo.Id)
-                                _windowVideo.NeedRendereUpdate = true;
+                                _windowVideo.NeedRendererUpdate = true;
                             else if (e.window.windowID == _windowSharing.Id)
-                                _windowSharing.NeedRendereUpdate = true;
+                                _windowSharing.NeedRendererUpdate = true;
                             break;
                         case SDL2.SDL_WindowEventID.SDL_WINDOWEVENT_CLOSE:
                             if (e.window.windowID == _windowVideo.Id)
@@ -261,9 +261,9 @@ async Task MainLoop()
 
                 case SDL2.SDL_EventType.SDL_RENDER_TARGETS_RESET:
                     if (e.window.windowID == _windowVideo.Id)
-                        _windowVideo.NeedRendereUpdate = true;
+                        _windowVideo.NeedRendererUpdate = true;
                     else if (e.window.windowID == _windowSharing.Id)
-                        _windowSharing.NeedRendereUpdate = true;
+                        _windowSharing.NeedRendererUpdate = true;
                     break;
 
 

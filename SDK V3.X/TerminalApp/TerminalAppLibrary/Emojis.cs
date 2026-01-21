@@ -14,10 +14,12 @@
     public const String NO_NOTIFICATION = "🔕";
     public const String TAG             = "🔖";
     public const String CONFERENCE      = "🗣️";
+    public const String PRESENTATION    = "🎞️ "; // Need extra space for correct display
 
     public const String WARNING         = "\u26a0 "; // ⚠
     public const String TIMER           = "\u23F1 "; // ⏱
-    public const String CALENDAR        = "\u23F2 "; // ⏲
+    public const String CALENDAR2       = "\u23F2 "; // ⏲
+    public const String CALENDAR        = "🗓️ ";
 
     public const String THREE_DOTS      = "\u2026 "; // …
 

@@ -29,6 +29,8 @@ internal class BotView: View
         rbApplication.SetApplicationInfo(Configuration.Credentials.ServerConfig.AppId, Configuration.Credentials.ServerConfig.AppSecret);
         rbApplication.SetHostInfo(Configuration.Credentials.ServerConfig.HostName);
 
+        rbApplication.GetAutoReconnection().AvoidNetworkInterfaceKeywordsInDescription = [ "virtual" ];
+
         // We want to receive events from SDK
         rbApplication.ConnectionStateChanged += RbApplication_ConnectionStateChanged;   // Triggered when the Connection State will change
 

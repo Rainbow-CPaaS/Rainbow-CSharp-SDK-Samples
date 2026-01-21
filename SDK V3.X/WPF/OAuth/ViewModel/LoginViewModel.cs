@@ -271,7 +271,7 @@ namespace WpfSSOSamples.ViewModel
                 
                 string redirectUri = "http://127.0.0.1:" + CurrentApplication.credentials.ServerConfig.OAuthPorts[0];
                 string uri = CurrentApplication.RbApplication.GetOAuthAuthorizationEndPoint(true, redirectUri);
-                
+
                 StartSSO(uri, redirectUri);
             }
         }

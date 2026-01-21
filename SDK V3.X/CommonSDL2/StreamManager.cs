@@ -1,14 +1,10 @@
 ﻿using FFmpeg.AutoGen;
-using Microsoft.Extensions.Logging.Abstractions;
 using Rainbow.Example.Common;
 using Rainbow.Medias;
-using System.Collections.Generic;
 using System.Drawing;
-using static DirectShowLib.MediaSubType;
 using Stream = Rainbow.Example.Common.Stream;
-using Util = Rainbow.Example.Common.Util;
 
-namespace CommonSDL2
+namespace Rainbow.Example.CommonSDL2
 {
     public class StreamManager
     {
@@ -21,7 +17,7 @@ namespace CommonSDL2
         public Stream? currentAudioStream;  // Used for audio   => events OnAudioSample / OnAudioStateChanged / OnAudioEndOfFile will be used
         public Stream? currentVideoStream;  // Used for video   => events OnVideoImage / OnVideoStateChanged / OnVideoEndOfFile will be used
         public Stream? currentSharingStream;// Used for sharing => events OnSharingImage / OnSharingStateChanged / OnSharingEndOfFile will be used
-        public Stream[] otherStreams = [];  // Streams to stay opened even if not used for audio/video/sharing
+        public List<Stream> currentOtherStreams = [];  // Streams to stay opened even if not used for audio/video/sharing
 
         // --- IMedia used / created 
         private readonly List<IMediaAudio> _mediasForAudio = [];
@@ -57,14 +53,14 @@ namespace CommonSDL2
         public async Task UseMainStreamAsync(int media, Stream? stream = null )
         {
             if (media == Rainbow.Consts.Media.NONE)
-                await UseStreamsAsync(null, null, null, otherStreams);
+                await UseStreamsAsync(null, null, null, currentOtherStreams);
             else
             {
                 Stream? streamAudio = Rainbow.Util.MediasWithAudio(media) ? stream : currentAudioStream;
                 Stream? streamVideo = Rainbow.Util.MediasWithVideo(media) ? stream : currentVideoStream;
                 Stream? streamSharing = Rainbow.Util.MediasWithSharing(media) ? stream : currentSharingStream;
 
-                await UseStreamsAsync(streamAudio, streamVideo, streamSharing);
+                await UseStreamsAsync(streamAudio, streamVideo, streamSharing, currentOtherStreams);
             }
         }
 
@@ -77,10 +73,10 @@ namespace CommonSDL2
         /// <returns><see cref="Task"/></returns>
         public async Task UseOtherStreamsAsync(params Stream[] otherStreams)
         {
-            await UseStreamsAsync(currentAudioStream, currentVideoStream, currentSharingStream, otherStreams);
+            await UseStreamsAsync(currentAudioStream, currentVideoStream, currentSharingStream, otherStreams.ToList());
         }
 
-        private async Task UseStreamsAsync(Stream? streamForAudio, Stream? streamForVideo, Stream? streamForSharing, params Stream[] otherStreams)
+        private async Task UseStreamsAsync(Stream? streamForAudio, Stream? streamForVideo, Stream? streamForSharing, List<Stream> otherStreams)
         {
             // Ensure to call this method only when it's previous called is already finished
             await semaphoreUseOfStremSlim.WaitAsync();
@@ -93,6 +89,7 @@ namespace CommonSDL2
             _mediasForAudio.Clear();
             _mediasForVideo.Clear();
 
+            // Manage Main Media
             await UseMainMediaStreamAsync(streamForAudio, Rainbow.Consts.Media.AUDIO, audiosUsed, videosUsed);
             await UseMainMediaStreamAsync(streamForVideo, Rainbow.Consts.Media.VIDEO, audiosUsed, videosUsed);
             await UseMainMediaStreamAsync(streamForSharing, Rainbow.Consts.Media.SHARING, audiosUsed, videosUsed);
@@ -100,6 +97,14 @@ namespace CommonSDL2
             currentAudioStream = (mediaInputAudio is null) ? null : streamForAudio;
             currentVideoStream = (mediaInputVideo is null) ? null : streamForVideo; 
             currentSharingStream = (mediaInputSharing is null) ? null : streamForSharing;
+
+            // Manage Other Streams
+            currentOtherStreams.Clear();
+            foreach(var otherStream in otherStreams)
+            {
+                if(await UseMediaStreamAsync(otherStream, audiosUsed, videosUsed))
+                    currentOtherStreams.Add(otherStream);
+            }
 
             await Task.Delay(200); // Add a small delay to let some times to close windows according streams in progress
             await CloseMediasNotUsedAsync(audiosUsed, videosUsed);
@@ -128,7 +133,7 @@ namespace CommonSDL2
                     mediaInput = mediaInputSharing;
                     break;
                 default:
-                    Util.WriteRed($"Invalid media specified Media:[{media}]");
+                    Common.Util.WriteRed($"Invalid media specified Media:[{media}]");
                     return false;
             }
 
@@ -203,9 +208,9 @@ namespace CommonSDL2
             if (mediaInput is not null)
             {
                 if (mediaInput.IsStarted)
-                    Util.WriteDarkYellow($"Re-Use {str} MediaInput with [{mediaInput.Id}] ...");
+                    Common.Util.WriteDarkYellow($"Re-Use {str} MediaInput with [{mediaInput.Id}] ...");
                 else
-                    Util.WriteDarkYellow($"Trying to Init/start {str} MediaInput with [{mediaInput.Id}] ...");
+                    Common.Util.WriteDarkYellow($"Trying to Init/start {str} MediaInput with [{mediaInput.Id}] ...");
                 if (mediaInput.IsStarted || mediaInput.Init(true))
                 {
                     // Store audio/video media
@@ -216,7 +221,63 @@ namespace CommonSDL2
 
                     StartMainMediaInputAsync(media, mediaInput);
 
-                    Util.WriteDarkYellow($"MediaInput {str} initialized / started [{mediaInput.Id}]");
+                    Common.Util.WriteDarkYellow($"MediaInput {str} initialized / started [{mediaInput.Id}]");
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private async Task<Boolean> UseMediaStreamAsync(Stream? stream, List<IMediaAudio> audiosUsed, List<IMediaVideo> videosUsed)
+        {
+            if (stream is null)
+                return true; ;
+
+            IMediaAudio? iMediaAudio = null;
+            IMediaVideo? iMediaVideo = null;
+            List<IMediaAudio> subAudios = [];
+            List<IMediaVideo> subVideos = [];
+
+            iMediaAudio = audiosUsed.FirstOrDefault(m => m.Id == stream.Id);
+            iMediaVideo = videosUsed.FirstOrDefault(m => m.Id == stream.Id);
+
+            if( (iMediaAudio?.IsStarted == true) || (iMediaVideo?.IsStarted == true) )
+            {
+                StoreAudioMedia(_mediasForAudio, iMediaAudio);
+                StoreVideoMedia(_mediasForVideo, iMediaVideo);
+
+                if (stream.VideoComposition is not null)
+                {
+                    foreach (var id in stream.VideoComposition)
+                    {
+                        iMediaAudio = audiosUsed.FirstOrDefault(m => m.Id == id);
+                        StoreAudioMedia(_mediasForAudio, iMediaAudio);
+                        iMediaVideo = videosUsed.FirstOrDefault(m => m.Id == id);
+                        StoreVideoMedia(_mediasForVideo, iMediaVideo);
+                    }
+                }
+                return true;
+            }
+
+            (iMediaAudio, iMediaVideo, subAudios, subVideos) = await GetMediaInputs(stream, audiosUsed, videosUsed);
+
+            IMedia? iMedia = iMediaAudio is null ? iMediaVideo : iMediaAudio;
+            if (iMedia is not null)
+            {
+                if (iMedia.IsStarted)
+                    Common.Util.WriteDarkYellow($"Re-Use MediaInput with [{iMedia.Id}] ...");
+                else
+                    Common.Util.WriteDarkYellow($"Trying to Init/startMediaInput with [{iMedia.Id}] ...");
+                if (iMedia.IsStarted || iMedia.Init(true))
+                {
+                    // Store audio/video media
+                    StoreAudioMedia(_mediasForAudio, iMediaAudio);
+                    StoreAudioMedia(_mediasForAudio, subAudios.ToArray());
+                    StoreVideoMedia(_mediasForVideo, iMediaVideo);
+                    StoreVideoMedia(_mediasForVideo, subVideos.ToArray());
+
+
+                    Common.Util.WriteDarkYellow($"MediaInput initialized / started [{iMedia.Id}]");
                     return true;
                 }
             }
@@ -234,7 +295,7 @@ namespace CommonSDL2
             if ((streamsList is null) || (stream is null) || (stream.VideoComposition is null))
                 return (null, mediaAudioList, mediaVideoList);
 
-            Util.WriteGreen($"Trying to create composition for Stream [{stream.Id}] ...");
+            Common.Util.WriteGreen($"Trying to create composition for Stream [{stream.Id}] ...");
             foreach (var id in stream.VideoComposition)
             {
                 var s = streamsList.FirstOrDefault(s => s.Id == id);
@@ -243,7 +304,7 @@ namespace CommonSDL2
                     var mi = videosUsed.FirstOrDefault(m => m.Id == id);
                     if (mi is null)
                     {
-                        //Util.WriteGreen($"For composition, creating MediaInput for Stream:[{id}] ...");
+                        //Common.Util.WriteGreen($"For composition, creating MediaInput for Stream:[{id}] ...");
                         (var iMediaAudio, var iMediaVideo, var subAudios, var subVideos) = await GetMediaInputs(s, audiosUsed, videosUsed);
 
                         if (iMediaVideo is not null)
@@ -262,7 +323,7 @@ namespace CommonSDL2
                             else
                             {
                                 // Cannot start 
-                                Util.WriteRed($"For composition, MediaInput cannot be started for Stream:[{id}]");
+                                Common.Util.WriteRed($"For composition, MediaInput cannot be started for Stream:[{id}]");
                                 success = false;
                                 break;
                             }
@@ -270,7 +331,7 @@ namespace CommonSDL2
                         else
                         {
                             // Cannot start 
-                            Util.WriteRed($"For composition, MediaInput cannot be created for Stream:[{id}]");
+                            Common.Util.WriteRed($"For composition, MediaInput cannot be created for Stream:[{id}]");
                             success = false;
                             break;
                         }
@@ -282,12 +343,12 @@ namespace CommonSDL2
                         var size = new Size(mi.Width, mi.Height);
                         videoSize.Add(size);
 
-                        Util.WriteDarkYellow($"For composition, re-use MediaInput with Stream:[{id}] ...");
+                        Common.Util.WriteDarkYellow($"For composition, re-use MediaInput with Stream:[{id}] ...");
                     }
                 }
                 else
                 {
-                    Util.WriteRed($"For composition, no Stream:[{id}] defined ...");
+                    Common.Util.WriteRed($"For composition, no Stream:[{id}] defined ...");
                     success = false;
                     break;
                 }
@@ -368,9 +429,9 @@ namespace CommonSDL2
                         }
                     }
                     if (filter is null)
-                        Util.WriteRed($"For composition, using \"template\" cannot create video filter ...");
+                        Common.Util.WriteRed($"For composition, using \"template\" cannot create video filter ...");
                     else
-                        Util.WriteDarkYellow($"For composition, using \"template\" filter created:\r\n{filter}");
+                        Common.Util.WriteDarkYellow($"For composition, using \"template\" filter created:\r\n{filter}");
                 }
                 else
                     filter = stream.VideoFilter;
@@ -386,10 +447,10 @@ namespace CommonSDL2
                             return (mediaFiltered, mediaAudioList, mediaVideoList);
                         }
                         else
-                            Util.WriteRed($"For composition, cannot init MediaFiltered ...");
+                            Common.Util.WriteRed($"For composition, cannot init MediaFiltered ...");
                     }
                     else
-                        Util.WriteRed($"For composition, video filter defined is incorrect:\r\n{stream.VideoFilter}");
+                        Common.Util.WriteRed($"For composition, video filter defined is incorrect:\r\n{stream.VideoFilter}");
                 }
             }
             else
@@ -429,10 +490,10 @@ namespace CommonSDL2
                     {
                         videoInput = MediaInput.FromWebcamDevice(webcamDevice, false);
                         if (videoInput is null)
-                            Util.WriteRed($"Cannot create and/or start MediaInput using this webcamDevice:[{webcamDevice}]");
+                            Common.Util.WriteRed($"Cannot create and/or start MediaInput using this webcamDevice:[{webcamDevice}]");
                     }
                     else
-                        Util.WriteRed($"Cannot get a webcamDevice with uri:[{stream.Uri}]");
+                        Common.Util.WriteRed($"Cannot get a webcamDevice with uri:[{stream.Uri}]");
                     break;
 
                 case "screen":
@@ -441,10 +502,10 @@ namespace CommonSDL2
                     {
                         videoInput = MediaInput.FromScreenDevice(screenDevice, false);
                         if (videoInput is null)
-                            Util.WriteRed($"Cannot create and/or start MediaInput using this screenDevice:[{screenDevice}]");
+                            Common.Util.WriteRed($"Cannot create and/or start MediaInput using this screenDevice:[{screenDevice}]");
                     }
                     else
-                        Util.WriteRed($"Cannot get a screenDevice with uri:[{stream.Uri}]");
+                        Common.Util.WriteRed($"Cannot get a screenDevice with uri:[{stream.Uri}]");
                     break;
 
                 case "microphone":
@@ -453,10 +514,10 @@ namespace CommonSDL2
                     {
                         audioInput = new SDL2AudioInput(microphoneDevice);
                         if (audioInput is null)
-                            Util.WriteRed($"Cannot create and/or start MediaInput using this screenDevice:[{microphoneDevice}]");
+                            Common.Util.WriteRed($"Cannot create and/or start MediaInput using this screenDevice:[{microphoneDevice}]");
                     }
                     else
-                        Util.WriteRed($"Cannot get a screenDevice with uri:[{stream.Uri}]");
+                        Common.Util.WriteRed($"Cannot get a screenDevice with uri:[{stream.Uri}]");
                     break;
 
                 default:
@@ -478,14 +539,14 @@ namespace CommonSDL2
                             if (audioInput is null && videoInput is not null)
                                 audioInput = (IMediaAudio)videoInput;
 
-                            Util.WriteDarkYellow($"Not necessary to create new MediaInput {(withVideo ? $"Video [{stream.Id}]" : $"Audio [{stream.Id}]")} - use previous stream");
+                            Common.Util.WriteDarkYellow($"Not necessary to create new MediaInput {(withVideo ? $"Video [{stream.Id}]" : $"Audio [{stream.Id}]")} - use previous stream");
                             return (audioInput, videoInput, subMediaAudioList, subMediaVideoList);
                         }
 
-                        Util.WriteGreen($"Creating InputStreamDevice: {stream} ...");
+                        Common.Util.WriteGreen($"Creating InputStreamDevice: {stream} ...");
                         var inputStreamDevice = new InputStreamDevice(stream.Id, stream.Id, stream.Uri, withVideo: withVideo, withAudio: withAudio, loop: true, options: options);
 
-                        Util.WriteGreen($"Creating MediaInput for [{stream.Id}] ...");
+                        Common.Util.WriteGreen($"Creating MediaInput for [{stream.Id}] ...");
                         var mediaInput = new MediaInput(inputStreamDevice, forceLivestream: stream.ForceLiveStream);
                         if (withVideo)
                             videoInput = mediaInput;
@@ -502,19 +563,22 @@ namespace CommonSDL2
         {
             if (mediaAudios?.Length > 0)
             {
-                foreach (var mediaVideo in mediaAudios)
+                foreach (var mediaAudio in mediaAudios)
                 {
-                    if ((mediaVideo is null) || (!mediaVideo.IsStarted))
+                    if ((mediaAudio is null) || (!mediaAudio.IsStarted))
                         continue;
 
-                    var m = storageAudio.FirstOrDefault(m => m.Id == mediaVideo.Id);
+                    var m = storageAudio.FirstOrDefault(m => m.Id == mediaAudio.Id);
                     if (m is null)
-                        storageAudio.Add(mediaVideo);
+                    {
+                        storageAudio.Add(mediaAudio);
+                        //Common.Util.WriteGray($"Store Audio [{mediaAudio.Id}]");
+                    }
                 }
             }
         }
 
-        static private void StoreVideoMedia(List<IMediaVideo> storageVideoOrSharing, params IMediaVideo?[] mediaVideos)
+        static private void StoreVideoMedia(List<IMediaVideo> storageVideos, params IMediaVideo?[] mediaVideos)
         {
             if (mediaVideos?.Length > 0)
             {
@@ -523,14 +587,17 @@ namespace CommonSDL2
                     if ((mediaVideo is null) || (!mediaVideo.IsStarted))
                         continue;
 
-                    var m = storageVideoOrSharing.FirstOrDefault(m => m.Id == mediaVideo.Id);
+                    var m = storageVideos.FirstOrDefault(m => m.Id == mediaVideo.Id);
                     if (m is null)
-                        storageVideoOrSharing.Add(mediaVideo);
+                    {
+                        storageVideos.Add(mediaVideo);
+                        //Common.Util.WriteGray($"Store Video [{mediaVideo.Id}]");
+                    }
                 }
             }
         }
 
-        private List<IMediaVideo> GetListOfVideosMediaUsed()
+        public List<IMediaVideo> GetListOfVideosMediaUsed()
         {
             List<IMediaVideo> result = [];
             StoreVideoMedia(result, mediaInputVideo);
@@ -541,7 +608,7 @@ namespace CommonSDL2
             return result;
         }
 
-        private List<IMediaAudio> GetListOfAudiosMediaUsed()
+        public List<IMediaAudio> GetListOfAudiosMediaUsed()
         {
             List<IMediaAudio> result = [];
             StoreAudioMedia(result, mediaInputAudio);
@@ -652,7 +719,7 @@ namespace CommonSDL2
                     if(resultPreviouslyUsed is not null)
                         videoOrSharingPreviouslyUsed.Remove(resultPreviouslyUsed);
 
-                    Util.WriteDarkYellow($"Dispose previous Audio MediaInput Id:{audio.Id} (no more used)");
+                    Common.Util.WriteDarkYellow($"Dispose previous Audio MediaInput Id:{audio.Id} (no more used)");
                     audio.Dispose();
                 }
             }
@@ -663,7 +730,7 @@ namespace CommonSDL2
                 var resultVideo = _mediasForVideo.FirstOrDefault(m => m.Id == video.Id);
                 if ((resultAudio is null) && (resultVideo is null))
                 {
-                    Util.WriteDarkYellow($"Dispose previous Video MediaInput Id:{video.Id} (no more used)");
+                    Common.Util.WriteDarkYellow($"Dispose previous Video MediaInput Id:{video.Id} (no more used)");
                     video.Dispose();
                 }
             }

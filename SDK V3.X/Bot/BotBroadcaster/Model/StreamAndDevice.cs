@@ -15,6 +15,8 @@ namespace BotBroadcaster.Model
 
         internal IMediaStreamTrack? VideoTrack { get; set; } // Video Track created using the device
 
+        internal IMediaStreamTrack? VideoCompositionTrack { get; set; } // Video Track created using composition
+
         internal Boolean UsedInConference{ get; set; } // To know if this track is currently used in the conference
 
         internal Boolean MustBeRemovedFromConference { get; set; } // To know if this track must be removed from conference

@@ -1,7 +1,6 @@
-﻿using CommonSDL2;
-using FFmpeg.AutoGen;
+﻿using FFmpeg.AutoGen;
 using Rainbow.Example.Common;
-using Rainbow.Example.Common.SDL2;
+using Rainbow.Example.CommonSDL2;
 using Rainbow.Medias;
 using Rainbow.SimpleJSON;
 using System.Collections.Concurrent;
@@ -73,7 +72,7 @@ namespace ConsoleMediaPlayer
 
             PromptHelpMenu();
 
-            UseStreamSetToAutoPlay();
+            UseStreams();
 
             await MainLoop();
         }
@@ -210,7 +209,7 @@ namespace ConsoleMediaPlayer
             Window.Destroy(_outputSharingWindow);
         }
 
-        static void UseStreamSetToAutoPlay()
+        static void UseStreams()
         {
             Action action = async () =>
             {
@@ -227,6 +226,16 @@ namespace ConsoleMediaPlayer
                 await _streamManager.UseMainStreamAsync(Rainbow.Consts.Media.AUDIO, audioStream);
                 await _streamManager.UseMainStreamAsync(Rainbow.Consts.Media.VIDEO, videoStream);
                 await _streamManager.UseMainStreamAsync(Rainbow.Consts.Media.SHARING, sharingStream);
+
+                var otherStreams = _streamManager.streamsList?.Where(s => s.Connected);
+                await _streamManager.UseOtherStreamsAsync((otherStreams is null) ? [] : otherStreams.ToArray());
+
+                var audios = _streamManager.GetListOfAudiosMediaUsed();
+                foreach(var audio in audios)
+                    Util.WriteGreen($"Audio Media used [{audio.Id}]");
+                var videos = _streamManager.GetListOfVideosMediaUsed();
+                foreach (var video in videos)
+                    Util.WriteGreen($"Video Media used [{video.Id}]");
             };
 
             Task.Factory.StartNew(action);
@@ -417,7 +426,7 @@ namespace ConsoleMediaPlayer
             ReadStreamsSettings();
             PromptStreamsInfo();
 
-            UseStreamSetToAutoPlay();
+            UseStreams();
         }
 
         static void PromptCancelStreaming()
