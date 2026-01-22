@@ -22,13 +22,13 @@
       "id": "video PY",
       "media": "audio+video",
       "uri": "c:\\media\\videotestorig.mp4",
-      "connected": false
+      "connected": true
     },
     {
       "id": "jamie",
       "media": "audio+video",
       "uri": "c:\\media\\caissedesdepots.mp4",
-      "connected": false
+      "connected": true
     },
     {
       "id": "armello",
@@ -150,5 +150,6 @@
   ],
 
   "autoPlayAudio": "toefl",
-  "autoPlayVideo": "compo_mosaic_2"
+  "autoPlayVideo": "compo_mosaic_1",
+  "autoPlaySharing": "compo_mosaic_3"
 }

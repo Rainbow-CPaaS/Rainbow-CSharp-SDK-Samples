@@ -9,10 +9,10 @@
     "ffmpegLibFolderPath": "C:\\ffmpeg-7.0.1-full_build-shared\\bin",
 
     "_comment_logFolderPath": "Folder path where logs wile be stored",
-    "logFolderPath": ".\\logs",
+    "logFolderPath": "./logs",
 
     "_comment_s2sCallbackURL": "(OPTIONAL) Specify the S2S callback url - only if you need it",
-    "s2sCallbackURL": "",
+    "s2sCallbackURL": "https://c809-147-161-181-106.ngrok-free.app",
 
     "_comment_cultureInfo": "(OPTIONAL) Specify Culture Info to use (let null / empty to use default one) - see https://learn.microsoft.com/fr-fr/dotnet/api/system.globalization.cultureinfo.getcultureinfo",
     "cultureInfo": ""

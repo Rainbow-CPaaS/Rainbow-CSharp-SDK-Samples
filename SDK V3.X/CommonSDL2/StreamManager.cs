@@ -52,6 +52,7 @@ namespace Rainbow.Example.CommonSDL2
         /// <returns><see cref="Task"/></returns>
         public async Task UseMainStreamAsync(int media, Stream? stream = null )
         {
+            // Ensure to call this method only when it's previous called is already finished
             if (media == Rainbow.Consts.Media.NONE)
                 await UseStreamsAsync(null, null, null, currentOtherStreams);
             else
@@ -62,6 +63,8 @@ namespace Rainbow.Example.CommonSDL2
 
                 await UseStreamsAsync(streamAudio, streamVideo, streamSharing, currentOtherStreams);
             }
+
+            
         }
 
         /// <summary>
@@ -76,10 +79,10 @@ namespace Rainbow.Example.CommonSDL2
             await UseStreamsAsync(currentAudioStream, currentVideoStream, currentSharingStream, otherStreams.ToList());
         }
 
-        private async Task UseStreamsAsync(Stream? streamForAudio, Stream? streamForVideo, Stream? streamForSharing, List<Stream> otherStreams)
+        public async Task UseStreamsAsync(Stream? streamForAudio, Stream? streamForVideo, Stream? streamForSharing, List<Stream> otherStreams)
         {
-            // Ensure to call this method only when it's previous called is already finished
             await semaphoreUseOfStremSlim.WaitAsync();
+            Common.Util.WriteRed("IN - UseStreamsAsync()");
 
             // Get list of media used
             List<IMediaAudio> audiosUsed = GetListOfAudiosMediaUsed();
@@ -109,6 +112,7 @@ namespace Rainbow.Example.CommonSDL2
             await Task.Delay(200); // Add a small delay to let some times to close windows according streams in progress
             await CloseMediasNotUsedAsync(audiosUsed, videosUsed);
 
+            Common.Util.WriteRed("OUT - UseStreamsAsync()");
             // Unlock the semaphore
             try
             {
@@ -224,6 +228,10 @@ namespace Rainbow.Example.CommonSDL2
                     Common.Util.WriteDarkYellow($"MediaInput {str} initialized / started [{mediaInput.Id}]");
                     return true;
                 }
+            }
+            else
+            {
+                Common.Util.WriteDarkYellow($"No MediaInput for Media:[{Util.MediasToString(media)}]");
             }
             return false;
         }

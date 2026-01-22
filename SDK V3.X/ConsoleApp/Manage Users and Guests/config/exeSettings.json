@@ -5,6 +5,6 @@
     "useAudioVideo": false,
 
     "_comment_logFolderPath": "Folder path where logs wile be stored",
-    "logFolderPath": ".\\logs"
+    "logFolderPath": "./logs"
   }
 }

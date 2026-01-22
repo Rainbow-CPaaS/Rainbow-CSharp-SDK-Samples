@@ -21,6 +21,11 @@
       "uri": "c:\\media\\max_intro.mp4"
     },
     {
+      "id": "video_PY",
+      "media": "audio+video",
+      "uri": "c:\\media\\videotestorig.mp4"
+    },
+    {
       "id": "Amigo_harvard",
       "media": "audio",
       "uri": "C:\\media\\Amigo\\Harvard list 01.wav"

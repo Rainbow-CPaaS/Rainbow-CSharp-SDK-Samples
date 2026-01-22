@@ -5,7 +5,7 @@
     "useAudioVideo": false,
 
     "_comment_logFolderPath": "Folder path where logs wile be stored",
-    "logFolderPath": ".\\logs",
+    "logFolderPath": "./logs",
 
     "_comment_s2sCallbackURL": "Valid S2S callback URL",
     "s2sCallbackURL": "https://0835-147-161-183-98.ngrok-free.app"

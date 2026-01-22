@@ -9,6 +9,6 @@
     "ffmpegLibFolderPath": "C:\\ffmpeg-7.0.1-full_build-shared\\bin",
 
     "_comment_logFolderPath": "Folder path where logs wile be stored",
-    "logFolderPath": ".\\logs"
+    "logFolderPath": "./logs"
   }
 }
