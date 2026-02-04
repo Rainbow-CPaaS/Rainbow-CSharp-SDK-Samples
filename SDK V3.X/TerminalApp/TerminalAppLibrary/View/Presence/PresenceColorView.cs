@@ -28,7 +28,7 @@ public class PresenceColorView : View
         SetPresenceColor("InvitationInProgress", Emojis.THREE_DOTS[0]);
     }
 
-    public void SetPresence(Presence? presence)
+    public void SetPresence(Presence? presence, Boolean? showPresence = true, Boolean? isTerminated = false)
     {
         if(isBubble)
         {
@@ -38,44 +38,56 @@ public class PresenceColorView : View
 
         char chr = ' ';
 
-        if ((presence == null) || (presence.PresenceLevel == PresenceLevel.Unavailable))
-            SetPresenceColor("Unavailable", chr);
+        if (isTerminated.HasValue && isTerminated.Value)
+        {
+            SetPresenceColor("Unavailable", 'X');
+        }
+        else if (showPresence.HasValue && !showPresence.Value && !forCurrentUser)
+        {
+            SetPresenceColor("Unavailable", 'N');
+        }
         else
         {
-            switch (presence.PresenceLevel)
+
+            if ((presence == null) || (presence.PresenceLevel == PresenceLevel.Unavailable))
+                SetPresenceColor("Unavailable", chr);
+            else
             {
-                case PresenceLevel.Online:
-                    if (presence.Resource.StartsWith("mobile_"))
-                        chr = 'M';
-                    SetPresenceColor("Online", chr);
-                    break;
+                switch (presence.PresenceLevel)
+                {
+                    case PresenceLevel.Online:
+                        if (presence.Resource.StartsWith("mobile_"))
+                            chr = 'M';
+                        SetPresenceColor("Online", chr);
+                        break;
 
-                case PresenceLevel.Offline:
-                case PresenceLevel.Xa:
-                    if (forCurrentUser)
-                        chr = 'I';
-                    SetPresenceColor("Offline", chr);
-                    break;
+                    case PresenceLevel.Offline:
+                    case PresenceLevel.Xa:
+                        if (forCurrentUser)
+                            chr = 'I';
+                        SetPresenceColor("Offline", chr);
+                        break;
 
-                case PresenceLevel.Away:
-                    SetPresenceColor("Away", chr);
-                    break;
+                    case PresenceLevel.Away:
+                        SetPresenceColor("Away", chr);
+                        break;
 
-                case PresenceLevel.Dnd:
-                    chr = 'D';
-                    SetPresenceColor("DndOrBusy", chr);
-                    break;
+                    case PresenceLevel.Dnd:
+                        chr = 'D';
+                        SetPresenceColor("DndOrBusy", chr);
+                        break;
 
-                case PresenceLevel.Busy:
-                    if (presence.PresenceDetails?.Length > 0)
-                    {
-                        if (presence.PresenceDetails == PresenceDetails.Phone)
-                            chr = 'A';
-                        else
-                            chr = presence.PresenceDetails.ToUpper()[0];
-                    }
-                    SetPresenceColor("DndOrBusy", chr);
-                    break;
+                    case PresenceLevel.Busy:
+                        if (presence.PresenceDetails?.Length > 0)
+                        {
+                            if (presence.PresenceDetails == PresenceDetails.Phone)
+                                chr = 'A';
+                            else
+                                chr = presence.PresenceDetails.ToUpper()[0];
+                        }
+                        SetPresenceColor("DndOrBusy", chr);
+                        break;
+                }
             }
         }
     }

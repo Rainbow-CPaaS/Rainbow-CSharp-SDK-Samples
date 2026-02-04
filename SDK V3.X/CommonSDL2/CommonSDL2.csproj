@@ -12,6 +12,6 @@
 <!--
 	<ProjectReference Include="..\..\..\rainbow-csharp-sdk-test\SDK.Medias\SDK.Medias.csproj" />
 -->
-	<PackageReference Include="Rainbow.CSharp.SDK.Medias" Version="1.7.0" />
+	<PackageReference Include="Rainbow.CSharp.SDK.Medias" Version="1.8.0" />
 </ItemGroup>
 </Project>

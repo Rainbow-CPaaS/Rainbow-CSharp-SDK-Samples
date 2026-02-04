@@ -80,6 +80,7 @@ static public class Tools
             return;
 
         var rbContacts = application.GetContacts();
+        var contact = Peer.IsContactWithId(peer) ? rbContacts.GetContactByIdSync(peer.Id) : null;
 
         List<ColorSchemeInfo> colorSchemeInfos = new();
 
@@ -98,7 +99,7 @@ static public class Tools
         colorSchemeInfos.Add(red);
 
         // Create text
-        String txt = $"DisplayName:[{peer.DisplayName}]{Rainbow.Util.CR}Id:[{peer.Id}]{Rainbow.Util.CR}Jid:[{peer.Jid}]";
+        String txt = $"DisplayName:[{peer.DisplayName}]{Rainbow.Util.CR}Id:[{peer.Id}]{Rainbow.Util.CR}Jid:[{peer.Jid}]{Rainbow.Util.CR}IsTerminated:[{contact?.IsTerminated}]{Rainbow.Util.CR}TerminatedStatus:[{contact?.TerminatedStatus}]{Rainbow.Util.CR}ShowPresence:[{contact?.ShowPresence}]";
 
         // Add all presences
         var presences = rbContacts.GetPresencesList(peer);

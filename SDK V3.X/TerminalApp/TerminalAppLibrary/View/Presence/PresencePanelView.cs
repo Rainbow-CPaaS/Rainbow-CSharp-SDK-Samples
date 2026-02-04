@@ -40,8 +40,7 @@ public class PresencePanelView: View
 
         presenceViewsUnused = [];
 
-        // ask at least once Favorites list
-        var _ = rbFavorites.GetFavoritesAsync();
+        
 
         this.displayTitle = displayTitle;
         displayRoster = rosterOnly;
@@ -77,7 +76,7 @@ public class PresencePanelView: View
         rbApplication.ConnectionStateChanged += RbApplication_ConnectionStateChanged;
 
         if (!displayRoster)
-            rbContacts.ContactsAdded    += ContactsListUpated;
+            rbContacts.ContactsAdded += ContactsListUpated;
         rbContacts.RosterContactsAdded  += ContactsListUpated;
         rbContacts.RosterContactsRemoved+= ContactsListUpated;
 
@@ -93,13 +92,17 @@ public class PresencePanelView: View
 
     private void RbApplication_ConnectionStateChanged(ConnectionState connectionState)
     {
-        if(connectionState.Status == ConnectionStatus.Connected)
+        if (connectionState.Status == ConnectionStatus.Connected)
+        {
             currentContact = rbContacts.GetCurrentContact();
+            // ask at least once Favorites list
+            var _ = rbFavorites.GetFavoritesAsync();
+        }
 
         ContactsListUpated(null);
     }
 
-    private void ContactsListUpated(List<Contact> contacts)
+    private void ContactsListUpated(List<Contact> _)
     {
         if (displayRoster)
             contactsList = rbContacts.GetAllContactsInRoster();

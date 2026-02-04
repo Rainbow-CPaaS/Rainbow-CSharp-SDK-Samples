@@ -2,6 +2,7 @@
 {
     // Check "CharacterMap.cs" from UICatalog example of Terminalg.GUI to check Emoji availables
     // Need to add a space to have a correct display
+    public const String GUEST           = "𝓰";
 
     public const String ONE_MEMBER      = "👤";
     public const String TWO_MEMBERS     = "👥";

@@ -219,10 +219,10 @@ public class PresenceView: View
         {
             if (IsInSameCompany(contact))
             { 
-                labelCompany.Text = isGuest ? "(is guest)" : "";
+                labelCompany.Text = "";
             }
             else
-                labelCompany.Text = $"({contact.CompanyName}{(isGuest ? " - is guest": "")})";
+                labelCompany.Text = $"({contact.CompanyName})";
 
             var text = GetDisplayName(contact.Peer);
             var schemeName = Tools.DEFAULT_SCHEME_NAME;
@@ -235,7 +235,7 @@ public class PresenceView: View
 
                 if (invitation == null)
                 {
-                    presenceColorView.SetPresence(null);
+                    presenceColorView.SetPresence(null, isTerminated: contact.IsTerminated);
                 }
                 else
                     presenceColorView.SetInvitationInProgress();
@@ -248,7 +248,7 @@ public class PresenceView: View
                 aggregatedPresence = rbContacts.GetAggregatedPresence(contact);
                 presences = rbContacts.GetPresencesList(contact);
 
-                presenceColorView.SetPresence(aggregatedPresence);
+                presenceColorView.SetPresence(aggregatedPresence, showPresence: contact.ShowPresence, isTerminated: contact.IsTerminated);
 
                 // Add "calendar" emoji (if necessary)
                 if (presences.TryGetValue("calendar", out var calendarPresence))
@@ -265,6 +265,9 @@ public class PresenceView: View
                     && (aggregatedPresence.PresenceDetails == PresenceDetails.Presentation))
                     text = $"{Emojis.PRESENTATION} {text}";
             }
+
+            if(isGuest)
+                text = $"{Emojis.GUEST} {text}";
 
             labelDisplayName.SchemeName = schemeName;
             labelDisplayName.Text = text;
@@ -286,8 +289,6 @@ public class PresenceView: View
     {
         if((contact is not null) && (presence.Contact?.Peer?.Id == contact.Peer?.Id))
         {
-            contact.InRoster = (presence.PresenceLevel != PresenceLevel.Unavailable);
-
             Terminal.Gui.App.Application.Invoke(() =>
             {
                 UpdateDisplay();
@@ -302,11 +303,11 @@ public class PresenceView: View
         var newContact = contacts.FirstOrDefault(c => c.Peer.Id == contact.Peer.Id);
         if (newContact is not null)
         {
-            if (!newContact.FormatFull)
-            {
-                var _ = rbContacts.GetContactByIdAsync(contact.Peer.Id);
-            }
-            else
+            //if (!newContact.FormatFull)
+            //{
+            //    var _ = rbContacts.GetContactByIdAsync(contact.Peer.Id);
+            //}
+            //else
                 SetContact(newContact);
         }
     }
@@ -316,11 +317,11 @@ public class PresenceView: View
         if (contact is null) return;
         if (contactUpdated.Peer.Id == contact.Peer.Id)
         {
-            if (!contactUpdated.FormatFull)
-            {
-                var _ = rbContacts.GetContactByIdAsync(contactUpdated.Peer.Id);
-            }
-            else
+            //if (!contactUpdated.FormatFull)
+            //{
+            //    var _ = rbContacts.GetContactByIdAsync(contactUpdated.Peer.Id);
+            //}
+            //else
                 SetContact(contactUpdated);
         }
     }

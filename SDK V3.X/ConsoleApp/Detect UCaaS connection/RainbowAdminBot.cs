@@ -159,7 +159,7 @@ internal class RainbowAdminBot
 
     private void RbAutoReconnection_Cancelled(Rainbow.SdkError sdkError)
     {
-        if (sdkError?.IncorrectUseError.ErrorDetailsCode == (int)SdkInternalErrorEnum.LOGIN_PROCESS_MAX_ATTEMPTS_REACHED)
+        if (sdkError?.IncorrectUseError?.ErrorDetailsCode == (int)SdkInternalErrorEnum.LOGIN_PROCESS_MAX_ATTEMPTS_REACHED)
         {
             // The auto reconnection service try to connect on server but failed after a lot of retry ....
             // We do it again and again ... 
