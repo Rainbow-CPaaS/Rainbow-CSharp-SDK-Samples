@@ -497,7 +497,7 @@ It permits also to share / manage MCQ test (multiple choice question) with one o
 
 It's necessary to extend the Bot configuration to specify which accounts must receive the test by IM.
 
-![Gif](./images/Rainbow-MCQTest.gif)
+![Gif](./Resources/Rainbow-MCQTest.gif)
 
 <a name="BotAdaptiveCardsExtendedBotConfiguration"></a>
 ### Extended BotConfiguration
