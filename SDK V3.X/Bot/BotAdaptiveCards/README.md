@@ -4,3 +4,4 @@
 
 Please refer first to this [README](../README.md): all details and JSON configuration files are fully explained.
 
+![Gif](./images/Rainbow-MCQTest.gif)
