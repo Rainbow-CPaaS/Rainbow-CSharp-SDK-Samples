@@ -105,7 +105,7 @@ namespace Rainbow.Example.Common
                         Rainbow.LogFactory.Set(factory);
                     }
 
-                    //Util.WriteBlue($"Log settings used:\r\n{logConfigContent}");
+                    //ConsoleAbstraction.WriteBlue($"Log settings used:\r\n{logConfigContent}");
 
                     // Create NLog configuration using XML file content
                     XmlLoggingConfiguration config = XmlLoggingConfiguration.CreateFromXmlString(logConfigContent);
@@ -128,7 +128,7 @@ namespace Rainbow.Example.Common
                 }
                 catch (Exception ex) 
                 { 
-                    Console.WriteLine("NLogConfigurator.AddLogger failed: [{exception}]", ex);
+                    ConsoleAbstraction.WriteLine("NLogConfigurator.AddLogger failed: [{exception}]", ex);
                 }
 
                 return false;
