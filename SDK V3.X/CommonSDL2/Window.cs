@@ -109,19 +109,19 @@ namespace Rainbow.Example.CommonSDL2
                     var sdlFormat = Rainbow.Medias.SDL2Helper.GetPixelFormat(pixelFormat);
                     if (sdlFormat == Rainbow.Medias.SDL2.SDL_PIXELFORMAT_UNKNOWN)
                     {
-                        Rainbow.Example.Common.Util.WriteRed($"Cannot get SDL pixel format using ffmpeg video foramt:[{pixelFormat}]");
+                        ConsoleAbstraction.WriteRed($"Cannot get SDL pixel format using ffmpeg video foramt:[{pixelFormat}]");
                         return;
                     }
 
                     // Create texture
                     window.Texture = Rainbow.Medias.SDL2.SDL_CreateTexture(window.Renderer, sdlFormat, (int)Rainbow.Medias.SDL2.SDL_TextureAccess.SDL_TEXTUREACCESS_STREAMING, w, h);
                     if (window.Texture == IntPtr.Zero)
-                        Rainbow.Example.Common.Util.WriteRed($"Cannot create texture");
+                        ConsoleAbstraction.WriteRed($"Cannot create texture");
                 }
                 catch { }
             }
             else
-                Rainbow.Example.Common.Util.WriteRed($"Cannot create texture - No window renderer");
+                ConsoleAbstraction.WriteRed($"Cannot create texture - No window renderer");
         }
 
         public static void DestroyTexture(Window window)

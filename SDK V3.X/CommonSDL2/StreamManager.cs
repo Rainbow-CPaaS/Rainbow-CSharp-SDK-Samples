@@ -82,7 +82,7 @@ namespace Rainbow.Example.CommonSDL2
         public async Task UseStreamsAsync(Stream? streamForAudio, Stream? streamForVideo, Stream? streamForSharing, List<Stream> otherStreams)
         {
             await semaphoreUseOfStremSlim.WaitAsync();
-            Common.Util.WriteRed("IN - UseStreamsAsync()");
+            ConsoleAbstraction.WriteRed("IN - UseStreamsAsync()");
 
             // Get list of media used
             List<IMediaAudio> audiosUsed = GetListOfAudiosMediaUsed();
@@ -112,7 +112,7 @@ namespace Rainbow.Example.CommonSDL2
             await Task.Delay(200); // Add a small delay to let some times to close windows according streams in progress
             await CloseMediasNotUsedAsync(audiosUsed, videosUsed);
 
-            Common.Util.WriteRed("OUT - UseStreamsAsync()");
+            ConsoleAbstraction.WriteRed("OUT - UseStreamsAsync()");
             // Unlock the semaphore
             try
             {
@@ -137,7 +137,7 @@ namespace Rainbow.Example.CommonSDL2
                     mediaInput = mediaInputSharing;
                     break;
                 default:
-                    Common.Util.WriteRed($"Invalid media specified Media:[{media}]");
+                    ConsoleAbstraction.WriteRed($"Invalid media specified Media:[{media}]");
                     return false;
             }
 
@@ -212,9 +212,9 @@ namespace Rainbow.Example.CommonSDL2
             if (mediaInput is not null)
             {
                 if (mediaInput.IsStarted)
-                    Common.Util.WriteDarkYellow($"Re-Use {str} MediaInput with [{mediaInput.Id}] ...");
+                    ConsoleAbstraction.WriteDarkYellow($"Re-Use {str} MediaInput with [{mediaInput.Id}] ...");
                 else
-                    Common.Util.WriteDarkYellow($"Trying to Init/start {str} MediaInput with [{mediaInput.Id}] ...");
+                    ConsoleAbstraction.WriteDarkYellow($"Trying to Init/start {str} MediaInput with [{mediaInput.Id}] ...");
                 if (mediaInput.IsStarted || mediaInput.Init(true))
                 {
                     // Store audio/video media
@@ -225,13 +225,13 @@ namespace Rainbow.Example.CommonSDL2
 
                     StartMainMediaInputAsync(media, mediaInput);
 
-                    Common.Util.WriteDarkYellow($"MediaInput {str} initialized / started [{mediaInput.Id}]");
+                    ConsoleAbstraction.WriteDarkYellow($"MediaInput {str} initialized / started [{mediaInput.Id}]");
                     return true;
                 }
             }
             else
             {
-                Common.Util.WriteDarkYellow($"No MediaInput for Media:[{Util.MediasToString(media)}]");
+                ConsoleAbstraction.WriteDarkYellow($"No MediaInput for Media:[{Util.MediasToString(media)}]");
             }
             return false;
         }
@@ -273,9 +273,9 @@ namespace Rainbow.Example.CommonSDL2
             if (iMedia is not null)
             {
                 if (iMedia.IsStarted)
-                    Common.Util.WriteDarkYellow($"Re-Use MediaInput with [{iMedia.Id}] ...");
+                    ConsoleAbstraction.WriteDarkYellow($"Re-Use MediaInput with [{iMedia.Id}] ...");
                 else
-                    Common.Util.WriteDarkYellow($"Trying to Init/startMediaInput with [{iMedia.Id}] ...");
+                    ConsoleAbstraction.WriteDarkYellow($"Trying to Init/startMediaInput with [{iMedia.Id}] ...");
                 if (iMedia.IsStarted || iMedia.Init(true))
                 {
                     // Store audio/video media
@@ -285,7 +285,7 @@ namespace Rainbow.Example.CommonSDL2
                     StoreVideoMedia(_mediasForVideo, subVideos.ToArray());
 
 
-                    Common.Util.WriteDarkYellow($"MediaInput initialized / started [{iMedia.Id}]");
+                    ConsoleAbstraction.WriteDarkYellow($"MediaInput initialized / started [{iMedia.Id}]");
                     return true;
                 }
             }
@@ -303,7 +303,7 @@ namespace Rainbow.Example.CommonSDL2
             if ((streamsList is null) || (stream is null) || (stream.VideoComposition is null))
                 return (null, mediaAudioList, mediaVideoList);
 
-            Common.Util.WriteGreen($"Trying to create composition for Stream [{stream.Id}] ...");
+            ConsoleAbstraction.WriteGreen($"Trying to create composition for Stream [{stream.Id}] ...");
             foreach (var id in stream.VideoComposition)
             {
                 var s = streamsList.FirstOrDefault(s => s.Id == id);
@@ -312,7 +312,7 @@ namespace Rainbow.Example.CommonSDL2
                     var mi = videosUsed.FirstOrDefault(m => m.Id == id);
                     if (mi is null)
                     {
-                        //Common.Util.WriteGreen($"For composition, creating MediaInput for Stream:[{id}] ...");
+                        //ConsoleAbstraction.WriteGreen($"For composition, creating MediaInput for Stream:[{id}] ...");
                         (var iMediaAudio, var iMediaVideo, var subAudios, var subVideos) = await GetMediaInputs(s, audiosUsed, videosUsed);
 
                         if (iMediaVideo is not null)
@@ -331,7 +331,7 @@ namespace Rainbow.Example.CommonSDL2
                             else
                             {
                                 // Cannot start 
-                                Common.Util.WriteRed($"For composition, MediaInput cannot be started for Stream:[{id}]");
+                                ConsoleAbstraction.WriteRed($"For composition, MediaInput cannot be started for Stream:[{id}]");
                                 success = false;
                                 break;
                             }
@@ -339,7 +339,7 @@ namespace Rainbow.Example.CommonSDL2
                         else
                         {
                             // Cannot start 
-                            Common.Util.WriteRed($"For composition, MediaInput cannot be created for Stream:[{id}]");
+                            ConsoleAbstraction.WriteRed($"For composition, MediaInput cannot be created for Stream:[{id}]");
                             success = false;
                             break;
                         }
@@ -351,12 +351,12 @@ namespace Rainbow.Example.CommonSDL2
                         var size = new Size(mi.Width, mi.Height);
                         videoSize.Add(size);
 
-                        Common.Util.WriteDarkYellow($"For composition, re-use MediaInput with Stream:[{id}] ...");
+                        ConsoleAbstraction.WriteDarkYellow($"For composition, re-use MediaInput with Stream:[{id}] ...");
                     }
                 }
                 else
                 {
-                    Common.Util.WriteRed($"For composition, no Stream:[{id}] defined ...");
+                    ConsoleAbstraction.WriteRed($"For composition, no Stream:[{id}] defined ...");
                     success = false;
                     break;
                 }
@@ -437,9 +437,9 @@ namespace Rainbow.Example.CommonSDL2
                         }
                     }
                     if (filter is null)
-                        Common.Util.WriteRed($"For composition, using \"template\" cannot create video filter ...");
+                        ConsoleAbstraction.WriteRed($"For composition, using \"template\" cannot create video filter ...");
                     else
-                        Common.Util.WriteDarkYellow($"For composition, using \"template\" filter created:\r\n{filter}");
+                        ConsoleAbstraction.WriteDarkYellow($"For composition, using \"template\" filter created:\r\n{filter}");
                 }
                 else
                     filter = stream.VideoFilter;
@@ -455,10 +455,10 @@ namespace Rainbow.Example.CommonSDL2
                             return (mediaFiltered, mediaAudioList, mediaVideoList);
                         }
                         else
-                            Common.Util.WriteRed($"For composition, cannot init MediaFiltered ...");
+                            ConsoleAbstraction.WriteRed($"For composition, cannot init MediaFiltered ...");
                     }
                     else
-                        Common.Util.WriteRed($"For composition, video filter defined is incorrect:\r\n{stream.VideoFilter}");
+                        ConsoleAbstraction.WriteRed($"For composition, video filter defined is incorrect:\r\n{stream.VideoFilter}");
                 }
             }
             else
@@ -498,10 +498,10 @@ namespace Rainbow.Example.CommonSDL2
                     {
                         videoInput = MediaInput.FromWebcamDevice(webcamDevice, false);
                         if (videoInput is null)
-                            Common.Util.WriteRed($"Cannot create and/or start MediaInput using this webcamDevice:[{webcamDevice}]");
+                            ConsoleAbstraction.WriteRed($"Cannot create and/or start MediaInput using this webcamDevice:[{webcamDevice}]");
                     }
                     else
-                        Common.Util.WriteRed($"Cannot get a webcamDevice with uri:[{stream.Uri}]");
+                        ConsoleAbstraction.WriteRed($"Cannot get a webcamDevice with uri:[{stream.Uri}]");
                     break;
 
                 case "screen":
@@ -510,10 +510,10 @@ namespace Rainbow.Example.CommonSDL2
                     {
                         videoInput = MediaInput.FromScreenDevice(screenDevice, false);
                         if (videoInput is null)
-                            Common.Util.WriteRed($"Cannot create and/or start MediaInput using this screenDevice:[{screenDevice}]");
+                            ConsoleAbstraction.WriteRed($"Cannot create and/or start MediaInput using this screenDevice:[{screenDevice}]");
                     }
                     else
-                        Common.Util.WriteRed($"Cannot get a screenDevice with uri:[{stream.Uri}]");
+                        ConsoleAbstraction.WriteRed($"Cannot get a screenDevice with uri:[{stream.Uri}]");
                     break;
 
                 case "microphone":
@@ -522,10 +522,10 @@ namespace Rainbow.Example.CommonSDL2
                     {
                         audioInput = new SDL2AudioInput(microphoneDevice);
                         if (audioInput is null)
-                            Common.Util.WriteRed($"Cannot create and/or start MediaInput using this screenDevice:[{microphoneDevice}]");
+                            ConsoleAbstraction.WriteRed($"Cannot create and/or start MediaInput using this screenDevice:[{microphoneDevice}]");
                     }
                     else
-                        Common.Util.WriteRed($"Cannot get a screenDevice with uri:[{stream.Uri}]");
+                        ConsoleAbstraction.WriteRed($"Cannot get a screenDevice with uri:[{stream.Uri}]");
                     break;
 
                 default:
@@ -547,14 +547,14 @@ namespace Rainbow.Example.CommonSDL2
                             if (audioInput is null && videoInput is not null)
                                 audioInput = (IMediaAudio)videoInput;
 
-                            Common.Util.WriteDarkYellow($"Not necessary to create new MediaInput {(withVideo ? $"Video [{stream.Id}]" : $"Audio [{stream.Id}]")} - use previous stream");
+                            ConsoleAbstraction.WriteDarkYellow($"Not necessary to create new MediaInput {(withVideo ? $"Video [{stream.Id}]" : $"Audio [{stream.Id}]")} - use previous stream");
                             return (audioInput, videoInput, subMediaAudioList, subMediaVideoList);
                         }
 
-                        Common.Util.WriteGreen($"Creating InputStreamDevice: {stream} ...");
+                        ConsoleAbstraction.WriteGreen($"Creating InputStreamDevice: {stream} ...");
                         var inputStreamDevice = new InputStreamDevice(stream.Id, stream.Id, stream.Uri, withVideo: withVideo, withAudio: withAudio, loop: true, options: options);
 
-                        Common.Util.WriteGreen($"Creating MediaInput for [{stream.Id}] ...");
+                        ConsoleAbstraction.WriteGreen($"Creating MediaInput for [{stream.Id}] ...");
                         var mediaInput = new MediaInput(inputStreamDevice, forceLivestream: stream.ForceLiveStream);
                         if (withVideo)
                             videoInput = mediaInput;
@@ -580,7 +580,7 @@ namespace Rainbow.Example.CommonSDL2
                     if (m is null)
                     {
                         storageAudio.Add(mediaAudio);
-                        //Common.Util.WriteGray($"Store Audio [{mediaAudio.Id}]");
+                        //ConsoleAbstraction.WriteGray($"Store Audio [{mediaAudio.Id}]");
                     }
                 }
             }
@@ -599,7 +599,7 @@ namespace Rainbow.Example.CommonSDL2
                     if (m is null)
                     {
                         storageVideos.Add(mediaVideo);
-                        //Common.Util.WriteGray($"Store Video [{mediaVideo.Id}]");
+                        //ConsoleAbstraction.WriteGray($"Store Video [{mediaVideo.Id}]");
                     }
                 }
             }
@@ -727,7 +727,7 @@ namespace Rainbow.Example.CommonSDL2
                     if(resultPreviouslyUsed is not null)
                         videoOrSharingPreviouslyUsed.Remove(resultPreviouslyUsed);
 
-                    Common.Util.WriteDarkYellow($"Dispose previous Audio MediaInput Id:{audio.Id} (no more used)");
+                    ConsoleAbstraction.WriteDarkYellow($"Dispose previous Audio MediaInput Id:{audio.Id} (no more used)");
                     audio.Dispose();
                 }
             }
@@ -738,7 +738,7 @@ namespace Rainbow.Example.CommonSDL2
                 var resultVideo = _mediasForVideo.FirstOrDefault(m => m.Id == video.Id);
                 if ((resultAudio is null) && (resultVideo is null))
                 {
-                    Common.Util.WriteDarkYellow($"Dispose previous Video MediaInput Id:{video.Id} (no more used)");
+                    ConsoleAbstraction.WriteDarkYellow($"Dispose previous Video MediaInput Id:{video.Id} (no more used)");
                     video.Dispose();
                 }
             }
