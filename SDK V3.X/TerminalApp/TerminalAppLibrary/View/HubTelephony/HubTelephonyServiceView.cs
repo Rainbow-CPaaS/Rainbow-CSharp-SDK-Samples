@@ -29,7 +29,7 @@ public partial class HubTelephonyServiceView: View
         BorderStyle = LineStyle.Dotted;
         CanFocus = true;
 
-        Border.Add(Tools.VerticalExpanderButton());
+        Border.GetOrCreateView().Add(Tools.VerticalExpanderButton());
 
         lblPbxAgent = new Label
         {
@@ -129,7 +129,7 @@ public partial class HubTelephonyServiceView: View
 
     private void RbHubTelephony_HybridTelephonyStatusUpdated(Boolean available)
     {
-        Terminal.Gui.App.Application.Invoke(() =>
+        Tools.Application.Invoke(() =>
         {
             serviceAvailable = available;
             UpdateDisplay();
@@ -138,7 +138,7 @@ public partial class HubTelephonyServiceView: View
 
     private void RbHubTelephony_HybridPBXAgentInfoUpdated(Rainbow.Model.PbxAgentInfo pbxAgentInfo)
     {
-        Terminal.Gui.App.Application.Invoke(() =>
+        Tools.Application.Invoke(() =>
         {
             serviceEnabled =  pbxAgentInfo.XmppAgentStatus == "started";
             if(serviceEnabled)

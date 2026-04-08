@@ -30,7 +30,7 @@ public  class ScrollableView: View
         SetContentSize(new Size(Viewport.Width, (nbVerticalElements < Viewport.Height) ? Viewport.Height : nbVerticalElements));
     }
 
-    protected override bool OnMouseEvent(MouseEventArgs me)
+    protected override bool OnMouseEvent(Mouse me)
     {
         if (!HasFocus && CanFocus)
         {

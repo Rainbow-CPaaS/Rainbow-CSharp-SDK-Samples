@@ -5,7 +5,7 @@ public class SearchResultItem: View
 {
     private readonly PresenceView presenceView;
 
-    public event EventHandler<PeerAndMouseEventArgs>? PeerClick;
+    public event EventHandler<PeerAndMouse>? PeerMouseEvent;
 
     public SearchResultItem(Rainbow.Application application, Contact contact)
     {

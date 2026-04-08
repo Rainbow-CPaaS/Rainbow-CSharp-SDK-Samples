@@ -13,7 +13,7 @@ public partial class HybridTelephonyNomadicView: View
     readonly Rainbow.HybridTelephony rbHybridTelephony;
 
     readonly Label lblInactive;
-    readonly RadioGroup radioGroup;
+    readonly OptionSelector radioGroup;
     readonly TextField textFieldPhoneNumber;
     readonly Button btnSet;
 
@@ -34,16 +34,16 @@ public partial class HybridTelephonyNomadicView: View
         BorderStyle = LineStyle.Dotted;
         CanFocus = true;
 
-        Border.Add(Tools.VerticalExpanderButton());
+        Border.GetOrCreateView().Add(Tools.VerticalExpanderButton());
 
-        radioGroup = new RadioGroup()
+        radioGroup = new ()
         {
             X = 1,
             Y = 1,
             TextAlignment = Alignment.End,
             Width = Dim.Auto(DimAutoStyle.Content),
             Height = 3,
-            RadioLabels = ["Enable on Office Phone", "Enable on Computer", "Enable on Phone Number:"],
+            Labels = ["Enable on Office Phone", "Enable on Computer", "Enable on Phone Number:"],
         };
 
         textFieldPhoneNumber = new TextField
@@ -63,10 +63,10 @@ public partial class HybridTelephonyNomadicView: View
             Text = "Set",
             X = Pos.Align(Alignment.Center),
             Y = Pos.Bottom(radioGroup) + 1,
-            ShadowStyle = ShadowStyle.None,
+            ShadowStyle = ShadowStyles.None,
             SchemeName = "BrightBlue"
         };
-        btnSet.MouseClick += BtnSet_MouseClick;
+        btnSet.MouseEvent += BtnSet_MouseClick;
 
         lblInactive = new Label
         {
@@ -86,15 +86,15 @@ public partial class HybridTelephonyNomadicView: View
         UpdateDisplay();
     }
 
-    private void BtnSet_MouseClick(object? sender, MouseEventArgs e)
+    private void BtnSet_MouseClick(object? sender, Mouse e)
     {
         var canUseOfficePhone = !rbHybridTelephony.IsVirtualTerminal();
         var computerModeAvailable = rbHybridTelephony.HybridNomadicOnComputerAvailable();
 
         // Do we want to disable call fwd ?
-        if (radioGroup.SelectedItem == 0)
+        if (radioGroup.Value == 0)
         {
-            if(canUseOfficePhone)
+            if (canUseOfficePhone)
             {
                 Task.Run(async () =>
                 {
@@ -131,7 +131,7 @@ public partial class HybridTelephonyNomadicView: View
                 });
             }
         }
-        else if (radioGroup.SelectedItem == 1)
+        else if (radioGroup.Value == 1)
         {
             if (canUseOfficePhone && computerModeAvailable)
             {
@@ -158,7 +158,7 @@ public partial class HybridTelephonyNomadicView: View
                 });
             }
         }
-        else if (radioGroup.SelectedItem == 2)
+        else if (radioGroup.Value == 2)
         {
             Task.Run(async () =>
             {
@@ -244,38 +244,38 @@ public partial class HybridTelephonyNomadicView: View
 
             btnSet.Height = count > 1 ? 1 : 0;
 
-            radioGroup.RadioLabels = labels.ToArray();
+            radioGroup.Labels = labels.ToArray();
             radioGroup.Height = labels.Count;
 
             if (nomadicStatus.ComputerMode && computerModeAvailable)
             {
                 if(officePhoneAvailable)
-                    radioGroup.SelectedItem = 1;
+                    radioGroup.Value = 1;
                 else
-                    radioGroup.SelectedItem = 0;
+                    radioGroup.Value = 0;
             }
             else if (nomadicStatus.MakeCallInitiatorIsMain && officePhoneAvailable)
             {
-                radioGroup.SelectedItem = 0;
+                radioGroup.Value = 0;
             }
             else if (!String.IsNullOrEmpty(nomadicStatus.PhoneNumber))
             {
                 if (officePhoneAvailable && computerModeAvailable)
-                    radioGroup.SelectedItem = 2;
+                    radioGroup.Value = 2;
                 else if (officePhoneAvailable || computerModeAvailable)
-                    radioGroup.SelectedItem = 1;
+                    radioGroup.Value = 1;
                 else
-                    radioGroup.SelectedItem = 0;
+                    radioGroup.Value = 0;
             }
             else
-                radioGroup.SelectedItem = -1;
+                radioGroup.Value = -1;
         }
 
     }
 
     private void RbHybridTelephony_HybridTelephonyStatusUpdated(Boolean? available)
     {
-        Terminal.Gui.App.Application.Invoke(() =>
+        Tools.Application.Invoke(() =>
         {
             serviceAvailable = available;
             UpdateDisplay();
@@ -284,7 +284,7 @@ public partial class HybridTelephonyNomadicView: View
 
     private void RbHybridTelephony_HybridNomadicStatusUpdated(HybridNomadicStatus nomadicStatus)
     {
-        Terminal.Gui.App.Application.Invoke(() =>
+        Tools.Application.Invoke(() =>
         {
             this.nomadicStatus = nomadicStatus;
             UpdateDisplay();
@@ -294,7 +294,7 @@ public partial class HybridTelephonyNomadicView: View
 
     private void RbHybridTelephony_HybridPBXAgentInfoUpdated(Rainbow.Model.PbxAgentInfo pbxAgentInfo)
     {
-        Terminal.Gui.App.Application.Invoke(() =>
+        Tools.Application.Invoke(() =>
         {
             serviceEnabled = pbxAgentInfo.XmppAgentStatus == "started";
             if (serviceEnabled)

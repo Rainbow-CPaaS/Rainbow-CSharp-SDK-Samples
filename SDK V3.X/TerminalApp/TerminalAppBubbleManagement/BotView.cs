@@ -34,10 +34,17 @@ internal class BotView: View
         // We want to log files from SDK for this Bot
         NLogConfigurator.AddLogger(prefix);
 
-        // Create Rainbow SDK objects
-        rbApplication = new Rainbow.Application(iniFolderFullPathName: rbAccount.IniFolderPath, iniFileName: iniFileName, loggerPrefix: prefix);
+        // Set restrictions
+        Rainbow.Restrictions restrictions = new(true)
+        {
+            LogRestRequest = true,
+            LogEvent = true,
+            LogEventParameters = true,
+            LogEventRaised = true,
+        };
 
-        rbApplication.Restrictions.LogRestRequest = true;
+        // Create Rainbow SDK objects
+        rbApplication = new Rainbow.Application(iniFolderFullPathName: rbAccount.IniFolderPath, iniFileName: iniFileName, loggerPrefix: prefix, restrictions: restrictions);
 
         rbAutoReconnection = rbApplication.GetAutoReconnection();
         rbContacts = rbApplication.GetContacts();
@@ -101,7 +108,7 @@ internal class BotView: View
         {
             Y = 1
         };
-        conversationPanelView.PeerClick += ConversationPanelView_PeerClick;
+        conversationPanelView.PeerMouseEvent += ConversationPanelView_PeerMouseEvent;
 
         viewLeft.Add(conversationPanelView);
 
@@ -137,12 +144,17 @@ internal class BotView: View
         CanFocus = true;
     }
 
-    private void ConversationPanelView_PeerClick(object? sender, PeerAndMouseEventArgs e)
+    private void ConversationPanelView_PeerMouseEvent(object? sender, PeerAndMouse e)
     {
-        if( (e.Peer.Type == EntityType.Bubble) && (bubbleSelector is not null) )
+        if (e.Mouse.IsPressed)
         {
-            var bubble = rbBubbles.GetBubbleById(e.Peer.Id);
-            bubbleSelector.SetItemSelected(bubble);
+            if ((e.Peer.Type == EntityType.Bubble) && (bubbleSelector is not null))
+            {
+                var bubble = rbBubbles.GetBubbleById(e.Peer.Id);
+                bubbleSelector.SetItemSelected(bubble);
+
+                e.Mouse.Handled = true;
+            }
         }
     }
 
@@ -162,7 +174,7 @@ internal class BotView: View
         if (loginView == null)
             return;
 
-        Terminal.Gui.App.Application.Invoke(() =>
+        Tools.Application.Invoke(() =>
         {
             switch (connectionState.Status)
             {

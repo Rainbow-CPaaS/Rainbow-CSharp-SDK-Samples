@@ -13,7 +13,7 @@ if (!Configuration.Initialize())
 // Check if a S2SCallbackURL has been defined
 if (String.IsNullOrEmpty(Configuration.ExeSettings.S2SCallbackURL))
 {
-    Console.WriteLine("There is no S2SCallbackURL defined in config.json file ...");
+    ConsoleAbstraction.WriteLine("There is no S2SCallbackURL defined in config.json file ...");
     return;
 }
 
@@ -31,13 +31,10 @@ var _ = webServer.RunAsync();
 // Specify the "BotViewFactory" to use in "BotWindow"
 BotWindow.BotViewFactory = new BotViewFactory();
 
-// Use "BotWindow" as main window for Terminal.Gui.Application
-Terminal.Gui.App.Application.Run<BotWindow>().Dispose();
+// Use "BotWindow" as main window
+Tools.Application?.Run(new BotWindow());
 
-// Before the application exits, reset Terminal.Gui for clean shutdown
-Terminal.Gui.App.Application.Shutdown();
-
-webServer.DisposeSafely();
+webServer?.Dispose();
 
 
 WebServer CreateWebServer(string url, String callbackUrl)

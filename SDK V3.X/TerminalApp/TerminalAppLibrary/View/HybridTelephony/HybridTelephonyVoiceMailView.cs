@@ -33,7 +33,7 @@ public partial class HybridTelephonyVoiceMailView : View
         BorderStyle = LineStyle.Dotted;
         CanFocus = true;
 
-        Border.Add(Tools.VerticalExpanderButton());
+        Border.GetOrCreateView().Add(Tools.VerticalExpanderButton());
 
         lblNbVM = new Label
         {
@@ -138,7 +138,7 @@ public partial class HybridTelephonyVoiceMailView : View
 
     private void RbHybridTelephony_HybridTelephonyStatusUpdated(Boolean? available)
     {
-        Terminal.Gui.App.Application.Invoke(() =>
+        Tools.Application.Invoke(() =>
         {
             serviceAvailable = available;
             UpdateDisplay();
@@ -147,7 +147,7 @@ public partial class HybridTelephonyVoiceMailView : View
 
     private void RbHybridTelephony_HybridPBXAgentInfoUpdated(Rainbow.Model.PbxAgentInfo pbxAgentInfo)
     {
-        Terminal.Gui.App.Application.Invoke(() =>
+        Tools.Application.Invoke(() =>
         {
             serviceEnabled = pbxAgentInfo.XmppAgentStatus == "started";
             if (serviceEnabled)
@@ -158,7 +158,7 @@ public partial class HybridTelephonyVoiceMailView : View
 
     private void RbHybridTelephony_HybridVoiceMessagesNumberUpdated(VoiceMessageNumber voiceMessageNumber)
     {
-        Terminal.Gui.App.Application.Invoke(() =>
+        Tools.Application.Invoke(() =>
         {
             nbVM = voiceMessageNumber.New;
             UpdateDisplay();

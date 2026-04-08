@@ -32,6 +32,9 @@ public partial class LoggerView: View
         keysById = [];
         regexesById = [];
 
+
+        
+
         // Create Ouput Text Field - to see the progress and eventually error
         infoText = new TextView
         {
@@ -41,15 +44,18 @@ public partial class LoggerView: View
             Height = Dim.Fill(),
             TextAlignment = Alignment.Start,
             Title = title,
-            BorderStyle = LineStyle.Dotted,
+            //BorderStyle = LineStyle.Dotted,
             ReadOnly = false,
-            Visible = true,
+            Visible = true
         };
+        Add(infoText);
 
-        // To display with some colors
+        //// To display with some colors
         infoText.TextChanged += InfoText_TextChanged;
         infoText.DrawingContent += HighlightTextBasedOnKeywords;
         infoText.DrawComplete += HighlightTextBasedOnKeywords;
+
+        if (!btnsVisible) return;
 
         // Create view with buttons
         View btnsView = new()
@@ -67,9 +73,9 @@ public partial class LoggerView: View
             Text = $"{Emojis.CLEAR}Clear",
             Y = 0,
             X = 0,
-            ShadowStyle = ShadowStyle.None
+            ShadowStyle = ShadowStyles.None
         };
-        clearInfoTextBtn.MouseClick += ClearInfoTextBtn_MouseClick;
+        clearInfoTextBtn.MouseEvent += ClearInfoTextBtn_MouseEvent;
 
         // Create "Copy to clipboard" button
         Button copyToClipboardInfoTextBtn = new()
@@ -77,14 +83,11 @@ public partial class LoggerView: View
             Text = $"{Emojis.COPY}Copy ",
             Y = 0,
             X = Pos.AnchorEnd(),
-            ShadowStyle = ShadowStyle.None
+            ShadowStyle = ShadowStyles.None
         };
-        copyToClipboardInfoTextBtn.MouseClick += CopyToClipboardInfoTextBtn_MouseClick;
-        
-        
+        copyToClipboardInfoTextBtn.MouseEvent += CopyToClipboardInfoTextBtn_MouseEvent;
         btnsView.Add(clearInfoTextBtn, copyToClipboardInfoTextBtn);
-
-        Add(infoText, btnsView);
+        Add(btnsView);
     }
 
     public void ClearText()
@@ -148,16 +151,16 @@ public partial class LoggerView: View
         RemoveKeysForRegex(color);
     }
 
-    private void ClearInfoTextBtn_MouseClick(object? sender, MouseEventArgs e)
+    private void ClearInfoTextBtn_MouseEvent(object? sender, Mouse e)
     {
         e.Handled = true;
         ClearText();
     }
 
-    private void CopyToClipboardInfoTextBtn_MouseClick(object? sender, MouseEventArgs e)
+    private void CopyToClipboardInfoTextBtn_MouseEvent(object? sender, Mouse e)
     {
         e.Handled = true;
-        Clipboard.TrySetClipboardData(infoText.Text);
+        Tools.Application?.Clipboard?.SetClipboardData(infoText.Text);
     }
 
     private static bool ContainsPosition(Match m, int pos) { return pos >= m.Index && pos < m.Index + m.Length; }

@@ -42,7 +42,7 @@ public partial class HybridTelephonyPanelCallView : View
         BorderStyle = LineStyle.Dotted;
         CanFocus = true;
 
-        Border.Add(Tools.VerticalExpanderButton());
+        Border.GetOrCreateView().Add(Tools.VerticalExpanderButton());
 
         viewCall1 = new(rbApplication, 1)
         {
@@ -75,11 +75,11 @@ public partial class HybridTelephonyPanelCallView : View
             Y = 0,
             Text = Labels.TRANSFER,
             TextAlignment = Alignment.Center,
-            ShadowStyle = ShadowStyle.None,
+            ShadowStyle = ShadowStyles.None,
             SchemeName = "BrightBlue",
             Enabled = false
         };
-        btnTransfer.MouseClick += BtnTransfer_MouseClick;
+        btnTransfer.MouseEvent += BtnTransfer_MouseEvent;
 
         btnConference = new()
         {
@@ -87,11 +87,11 @@ public partial class HybridTelephonyPanelCallView : View
             Y = 0,
             Text = Labels.CONFERENCE,
             TextAlignment = Alignment.Center,
-            ShadowStyle = ShadowStyle.None,
+            ShadowStyle = ShadowStyles.None,
             SchemeName = "BrightBlue",
             Enabled = false
         };
-        btnConference.MouseClick += BtnConference_MouseClick;
+        btnConference.MouseEvent += BtnConference_MouseEvent;
 
         viewTransferOrConference.Add(btnTransfer, btnConference);
 
@@ -112,7 +112,7 @@ public partial class HybridTelephonyPanelCallView : View
         UpdateDisplay();
     }
 
-    private void BtnConference_MouseClick(object? sender, MouseEventArgs e)
+    private void BtnConference_MouseEvent(object? sender, Mouse e)
     {
         if ((pbxCall1 != null)
                     && (pbxCall2 != null))
@@ -150,7 +150,7 @@ public partial class HybridTelephonyPanelCallView : View
         }
     }
 
-    private void BtnTransfer_MouseClick(object? sender, MouseEventArgs e)
+    private void BtnTransfer_MouseEvent(object? sender, Mouse e)
     {
         if ((pbxCall1 != null)
                     && (pbxCall2 != null))
@@ -257,7 +257,7 @@ public partial class HybridTelephonyPanelCallView : View
 
     private void RbHybridTelephony_HybridTelephonyStatusUpdated(Boolean? available)
     {
-        Terminal.Gui.App.Application.Invoke(() =>
+        Tools.Application.Invoke(() =>
         {
             serviceAvailable = available;
             UpdateDisplay();
@@ -266,7 +266,7 @@ public partial class HybridTelephonyPanelCallView : View
 
     private void RbHybridTelephony_HybridPBXAgentInfoUpdated(Rainbow.Model.PbxAgentInfo pbxAgentInfo)
     {
-        Terminal.Gui.App.Application.Invoke(() =>
+        Tools.Application.Invoke(() =>
         {
             serviceEnabled = pbxAgentInfo.XmppAgentStatus == "started";
             if (serviceEnabled)
@@ -277,7 +277,7 @@ public partial class HybridTelephonyPanelCallView : View
 
     private void RbHybridTelephony_HybridCallUpdated(Call call)
     {
-        Terminal.Gui.App.Application.Invoke(() =>
+        Tools.Application.Invoke(() =>
         {
             UpdateDisplay(call);
         });

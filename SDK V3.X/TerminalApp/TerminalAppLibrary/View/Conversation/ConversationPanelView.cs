@@ -25,7 +25,7 @@ public class ConversationPanelView: View
 
     private ConversationItemView? selectedConversationItemView = null;
 
-    public event EventHandler<PeerAndMouseEventArgs>? PeerClick;
+    public event EventHandler<PeerAndMouse>? PeerMouseEvent;
 
     public ConversationPanelView(Rainbow.Application rbApplication)
     {
@@ -73,14 +73,14 @@ public class ConversationPanelView: View
             Height = Dim.Fill(),
             Width = Dim.Fill()
         };
-        lblRecentConversations.Border.Add(Tools.VerticalExpanderButton());
+        lblRecentConversations.Border.GetOrCreateView().Add(Tools.VerticalExpanderButton());
 
         scrollableViewRecentConversations = new()
         {
             X = 0,
             Y = 0,
         };
-        scrollableViewRecentConversations.VerticalScrollBar.AutoShow = true;
+        scrollableViewRecentConversations.VerticalScrollBar.VisibilityMode = ScrollBarVisibilityMode.Auto;
 
         lblRecentConversations.Add(scrollableViewRecentConversations);
 
@@ -120,7 +120,7 @@ public class ConversationPanelView: View
             //Remove previous ConversationItemView
             foreach (var conversationItemView in conversationItemViewList.Values)
             {
-                conversationItemView.PeerClick -= ConversationItemView_PeerClick;
+                conversationItemView.PeerMouseEvent -= ConversationItemView_PeerClick;
                 Remove(conversationItemView);
                 //conversationItemView?.Dispose();
             }
@@ -144,12 +144,13 @@ public class ConversationPanelView: View
                 if (newView is not null)
                 {
                     count++;
-                    var line = new LineView(Orientation.Horizontal)
+                    var line = new Line()
                     {
                         X = 0,
                         Y = Pos.Bottom(newView),
                         Width = Dim.Fill(1),
-                        SchemeName = Tools.DEFAULT_SCHEME_NAME
+                        SchemeName = Tools.DEFAULT_SCHEME_NAME,
+                        Orientation = Orientation.Horizontal
                     };
                     scrollableViewRecentConversations.Add(line);
                     previousView = line;
@@ -175,35 +176,35 @@ public class ConversationPanelView: View
             Y = previousView is null ? 0: Pos.Bottom(previousView),
             Width = Dim.Fill(2),
         };
-        conversationItemView.PeerClick += ConversationItemView_PeerClick;
+        conversationItemView.PeerMouseEvent += ConversationItemView_PeerClick;
         scrollableViewRecentConversations.Add(conversationItemView);
         conversationItemViewList.Add(conversation.Peer.Id, conversationItemView);
         return conversationItemView;
     }
 
-    private void ConversationItemView_PeerClick(object? sender, PeerAndMouseEventArgs e)
+    private void ConversationItemView_PeerClick(object? sender, PeerAndMouse e)
     {
         // TODO
 
-        switch(e.MouseEvent.Flags)
+        switch(e.Mouse.Flags)
         {
-            case MouseFlags.Button3Clicked: // Right click
+            case MouseFlags.RightButtonClicked: // Right click
 
                 break;
 
-            case MouseFlags.Button1Clicked: // Left click
+            case MouseFlags.LeftButtonClicked: // Left click
 
                 var conversation = rbConversations.GetConversation(e.Peer);
                 if(SetSelectedConversation(conversation))
-                    PeerClick?.Invoke(this, e);
+                    PeerMouseEvent?.Invoke(this, e);
                 break;
         }
-        e.MouseEvent.Handled = true;
+        e.Mouse.Handled = true;
     }
 
     private void RbConversations_ConversationRemovedOrCreated(Conversation conversation)
     {
-        Terminal.Gui.App.Application.Invoke(() =>
+        Tools.Application.Invoke(() =>
         {
             UpdateDisplay();
         });
@@ -220,7 +221,7 @@ public class ConversationPanelView: View
 
     private void RbApplication_ConnectionStateChanged(ConnectionState connectionState)
     {
-        Terminal.Gui.App.Application.Invoke(() =>
+        Tools.Application.Invoke(() =>
         {
             UpdateDisplay();
         });

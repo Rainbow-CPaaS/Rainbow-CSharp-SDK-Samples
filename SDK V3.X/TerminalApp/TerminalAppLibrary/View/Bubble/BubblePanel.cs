@@ -55,8 +55,8 @@ public class BubblePanel : View
 
         emojiButtonsPanel.SelectionUpdated += EmojiButtonsPanel_SelectionUpdated;
 
-        Border.Add(emojiButtonsPanel);
-        Border.CanFocus = true;
+        Border.GetOrCreateView().Add(emojiButtonsPanel);
+        Border.GetOrCreateView().CanFocus = true;
 
         BorderStyle = LineStyle.Dotted;
         CanFocus = true;
@@ -84,7 +84,7 @@ public class BubblePanel : View
             if (optionSelected == "conference")
                 optionSelected = "members";
 
-            Terminal.Gui.App.Application.Invoke(() =>
+            Tools.Application.Invoke(() =>
             {
                 UpdateDisplay();
             });
@@ -99,7 +99,7 @@ public class BubblePanel : View
         if (bubble.Peer.Id == conference.Peer.Id)
         {
             conferenceInProgress = true;
-            Terminal.Gui.App.Application.Invoke(() =>
+            Tools.Application.Invoke(() =>
             {
                 UpdateDisplay();
             });
@@ -124,7 +124,7 @@ public class BubblePanel : View
         emojiButtonsPanel.Selected = optionSelected;
         bubbleMembersPanel.SetBubble(bubble);
 
-        Terminal.Gui.App.Application.Invoke(() =>
+        Tools.Application.Invoke(() =>
         {
             this.bubble = bubble;
             UpdateDisplay();

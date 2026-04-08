@@ -81,7 +81,7 @@ public class LoginView: View
             X = Pos.Center(),
             IsDefault = true,
             Enabled = ButtonLoginEnabled(),
-            ShadowStyle = ShadowStyle.None,
+            ShadowStyle = ShadowStyles.None,
         };
 
         if (withDetails)
@@ -104,7 +104,7 @@ public class LoginView: View
         passwordText.TextChanged += TextField_TextChanged;
 
         // When login button is clicked - start login process
-        btnLogin.MouseClick += BtnLogin_MouseClick_Login;
+        btnLogin.MouseEvent += BtnLogin_MouseEvent_Login;
 
         // Add elements to this View
         Add(loginLabel, loginText, passwordLabel, passwordText, btnLogin);
@@ -128,7 +128,7 @@ public class LoginView: View
     private void Log(String level, String txt)
     {
         if (loggerView != null)
-            Terminal.Gui.App.Application.Invoke(() => loggerView.AddText($"{level} - {txt}"));
+            Tools.Application?.Invoke(() => loggerView.AddText($"{level} - {txt}"));
     }
 
 #region Events received from Terminal.Gui
@@ -136,26 +136,33 @@ public class LoginView: View
     private void LoginView_Initialized(object? sender, EventArgs e)
     {
         if (ButtonLoginEnabled())
-            BtnLogin_MouseClick_Login(null, null);
+            BtnLogin_MouseEvent_Login(null, null);
     }
 
-    private void BtnLogin_MouseClick_Login(object? sender, MouseEventArgs e)
+    private void BtnLogin_MouseEvent_Login(object? sender, Mouse e)
     {
         if(e != null)
             e.Handled = true;
 
-        // Start login - don't need to manage result here. We handle events to update UI
-        var _ = rbApplication.LoginAsync(loginText.Text, passwordText.Text);
+        if (e is null || e.IsPressed)
+        {
+
+            // Start login - don't need to manage result here. We handle events to update UI
+            var _ = rbApplication.LoginAsync(loginText.Text, passwordText.Text);
+        }
     }
 
 
-    private void BtnLogin_MouseClick_Logout(object? sender, MouseEventArgs e)
+    private void BtnLogin_MouseEvent_Logout(object? sender, Mouse e)
     {
         if (e != null)
             e.Handled = true;
 
-        // Start logout - don't need to manage result here. We handle events to update UI
-        var _ = rbApplication.LogoutAsync();
+        if (e.IsPressed)
+        {
+            // Start logout - don't need to manage result here. We handle events to update UI
+            var _ = rbApplication.LogoutAsync();
+        }
     }
 
     private void TextField_TextChanged(object? sender, EventArgs e)
@@ -169,15 +176,15 @@ public class LoginView: View
 
     void RbApplication_ConnectionStateChanged(Rainbow.Model.ConnectionState connectionState)
     {
-        Terminal.Gui.App.Application.Invoke(() =>
+        Tools.Application?.Invoke(() =>
         {
             switch (connectionState.Status)
             {
                 case ConnectionStatus.Connected:
                     btnLogin.Text = "Logout";
                     btnLogin.Enabled = true;
-                    btnLogin.MouseClick -= BtnLogin_MouseClick_Login;
-                    btnLogin.MouseClick += BtnLogin_MouseClick_Logout;
+                    btnLogin.MouseEvent -= BtnLogin_MouseEvent_Login;
+                    btnLogin.MouseEvent += BtnLogin_MouseEvent_Logout;
 
                     LogInfo($"Connected: Reset NbAttempts: [{ rbAutoReconnection.CurrentNbAttempts}]");
                     break;
@@ -197,8 +204,8 @@ public class LoginView: View
                     loginText.Enabled = true;
                     passwordText.Enabled = true;
 
-                    btnLogin.MouseClick -= BtnLogin_MouseClick_Logout;
-                    btnLogin.MouseClick += BtnLogin_MouseClick_Login;
+                    btnLogin.MouseEvent += BtnLogin_MouseEvent_Login;
+                    btnLogin.MouseEvent -= BtnLogin_MouseEvent_Logout;
                     break;
             }
 

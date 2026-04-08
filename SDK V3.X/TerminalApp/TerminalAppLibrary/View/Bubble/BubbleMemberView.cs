@@ -18,7 +18,7 @@ public class BubbleMemberView: View
     BubbleMember? bubbleMember;
     Contact? contact;
 
-    public event EventHandler<PeerAndMouseEventArgs>? PeerClick;
+    public event EventHandler<PeerAndMouse>? PeerMouseEvent;
 
     public BubbleMemberView(Rainbow.Application application, Bubble bubble, Contact contact)
     {
@@ -58,9 +58,9 @@ public class BubbleMemberView: View
         rbContacts.ContactsAdded += RbContacts_ContactsAdded;
         rbBubbles.BubbleMemberUpdated += RbBubbles_BubbleMemberUpdated;
 
-        MouseClick += View_MouseClick;
-        lblPrivilege.MouseClick += View_MouseClick;
-        presenceView.PeerClick += PresenceView_PeerClick;
+        MouseEvent += View_MouseEvent;
+        lblPrivilege.MouseEvent += View_MouseEvent;
+        presenceView.PeerMouseEvent += PresenceView_PeerClick;
     }
 
     public BubbleMemberView(Rainbow.Application application, Bubble bubble, BubbleMember bubbleMember)
@@ -101,20 +101,20 @@ public class BubbleMemberView: View
         rbContacts.ContactsAdded += RbContacts_ContactsAdded;
         rbBubbles.BubbleMemberUpdated += RbBubbles_BubbleMemberUpdated;
 
-        MouseClick += View_MouseClick;
-        lblPrivilege.MouseClick += View_MouseClick;
-        presenceView.PeerClick += PresenceView_PeerClick;
+        MouseEvent += View_MouseEvent;
+        lblPrivilege.MouseEvent += View_MouseEvent;
+        presenceView.PeerMouseEvent += PresenceView_PeerClick;
     }
 
-    private void PresenceView_PeerClick(object? sender, PeerAndMouseEventArgs e)
+    private void PresenceView_PeerClick(object? sender, PeerAndMouse e)
     {
-        PeerClick?.Invoke(sender, e);
+        PeerMouseEvent?.Invoke(sender, e);
     }
 
-    private void View_MouseClick(object? sender, MouseEventArgs e)
+    private void View_MouseEvent(object? sender, Mouse e)
     {
         if (bubbleMember != null)
-            PeerClick?.Invoke(sender, new PeerAndMouseEventArgs(bubbleMember, e));
+            PeerMouseEvent?.Invoke(sender, new PeerAndMouse(bubbleMember, e));
     }
 
     private void UpdateDisplay(Boolean updatePresenceView)
@@ -165,7 +165,7 @@ public class BubbleMemberView: View
             {
                 bubbleMember = member;
 
-                Terminal.Gui.App.Application.Invoke(() =>
+                Tools.Application.Invoke(() =>
                 {
                     UpdateDisplay(false);
                 });
@@ -186,7 +186,7 @@ public class BubbleMemberView: View
             Boolean updatePresenceView = this.contact is null;
 
             this.contact = contactFound;
-            Terminal.Gui.App.Application.Invoke(() =>
+            Tools.Application.Invoke(() =>
             {
                 UpdateDisplay(updatePresenceView);
             });

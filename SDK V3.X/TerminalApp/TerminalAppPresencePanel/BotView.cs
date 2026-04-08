@@ -38,12 +38,14 @@ internal class BotView: View
         // We want to log files from SDK for this Bot
         NLogConfigurator.AddLogger(prefix);
 
-        // Create Rainbow SDK objects
-        rbApplication = new Rainbow.Application(iniFolderFullPathName: rbAccount.IniFolderPath, iniFileName: iniFileName, loggerPrefix: prefix);
+        Restrictions restrictions = new(true)
+        {
+            LogRestRequest = true,
+            LogEvent = true,
+        };
 
-        rbApplication.Restrictions.LogRestRequest = true;
-        rbApplication.Restrictions.LogEvent = true;
-        rbApplication.Restrictions.UseHubTelephony = true;
+        // Create Rainbow SDK objects
+        rbApplication = new Rainbow.Application(iniFolderFullPathName: rbAccount.IniFolderPath, iniFileName: iniFileName, loggerPrefix: prefix, restrictions: restrictions);
 
         rbAutoReconnection = rbApplication.GetAutoReconnection();
         rbContacts = rbApplication.GetContacts();
@@ -157,7 +159,7 @@ internal class BotView: View
 
             Add(presenceView);
 
-            presenceView.PeerClick += PresenceView_ContactClick;
+            presenceView.PeerMouseEvent += PresenceView_PeerMouseEvent;
         }
     }
 
@@ -181,9 +183,9 @@ internal class BotView: View
                 Height = 1,
                 Width = Dim.Auto(DimAutoStyle.Text),
                 Text = "Contacts",
-                ShadowStyle = ShadowStyle.None,
+                ShadowStyle = ShadowStyles.None,
             };
-            contactsPanelSelection.MouseClick += (sender, me) =>
+            contactsPanelSelection.MouseEvent += (sender, me) =>
             {
                 presencePanelView.Visible = false;
                 contactsPanelView.Visible = true;
@@ -196,9 +198,9 @@ internal class BotView: View
                 Height = 1,
                 Width = Dim.Auto(DimAutoStyle.Text),
                 Text = "Roster",
-                ShadowStyle = ShadowStyle.None,
+                ShadowStyle = ShadowStyles.None,
             };
-            presencePanelSelection.MouseClick += (sender, me) =>
+            presencePanelSelection.MouseEvent += (sender, me) =>
             {
                 presencePanelView.Visible = true;
                 contactsPanelView.Visible = false;
@@ -209,26 +211,26 @@ internal class BotView: View
         }
     }
 
-    private void TestButton_MouseClick(object? sender, MouseEventArgs e)
+    private void TestButton_MouseClick(object? sender, Mouse e)
     {
-        if (e.Flags == MouseFlags.Button1Clicked)
+        if (e.Flags == MouseFlags.LeftButtonClicked)
         {
             e.Handled = true;
         }
     }
 
-    private void PresenceView_ContactClick(object? sender, PeerAndMouseEventArgs e)
+    private void PresenceView_PeerMouseEvent(object? sender, PeerAndMouse e)
     {
-        if (e.MouseEvent.Flags == MouseFlags.Button3Clicked)
+        if (e.Mouse.Flags == MouseFlags.RightButtonClicked)
         {
-            e.MouseEvent.Handled = true;
+            e.Mouse.Handled = true;
             DisplayPresenceContextMenu();
             return;
         }
 
-        if(e.MouseEvent.Flags == MouseFlags.Button1DoubleClicked)
+        if(e.Mouse.Flags == MouseFlags.LeftButtonDoubleClicked)
         {
-            e.MouseEvent.Handled = true;
+            e.Mouse.Handled = true;
             Tools.DisplayPresenceDetails(rbApplication, e.Peer);
             return;
         }
@@ -239,11 +241,11 @@ internal class BotView: View
     {
         String[] stdItems = ["Online", "Away", "Away - Inactive", "Invisible", "Dnd", "Dnd - Presentation", "Busy - Audio", "Busy - Video", "Busy - Sharing"];
 
-        List<MenuItemv2> menuItems = [];
+        List<MenuItem> menuItems = [];
         for (int i = 0; i < stdItems.Length; i++)
         {
             var name = stdItems[i];
-            MenuItemv2 menuItem;
+            MenuItem menuItem;
             if (name == "")
 #pragma warning disable CS8625
                 menuItems.Add(null);
@@ -275,16 +277,18 @@ internal class BotView: View
             }
         }
 
-        // Dispose previoues context menu (if any)
+        // Dispose previous context menu (if any)
         contextMenu?.Dispose();
 
         contextMenu = new(menuItems);
+        Tools.Application.Popovers?.Register(contextMenu);
         contextMenu.MakeVisible(BotWindow.MousePosition);
     }
 
     private void UpdatePresence(String strPresence)
     {
-        Terminal.Gui.App.Application.Popover?.Hide(contextMenu);
+        Tools.Application.Popovers?.Hide(contextMenu);
+        Tools.Application.Popovers?.DeRegister(contextMenu);
 
         Presence? presence;
 
@@ -322,7 +326,7 @@ internal class BotView: View
         if (loginView == null)
             return;
 
-        Terminal.Gui.App.Application.Invoke(() =>
+        Tools.Application.Invoke(() =>
         {
             switch (connectionState.Status)
             {

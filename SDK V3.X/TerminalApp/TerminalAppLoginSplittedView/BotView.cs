@@ -74,7 +74,7 @@ internal class BotView: View
         if (loginView == null)
             return;
 
-        Terminal.Gui.App.Application.Invoke(() =>
+        Tools.Application.Invoke(() =>
         {
             switch (connectionState.Status)
             {

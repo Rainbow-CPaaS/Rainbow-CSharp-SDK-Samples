@@ -34,10 +34,17 @@ internal class BotView: View
         // We want to log files from SDK for this Bot
         NLogConfigurator.AddLogger(prefix);
 
-        // Create Rainbow SDK objects
-        rbApplication = new Rainbow.Application(iniFolderFullPathName: rbAccount.IniFolderPath, iniFileName: iniFileName, loggerPrefix: prefix);
+        // Set restrictions
+        Rainbow.Restrictions restrictions = new(true)
+        {
+            LogRestRequest = true,
+            LogEvent = true,
+            LogEventParameters = true,
+            LogEventRaised = true,
+        };
 
-        rbApplication.Restrictions.LogRestRequest = true;
+        // Create Rainbow SDK objects
+        rbApplication = new Rainbow.Application(iniFolderFullPathName: rbAccount.IniFolderPath, iniFileName: iniFileName, loggerPrefix: prefix, restrictions: restrictions);
 
         rbAutoReconnection = rbApplication.GetAutoReconnection();
         rbContacts = rbApplication.GetContacts();
@@ -144,7 +151,7 @@ internal class BotView: View
         if (loginView == null)
             return;
 
-        Terminal.Gui.App.Application.Invoke(async () =>
+        Tools.Application.Invoke(async () =>
         {
             switch (connectionState.Status)
             {

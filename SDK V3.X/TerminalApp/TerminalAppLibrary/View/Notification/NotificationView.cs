@@ -40,7 +40,7 @@ public class NotificationView: View
         CheckCounter(0);
         TextAlignment = Alignment.End;
 
-        MouseClick += NotificationView_MouseClick;
+        MouseEvent += NotificationView_MouseEvent;
 
         // We have to manage events from Invitations service
         rbInvitations.InvitationAccepted    += RbInvitations_InvitationAccepted;
@@ -65,7 +65,7 @@ public class NotificationView: View
         Initialized += NotificationView_Initialized;
     }
 
-    private void NotificationView_MouseClick(object? sender, MouseEventArgs e)
+    private void NotificationView_MouseEvent(object? sender, Mouse e)
     {
         // Create dialog
         Dialog dialog = new()
@@ -76,12 +76,12 @@ public class NotificationView: View
             Y = Pos.Center(),
             Width = Dim.Percent(80),
             Height = Dim.Percent(80),
-            ShadowStyle = ShadowStyle.None
+            ShadowStyle = ShadowStyles.None
         };
 
         // Create button
-        Button button = new() { Text = "OK", IsDefault = true, ShadowStyle = ShadowStyle.None};
-        button.MouseClick += (s, e) => { e.Handled = true; dialog.RequestStop(); };
+        Button button = new() { Text = "OK", IsDefault = true, ShadowStyle = ShadowStyles.None};
+        button.MouseEvent += (s, e) => { e.Handled = true; dialog.RequestStop(); };
 
         // Add button
         dialog.AddButton(button);
@@ -90,7 +90,7 @@ public class NotificationView: View
         dialog.Add(notificationPanelView);
 
         // Display dialog and wait until it's closed
-        Terminal.Gui.App.Application.Run(dialog);
+        Tools.Application.Run(dialog);
 
         dialog.Remove(notificationPanelView);
 
@@ -141,7 +141,7 @@ public class NotificationView: View
 
             bubblesInvitations.Add((invitationContextId, contactId));
         }
-        Terminal.Gui.App.Application.Invoke(() =>
+        Tools.Application.Invoke(() =>
         {
             CheckCounter(++counter);
 
@@ -151,7 +151,7 @@ public class NotificationView: View
 
     private void RemoveInvitation(Boolean contactInvitation, String invitationContextId)
     {
-        Terminal.Gui.App.Application.Invoke(() =>
+        Tools.Application.Invoke(() =>
         {
             int nb;
             if (contactInvitation)

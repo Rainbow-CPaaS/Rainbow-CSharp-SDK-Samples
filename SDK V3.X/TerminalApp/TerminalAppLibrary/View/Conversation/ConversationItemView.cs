@@ -25,7 +25,7 @@ public class ConversationItemView: View
 
     private Boolean? displayFirstNameFirst = null;
 
-    public event EventHandler<PeerAndMouseEventArgs>? PeerClick;
+    public event EventHandler<PeerAndMouse>? PeerMouseEvent;
 
     public ConversationItemView(Rainbow.Application rbApplication, Conversation? conversation = null, Boolean? isSelected = null)
     {
@@ -57,13 +57,13 @@ public class ConversationItemView: View
         {
             X = Pos.Right(viewIsSelected) + 1,
             Y = 0,
-            Width = Dim.Func(() => Frame.Width - lblUnread.Frame.Width - 1),
+            Width = Dim.Func((view) => Frame.Width - lblUnread.Frame.Width - 1),
             Height = 1
         };
 
         lblUnread = new()
         {
-            X = Pos.Func(() => Frame.Width - lblUnread.Text.Length),
+            X = Pos.Func((view) => Frame.Width - lblUnread.Text.Length),
             Y = 0,
             SchemeName = "Red"
         };
@@ -85,11 +85,11 @@ public class ConversationItemView: View
 
         rbConversations.ConversationUpdated += RbConversations_ConversationUpdated;
 
-        MouseClick += View_MouseClick;
-        viewIsSelected.MouseClick += View_MouseClick;
-        presenceView.PeerClick += PresenceView_PeerClick;
-        lblUnread.MouseClick += View_MouseClick;
-        lblLastMessage.MouseClick += View_MouseClick;
+        MouseEvent += View_MouseClick;
+        viewIsSelected.MouseEvent += View_MouseClick;
+        lblUnread.MouseEvent += View_MouseClick;
+        lblLastMessage.MouseEvent += View_MouseClick;
+        presenceView.PeerMouseEvent += PresenceView_PeerMouseEvent;
     }
 
     public void SetSelected(Boolean selected)
@@ -149,21 +149,21 @@ public class ConversationItemView: View
         if (isSelected is not null)
             this.isSelected = isSelected.Value;
 
-        Terminal.Gui.App.Application.Invoke(() =>
+        Tools.Application.Invoke(() =>
         {
             UpdateDisplay();
         });
     }
 
-    private void PresenceView_PeerClick(object? sender, PeerAndMouseEventArgs e)
+    private void PresenceView_PeerMouseEvent(object? sender, PeerAndMouse e)
     {
-        PeerClick?.Invoke(sender, e);
+        PeerMouseEvent?.Invoke(sender, e);
     }
 
-    private void View_MouseClick(object? sender, MouseEventArgs e)
+    private void View_MouseClick(object? sender, Mouse e)
     {
         if (conversation != null)
-            PeerClick?.Invoke(sender, new PeerAndMouseEventArgs(conversation, e));
+            PeerMouseEvent?.Invoke(sender, new PeerAndMouse(conversation, e));
     }
 
     private void RbContacts_UserSettingsUpdated()
@@ -171,7 +171,7 @@ public class ConversationItemView: View
         var newValue = rbContacts.GetUserSettingBooleanValue(UserSetting.DisplayNameOrderFirstNameFirst);
         if (displayFirstNameFirst != newValue)
         {
-            Terminal.Gui.App.Application.Invoke(() =>
+            Tools.Application.Invoke(() =>
             {
                 displayFirstNameFirst = newValue;
                 UpdateDisplay();
@@ -186,7 +186,7 @@ public class ConversationItemView: View
             var contactFound = contacts.FirstOrDefault(c => c.Peer.Id == conversation?.Peer?.Id);
             if(contactFound is not null)
             {
-                Terminal.Gui.App.Application.Invoke(() =>
+                Tools.Application.Invoke(() =>
                 {
                     UpdateDisplay();
                 });
@@ -201,7 +201,7 @@ public class ConversationItemView: View
 
         //if(conversation.Peer.Id == this.conversation?.Peer.Id)
         //{
-        //    Terminal.Gui.Application.Invoke(() =>
+        //    Tools.Application?.Invoke(() =>
         //    {
         //        this.conversation = conversation;
         //        UpdateDisplay();

@@ -51,12 +51,12 @@ public class BubbleMembersPanel: View
         rbBubbles.BubbleLobbyUpdated += RbBubbles_BubbleLobbyUpdated;
         rbBubbles.UnknownContactsFound += RbBubbles_UnknownContactsFound;
 
-        VerticalScrollBar.AutoShow = true;
+        VerticalScrollBar.VisibilityMode = ScrollBarVisibilityMode.Auto;
 
         bubbleMembersViewList = [];
 
         scrollableView = new();
-        scrollableView.VerticalScrollBar.AutoShow = true;
+        scrollableView.VerticalScrollBar.VisibilityMode = ScrollBarVisibilityMode.Auto;
 
         lblWaitingRoom = new()
         {
@@ -114,7 +114,7 @@ public class BubbleMembersPanel: View
             Width = Dim.Fill(),
             Height = 1
         };
-        bubbleMemberView.PeerClick += BubbleMemberView_PeerClick;
+        bubbleMemberView.PeerMouseEvent += BubbleMemberView_PeerClick;
         scrollableView.Add(bubbleMemberView);
         bubbleMembersViewList.Add(bubbleMember.Peer.Id, bubbleMemberView);
         return bubbleMemberView;
@@ -131,7 +131,7 @@ public class BubbleMembersPanel: View
             Width = Dim.Fill(),
             Height = 1
         };
-        bubbleMemberView.PeerClick += BubbleMemberView_PeerClick;
+        bubbleMemberView.PeerMouseEvent += BubbleMemberView_PeerClick;
         scrollableView.Add(bubbleMemberView);
         bubbleMembersViewList.Add(contact.Peer.Id, bubbleMemberView);
         return bubbleMemberView;
@@ -166,7 +166,7 @@ public class BubbleMembersPanel: View
             // Remove previous BubbleMemberView
             foreach (var bubbleMemberView in bubbleMembersViewList.Values)
             {
-                bubbleMemberView.PeerClick -= BubbleMemberView_PeerClick;
+                bubbleMemberView.PeerMouseEvent -= BubbleMemberView_PeerClick;
                 Remove(bubbleMemberView);
             }
             bubbleMembersViewList.Clear();
@@ -401,7 +401,7 @@ public class BubbleMembersPanel: View
                     contactsInLobby = sdkResult.Data;
                     if (contactsInLobby.Contacts?.Count > 0)
                     {
-                        Terminal.Gui.App.Application.Invoke(() =>
+                        Tools.Application.Invoke(() =>
                         {
                             this.bubble = bubble;
                             scrollableView.Viewport = scrollableView.Viewport with { Y = 0 };
@@ -415,7 +415,7 @@ public class BubbleMembersPanel: View
             contactsInLobby = null;
 
 
-        Terminal.Gui.App.Application.Invoke(() =>
+        Tools.Application.Invoke(() =>
         {
             this.bubble = bubble;
             scrollableView.Viewport = scrollableView.Viewport with { Y = 0 };
@@ -423,7 +423,7 @@ public class BubbleMembersPanel: View
         });        
     }
 
-    private void BubbleMemberView_PeerClick(object? sender, PeerAndMouseEventArgs e)
+    private void BubbleMemberView_PeerClick(object? sender, PeerAndMouse e)
     {
         // Left click: do nothing
 
@@ -436,30 +436,30 @@ public class BubbleMembersPanel: View
 
         if (!isModerator)
         {
-            e.MouseEvent.Handled = true;
+            e.Mouse.Handled = true;
             return;
         }
 
         // Right Click
-        if (e.MouseEvent.Flags == MouseFlags.Button3Clicked)
+        if (e.Mouse.Flags == MouseFlags.RightButtonClicked)
         {
             if (bubble is not null && e.Peer is not null && e.Peer.Id != currentUser?.Peer?.Id)
             {
                 // Cannot manage member if bublle is associated to a Hub Telephony Group
                 if(bubble.IsOwnedByGroup)
                 {
-                    e.MouseEvent.Handled = true;
+                    e.Mouse.Handled = true;
                     return;
                 }
 
                 if (bubble.Users.TryGetValue(e.Peer.Id, out BubbleMember? bubbleMember))
                 {
-                    List<MenuItemv2> menuItems = [];
-                    MenuItemv2 item;
+                    List<MenuItem> menuItems = [];
+                    MenuItem item;
 
                     if (bubbleMember.Privilege == BubbleMemberPrivilege.User)
                     {
-                        item = new MenuItemv2(
+                        item = new MenuItem(
                                             "Promote to organizer role"
                                             , ""
                                             , () => UpdateMemberPrivilege(bubbleMember, "promote")
@@ -471,7 +471,7 @@ public class BubbleMembersPanel: View
                     {
                         if (isOwner)
                         {
-                            item = new MenuItemv2(
+                            item = new MenuItem(
                                             "Give Ownership"
                                             , ""
                                             , () => UpdateMemberPrivilege(bubbleMember, "owner")
@@ -481,7 +481,7 @@ public class BubbleMembersPanel: View
                         }
                         else
                         {
-                            item = new MenuItemv2(
+                            item = new MenuItem(
                                                 "Demote to member role"
                                                 , ""
                                                 , () => UpdateMemberPrivilege(bubbleMember, "demote")
@@ -493,7 +493,7 @@ public class BubbleMembersPanel: View
 
                     if (bubbleMember.Privilege != BubbleMemberPrivilege.Owner)
                     {
-                        var menuItem = new MenuItemv2(
+                        var menuItem = new MenuItem(
                                             "Remove member"
                                             , ""
                                             , () => UpdateMemberPrivilege(bubbleMember, "remove")
@@ -505,17 +505,17 @@ public class BubbleMembersPanel: View
                     if (menuItems.Count > 0)
                     {
                         contextMenu = new(menuItems);
-                        contextMenu.MakeVisible(e.MouseEvent.ScreenPosition);
+                        contextMenu.MakeVisible(e.Mouse.ScreenPosition);
                     }
                 }
                 else
                 {
                     // It's a user in the waiting room
 
-                    List<MenuItemv2> menuItems = [];
-                    MenuItemv2 item;
+                    List<MenuItem> menuItems = [];
+                    MenuItem item;
 
-                    item = new MenuItemv2(
+                    item = new MenuItem(
                                             "Deny"
                                             , ""
                                             , () => AcceptContact(e.Peer, false)
@@ -523,7 +523,7 @@ public class BubbleMembersPanel: View
                                             );
                     menuItems.Add(item);
 
-                    item = new MenuItemv2(
+                    item = new MenuItem(
                                             "Accept"
                                             , ""
                                             , () => AcceptContact(e.Peer, true)
@@ -532,27 +532,27 @@ public class BubbleMembersPanel: View
                     menuItems.Add(item);
 
                     contextMenu = new(menuItems);
-                    contextMenu.MakeVisible(e.MouseEvent.ScreenPosition);
+                    contextMenu.MakeVisible(e.Mouse.ScreenPosition);
 
                 }
             }
         }
 
-        e.MouseEvent.Handled = true;
+        e.Mouse.Handled = true;
     }
 
-    protected override bool OnMouseEvent(MouseEventArgs mouseEvent)
+    protected override bool OnMouseEvent(Mouse mouse)
     {
-        if (mouseEvent.Flags == MouseFlags.WheeledDown)
+        if (mouse.Flags == MouseFlags.WheeledDown)
         {
             ScrollVertical(1);
-            return mouseEvent.Handled = true;
+            return mouse.Handled = true;
         }
 
-        if (mouseEvent.Flags == MouseFlags.WheeledUp)
+        if (mouse.Flags == MouseFlags.WheeledUp)
         {
             ScrollVertical(-1);
-            return mouseEvent.Handled = true;
+            return mouse.Handled = true;
         }
         return false;
     }
@@ -571,7 +571,7 @@ public class BubbleMembersPanel: View
     private void RbBubbles_BubbleLobbyUpdated(ContactsInLobby contactsInLobby)
     {
         this.contactsInLobby = contactsInLobby;
-        Terminal.Gui.App.Application.Invoke(() =>
+        Tools.Application.Invoke(() =>
         {
             UpdateDisplay();
         });
@@ -579,7 +579,7 @@ public class BubbleMembersPanel: View
 
     private void RbBubbles_BubbleInfoUpdated(Bubble bubble)
     {
-        Terminal.Gui.App.Application.Invoke(() =>
+        Tools.Application.Invoke(() =>
         {
             this.bubble = bubble;
             UpdateDisplay();
@@ -588,7 +588,7 @@ public class BubbleMembersPanel: View
 
     private void RbBubbles_BubbleMemberUpdated(Bubble bubble, BubbleMember member)
     {
-        Terminal.Gui.App.Application.Invoke(() =>
+        Tools.Application.Invoke(() =>
         {
             this.bubble = bubble;
             UpdateDisplay();

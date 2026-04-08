@@ -85,7 +85,7 @@ public partial class HubTelephonyMakeCallView : View
         BorderStyle = LineStyle.Dotted;
         CanFocus = true;
 
-        Border.Add(Tools.VerticalExpanderButton());
+        Border.GetOrCreateView().Add(Tools.VerticalExpanderButton());
 
         viewCurrentDevice = new()
         {
@@ -108,11 +108,11 @@ public partial class HubTelephonyMakeCallView : View
             X = Pos.Right(itemSelectorCurrentDevice),
             Y = 0,
             Text = "Set",
-            ShadowStyle = ShadowStyle.None,
+            ShadowStyle = ShadowStyles.None,
             SchemeName = "BrightBlue",
             Enabled = true,
         };
-        btnCurrentDeviceAccept.MouseClick += BtnCurrentDeviceAccept_MouseClick; ;
+        btnCurrentDeviceAccept.MouseEvent += BtnCurrentDeviceAccept_MouseEvent; ;
         viewCurrentDevice.Add(itemSelectorCurrentDevice, btnCurrentDeviceAccept);
 
         viewAnonymousCall = new()
@@ -140,11 +140,11 @@ public partial class HubTelephonyMakeCallView : View
             X = Pos.Right(itemSelectorAnonymousCall),
             Y = 0,
             Text = "Set",
-            ShadowStyle = ShadowStyle.None,
+            ShadowStyle = ShadowStyles.None,
             SchemeName = "BrightBlue",
             Enabled = true,
         };
-        btnAnonymousCallAccept.MouseClick += BtnAnonymousCallAccept_MouseClick;
+        btnAnonymousCallAccept.MouseEvent += BtnAnonymousCallAccept_MouseEvent;
         viewAnonymousCall.Add(itemSelectorAnonymousCall, btnAnonymousCallAccept);
 
         viewAutoAccept = new()
@@ -171,11 +171,11 @@ public partial class HubTelephonyMakeCallView : View
             X = Pos.Right(autoAcceptCallOnDesktop),
             Y = 0,
             Text = "Set",
-            ShadowStyle = ShadowStyle.None,
+            ShadowStyle = ShadowStyles.None,
             SchemeName = "BrightBlue",
             Enabled = true,
         };
-        btnAutoAccept.MouseClick += BtnAutoAccept_MouseClick;
+        btnAutoAccept.MouseEvent += BtnAutoAccept_MouseEvent;
 
         viewAutoAccept.Add(autoAcceptCallOnDesktop, btnAutoAccept);
 
@@ -282,11 +282,11 @@ public partial class HubTelephonyMakeCallView : View
             Text = "Call",
             X = Pos.Center(),
             Y = Pos.Bottom(viewLeft) + 1,
-            ShadowStyle = ShadowStyle.None,
+            ShadowStyle = ShadowStyles.None,
             SchemeName = "BrightBlue",
             Enabled = true,
         };
-        btnMakeCall.MouseClick += BtnMakeCall_MouseClick;
+        btnMakeCall.MouseEvent += BtnMakeCall_MouseEvent;
 
         lblInactive = new Label
         {
@@ -398,7 +398,7 @@ public partial class HubTelephonyMakeCallView : View
             }
         }
 
-        Terminal.Gui.App.Application.Invoke(() =>
+        Tools.Application.Invoke(() =>
         {
 
             if (items.Count > 0)
@@ -456,7 +456,7 @@ public partial class HubTelephonyMakeCallView : View
             else
                 selectedResource = null;
 
-            Terminal.Gui.App.Application.Invoke(() =>
+            Tools.Application.Invoke(() =>
             {
                 itemSelectorResources.SetItems(this.resources);
                 if (selectedResource is not null)
@@ -529,7 +529,7 @@ private void CheckDeviceAndResourceSelection()
 
 #region Events from UI
 
-    private void BtnCurrentDeviceAccept_MouseClick(object? sender, MouseEventArgs e)
+    private void BtnCurrentDeviceAccept_MouseEvent(object? sender, Mouse e)
     {
         e.Handled = true;
         var item = itemSelectorCurrentDevice.ItemSelected;
@@ -553,7 +553,7 @@ private void CheckDeviceAndResourceSelection()
         }
     }
 
-    private void BtnAnonymousCallAccept_MouseClick(object? sender, MouseEventArgs e)
+    private void BtnAnonymousCallAccept_MouseEvent(object? sender, Mouse e)
     {
         e.Handled = true;
         var item = itemSelectorAnonymousCall.ItemSelected;
@@ -570,7 +570,7 @@ private void CheckDeviceAndResourceSelection()
         }
     }
 
-    private void BtnAutoAccept_MouseClick(object? sender, MouseEventArgs e)
+    private void BtnAutoAccept_MouseEvent(object? sender, Mouse e)
     {
         e.Handled = true;
         var item = autoAcceptCallOnDesktop.ItemSelected;
@@ -596,13 +596,13 @@ private void CheckDeviceAndResourceSelection()
         }
     }
 
-    private void BtnMakeCall_MouseClick(object? sender, MouseEventArgs e)
+    private void BtnMakeCall_MouseEvent(object? sender, Mouse e)
     {
         e.Handled = true;
 
         Task.Run(async () =>
         {
-            var sdkResultBoolean = await rbHubTelephony.MakeCallAsync(textFieldPhoneNumber.Text, device: selectedPhoneUsed, resource: selectedResource, callerAutoAnswer: cbAutoAccept.CheckedState == CheckState.Checked);
+            var sdkResultBoolean = await rbHubTelephony.MakeCallAsync(textFieldPhoneNumber.Text, device: selectedPhoneUsed, resource: selectedResource, callerAutoAnswer: cbAutoAccept.Value == CheckState.Checked);
             if (!sdkResultBoolean.Success)
             {
                 Rainbow.Util.RaiseEvent(() => ErrorOccurred, rbApplication, sdkResultBoolean.Result.ToString());
@@ -641,7 +641,7 @@ private void CheckDeviceAndResourceSelection()
 
     private void RbContacts_UserSettingsUpdated()
     {
-        Terminal.Gui.App.Application.Invoke(() =>
+        Tools.Application.Invoke(() =>
         {
             UpdateDisplay();
         });
@@ -649,7 +649,7 @@ private void CheckDeviceAndResourceSelection()
 
     private void RbHubTelephony_CallLineIdentificationRestrictionUpdated(bool value)
     {
-        Terminal.Gui.App.Application.Invoke(() =>
+        Tools.Application.Invoke(() =>
         {
             itemSelectorAnonymousCall.SetItemSelected(value ? 0 : 1);
         });
@@ -739,7 +739,7 @@ private void CheckDeviceAndResourceSelection()
 
     private void RbHubTelephony_TelephonyStatusUpdated(Boolean available)
     {
-        Terminal.Gui.App.Application.Invoke(() =>
+        Tools.Application.Invoke(() =>
         {
             serviceAvailable = available;
             UpdateDisplay();
@@ -748,7 +748,7 @@ private void CheckDeviceAndResourceSelection()
 
     private void RbHubTelephony_PBXAgentInfoUpdated(Rainbow.Model.PbxAgentInfo pbxAgentInfo)
     {
-        Terminal.Gui.App.Application.Invoke(() =>
+        Tools.Application.Invoke(() =>
         {
             serviceEnabled = pbxAgentInfo.XmppAgentStatus == "started";
             if (serviceEnabled)

@@ -229,11 +229,11 @@ public partial class HybridTelephonyCallView : View
             Y = 0,
             Text = Labels.ANSWER,
             TextAlignment = Alignment.Center,
-            ShadowStyle = ShadowStyle.None,
+            ShadowStyle = ShadowStyles.None,
             SchemeName = "BrightBlue",
             Enabled = false
         };
-        btnAnswer.MouseClick += BtnAnswer_MouseClick;
+        btnAnswer.MouseEvent += BtnAnswer_MouseEvent;
 
         btnHold = new()
         {
@@ -241,11 +241,11 @@ public partial class HybridTelephonyCallView : View
             Y = 0,
             Text = Labels.HOLD,
             TextAlignment = Alignment.Center,
-            ShadowStyle = ShadowStyle.None,
+            ShadowStyle = ShadowStyles.None,
             SchemeName = "BrightBlue",
             Enabled = false
         };
-        btnHold.MouseClick += BtnHold_MouseClick;
+        btnHold.MouseEvent += BtnHold_MouseEvent;
 
         btnRelease = new()
         {
@@ -253,11 +253,11 @@ public partial class HybridTelephonyCallView : View
             Y = 0,
             Text = Labels.RELEASE,
             TextAlignment = Alignment.Center,
-            ShadowStyle = ShadowStyle.None,
+            ShadowStyle = ShadowStyles.None,
             SchemeName = "BrightBlue",
             Enabled = false
         };
-        btnRelease.MouseClick += BtnRelease_MouseClick;
+        btnRelease.MouseEvent += BtnRelease_MouseEvent;
 
         btnToVM = new()
         {
@@ -265,11 +265,11 @@ public partial class HybridTelephonyCallView : View
             Y = 0,
             Text = Labels.TO_VM,
             TextAlignment = Alignment.Center,
-            ShadowStyle = ShadowStyle.None,
+            ShadowStyle = ShadowStyles.None,
             SchemeName = "BrightBlue",
             Enabled = false
         };
-        btnToVM.MouseClick += BtnToVM_MouseClick;
+        btnToVM.MouseEvent += BtnToVM_MouseEvent;
 
         btnDtmf = new()
         {
@@ -277,11 +277,11 @@ public partial class HybridTelephonyCallView : View
             Y = 0,
             Text = Labels.SEND_DTMF,
             TextAlignment = Alignment.Center,
-            ShadowStyle = ShadowStyle.None,
+            ShadowStyle = ShadowStyles.None,
             SchemeName = "BrightBlue",
             Enabled = false
         };
-        btnDtmf.MouseClick += BtnDtmf_MouseClick;
+        btnDtmf.MouseEvent += BtnDtmf_MouseEvent;
 
         labelDTMF = new()
         {
@@ -313,7 +313,7 @@ public partial class HybridTelephonyCallView : View
         UpdateDisplay(null, null);
     }
 
-    private void BtnDtmf_MouseClick(object? sender, MouseEventArgs e)
+    private void BtnDtmf_MouseEvent(object? sender, Mouse e)
     {
         if (currentCall is not null)
         {
@@ -331,7 +331,7 @@ public partial class HybridTelephonyCallView : View
         }
     }
 
-    private void BtnToVM_MouseClick(object? sender, MouseEventArgs e)
+    private void BtnToVM_MouseEvent(object? sender, Mouse e)
     {
         if (currentCall is not null)
         {
@@ -349,7 +349,7 @@ public partial class HybridTelephonyCallView : View
         }
     }
 
-    private void BtnRelease_MouseClick(object? sender, MouseEventArgs e)
+    private void BtnRelease_MouseEvent(object? sender, Mouse e)
     {
         if (currentCall is not null)
         {
@@ -367,7 +367,7 @@ public partial class HybridTelephonyCallView : View
         }
     }
 
-    private void BtnHold_MouseClick(object? sender, MouseEventArgs e)
+    private void BtnHold_MouseEvent(object? sender, Mouse e)
     {
         if(currentCall is not null)
         {
@@ -424,7 +424,7 @@ public partial class HybridTelephonyCallView : View
         }
     }
 
-    private void BtnAnswer_MouseClick(object? sender, MouseEventArgs e)
+    private void BtnAnswer_MouseEvent(object? sender, Mouse e)
     {
         if (currentCall is not null)
         {
@@ -456,7 +456,7 @@ public partial class HybridTelephonyCallView : View
             textFieldStatus.Text = call.CallStatus.ToString();
             textFieldLocalMedia.Text = Util.MediasToString(call.LocalMedias);
             textFieldRemoteMedia.Text = Util.MediasToString(call.RemoteMedias);
-            checkBoxIsConference.CheckedState = call.IsConference ? CheckState.Checked : CheckState.UnChecked;
+            checkBoxIsConference.Value = call.IsConference ? CheckState.Checked : CheckState.UnChecked;
 
             // List participants
             if ((call.Participants != null) && (call.Participants.Count > 0))

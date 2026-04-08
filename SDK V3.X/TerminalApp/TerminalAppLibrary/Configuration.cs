@@ -1,7 +1,7 @@
 ﻿using Rainbow.Example.Common;
 using Rainbow.SimpleJSON;
 
-using Util = Rainbow.Example.Common.Util;
+
 
 public static class Configuration
 {
@@ -28,7 +28,7 @@ public static class Configuration
         String exeSettingsFilePath = $".{Path.DirectorySeparatorChar}config{Path.DirectorySeparatorChar}exeSettings.json";
         if (!File.Exists(exeSettingsFilePath))
         {
-            Util.WriteRed($"The file '{exeSettingsFilePath}' has not been found.");
+            ConsoleAbstraction.WriteRed($"The file '{exeSettingsFilePath}' has not been found.");
             return false;
         }
 
@@ -37,7 +37,7 @@ public static class Configuration
 
         if ((jsonNode is null) || (!jsonNode.IsObject))
         {
-            Util.WriteRed($"Cannot get JSON data from file '{exeSettingsFilePath}'.");
+            ConsoleAbstraction.WriteRed($"Cannot get JSON data from file '{exeSettingsFilePath}'.");
             return false;
         }
 
@@ -48,7 +48,7 @@ public static class Configuration
         }
         else
         {
-            Util.WriteRed($"Cannot read 'exeSettings' object OR invalid/missing data - file:'{exeSettingsFilePath}'.");
+            ConsoleAbstraction.WriteRed($"Cannot read 'exeSettings' object OR invalid/missing data - file:'{exeSettingsFilePath}'.");
             return false;
         }
 
@@ -60,7 +60,7 @@ public static class Configuration
         var credentialsFilePath = $".{Path.DirectorySeparatorChar}config{Path.DirectorySeparatorChar}credentials.json";
         if (!File.Exists(credentialsFilePath))
         {
-            Util.WriteRed($"The file '{credentialsFilePath}' has not been found.");
+            ConsoleAbstraction.WriteRed($"The file '{credentialsFilePath}' has not been found.");
             return false;
         }
 
@@ -69,7 +69,7 @@ public static class Configuration
 
         if (!Credentials.FromJsonNode(jsonNode["credentials"], out Credentials))
         {
-            Util.WriteRed($"Cannot read 'credentials' object OR invalid/missing data.");
+            ConsoleAbstraction.WriteRed($"Cannot read 'credentials' object OR invalid/missing data.");
             return false;
         }
 

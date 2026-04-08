@@ -51,7 +51,8 @@ public class ItemSelector: View
     private View lblArrow;
     private PopoverMenu contextMenu;
 
-    private ListViewSelector categoryList;
+    private ListView categoryList;
+    private List<Item>? categoryListItems;
     private int maxItemLength = 0;
 
     List<Item>? items;
@@ -82,7 +83,7 @@ public class ItemSelector: View
             X = Pos.Right(lbl) + 1,
             Y = 0,
             Height = 1,
-            Width = Dim.Func(() => 
+            Width = Dim.Func((view) => 
                 {
                     var textLength = (lblSelector is null)? 0 : lblSelector.Text.Length;
                     var spaceAvailable = Frame.Width - lbl.Frame.Width - ( (lblArrow is null) ? 0 : lblArrow.Frame.Width) - 2;
@@ -92,7 +93,7 @@ public class ItemSelector: View
             CanFocus = true,
             HotKeySpecifier = (Rune)0xffff, // We don't want any HotKey
         };
-        lblSelector.MouseClick += View_MouseClick;
+        lblSelector.MouseEvent += View_MouseEvent;
 
         lblArrow = new()
         {
@@ -102,7 +103,7 @@ public class ItemSelector: View
             Width = 2,
             Text = Emojis.EXPAND,
         };
-        lblArrow.MouseClick += View_MouseClick;
+        lblArrow.MouseEvent += View_MouseEvent;
 
         Add(lbl, lblSelector, lblArrow);
 
@@ -112,34 +113,34 @@ public class ItemSelector: View
         // Create categoryList
         categoryList = new()
         {
-            X = Pos.Func(() => lblSelector.FrameToScreen().X),
-            Y = Pos.Func(() => lblSelector.FrameToScreen().Y + 1),
+            X = Pos.Func((view) => lblSelector.FrameToScreen().X),
+            Y = Pos.Func((view) => lblSelector.FrameToScreen().Y + 1),
             Width = Dim.Fill(
-                        Dim.Func(() =>
+                        Dim.Func((view) =>
                         {
                             var delta = (categoryList?.VerticalScrollBar.Visible == true) ? 4 : 3;
                             var nbElements = maxItemLength + delta;
-                            var spaceAvailable = Terminal.Gui.App.Application.Screen.Width - lblSelector.FrameToScreen().X;
+                            var spaceAvailable = Tools.Application.Screen.Width - lblSelector.FrameToScreen().X;
                             return spaceAvailable - Math.Min(nbElements, spaceAvailable);
                         })),
             Height = Dim.Fill(
-                         Dim.Func(() =>
+                         Dim.Func((view) =>
                          {
                              var delta = (categoryList?.HorizontalScrollBar.Visible == true) ? 4 : 3;
                              var nbElements = ((this.items is null) ? 0 : this.items.Count) + delta;
-                             var spaceAvailable = Terminal.Gui.App.Application.Screen.Height - lblSelector.FrameToScreen().Y;
+                             var spaceAvailable = Tools.Application.Screen.Height - lblSelector.FrameToScreen().Y;
                              return spaceAvailable - Math.Min(nbElements, spaceAvailable);
                          })),
-            AllowsMarking = false,
+            //AllowsMarking = false,
             CanFocus = true,
             BorderStyle = LineStyle.Rounded,
             SuperViewRendersLineCanvas = false,
         };
-        categoryList.VerticalScrollBar.AutoShow = true;
-        categoryList.HorizontalScrollBar.AutoShow = true;
+        categoryList.VerticalScrollBar.VisibilityMode = ScrollBarVisibilityMode.Auto;
+        categoryList.HorizontalScrollBar.VisibilityMode = ScrollBarVisibilityMode.Auto;
 
-        categoryList.SelectedItemChanged += CategoryList_SelectedItemChanged;
-        categoryList.SameItemSelected += CategoryList_SameItemSelected;
+        categoryList.ValueChanged += CategoryList_ValueChanged;
+        categoryList.Activating += CategoryList_Activating; // To hide categoryList even if same item is selected
 
         // Create contextMenu
         contextMenu = new()
@@ -156,9 +157,13 @@ public class ItemSelector: View
         SchemeName = "BrightBlue";
     }
 
+
     private void ContextMenu_VisibleChanged(object? sender, EventArgs e)
     {
         lblArrow.Text = contextMenu.Visible ? Emojis.COLLAPSE : Emojis.EXPAND;
+
+        if(!contextMenu.Visible)
+            Tools.Application.Popovers?.DeRegister(contextMenu);
     }
 
     protected override void OnViewportChanged(DrawEventArgs e)
@@ -166,9 +171,9 @@ public class ItemSelector: View
         HideViewSelection();
     }
 
-    public void HideViewSelection()
+    public void HideViewSelection() 
     {
-        Terminal.Gui.App.Application.Popover?.Hide(contextMenu);
+        Tools.Application.Popovers?.Hide(contextMenu);
     }
 
     public void ShowViewSelection()
@@ -176,30 +181,38 @@ public class ItemSelector: View
         if (items?.Count > 0)
         {
             Point position = new Point(lblSelector.FrameToScreen().X, lblSelector.FrameToScreen().Y + 1);
+            Tools.Application.Popovers?.Register(contextMenu);
             contextMenu.MakeVisible(position);
         }
     }
 
-    private void View_MouseClick(object? sender, MouseEventArgs e)
+    private void View_MouseEvent(object? sender, Mouse e)
     {
         e.Handled = true;
         ShowViewSelection();
     }
 
-    private void CategoryList_SelectedItemChanged(object? sender, ListViewItemEventArgs e)
+    private void CategoryList_Activating(object? sender, CommandEventArgs e)
     {
         HideViewSelection();
+    }
 
-        if (itemSelected?.Id != ((Item)e.Value).Id)
+    private void CategoryList_ValueChanged(object? sender, Terminal.Gui.App.ValueChangedEventArgs<int?> e)
+    {
+        if (e.NewValue >= 0 && categoryListItems?.Count > e.NewValue)
         {
-            itemSelected = (Item)e.Value;
-
-            Terminal.Gui.App.Application.Invoke(() =>
+            var item = categoryListItems[e.NewValue.Value];
+            if (itemSelected?.Id != item.Id)
             {
-                UpdateDisplay();
-            });
+                itemSelected = item;
 
-            SelectedItemUpdated?.Invoke(this, (Item)e.Value);
+                Tools.Application.Invoke(() =>
+                {
+                    UpdateDisplay();
+                });
+
+                SelectedItemUpdated?.Invoke(this, item);
+            }
         }
     }
 
@@ -247,21 +260,24 @@ public class ItemSelector: View
         {
             var strings = items.Select(i => i.ToString());
             maxItemLength = strings.Aggregate("", (max, cur) => max.Length > cur.Length ? max : cur).Length;
-
-            categoryList.SelectedItem = 0;
+            
+            categoryListItems = items;
             categoryList.SetSource(new ObservableCollection<Item>(items));
+            categoryList.SelectedItem = 0;
         }
         else
         {
             maxItemLength = 0;
+            categoryListItems = [];
             categoryList.SetSource(new ObservableCollection<Item>());
+            //categoryList.SelectedItem = -1;
         }
 
         // Do we need to update the display ?
         if ( (previousItemSelected is not null) &&  previousItemSelected?.Id == itemSelected?.Id)
             return;
 
-        Terminal.Gui.App.Application.Invoke(() =>
+        Tools.Application.Invoke(() =>
         {
             UpdateDisplay();
         });
@@ -342,7 +358,7 @@ public class ItemSelector: View
             if (item.Id != itemSelected?.Id)
             {
                 itemSelected = items[index];
-                Terminal.Gui.App.Application.Invoke(() =>
+                Tools.Application.Invoke(() =>
                 {
                     if(categoryList.SelectedItem != index)
                         categoryList.SelectedItem = index;

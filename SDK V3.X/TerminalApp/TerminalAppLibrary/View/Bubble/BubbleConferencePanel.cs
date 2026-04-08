@@ -46,7 +46,7 @@ public class BubbleConferencePanel : View
 
     public void SetBubble(Bubble? bubble)
     {
-        Terminal.Gui.App.Application.Invoke(() =>
+        Tools.Application?.Invoke(() =>
         {
             this.bubble = bubble;
             UpdateDisplay();

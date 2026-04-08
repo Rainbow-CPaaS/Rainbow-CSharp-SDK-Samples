@@ -13,8 +13,8 @@ public partial class HybridTelephonyCallForwardView : View
     readonly Rainbow.HybridTelephony rbHybridTelephony;
 
     readonly Label lblInactive;
-    readonly RadioGroup radioGroupEnable;
-    readonly RadioGroup radioGroupDestination; 
+    readonly OptionSelector radioGroupEnable;
+    readonly OptionSelector radioGroupDestination; 
     readonly TextField textFieldPhoneNumber;
     readonly Button btnSet;
     readonly ItemSelector callForwardSelector;
@@ -42,16 +42,16 @@ public partial class HybridTelephonyCallForwardView : View
         BorderStyle = LineStyle.Dotted;
         CanFocus = true;
 
-        Border.Add(Tools.VerticalExpanderButton());
+        Border.GetOrCreateView().Add(Tools.VerticalExpanderButton());
 
-        radioGroupEnable = new RadioGroup()
+        radioGroupEnable = new ()
         {
             X = 1,
             Y = 1,
             TextAlignment = Alignment.Start,
             Width = Dim.Auto(DimAutoStyle.Content),
             Height = 2,
-            RadioLabels = ["Disable", "Enable - Type:"]
+            Labels = ["Disable", "Enable - Type:"]
         };
 
         callForwardSelector = new()
@@ -64,14 +64,14 @@ public partial class HybridTelephonyCallForwardView : View
         callForwardSelector.SetItems(listFwdType);
         callForwardSelector.SelectedItemUpdated += CallFwdSelector_SelectedItemUpdated;
 
-        radioGroupDestination = new RadioGroup()
+        radioGroupDestination = new ()
         {
             X = 5,
             Y = Pos.Bottom(radioGroupEnable),
             TextAlignment = Alignment.Start,
             Width = Dim.Auto(DimAutoStyle.Content),
             Height = 2,
-            RadioLabels = ["On Voicemail", "On Phone number:"]
+            Labels = ["On Voicemail", "On Phone number:"]
         };
 
         textFieldPhoneNumber = new TextField
@@ -91,11 +91,11 @@ public partial class HybridTelephonyCallForwardView : View
             Text = "Set",
             X = Pos.Align(Alignment.Center),
             Y = Pos.Bottom(radioGroupDestination) + 1,
-            ShadowStyle = ShadowStyle.None,
+            ShadowStyle = ShadowStyles.None,
             SchemeName = "BrightBlue"
         };
 
-        btnSet.MouseClick += BtnSet_MouseClick;
+        btnSet.MouseEvent += BtnSet_MouseEvent;
 
         lblInactive = new Label
         {
@@ -165,42 +165,42 @@ public partial class HybridTelephonyCallForwardView : View
         {
             if (!callForwardStatus.Activated)
             {
-                radioGroupEnable.SelectedItem = 0;
+                radioGroupEnable.Value = 0;
                 UpdateFwdType(0);
             }
             else
             {
-                radioGroupEnable.SelectedItem = 1;
+                radioGroupEnable.Value = 1;
                 UpdateFwdType(FwdTypeToIndex(callForwardStatus.ForwardType));
             }
             var VMAvailable = rbHybridTelephony.VoiceMailAvailable();
             if (VMAvailable)
             {
-                radioGroupDestination.RadioLabels = ["On Voicemail", "On Phone number:"];
+                radioGroupDestination.Labels = ["On Voicemail", "On Phone number:"];
                 radioGroupDestination.Height = 2;
 
                 if (callForwardStatus.VoiceMail)
-                    radioGroupDestination.SelectedItem = 0;
+                    radioGroupDestination.Value = 0;
                 else if (callForwardStatus.PhoneNumber is not null)
                 {
-                    radioGroupDestination.SelectedItem = 1;
+                    radioGroupDestination.Value = 1;
                     textFieldPhoneNumber.Text = callForwardStatus.PhoneNumber;
                 }
                 else
-                    radioGroupDestination.SelectedItem = -1;
+                    radioGroupDestination.Value = -1;
             }
             else
             {
-                radioGroupDestination.RadioLabels = ["Enable on Phone Number:"];
+                radioGroupDestination.Labels = ["Enable on Phone Number:"];
                 radioGroupDestination.Height = 1;
 
                 if (callForwardStatus.PhoneNumber is not null)
                 {
-                    radioGroupDestination.SelectedItem = 0;
+                    radioGroupDestination.Value = 0;
                     textFieldPhoneNumber.Text = callForwardStatus.PhoneNumber;
                 }
                 else
-                    radioGroupDestination.SelectedItem = -1;
+                    radioGroupDestination.Value = -1;
             }
         }
     }
@@ -243,11 +243,11 @@ public partial class HybridTelephonyCallForwardView : View
         }
     }
 
-    private void BtnFwdType_MouseClick(object? sender, MouseEventArgs e)
+    private void BtnFwdType_MouseEvent(object? sender, Mouse e)
     {
         e.Handled = true;
 
-        List<MenuItemv2> menuItems = [];
+        List<MenuItem> menuItems = [];
         int nb = listFwdType.Count;
 
         if (rbHybridTelephony.GetHybridPBXAgentInformation()?.Type.Equals("OXO", StringComparison.InvariantCultureIgnoreCase) == true)
@@ -256,7 +256,7 @@ public partial class HybridTelephonyCallForwardView : View
         for (int i = 0; i < nb; i++)
         {
             int index = i;
-            var menuItem = new MenuItemv2(
+            var menuItem = new MenuItem(
                                 listFwdType[i],
                                 $""
                                 , () => UpdateFwdType(index)
@@ -268,10 +268,10 @@ public partial class HybridTelephonyCallForwardView : View
         contextMenu.MakeVisible(e.ScreenPosition);
     }
 
-    private void BtnSet_MouseClick(object? sender, MouseEventArgs e)
+    private void BtnSet_MouseEvent(object? sender, Mouse e)
     {
         // Do we want to disable call fwd ?
-        if(radioGroupEnable.SelectedItem == 0)
+        if(radioGroupEnable.Value == 0)
         {
             Task.Run(async () =>
             {
@@ -283,13 +283,13 @@ public partial class HybridTelephonyCallForwardView : View
                 }
             });
         }
-        else if (radioGroupEnable.SelectedItem == 1)
+        else if (radioGroupEnable.Value == 1)
         {
             var VMAvailable = rbHybridTelephony.VoiceMailAvailable();
             if(VMAvailable)
             {
                 // Activate on VM
-                if(radioGroupDestination.SelectedItem == 0)
+                if(radioGroupDestination.Value == 0)
                 {
                     Task.Run(async () =>
                     {
@@ -302,7 +302,7 @@ public partial class HybridTelephonyCallForwardView : View
                     });
                 }
                 // Activate on Phone Number
-                else if (radioGroupDestination.SelectedItem == 1)
+                else if (radioGroupDestination.Value == 1)
                 {
                     Task.Run(async () =>
                     {
@@ -318,7 +318,7 @@ public partial class HybridTelephonyCallForwardView : View
             else
             {
                 // Activate on Phone Number
-                if (radioGroupDestination.SelectedItem == 0)
+                if (radioGroupDestination.Value == 0)
                 {
                     Task.Run(async () =>
                     {
@@ -341,7 +341,7 @@ public partial class HybridTelephonyCallForwardView : View
 
     private void RbHybridTelephony_HybridCallForwardStatusUpdated(HybridCallForwardStatus callForwardStatus)
     {
-        Terminal.Gui.App.Application.Invoke(() =>
+        Tools.Application.Invoke(() =>
         {
             this.callForwardStatus = callForwardStatus;
             UpdateDisplay();
@@ -350,7 +350,7 @@ public partial class HybridTelephonyCallForwardView : View
 
     private void RbHybridTelephony_HybridTelephonyStatusUpdated(Boolean? available)
     {
-        Terminal.Gui.App.Application.Invoke(() =>
+        Tools.Application.Invoke(() =>
         {
             serviceAvailable = available;
             UpdateDisplay();
@@ -359,7 +359,7 @@ public partial class HybridTelephonyCallForwardView : View
 
     private void RbHybridTelephony_HybridPBXAgentInfoUpdated(Rainbow.Model.PbxAgentInfo pbxAgentInfo)
     {
-        Terminal.Gui.App.Application.Invoke(() =>
+        Tools.Application.Invoke(() =>
         {
             serviceEnabled = pbxAgentInfo.XmppAgentStatus == "started";
             if (serviceEnabled)

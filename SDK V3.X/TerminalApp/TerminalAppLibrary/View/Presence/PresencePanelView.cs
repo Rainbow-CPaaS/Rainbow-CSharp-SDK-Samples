@@ -62,9 +62,9 @@ public class PresencePanelView: View
             X = Pos.Center(),
             Y = 0,
             Text = "Settings",
-            ShadowStyle = ShadowStyle.None
+            ShadowStyle = ShadowStyles.None
         };
-        settings.MouseClick += Settings_MouseClick;
+        settings.MouseEvent += Settings_MouseEvent;
         Add(settings);
 
         
@@ -109,7 +109,7 @@ public class PresencePanelView: View
         else
             contactsList = rbContacts.GetAllContacts();
 
-        Terminal.Gui.App.Application.Invoke(() =>
+        Tools.Application.Invoke(() =>
         {
             Update(contactsList, nbColumns);
         });
@@ -127,15 +127,15 @@ public class PresencePanelView: View
             ContactsListUpated(null);
     }
 
-    private void Settings_MouseClick(object? sender, MouseEventArgs e)
+    private void Settings_MouseEvent(object? sender, Mouse e)
     {
         e.Handled = true;
 
-        List<MenuItemv2> menuItems = [];
+        List<MenuItem> menuItems = [];
         for (int i = 0; i < 8; i++)
         {
             int help = i+1;
-            var menuItem = new MenuItemv2(
+            var menuItem = new MenuItem(
                                 $"On {help} Column{((help == 1) ? "" : "s")}",
                                 $""
                                 , () => Update(help)
@@ -202,7 +202,7 @@ public class PresencePanelView: View
                     {
                         presenceView.Visible = false;
                         presenceViewsUnused[presenceView.contact.Peer.Id] = presenceView;
-                        presenceView.PeerClick -= PresenceView_ContactClick;
+                        presenceView.PeerMouseEvent -= PresenceView_PeerMouseEvent;
                     }
                     else
                         Remove(v);
@@ -276,7 +276,7 @@ public class PresencePanelView: View
 
                         index++;
 
-                        view.PeerClick += PresenceView_ContactClick;
+                        view.PeerMouseEvent += PresenceView_PeerMouseEvent;
 
                         if (newView)
                             Add(view);
@@ -289,10 +289,11 @@ public class PresencePanelView: View
 
                 if (col > 0)
                 {
-                    var line = new LineView(Orientation.Vertical)
+                    var line = new Line
                     {
                         Y = (settings == null) ? 0 : 1,
-                        X = posX
+                        X = posX,
+                        Orientation = Orientation.Vertical
                     };
                     Add(line);
                 }
@@ -302,17 +303,17 @@ public class PresencePanelView: View
         }
     }
 
-    private void PresenceView_ContactClick(object? sender, PeerAndMouseEventArgs e)
+    private void PresenceView_PeerMouseEvent(object? sender, PeerAndMouse e)
     {
-        if (e.MouseEvent.Flags == MouseFlags.Button1DoubleClicked)
+        if (e.Mouse.Flags == MouseFlags.LeftButtonDoubleClicked)
         {
-            e.MouseEvent.Handled = true;
+            e.Mouse.Handled = true;
             Tools.DisplayPresenceDetails(rbApplication, e.Peer);
         }
 
-        if (e.MouseEvent.Flags == MouseFlags.Button3Clicked)
+        if (e.Mouse.Flags == MouseFlags.RightButtonClicked)
         {
-            e.MouseEvent.Handled = true;
+            e.Mouse.Handled = true;
             DisplayContextMenu(e.Peer);
         }
     }
@@ -322,11 +323,11 @@ public class PresencePanelView: View
         // Dispose previous context menu
         contextMenu?.Dispose();
 
-        List<MenuItemv2> menuItems = [];
+        List<MenuItem> menuItems = [];
 
         var contact = rbContacts.GetContact(peer);
 
-        MenuItemv2 menuItem;
+        MenuItem menuItem;
         var sentInvitation = rbInvitations.GetSentInvitation(peer);
         if( (sentInvitation != null) && (sentInvitation.Status != InvitationStatus.Pending))
             sentInvitation = null;
@@ -338,7 +339,7 @@ public class PresencePanelView: View
             menuItem = new (
                                 "Remove for my network",
                                 ""
-                                , () => { Terminal.Gui.App.Application.Popover?.Hide(contextMenu); RemoveForRoster(peer); }
+                                , () => { Tools.Application?.Popovers.Hide(contextMenu); Tools.Application?.Popovers.DeRegister(contextMenu); RemoveForRoster(peer); }
                                 , key: Key.N
                                 );
         }
@@ -349,7 +350,7 @@ public class PresencePanelView: View
                 menuItem = new(
                                     "Invite to join my network",
                                     ""
-                                    , () => { Terminal.Gui.App.Application.Popover?.Hide(contextMenu); InviteToNetwork(peer); }
+                                    , () => { Tools.Application?.Popovers.Hide(contextMenu); Tools.Application?.Popovers.DeRegister(contextMenu); InviteToNetwork(peer); }
                                     , key: Key.N
                                     );
             }
@@ -358,7 +359,7 @@ public class PresencePanelView: View
                 menuItem = new(
                                     "Cancel network's invitation",
                                     ""
-                                    , () => { Terminal.Gui.App.Application.Popover?.Hide(contextMenu); CancelInvitationToNetwork(peer); }
+                                    , () => { Tools.Application?.Popovers.Hide(contextMenu); Tools.Application?.Popovers.DeRegister(contextMenu); CancelInvitationToNetwork(peer); }
                                     , key: Key.N
                                     );
             }
@@ -374,14 +375,16 @@ public class PresencePanelView: View
         menuItem = new (
                     (favorite == null) ? "Add to favorites" : "Remove from favorites",
                     $""
-                    , () => { Terminal.Gui.App.Application.Popover?.Hide(contextMenu); AddOrRemoveFavorite(peer); }
+                    , () => { Tools.Application?.Popovers.Hide(contextMenu); Tools.Application?.Popovers.DeRegister(contextMenu); AddOrRemoveFavorite(peer); }
                     , key: Key.F
                     );
         menuItems.Add(menuItem);
 
         contextMenu = new(menuItems);
-        contextMenu.MakeVisible(BotWindow.MousePosition);
-        
+
+        Tools.Application?.Popovers.Register(contextMenu);
+
+        contextMenu.MakeVisible(BotWindow.MousePosition);        
     }
 
     private void AddOrRemoveFavorite(Peer peer)

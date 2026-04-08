@@ -24,7 +24,7 @@ public class PresenceView: View
     internal Boolean isGuest;
     internal Boolean askingGuestInfo = false;
 
-    public event EventHandler<PeerAndMouseEventArgs>? PeerClick;
+    public event EventHandler<PeerAndMouse>? PeerMouseEvent;
 
 #pragma warning disable CS8618
     public PresenceView(Rainbow.Application application)
@@ -92,21 +92,20 @@ public class PresenceView: View
             SchemeName = "DarkGray"
         };
 
-
         Width = Dim.Fill();
         Height = 1;
 
         Add(labelDisplayName, labelCompany);
-        MouseClick += View_MouseClick;
-        labelDisplayName.MouseClick += View_MouseClick;
+        MouseEvent += View_MouseEvent;
+        labelDisplayName.MouseEvent += View_MouseEvent;
     }
 
-    private void View_MouseClick(object? sender, MouseEventArgs e)
+    private void View_MouseEvent(object? sender, Mouse e)
     {
         if (contact != null)
-            PeerClick?.Invoke(sender, new PeerAndMouseEventArgs(contact, e));
+            PeerMouseEvent?.Invoke(sender, new PeerAndMouse(contact, e));
         else if (bubble != null)
-            PeerClick?.Invoke(sender, new PeerAndMouseEventArgs(bubble, e));
+            PeerMouseEvent?.Invoke(sender, new PeerAndMouse(bubble, e));
     }
 
     public void SetContact(Contact? contact)
@@ -143,8 +142,8 @@ public class PresenceView: View
             
 
             Add(presenceColorView);
-            presenceColorView.MouseClick += View_MouseClick;
-            Terminal.Gui.App.Application.Invoke(() =>
+            presenceColorView.MouseEvent += View_MouseEvent;
+            Tools.Application.Invoke(() =>
             {
                 UpdateDisplay();
             });
@@ -175,8 +174,8 @@ public class PresenceView: View
             presenceColorView = new(false, true);
             this.bubble = bubble;
             Add(presenceColorView);
-            presenceColorView.MouseClick += View_MouseClick;
-            Terminal.Gui.App.Application.Invoke(() =>
+            presenceColorView.MouseEvent += View_MouseEvent;
+            Tools.Application.Invoke(() =>
             {
                 UpdateDisplay();
             });
@@ -289,7 +288,7 @@ public class PresenceView: View
     {
         if((contact is not null) && (presence.Contact?.Peer?.Id == contact.Peer?.Id))
         {
-            Terminal.Gui.App.Application.Invoke(() =>
+            Tools.Application.Invoke(() =>
             {
                 UpdateDisplay();
             });

@@ -13,9 +13,6 @@ if (!Configuration.Initialize())
 // Specify the "BotViewFactory" to use in "BotWindow"
 BotWindow.BotViewFactory = new BotViewFactory();
 
-// Use "BotWindow" as main window for Terminal.Gui.Application
-Terminal.Gui.App.Application.Run<BotWindow>().Dispose();
-
-// Before the application exits, reset Terminal.Gui for clean shutdown
-Terminal.Gui.App.Application.Shutdown();
+// Use "BotWindow" as main window
+Tools.Application?.Run(new BotWindow());
 

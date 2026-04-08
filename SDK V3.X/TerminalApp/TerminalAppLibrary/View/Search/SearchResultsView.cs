@@ -38,7 +38,7 @@ public class SearchResultsView: View
     private String? currentContactId;
     private String? currentCompanyId;
 
-    public event EventHandler<PeerAndMouseEventArgs>? PeerClick;
+    public event EventHandler<PeerAndMouse>? PeerMouseEvent;
 
     public SearchResultsView(Rainbow.Application application)
     {
@@ -49,7 +49,7 @@ public class SearchResultsView: View
         lockDisplay = new();
 
         scrollableView = new();
-        scrollableView.VerticalScrollBar.AutoShow = true;
+        scrollableView.VerticalScrollBar.VisibilityMode = ScrollBarVisibilityMode.Auto;
 
         lblSearchInProgress = new()
         {
@@ -142,7 +142,7 @@ public class SearchResultsView: View
             {
                 searchResultItem.Y = 0;
                 searchResultItem.Height = 0;
-                searchResultItem.PeerClick -= SearchResultItem_PeerClick;
+                searchResultItem.PeerMouseEvent -= SearchResultItem_PeerClick;
                 Remove(searchResultItem);
             }
             searchResultItemList.Clear();
@@ -364,7 +364,7 @@ public class SearchResultsView: View
             Width = Dim.Fill(),
             Height = 1
         };
-        view.PeerClick += SearchResultItem_PeerClick;
+        view.PeerMouseEvent += SearchResultItem_PeerClick;
         scrollableView.Add(view);
         searchResultItemList.TryAdd(contact.Peer.Id, view);
         return view;
@@ -388,7 +388,7 @@ public class SearchResultsView: View
         if (String.IsNullOrEmpty(name))
         {
             searchInProgress = null;
-            Terminal.Gui.App.Application.Invoke(() =>
+            Tools.Application.Invoke(() =>
             {
                 UpdateDisplay();
             });
@@ -403,26 +403,26 @@ public class SearchResultsView: View
     {
         searchInProgress = true;
         searchContactsResult = null;
-        Terminal.Gui.App.Application.Invoke(() =>
+        Tools.Application.Invoke(() =>
         {
             UpdateDisplay();
         });
 
         // Start the search
-        var sdkResult = await rbContacts.SearchByDisplayNameAsync(searchValue, 20);
+        var sdkResult = await rbContacts.SearchByDisplayNameAsync(searchValue, 20, withPresence: true);
         searchInProgress = false;
         searchContactsResult = sdkResult.Success ? sdkResult.Data : null;
         //TODO - enhance display in case there is an error in search 
 
-        Terminal.Gui.App.Application.Invoke(() =>
+        Tools.Application.Invoke(() =>
         {
             UpdateDisplay();
         });
     }
 
-    private void SearchResultItem_PeerClick(object? sender, PeerAndMouseEventArgs e)
+    private void SearchResultItem_PeerClick(object? sender, PeerAndMouse e)
     {
-        PeerClick?.Invoke(this, e);
+        PeerMouseEvent?.Invoke(this, e);
     }
 }
 

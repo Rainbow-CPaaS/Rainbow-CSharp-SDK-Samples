@@ -75,7 +75,7 @@ public class NotificationItemView: View
             Width = Dim.Auto(DimAutoStyle.Text),
             Text = $" {Emojis.CHECKED_VIOLET}Accept "
         };
-        btnAccept.MouseClick += BtnAccept_MouseClick;
+        btnAccept.MouseEvent += BtnAccept_MouseEvent;
 
         var btnDecline = new Label()
         {
@@ -85,19 +85,19 @@ public class NotificationItemView: View
             Width = Dim.Auto(DimAutoStyle.Text),
             Text = $" {Emojis.CROSSED_RED}Decline "
         };
-        btnDecline.MouseClick += BtnDecline_MouseClick;
+        btnDecline.MouseEvent += BtnDecline_MouseEvent;
 
         Height = 1;
 
         Add(label, btnAccept, btnDecline);
     }
 
-    private void BtnAccept_MouseClick(object? sender, MouseEventArgs e)
+    private void BtnAccept_MouseEvent(object? sender, Mouse e)
     {
         NotificationItemUpdated?.Invoke(this, new NotificationItemUpdatedEventArgs(true, _contactInvitation, InvitationContextId, _invitingContactId));
     }
 
-    private void BtnDecline_MouseClick(object? sender, MouseEventArgs e)
+    private void BtnDecline_MouseEvent(object? sender, Mouse e)
     {
         NotificationItemUpdated?.Invoke(this, new NotificationItemUpdatedEventArgs(false, _contactInvitation, InvitationContextId, _invitingContactId));
     }

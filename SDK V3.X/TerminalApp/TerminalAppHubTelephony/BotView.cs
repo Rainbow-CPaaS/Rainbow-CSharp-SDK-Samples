@@ -38,16 +38,20 @@ internal class BotView: View
         NLogConfigurator.AddLogger(prefix);
         log = Rainbow.LogFactory.CreateLogger(prefix);
 
+        // Set restrictions
+        Rainbow.Restrictions restrictions = new(true)
+        {
+            LogRestRequest = true,
+            LogEvent = true,
+            LogEventParameters = true,
+            LogEventRaised = true,
+        };
+
         // Create Rainbow SDK objects
-        rbApplication = new Rainbow.Application(iniFolderFullPathName: rbAccount.IniFolderPath, iniFileName: iniFileName, loggerPrefix: prefix);
+        rbApplication = new Rainbow.Application(iniFolderFullPathName: rbAccount.IniFolderPath, iniFileName: iniFileName, loggerPrefix: prefix, restrictions: restrictions);
         log.LogInformation("[Terminal Application]: {ProductName} v{ClientVersion}", Global.ProductName(), Global.FileVersion());
 
         rbAutoReconnection = rbApplication.GetAutoReconnection();
-
-        // Set some Restrictions
-        rbApplication.Restrictions.UseHybridTelephony = false;
-        rbApplication.Restrictions.UseHubTelephony = true;
-        rbApplication.Restrictions.LogRestRequest = true;
 
         // Set global configuration info
         rbApplication.SetApplicationInfo(Configuration.Credentials.ServerConfig.AppId, Configuration.Credentials.ServerConfig.AppSecret);
@@ -153,7 +157,7 @@ internal class BotView: View
         if (loginView == null)
             return;
 
-        Terminal.Gui.App.Application.Invoke(async () =>
+        Tools.Application.Invoke(async () =>
         {
             switch (connectionState.Status)
             {

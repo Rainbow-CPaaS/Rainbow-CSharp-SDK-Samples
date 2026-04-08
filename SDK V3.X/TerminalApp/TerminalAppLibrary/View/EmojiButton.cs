@@ -39,7 +39,7 @@ public class EmojiButton : View
             SchemeName = colorSchemeDefault
         };
 
-        lbl.MouseClick += EmojiButton_MouseClick;
+        lbl.MouseEvent += EmojiButton_MouseEvent;
         lbl.MouseEnter += EmojiButton_MouseEnter;
         lbl.MouseLeave += EmojiButton_MouseLeave;
 
@@ -101,9 +101,9 @@ public class EmojiButton : View
         UpdateDisplay();
     }
 
-    private void EmojiButton_MouseClick(object? sender, MouseEventArgs e)
+    private void EmojiButton_MouseEvent(object? sender, Mouse e)
     {
-        if (e.Flags == MouseFlags.Button1Clicked)
+        if (e.Flags == MouseFlags.LeftButtonPressed)
         {
             e.Handled = true;
             if (selected) return; // nothing to do

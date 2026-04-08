@@ -9,6 +9,8 @@ using TerminalAppLibrary.Model;
 using Attribute = Terminal.Gui.Drawing.Attribute;
 static public class Tools
 {
+    static public IApplication Application { get; set; }
+
     static public String DEFAULT_SCHEME_NAME = "Base";
 
     static public Attribute AttributeBlack = new Attribute(Color.Black, StandardColor.RaisinBlack);
@@ -23,9 +25,8 @@ static public class Tools
 
     static public void DisplayLoggerAsDialog(string title, string txt, List<ColorSchemeInfo>? colorSchemeInfos = null)
     {
-        Application.Invoke(() =>
+        Tools.Application.Invoke(() =>
         {
-
             // Create dialog
             Dialog dialog = new()
             {
@@ -35,15 +36,15 @@ static public class Tools
                 Y = Pos.Center(),
                 Width = Dim.Percent(80),
                 Height = Dim.Percent(80),
-                ShadowStyle = ShadowStyle.None
+                ShadowStyle =  ShadowStyles.None
             };
 
-            LoggerView loggerView = new()
+            LoggerView loggerView = new(title)
             {
-                X = Pos.Center(),
-                Y = Pos.Center(),
-                Width = Dim.Fill(4),
-                Height = Dim.Fill(2),
+                X = 0,
+                Y = 0,
+                Width = Dim.Func((view) => dialog.Frame.Width - 2),
+                Height = Dim.Func((view) => dialog.Frame.Height - 4),
             };
             if (colorSchemeInfos is not null)
             {
@@ -54,20 +55,20 @@ static public class Tools
             }
 
             // Create button
-            Button button = new() { Text = "OK", IsDefault = true, ShadowStyle = ShadowStyle.None };
-            button.Accepting += (s, e) => { Application.RequestStop(); e.Handled = true; };
-
-            // Add button
-            dialog.AddButton(button);
+            Button button = new() { Text = "OK", IsDefault = true, ShadowStyle = ShadowStyles.None, Height = 1 }; 
+            button.Activating += (s, e) => { 
+                dialog.App?.RequestStop(); e.Handled = true; };
 
             // Add View
             dialog.Add(loggerView);
 
+            // Add button
+            dialog.AddButton(button);
+
             // Add text to Logger
             loggerView.AddText(txt);
 
-            // Display dialog and wait until it's closed
-            Terminal.Gui.App.Application.Run(dialog);
+            Tools.Application?.Run(dialog);
 
             // Dispose dialog
             dialog.Dispose();
@@ -162,13 +163,8 @@ static public class Tools
         {
         }
 
-        if (isWindows)
-        {
-            var _forceDriver = "v2net"; /* "v2win"; */
-            Terminal.Gui.App.Application.ForceDriver = _forceDriver;
-            Terminal.Gui.App.Application.Init(driverName: _forceDriver);
-        }
-
+        String _forceDriver = "ansi";
+        Application = Terminal.Gui.App.Application.Create().Init(driverName: _forceDriver);
     }
 
     public static Boolean IsOwner(Rainbow.Application? rbApplication, Bubble? bubble)

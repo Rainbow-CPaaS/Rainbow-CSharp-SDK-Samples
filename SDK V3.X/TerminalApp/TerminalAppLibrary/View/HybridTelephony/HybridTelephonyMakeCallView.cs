@@ -65,7 +65,7 @@ public partial class HybridTelephonyMakeCallView : View
         BorderStyle = LineStyle.Dotted;
         CanFocus = true;
 
-        Border.Add(Tools.VerticalExpanderButton());
+        Border.GetOrCreateView().Add(Tools.VerticalExpanderButton());
 
         viewAutoAccept = new()
         {
@@ -91,11 +91,11 @@ public partial class HybridTelephonyMakeCallView : View
             X = Pos.Right(autoAcceptCallOnDesktop),
             Y = 0,
             Text = "Set",
-            ShadowStyle = ShadowStyle.None,
+            ShadowStyle = ShadowStyles.None,
             SchemeName = "BrightBlue",
             Enabled = true,
         };
-        btnAutoAccept.MouseClick += BtnAutoAccept_MouseClick;
+        btnAutoAccept.MouseEvent += BtnAutoAccept_MouseEvent;
 
         viewAutoAccept.Add(autoAcceptCallOnDesktop, btnAutoAccept);
 
@@ -176,10 +176,10 @@ public partial class HybridTelephonyMakeCallView : View
             Text = "",
             X = Pos.Right(lblResource) + 1,
             Y = Pos.Top(lblResource),
-            ShadowStyle = ShadowStyle.None,
+            ShadowStyle = ShadowStyles.None,
             SchemeName = "BrightBlue"
         };
-        lblResourceSelection.MouseClick += LblResourceSelection_MouseClick;
+        lblResourceSelection.MouseEvent += LblResourceSelection_MouseEvent;
 
         lblCorrelator = new()
         {
@@ -209,11 +209,11 @@ public partial class HybridTelephonyMakeCallView : View
             Text = "Call",
             X = Pos.Center(),
             Y = Pos.Bottom(viewRight) + 1,
-            ShadowStyle = ShadowStyle.None,
+            ShadowStyle = ShadowStyles.None,
             SchemeName = "BrightBlue",
             Enabled = true,
         };
-        btnMakeCall.MouseClick += BtnMakeCall_MouseClick;
+        btnMakeCall.MouseEvent += BtnMakeCall_MouseEvent;
 
         lblInactive = new Label
         {
@@ -235,13 +235,13 @@ public partial class HybridTelephonyMakeCallView : View
 
     private void RbContacts_UserSettingsUpdated()
     {
-        Terminal.Gui.App.Application.Invoke(() =>
+        Tools.Application.Invoke(() =>
         {
             UpdateDisplay();
         });
     }
 
-    private void BtnAutoAccept_MouseClick(object? sender, MouseEventArgs e)
+    private void BtnAutoAccept_MouseEvent(object? sender, Mouse e)
     {
         var item = autoAcceptCallOnDesktop.ItemSelected;
         if (item is not null)
@@ -304,7 +304,7 @@ public partial class HybridTelephonyMakeCallView : View
         btnMakeCall.Height = available ? 1 : 0;
     }
 
-    private void BtnMakeCall_MouseClick(object? sender, MouseEventArgs e)
+    private void BtnMakeCall_MouseEvent(object? sender, Mouse e)
     {
         e.Handled = true;
 
@@ -358,7 +358,7 @@ public partial class HybridTelephonyMakeCallView : View
         lblResourceSelection.Text = currentResource + " " + Emojis.TRIANGLE_DOWN;
     }
 
-    private void LblResourceSelection_MouseClick(object? sender, MouseEventArgs e)
+    private void LblResourceSelection_MouseEvent(object? sender, Mouse e)
     {
         e.Handled = true;
 
@@ -377,8 +377,8 @@ public partial class HybridTelephonyMakeCallView : View
         // Get list of resources used by the current user avoiding ones in 'exceptionList'
         var resources = presences.Values.Select(p => p.Resource).Except(exceptionList).ToList();
 
-        MenuItemv2 menuItem;
-        List<MenuItemv2> menuItems = [];
+        MenuItem menuItem;
+        List<MenuItem> menuItems = [];
         int nb = resources.Count;
 
         menuItem = new ("Any",
@@ -404,7 +404,7 @@ public partial class HybridTelephonyMakeCallView : View
 
     private void RbHybridTelephony_HybridTelephonyStatusUpdated(Boolean? available)
     {
-        Terminal.Gui.App.Application.Invoke(() =>
+        Tools.Application.Invoke(() =>
         {
             serviceAvailable = available;
             UpdateDisplay();
@@ -413,7 +413,7 @@ public partial class HybridTelephonyMakeCallView : View
 
     private void RbHybridTelephony_HybridPBXAgentInfoUpdated(Rainbow.Model.PbxAgentInfo pbxAgentInfo)
     {
-        Terminal.Gui.App.Application.Invoke(() =>
+        Tools.Application.Invoke(() =>
         {
             serviceEnabled = pbxAgentInfo.XmppAgentStatus == "started";
             if (serviceEnabled)

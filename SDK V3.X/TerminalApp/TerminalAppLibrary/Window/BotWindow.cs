@@ -16,7 +16,7 @@ public class BotWindow : Window
 
     public static IBotViewFactory? BotViewFactory { get; set; }
 
-    public static Point MousePosition { get; set; } // To get mouse position in all windows / views
+    public static Point? MousePosition { get; set; } // To get mouse position in all windows / views
 
     private readonly Shortcut? ShVersion;
 
@@ -79,9 +79,10 @@ public class BotWindow : Window
         {
             Key = Key.F10,
             Title = "Show/Hide Status Bar",
-            CanFocus = false,
+            CanFocus = true,
         };
-        statusBarShortcutHide.Accepting += (sender, e) => { statusBar.Visible = !statusBar.Visible; };
+        statusBarShortcutHide.Activating += (sender, e) => { 
+            statusBar.Visible = !statusBar.Visible; };
 
         ShVersion = new()
         {
@@ -93,7 +94,10 @@ public class BotWindow : Window
         {
             CanFocus = false,
             Title = "Quit",
-            Key = Terminal.Gui.App.Application.QuitKey
+            Key = Key.Esc
+        };
+        quitBarShortcut.Activating += (sender, e) => {
+            Tools.Application.RequestStop();
         };
 
         if (Configuration.UseSplittedView && nbAccounts > 2)
@@ -104,7 +108,8 @@ public class BotWindow : Window
                 Title = "Select Bot on Left Panel",
                 CanFocus = false,
             };
-            statusBarShortcutBotSelectionOnLeft.Accepting += (sender, e) => { SelectBotOnPanel(true); };
+            statusBarShortcutBotSelectionOnLeft.Activating += (sender, e) => { 
+                SelectBotOnPanel(true); };
 
             var statusBarShortcutBotSelectionOnRight = new Shortcut
             {
@@ -112,7 +117,8 @@ public class BotWindow : Window
                 Title = "Select Bot on Right Panel",
                 CanFocus = false,
             };
-            statusBarShortcutBotSelectionOnRight.Accepting += (sender, e) => { SelectBotOnPanel(false); };
+            statusBarShortcutBotSelectionOnRight.Activating += (sender, e) => { 
+                SelectBotOnPanel(false); };
 
             statusBar.Add(quitBarShortcut,
                     statusBarShortcutBotSelectionOnLeft,
@@ -127,7 +133,7 @@ public class BotWindow : Window
                 Title = "Select Bot",
                 CanFocus = false,
             };
-            statusBarShortcutBotSelection.Accepting += (sender, e) => { SelectBotOnPanel(null); };
+            statusBarShortcutBotSelection.Activating += (sender, e) => { SelectBotOnPanel(null); };
 
             statusBar.Add(quitBarShortcut,
                     statusBarShortcutBotSelection);
@@ -144,13 +150,15 @@ public class BotWindow : Window
         Add(statusBar);
 
         // Need to manage Loaded event
-        Loaded += LoadedHandler;
+        
+        Initialized += LoadedHandler;
 
-        Terminal.Gui.App.Application.MouseEvent += ApplicationMouseEvent;
+        //Tools.Application.
+        MouseEvent += ApplicationMouseEvent;
     }
 
 
-    private void ApplicationMouseEvent(object? sender, MouseEventArgs a) { BotWindow.MousePosition = a.Position; }
+    private void ApplicationMouseEvent(object? sender, Mouse a) { BotWindow.MousePosition = a.Position; }
 
     private static void SetOnLeft(View leftView)
     {
@@ -166,7 +174,7 @@ public class BotWindow : Window
 
     private void SelectBotOnPanel(Boolean? onLeft)
     {
-        Terminal.Gui.App.Application.Invoke(() =>
+        Tools.Application.Invoke(() =>
         {
             if (BotViewFactory == null) return;
 
@@ -176,12 +184,12 @@ public class BotWindow : Window
             List<String> buttonsName = ["Ok", "Cancel"];
             foreach (var name in buttonsName)
             {
-                Button button = new() { Text = name, IsDefault = (name == "Ok"), ShadowStyle = ShadowStyle.None };
-                button.MouseClick += (s, e) =>
+                Button button = new() { Text = name, IsDefault = (name == "Ok"), ShadowStyle = ShadowStyles.None };
+                button.MouseEvent += (s, e) =>
                 {
                     e.Handled = true;
                     buttonClicked = name;
-                    Application.RequestStop();
+                    Tools.Application.RequestStop();
                 };
                 buttons.Add(button);
             }
@@ -199,7 +207,7 @@ public class BotWindow : Window
                 Y = Pos.Center(),
                 Width = Dim.Percent(50),
                 Height = Dim.Percent(50),
-                ShadowStyle = ShadowStyle.None
+                ShadowStyle = ShadowStyles.None
             };
 
             // /!\ It's not possible to display same BotView multiple time
@@ -233,25 +241,25 @@ public class BotWindow : Window
                 index++;
             }
 
-            RadioGroup radioGroup = new()
+            OptionSelector radioGroup = new()
             {
                 Title = dialogTitle,
                 X = Pos.Center(),
                 Y = Pos.Center(),
-                RadioLabels = [.. botsList.Values],
-                SelectedItem = selectedIndex
+                Labels = [.. botsList.Values],
+                Value = selectedIndex
             };
             dialog.Add(radioGroup);
 
-            Application.Run(dialog);
+            Tools.Application.Run(dialog);
             dialog.Dispose();
 
-            var itemSelected = radioGroup.SelectedItem;
-            var botNameSelected = botsList[itemSelected];
+            var itemSelected = radioGroup.Value ?? -1;
+            var botNameSelected = itemSelected != -1 ? botsList[itemSelected] : "";
 
             // Do nothing if we have selected the one currently used
-            if  ( (!buttonClicked.Equals("Ok", StringComparison.InvariantCultureIgnoreCase)) 
-                    || (itemSelected == selectedIndex) )
+            if ((!buttonClicked.Equals("Ok", StringComparison.InvariantCultureIgnoreCase))
+                    || (itemSelected == selectedIndex))
                 return;
 
             View? viewToUpdate = null;
@@ -309,7 +317,7 @@ public class BotWindow : Window
     {
         if (ShVersion is { })
         {
-            ShVersion.Title = $"{RuntimeEnvironment.OperatingSystem} {RuntimeEnvironment.OperatingSystemVersion}, {Terminal.Gui.App.Application.Driver?.GetVersionInfo()}";
+            ShVersion.Title = $"{RuntimeEnvironment.OperatingSystem} {RuntimeEnvironment.OperatingSystemVersion}, {Tools.Application?.Driver?.GetVersionInfo()}";
         }
     }
 }
