@@ -2,7 +2,7 @@
 using Rainbow;
 using System.Text;
 
-using Util = Rainbow.Example.Common.Util;
+
 using Rainbow.SimpleJSON;
 using Rainbow.Example.Common;
 
@@ -19,14 +19,12 @@ if (credentials is null)
     return;
 
 
-Util.WriteRed($"Account used: [{credentials.UsersConfig[0].Login}]");
-Util.WriteRed($"Account used: [{credentials.UsersConfig[1].Login}]");
+ConsoleAbstraction.WriteRed($"Account used: [{credentials.UsersConfig[0].Login}]");
+ConsoleAbstraction.WriteRed($"Account used: [{credentials.UsersConfig[1].Login}]");
 
 // --------------------------------------------------
 
 //// --------------------------------------------------
-
-Console.OutputEncoding = Encoding.UTF8; // We want to display UTF8 on the console
 
 Object consoleLockObject = new(); // To lock until the current console display is performed
 String CR = Rainbow.Util.CR; // Get carriage return;
@@ -67,14 +65,14 @@ var iniFolderPath = logFolderPath; // We will store iniFile in same folder than 
 var RbApplication_1 = new Application(iniFolderFullPathName: iniFolderPath, iniFileName: iniFileName, loggerPrefix: logPrefix); // we create the first Rainbow Applicaiotn with the first prefix
 var RbApplication_2 = new Application(iniFolderFullPathName: iniFolderPath, iniFileName: iniFileName2, loggerPrefix: logPrefix2); // we create the second Rainbow Applicaiotn with the second prefix
 
-Util.WriteYellow($"{CR}Log files of the Rainbow SDK have been created");
-Util.WriteYellow($"For {credentials.UsersConfig[0].Login}:");
-Util.WriteYellow($"\tLogFile name is [{logPrefix}RainbowSdk.log] and stored in folder:[{Path.GetFullPath(".\\")}]");
-Util.WriteYellow($"\tIniFile name is [{iniFileName}] and stored in folder:[{Path.GetFullPath(iniFolderPath)}]");
+ConsoleAbstraction.WriteYellow($"{CR}Log files of the Rainbow SDK have been created");
+ConsoleAbstraction.WriteYellow($"For {credentials.UsersConfig[0].Login}:");
+ConsoleAbstraction.WriteYellow($"\tLogFile name is [{logPrefix}RainbowSdk.log] and stored in folder:[{Path.GetFullPath(".\\")}]");
+ConsoleAbstraction.WriteYellow($"\tIniFile name is [{iniFileName}] and stored in folder:[{Path.GetFullPath(iniFolderPath)}]");
 
-Util.WriteYellow($"{CR}For {credentials.UsersConfig[1].Login}:");
-Util.WriteYellow($"\tLogFile name is [{logPrefix2}RainbowSdk.log] and stored in folder:[{Path.GetFullPath(".\\")}]");
-Util.WriteYellow($"\tIniFile name is [{iniFileName2}] and stored in folder:[{Path.GetFullPath(iniFolderPath)}]");
+ConsoleAbstraction.WriteYellow($"{CR}For {credentials.UsersConfig[1].Login}:");
+ConsoleAbstraction.WriteYellow($"\tLogFile name is [{logPrefix2}RainbowSdk.log] and stored in folder:[{Path.GetFullPath(".\\")}]");
+ConsoleAbstraction.WriteYellow($"\tIniFile name is [{iniFileName2}] and stored in folder:[{Path.GetFullPath(iniFolderPath)}]");
 
 /// You can also add log entries in a different for log entries created direclty in this consoleApp
 
@@ -91,8 +89,8 @@ log.LogWarning("Add log as Warning from my console app");
 log.LogError("Add log as Error from my console app");
 log.LogCritical("Add log as Critical from my console app");
 
-Util.WriteYellow($"{CR}We have added several log entries from this console application");
-Util.WriteYellow($"\tLogFile name is [{prefix_consoleApp}RainbowSdk.log] and stored in folder:[{Path.GetFullPath(".\\")}]");
+ConsoleAbstraction.WriteYellow($"{CR}We have added several log entries from this console application");
+ConsoleAbstraction.WriteYellow($"\tLogFile name is [{prefix_consoleApp}RainbowSdk.log] and stored in folder:[{Path.GetFullPath(".\\")}]");
 
 // Set global configuration info
 RbApplication_1.SetApplicationInfo(credentials.ServerConfig.AppId, credentials.ServerConfig.AppSecret);
@@ -102,41 +100,41 @@ RbApplication_2.SetApplicationInfo(credentials.ServerConfig.AppId, credentials.S
 RbApplication_2.SetHostInfo(credentials.ServerConfig.HostName);
 
 // Try to log using login_1
-Util.WriteWhite($"{CR}Starting login with {credentials.UsersConfig[0].Login}...");
+ConsoleAbstraction.WriteWhite($"{CR}Starting login with {credentials.UsersConfig[0].Login}...");
 
 var sdkResult = await RbApplication_1.LoginAsync(credentials.UsersConfig[0].Login, credentials.UsersConfig[0].Password);
 if (sdkResult.Success)
 {
     // We are connected and SDK is ready
-    Util.WriteGreen($"{CR}Connected to Rainbow Server using {credentials.UsersConfig[0].Login}");
+    ConsoleAbstraction.WriteGreen($"{CR}Connected to Rainbow Server using {credentials.UsersConfig[0].Login}");
 }
 else
 {
     // We are not connected - Display why:
-    Util.WriteRed($"{CR}Connection failed using {credentials.UsersConfig[0].Login} - SdkError:{sdkResult.Result}");
+    ConsoleAbstraction.WriteRed($"{CR}Connection failed using {credentials.UsersConfig[0].Login} - SdkError:{sdkResult.Result}");
 }
 
 // Try to log using login_2
-Util.WriteWhite($"{CR}Starting login with {credentials.UsersConfig[1].Login}...");
+ConsoleAbstraction.WriteWhite($"{CR}Starting login with {credentials.UsersConfig[1].Login}...");
 
 sdkResult = await RbApplication_2.LoginAsync(credentials.UsersConfig[1].Login, credentials.UsersConfig[1].Password);
 if (sdkResult.Success)
 {
     // We are connected and SDK is ready
-    Util.WriteGreen($"{CR}Connected to Rainbow Server using {credentials.UsersConfig[1].Login}");
+    ConsoleAbstraction.WriteGreen($"{CR}Connected to Rainbow Server using {credentials.UsersConfig[1].Login}");
 }
 else
 {
     // We are not connected - Display why:
-    Util.WriteRed($"{CR}Connection failed using {credentials.UsersConfig[1].Login} - SdkError:{sdkResult.Result}");
+    ConsoleAbstraction.WriteRed($"{CR}Connection failed using {credentials.UsersConfig[1].Login} - SdkError:{sdkResult.Result}");
 }
 
 
-Util.WriteBlue($"{CR}Use [ESC] at anytime to quit");
+ConsoleAbstraction.WriteBlue($"{CR}Use [ESC] at anytime to quit");
 
-Util.WriteBlue($"{CR}Try also this example with incorrect appId / appSecretKey / hostName AND/OR incorrect login / password");
+ConsoleAbstraction.WriteBlue($"{CR}Try also this example with incorrect appId / appSecretKey / hostName AND/OR incorrect login / password");
 
-Util.WriteBlue($"{CR}Nothing more is expected - You can quit");
+ConsoleAbstraction.WriteBlue($"{CR}Nothing more is expected - You can quit");
 do
 {
     await Task.Delay(200);
@@ -146,14 +144,14 @@ do
 
 void CheckInputKey()
 {
-    while (Console.KeyAvailable)
+    while (ConsoleAbstraction.KeyAvailable)
     {
-        var userInput = Console.ReadKey(true);
+        var userInput = ConsoleAbstraction.ReadKey();
 
-        switch (userInput.Key)
+        switch (userInput?.Key)
         {
             case ConsoleKey.Escape:
-                Util.WriteYellow($"Asked to end process using [ESC] key");
+                ConsoleAbstraction.WriteYellow($"Asked to end process using [ESC] key");
                 Environment.Exit(0);
                 return;
         }
@@ -164,7 +162,7 @@ Boolean ReadExeSettings()
     String exeSettingsFilePath = $".{Path.DirectorySeparatorChar}config{Path.DirectorySeparatorChar}exeSettings.json";
     if (!File.Exists(exeSettingsFilePath))
     {
-        Util.WriteRed($"The file '{exeSettingsFilePath}' has not been found.");
+        ConsoleAbstraction.WriteRed($"The file '{exeSettingsFilePath}' has not been found.");
         return false;
     }
 
@@ -173,7 +171,7 @@ Boolean ReadExeSettings()
 
     if ((jsonNode is null) || (!jsonNode.IsObject))
     {
-        Util.WriteRed($"Cannot get JSON data from file '{exeSettingsFilePath}'.");
+        ConsoleAbstraction.WriteRed($"Cannot get JSON data from file '{exeSettingsFilePath}'.");
         return false;
     }
 
@@ -184,7 +182,7 @@ Boolean ReadExeSettings()
     }
     else
     {
-        Util.WriteRed($"Cannot read 'exeSettings' object OR invalid/missing data - file:'{exeSettingsFilePath}'.");
+        ConsoleAbstraction.WriteRed($"Cannot read 'exeSettings' object OR invalid/missing data - file:'{exeSettingsFilePath}'.");
         return false;
     }
 
@@ -196,7 +194,7 @@ Credentials? ReadCredentials(string fileName = "credentials.json")
     var credentialsFilePath = $".{Path.DirectorySeparatorChar}config{Path.DirectorySeparatorChar}{fileName}";
     if (!File.Exists(credentialsFilePath))
     {
-        Util.WriteRed($"The file '{credentialsFilePath}' has not been found.");
+        ConsoleAbstraction.WriteRed($"The file '{credentialsFilePath}' has not been found.");
         return null;
     }
 
@@ -205,7 +203,7 @@ Credentials? ReadCredentials(string fileName = "credentials.json")
 
     if (!Credentials.FromJsonNode(jsonNode["credentials"], out Credentials credentials))
     {
-        Util.WriteRed($"Cannot read 'credentials' object OR invalid/missing data in file:[{fileName}].");
+        ConsoleAbstraction.WriteRed($"Cannot read 'credentials' object OR invalid/missing data in file:[{fileName}].");
         return null;
     }
 

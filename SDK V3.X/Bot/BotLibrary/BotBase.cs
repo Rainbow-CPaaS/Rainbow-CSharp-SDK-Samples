@@ -10,7 +10,7 @@ using Stateless;
 using Stateless.Graph;
 using System.Collections.Concurrent;
 using System.Text;
-using Util = Rainbow.Example.Common.Util;
+
 
 namespace BotLibrary
 {
@@ -200,7 +200,7 @@ namespace BotLibrary
                 .SubstateOf(State.Connected)
                 .Permit(Trigger.NextStep, State.CheckingDataAvailability);
 
-            _machine.OnUnhandledTrigger((state, trigger) => Util.WriteRed($"[{BotName}] OnUnhandledTrigger - State: {state} with Trigger: {trigger}"));
+            _machine.OnUnhandledTrigger((state, trigger) => ConsoleAbstraction.WriteRed($"[{BotName}] OnUnhandledTrigger - State: {state} with Trigger: {trigger}"));
 
             _machine.OnTransitionCompleted(transition => {
                 // Store the trigger used
@@ -208,7 +208,7 @@ namespace BotLibrary
 
                 // Log info about transition
                 var parameters = string.Join(", ", transition.Parameters);
-                Util.WriteGreen($"[{DateTime.Now:HH:mm:ss.fff}][{_credentials.UsersConfig[0].Prefix}] State [{transition.Destination}] from [{transition.Source}] with Trigger: [{transition.Trigger}]{(String.IsNullOrEmpty(parameters) ? "" : " Parameter(s):[" + parameters + "]")}");
+                ConsoleAbstraction.WriteGreen($"[{DateTime.Now:HH:mm:ss.fff}][{_credentials.UsersConfig[0].Prefix}] State [{transition.Destination}] from [{transition.Source}] with Trigger: [{transition.Trigger}]{(String.IsNullOrEmpty(parameters) ? "" : " Parameter(s):[" + parameters + "]")}");
             });
         }
 
@@ -634,41 +634,6 @@ namespace BotLibrary
         }
 
         /// <summary>
-        /// To specify restrictions to use in the Rainbow SDK - for example we want to use the AutoReconnection service and don' want to store message
-        /// </summary>
-        private void SetRainbowRestrictions()
-        {
-            //TODO - need to be defined by a configuration file
-            // Since we are using a Bot we want to send automatically a Read Receipt when a message has been received
-            _rbApplication.Restrictions.SendReadReceipt = true;
-
-            // Since we are using a bot, we don't want to allow messages to be sent to oneself.
-            _rbApplication.Restrictions.SendMessageToConnectedUser = false;
-
-            // We want to use always the same resource id when we connect to the event server
-            _rbApplication.Restrictions.UseSameResourceId = true;
-
-            // We use XMPP for event mode
-            _rbApplication.Restrictions.EventMode = SdkEventMode.XMPP;
-
-            // We want to use conference features
-            _rbApplication.Restrictions.UseConferences = true;
-
-            // We want to use WebRTC
-            _rbApplication.Restrictions.UseWebRTC = true;
-
-            _rbApplication.Restrictions.LogEvent = true;
-            _rbApplication.Restrictions.LogEventParameters = true;
-            //_rbApplication.Restrictions.LogEventRaised = false;
-            _rbApplication.Restrictions.LogEventStackTrace = true;
-
-            _rbApplication.Restrictions.LogRestRequest = true;
-            //_rbApplication.Restrictions.LogRestRequestOnError = false;
-            
-            _rbApplication.Restrictions.UseBubbles = true;
-        }
-
-        /// <summary>
         /// To create all necessary objects from the Rainbow SDK C#
         /// </summary>
         private Boolean CreateRainbowObjects()
@@ -1012,20 +977,20 @@ namespace BotLibrary
 
             if (!Credentials.FromJsonNode(jsonNodeCredentials, out _credentials))
             {
-                Util.WriteRed($"Cannot read 'credentials' object OR invalid/missing data.");
+                ConsoleAbstraction.WriteRed($"Cannot read 'credentials' object OR invalid/missing data.");
                 return false;
             }
 
             if (!BotConfiguration.FromJsonNode(_jsonNodeBotConfiguration, out _botConfiguration))
             {
-                Util.WriteRed($"Cannot read 'botConfiguration' object OR invalid/missing data.");
+                ConsoleAbstraction.WriteRed($"Cannot read 'botConfiguration' object OR invalid/missing data.");
                 return false;
             }
 
             // At least one administrator must be set or guests accepted
             if (!((_botConfiguration.GuestsAccepted == true) || (_botConfiguration.Administrators?.Count > 0)))
             {
-                Util.WriteRed($"At least one administrator must be set or guests accepted");
+                ConsoleAbstraction.WriteRed($"At least one administrator must be set or guests accepted");
                 return false;
             }
 
@@ -1041,17 +1006,17 @@ namespace BotLibrary
 
             log = Rainbow.LogFactory.CreateLogger<BotBase>(loggerPrefix);
 
+            // Get restrictions
+            var restrictions = GetRestrictions();
+
             // Create Rainbow Application (root object of the SDK)
-            _rbApplication = new Rainbow.Application(_credentials.UsersConfig[0].IniFolderPath, prefix + ".ini", loggerPrefix);
+            _rbApplication = new Rainbow.Application(_credentials.UsersConfig[0].IniFolderPath, prefix + ".ini", loggerPrefix: loggerPrefix, restrictions: restrictions);
 
             // Set APP_ID, APP_SECRET_KET and HOSTNAME
             _rbApplication.SetApplicationInfo(_credentials.ServerConfig.AppId, _credentials.ServerConfig.AppSecret);
             _rbApplication.SetHostInfo(_credentials.ServerConfig.HostName);
 
             _rbApplication.SetTimeout(10000);
-
-            // Set restrictions
-            SetRainbowRestrictions();
 
             // Create others Rainbow SDK Objects
             if (!CreateRainbowObjects())
@@ -1245,6 +1210,74 @@ namespace BotLibrary
         }
 
     #region virtual methods
+
+        // Called when the Bot is asking Restrictions to use in Rainbow.Application
+        public virtual Restrictions GetRestrictions()
+        {
+            return new()
+            {
+                // Access to services
+                UseAdministration = false,
+                UseAlerts = false,
+                UseBubbles = true,
+                UseCallsLog = false,
+                UseChannels = false,
+                UseConferences = true,
+                UseCustomerCare = false,
+                UseFavorites = false,
+                UseFileStorage = true,
+                UseGroups = false,
+                UseHubTelephony = true,
+                UseHybridTelephony = true,
+                UseInstantMessaging = true,
+                UseInvitations = true,
+                UseRPC = false,
+                UseSMS = false,
+                UseWebRTC = true,
+
+                // Application - Option
+                StreamManagement = false,
+                MobileApplication = false,
+                EventMode = SdkEventMode.XMPP,
+                UseSameResourceId = true,
+
+                // Bubbles - Option
+                AcceptBubbleInvitation = false,
+
+                // Conferences - Option
+                JoinMultipleConferences = false,
+
+                // Contacts - Option
+                AcceptUserInvitation = false,
+                ManagePresence = true,
+
+                // Conversations - Option
+                ConversationsRetrievedFormat = "full",
+
+                // HTTP - Option
+                MaxConnectionsPerServer = 5,
+
+                // InstantMessaging - Option
+                ManageUserTyping = true,
+                SendReadReceipt = true,
+                SendMessageToConnectedUser = false,
+                StoreMessages = true,
+                MessageMaxLength = 16384,
+
+                // Log - Option
+                LogRestRequestOnError = true,
+                LogRestRequest = true,
+                LogEvent = true,
+                LogEventRaised = true,
+                LogEventParameters = true,
+                LogEventStackTrace = true,
+                LogBubbleMembers = false,
+
+                // FileStorage - Option
+                ChunkSizeUpload = 1048576,
+                ChunkSizeDownload = 5242880,
+            };
+        }
 
         // Called when the Bot is connected to Rainbow server (called also after reconnection)
         public virtual async Task ConnectedAsync()

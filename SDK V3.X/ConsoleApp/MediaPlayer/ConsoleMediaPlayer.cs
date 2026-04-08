@@ -43,9 +43,9 @@ namespace ConsoleMediaPlayer
         static async Task Main()
         {
             // Need to set an unique title
-            Console.Title = $"SDK C# - MediaPlayer [{Guid.NewGuid()}]";
+            ConsoleAbstraction.Title = $"SDK C# - MediaPlayer [{Guid.NewGuid()}]";
 
-            Util.WriteDarkYellow($"{Global.ProductName()} v{Global.FileVersion()}");
+            ConsoleAbstraction.WriteDarkYellow($"{Global.ProductName()} v{Global.FileVersion()}");
 
             if (!ReadExeSettings())
                 return;
@@ -132,7 +132,7 @@ namespace ConsoleMediaPlayer
                 Window.CheckUpdateRenderer(_outputSharingWindow);
 
                 // Check Keys fom Console Window
-                if (Console.KeyAvailable || simulatedKey!=0)
+                if (ConsoleAbstraction.KeyAvailable || simulatedKey!=0)
                 {
                     int key;
                     if (simulatedKey != 0)
@@ -143,8 +143,8 @@ namespace ConsoleMediaPlayer
                     }
                     else
                     {
-                        var userInput = Console.ReadKey(true);
-                        key = (int)userInput.Key;
+                        var userInput = ConsoleAbstraction.ReadKey();
+                        key = (userInput is null) ? 0 : (int)userInput?.Key;
                     }
 
 
@@ -221,7 +221,7 @@ namespace ConsoleMediaPlayer
                 videoStream = _streamManager.streamsList?.FirstOrDefault(s => s.Id == _autoPlayVideo);
                 sharingStream = _streamManager.streamsList?.FirstOrDefault(s => s.Id == _autoPlaySharing);
 
-                Util.WriteGreen($"Auto play set to Audio:[{_autoPlayAudio}] - Video:[{_autoPlayVideo}] - Sharing:[{_autoPlaySharing}]. Trying to set config ...");
+                ConsoleAbstraction.WriteGreen($"Auto play set to Audio:[{_autoPlayAudio}] - Video:[{_autoPlayVideo}] - Sharing:[{_autoPlaySharing}]. Trying to set config ...");
 
                 await _streamManager.UseMainStreamAsync(Rainbow.Consts.Media.AUDIO, audioStream);
                 await _streamManager.UseMainStreamAsync(Rainbow.Consts.Media.VIDEO, videoStream);
@@ -232,10 +232,10 @@ namespace ConsoleMediaPlayer
 
                 var audios = _streamManager.GetListOfAudiosMediaUsed();
                 foreach(var audio in audios)
-                    Util.WriteGreen($"Audio Media used [{audio.Id}]");
+                    ConsoleAbstraction.WriteGreen($"Audio Media used [{audio.Id}]");
                 var videos = _streamManager.GetListOfVideosMediaUsed();
                 foreach (var video in videos)
-                    Util.WriteGreen($"Video Media used [{video.Id}]");
+                    ConsoleAbstraction.WriteGreen($"Video Media used [{video.Id}]");
             };
 
             Task.Factory.StartNew(action);
@@ -258,7 +258,7 @@ namespace ConsoleMediaPlayer
             {
                 if (_sdl2AudioOutput is not null)
                 {
-                    Util.WriteDarkYellow("Clear Sdl2AudioOutput queue");
+                    ConsoleAbstraction.WriteDarkYellow("Clear Sdl2AudioOutput queue");
                     _sdl2AudioOutput.ClearQueue();
                 }
             }
@@ -272,7 +272,7 @@ namespace ConsoleMediaPlayer
 
         private static void StreamManager_OnAudioEndOfFile(string mediaId)
         {
-            Util.WriteGreen($"Audio MediaInput Id:{mediaId} reached End of File");
+            ConsoleAbstraction.WriteGreen($"Audio MediaInput Id:{mediaId} reached End of File");
         }
 
         private static void StreamManager_OnVideoImage(string mediaId, int width, int height, int stride, nint data, AVPixelFormat pixelFormat)
@@ -298,7 +298,7 @@ namespace ConsoleMediaPlayer
             {
                 if (isStarted)
                 {
-                    Util.WriteGray("OnVideoStateChanged - IN - Video Started");
+                    ConsoleAbstraction.WriteGray("OnVideoStateChanged - IN - Video Started");
                     _outputVideoWindow.VideoStopped = false;
 
                     Window.Create(_outputVideoWindow);
@@ -313,10 +313,10 @@ namespace ConsoleMediaPlayer
                 else
                 {
                     if (_outputVideoWindow.VideoStopped)
-                        Util.WriteGray("OnVideoStateChanged - IN");
+                        ConsoleAbstraction.WriteGray("OnVideoStateChanged - IN");
                     else
                     {
-                        Util.WriteGray("OnVideoStateChanged - IN - Video Stopped");
+                        ConsoleAbstraction.WriteGray("OnVideoStateChanged - IN - Video Stopped");
                         // remove any actions
                         //while (_actions.TryTake(out _)) { }
 
@@ -328,13 +328,13 @@ namespace ConsoleMediaPlayer
                         Window.Hide(_outputVideoWindow);
                     }
                 }
-                Util.WriteGray("OnVideoStateChanged - OUT");
+                ConsoleAbstraction.WriteGray("OnVideoStateChanged - OUT");
             }));
         }
 
         private static void StreamManager_OnVideoEndOfFile(string mediaId)
         {
-            Util.WriteGreen($"Video MediaInput Id:{mediaId} reached End of File");
+            ConsoleAbstraction.WriteGreen($"Video MediaInput Id:{mediaId} reached End of File");
         }
 
         private static void StreamManager_OnSharingImage(string mediaId, int width, int height, int stride, nint data, AVPixelFormat pixelFormat)
@@ -360,7 +360,7 @@ namespace ConsoleMediaPlayer
             {
                 if (isStarted)
                 {
-                    Util.WriteGray("OnSharingStateChanged - IN - Sharing Started");
+                    ConsoleAbstraction.WriteGray("OnSharingStateChanged - IN - Sharing Started");
                     _outputSharingWindow.VideoStopped = false;
 
                     Window.Create(_outputSharingWindow);
@@ -375,10 +375,10 @@ namespace ConsoleMediaPlayer
                 else
                 {
                     if (_outputSharingWindow.VideoStopped)
-                        Util.WriteGray("OnSharingStateChanged - IN");
+                        ConsoleAbstraction.WriteGray("OnSharingStateChanged - IN");
                     else
                     {
-                        Util.WriteGray("OnSharingStateChanged - IN - Sharing Stopped");
+                        ConsoleAbstraction.WriteGray("OnSharingStateChanged - IN - Sharing Stopped");
                         // remove any actions
                         //while (_actions.TryTake(out _)) { }
 
@@ -390,13 +390,13 @@ namespace ConsoleMediaPlayer
                         Window.Hide(_outputSharingWindow);
                     }
                 }
-                Util.WriteGray("OnSharingStateChanged - OUT");
+                ConsoleAbstraction.WriteGray("OnSharingStateChanged - OUT");
             }));
         }
 
         private static void StreamManager_OnSharingEndOfFile(string mediaId)
         {
-            Util.WriteGreen($"Sharing MediaInput Id:{mediaId} reached End of File");
+            ConsoleAbstraction.WriteGreen($"Sharing MediaInput Id:{mediaId} reached End of File");
         }
 
 #endregion StreamManager events
@@ -404,25 +404,25 @@ namespace ConsoleMediaPlayer
 #region Prompts
         static void PromptHelpMenu()
         {
-            Util.WriteGreen($"{Rainbow.Util.CR}Console Window must have the focus to use the keyboard");
-            Util.WriteYellow($"[ESC] to quit");
-            Util.WriteYellow($"[H] Help message (this one)");
-            Util.WriteYellow($"[L] Load / reload stream settings ");
-            Util.WriteYellow("");
-            Util.WriteYellow($"[F] Full screen - toggle");
-            Util.WriteYellow($"[C] Cancel /Stop current streaming");
-            Util.WriteYellow("");
-            Util.WriteYellow($"[A] Audio Ouput selection");
-            Util.WriteYellow($"[I] Input Stream selection (Audio, Video or Both)");
-            Util.WriteYellow("");
-            Util.WriteYellow($"[S] Screen management");
-            Util.WriteYellow($"[M] Microphone (Audio Input) management");
-            Util.WriteYellow($"[W] Webcam management{Rainbow.Util.CR}");
+            ConsoleAbstraction.WriteGreen($"{Rainbow.Util.CR}Console Window must have the focus to use the keyboard");
+            ConsoleAbstraction.WriteYellow($"[ESC] to quit");
+            ConsoleAbstraction.WriteYellow($"[H] Help message (this one)");
+            ConsoleAbstraction.WriteYellow($"[L] Load / reload stream settings ");
+            ConsoleAbstraction.WriteYellow("");
+            ConsoleAbstraction.WriteYellow($"[F] Full screen - toggle");
+            ConsoleAbstraction.WriteYellow($"[C] Cancel /Stop current streaming");
+            ConsoleAbstraction.WriteYellow("");
+            ConsoleAbstraction.WriteYellow($"[A] Audio Ouput selection");
+            ConsoleAbstraction.WriteYellow($"[I] Input Stream selection (Audio, Video or Both)");
+            ConsoleAbstraction.WriteYellow("");
+            ConsoleAbstraction.WriteYellow($"[S] Screen management");
+            ConsoleAbstraction.WriteYellow($"[M] Microphone (Audio Input) management");
+            ConsoleAbstraction.WriteYellow($"[W] Webcam management{Rainbow.Util.CR}");
         }
 
         static void PromptLoadStreamSettings()
         {
-            Util.WriteYellow("=> PromptLoadStreamSettings()");
+            ConsoleAbstraction.WriteYellow("=> PromptLoadStreamSettings()");
             ReadStreamsSettings();
             PromptStreamsInfo();
 
@@ -431,7 +431,7 @@ namespace ConsoleMediaPlayer
 
         static void PromptCancelStreaming()
         {
-            Util.WriteYellow("=> PromptCancelStreaming()");
+            ConsoleAbstraction.WriteYellow("=> PromptCancelStreaming()");
             var _ = StopStreams();
         }
 
@@ -445,21 +445,21 @@ namespace ConsoleMediaPlayer
                 String categoryInfo = "";
                 while (!selected)
                 {
-                    Util.WriteYellow($"{Rainbow.Util.CR}Do you want to select Stream with:");
-                    Util.WriteYellow($"\t[B] (Both) Audio AND Video");
-                    Util.WriteYellow($"\t[A] Audio");
-                    Util.WriteYellow($"\t[V] Video");
-                    Util.WriteYellow($"\t[R] Remove Stream");
-                    Util.WriteYellow($"\t[C] Cancel");
+                    ConsoleAbstraction.WriteYellow($"{Rainbow.Util.CR}Do you want to select Stream with:");
+                    ConsoleAbstraction.WriteYellow($"\t[B] (Both) Audio AND Video");
+                    ConsoleAbstraction.WriteYellow($"\t[A] Audio");
+                    ConsoleAbstraction.WriteYellow($"\t[V] Video");
+                    ConsoleAbstraction.WriteYellow($"\t[R] Remove Stream");
+                    ConsoleAbstraction.WriteYellow($"\t[C] Cancel");
 
-                    var consoleKey = Console.ReadKey(true);
-                    switch (consoleKey.Key)
+                    var consoleKey = ConsoleAbstraction.ReadKey();
+                    switch (consoleKey?.Key)
                     {
                         case ConsoleKey.A:
                             category = "audio";
                             categoryInfo = "with [audio]";
                             selected = true;
-                            Util.WriteDarkYellow($"Any with Audio selected ...");
+                            ConsoleAbstraction.WriteDarkYellow($"Any with Audio selected ...");
                             subStreams = _streamManager.streamsList.FindAll(s => s.Media.Contains("audio"));
                             break;
 
@@ -467,7 +467,7 @@ namespace ConsoleMediaPlayer
                             category = "video";
                             categoryInfo = "with [video]";
                             selected = true;
-                            Util.WriteDarkYellow($"Any with Video selected ...");
+                            ConsoleAbstraction.WriteDarkYellow($"Any with Video selected ...");
                             subStreams = _streamManager.streamsList.FindAll(s => s.Media.Contains("video") || s.Media.Contains("composition"));
                             break;
 
@@ -475,7 +475,7 @@ namespace ConsoleMediaPlayer
                             category = "audio+video";
                             categoryInfo = "with [audio+video]";
                             selected = true;
-                            Util.WriteDarkYellow($"Audio and Video selected ...");
+                            ConsoleAbstraction.WriteDarkYellow($"Audio and Video selected ...");
                             subStreams = _streamManager.streamsList.FindAll(s => s.Media == "audio+video");
                             break;
 
@@ -498,21 +498,21 @@ namespace ConsoleMediaPlayer
                             }
 
                             if (subStreams.Count > 0)
-                                Util.WriteDarkYellow($"Remove stream selected ...");
+                                ConsoleAbstraction.WriteDarkYellow($"Remove stream selected ...");
                             else
                             {
-                                Util.WriteGreen($"No stream to remove");
+                                ConsoleAbstraction.WriteGreen($"No stream to remove");
                                 return;
                             }
                             break;
 
                         case ConsoleKey.C:
-                            Util.WriteDarkYellow($"Cancelled ...");
+                            ConsoleAbstraction.WriteDarkYellow($"Cancelled ...");
                             return;
 
                         default:
                             selected = false;
-                            Util.WriteDarkYellow($"Bad key used ...");
+                            ConsoleAbstraction.WriteDarkYellow($"Bad key used ...");
                             break;
                     }
                 }
@@ -536,24 +536,24 @@ namespace ConsoleMediaPlayer
                         withNextPage = (maxIndex < count);
                         withPreviousPage = (page > 0);
 
-                        Util.WriteYellow($"{Rainbow.Util.CR}Select the stream {categoryInfo}:");
+                        ConsoleAbstraction.WriteYellow($"{Rainbow.Util.CR}Select the stream {categoryInfo}:");
                         for (index = startIndex; index < maxIndex; index++)
                         {
                             var stream = subStreams[index];
-                            Util.WriteYellow($"\t[{index - (page * 10)}] {stream}");
+                            ConsoleAbstraction.WriteYellow($"\t[{index - (page * 10)}] {stream}");
                         }
 
                         if (withPreviousPage)
-                            Util.WriteYellow($"\t[P] Previous page");
+                            ConsoleAbstraction.WriteYellow($"\t[P] Previous page");
                         if (withNextPage)
-                            Util.WriteYellow($"\t[N] Next page");
-                        Util.WriteYellow($"\t[C] Cancel");
+                            ConsoleAbstraction.WriteYellow($"\t[N] Next page");
+                        ConsoleAbstraction.WriteYellow($"\t[C] Cancel");
 
-                        var consoleKey = Console.ReadKey(true);
-                        switch (consoleKey.Key)
+                        var consoleKey = ConsoleAbstraction.ReadKey();
+                        switch (consoleKey?.Key)
                         {
                             case ConsoleKey.C:
-                                Util.WriteDarkYellow($"Cancelled ....");
+                                ConsoleAbstraction.WriteDarkYellow($"Cancelled ....");
                             return;
 
                             case ConsoleKey.N:
@@ -561,7 +561,7 @@ namespace ConsoleMediaPlayer
                                 if (withNextPage)
                                     page++;
                                 else
-                                    Util.WriteDarkYellow($"Bad key used ...");
+                                    ConsoleAbstraction.WriteDarkYellow($"Bad key used ...");
                             break;
 
                             case ConsoleKey.P:
@@ -569,13 +569,13 @@ namespace ConsoleMediaPlayer
                                 if (withPreviousPage)
                                     page--;
                                 else
-                                    Util.WriteDarkYellow($"Bad key used ...");
+                                    ConsoleAbstraction.WriteDarkYellow($"Bad key used ...");
                             break;
 
                             default:
-                                if (char.IsDigit(consoleKey.KeyChar))
+                                if (char.IsDigit( (consoleKey.Value.KeyChar) ))
                                 {
-                                    var selection = int.Parse(consoleKey.KeyChar.ToString());
+                                    var selection = int.Parse(consoleKey.Value.KeyChar.ToString());
                                     if ((selection >= 0) && (selection < maxIndex))
                                     {
                                         var stream = Stream.FromStream(subStreams[selection + (page * 10)]);
@@ -603,23 +603,23 @@ namespace ConsoleMediaPlayer
                                                 break;
 
                                             default:
-                                                Util.WriteRed($"category not managed: {category}");
+                                                ConsoleAbstraction.WriteRed($"category not managed: {category}");
                                                 break;
 
                                         }
                                         return;
                                     }
                                 }
-                                Util.WriteDarkYellow($"Bad key used ...");
+                                ConsoleAbstraction.WriteDarkYellow($"Bad key used ...");
                             break;
                         }
                     }
                 }
                 else
-                    Util.WriteRed($"No streams available");
+                    ConsoleAbstraction.WriteRed($"No streams available");
             }
             else
-                Util.WriteRed($"{Rainbow.Util.CR}No streams available");
+                ConsoleAbstraction.WriteRed($"{Rainbow.Util.CR}No streams available");
         }
 
         static void PromptManageDevice(String type)
@@ -647,14 +647,14 @@ namespace ConsoleMediaPlayer
             // Display info about devices available on this computer
             if (devices.Count > 0)
             {
-                Util.WriteBlue($"{Rainbow.Util.CR}List of [{type}] available on this computer:");
+                ConsoleAbstraction.WriteBlue($"{Rainbow.Util.CR}List of [{type}] available on this computer:");
                 int index = 1;
                 foreach (var audioInput in devices)
-                    Util.WriteBlue($"{index++} - {audioInput.Name}");
+                    ConsoleAbstraction.WriteBlue($"{index++} - {audioInput.Name}");
             }
             else
             {
-                Util.WriteBlue($"{Rainbow.Util.CR}No [{type}] available on this computer");
+                ConsoleAbstraction.WriteBlue($"{Rainbow.Util.CR}No [{type}] available on this computer");
                 return;
             }
 
@@ -662,18 +662,18 @@ namespace ConsoleMediaPlayer
             var streamAsDevice = _streamManager.streamsList?.FindAll(s => s.UriType == type);
             if (streamAsDevice?.Count > 0)
             {
-                Util.WriteBlue($"{Rainbow.Util.CR}List of streams defined as [{type}] correctly set in config file: (doesn't mean they can be really used)");
+                ConsoleAbstraction.WriteBlue($"{Rainbow.Util.CR}List of streams defined as [{type}] correctly set in config file: (doesn't mean they can be really used)");
                 int index = 1;
                 foreach (var audioInput in streamAsDevice)
-                    Util.WriteBlue($"{index++} - {audioInput}");
+                    ConsoleAbstraction.WriteBlue($"{index++} - {audioInput}");
             }
             else
-                Util.WriteBlue($"{Rainbow.Util.CR}No stream defined as [{type}] correctly set in config file");
+                ConsoleAbstraction.WriteBlue($"{Rainbow.Util.CR}No stream defined as [{type}] correctly set in config file");
 
-            Util.WriteYellow($"{Rainbow.Util.CR}Do you want to add in config file all [{type}s] available on your system ? [Y]");
-            Util.WriteRed($"Previous [{type}s] already set will be removed and the file [{_streamsFilePath}] will be totally rewritten.");
-            var consoleKey = Console.ReadKey(true);
-            if (consoleKey.Key == ConsoleKey.Y)
+            ConsoleAbstraction.WriteYellow($"{Rainbow.Util.CR}Do you want to add in config file all [{type}s] available on your system ? [Y]");
+            ConsoleAbstraction.WriteRed($"Previous [{type}s] already set will be removed and the file [{_streamsFilePath}] will be totally rewritten.");
+            var consoleKey = ConsoleAbstraction.ReadKey();
+            if (consoleKey?.Key == ConsoleKey.Y)
             {
                 _streamManager.streamsList?.RemoveAll(s => s.UriType == type);
                 int index = 1;
@@ -712,13 +712,13 @@ namespace ConsoleMediaPlayer
                 var str = jsonNode.ToString(indent: true);
                 File.WriteAllText(_streamsFilePath, str);
 
-                Util.WriteYellow($"Update done about [{type}] - file updated [{_streamsFilePath}]");
+                ConsoleAbstraction.WriteYellow($"Update done about [{type}] - file updated [{_streamsFilePath}]");
 
                 PromptStreamsInfo();
 
             }
             else
-                Util.WriteYellow($"No updates about [{type}] done");
+                ConsoleAbstraction.WriteYellow($"No updates about [{type}] done");
         }
 
         static void PromptManageWebcam() => PromptManageDevice("webcam");
@@ -734,28 +734,28 @@ namespace ConsoleMediaPlayer
             int index = 0;
             if (audioOutputDevices?.Count > 0)
             {
-                Util.WriteYellow($"{Rainbow.Util.CR}Select an Audio output device:");
+                ConsoleAbstraction.WriteYellow($"{Rainbow.Util.CR}Select an Audio output device:");
                 foreach (var audioOutputDevice in audioOutputDevices)
                 {
                     if(_audioOutputDevice?.Name == audioOutputDevice?.Name)
-                        Util.WriteBlue($"\t[{index}] {audioOutputDevice?.Name} (CURRENT SELECTION)");
+                        ConsoleAbstraction.WriteBlue($"\t[{index}] {audioOutputDevice?.Name} (CURRENT SELECTION)");
                     else
-                        Util.WriteYellow($"\t[{index}] {audioOutputDevice?.Name}");
+                        ConsoleAbstraction.WriteYellow($"\t[{index}] {audioOutputDevice?.Name}");
                     index++;
                 }
                 if (_audioOutputDevice is null)
-                    Util.WriteBlue("\t[N] - No audio output (CURRENT SELECTION)");
+                    ConsoleAbstraction.WriteBlue("\t[N] - No audio output (CURRENT SELECTION)");
                 else
-                    Util.WriteYellow("\t[N] - No audio output");
-                Util.WriteYellow("\t[C] - Cancel");
+                    ConsoleAbstraction.WriteYellow("\t[N] - No audio output");
+                ConsoleAbstraction.WriteYellow("\t[C] - Cancel");
 
                 var audioOutputUpdated = false;
                 var selected = false;
 
-                var consoleKey = Console.ReadKey(true);
-                if (char.IsDigit(consoleKey.KeyChar))
+                var consoleKey = ConsoleAbstraction.ReadKey();
+                if (consoleKey.HasValue && char.IsDigit(consoleKey.Value.KeyChar))
                 {
-                    var selection = int.Parse(consoleKey.KeyChar.ToString());
+                    var selection = int.Parse(consoleKey.Value.KeyChar.ToString());
                     if ((selection >= 0) && (selection < index))
                     {
                         selected = true;
@@ -764,30 +764,30 @@ namespace ConsoleMediaPlayer
                         if (audioOutputUpdated)
                         {
                             _audioOutputDevice = audioOutputDevices[selection];
-                            Util.WriteDarkYellow($"Audio Output Device selected: {_audioOutputDevice.Name} ({_audioOutputDevice.Path})]");
+                            ConsoleAbstraction.WriteDarkYellow($"Audio Output Device selected: {_audioOutputDevice.Name} ({_audioOutputDevice.Path})]");
                         }
                         else
-                            Util.WriteDarkYellow($"Same Audio Output Device selected");
+                            ConsoleAbstraction.WriteDarkYellow($"Same Audio Output Device selected");
                     }
                     else
-                        Util.WriteDarkYellow($"Invalid key used ...");
+                        ConsoleAbstraction.WriteDarkYellow($"Invalid key used ...");
                 }
-                else if ((consoleKey.Key == ConsoleKey.N))
+                else if (consoleKey.HasValue &&  (consoleKey.Value.Key == ConsoleKey.N))
                 {
                     audioOutputUpdated = true;
                     selected = true;
 
                     _audioOutputDevice = null;
 
-                    Util.WriteDarkYellow($"No more Audio Output Device used ...");
+                    ConsoleAbstraction.WriteDarkYellow($"No more Audio Output Device used ...");
                 }
-                else if (consoleKey.Key == ConsoleKey.C)
+                else if (consoleKey.HasValue && consoleKey.Value.Key == ConsoleKey.C)
                 {
                     selected = true;
-                    Util.WriteDarkYellow($"Cancel used ...");
+                    ConsoleAbstraction.WriteDarkYellow($"Cancel used ...");
                 }
                 else
-                    Util.WriteDarkYellow($"Invalid key used ...");
+                    ConsoleAbstraction.WriteDarkYellow($"Invalid key used ...");
 
 
                 if (selected)
@@ -801,7 +801,7 @@ namespace ConsoleMediaPlayer
                             var newSdl2AudioOutput = new SDL2AudioOutput(_audioOutputDevice);
                             if ((newSdl2AudioOutput is null) || (!newSdl2AudioOutput.Init()) || (!newSdl2AudioOutput.Start()))
                             {
-                                Util.WriteRed("Audio output device cannot be init / start");
+                                ConsoleAbstraction.WriteRed("Audio output device cannot be init / start");
                                 return;
                             }
                             else
@@ -834,32 +834,32 @@ namespace ConsoleMediaPlayer
         {
             if (_streamManager.streamsList is null) return;
 
-            Util.WriteBlue($"{Rainbow.Util.CR}List of streams correctly set in config file: (doesn't mean they can be really used)");
+            ConsoleAbstraction.WriteBlue($"{Rainbow.Util.CR}List of streams correctly set in config file: (doesn't mean they can be really used)");
             int index = 1;
             foreach (var stream in _streamManager.streamsList)
             {
-                Util.WriteBlue($"{index++:00} - {stream}");
+                ConsoleAbstraction.WriteBlue($"{index++:00} - {stream}");
                 //index++;
             }
         }
 
         static void PromptTest()
         {
-            Util.WriteYellow("=> PromptTest()");
+            ConsoleAbstraction.WriteYellow("=> PromptTest()");
         }
 
 #endregion Prompts
 
         static void UpdateVideoWindowTitle()
         {
-            Util.WriteGray("UpdateVideoWindowTitle");
+            ConsoleAbstraction.WriteGray("UpdateVideoWindowTitle");
             String title = $"SDK C# v3.x - Streaming Audio:[{((_streamManager.mediaInputAudio is not null) ? _streamManager.mediaInputAudio.Name : "NONE")}] - Video:[{((_streamManager.mediaInputVideo is not null) ? $"{_streamManager.mediaInputVideo.Name} - {_streamManager.mediaInputVideo.Width}x{_streamManager.mediaInputVideo.Height}" : "NONE")}]";
             Window.UpdateTitle(_outputVideoWindow, title);
         }
 
         static void UpdateSharingWindowTitle()
         {
-            Util.WriteGray("UpdateSharingWindowTitle");
+            ConsoleAbstraction.WriteGray("UpdateSharingWindowTitle");
             String title = $"SDK C# v3.x - Streaming Audio:[{((_streamManager.mediaInputAudio is not null) ? _streamManager.mediaInputAudio.Name : "NONE")}] - Sharing:[{((_streamManager.mediaInputSharing is not null) ? $"{_streamManager.mediaInputSharing.Name} - {_streamManager.mediaInputSharing.Width}x{_streamManager.mediaInputSharing.Height}" : "NONE")}]";
             Window.UpdateTitle(_outputSharingWindow, title);
         }
@@ -871,7 +871,7 @@ namespace ConsoleMediaPlayer
             _streamsFilePath = $".{Path.DirectorySeparatorChar}config{Path.DirectorySeparatorChar}streams.json";
             if (!File.Exists(_streamsFilePath))
             {
-                Util.WriteRed($"The file '{_streamsFilePath}' has not been found.");
+                ConsoleAbstraction.WriteRed($"The file '{_streamsFilePath}' has not been found.");
                 return false;
             }
 
@@ -880,7 +880,7 @@ namespace ConsoleMediaPlayer
 
             if ((jsonNode is null) || (!jsonNode.IsObject))
             {
-                Util.WriteRed($"Cannot get JSON data from file '{_streamsFilePath}'.");
+                ConsoleAbstraction.WriteRed($"Cannot get JSON data from file '{_streamsFilePath}'.");
                 return false;
             }
 
@@ -914,13 +914,13 @@ namespace ConsoleMediaPlayer
 
                 if (_streamManager.streamsList.Count == 0)
                 {
-                    Util.WriteRed($"Cannot read 'streams' object (no Stream object created) - file:'{_streamsFilePath}'.");
+                    ConsoleAbstraction.WriteRed($"Cannot read 'streams' object (no Stream object created) - file:'{_streamsFilePath}'.");
                     return false;
                 }
             }
             else
             {
-                Util.WriteRed($"Cannot read 'streams' object OR invalid/missing data - file:'{_streamsFilePath}'.");
+                ConsoleAbstraction.WriteRed($"Cannot read 'streams' object OR invalid/missing data - file:'{_streamsFilePath}'.");
                 return false;
             }
 
@@ -935,7 +935,7 @@ namespace ConsoleMediaPlayer
             String exeSettingsFilePath = $".{Path.DirectorySeparatorChar}config{Path.DirectorySeparatorChar}exeSettings.json";
             if (!File.Exists(exeSettingsFilePath))
             {
-                Util.WriteRed($"The file '{exeSettingsFilePath}' has not been found.");
+                ConsoleAbstraction.WriteRed($"The file '{exeSettingsFilePath}' has not been found.");
                 return false;
             }
 
@@ -944,7 +944,7 @@ namespace ConsoleMediaPlayer
 
             if ((jsonNode is null) || (!jsonNode.IsObject))
             {
-                Util.WriteRed($"Cannot get JSON data from file '{exeSettingsFilePath}'.");
+                ConsoleAbstraction.WriteRed($"Cannot get JSON data from file '{exeSettingsFilePath}'.");
                 return false;
             }
 
@@ -963,7 +963,7 @@ namespace ConsoleMediaPlayer
             }
             else
             {
-                Util.WriteRed($"Cannot read 'exeSettings' object OR invalid/missing data - file:'{exeSettingsFilePath}'.");
+                ConsoleAbstraction.WriteRed($"Cannot read 'exeSettings' object OR invalid/missing data - file:'{exeSettingsFilePath}'.");
                 return false;
             }
 
@@ -988,7 +988,7 @@ namespace ConsoleMediaPlayer
         static void FocusConsoleWindow()
         {
             if(consoleHandle == IntPtr.Zero)
-                consoleHandle = FindWindowByCaption(IntPtr.Zero, Console.Title);
+                consoleHandle = FindWindowByCaption(IntPtr.Zero, ConsoleAbstraction.Title);
 
             FocusWindow(consoleHandle);
         }

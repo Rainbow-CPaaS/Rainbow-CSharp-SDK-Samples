@@ -34,18 +34,23 @@ internal class RainbowAdminBot
 
         NLogConfigurator.AddLogger(rainbowAccount.Prefix);
 
+        // Set restrictions
+        Restrictions restrictions = new(true)
+        {
+            EventMode = SdkEventMode.NONE, // We don't need event mode
+
+            LogRestRequest = true,
+            LogEvent = true,
+            LogEventParameters = true,
+            LogEventRaised = true,
+        };
+
         _rbApplication = new Rainbow.Application(
                 iniFolderFullPathName: rainbowAccount.IniFolderPath,
                 iniFileName: rainbowAccount.Prefix + "file.ini",
-                loggerPrefix: rainbowAccount.Prefix);
-
-        // Set restrictions
-        _rbApplication.Restrictions.LogRestRequest = true;
-        _rbApplication.Restrictions.LogRestRequestOnError = true;
-        _rbApplication.Restrictions.LogEvent = true;
-        _rbApplication.Restrictions.LogEventRaised = true;
-        _rbApplication.Restrictions.EventMode = SdkEventMode.NONE; // We don't need event mode
-
+                loggerPrefix: rainbowAccount.Prefix,
+                restrictions: restrictions);
+                
         // Get services
         _rbAutoReconnection = _rbApplication.GetAutoReconnection();
         _rbAdministration = _rbApplication.GetAdministration();
@@ -93,7 +98,7 @@ internal class RainbowAdminBot
         if (specificHeaders?.Count > 0)
             httpRequestDescriptor.AddHeaders(specificHeaders);
 
-        return await httpClient.RequestAsStringAsync(httpRequestDescriptor);
+        return await httpClient.RequestAsStringAsync(httpRequestDescriptor, default);
     }
 
     private async void RbApplication_AuthenticationFailed(SdkError sdkError)

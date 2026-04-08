@@ -287,21 +287,27 @@ namespace BotRAG.Model
                     Boolean canContinue = true;
 
                     int messagesCount = 0;
+
+                    Message? lastMessage = null;
                     while (canContinue && !token.IsCancellationRequested)
                     {
-                        mamSdkResult = await _rbInstantMessaging.GetOlderMessagesAsync(_bubblePeer, NB_IM_BY_ROW);
+                        mamSdkResult = await _rbInstantMessaging.GetOlderMessagesAsync(_bubblePeer, NB_IM_BY_ROW, lastMessage);
                         if (mamSdkResult.Success)
                         {
                             if (mamSdkResult.Data.Count > 0)
                             {
+                                lastMessage = mamSdkResult.Data.Last();
+
                                 // We avoid any message sent by the bot itself
                                 var messages = mamSdkResult.Data.Where(m => m.FromContact.Peer.Id != _currentContact.Peer.Id).ToList();
+                                if (messages?.Count > 0)
+                                { 
+                                    if (!_messages.Enqueue(messages, false))
+                                        StoreStatus();
 
-                                if (!_messages.Enqueue(messages, false))
-                                    StoreStatus();
-
-                                //_log.LogInformation("Cache - Add Messages:[{Nb}] - Peer:[{Peer}]", mamSdkResult.Data.Count, _bubblePeer.Jid);
-                                messagesCount += messages.Count;
+                                    //_log.LogInformation("Cache - Add Messages:[{Nb}] - Peer:[{Peer}]", mamSdkResult.Data.Count, _bubblePeer.Jid);
+                                    messagesCount += messages.Count;
+                                }
                             }
                             else
                                 canContinue = false;

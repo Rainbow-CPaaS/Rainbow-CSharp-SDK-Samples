@@ -3,7 +3,7 @@ using Rainbow;
 using Rainbow.Consts;
 using Rainbow.Example.Common;
 using Rainbow.SimpleJSON;
-using Util = Rainbow.Example.Common.Util;
+
 using Rainbow.Model;
 
 // --------------------------------------------------
@@ -19,7 +19,7 @@ if ((!ReadCredentials()) || (credentials is null))
 
 
 
-Util.WriteRed($"Account used: [{credentials.UsersConfig[0].Login}]");
+ConsoleAbstraction.WriteRed($"Account used: [{credentials.UsersConfig[0].Login}]");
 
 // --------------------------------------------------
 
@@ -40,13 +40,21 @@ NLogConfigurator.AddLogger(logPrefix);
 
 Rainbow.Util.SetLogAnonymously(false);
 
+// Set restrictions
+Restrictions restrictions = new(true)
+{
+    LogRestRequest = true,
+    LogEvent = true,
+    LogEventParameters = true,
+    LogEventRaised = true,
+};
+
 // Create Rainbow SDK objects
-var RbApplication = new Rainbow.Application(iniFolderFullPathName: logFolderPath, iniFileName: logPrefix +".ini", loggerPrefix: logPrefix);
+var RbApplication = new Rainbow.Application(iniFolderFullPathName: logFolderPath, iniFileName: logPrefix +".ini", loggerPrefix: logPrefix, restrictions: restrictions);
 var RbAutoReconnection = RbApplication.GetAutoReconnection();
 var RbContacts = RbApplication.GetContacts();
 var RbAdministration = RbApplication.GetAdministration();
 
-RbApplication.Restrictions.LogRestRequest = true;
 
 // We want to receive events from SDK
 RbApplication.AuthenticationFailed += RbApplication_AuthenticationFailed;       // Triggered when the authentication process will fail
@@ -59,12 +67,11 @@ RbAutoReconnection.MaxNbAttemptsReached += RbAutoReconnection_MaxNbAttemptsReach
 RbAutoReconnection.TokenExpired += RbAutoReconnection_TokenExpired;                 // Triggered when the Security Token is expired
 
 // Set global configuration info
-RbApplication.Restrictions.LogRestRequest = true;
 RbApplication.SetApplicationInfo(credentials.ServerConfig.AppId, credentials.ServerConfig.AppSecret);
 RbApplication.SetHostInfo(credentials.ServerConfig.HostName);
 
 // Start login
-Util.WriteWhite($"{CR}Starting login ...");
+ConsoleAbstraction.WriteWhite($"{CR}Starting login ...");
 
 // Contact / Company managed as Admin
 Contact? userManaged = null;
@@ -79,29 +86,29 @@ do
 
 void MenuDisplayInfo()
 {
-    Util.WriteYellow("");
-    Util.WriteYellow("[ESC] at anytime to quit");
-    Util.WriteYellow("[I] (Info) Display this info");
+    ConsoleAbstraction.WriteYellow("");
+    ConsoleAbstraction.WriteYellow("[ESC] at anytime to quit");
+    ConsoleAbstraction.WriteYellow("[I] (Info) Display this info");
 
-    Util.WriteYellow("");
-    Util.WriteYellow("[A] Use ApiKey as [A]dmin");
-    Util.WriteYellow("[U] Use ApiKey as [U]ser (default)");
+    ConsoleAbstraction.WriteYellow("");
+    ConsoleAbstraction.WriteYellow("[A] Use ApiKey as [A]dmin");
+    ConsoleAbstraction.WriteYellow("[U] Use ApiKey as [U]ser (default)");
 
-    Util.WriteYellow("");
-    Util.WriteYellow("[L] [L]ist ApiKey");
-    Util.WriteYellow("[C] [C]reate ApiKey");
+    ConsoleAbstraction.WriteYellow("");
+    ConsoleAbstraction.WriteYellow("[L] [L]ist ApiKey");
+    ConsoleAbstraction.WriteYellow("[C] [C]reate ApiKey");
 }
 
 async Task CheckInputKey()
 {
-    while (Console.KeyAvailable)
+    while (ConsoleAbstraction.KeyAvailable)
     {
-        var userInput = Console.ReadKey(true);
+        var userInput = ConsoleAbstraction.ReadKey();
 
-        switch (userInput.Key)
+        switch (userInput?.Key)
         {
             case ConsoleKey.Escape:
-                Util.WriteYellow($"Asked to end process using [ESC] key");
+                ConsoleAbstraction.WriteYellow($"Asked to end process using [ESC] key");
                 System.Environment.Exit(0);
                 return;
 
@@ -115,7 +122,7 @@ async Task CheckInputKey()
                         // Nothing to do here - on success, event Cancelled from AutoReconnexion is triggered
                     }
                     else
-                        Util.WriteRed($"LogoutAsync - Error:[{taskSdkResult.Result}]");
+                        ConsoleAbstraction.WriteRed($"LogoutAsync - Error:[{taskSdkResult.Result}]");
                 }
                 return;
 
@@ -151,7 +158,7 @@ async Task MenuListApiKeyAsync()
 
     ApiKey? apiKeyManaged = null;
 
-    Util.WriteDarkYellow($"{CR}Asking list of ApiKeys{((userManaged is null) ? "" : $" for Contact:[{userManaged.ToString(DetailsLevel.Small)}]")}:");
+    ConsoleAbstraction.WriteDarkYellow($"{CR}Asking list of ApiKeys{((userManaged is null) ? "" : $" for Contact:[{userManaged.ToString(DetailsLevel.Small)}]")}:");
 
     while (canContinue)
     {
@@ -171,47 +178,47 @@ async Task MenuListApiKeyAsync()
         }
         else
         {
-            Util.WriteRed($"GetApiKeysAsync - Error:[{sdkResult.Result}]");
+            ConsoleAbstraction.WriteRed($"GetApiKeysAsync - Error:[{sdkResult.Result}]");
             return;
         }
     }
 
     if (apiKeysList.Count == 0)
     {
-        Util.WriteGreen($"None ApiKeys found ...");
+        ConsoleAbstraction.WriteGreen($"None ApiKeys found ...");
         return;
     }
 
-    Util.WriteYellow($"{CR}List of ApiKeys - Total[{apiKeysList.Count}]):");
+    ConsoleAbstraction.WriteYellow($"{CR}List of ApiKeys - Total[{apiKeysList.Count}]):");
     foreach (var apiKey in apiKeysList)
     {
-        Util.WriteYellow($"\t- {Rainbow.Util.LogOnOneLine(apiKey.ToString(DetailsLevel.Medium))}");
+        ConsoleAbstraction.WriteYellow($"\t- {Rainbow.Util.LogOnOneLine(apiKey.ToString(DetailsLevel.Medium))}");
     }
 
     canContinue = true;
     while (canContinue)
     {
-        Util.WriteYellow($"{CR}Enter Id to select an ApiKey - empty string to cancel");
+        ConsoleAbstraction.WriteYellow($"{CR}Enter Id to select an ApiKey - empty string to cancel");
 
-        var str = Console.ReadLine();
+        var str = ConsoleAbstraction.ReadLine();
         if (!String.IsNullOrEmpty(str))
         {
             var result = apiKeysList.Find(apiKey => apiKey.Id.Equals(str, StringComparison.InvariantCultureIgnoreCase));
 
             if (result is null)
-                Util.WriteYellow($"No ApiKey found ...");
+                ConsoleAbstraction.WriteYellow($"No ApiKey found ...");
             else
             {
                 apiKeyManaged = result;
-                Util.WriteGreen($"ApiKey found and now managed: [{apiKeyManaged.ToString(DetailsLevel.Full)}]");
+                ConsoleAbstraction.WriteGreen($"ApiKey found and now managed: [{apiKeyManaged.ToString(DetailsLevel.Full)}]");
 
-                Util.WriteYellow($"{CR}Do you want to ");
-                Util.WriteRed($"\t [D]elete this ApiKey (can not be undone)");
-                Util.WriteYellow($"\t [U]pdate it");
-                var userInput = Console.ReadKey(true);
-                if (userInput.Key == ConsoleKey.D)
+                ConsoleAbstraction.WriteYellow($"{CR}Do you want to ");
+                ConsoleAbstraction.WriteRed($"\t [D]elete this ApiKey (can not be undone)");
+                ConsoleAbstraction.WriteYellow($"\t [U]pdate it");
+                var userInput = ConsoleAbstraction.ReadKey();
+                if (userInput?.Key == ConsoleKey.D)
                 {
-                    Util.WriteDarkYellow($"{CR}Deleting ApiKey ...");
+                    ConsoleAbstraction.WriteDarkYellow($"{CR}Deleting ApiKey ...");
 
                     SdkResult<Boolean> sdkResultBoolean;
                     if (userManaged is null)
@@ -220,19 +227,19 @@ async Task MenuListApiKeyAsync()
                         sdkResultBoolean = await RbAdministration.DeleteApiKeyAsync(apiKeyManaged);
 
                     if (sdkResultBoolean.Success)
-                        Util.WriteGreen($"ApiKey has been deleted");
+                        ConsoleAbstraction.WriteGreen($"ApiKey has been deleted");
                     else
-                        Util.WriteRed($"DeleteApiKeyAsync - Error:[{sdkResultBoolean.Result}]");
+                        ConsoleAbstraction.WriteRed($"DeleteApiKeyAsync - Error:[{sdkResultBoolean.Result}]");
                 }
-                else if (userInput.Key == ConsoleKey.U)
+                else if (userInput?.Key == ConsoleKey.U)
                     await MenuCreateOrUpdateApiKeyAsync(apiKeyManaged);
                 else
-                    Util.WriteYellow($"{CR}Bad key used ...");
+                    ConsoleAbstraction.WriteYellow($"{CR}Bad key used ...");
             }
         }
         else
         {
-            Util.WriteYellow($"Cancel search ...");
+            ConsoleAbstraction.WriteYellow($"Cancel search ...");
             canContinue = false;
         }
     }
@@ -241,7 +248,7 @@ async Task MenuListApiKeyAsync()
 async Task MenuCreateOrUpdateApiKeyAsync(ApiKey? apiKey = null)
 {
     if(apiKey is null)
-        Util.WriteGreen($"{CR}ApiKey can be created only for the current user:[{RbContacts.GetCurrentContact().ToString(DetailsLevel.Small)}]");
+        ConsoleAbstraction.WriteGreen($"{CR}ApiKey can be created only for the current user:[{RbContacts.GetCurrentContact().ToString(DetailsLevel.Small)}]");
     else
     {
         var sdkResult = await RbApplication.GetApiKeyAsync(apiKey.Id);
@@ -249,38 +256,38 @@ async Task MenuCreateOrUpdateApiKeyAsync(ApiKey? apiKey = null)
             apiKey = sdkResult.Data;
         else
         {
-            Util.WriteRed($"{CR}GetApiKeyAsync - Error[{sdkResult.Result}]");
+            ConsoleAbstraction.WriteRed($"{CR}GetApiKeyAsync - Error[{sdkResult.Result}]");
             return;
         }
     }
 
     Boolean isActive = true;
 
-    Util.WriteYellow($"{CR}Enter ApiKey description - empty string to cancel:");
-    var description = Console.ReadLine();
+    ConsoleAbstraction.WriteYellow($"{CR}Enter ApiKey description - empty string to cancel:");
+    var description = ConsoleAbstraction.ReadLine();
     if (!String.IsNullOrEmpty(description))
     {
-        Util.WriteYellow($"{CR}Enter nb days before ApiKey expiration - empty string to have no expiration");
-        var str = Console.ReadLine();
+        ConsoleAbstraction.WriteYellow($"{CR}Enter nb days before ApiKey expiration - empty string to have no expiration");
+        var str = ConsoleAbstraction.ReadLine();
         int nb = 0;
         if (!String.IsNullOrEmpty(str))
         {
             string justNumbers = new String(str.Where(Char.IsDigit).ToArray());
             nb = int.Parse(justNumbers);
-            Util.WriteDarkYellow($"Nb days specified:[{nb}]");
+            ConsoleAbstraction.WriteDarkYellow($"Nb days specified:[{nb}]");
         }
 
         if (apiKey is not null)
         {
-            Util.WriteYellow($"{CR}Do you want to set Active this ApiKey ? [Y]");
-            var consoleKey = Console.ReadKey(true);
-            isActive = consoleKey.Key == ConsoleKey.Y;
-            Util.WriteDarkYellow($"Set isActive:[{isActive}]");
+            ConsoleAbstraction.WriteYellow($"{CR}Do you want to set Active this ApiKey ? [Y]");
+            var consoleKey = ConsoleAbstraction.ReadKey();
+            isActive = consoleKey?.Key == ConsoleKey.Y;
+            ConsoleAbstraction.WriteDarkYellow($"Set isActive:[{isActive}]");
         }
 
         if (apiKey is null)
         {
-            Util.WriteDarkYellow($"{CR}Creating ApiKey ...");
+            ConsoleAbstraction.WriteDarkYellow($"{CR}Creating ApiKey ...");
             ApiKey newApiKey = new()
             {
                 Description = description,
@@ -291,14 +298,14 @@ async Task MenuCreateOrUpdateApiKeyAsync(ApiKey? apiKey = null)
             if (sdkResult.Success)
             {
                 var apiKeyCreated = sdkResult.Data;
-                Util.WriteYellow($"{CR}ApiKey created:[{apiKeyCreated.ToString(DetailsLevel.Full)}");
+                ConsoleAbstraction.WriteYellow($"{CR}ApiKey created:[{apiKeyCreated.ToString(DetailsLevel.Full)}");
             }
             else
-                Util.WriteRed($"{CR}CreateApiKeyAsync - Error:[{sdkResult.Result}");
+                ConsoleAbstraction.WriteRed($"{CR}CreateApiKeyAsync - Error:[{sdkResult.Result}");
         }
         else
         {
-            Util.WriteDarkYellow($"{CR}Updatign ApiKey ...");
+            ConsoleAbstraction.WriteDarkYellow($"{CR}Updatign ApiKey ...");
             ApiKey newApiKey = new()
             {
                 Id = apiKey.Id,
@@ -311,22 +318,22 @@ async Task MenuCreateOrUpdateApiKeyAsync(ApiKey? apiKey = null)
             if (sdkResult.Success)
             {
                 var apiKeyCreated = sdkResult.Data;
-                Util.WriteYellow($"{CR}ApiKey updated:[{apiKeyCreated.ToString(DetailsLevel.Full)}");
+                ConsoleAbstraction.WriteYellow($"{CR}ApiKey updated:[{apiKeyCreated.ToString(DetailsLevel.Full)}");
             }
             else
-                Util.WriteRed($"{CR}UpdateApiKeyAsync - Error:[{sdkResult.Result}");
+                ConsoleAbstraction.WriteRed($"{CR}UpdateApiKeyAsync - Error:[{sdkResult.Result}");
         }
     }
     else
     {
-        Util.WriteYellow($"Cancel ApiKey creation ...");
+        ConsoleAbstraction.WriteYellow($"Cancel ApiKey creation ...");
     }
 }
 
 async Task MenuUserApiKeyAsync()
 {
     userManaged = null;
-    Util.WriteGreen($"{CR}You are now managing ApiKey as USER");
+    ConsoleAbstraction.WriteGreen($"{CR}You are now managing ApiKey as USER");
 
     await Task.CompletedTask;
 }
@@ -334,18 +341,18 @@ async Task MenuUserApiKeyAsync()
 async Task MenuAdminApiKeyAsync()
 {
     companyManaged = RbContacts.GetCompany();
-    Util.WriteGreen($"To simplify, we use the company of the current user - Company:[{companyManaged.Name}]");
+    ConsoleAbstraction.WriteGreen($"To simplify, we use the company of the current user - Company:[{companyManaged.Name}]");
         
     await MenuListUsersAndSelectOneAsync();
 
     if (userManaged is null)
     {
-        Util.WriteRed($"{CR}No user found/selected or you don't have admin right");
+        ConsoleAbstraction.WriteRed($"{CR}No user found/selected or you don't have admin right");
         await MenuUserApiKeyAsync();
     }
     else
     {
-        Util.WriteGreen($"{CR}You are now managing ApiKey as ADMIN for Contact:[{userManaged.ToString(DetailsLevel.Small)}]");
+        ConsoleAbstraction.WriteGreen($"{CR}You are now managing ApiKey as ADMIN for Contact:[{userManaged.ToString(DetailsLevel.Small)}]");
     }
 }
 
@@ -356,7 +363,7 @@ async Task MenuListUsersAndSelectOneAsync()
     int limit = 100;
     List<Contact> usersList = [];
 
-    Util.WriteDarkYellow($"{CR}Asking list of users for Company [{companyManaged.Name}] ...");
+    ConsoleAbstraction.WriteDarkYellow($"{CR}Asking list of users for Company [{companyManaged.Name}] ...");
 
     while (canContinue)
     {
@@ -370,35 +377,35 @@ async Task MenuListUsersAndSelectOneAsync()
         }
         else
         {
-            Util.WriteRed($"GetUsersAsync - Error:[{sdkResult.Result}]");
+            ConsoleAbstraction.WriteRed($"GetUsersAsync - Error:[{sdkResult.Result}]");
             return;
         }
     }
 
     if (usersList.Count == 0)
     {
-        Util.WriteGreen($"None user ...");
+        ConsoleAbstraction.WriteGreen($"None user ...");
         return;
     }
 
-    Util.WriteYellow($"{CR}List of Users - Total[{usersList.Count}]):");
+    ConsoleAbstraction.WriteYellow($"{CR}List of Users - Total[{usersList.Count}]):");
     foreach (var contact in usersList)
     {
-        Util.WriteYellow($"\t- {Rainbow.Util.LogOnOneLine(contact.ToString(DetailsLevel.Medium))}");
+        ConsoleAbstraction.WriteYellow($"\t- {Rainbow.Util.LogOnOneLine(contact.ToString(DetailsLevel.Medium))}");
     }
 
     canContinue = true;
     while (canContinue)
     {
-        Util.WriteYellow($"{CR}Enter Id to select a user - empty string to cancel");
+        ConsoleAbstraction.WriteYellow($"{CR}Enter Id to select a user - empty string to cancel");
 
-        var str = Console.ReadLine();
+        var str = ConsoleAbstraction.ReadLine();
         if (!String.IsNullOrEmpty(str))
         {
             var result = usersList.Find(contact => contact.Peer.Id.Equals(str, StringComparison.InvariantCultureIgnoreCase));
 
             if (result is null)
-                Util.WriteYellow($"No user found ...");
+                ConsoleAbstraction.WriteYellow($"No user found ...");
             else
             {
                 canContinue = false;
@@ -407,7 +414,7 @@ async Task MenuListUsersAndSelectOneAsync()
         }
         else
         {
-            Util.WriteYellow($"Cancel user search ...");
+            ConsoleAbstraction.WriteYellow($"Cancel user search ...");
             canContinue = false;
         }
     }
@@ -418,7 +425,7 @@ void RbApplication_ConnectionStateChanged(Rainbow.Model.ConnectionState connecti
 {
     // Display the CurrentNbAttempts
     if (connectionState.Status == ConnectionStatus.Connecting)
-        Util.WriteYellow($"{CR}AutoReconnection.CurrentNbAttempts: [{RbAutoReconnection.CurrentNbAttempts}]");
+        ConsoleAbstraction.WriteYellow($"{CR}AutoReconnection.CurrentNbAttempts: [{RbAutoReconnection.CurrentNbAttempts}]");
 
     // We log connection state in the console - use differnte color according the status
     // We log connection state in the console - use differnte color according the status
@@ -426,26 +433,26 @@ void RbApplication_ConnectionStateChanged(Rainbow.Model.ConnectionState connecti
     switch (connectionState.Status)
     {
         case ConnectionStatus.Connected:
-            color = Util.BLUE;
+            color = ConsoleAbstraction.BLUE;
             break;
 
         case ConnectionStatus.Disconnected:
-            color = Util.RED;
+            color = ConsoleAbstraction.RED;
             break;
 
         case ConnectionStatus.Connecting:
         default:
-            color = Util.GREEN;
+            color = ConsoleAbstraction.GREEN;
             break;
 
     }
-    Util.WriteToConsole($"{CR}{color}Event Application.ConnectionStateChanged triggered - Connection Status: [{connectionState.Status}]");
+    ConsoleAbstraction.WriteLine($"{CR}{color}Event Application.ConnectionStateChanged triggered - Connection Status: [{connectionState.Status}]");
 
     // If we are disconnected and the AutoReconnection is stopped, nothing more wille happpen
     // So we quit the process
     if ((connectionState.Status == ConnectionStatus.Disconnected) && (!RbAutoReconnection.IsStarted))
     {
-        Util.WriteYellow($"{CR}We quit the process since AutoReconnection is stopped and we are disconnected");
+        ConsoleAbstraction.WriteYellow($"{CR}We quit the process since AutoReconnection is stopped and we are disconnected");
         System.Environment.Exit(0);
     }
 
@@ -457,28 +464,28 @@ void RbApplication_ConnectionStateChanged(Rainbow.Model.ConnectionState connecti
 void RbApplication_AuthenticationSucceeded()
 {
     // Authentication Succeeded- we display in the console the info
-    Util.WriteBlue($"{CR}Event Application.AuthenticationSucceeded triggered");
+    ConsoleAbstraction.WriteBlue($"{CR}Event Application.AuthenticationSucceeded triggered");
 }
 
 void RbApplication_AuthenticationFailed(SdkError sdkError)
 {
     // Authentication failed - we display in the console the reason
-    Util.WriteRed($"{CR}Event Application.AuthenticationFailed triggered - SdkError:{sdkError}");
+    ConsoleAbstraction.WriteRed($"{CR}Event Application.AuthenticationFailed triggered - SdkError:{sdkError}");
 }
 
 void RbAutoReconnection_TokenExpired()
 {
-    Util.WriteRed($"{CR}Event AutoReconnection.TokenExpired triggered");
+    ConsoleAbstraction.WriteRed($"{CR}Event AutoReconnection.TokenExpired triggered");
 }
 
 void RbAutoReconnection_MaxNbAttemptsReached()
 {
-    Util.WriteRed($"{CR}Event AutoReconnection.MaxNbAttemptsReached triggered");
+    ConsoleAbstraction.WriteRed($"{CR}Event AutoReconnection.MaxNbAttemptsReached triggered");
 }
 
 void RbAutoReconnection_Started()
 {
-    Util.WriteBlue($"{CR}Event AutoReconnection.Started triggered");
+    ConsoleAbstraction.WriteBlue($"{CR}Event AutoReconnection.Started triggered");
 }
 
 void RbAutoReconnection_Cancelled(SdkError sdkError)
@@ -486,15 +493,15 @@ void RbAutoReconnection_Cancelled(SdkError sdkError)
     if (sdkError.Type == Rainbow.Enums.SdkErrorType.NoError)
     {
         // The service has been cancelled/stopped voluntarily
-        Util.WriteYellow($"{CR}Event AutoReconnection.Cancelled triggered - Done using the SDK voluntarily");
+        ConsoleAbstraction.WriteYellow($"{CR}Event AutoReconnection.Cancelled triggered - Done using the SDK voluntarily");
     }
     else 
     {
         // The service has been cancelled/stopped involuntarily - display the reason
-        Util.WriteBlue($"{CR}Event AutoReconnection.Cancelled triggered - SdkError(Exception]:[{sdkError}]");
+        ConsoleAbstraction.WriteBlue($"{CR}Event AutoReconnection.Cancelled triggered - SdkError(Exception]:[{sdkError}]");
     }
 
-    Util.WriteWhite($"{CR}We quit since the AutoReconnection has been Cancelled");
+    ConsoleAbstraction.WriteWhite($"{CR}We quit since the AutoReconnection has been Cancelled");
     System.Environment.Exit(0);
 }
 
@@ -505,7 +512,7 @@ Boolean ReadExeSettings()
     String exeSettingsFilePath = $".{Path.DirectorySeparatorChar}config{Path.DirectorySeparatorChar}exeSettings.json";
     if (!File.Exists(exeSettingsFilePath))
     {
-        Util.WriteRed($"The file '{exeSettingsFilePath}' has not been found.");
+        ConsoleAbstraction.WriteRed($"The file '{exeSettingsFilePath}' has not been found.");
         return false;
     }
 
@@ -514,7 +521,7 @@ Boolean ReadExeSettings()
 
     if ((jsonNode is null) || (!jsonNode.IsObject))
     {
-        Util.WriteRed($"Cannot get JSON data from file '{exeSettingsFilePath}'.");
+        ConsoleAbstraction.WriteRed($"Cannot get JSON data from file '{exeSettingsFilePath}'.");
         return false;
     }
 
@@ -525,7 +532,7 @@ Boolean ReadExeSettings()
     }
     else
     {
-        Util.WriteRed($"Cannot read 'exeSettings' object OR invalid/missing data - file:'{exeSettingsFilePath}'.");
+        ConsoleAbstraction.WriteRed($"Cannot read 'exeSettings' object OR invalid/missing data - file:'{exeSettingsFilePath}'.");
         return false;
     }
 
@@ -537,7 +544,7 @@ Boolean ReadCredentials(string fileName = "credentials.json")
     var credentialsFilePath = $".{Path.DirectorySeparatorChar}config{Path.DirectorySeparatorChar}{fileName}";
     if (!File.Exists(credentialsFilePath))
     {
-        Util.WriteRed($"The file '{credentialsFilePath}' has not been found.");
+        ConsoleAbstraction.WriteRed($"The file '{credentialsFilePath}' has not been found.");
         return false;
     }
 
@@ -546,7 +553,7 @@ Boolean ReadCredentials(string fileName = "credentials.json")
 
     if (!Credentials.FromJsonNode(jsonNode["credentials"], out credentials))
     {
-        Util.WriteRed($"Cannot read 'credentials' object OR invalid/missing data in file:[{fileName}].");
+        ConsoleAbstraction.WriteRed($"Cannot read 'credentials' object OR invalid/missing data in file:[{fileName}].");
         return false;
     }
 

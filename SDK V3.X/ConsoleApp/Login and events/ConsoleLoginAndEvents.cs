@@ -2,7 +2,7 @@
 using Rainbow.Consts;
 
 using Rainbow.Example.Common;
-using Util = Rainbow.Example.Common.Util;
+
 using Rainbow.SimpleJSON;
 
 // --------------------------------------------------
@@ -16,7 +16,7 @@ if ((!ReadExeSettings()) || (exeSettings is null))
 if ((!ReadCredentials()) || (credentials is null))
     return;
 
-Util.WriteRed($"Account used: [{credentials.UsersConfig[0].Login}]");
+ConsoleAbstraction.WriteRed($"Account used: [{credentials.UsersConfig[0].Login}]");
 
 // --------------------------------------------------
 
@@ -50,10 +50,10 @@ RbApplication.SetApplicationInfo(credentials.ServerConfig.AppId, credentials.Ser
 RbApplication.SetHostInfo(credentials.ServerConfig.HostName);
 
 
-Util.WriteBlue($"{CR}Use [ESC] at anytime to quit\r\n");
+ConsoleAbstraction.WriteBlue($"{CR}Use [ESC] at anytime to quit\r\n");
 
 // Start login
-Util.WriteWhite("Starting login ...");
+ConsoleAbstraction.WriteWhite("Starting login ...");
 var sdkResult = await RbApplication.LoginAsync(credentials.UsersConfig[0].Login, credentials.UsersConfig[0].Password);
 
 do
@@ -64,14 +64,14 @@ do
 
 void CheckInputKey()
 {
-    while (Console.KeyAvailable)
+    while (ConsoleAbstraction.KeyAvailable)
     {
-        var userInput = Console.ReadKey(true);
+        var userInput = ConsoleAbstraction.ReadKey();
 
-        switch (userInput.Key)
+        switch (userInput?.Key)
         {
             case ConsoleKey.Escape:
-                Util.WriteYellow($"Asked to end process using [ESC] key");
+                ConsoleAbstraction.WriteYellow($"Asked to end process using [ESC] key");
                 Environment.Exit(0);
                 return;
         }
@@ -86,32 +86,32 @@ void RbApplication_ConnectionStateChanged(Rainbow.Model.ConnectionState connecti
     switch (connectionState.Status)
     {
         case ConnectionStatus.Connected:
-            color = Util.BLUE;
+            color = ConsoleAbstraction.BLUE;
             break;
 
         case ConnectionStatus.Disconnected:
-            color = Util.RED;
+            color = ConsoleAbstraction.RED;
             break;
 
         case ConnectionStatus.Connecting:
         default:
-            color = Util.GREEN;
+            color = ConsoleAbstraction.GREEN;
             break;
 
     }
-    Util.WriteToConsole($"{CR}{color}Event Application.ConnectionStateChanged triggered - Connection Status: [{connectionState.Status}]");
+    ConsoleAbstraction.WriteLine($"{CR}{color}Event Application.ConnectionStateChanged triggered - Connection Status: [{connectionState.Status}]");
 }
 
 void RbApplication_AuthenticationSucceeded()
 {
     // Authentication Succeeded- we display in the console the info
-    Util.WriteBlue($"{CR}Event Application.AuthenticationSucceeded triggered");
+    ConsoleAbstraction.WriteBlue($"{CR}Event Application.AuthenticationSucceeded triggered");
 }
 
 void RbApplication_AuthenticationFailed(SdkError sdkError)
 {
     // Authentication failed - we display in the console the reason
-    Util.WriteRed($"{CR}Event Application.AuthenticationFailed triggered - SdkError:{sdkError}");
+    ConsoleAbstraction.WriteRed($"{CR}Event Application.AuthenticationFailed triggered - SdkError:{sdkError}");
 }
 #endregion Events received from the SDK
 
@@ -120,7 +120,7 @@ Boolean ReadExeSettings()
     String exeSettingsFilePath = $".{Path.DirectorySeparatorChar}config{Path.DirectorySeparatorChar}exeSettings.json";
     if (!File.Exists(exeSettingsFilePath))
     {
-        Util.WriteRed($"The file '{exeSettingsFilePath}' has not been found.");
+        ConsoleAbstraction.WriteRed($"The file '{exeSettingsFilePath}' has not been found.");
         return false;
     }
 
@@ -129,7 +129,7 @@ Boolean ReadExeSettings()
 
     if ((jsonNode is null) || (!jsonNode.IsObject))
     {
-        Util.WriteRed($"Cannot get JSON data from file '{exeSettingsFilePath}'.");
+        ConsoleAbstraction.WriteRed($"Cannot get JSON data from file '{exeSettingsFilePath}'.");
         return false;
     }
 
@@ -140,7 +140,7 @@ Boolean ReadExeSettings()
     }
     else
     {
-        Util.WriteRed($"Cannot read 'exeSettings' object OR invalid/missing data - file:'{exeSettingsFilePath}'.");
+        ConsoleAbstraction.WriteRed($"Cannot read 'exeSettings' object OR invalid/missing data - file:'{exeSettingsFilePath}'.");
         return false;
     }
 
@@ -152,7 +152,7 @@ Boolean ReadCredentials(string fileName = "credentials.json")
     var credentialsFilePath = $".{Path.DirectorySeparatorChar}config{Path.DirectorySeparatorChar}{fileName}";
     if (!File.Exists(credentialsFilePath))
     {
-        Util.WriteRed($"The file '{credentialsFilePath}' has not been found.");
+        ConsoleAbstraction.WriteRed($"The file '{credentialsFilePath}' has not been found.");
         return false;
     }
 
@@ -161,7 +161,7 @@ Boolean ReadCredentials(string fileName = "credentials.json")
 
     if (!Credentials.FromJsonNode(jsonNode["credentials"], out credentials))
     {
-        Util.WriteRed($"Cannot read 'credentials' object OR invalid/missing data in file:[{fileName}].");
+        ConsoleAbstraction.WriteRed($"Cannot read 'credentials' object OR invalid/missing data in file:[{fileName}].");
         return false;
     }
 

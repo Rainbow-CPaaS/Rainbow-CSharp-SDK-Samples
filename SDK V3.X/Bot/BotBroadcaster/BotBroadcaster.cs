@@ -11,7 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Util = Rainbow.Example.Common.Util;
+
 
 namespace BotBroadcaster
 {
@@ -289,7 +289,7 @@ namespace BotBroadcaster
                         videoStream = _currentBotConfigurationExtended?.Streams.Values.FirstOrDefault(s => s.Id == conference.VideoStreamId);
                         sharingStream = _currentBotConfigurationExtended?.Streams.Values.FirstOrDefault(s => s.Id == conference.SharingStreamId);
 
-                        Util.WriteBlue($"[{BotName}] Conference Id:[{conference.Id}] - AudioStreamId:[{audioStream?.Id}] - VideoStreamId:[{videoStream?.Id}] - SharingStreamId:[{sharingStream?.Id}]");
+                        ConsoleAbstraction.WriteBlue($"[{BotName}] Conference Id:[{conference.Id}] - AudioStreamId:[{audioStream?.Id}] - VideoStreamId:[{videoStream?.Id}] - SharingStreamId:[{sharingStream?.Id}]");
                     }
                 }
             }
@@ -333,7 +333,7 @@ namespace BotBroadcaster
                     if (Rainbow.Util.MediasWithVideo(call.LocalMedias))
                     {
                         // We need to remove Video
-                        Util.WriteGreen($"[{BotName}] Remove Video in conf - no stream to use");
+                        ConsoleAbstraction.WriteGreen($"[{BotName}] Remove Video in conf - no stream to use");
                         sdkResultBoolean = await _rbWebRTCCommunications.RemoveVideoAsync(call.Id);
                     }
                     // TODO - Close VideoStreamTrack
@@ -346,7 +346,7 @@ namespace BotBroadcaster
                         // Check if we need to update VideoStreamTrack
                         if (videoTrackUsed?.MediaStreamTrack?.Id != _streamManager.mediaInputVideo.Id)
                         {
-                            Util.WriteGreen($"[{BotName}] Change Video in conf - Id:[{_streamManager.mediaInputVideo.Id}]");
+                            ConsoleAbstraction.WriteGreen($"[{BotName}] Change Video in conf - Id:[{_streamManager.mediaInputVideo.Id}]");
                             var videoTrack = _rbWebRTCDesktopFactory.CreateVideoTrack(_streamManager.mediaInputVideo);
 
                             sdkResultBoolean = await _rbWebRTCCommunications.ChangeVideoAsync(call.Id, videoTrack);
@@ -386,7 +386,7 @@ namespace BotBroadcaster
                     if (Rainbow.Util.MediasWithSharing(call.LocalMedias))
                     {
                         // We need to remove Video
-                        Util.WriteGreen($"[{BotName}] Remove Sharing in conf - no stream to use");
+                        ConsoleAbstraction.WriteGreen($"[{BotName}] Remove Sharing in conf - no stream to use");
                         sdkResultBoolean = await _rbWebRTCCommunications.RemoveSharingAsync(call.Id);
                     }
                     // TODO - Close VideoStreamTrack
@@ -399,7 +399,7 @@ namespace BotBroadcaster
                         // Check if we need to update VideoStreamTrack
                         if (sharingTrackUsed?.MediaStreamTrack?.Id != _streamManager.mediaInputSharing.Id)
                         {
-                            Util.WriteGreen($"[{BotName}] Change Video in conf - Id:[{_streamManager.mediaInputSharing.Id}]");
+                            ConsoleAbstraction.WriteGreen($"[{BotName}] Change Video in conf - Id:[{_streamManager.mediaInputSharing.Id}]");
                             var sharingTrack = _rbWebRTCDesktopFactory.CreateVideoTrack(_streamManager.mediaInputSharing);
 
                             sdkResultBoolean = await _rbWebRTCCommunications.ChangeVideoAsync(call.Id, sharingTrack);
@@ -495,7 +495,7 @@ namespace BotBroadcaster
                     if (!conferencesInProgress.Contains(conference.Peer.Id))
                     {
                         conferencesInProgress.Add(conference.Peer.Id);
-                        Util.WriteBlue($"[{BotName}] [ConferenceUpdated] A conference is active - Id:[{conference.Peer.Id}]");
+                        ConsoleAbstraction.WriteBlue($"[{BotName}] [ConferenceUpdated] A conference is active - Id:[{conference.Peer.Id}]");
                     }
                 }
                 else
@@ -503,7 +503,7 @@ namespace BotBroadcaster
                     if (conferencesInProgress.Contains(conference.Peer.Id))
                     {
                         conferencesInProgress.Remove(conference.Peer.Id);
-                        Util.WriteBlue($"[{BotName}] [ConferenceUpdated] A conference is NO MORE active - Id:[{conference.Peer.Id}]");
+                        ConsoleAbstraction.WriteBlue($"[{BotName}] [ConferenceUpdated] A conference is NO MORE active - Id:[{conference.Peer.Id}]");
                     }
                 }
                 CheckBroadcastConfiguration();
@@ -519,12 +519,12 @@ namespace BotBroadcaster
             {
                 if (previousCall.Equals(call, true))
                 { 
-                    Util.WriteRed("Same call update received, no changes - checking participants.");
+                    ConsoleAbstraction.WriteRed("Same call update received, no changes - checking participants.");
                     return;
                 }
                 else if (previousCall.Equals(call, false))
                 {
-                    Util.WriteRed("Same call update received, no changes - without checking participants.");
+                    ConsoleAbstraction.WriteRed("Same call update received, no changes - without checking participants.");
                     return;
                 }
             }
@@ -549,7 +549,7 @@ namespace BotBroadcaster
                 }
             }
                 
-            Util.WriteBlue($"[{BotName}] [CallUpdated] {call.ToString(Rainbow.Consts.DetailsLevel.Medium)}");
+            ConsoleAbstraction.WriteBlue($"[{BotName}] [CallUpdated] {call.ToString(Rainbow.Consts.DetailsLevel.Medium)}");
             CheckBroadcastConfiguration();
         }
 
@@ -557,10 +557,16 @@ namespace BotBroadcaster
 
 
 #region OVERRIDE METHODS OF BotBase
+
+        public override Restrictions GetRestrictions()
+        {
+            var restrictions = base.GetRestrictions();
+            restrictions.JoinMultipleConferences = true;
+            return restrictions;
+        }
+
         public override async Task ConnectedAsync()
         {
-            this.Application.Restrictions.JoinMultipleConferences = true;
-
             // Nothing to do here
             await Task.CompletedTask;
         }

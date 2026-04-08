@@ -14,17 +14,17 @@ using Rainbow.WebRTC.Desktop;
 using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
 using Stream = Rainbow.Example.Common.Stream;
-using Util = Rainbow.Example.Common.Util;
+
 
 
 // Need to set an unique title
-Console.Title = $"SDK C# - WebRTC [{Guid.NewGuid()}]";
+ConsoleAbstraction.Title = $"SDK C# - WebRTC [{Guid.NewGuid()}]";
 
 ExeSettings? exeSettings = null;
 List<Stream>? streamsList = null;
 Credentials? credentials = null;
 
-Util.WriteDarkYellow($"{Global.ProductName()} v{Global.FileVersion()}");
+ConsoleAbstraction.WriteDarkYellow($"{Global.ProductName()} v{Global.FileVersion()}");
 
 if ( (!ReadExeSettings()) || (exeSettings is null) )
     return;
@@ -37,12 +37,12 @@ if ( (!ReadCredentials()) || (credentials is null))
 
 var CR = Rainbow.Util.CR;
 
-Util.WriteRed($"Account used: [{credentials.UsersConfig[0].Login}]");
+ConsoleAbstraction.WriteRed($"Account used: [{credentials.UsersConfig[0].Login}]");
 
 // Init external libraries
-Util.WriteGreen($"Initializing external libraries ...");
+ConsoleAbstraction.WriteGreen($"Initializing external libraries ...");
 Rainbow.Medias.Helper.InitExternalLibraries(exeSettings.FfmpegLibFolderPath, true);
-Util.WriteBlue($"External libraries initialized");
+ConsoleAbstraction.WriteBlue($"External libraries initialized");
 
 // Set folder path from logs
 NLogConfigurator.Directory = exeSettings.LogFolderPath;
@@ -133,20 +133,52 @@ IntPtr windowSharingRenderer = IntPtr.Zero;
 IntPtr windowSharingTexture = IntPtr.Zero;
 
 Task RbTask = Task.CompletedTask;
+/*
+Restrictions restrictions = new()
+{
+    // Access to services:
+    UseAdministration = false,
+    UseAlerts = false,
+    UseBubbles = true,
+    UseCallsLog = false,
+    UseChannels = false,
+    UseConferences = true,
+    UseCustomerCare = false,
+    UseFavorites = false,
+    UseFileStorage = false,
+    UseGroups = false,
+    UseHubTelephony = false,
+    UseHybridTelephony = false,
+    UseInstantMessaging = false,
+    UseInvitations = true,
+    UseRPC = false,
+    UseSMS = false,
+    UseWebRTC = true,
+
+    // Options
+    AcceptBubbleInvitation = true,
+    AcceptUserInvitation = true,
+
+    // Logs
+    LogRestRequest = true,
+    LogEvent = true
+};
+*/
+
+// Set restrictions
+Rainbow.Restrictions restrictions = new(true)
+{
+    AcceptBubbleInvitation = true,
+    AcceptUserInvitation = true,
+
+    LogRestRequest = true,
+    LogEvent = true,
+    LogEventParameters = true,
+    LogEventRaised = true,
+};
 
 // Create Rainbow Application ROOT object
-var RbApplication = new Rainbow.Application(exeSettings.LogFolderPath);
-
-// Define Restrictions
-RbApplication.Restrictions.LogRestRequest = true;
-RbApplication.Restrictions.LogEvent = true;
-
-RbApplication.Restrictions.AcceptBubbleInvitation = true;
-RbApplication.Restrictions.AcceptUserInvitation = true;
-RbApplication.Restrictions.UseBubbles = true;
-RbApplication.Restrictions.UseWebRTC = true;
-RbApplication.Restrictions.UseHubTelephony = true;
-RbApplication.Restrictions.UseHybridTelephony = false;
+var RbApplication = new Rainbow.Application(exeSettings.LogFolderPath, restrictions: restrictions);
 
 // Create Rainbow SDK objects
 var RbConferences       = RbApplication.GetConferences();
@@ -174,7 +206,7 @@ catch
 
 if(RbWebRTCCommunications is null)
 {
-    Util.WriteRed("Cannot create WebRTCCommunications service ... We quit.");
+    ConsoleAbstraction.WriteRed("Cannot create WebRTCCommunications service ... We quit.");
     return;
 }
 
@@ -210,7 +242,7 @@ Rainbow.Medias.Devices.OnAudioOutputDeviceRemoved += Devices_OnAudioOutputDevice
 MenuDisplayInfo();
 
 // Start login
-Util.WriteGreen("Starting login ...");
+ConsoleAbstraction.WriteGreen("Starting login ...");
 var loginTask = RbApplication.LoginAsync(login, password); // We don't wait here since we want to quit at any time using ESC key
 
 await MainLoop();
@@ -308,7 +340,7 @@ async Task MainLoop()
 
 void CheckInputKey(int simulatedKey)
 {
-    if (Console.KeyAvailable || simulatedKey != 0)
+    if (ConsoleAbstraction.KeyAvailable || simulatedKey != 0)
     {
         int key;
         if (simulatedKey != 0)
@@ -319,8 +351,8 @@ void CheckInputKey(int simulatedKey)
         }
         else
         {
-            var userInput = Console.ReadKey(true);
-            key = (int)userInput.Key;
+            var userInput = ConsoleAbstraction.ReadKey();
+            key = userInput.HasValue ? (int)userInput.Value.Key :-1;
         }
         switch (key)
         {
@@ -377,42 +409,42 @@ void CheckInputKey(int simulatedKey)
 
 void MenuDisplayInfo()
 {
-    Util.WriteDarkYellow($"{CR}{Global.ProductName()} v{Global.FileVersion()}");
-    Util.WriteYellow("[ESC] at anytime to quit");
-    Util.WriteYellow("[I] (Info) Display this info");
+    ConsoleAbstraction.WriteDarkYellow($"{CR}{Global.ProductName()} v{Global.FileVersion()}");
+    ConsoleAbstraction.WriteYellow("[ESC] at anytime to quit");
+    ConsoleAbstraction.WriteYellow("[I] (Info) Display this info");
 
-    //Util.WriteYellow("");
-    //Util.WriteYellow("[H] (Hub Telephony)");
+    //ConsoleAbstraction.WriteYellow("");
+    //ConsoleAbstraction.WriteYellow("[H] (Hub Telephony)");
 
-    Util.WriteYellow("");
-    Util.WriteYellow("[C] (Conference) to start, join or quit a conference");
-    Util.WriteYellow("[P] (P2P) to start or hang up a WebRTC P2P call");
+    ConsoleAbstraction.WriteYellow("");
+    ConsoleAbstraction.WriteYellow("[C] (Conference) to start, join or quit a conference");
+    ConsoleAbstraction.WriteYellow("[P] (P2P) to start or hang up a WebRTC P2P call");
 
-    Util.WriteYellow("");
-    Util.WriteYellow("[A] (Audio) to manage Audio (Input / Ouput)");
-    Util.WriteYellow("[V] (Video) to manage Video");
-    Util.WriteYellow("[S] (Sharing) to manage Sharing");
-    Util.WriteYellow("[D] (DataChannel) to manage DataChannel");
+    ConsoleAbstraction.WriteYellow("");
+    ConsoleAbstraction.WriteYellow("[A] (Audio) to manage Audio (Input / Ouput)");
+    ConsoleAbstraction.WriteYellow("[V] (Video) to manage Video");
+    ConsoleAbstraction.WriteYellow("[S] (Sharing) to manage Sharing");
+    ConsoleAbstraction.WriteYellow("[D] (DataChannel) to manage DataChannel");
 
-    Util.WriteYellow("");
-    Util.WriteYellow("[M] (MediaPublication) to subscribe/unsubscribe to media publication");
+    ConsoleAbstraction.WriteYellow("");
+    ConsoleAbstraction.WriteYellow("[M] (MediaPublication) to subscribe/unsubscribe to media publication");
 
-    Util.WriteYellow("");
-    Util.WriteYellow("[L] (List) to list devices used/available and call info (conference or P2P)");
-    Util.WriteYellow("[O] (Options) to update options for RTP Audio/Video streams (very advanced tests)");
+    ConsoleAbstraction.WriteYellow("");
+    ConsoleAbstraction.WriteYellow("[L] (List) to list devices used/available and call info (conference or P2P)");
+    ConsoleAbstraction.WriteYellow("[O] (Options) to update options for RTP Audio/Video streams (very advanced tests)");
 }
 
 void MenuMediaPublications()
 {
     if (!RbTask.IsCompleted)
     {
-        Util.WriteRed("Task is already in progress");
+        ConsoleAbstraction.WriteRed("Task is already in progress");
         return;
     }
 
     if(String.IsNullOrEmpty(currentCallId))
     {
-        Util.WriteRed("currentCallId is null/empty...");
+        ConsoleAbstraction.WriteRed("currentCallId is null/empty...");
         return;
     }
     Action action = async () =>
@@ -425,8 +457,8 @@ void MenuMediaPublications()
 
             while (!selected)
             {
-                Util.WriteYellow($"Select MediaPublication to subscribe / unsubscribe:");
-                Util.WriteDarkYellow($"NOTE: For VIDEO only can one be subscribed - if any, the previous one is replaced by the new one");
+                ConsoleAbstraction.WriteYellow($"Select MediaPublication to subscribe / unsubscribe:");
+                ConsoleAbstraction.WriteDarkYellow($"NOTE: For VIDEO only can one be subscribed - if any, the previous one is replaced by the new one");
                 int index = 0;
                 foreach (var pub in publications)
                 {
@@ -434,21 +466,21 @@ void MenuMediaPublications()
 
                     if ((pub.Peer.Type == Rainbow.Consts.EntityType.DynamicFeed))
                     {
-                        Util.WriteYellow($"\t[{index++}] - {subscribeStatus} TO - Media:[DynamicFeed]");
+                        ConsoleAbstraction.WriteYellow($"\t[{index++}] - {subscribeStatus} TO - Media:[DynamicFeed]");
                     }
                     else
                     {
                         var displayname = (pub.Peer.Id == currentUserId) ? "YOURSELF" : pub.Peer.DisplayName;
-                        Util.WriteYellow($"\t[{index++}] - {subscribeStatus} TO - Media:[{Rainbow.Util.MediasToString(pub.Media)}] - Peer:[{displayname}]");
+                        ConsoleAbstraction.WriteYellow($"\t[{index++}] - {subscribeStatus} TO - Media:[{Rainbow.Util.MediasToString(pub.Media)}] - Peer:[{displayname}]");
                     }
                 }
 
 
-                Util.WriteYellow($"\t[C] - Cancel");
-                var consoleKey = Console.ReadKey(true);
-                if (char.IsDigit(consoleKey.KeyChar))
+                ConsoleAbstraction.WriteYellow($"\t[C] - Cancel");
+                var consoleKey = ConsoleAbstraction.ReadKey();
+                if (consoleKey.HasValue && char.IsDigit(consoleKey.Value.KeyChar))
                 {
-                    var selection = int.Parse(consoleKey.KeyChar.ToString());
+                    var selection = int.Parse(consoleKey.Value.KeyChar.ToString());
                     if ((selection >= 0) && (selection < index))
                     {
                         selected = true;
@@ -457,22 +489,22 @@ void MenuMediaPublications()
 
                         if ((pub.Peer.Type == Rainbow.Consts.EntityType.DynamicFeed))
                         {
-                            Util.WriteYellow($"MediaPublication selected: [DynamicFeed]");
+                            ConsoleAbstraction.WriteYellow($"MediaPublication selected: [DynamicFeed]");
                         }
                         else
                         {
                             var displayname = (pub.Peer.Id == currentUserId) ? "YOURSELF" : pub.Peer.DisplayName;
-                            Util.WriteDarkYellow($"MediaPublication selected: Media:[{Rainbow.Util.MediasToString(pub.Media)}] - Peer:[{displayname}]");
+                            ConsoleAbstraction.WriteDarkYellow($"MediaPublication selected: Media:[{Rainbow.Util.MediasToString(pub.Media)}] - Peer:[{displayname}]");
                         }
 
                         if (RbWebRTCCommunications.IsSubscribedToMediaPublication(pub))
                         {
-                            Util.WriteGreen($"Asking to unsubscribe ...");
+                            ConsoleAbstraction.WriteGreen($"Asking to unsubscribe ...");
                             var sdkResult = await RbWebRTCCommunications.UnsubscribeToMediaPublicationAsync(pub);
                             if (sdkResult.Success)
-                                Util.WriteDarkYellow("MediaPublication has been unsubscribed");
+                                ConsoleAbstraction.WriteDarkYellow("MediaPublication has been unsubscribed");
                             else
-                                Util.WriteDarkYellow($"MediaPublication has NOT been unsubscribed:{sdkResult.Result}");
+                                ConsoleAbstraction.WriteDarkYellow($"MediaPublication has NOT been unsubscribed:{sdkResult.Result}");
                         }
                         else
                         {
@@ -484,22 +516,22 @@ void MenuMediaPublications()
                             var previousMP = mediaPublicationsSubcribed?.Find(mp => (mp.Media == Media.VIDEO));// && (mp.Peer.Id != pub.Peer.Id));
                             if ((pub.Media == Media.VIDEO && previousMP is not null))
                             {
-                                Util.WriteGreen($"First asking to unsubscribe to previous Video MediaPublication ...");
+                                ConsoleAbstraction.WriteGreen($"First asking to unsubscribe to previous Video MediaPublication ...");
 
                                 var sdkResult = await RbWebRTCCommunications.UnsubscribeToMediaPublicationAsync(previousMP);
                                 if (sdkResult.Success)
                                 {
-                                    Util.WriteDarkYellow("Previous Video MediaPublication has been unsubscribed");
+                                    ConsoleAbstraction.WriteDarkYellow("Previous Video MediaPublication has been unsubscribed");
 
-                                    Util.WriteGreen($"Asking to subscribe to the new Video MediaPublication ...");
+                                    ConsoleAbstraction.WriteGreen($"Asking to subscribe to the new Video MediaPublication ...");
                                     sdkResult = await RbWebRTCCommunications.SubscribeToMediaPublicationAsync(pub, MediaSubStreamLevel.HIGH);
                                     if (sdkResult.Success)
-                                        Util.WriteDarkYellow("MediaPublication has been subscribed");
+                                        ConsoleAbstraction.WriteDarkYellow("MediaPublication has been subscribed");
                                     else
-                                        Util.WriteDarkYellow($"MediaPublication has NOT been subscribed:{sdkResult.Result}");
+                                        ConsoleAbstraction.WriteDarkYellow($"MediaPublication has NOT been subscribed:{sdkResult.Result}");
                                 }
                                 else
-                                    Util.WriteDarkYellow($"Previous Video MediaPublication has NOT been unsubscribed:{sdkResult.Result}");
+                                    ConsoleAbstraction.WriteDarkYellow($"Previous Video MediaPublication has NOT been unsubscribed:{sdkResult.Result}");
                             }
                             else
                             {
@@ -519,30 +551,30 @@ void MenuMediaPublications()
                                     }));
                                 }
 
-                                Util.WriteGreen($"Asking to subscribe ...");
+                                ConsoleAbstraction.WriteGreen($"Asking to subscribe ...");
                                 var sdkResult = await RbWebRTCCommunications.SubscribeToMediaPublicationAsync(pub, MediaSubStreamLevel.HIGH);
                                 if (sdkResult.Success)
-                                    Util.WriteDarkYellow("MediaPublication has been subscribed");
+                                    ConsoleAbstraction.WriteDarkYellow("MediaPublication has been subscribed");
                                 else
-                                    Util.WriteDarkYellow($"MediaPublication has NOT been subscribed:{sdkResult.Result}");
+                                    ConsoleAbstraction.WriteDarkYellow($"MediaPublication has NOT been subscribed:{sdkResult.Result}");
                             }
                         }
                     }
                     else
-                        Util.WriteDarkYellow($"Bad key used ...");
+                        ConsoleAbstraction.WriteDarkYellow($"Bad key used ...");
                 }
-                else if (consoleKey.Key == ConsoleKey.C)
+                else if (consoleKey.HasValue && consoleKey.Value.Key == ConsoleKey.C)
                 {
                     selected = true;
-                    Util.WriteDarkYellow($"Cancel used ...");
+                    ConsoleAbstraction.WriteDarkYellow($"Cancel used ...");
                 }
                 else
-                    Util.WriteDarkYellow($"Bad key used ...");
+                    ConsoleAbstraction.WriteDarkYellow($"Bad key used ...");
             }
         }
         else
         {
-            Util.WriteRed("No MediaPublication available");
+            ConsoleAbstraction.WriteRed("No MediaPublication available");
         }
     };
     RbTask = Task.Run(action);
@@ -552,7 +584,7 @@ void MenuP2P()
 {
     if (!RbTask.IsCompleted)
     {
-        Util.WriteRed("Task is already in progress");
+        ConsoleAbstraction.WriteRed("Task is already in progress");
         return;
     }
 
@@ -561,14 +593,14 @@ void MenuP2P()
 
         if ((currentCall != null) && (!currentCall.IsConference) && (currentCall.IsInProgress() && (currentCall.CallStatus != CallStatus.RINGING_INCOMING) ))
         {
-            Util.WriteGreen("Asking to leave P2P...");
+            ConsoleAbstraction.WriteGreen("Asking to leave P2P...");
             if (currentCall.Id != null)
             {
                 await RbWebRTCCommunications.HangUpCallAsync(currentCall.Id);
-                Util.WriteDarkYellow($"P2P has been left");
+                ConsoleAbstraction.WriteDarkYellow($"P2P has been left");
             }
             else
-                Util.WriteRed($"Cannot leave P2P - currentCallId object null");
+                ConsoleAbstraction.WriteRed($"Cannot leave P2P - currentCallId object null");
         }
         else if ((currentCall != null) && (!currentCall.IsConference) && (currentCall.CallStatus == CallStatus.RINGING_INCOMING))
         {
@@ -578,7 +610,7 @@ void MenuP2P()
         {
             if (audioTrack is null)
             {
-                Util.WriteRed("You cannot start a P2P call. You don't have created an Audio Input Track");
+                ConsoleAbstraction.WriteRed("You cannot start a P2P call. You don't have created an Audio Input Track");
                 return;
             }
 
@@ -586,12 +618,12 @@ void MenuP2P()
             while (canContinue)
             {
                 Contact? result = null;
-                Util.WriteYellow($"{Rainbow.Util.CR}Enter a text to search a User: (empty text to cancel)");
-                var str = Console.ReadLine();
+                ConsoleAbstraction.WriteYellow($"{Rainbow.Util.CR}Enter a text to search a User: (empty text to cancel)");
+                var str = ConsoleAbstraction.ReadLine();
                 if (String.IsNullOrEmpty(str))
                 {
                     canContinue = false;
-                    Util.WriteDarkYellow("Cancel search ...");
+                    ConsoleAbstraction.WriteDarkYellow("Cancel search ...");
                     break;
                 }
                 else
@@ -601,14 +633,14 @@ void MenuP2P()
                 }
 
                 if (result == null)
-                    Util.WriteDarkYellow($"No contact found with [{str}] ...");
+                    ConsoleAbstraction.WriteDarkYellow($"No contact found with [{str}] ...");
                 else
                 {
-                    Util.WriteDarkYellow($"First contact found:[{result.ToString(DetailsLevel.Small)}]");
-                    Util.WriteYellow($"Do you want to make P2P call with this contact ? [Y]");
+                    ConsoleAbstraction.WriteDarkYellow($"First contact found:[{result.ToString(DetailsLevel.Small)}]");
+                    ConsoleAbstraction.WriteYellow($"Do you want to make P2P call with this contact ? [Y]");
 
-                    var keyInfo = Console.ReadKey(true);
-                    if (keyInfo.Key == ConsoleKey.Y)
+                    var keyInfo = ConsoleAbstraction.ReadKey();
+                    if (keyInfo?.Key == ConsoleKey.Y)
                     {
                         // Set tracks used to make P2P call
                         Dictionary<int, IMediaStreamTrack?>? mediaStreamTracks = new()
@@ -618,9 +650,9 @@ void MenuP2P()
 
                         if (videoTrack is not null)
                         {
-                            Util.WriteYellow($"Do you want to add video to this P2P call ? [Y]");
-                            keyInfo = Console.ReadKey(true);
-                            if (keyInfo.Key == ConsoleKey.Y)
+                            ConsoleAbstraction.WriteYellow($"Do you want to add video to this P2P call ? [Y]");
+                            keyInfo = ConsoleAbstraction.ReadKey();
+                            if (keyInfo?.Key == ConsoleKey.Y)
                             {
                                 mediaStreamTracks.Add(Media.VIDEO, videoTrack);
                             }
@@ -629,22 +661,22 @@ void MenuP2P()
                         // We save current presence
                         var presence = RbContacts.GetPresence();
                         RbContacts.SavePresenceForRollback();
-                        Util.WriteBlue($"SavePresenceForRollback - Presence:[{presence.ToString(DetailsLevel.Small)}]");
+                        ConsoleAbstraction.WriteBlue($"SavePresenceForRollback - Presence:[{presence.ToString(DetailsLevel.Small)}]");
 
 
-                        Util.WriteGreen($"Asking to start P2P ...");
+                        ConsoleAbstraction.WriteGreen($"Asking to start P2P ...");
                         var sdkResult = await RbWebRTCCommunications.MakeCallAsync(result.Peer.Id, mediaStreamTracks);
                         if (sdkResult.Success)
                         {
-                            Util.WriteDarkYellow($"P2P call has been started");
+                            ConsoleAbstraction.WriteDarkYellow($"P2P call has been started");
                             canContinue = false;
                             break;
                         }
                         else
-                            Util.WriteRed($"Cannot make Call:[{sdkResult.Result}]");
+                            ConsoleAbstraction.WriteRed($"Cannot make Call:[{sdkResult.Result}]");
                     }
                     else
-                        Util.WriteDarkYellow("Conference not started ...");
+                        ConsoleAbstraction.WriteDarkYellow("Conference not started ...");
                 }
             }
         }
@@ -657,18 +689,18 @@ void MenuHubTelephony()
 {
     if (!RbTask.IsCompleted)
     {
-        Util.WriteRed("Task is already in progress");
+        ConsoleAbstraction.WriteRed("Task is already in progress");
         return;
     }
 
     Action action = async () =>
     {
-        //Util.WriteGreen("Registering as Hub Telephony Device ...");
+        //ConsoleAbstraction.WriteGreen("Registering as Hub Telephony Device ...");
         //var sdkResultBoolean = await RbHubTelephony.RegisterAsDeviceAsync();
         //if(sdkResultBoolean.Success)
-        //    Util.WriteBlue($"Registration Hub Telephony Device done");
+        //    ConsoleAbstraction.WriteBlue($"Registration Hub Telephony Device done");
         //else
-        //    Util.WriteRed($"Cannot register as Hub Telephony Device - Error[{sdkResultBoolean.Result}]");
+        //    ConsoleAbstraction.WriteRed($"Cannot register as Hub Telephony Device - Error[{sdkResultBoolean.Result}]");
     };
 
     RbTask = Task.Run(action);
@@ -678,7 +710,7 @@ void MenuConference()
 {
     if (!RbTask.IsCompleted)
     {
-        Util.WriteRed("Task is already in progress");
+        ConsoleAbstraction.WriteRed("Task is already in progress");
         return;
     }
 
@@ -686,25 +718,25 @@ void MenuConference()
     {
         if ( (currentCall != null) && (currentCall.IsConference) )
         {
-            Util.WriteGreen("Asking to leave conference ...");
+            ConsoleAbstraction.WriteGreen("Asking to leave conference ...");
             if (currentCall.Id != null)
             {
                 await RbWebRTCCommunications.HangUpCallAsync(currentCall.Id);
-                Util.WriteDarkYellow($"Conference has been left");
+                ConsoleAbstraction.WriteDarkYellow($"Conference has been left");
             }
             else
-                Util.WriteRed($"Cannot leave Conference - currentCallId object null");
+                ConsoleAbstraction.WriteRed($"Cannot leave Conference - currentCallId object null");
         }
         else if (conferencesInProgress.Count > 0)
         {
-            Util.WriteGreen("Asking to join conference ...");
+            ConsoleAbstraction.WriteGreen("Asking to join conference ...");
             await JoinConferenceAsync(RbConferences.GetConferenceById(conferencesInProgress[0]));
         }
         else if (currentCall == null)
         {
             if (audioTrack is null)
             {
-                Util.WriteRed("You cannot start a conference. You don't have created an Audio Input Track");
+                ConsoleAbstraction.WriteRed("You cannot start a conference. You don't have created an Audio Input Track");
                 return;
             }
 
@@ -712,12 +744,12 @@ void MenuConference()
             while (canContinue)
             {
                 Bubble? result = null;
-                Util.WriteYellow($"{Rainbow.Util.CR}Enter a text to search a Bubble: (empty text to cancel)");
-                var str = Console.ReadLine();
+                ConsoleAbstraction.WriteYellow($"{Rainbow.Util.CR}Enter a text to search a Bubble: (empty text to cancel)");
+                var str = ConsoleAbstraction.ReadLine();
                 if (String.IsNullOrEmpty(str))
                 {
                     canContinue = false;
-                    Util.WriteDarkYellow("Cancel search ...");
+                    ConsoleAbstraction.WriteDarkYellow("Cancel search ...");
                     break;
                 }
                 else
@@ -728,28 +760,28 @@ void MenuConference()
                 }
 
                 if (result == null)
-                    Util.WriteDarkYellow($"No bubble found with [{str}] ...");
+                    ConsoleAbstraction.WriteDarkYellow($"No bubble found with [{str}] ...");
                 else
                 {
-                    Util.WriteDarkYellow($"First bubble found:[{result.ToString(DetailsLevel.Small)}]");
-                    Util.WriteYellow($"Do you want to start conference in this bubble ? [Y]");
+                    ConsoleAbstraction.WriteDarkYellow($"First bubble found:[{result.ToString(DetailsLevel.Small)}]");
+                    ConsoleAbstraction.WriteYellow($"Do you want to start conference in this bubble ? [Y]");
 
-                    var keyInfo = Console.ReadKey(true);
-                    if (keyInfo.Key == ConsoleKey.Y)
+                    var keyInfo = ConsoleAbstraction.ReadKey();
+                    if (keyInfo?.Key == ConsoleKey.Y)
                     {
-                        Util.WriteGreen($"Asking to start and join conference ...");
+                        ConsoleAbstraction.WriteGreen($"Asking to start and join conference ...");
                         var sdkResult = await RbWebRTCCommunications.StartAndJoinConferenceAsync(result.Peer.Id, audioTrack);
                         if (sdkResult.Success)
                         {
-                            Util.WriteDarkYellow($"Conference has been started");
+                            ConsoleAbstraction.WriteDarkYellow($"Conference has been started");
                             canContinue = false;
                             break;
                         }
                         else
-                            Util.WriteRed($"Cannot start Conference:[{sdkResult.Result}]");
+                            ConsoleAbstraction.WriteRed($"Cannot start Conference:[{sdkResult.Result}]");
                     }
                     else
-                        Util.WriteDarkYellow("Conference not started ...");
+                        ConsoleAbstraction.WriteDarkYellow("Conference not started ...");
                 }
             }
         }
@@ -762,7 +794,7 @@ void MenuDataChannel()
 {
     if (!RbTask.IsCompleted)
     {
-        Util.WriteRed("Task is already in progress");
+        ConsoleAbstraction.WriteRed("Task is already in progress");
         return;
     }
 
@@ -772,17 +804,17 @@ void MenuDataChannel()
         {
             if (Rainbow.Util.MediasWithDataChannel(currentCall.LocalMedias))
             {
-                Util.WriteGreen("Asking to remove DataChannel ...");
+                ConsoleAbstraction.WriteGreen("Asking to remove DataChannel ...");
                 await RemoveDataChannelAsync();
             }
             else
             {
-                Util.WriteGreen("Asking to add DataChannel ...");
+                ConsoleAbstraction.WriteGreen("Asking to add DataChannel ...");
                 await AddDataChannelAsync();
             }
         }
         else
-            Util.WriteRed($"Conference is not active");
+            ConsoleAbstraction.WriteRed($"Conference is not active");
     };
     RbTask = Task.Run(action);
 }
@@ -792,7 +824,7 @@ void MenuAudioStream()
     Boolean? manageInput = null;
     if (!RbTask.IsCompleted)
     {
-        Util.WriteRed("Task is already in progress");
+        ConsoleAbstraction.WriteRed("Task is already in progress");
         return;
     }
 
@@ -801,35 +833,35 @@ void MenuAudioStream()
         var canContinue = true;
         while (canContinue)
         {
-            Util.WriteYellow("");
-            Util.WriteYellow($"Manage Audio stream:");
-            Util.WriteYellow($"\t[I] Manage Audio INPUT stream");
-            Util.WriteYellow($"\t[O] Manage Audio OUTPUT stream");
-            Util.WriteYellow($"\t[C] Cancel");
+            ConsoleAbstraction.WriteYellow("");
+            ConsoleAbstraction.WriteYellow($"Manage Audio stream:");
+            ConsoleAbstraction.WriteYellow($"\t[I] Manage Audio INPUT stream");
+            ConsoleAbstraction.WriteYellow($"\t[O] Manage Audio OUTPUT stream");
+            ConsoleAbstraction.WriteYellow($"\t[C] Cancel");
 
-            var keyInfo = Console.ReadKey(true);
-            switch (keyInfo.Key)
+            var keyInfo = ConsoleAbstraction.ReadKey();
+            switch (keyInfo?.Key)
             {
                 case ConsoleKey.I:
                     canContinue = false;
                     manageInput = true;
-                    Util.WriteDarkYellow($"Audio INPUT stream selected ...");
+                    ConsoleAbstraction.WriteDarkYellow($"Audio INPUT stream selected ...");
                     break;
 
                 case ConsoleKey.O:
                     canContinue = false;
                     manageInput = false;
-                    Util.WriteDarkYellow($"Audio OUTPUT stream selected ...");
+                    ConsoleAbstraction.WriteDarkYellow($"Audio OUTPUT stream selected ...");
                     break;
 
                 case ConsoleKey.C:
                     canContinue = false;
-                    Util.WriteDarkYellow($"Cancel used ...");
+                    ConsoleAbstraction.WriteDarkYellow($"Cancel used ...");
                     break;
 
                 default:
                     canContinue = true;
-                    Util.WriteDarkYellow($"Bad key used ...");
+                    ConsoleAbstraction.WriteDarkYellow($"Bad key used ...");
                     break;
             }
 
@@ -856,18 +888,18 @@ async Task SubMenuAudioInputStream()
             var canContinue = true;
             while (canContinue)
             {
-                Util.WriteYellow("");
+                ConsoleAbstraction.WriteYellow("");
                 if (audioTrack is not null)
                 {
                     if (useEmptyTrack)
-                        Util.WriteYellow($"A call is in progress WITH your EMPTY Audio track");
+                        ConsoleAbstraction.WriteYellow($"A call is in progress WITH your EMPTY Audio track");
                     else //if (currentAudioInput != null)
-                        Util.WriteYellow($"A call is in progress WITH your AUDIO Input: {currentAudioInput?.Name} [{currentAudioInput?.Path}]");
+                        ConsoleAbstraction.WriteYellow($"A call is in progress WITH your AUDIO Input: {currentAudioInput?.Name} [{currentAudioInput?.Path}]");
                 }
-                Util.WriteYellow("\t[S] - Select another one and use it in the call");
-                Util.WriteYellow("\t[C] - Cancel");
-                var keyInfo = Console.ReadKey(true);
-                switch (keyInfo.Key)
+                ConsoleAbstraction.WriteYellow("\t[S] - Select another one and use it in the call");
+                ConsoleAbstraction.WriteYellow("\t[C] - Cancel");
+                var keyInfo = ConsoleAbstraction.ReadKey();
+                switch (keyInfo?.Key)
                 {
                     case ConsoleKey.S:
                         canContinue = false;
@@ -876,12 +908,12 @@ async Task SubMenuAudioInputStream()
 
                     case ConsoleKey.C:
                         canContinue = false;
-                        Util.WriteDarkYellow($"Cancel used ...");
+                        ConsoleAbstraction.WriteDarkYellow($"Cancel used ...");
                         break;
 
                     default:
                         canContinue = true;
-                        Util.WriteDarkYellow($"Bad key used ...");
+                        ConsoleAbstraction.WriteDarkYellow($"Bad key used ...");
                         break;
 
                 }
@@ -892,32 +924,32 @@ async Task SubMenuAudioInputStream()
             var canContinue = true;
             while (canContinue)
             {
-                Util.WriteYellow("");
+                ConsoleAbstraction.WriteYellow("");
                 if (audioTrack is null)
-                    Util.WriteYellow($"A call is in progress:");
+                    ConsoleAbstraction.WriteYellow($"A call is in progress:");
                 else
                 {
                     if(useEmptyTrack)
-                        Util.WriteYellow($"A call is in progress WITHOUT your AUDIO INPUT: EMPTY TRACK");
+                        ConsoleAbstraction.WriteYellow($"A call is in progress WITHOUT your AUDIO INPUT: EMPTY TRACK");
                     else //if(currentAudioInput is not null)
-                        Util.WriteYellow($"A call is in progress WITHOUT your AUDIO INPUT: {currentAudioInput?.Name} [{currentAudioInput?.Path}]");
-                    Util.WriteYellow("\t[A] - Add it to the call");
+                        ConsoleAbstraction.WriteYellow($"A call is in progress WITHOUT your AUDIO INPUT: {currentAudioInput?.Name} [{currentAudioInput?.Path}]");
+                    ConsoleAbstraction.WriteYellow("\t[A] - Add it to the call");
                 }
-                Util.WriteYellow("\t[S] - Select stream and use it as AUDIO INPUT in the call");
-                Util.WriteYellow("\t[C] - Cancel");
-                var keyInfo = Console.ReadKey(true);
-                switch (keyInfo.Key)
+                ConsoleAbstraction.WriteYellow("\t[S] - Select stream and use it as AUDIO INPUT in the call");
+                ConsoleAbstraction.WriteYellow("\t[C] - Cancel");
+                var keyInfo = ConsoleAbstraction.ReadKey();
+                switch (keyInfo?.Key)
                 {
                     case ConsoleKey.A:
                         if (currentAudioInput == null)
                         {
                             canContinue = true;
-                            Util.WriteDarkYellow($"Bad key used ...");
+                            ConsoleAbstraction.WriteDarkYellow($"Bad key used ...");
                         }
                         else
                         {
                             canContinue = false;
-                            Util.WriteGreen("Asking to add AUDIO INPUT ...");
+                            ConsoleAbstraction.WriteGreen("Asking to add AUDIO INPUT ...");
                             await AddAudioInputAsync();
                         }
                         break;
@@ -925,17 +957,17 @@ async Task SubMenuAudioInputStream()
                     case ConsoleKey.S:
                         canContinue = false;
                         canSelectAudioInputDevice = true;
-                        Util.WriteDarkYellow($"Select a stream ...");
+                        ConsoleAbstraction.WriteDarkYellow($"Select a stream ...");
                         break;
 
                     case ConsoleKey.C:
                         canContinue = false;
-                        Util.WriteDarkYellow($"Cancel used ...");
+                        ConsoleAbstraction.WriteDarkYellow($"Cancel used ...");
                         break;
 
                     default:
                         canContinue = true;
-                        Util.WriteDarkYellow($"Bad key used ...");
+                        ConsoleAbstraction.WriteDarkYellow($"Bad key used ...");
                         break;
 
                 }
@@ -953,38 +985,38 @@ async Task SubMenuAudioInputStream()
     Boolean selected = false;
     while (!selected)
     {
-        Util.WriteYellow("");
+        ConsoleAbstraction.WriteYellow("");
         if (audioTrack is null)
-            Util.WriteYellow($"Current stream used has AUDIO INPUT: NONE");
+            ConsoleAbstraction.WriteYellow($"Current stream used has AUDIO INPUT: NONE");
         else
         {
             if (useEmptyTrack)
-                Util.WriteYellow($"Current stream used has AUDIO INPUT: EMPTY TRACK");
+                ConsoleAbstraction.WriteYellow($"Current stream used has AUDIO INPUT: EMPTY TRACK");
             else
-                Util.WriteYellow($"Current stream used has AUDIO INPUT: {currentAudioInput?.Name} [{currentAudioInput?.Path}]");
+                ConsoleAbstraction.WriteYellow($"Current stream used has AUDIO INPUT: {currentAudioInput?.Name} [{currentAudioInput?.Path}]");
         }
-        Util.WriteYellow($"Select stream to use has AUDIO INPUT:");
+        ConsoleAbstraction.WriteYellow($"Select stream to use has AUDIO INPUT:");
         int index = 0;
         if (audioInputDevices?.Count > 0)
         {
             foreach (var audioInput in audioInputDevices)
-                Util.WriteYellow($"\t[{index++}] - {audioInput.Name} ({audioInput.Path})");
+                ConsoleAbstraction.WriteYellow($"\t[{index++}] - {audioInput.Name} ({audioInput.Path})");
         }
 
         if(streamsList?.Count > 0)
-            Util.WriteYellow($"\t[S] - Select Audio stream");
+            ConsoleAbstraction.WriteYellow($"\t[S] - Select Audio stream");
 
-        Util.WriteYellow($"\t[E] - Use empty track");
+        ConsoleAbstraction.WriteYellow($"\t[E] - Use empty track");
 
         if (currentCall == null)
-            Util.WriteYellow($"\t[N] - No audio input");
+            ConsoleAbstraction.WriteYellow($"\t[N] - No audio input");
             
 
-        Util.WriteYellow("\t[C] - Cancel");
-        var consoleKey = Console.ReadKey(true);
-        if (char.IsDigit(consoleKey.KeyChar))
+        ConsoleAbstraction.WriteYellow("\t[C] - Cancel");
+        var consoleKey = ConsoleAbstraction.ReadKey();
+        if (consoleKey.HasValue && char.IsDigit(consoleKey.Value.KeyChar))
         {
-            var selection = int.Parse(consoleKey.KeyChar.ToString());
+            var selection = int.Parse(consoleKey.Value.KeyChar.ToString());
             if ((selection >= 0) && (selection < index))
             {
                 selected = true;
@@ -993,13 +1025,13 @@ async Task SubMenuAudioInputStream()
                 if (audioInputUpdated)
                 {
                     currentAudioInput = audioInputDevices?[selection];
-                    Util.WriteDarkYellow($"Stream used as Audio Input selected: {currentAudioInput?.Name} ({currentAudioInput?.Path})]");
+                    ConsoleAbstraction.WriteDarkYellow($"Stream used as Audio Input selected: {currentAudioInput?.Name} ({currentAudioInput?.Path})]");
                 }
                 else
-                    Util.WriteDarkYellow($"Same Stream selected");
+                    ConsoleAbstraction.WriteDarkYellow($"Same Stream selected");
             }
         }
-        else if ((consoleKey.Key == ConsoleKey.S) && (streamsList?.Count > 0))
+        else if (consoleKey.HasValue && (consoleKey.Value.Key == ConsoleKey.S) && (streamsList?.Count > 0))
         {
             var result = SelectStream("audio", audioStream, "audio");
             if (result is not null)
@@ -1011,36 +1043,36 @@ async Task SubMenuAudioInputStream()
                     audioInputUpdated = true;
                     audioStream = result;
                     currentAudioInput = new InputStreamDevice("audio_stream", "audio_stream", audioStream.Uri, withVideo: false, withAudio: true);
-                    Util.WriteDarkYellow($"Stream used as Audio Input selected: {currentAudioInput.Name} ({currentAudioInput.Path})]");
+                    ConsoleAbstraction.WriteDarkYellow($"Stream used as Audio Input selected: {currentAudioInput.Name} ({currentAudioInput.Path})]");
                 }
                 else
-                    Util.WriteDarkYellow($"Same Audio Stream selected");
+                    ConsoleAbstraction.WriteDarkYellow($"Same Audio Stream selected");
             }
         }
-        else if ( (consoleKey.Key == ConsoleKey.N) && (currentCall is null))
+        else if (consoleKey.HasValue && (consoleKey.Value.Key == ConsoleKey.N) && (currentCall is null))
         {
             audioInputUpdated = true;
             currentAudioInput = null;
             useEmptyTrack = false;
             selected = true;
-            Util.WriteDarkYellow($"No more audio input used ...");
+            ConsoleAbstraction.WriteDarkYellow($"No more audio input used ...");
         }
-        else if (consoleKey.Key == ConsoleKey.E)
+        else if (consoleKey.HasValue && consoleKey.Value.Key == ConsoleKey.E)
         {
             audioInputUpdated = true;
             currentAudioInput = null;
             useEmptyTrack = true;
             selected = true;
-            Util.WriteDarkYellow($"Use empty track ...");
+            ConsoleAbstraction.WriteDarkYellow($"Use empty track ...");
         }
 
-        else if (consoleKey.Key == ConsoleKey.C)
+        else if (consoleKey.HasValue && consoleKey.Value.Key == ConsoleKey.C)
         {
             selected = true;
-            Util.WriteDarkYellow($"Cancel used ...");
+            ConsoleAbstraction.WriteDarkYellow($"Cancel used ...");
         }
         else
-            Util.WriteDarkYellow($"Invalid key used ...");
+            ConsoleAbstraction.WriteDarkYellow($"Invalid key used ...");
     }
 
     if (audioInputUpdated)
@@ -1053,17 +1085,17 @@ async Task SubMenuAudioInputStream()
         //    //{
         //    //    if ((currentCall?.IsActive() == true) && Rainbow.Util.MediasWithAudio(currentCall.LocalMedias))
         //    //    {
-        //    //        Util.WriteGreen("Asking to remove Audio Input from conference ...");
+        //    //        ConsoleAbstraction.WriteGreen("Asking to remove Audio Input from conference ...");
         //    //        await RemoveAudioInputAsync();
         //    //    }
 
                     
         //    //}
 
-        //    Util.WriteGreen("Asking to dispose of previous Audio input track...");
+        //    ConsoleAbstraction.WriteGreen("Asking to dispose of previous Audio input track...");
         //    previousAudioTrack?.Dispose();
         //    previousAudioTrack = null;
-        //    Util.WriteDarkYellow($"Previous Audio track disposed");
+        //    ConsoleAbstraction.WriteDarkYellow($"Previous Audio track disposed");
         //}
         //else 
         {
@@ -1071,14 +1103,14 @@ async Task SubMenuAudioInputStream()
             {
                 try
                 {
-                    Util.WriteGreen("Asking to create new EMPTY Audio track...");
+                    ConsoleAbstraction.WriteGreen("Asking to create new EMPTY Audio track...");
                     audioTrack = RbWebRTCDesktopFactory.CreateEmptyAudioTrack();
 
-                    Util.WriteDarkYellow($"New Audio EMPTY track created");
+                    ConsoleAbstraction.WriteDarkYellow($"New Audio EMPTY track created");
                 }
                 catch (Exception exc)
                 {
-                    Util.WriteRed($"Cannot create EMPTY Audio track: Exception: [{exc}]");
+                    ConsoleAbstraction.WriteRed($"Cannot create EMPTY Audio track: Exception: [{exc}]");
                     audioTrack = previousAudioTrack;
                     return;
                 }
@@ -1093,14 +1125,14 @@ async Task SubMenuAudioInputStream()
                 {
                     try
                     {
-                        Util.WriteGreen("Asking to create new Audio track...");
+                        ConsoleAbstraction.WriteGreen("Asking to create new Audio track...");
                         audioTrack = RbWebRTCDesktopFactory.CreateAudioTrack(currentAudioInput);
 
-                        Util.WriteDarkYellow($"New Audio track created");
+                        ConsoleAbstraction.WriteDarkYellow($"New Audio track created");
                     }
                     catch (Exception exc)
                     {
-                        Util.WriteRed($"Cannot create Audio track: Exception: [{exc}]");
+                        ConsoleAbstraction.WriteRed($"Cannot create Audio track: Exception: [{exc}]");
                         audioTrack = previousAudioTrack;
                         return;
                     }
@@ -1114,22 +1146,22 @@ async Task SubMenuAudioInputStream()
             {
                 if (Rainbow.Util.MediasWithAudio(currentCall.LocalMedias))
                 {
-                    Util.WriteGreen("Asking to update Audio in the call ...");
+                    ConsoleAbstraction.WriteGreen("Asking to update Audio in the call ...");
                     success = await UpdateAudioInputAsync();
                 }
                 else
                 {
-                    Util.WriteGreen("Asking to add Audio in the call ...");
+                    ConsoleAbstraction.WriteGreen("Asking to add Audio in the call ...");
                     success = await AddAudioInputAsync();
                 }
             }
 
             if (success)
             {
-                Util.WriteGreen("Asking to dispose of previous Audio track...");
+                ConsoleAbstraction.WriteGreen("Asking to dispose of previous Audio track...");
                 previousAudioTrack?.Dispose();
                 previousAudioTrack = null;
-                Util.WriteDarkYellow($"Previous Audio track disposed");
+                ConsoleAbstraction.WriteDarkYellow($"Previous Audio track disposed");
             }
         }
     }
@@ -1142,24 +1174,24 @@ void SubMenuAudioOutputStream()
     Boolean selected = false;
     while (!selected)
     {
-        Util.WriteYellow("");
+        ConsoleAbstraction.WriteYellow("");
         if (currentAudioOutput != null)
-            Util.WriteYellow($"Current stream used has AUDIO OUPUT: {currentAudioOutput.Name} [{currentAudioOutput.Path}]");
-        Util.WriteYellow($"Select stream to use has AUDIO OUPUT:");
+            ConsoleAbstraction.WriteYellow($"Current stream used has AUDIO OUPUT: {currentAudioOutput.Name} [{currentAudioOutput.Path}]");
+        ConsoleAbstraction.WriteYellow($"Select stream to use has AUDIO OUPUT:");
         int index = 0;
         if (audioOutputDevices?.Count > 0)
         {
             foreach (var audioOutput in audioOutputDevices)
-                Util.WriteYellow($"\t[{index++}] - {audioOutput.Name} ({audioOutput.Path})");
+                ConsoleAbstraction.WriteYellow($"\t[{index++}] - {audioOutput.Name} ({audioOutput.Path})");
         }
 
-        Util.WriteYellow("\t[N] - No audio output");
-        Util.WriteYellow("\t[C] - Cancel");
+        ConsoleAbstraction.WriteYellow("\t[N] - No audio output");
+        ConsoleAbstraction.WriteYellow("\t[C] - Cancel");
 
-        var consoleKey = Console.ReadKey(true);
-        if (char.IsDigit(consoleKey.KeyChar))
+        var consoleKey = ConsoleAbstraction.ReadKey();
+        if (consoleKey.HasValue && char.IsDigit(consoleKey.Value.KeyChar))
         {
-            var selection = int.Parse(consoleKey.KeyChar.ToString());
+            var selection = int.Parse(consoleKey.Value.KeyChar.ToString());
             if ((selection >= 0) && (selection < index))
             {
                 selected = true;
@@ -1167,27 +1199,27 @@ void SubMenuAudioOutputStream()
                 if (audioOutputUpdated)
                 {
                     currentAudioOutput = audioOutputDevices?[selection];
-                    Util.WriteDarkYellow($"Stream used as Audio Output selected: {currentAudioOutput?.Name} ({currentAudioOutput?.Path})]");
+                    ConsoleAbstraction.WriteDarkYellow($"Stream used as Audio Output selected: {currentAudioOutput?.Name} ({currentAudioOutput?.Path})]");
                 }
                 else
-                    Util.WriteDarkYellow($"Same Stream selected");
+                    ConsoleAbstraction.WriteDarkYellow($"Same Stream selected");
             }
         }
-        else if ((consoleKey.Key == ConsoleKey.N))
+        else if (consoleKey.HasValue && (consoleKey.Value.Key == ConsoleKey.N))
         {
             audioOutputUpdated = true;
             currentAudioOutput = null;
             selected = true;
-            Util.WriteDarkYellow($"No more audio output used ...");
+            ConsoleAbstraction.WriteDarkYellow($"No more audio output used ...");
         }
 
-        else if (consoleKey.Key == ConsoleKey.C)
+        else if (consoleKey.HasValue && consoleKey.Value.Key == ConsoleKey.C)
         {
             selected = true;
-            Util.WriteDarkYellow($"Cancel used ...");
+            ConsoleAbstraction.WriteDarkYellow($"Cancel used ...");
         }
         else
-            Util.WriteDarkYellow($"Invalid key used ...");
+            ConsoleAbstraction.WriteDarkYellow($"Invalid key used ...");
     }
 
     if (audioOutputUpdated)
@@ -1229,31 +1261,31 @@ Stream? SelectStream(string media, Stream? currentStreamSelected, String context
         Boolean selected = false;
         while (!selected)
         {
-            Util.WriteYellow("");
+            ConsoleAbstraction.WriteYellow("");
             if (currentStreamSelected != null)
-                Util.WriteYellow($"Current stream used for {context}: {currentStreamSelected.Id} {((currentStreamSelected.UriType == "other") ? "" : "[" + currentStreamSelected.UriType + "] ")}({currentStreamSelected.Uri})");
+                ConsoleAbstraction.WriteYellow($"Current stream used for {context}: {currentStreamSelected.Id} {((currentStreamSelected.UriType == "other") ? "" : "[" + currentStreamSelected.UriType + "] ")}({currentStreamSelected.Uri})");
 
-            Util.WriteYellow($"Select stream to use has {context}:");
+            ConsoleAbstraction.WriteYellow($"Select stream to use has {context}:");
             int index = 0;
             foreach (var item in subList)
-                Util.WriteYellow($"\t[{index++}] - {item.Id} {((item.UriType == "other") ? "" : "[" + item.UriType + "] ")}({item.Uri})");
-            Util.WriteYellow("\t[C] - Cancel");
+                ConsoleAbstraction.WriteYellow($"\t[{index++}] - {item.Id} {((item.UriType == "other") ? "" : "[" + item.UriType + "] ")}({item.Uri})");
+            ConsoleAbstraction.WriteYellow("\t[C] - Cancel");
 
-            var consoleKey = Console.ReadKey(true);
-            if (char.IsDigit(consoleKey.KeyChar))
+            var consoleKey = ConsoleAbstraction.ReadKey();
+            if (consoleKey.HasValue && char.IsDigit(consoleKey.Value.KeyChar))
             {
-                var selection = int.Parse(consoleKey.KeyChar.ToString());
+                var selection = int.Parse(consoleKey.Value.KeyChar.ToString());
                 if ((selection >= 0) && (selection < index))
                 {
                     selected = true;
                     stream = subList[selection];
-                    //Util.WriteDarkYellow($"Stream used as {media.ToUpper()} selected: {stream.Id} {((stream.UriType == "other") ? "" : "[" + stream.UriType + "] ")}({stream.Uri})");
+                    //ConsoleAbstraction.WriteDarkYellow($"Stream used as {media.ToUpper()} selected: {stream.Id} {((stream.UriType == "other") ? "" : "[" + stream.UriType + "] ")}({stream.Uri})");
                 }
             }
-            else if (consoleKey.Key == ConsoleKey.C)
+            else if (consoleKey.HasValue && consoleKey.Value.Key == ConsoleKey.C)
             {
                 selected = true;
-                Util.WriteDarkYellow($"Cancel used ...");
+                ConsoleAbstraction.WriteDarkYellow($"Cancel used ...");
             }
         }
     }
@@ -1265,7 +1297,7 @@ void MenuVideoStream()
 {
     if (!RbTask.IsCompleted)
     {
-        Util.WriteRed("Task is already in progress");
+        ConsoleAbstraction.WriteRed("Task is already in progress");
         return;
     }
 
@@ -1279,20 +1311,20 @@ void MenuVideoStream()
                 var canContinue = true;
                 while (canContinue)
                 {
-                    Util.WriteYellow("");
+                    ConsoleAbstraction.WriteYellow("");
                     if (currentWebCam == null)
-                        Util.WriteYellow($"A call is in progress WITH your VIDEO");
+                        ConsoleAbstraction.WriteYellow($"A call is in progress WITH your VIDEO");
                     else
-                        Util.WriteYellow($"A call is in progress WITH your VIDEO: {currentWebCam.Name} [{currentWebCam.Path}]");
-                    Util.WriteYellow("\t[R] - Remove it from call");
-                    Util.WriteYellow("\t[S] - Select another one and use it in the call");
-                    Util.WriteYellow("\t[C] - Cancel");
-                    var keyInfo = Console.ReadKey(true);
-                    switch (keyInfo.Key)
+                        ConsoleAbstraction.WriteYellow($"A call is in progress WITH your VIDEO: {currentWebCam.Name} [{currentWebCam.Path}]");
+                    ConsoleAbstraction.WriteYellow("\t[R] - Remove it from call");
+                    ConsoleAbstraction.WriteYellow("\t[S] - Select another one and use it in the call");
+                    ConsoleAbstraction.WriteYellow("\t[C] - Cancel");
+                    var keyInfo = ConsoleAbstraction.ReadKey();
+                    switch (keyInfo?.Key)
                     {
                         case ConsoleKey.R:
                             canContinue = false;
-                            Util.WriteGreen("Asking to remove VIDEO ...");
+                            ConsoleAbstraction.WriteGreen("Asking to remove VIDEO ...");
                             await RemoveVideoAsync();
                             break;
 
@@ -1303,12 +1335,12 @@ void MenuVideoStream()
 
                         case ConsoleKey.C:
                             canContinue = false;
-                            Util.WriteDarkYellow($"Cancel used ...");
+                            ConsoleAbstraction.WriteDarkYellow($"Cancel used ...");
                             break;
 
                         default:
                             canContinue = true;
-                            Util.WriteDarkYellow($"Bad key used ...");
+                            ConsoleAbstraction.WriteDarkYellow($"Bad key used ...");
                             break;
 
                     }
@@ -1319,29 +1351,29 @@ void MenuVideoStream()
                 var canContinue = true;
                 while (canContinue)
                 {
-                    Util.WriteYellow("");
+                    ConsoleAbstraction.WriteYellow("");
                     if (currentWebCam == null)
-                        Util.WriteYellow($"A call is in progress:");
+                        ConsoleAbstraction.WriteYellow($"A call is in progress:");
                     else
                     {
-                        Util.WriteYellow($"A call is in progress WITHOUT your VIDEO: {currentWebCam.Name} [{currentWebCam.Path}]");
-                        Util.WriteYellow("\t[A] - Add it to the call");
+                        ConsoleAbstraction.WriteYellow($"A call is in progress WITHOUT your VIDEO: {currentWebCam.Name} [{currentWebCam.Path}]");
+                        ConsoleAbstraction.WriteYellow("\t[A] - Add it to the call");
                     }
-                    Util.WriteYellow("\t[S] - Select stream and use it as VIDEO in the call");
-                    Util.WriteYellow("\t[C] - Cancel");
-                    var keyInfo = Console.ReadKey(true);
-                    switch (keyInfo.Key)
+                    ConsoleAbstraction.WriteYellow("\t[S] - Select stream and use it as VIDEO in the call");
+                    ConsoleAbstraction.WriteYellow("\t[C] - Cancel");
+                    var keyInfo = ConsoleAbstraction.ReadKey();
+                    switch (keyInfo?.Key)
                     {
                         case ConsoleKey.A:
                             if (currentWebCam == null)
                             {
                                 canContinue = true;
-                                Util.WriteDarkYellow($"Bad key used ...");
+                                ConsoleAbstraction.WriteDarkYellow($"Bad key used ...");
                             }
                             else
                             {
                                 canContinue = false;
-                                Util.WriteGreen("Asking to add VIDEO ...");
+                                ConsoleAbstraction.WriteGreen("Asking to add VIDEO ...");
                                 await AddVideoAsync();
                             }
                             break;
@@ -1349,17 +1381,17 @@ void MenuVideoStream()
                         case ConsoleKey.S:
                             canContinue = false;
                             canSelectVideoDevice = true;
-                            Util.WriteDarkYellow($"Select a stream ...");
+                            ConsoleAbstraction.WriteDarkYellow($"Select a stream ...");
                             break;
 
                         case ConsoleKey.C:
                             canContinue = false;
-                            Util.WriteDarkYellow($"Cancel used ...");
+                            ConsoleAbstraction.WriteDarkYellow($"Cancel used ...");
                             break;
 
                         default:
                             canContinue = true;
-                            Util.WriteDarkYellow($"Bad key used ...");
+                            ConsoleAbstraction.WriteDarkYellow($"Bad key used ...");
                             break;
 
                     }
@@ -1377,26 +1409,26 @@ void MenuVideoStream()
         Boolean selected = false;
         while (!selected)
         {
-            Util.WriteYellow("");
+            ConsoleAbstraction.WriteYellow("");
             if (currentWebCam != null)
-                Util.WriteYellow($"Current stream used has Video: {currentWebCam.Name} [{currentWebCam.Path}]");
-            Util.WriteYellow($"Select stream to use has Video:");
+                ConsoleAbstraction.WriteYellow($"Current stream used has Video: {currentWebCam.Name} [{currentWebCam.Path}]");
+            ConsoleAbstraction.WriteYellow($"Select stream to use has Video:");
             int index = 0;
             if (webcamDevices?.Count > 0)
             {
                 foreach (var webcam in webcamDevices)
-                    Util.WriteYellow($"\t[{index++}] - {webcam.Name} ({webcam.Path})");
+                    ConsoleAbstraction.WriteYellow($"\t[{index++}] - {webcam.Name} ({webcam.Path})");
             }
 
             if (streamsList?.Count > 0)
-                Util.WriteYellow($"\t[S] - Select Video stream");
+                ConsoleAbstraction.WriteYellow($"\t[S] - Select Video stream");
 
-            Util.WriteYellow($"\t[N] - No video");
-            Util.WriteYellow("\t[C] - Cancel");
-            var consoleKey = Console.ReadKey(true);
-            if (char.IsDigit(consoleKey.KeyChar))
+            ConsoleAbstraction.WriteYellow($"\t[N] - No video");
+            ConsoleAbstraction.WriteYellow("\t[C] - Cancel");
+            var consoleKey = ConsoleAbstraction.ReadKey();
+            if (consoleKey.HasValue && char.IsDigit(consoleKey.Value.KeyChar))
             {
-                var selection = int.Parse(consoleKey.KeyChar.ToString());
+                var selection = int.Parse(consoleKey.Value.KeyChar.ToString());
                 if ((selection >= 0) && (selection < index))
                 {
                     selected = true;
@@ -1404,13 +1436,13 @@ void MenuVideoStream()
                     if (webcamUpdated)
                     {
                         currentWebCam = webcamDevices?[selection];
-                        Util.WriteDarkYellow($"Stream used as Video selected: {currentWebCam?.Name} ({currentWebCam?.Path})]");
+                        ConsoleAbstraction.WriteDarkYellow($"Stream used as Video selected: {currentWebCam?.Name} ({currentWebCam?.Path})]");
                     }
                     else
-                        Util.WriteDarkYellow($"Same Stream selected");
+                        ConsoleAbstraction.WriteDarkYellow($"Same Stream selected");
                 }
             }
-            else if ((consoleKey.Key == ConsoleKey.S) && (streamsList?.Count > 0))
+            else if (consoleKey.HasValue && (consoleKey.Value.Key == ConsoleKey.S) && (streamsList?.Count > 0))
             {
                 var result = SelectStream("video", videoStream, "video");
                 if (result is not null)
@@ -1422,27 +1454,27 @@ void MenuVideoStream()
                         webcamUpdated = true;
                         videoStream = result;
                         currentWebCam = new InputStreamDevice("video_stream", "video_stream", videoStream.Uri, withVideo: true, withAudio: false);
-                        Util.WriteDarkYellow($"Stream used as Video selected: {currentWebCam.Name} ({currentWebCam.Path})]");
+                        ConsoleAbstraction.WriteDarkYellow($"Stream used as Video selected: {currentWebCam.Name} ({currentWebCam.Path})]");
                     }
                     else
-                        Util.WriteDarkYellow($"Same Video Stream selected");
+                        ConsoleAbstraction.WriteDarkYellow($"Same Video Stream selected");
                 }
             }
-            else if (consoleKey.Key == ConsoleKey.N)
+            else if (consoleKey.HasValue && consoleKey.Value.Key == ConsoleKey.N)
             {
                 webcamUpdated = true;
                 currentWebCam = null;
                 videoStream = null;
                 selected = true;
-                Util.WriteDarkYellow($"No more video used ...");
+                ConsoleAbstraction.WriteDarkYellow($"No more video used ...");
             }
-            else if (consoleKey.Key == ConsoleKey.C)
+            else if (consoleKey.HasValue && consoleKey.Value.Key == ConsoleKey.C)
             {
                 selected = true;
-                Util.WriteDarkYellow($"Cancel used ...");
+                ConsoleAbstraction.WriteDarkYellow($"Cancel used ...");
             }
             else
-                Util.WriteDarkYellow($"Invalid key used ...");
+                ConsoleAbstraction.WriteDarkYellow($"Invalid key used ...");
         }
 
         if (webcamUpdated)
@@ -1453,27 +1485,27 @@ void MenuVideoStream()
             {
                 if ((currentCall?.IsActive() == true) && Rainbow.Util.MediasWithVideo(currentCall.LocalMedias))
                 {
-                    Util.WriteGreen("Asking to remove Video from call ...");
+                    ConsoleAbstraction.WriteGreen("Asking to remove Video from call ...");
                     await RemoveVideoAsync();
                 }
 
-                Util.WriteGreen("Asking to dispose of previous video track...");
+                ConsoleAbstraction.WriteGreen("Asking to dispose of previous video track...");
                 previousVideoTrack?.Dispose();
                 previousVideoTrack = null;
-                Util.WriteDarkYellow($"Previous Video track disposed");
+                ConsoleAbstraction.WriteDarkYellow($"Previous Video track disposed");
             }
             else // currentWebCam != null
             {
                 try
                 {
-                    Util.WriteGreen("Asking to create new video track...");
+                    ConsoleAbstraction.WriteGreen("Asking to create new video track...");
                     videoTrack = RbWebRTCDesktopFactory.CreateVideoTrack(currentWebCam, false);
 
-                    Util.WriteDarkYellow($"New Video track created");
+                    ConsoleAbstraction.WriteDarkYellow($"New Video track created");
                 }
                 catch (Exception exc)
                 {
-                    Util.WriteRed($"Cannot create video track: Exception: [{exc}]");
+                    ConsoleAbstraction.WriteRed($"Cannot create video track: Exception: [{exc}]");
                     videoTrack = previousVideoTrack;
                     return;
                 }
@@ -1485,22 +1517,22 @@ void MenuVideoStream()
                 {
                     if (Rainbow.Util.MediasWithVideo(currentCall.LocalMedias))
                     {
-                        Util.WriteGreen("Asking to update Video in the call ...");
+                        ConsoleAbstraction.WriteGreen("Asking to update Video in the call ...");
                         success = await UpdateVideoAsync();
                     }
                     else
                     {
-                        Util.WriteGreen("Asking to add Video in the call ...");
+                        ConsoleAbstraction.WriteGreen("Asking to add Video in the call ...");
                         success = await AddVideoAsync();
                     }
                 }
 
                 if (success)
                 {
-                    Util.WriteGreen("Asking to dispose of previous video track...");
+                    ConsoleAbstraction.WriteGreen("Asking to dispose of previous video track...");
                     previousVideoTrack?.Dispose();
                     previousVideoTrack = null;
-                    Util.WriteDarkYellow($"Previous Video track disposed");
+                    ConsoleAbstraction.WriteDarkYellow($"Previous Video track disposed");
                 }
             }
         }
@@ -1512,7 +1544,7 @@ void MenuSharingStream()
 {
     if (!RbTask.IsCompleted)
     {
-        Util.WriteRed("Task is already in progress");
+        ConsoleAbstraction.WriteRed("Task is already in progress");
         return;
     }
 
@@ -1526,20 +1558,20 @@ void MenuSharingStream()
                 var canContinue = true;
                 while (canContinue)
                 {
-                    Util.WriteYellow("");
+                    ConsoleAbstraction.WriteYellow("");
                     if (currentScreen == null)
-                        Util.WriteYellow($"A call is in progress WITH your Sharing");
+                        ConsoleAbstraction.WriteYellow($"A call is in progress WITH your Sharing");
                     else
-                        Util.WriteYellow($"A call is in progress WITH your Sharing: {currentScreen.Name} [{currentScreen.Path}]");
-                    Util.WriteYellow("\t[R] - Remove it from call");
-                    Util.WriteYellow("\t[S] - Select another one and use it in the call");
-                    Util.WriteYellow("\t[C] - Cancel");
-                    var keyInfo = Console.ReadKey(true);
-                    switch (keyInfo.Key)
+                        ConsoleAbstraction.WriteYellow($"A call is in progress WITH your Sharing: {currentScreen.Name} [{currentScreen.Path}]");
+                    ConsoleAbstraction.WriteYellow("\t[R] - Remove it from call");
+                    ConsoleAbstraction.WriteYellow("\t[S] - Select another one and use it in the call");
+                    ConsoleAbstraction.WriteYellow("\t[C] - Cancel");
+                    var keyInfo = ConsoleAbstraction.ReadKey();
+                    switch (keyInfo?.Key)
                     {
                         case ConsoleKey.R:
                             canContinue = false;
-                            Util.WriteGreen("Asking to remove Sharing ...");
+                            ConsoleAbstraction.WriteGreen("Asking to remove Sharing ...");
                             await RemoveSharingAsync();
                             break;
 
@@ -1550,12 +1582,12 @@ void MenuSharingStream()
 
                         case ConsoleKey.C:
                             canContinue = false;
-                            Util.WriteDarkYellow($"Cancel used ...");
+                            ConsoleAbstraction.WriteDarkYellow($"Cancel used ...");
                             break;
 
                         default:
                             canContinue = true;
-                            Util.WriteDarkYellow($"Bad key used ...");
+                            ConsoleAbstraction.WriteDarkYellow($"Bad key used ...");
                             break;
 
                     }
@@ -1567,33 +1599,33 @@ void MenuSharingStream()
                 var canContinue = true;
                 while (canContinue)
                 {
-                    Util.WriteYellow("");
+                    ConsoleAbstraction.WriteYellow("");
                     if (currentScreen == null)
-                        Util.WriteYellow($"A call is in progress:");
+                        ConsoleAbstraction.WriteYellow($"A call is in progress:");
                     else
                     {
-                        Util.WriteYellow($"A call is in progress WITHOUT your Sharing: {currentScreen.Name} [{currentScreen.Path}]");
-                        Util.WriteYellow("\t[A] - Add it to the call");
+                        ConsoleAbstraction.WriteYellow($"A call is in progress WITHOUT your Sharing: {currentScreen.Name} [{currentScreen.Path}]");
+                        ConsoleAbstraction.WriteYellow("\t[A] - Add it to the call");
                     }
-                    Util.WriteYellow("\t[S] - Select stream and use it as Sharing in the call");
-                    Util.WriteYellow("\t[C] - Cancel");
-                    var keyInfo = Console.ReadKey(true);
-                    switch (keyInfo.Key)
+                    ConsoleAbstraction.WriteYellow("\t[S] - Select stream and use it as Sharing in the call");
+                    ConsoleAbstraction.WriteYellow("\t[C] - Cancel");
+                    var keyInfo = ConsoleAbstraction.ReadKey();
+                    switch (keyInfo?.Key)
                     {
                         case ConsoleKey.A:
                             if (currentScreen == null)
                             {
                                 canContinue = true;
-                                Util.WriteDarkYellow($"Bad key used ...");
+                                ConsoleAbstraction.WriteDarkYellow($"Bad key used ...");
                             }
                             else
                             {
                                 canContinue = false;
                                 //if (Rainbow.Util.MediasWithSharing(currentCall.RemoteMedias))
-                                //    Util.WriteRed($"A call is in progress with already a sharing. Cannot set another one");
+                                //    ConsoleAbstraction.WriteRed($"A call is in progress with already a sharing. Cannot set another one");
                                 //else
                                 {
-                                    Util.WriteGreen("Asking to add sharing ...");
+                                    ConsoleAbstraction.WriteGreen("Asking to add sharing ...");
                                     await AddSharingAsync();
                                 }
                             }
@@ -1602,17 +1634,17 @@ void MenuSharingStream()
                         case ConsoleKey.S:
                             canContinue = false;
                             canSelectSharingDevice = true;
-                            Util.WriteDarkYellow($"Select a stream ...");
+                            ConsoleAbstraction.WriteDarkYellow($"Select a stream ...");
                             break;
 
                         case ConsoleKey.C:
                             canContinue = false;
-                            Util.WriteDarkYellow($"Cancel used ...");
+                            ConsoleAbstraction.WriteDarkYellow($"Cancel used ...");
                             break;
 
                         default:
                             canContinue = true;
-                            Util.WriteDarkYellow($"Bad key used ...");
+                            ConsoleAbstraction.WriteDarkYellow($"Bad key used ...");
                             break;
 
                     }
@@ -1630,26 +1662,26 @@ void MenuSharingStream()
         Boolean selected = false;
         while (!selected)
         {
-            Util.WriteYellow("");
+            ConsoleAbstraction.WriteYellow("");
             if (currentScreen != null)
-                Util.WriteYellow($"Current stream used has Sharing: {currentScreen.Name} [{currentScreen.Path}]");
-            Util.WriteYellow($"Select stream to use has Sharing:");
+                ConsoleAbstraction.WriteYellow($"Current stream used has Sharing: {currentScreen.Name} [{currentScreen.Path}]");
+            ConsoleAbstraction.WriteYellow($"Select stream to use has Sharing:");
             int index = 0;
             if (screenDevices?.Count > 0)
             {
                 foreach (var screen in screenDevices)
-                    Util.WriteYellow($"\t[{index++}] - {screen.Name} ({screen.Path})");
+                    ConsoleAbstraction.WriteYellow($"\t[{index++}] - {screen.Name} ({screen.Path})");
             }
 
             if (streamsList?.Count > 0)
-                Util.WriteYellow($"\t[S] - Select Sharing stream");
+                ConsoleAbstraction.WriteYellow($"\t[S] - Select Sharing stream");
 
-            Util.WriteYellow($"\t[N] - No sharing");
-            Util.WriteYellow("\t[C] - Cancel");
-            var consoleKey = Console.ReadKey(true);
-            if (char.IsDigit(consoleKey.KeyChar))
+            ConsoleAbstraction.WriteYellow($"\t[N] - No sharing");
+            ConsoleAbstraction.WriteYellow("\t[C] - Cancel");
+            var consoleKey = ConsoleAbstraction.ReadKey();
+            if (consoleKey.HasValue && char.IsDigit(consoleKey.Value.KeyChar))
             {
-                var selection = int.Parse(consoleKey.KeyChar.ToString());
+                var selection = int.Parse(consoleKey.Value.KeyChar.ToString());
                 if ((selection >= 0) && (selection < index))
                 {
                     selected = true;
@@ -1657,13 +1689,13 @@ void MenuSharingStream()
                     if (screenUpdated)
                     {
                         currentScreen = screenDevices?[selection];
-                        Util.WriteDarkYellow($"Stream used as Sharing selected: {currentScreen?.Name} ({currentScreen?.Path})]");
+                        ConsoleAbstraction.WriteDarkYellow($"Stream used as Sharing selected: {currentScreen?.Name} ({currentScreen?.Path})]");
                     }
                     else
-                        Util.WriteDarkYellow($"Same Stream selected");
+                        ConsoleAbstraction.WriteDarkYellow($"Same Stream selected");
                 }
             }
-            else if ((consoleKey.Key == ConsoleKey.S) && (streamsList?.Count > 0))
+            else if (consoleKey.HasValue && (consoleKey.Value.Key == ConsoleKey.S) && (streamsList?.Count > 0))
             {
                 var result = SelectStream("video", sharingStream, "sharing");
                 if (result is not null)
@@ -1675,26 +1707,26 @@ void MenuSharingStream()
                         screenUpdated = true;
                         sharingStream = result;
                         currentScreen = new InputStreamDevice("sharing_stream", "sharing_stream", sharingStream.Uri, withVideo: true, withAudio: false);
-                        Util.WriteDarkYellow($"Stream used as Video selected: {currentScreen.Name} ({currentScreen.Path})]");
+                        ConsoleAbstraction.WriteDarkYellow($"Stream used as Video selected: {currentScreen.Name} ({currentScreen.Path})]");
                     }
                     else
-                        Util.WriteDarkYellow($"Same Video Stream selected");
+                        ConsoleAbstraction.WriteDarkYellow($"Same Video Stream selected");
                 }
             }
-            else if (consoleKey.Key == ConsoleKey.N)
+            else if (consoleKey.HasValue && consoleKey.Value.Key == ConsoleKey.N)
             {
                 screenUpdated = true;
                 currentScreen = null;
                 selected = true;
-                Util.WriteDarkYellow($"No more sharing used ...");
+                ConsoleAbstraction.WriteDarkYellow($"No more sharing used ...");
             }
-            else if (consoleKey.Key == ConsoleKey.C)
+            else if (consoleKey.HasValue && consoleKey.Value.Key == ConsoleKey.C)
             {
                 selected = true;
-                Util.WriteDarkYellow($"Cancel used ...");
+                ConsoleAbstraction.WriteDarkYellow($"Cancel used ...");
             }
             else
-                Util.WriteDarkYellow($"Invalid key used ...");
+                ConsoleAbstraction.WriteDarkYellow($"Invalid key used ...");
         }
 
         if (screenUpdated)
@@ -1705,49 +1737,49 @@ void MenuSharingStream()
             {
                 if ((currentCall?.IsActive() == true) && Rainbow.Util.MediasWithSharing(currentCall.LocalMedias))
                 {
-                    Util.WriteGreen("Asking to remove Sharing from call ...");
+                    ConsoleAbstraction.WriteGreen("Asking to remove Sharing from call ...");
                     await RemoveSharingAsync();
                 }
 
-                Util.WriteGreen("Asking to dispose of previous Sharing track...");
+                ConsoleAbstraction.WriteGreen("Asking to dispose of previous Sharing track...");
                 previousSharingTrack?.Dispose();
                 previousSharingTrack = null;
-                Util.WriteDarkYellow($"Previous Sharing track disposed");
+                ConsoleAbstraction.WriteDarkYellow($"Previous Sharing track disposed");
             }
             else // currentScreen != null
             {
                 Boolean success = true;
                 //if ((currentCall?.IsActive() == true) && Rainbow.Util.MediasWithSharing(currentCall.RemoteMedias) && !Rainbow.Util.MediasWithSharing(currentCall.LocalMedias))
                 //{
-                //    Util.WriteRed($"A call is in progress with already a sharing. Cannot set another one");
+                //    ConsoleAbstraction.WriteRed($"A call is in progress with already a sharing. Cannot set another one");
                 //}
                 //else
                 {
                     try
                     {
-                        Util.WriteGreen("Asking to create new Sharing track...");
+                        ConsoleAbstraction.WriteGreen("Asking to create new Sharing track...");
                         sharingTrack = RbWebRTCDesktopFactory.CreateVideoTrack(currentScreen, true);
 
-                        Util.WriteDarkYellow($"New Sharing track created");
+                        ConsoleAbstraction.WriteDarkYellow($"New Sharing track created");
 
                         // Update call (if any) with this new track
                         if (currentCall?.IsActive() == true)
                         {
                             if (Rainbow.Util.MediasWithSharing(currentCall.LocalMedias))
                             {
-                                Util.WriteGreen("Asking to update sharing in the call ...");
+                                ConsoleAbstraction.WriteGreen("Asking to update sharing in the call ...");
                                 success = await UpdateSharingAsync();
                             }
                             else
                             {
-                                Util.WriteGreen("Asking to add sharing in the call ...");
+                                ConsoleAbstraction.WriteGreen("Asking to add sharing in the call ...");
                                 success = await AddSharingAsync();
                             }
                         }
                     }
                     catch (Exception exc)
                     {
-                        Util.WriteRed($"Cannot create sharing track: Exception: [{exc}]");
+                        ConsoleAbstraction.WriteRed($"Cannot create sharing track: Exception: [{exc}]");
                         sharingTrack = previousSharingTrack;
                         return;
                     }
@@ -1755,10 +1787,10 @@ void MenuSharingStream()
 
                 if (success)
                 {
-                    Util.WriteGreen("Asking to dispose of previous sharing track...");
+                    ConsoleAbstraction.WriteGreen("Asking to dispose of previous sharing track...");
                     previousSharingTrack?.Dispose();
                     previousSharingTrack = null;
-                    Util.WriteDarkYellow($"Previous sharing track disposed");
+                    ConsoleAbstraction.WriteDarkYellow($"Previous sharing track disposed");
                 }
             }
         }
@@ -1768,21 +1800,21 @@ void MenuSharingStream()
 
 void MenuListDevicesAndConferenceInfo()
 {
-    Util.WriteGreen($"{CR}Asking to list devices and call info (conference or P2P) ...");
+    ConsoleAbstraction.WriteGreen($"{CR}Asking to list devices and call info (conference or P2P) ...");
     ListUserInfo();
-    Util.WriteYellow("");
+    ConsoleAbstraction.WriteYellow("");
     ListDevicesUsed();
-    Util.WriteYellow("");
+    ConsoleAbstraction.WriteYellow("");
     DisplayConferenceInfo();
-    Util.WriteYellow("");
+    ConsoleAbstraction.WriteYellow("");
     DisplayP2PInfo();
-    Util.WriteYellow("");
+    ConsoleAbstraction.WriteYellow("");
     ListAudioInputDevices();
-    Util.WriteYellow("");
+    ConsoleAbstraction.WriteYellow("");
     ListAudioOutputDevices();
-    Util.WriteYellow("");
+    ConsoleAbstraction.WriteYellow("");
     ListScreens();
-    Util.WriteYellow("");
+    ConsoleAbstraction.WriteYellow("");
     ListWebCams();
 }
 
@@ -1801,12 +1833,12 @@ void MenuRTPStreamOptions()
                 if (audioOptions?.Count > 0)
                 {
                     RbWebRTCDesktopFactory.SetRTPAudioOptions(audioOptions);
-                    Util.WriteDarkYellow("RTP Audio Options updated");
+                    ConsoleAbstraction.WriteDarkYellow("RTP Audio Options updated");
                 }
                 else
                 {
                     RbWebRTCDesktopFactory.SetRTPAudioOptions(null);
-                    Util.WriteDarkYellow("RTP Audio Options has been reset");
+                    ConsoleAbstraction.WriteDarkYellow("RTP Audio Options has been reset");
                 }
             }
             catch
@@ -1825,12 +1857,12 @@ void MenuRTPStreamOptions()
                 if (videoOptions?.Count > 0)
                 {
                     RbWebRTCDesktopFactory.SetRTPVideoOptions(videoOptions);
-                    Util.WriteDarkYellow("RTP Video Options updated");
+                    ConsoleAbstraction.WriteDarkYellow("RTP Video Options updated");
                 }
                 else
                 {
                     RbWebRTCDesktopFactory.SetRTPVideoOptions(null);
-                    Util.WriteDarkYellow("RTP Video Options has been reset");
+                    ConsoleAbstraction.WriteDarkYellow("RTP Video Options has been reset");
                 }
             }
             catch
@@ -1845,40 +1877,40 @@ void MenuRTPStreamOptions()
 
 void DisplayP2PInfo()
 {
-    Util.WriteDarkYellow("P2P call:");
+    ConsoleAbstraction.WriteDarkYellow("P2P call:");
     if ( (currentCall?.IsActive() == true) && (!currentCall.IsConference))
     {
-        Util.WriteYellow($"\t{currentCall}");
+        ConsoleAbstraction.WriteYellow($"\t{currentCall}");
     }
     else
     {
-        Util.WriteYellow("\tYou are not in a P2P call");
+        ConsoleAbstraction.WriteYellow("\tYou are not in a P2P call");
     }
 }
 
 void DisplayConferenceInfo()
 {
-    Util.WriteDarkYellow("Conference:");
+    ConsoleAbstraction.WriteDarkYellow("Conference:");
     if ( (currentCall?.IsActive() == true) && (currentCall.IsConference))
     {
-        Util.WriteYellow($"{currentCall}");
+        ConsoleAbstraction.WriteYellow($"{currentCall}");
     }
     else
     {
-        Util.WriteYellow("\tYou are not in a conference");
+        ConsoleAbstraction.WriteYellow("\tYou are not in a conference");
         if (conferencesInProgress.Count > 0)
-            Util.WriteYellow($"\tConference(s) in progress - Nb:[{conferencesInProgress.Count}]");
+            ConsoleAbstraction.WriteYellow($"\tConference(s) in progress - Nb:[{conferencesInProgress.Count}]");
         else
-            Util.WriteYellow($"\tNo conference in progress");
+            ConsoleAbstraction.WriteYellow($"\tNo conference in progress");
     }
 }
 
 void ListUserInfo()
 {
     if (RbApplication.IsConnected())
-        Util.WriteDarkYellow($"Connected with:[{RbContacts.GetCurrentContact().Peer.DisplayName}]");
+        ConsoleAbstraction.WriteDarkYellow($"Connected with:[{RbContacts.GetCurrentContact().Peer.DisplayName}]");
     else
-        Util.WriteDarkYellow("Current user is not connected ...");
+        ConsoleAbstraction.WriteDarkYellow("Current user is not connected ...");
 }
 
 async Task JoinConferenceAsync(Conference conference)
@@ -1887,35 +1919,35 @@ async Task JoinConferenceAsync(Conference conference)
     {
         var presence = RbContacts.GetPresence();
         RbContacts.SavePresenceForRollback();
-        Util.WriteBlue($"SavePresenceForRollback - Presence:[{presence.ToString(DetailsLevel.Small)}]");
+        ConsoleAbstraction.WriteBlue($"SavePresenceForRollback - Presence:[{presence.ToString(DetailsLevel.Small)}]");
 
         SdkResult<String> sdkResult;
         if (audioTrack is null)
         {
-            Util.WriteGreen($"Joining conference without AUDIO INPUT ...");
+            ConsoleAbstraction.WriteGreen($"Joining conference without AUDIO INPUT ...");
             sdkResult = await RbWebRTCCommunications.JoinConferenceAsync(conference.Peer.Id, Media.VIDEO + Media.DATACHANNEL);
         }
         else
         {
             if(useEmptyTrack)
             {
-                Util.WriteGreen($"Joining conference with AUDIO INPUT (EMPTY TRACK) ...");
+                ConsoleAbstraction.WriteGreen($"Joining conference with AUDIO INPUT (EMPTY TRACK) ...");
                 sdkResult = await RbWebRTCCommunications.JoinConferenceAsync(conference.Peer.Id, audioTrack);
             }
             else
             {
-                Util.WriteGreen($"Joining conference with AUDIO INPUT ...");
+                ConsoleAbstraction.WriteGreen($"Joining conference with AUDIO INPUT ...");
                 sdkResult = await RbWebRTCCommunications.JoinConferenceAsync(conference.Peer.Id, audioTrack);
             }
         }
 
         if(sdkResult.Success)
-            Util.WriteDarkYellow($"Conference has been joined: [{conference.ToString(DetailsLevel.Medium)}]");
+            ConsoleAbstraction.WriteDarkYellow($"Conference has been joined: [{conference.ToString(DetailsLevel.Medium)}]");
         else
-            Util.WriteRed($"Cannot join Conference:[{sdkResult.Result}]");
+            ConsoleAbstraction.WriteRed($"Cannot join Conference:[{sdkResult.Result}]");
     }
     else
-        Util.WriteRed($"Cannot join Conference - current call in progress or conference object null");
+        ConsoleAbstraction.WriteRed($"Cannot join Conference - current call in progress or conference object null");
 }
 
 async Task AnswerP2PAsync()
@@ -1924,11 +1956,11 @@ async Task AnswerP2PAsync()
     {
         if (audioTrack is null)
         {
-            Util.WriteRed($"You don't have create an Audio Input Track - you cannot take the call");
+            ConsoleAbstraction.WriteRed($"You don't have create an Audio Input Track - you cannot take the call");
 
-            Util.WriteGreen($"{CR}Asking to reject P2P call...");
+            ConsoleAbstraction.WriteGreen($"{CR}Asking to reject P2P call...");
             await RbWebRTCCommunications.RejectCallAsync(currentCall.Id);
-            Util.WriteDarkYellow($"P2P has been rejected");
+            ConsoleAbstraction.WriteDarkYellow($"P2P has been rejected");
         }
         else
         {
@@ -1940,9 +1972,9 @@ async Task AnswerP2PAsync()
 
             if ((Rainbow.Util.MediasWithVideo(currentCall.RemoteMedias) && (videoTrack is not null)))
             {
-                Util.WriteYellow($"Do you want to answer with video to this P2P call ? [Y]");
-                var keyInfo = Console.ReadKey(true);
-                if (keyInfo.Key == ConsoleKey.Y)
+                ConsoleAbstraction.WriteYellow($"Do you want to answer with video to this P2P call ? [Y]");
+                var keyInfo = ConsoleAbstraction.ReadKey();
+                if (keyInfo?.Key == ConsoleKey.Y)
                 {
                     mediaStreamTracks.Add(Media.VIDEO, videoTrack);
                 }
@@ -1951,44 +1983,44 @@ async Task AnswerP2PAsync()
             // We save current presence
             var presence = RbContacts.GetPresence();
             RbContacts.SavePresenceForRollback();
-            Util.WriteBlue($"SavePresenceForRollback - Presence:[{presence.ToString(DetailsLevel.Small)}]");
+            ConsoleAbstraction.WriteBlue($"SavePresenceForRollback - Presence:[{presence.ToString(DetailsLevel.Small)}]");
 
-            Util.WriteGreen($"{CR}Answering P2P call...");
+            ConsoleAbstraction.WriteGreen($"{CR}Answering P2P call...");
             var sdkResult = await RbWebRTCCommunications.AnswerCallAsync(currentCall.Id, mediaStreamTracks);
             if (sdkResult.Success)
-                Util.WriteDarkYellow($"P2P call has been answered");
+                ConsoleAbstraction.WriteDarkYellow($"P2P call has been answered");
             else
-                Util.WriteRed($"Cannot answer Call:[{sdkResult.Result}]");
+                ConsoleAbstraction.WriteRed($"Cannot answer Call:[{sdkResult.Result}]");
         }
     }
     else
-        Util.WriteRed($"Cannot answer call - current call is nul or not RINGING_INCOMING");
+        ConsoleAbstraction.WriteRed($"Cannot answer call - current call is nul or not RINGING_INCOMING");
 }
 
 void MenuEscape()
 {
     if (!RbTask.IsCompleted)
     {
-        Util.WriteRed("Task is already in progress");
+        ConsoleAbstraction.WriteRed("Task is already in progress");
         return;
     }
 
     Action action = async () =>
     {
-        Util.WriteGreen($"Asked to end process using [ESC] key");
+        ConsoleAbstraction.WriteGreen($"Asked to end process using [ESC] key");
         if (RbApplication.IsConnected())
         {
             if (currentCall?.Id != null)
             {
-                Util.WriteGreen("Asking to leave call ...");
+                ConsoleAbstraction.WriteGreen("Asking to leave call ...");
                 await RbWebRTCCommunications.HangUpCallAsync(currentCall.Id);
-                Util.WriteDarkYellow($"CAll has been left");
+                ConsoleAbstraction.WriteDarkYellow($"CAll has been left");
             }
 
-            Util.WriteGreen($"Asked to quit - Logout");
+            ConsoleAbstraction.WriteGreen($"Asked to quit - Logout");
             var sdkResultBoolean = await RbApplication.LogoutAsync();
             if (!sdkResultBoolean.Success)
-                Util.WriteRed($"Cannot logout - SdkError:[{sdkResultBoolean.Result}]");
+                ConsoleAbstraction.WriteRed($"Cannot logout - SdkError:[{sdkResultBoolean.Result}]");
         }
         System.Environment.Exit(0);
     };
@@ -2006,12 +2038,12 @@ async Task UnsubscribeToMediaAsync(int media)
         {
             if (pub.Media == media)
             {
-                Util.WriteGreen($"Asking to unsubscribe {Rainbow.Util.MediasToString(media)} MediaPublication ...");
+                ConsoleAbstraction.WriteGreen($"Asking to unsubscribe {Rainbow.Util.MediasToString(media)} MediaPublication ...");
                 var sdkResult = await RbWebRTCCommunications.UnsubscribeToMediaPublicationAsync(pub);
                 if (sdkResult.Success)
-                    Util.WriteDarkYellow($"Previous {Rainbow.Util.MediasToString(media)} MediaPublication has been unsubscribed");
+                    ConsoleAbstraction.WriteDarkYellow($"Previous {Rainbow.Util.MediasToString(media)} MediaPublication has been unsubscribed");
                 else
-                    Util.WriteDarkYellow($"Previous {Rainbow.Util.MediasToString(media)} MediaPublication has NOT been unsubscribed:{sdkResult.Result}");
+                    ConsoleAbstraction.WriteDarkYellow($"Previous {Rainbow.Util.MediasToString(media)} MediaPublication has NOT been unsubscribed:{sdkResult.Result}");
                 return;
             }
         }
@@ -2026,25 +2058,25 @@ async Task<Boolean> AddAudioInputAsync()
     {
         if (audioTrack == null)
         {
-            Util.WriteRed($"Cannot add AUDIO Input - No Track available");
+            ConsoleAbstraction.WriteRed($"Cannot add AUDIO Input - No Track available");
             return false;
         }
 
         var sdkResult = await RbWebRTCCommunications.AddAudioAsync(currentCall.Id, audioTrack, "Audio name", "Audio desc", null);
         if (sdkResult.Success)
         {
-            Util.WriteDarkYellow($"Audio Input added in call and started");
+            ConsoleAbstraction.WriteDarkYellow($"Audio Input added in call and started");
             return true;
         }
         else
         {
-            Util.WriteRed($"Cannot add Audio Input - SdkError:[{sdkResult.Result}]");
+            ConsoleAbstraction.WriteRed($"Cannot add Audio Input - SdkError:[{sdkResult.Result}]");
             return false;
         }
     }
     else
     {
-        Util.WriteRed($"Cannot add Audio Input - call is not active");
+        ConsoleAbstraction.WriteRed($"Cannot add Audio Input - call is not active");
         return true;
     }
 }
@@ -2055,25 +2087,25 @@ async Task<Boolean> UpdateAudioInputAsync()
     {
         if (audioTrack == null)
         {
-            Util.WriteRed($"Cannot add AUDIO Input - No Track available");
+            ConsoleAbstraction.WriteRed($"Cannot add AUDIO Input - No Track available");
             return false;
         }
 
         var sdkResult = await RbWebRTCCommunications.ChangeAudioAsync(currentCall.Id, audioTrack);
         if (sdkResult.Success)
         {
-            Util.WriteDarkYellow($"AUDIO Input updated in call and started");
+            ConsoleAbstraction.WriteDarkYellow($"AUDIO Input updated in call and started");
             return true;
         }
         else
         {
-            Util.WriteRed($"Cannot update AUDIO Input - SdkError:[{sdkResult.Result}]");
+            ConsoleAbstraction.WriteRed($"Cannot update AUDIO Input - SdkError:[{sdkResult.Result}]");
             return false;
         }
     }
     else
     {
-        Util.WriteRed($"Cannot update AUDIO Input - call is not active");
+        ConsoleAbstraction.WriteRed($"Cannot update AUDIO Input - call is not active");
         return false;
     }
 }
@@ -2091,19 +2123,19 @@ async Task<Boolean> RemoveDataChannelAsync()
         var sdkResult = await RbWebRTCCommunications.RemoveDataChannelAsync(currentCall.Id);
         if (sdkResult.Success)
         {
-            Util.WriteDarkYellow($"DataChannel removed from call");
+            ConsoleAbstraction.WriteDarkYellow($"DataChannel removed from call");
             dcLocal = null;
             return true;
         }
         else
         {
-            Util.WriteRed($"Cannot remove DataChannel - SdkError:[{sdkResult.Result}]");
+            ConsoleAbstraction.WriteRed($"Cannot remove DataChannel - SdkError:[{sdkResult.Result}]");
             return false;
         }
     }
     else
     {
-        Util.WriteRed($"Cannot remove DataChannel - call is not active");
+        ConsoleAbstraction.WriteRed($"Cannot remove DataChannel - call is not active");
         return false;
     }
 }
@@ -2115,7 +2147,7 @@ async Task<Boolean> AddDataChannelAsync()
         var sdkResult = await RbWebRTCCommunications.AddDataChannelAsync(currentCall.Id, "DC name", "DC desc", null, null);
         if (sdkResult.Success)
         {
-            Util.WriteDarkYellow($"DataChannel added in call and started");
+            ConsoleAbstraction.WriteDarkYellow($"DataChannel added in call and started");
 
             if(dcLocal != null)
             {
@@ -2131,13 +2163,13 @@ async Task<Boolean> AddDataChannelAsync()
         }
         else
         {
-            Util.WriteRed($"Cannot add DataChannel - SdkError:[{sdkResult.Result}]");
+            ConsoleAbstraction.WriteRed($"Cannot add DataChannel - SdkError:[{sdkResult.Result}]");
             return false;
         }
     }
     else
     {
-        Util.WriteRed($"Cannot add DataChannel - call is not active");
+        ConsoleAbstraction.WriteRed($"Cannot add DataChannel - call is not active");
         return false;
     }
 }
@@ -2160,18 +2192,18 @@ async Task<Boolean> RemoveVideoAsync()
         var sdkResult = await RbWebRTCCommunications.RemoveVideoAsync(currentCall.Id);
         if (sdkResult.Success)
         {
-            Util.WriteDarkYellow($"Video removed from call");
+            ConsoleAbstraction.WriteDarkYellow($"Video removed from call");
             return true;
         }
         else
         {
-            Util.WriteRed($"Cannot remove video - SdkError:[{sdkResult.Result}]");
+            ConsoleAbstraction.WriteRed($"Cannot remove video - SdkError:[{sdkResult.Result}]");
             return false;
         }
     }
     else
     { 
-        Util.WriteRed($"Cannot remove video - call is not active");
+        ConsoleAbstraction.WriteRed($"Cannot remove video - call is not active");
         return false;
     }
 }
@@ -2182,25 +2214,25 @@ async Task<Boolean> AddVideoAsync()
     {
         if (videoTrack == null)
         {
-            Util.WriteRed($"Cannot add video - No Video Track available");
+            ConsoleAbstraction.WriteRed($"Cannot add video - No Video Track available");
             return false;
         }
 
         var sdkResult = await RbWebRTCCommunications.AddVideoAsync(currentCall.Id, videoTrack, "Video name", "Video desc", null);
         if (sdkResult.Success)
         {
-            Util.WriteDarkYellow($"Video added in call and started");
+            ConsoleAbstraction.WriteDarkYellow($"Video added in call and started");
             return true;
         }
         else
         {
-            Util.WriteRed($"Cannot add video - SdkError:[{sdkResult.Result}]");
+            ConsoleAbstraction.WriteRed($"Cannot add video - SdkError:[{sdkResult.Result}]");
             return false;
         }
     }
     else
     { 
-        Util.WriteRed($"Cannot add video - call is not active");
+        ConsoleAbstraction.WriteRed($"Cannot add video - call is not active");
         return true;
     }
 }
@@ -2211,25 +2243,25 @@ async Task<Boolean> UpdateVideoAsync()
     {
         if (videoTrack == null)
         {
-            Util.WriteRed($"Cannot add video - No Video Track available");
+            ConsoleAbstraction.WriteRed($"Cannot add video - No Video Track available");
             return false;
         }
 
         var sdkResult = await RbWebRTCCommunications.ChangeVideoAsync(currentCall.Id, videoTrack);
         if (sdkResult.Success)
         {
-            Util.WriteDarkYellow($"Video updated in call and started");
+            ConsoleAbstraction.WriteDarkYellow($"Video updated in call and started");
             return true;
         }
         else
         {
-            Util.WriteRed($"Cannot update video - SdkError:[{sdkResult.Result}]");
+            ConsoleAbstraction.WriteRed($"Cannot update video - SdkError:[{sdkResult.Result}]");
             return false;
         }
     }
     else
     {
-        Util.WriteRed($"Cannot update video - call is not active");
+        ConsoleAbstraction.WriteRed($"Cannot update video - call is not active");
         return false;
     }
 }
@@ -2245,18 +2277,18 @@ async Task<Boolean> RemoveSharingAsync()
         var sdkResult = await RbWebRTCCommunications.RemoveSharingAsync(currentCall.Id);
         if (sdkResult.Success)
         {
-            Util.WriteDarkYellow($"Sharing removed from call");
+            ConsoleAbstraction.WriteDarkYellow($"Sharing removed from call");
             return true;
         }
         else
         { 
-            Util.WriteRed($"Cannot remove Sharing - SdkError:[{sdkResult.Result}]");
+            ConsoleAbstraction.WriteRed($"Cannot remove Sharing - SdkError:[{sdkResult.Result}]");
             return false;
         }
     }
     else
     {
-        Util.WriteRed($"Cannot remove Sharing - call is not active");
+        ConsoleAbstraction.WriteRed($"Cannot remove Sharing - call is not active");
         return false;
     }
 }
@@ -2267,25 +2299,25 @@ async Task<Boolean> AddSharingAsync()
     {
         if (sharingTrack == null)
         {
-            Util.WriteRed($"Cannot add sharing - No Sharing Track available");
+            ConsoleAbstraction.WriteRed($"Cannot add sharing - No Sharing Track available");
             return false;
         }
 
         var sdkResult = await RbWebRTCCommunications.AddSharingAsync(currentCall.Id, sharingTrack, "Sharing name", "Sharing desc", null);
         if (sdkResult.Success)
         { 
-            Util.WriteDarkYellow($"Sharing added in call and started");
+            ConsoleAbstraction.WriteDarkYellow($"Sharing added in call and started");
             return true;
         }
         else
         { 
-            Util.WriteRed($"Cannot add Sharing - SdkError:[{sdkResult.Result}]");
+            ConsoleAbstraction.WriteRed($"Cannot add Sharing - SdkError:[{sdkResult.Result}]");
             return false;
         }
     }
     else
     { 
-        Util.WriteRed($"Cannot add Sharing - call is not active");
+        ConsoleAbstraction.WriteRed($"Cannot add Sharing - call is not active");
         return false;
     }
 }
@@ -2296,25 +2328,25 @@ async Task<Boolean> UpdateSharingAsync()
     {
         if (sharingTrack == null)
         {
-            Util.WriteRed($"Cannot add sharing - No Sharing Track available");
+            ConsoleAbstraction.WriteRed($"Cannot add sharing - No Sharing Track available");
             return false;
         }
 
         var sdkResult = await RbWebRTCCommunications.ChangeSharingAsync(currentCall.Id, sharingTrack);
         if (sdkResult.Success)
         {
-            Util.WriteDarkYellow($"Sharing updated in call and started");
+            ConsoleAbstraction.WriteDarkYellow($"Sharing updated in call and started");
             return true;
         }
         else
         {
-            Util.WriteRed($"Cannot update Sharing - SdkError:[{sdkResult.Result}]");
+            ConsoleAbstraction.WriteRed($"Cannot update Sharing - SdkError:[{sdkResult.Result}]");
             return false;
         }
     }
     else
     {
-        Util.WriteRed($"Cannot update Sharing - call is not active");
+        ConsoleAbstraction.WriteRed($"Cannot update Sharing - call is not active");
         return false;
     }
 }
@@ -2325,64 +2357,64 @@ async Task<Boolean> UpdateSharingAsync()
 
 void ListDevicesUsed()
 {
-    Util.WriteDarkYellow("List devices used:");
+    ConsoleAbstraction.WriteDarkYellow("List devices used:");
 
     //Audio Input
     if (audioTrack is null )
     {
-        Util.WriteYellow("\t AUDIO IN  - stream used: NONE");
+        ConsoleAbstraction.WriteYellow("\t AUDIO IN  - stream used: NONE");
     }
     else
     {
         if (useEmptyTrack)
-            Util.WriteYellow($"\t AUDIO IN  - stream used: EMPTY TRACK");
+            ConsoleAbstraction.WriteYellow($"\t AUDIO IN  - stream used: EMPTY TRACK");
         else if (currentAudioInput != null)
-            Util.WriteYellow($"\t AUDIO IN  - stream used: {currentAudioInput.Name} [{currentAudioInput.Path}]");
+            ConsoleAbstraction.WriteYellow($"\t AUDIO IN  - stream used: {currentAudioInput.Name} [{currentAudioInput.Path}]");
         else
         {
-            Util.WriteRed($"\t AUDIO IN  - stream used: bad config ....");
+            ConsoleAbstraction.WriteRed($"\t AUDIO IN  - stream used: bad config ....");
         }
         if ((currentCall?.IsActive() == true) && Rainbow.Util.MediasWithAudio(currentCall.LocalMedias))
-            Util.WriteYellow($"\t\t => this stream is currently used in the call");
+            ConsoleAbstraction.WriteYellow($"\t\t => this stream is currently used in the call");
     }
 
     //Audio Output
     if (currentAudioOutput == null)
-        Util.WriteYellow("\t AUDIO OUT - stream used: NONE");
+        ConsoleAbstraction.WriteYellow("\t AUDIO OUT - stream used: NONE");
     else
     {
-        Util.WriteYellow($"\t AUDIO OUT - stream used: {currentAudioOutput.Name} [{currentAudioOutput.Path}]");
+        ConsoleAbstraction.WriteYellow($"\t AUDIO OUT - stream used: {currentAudioOutput.Name} [{currentAudioOutput.Path}]");
         if ((currentCall?.IsActive() == true) && Rainbow.Util.MediasWithAudio(currentCall.LocalMedias))
-            Util.WriteYellow($"\t\t => this stream is currently used in the call");
+            ConsoleAbstraction.WriteYellow($"\t\t => this stream is currently used in the call");
     }
 
     // Video
     if (currentWebCam == null)
-        Util.WriteYellow("\t VIDEO     - stream used: NONE");
+        ConsoleAbstraction.WriteYellow("\t VIDEO     - stream used: NONE");
     else
     {
-        Util.WriteYellow($"\t VIDEO     - stream used: {currentWebCam.Name} [{currentWebCam.Path}]");
+        ConsoleAbstraction.WriteYellow($"\t VIDEO     - stream used: {currentWebCam.Name} [{currentWebCam.Path}]");
         if ((currentCall?.IsActive() == true) && Rainbow.Util.MediasWithVideo(currentCall.LocalMedias))
-            Util.WriteYellow($"\t\t => this stream is currently used in the call");
+            ConsoleAbstraction.WriteYellow($"\t\t => this stream is currently used in the call");
     }
     // Sharing
     if (currentScreen == null)
-        Util.WriteYellow("\t SHARING   - stream used: NONE");
+        ConsoleAbstraction.WriteYellow("\t SHARING   - stream used: NONE");
     else
     {
-        Util.WriteYellow($"\t SHARING   - stream used : {currentScreen.Name} [{currentScreen.Path}]");
+        ConsoleAbstraction.WriteYellow($"\t SHARING   - stream used : {currentScreen.Name} [{currentScreen.Path}]");
         if ((currentCall?.IsActive() == true) && Rainbow.Util.MediasWithSharing(currentCall.LocalMedias))
-            Util.WriteYellow($"\t\t => this stream is currently used in the call");
+            ConsoleAbstraction.WriteYellow($"\t\t => this stream is currently used in the call");
     }
 
     // DC
     if (dcLocal == null)
-        Util.WriteYellow("\t DC        - stream used: NONE");
+        ConsoleAbstraction.WriteYellow("\t DC        - stream used: NONE");
     else
     {
-        Util.WriteYellow($"\t DC       - stream used: YES");
+        ConsoleAbstraction.WriteYellow($"\t DC       - stream used: YES");
         if ((currentCall?.IsActive() == true) && Rainbow.Util.MediasWithDataChannel(currentCall.LocalMedias))
-            Util.WriteYellow($"\t\t => this stream is currently used in the call");
+            ConsoleAbstraction.WriteYellow($"\t\t => this stream is currently used in the call");
     }
 }
 
@@ -2391,14 +2423,14 @@ void ListAudioOutputDevices()
     var audioOutputs = Devices.GetAudioOutputDevices();
     if (audioOutputs?.Count > 0)
     {
-        Util.WriteDarkYellow($"Audio OUTPUT(s) available:");
+        ConsoleAbstraction.WriteDarkYellow($"Audio OUTPUT(s) available:");
         foreach (var audio in audioOutputs)
         {
-            Util.WriteYellow($"\t[{audio}]");
+            ConsoleAbstraction.WriteYellow($"\t[{audio}]");
         }
     }
     else
-        Util.WriteYellow($"No Audio OUTPUT available");
+        ConsoleAbstraction.WriteYellow($"No Audio OUTPUT available");
 }
 
 void ListAudioInputDevices()
@@ -2406,14 +2438,14 @@ void ListAudioInputDevices()
     var audioInputs = Devices.GetAudioInputDevices();
     if (audioInputs?.Count > 0)
     {
-        Util.WriteDarkYellow($"Audio INPUT(s) available:");
+        ConsoleAbstraction.WriteDarkYellow($"Audio INPUT(s) available:");
         foreach (var audio in audioInputs)
         {
-            Util.WriteYellow($"\t[{audio}]");
+            ConsoleAbstraction.WriteYellow($"\t[{audio}]");
         }
     }
     else
-        Util.WriteYellow($"No Audio INPUT available");
+        ConsoleAbstraction.WriteYellow($"No Audio INPUT available");
 }
 
 void ListWebCams()
@@ -2421,14 +2453,14 @@ void ListWebCams()
     var webcams = Devices.GetWebcamDevices(false);
     if (webcams?.Count > 0)
     {
-        Util.WriteDarkYellow($"Webcam(s) available:");
+        ConsoleAbstraction.WriteDarkYellow($"Webcam(s) available:");
         foreach (var webcam in webcams)
         {
-            Util.WriteYellow($"\tWebcam:[{webcam}]");
+            ConsoleAbstraction.WriteYellow($"\tWebcam:[{webcam}]");
         }
     }
     else
-        Util.WriteYellow($"No Webcam available");
+        ConsoleAbstraction.WriteYellow($"No Webcam available");
 }
 
 void ListScreens()
@@ -2436,12 +2468,12 @@ void ListScreens()
     var screens = Devices.GetScreenDevices(false);
     if (screens?.Count > 0)
     {
-        Util.WriteDarkYellow($"Screen(s) available:");
+        ConsoleAbstraction.WriteDarkYellow($"Screen(s) available:");
         foreach (var screen in screens)
-            Util.WriteYellow($"\tScreen:[{screen}]");
+            ConsoleAbstraction.WriteYellow($"\tScreen:[{screen}]");
     }
     else
-        Util.WriteYellow($"No Screen available");
+        ConsoleAbstraction.WriteYellow($"No Screen available");
 }
 
 #endregion DEVICES - List audio output, audio input, webcam, screens
@@ -2450,31 +2482,31 @@ void ListScreens()
 
 void RbApplication_ConnectionStateChanged(Rainbow.Model.ConnectionState connectionState)
 {
-    Util.WriteDateTime();
+    ConsoleAbstraction.WriteDateTime();
     switch (connectionState.Status)
     {
         case ConnectionStatus.Connected:
-            Util.WriteBlue($"[Application.ConnectionStateChanged] Connection Status: [{connectionState.Status}]");
+            ConsoleAbstraction.WriteBlue($"[Application.ConnectionStateChanged] Connection Status: [{connectionState.Status}]");
             break;
 
         case ConnectionStatus.Disconnected:
-            Util.WriteRed($"[Application.ConnectionStateChanged] Connection Status: [{connectionState.Status}]");
+            ConsoleAbstraction.WriteRed($"[Application.ConnectionStateChanged] Connection Status: [{connectionState.Status}]");
             break;
 
         case ConnectionStatus.Connecting:
         default:
-            Util.WriteBlue($"[Application.ConnectionStateChanged] - Connection Status: [{connectionState.Status}] - AutoReconnection.CurrentNbAttempts: [{RbAutoReconnection.CurrentNbAttempts}]");
+            ConsoleAbstraction.WriteBlue($"[Application.ConnectionStateChanged] - Connection Status: [{connectionState.Status}] - AutoReconnection.CurrentNbAttempts: [{RbAutoReconnection.CurrentNbAttempts}]");
             break;
     }
 }
 
 void RbAutoReconnection_Cancelled(SdkError sdkError)
 {
-    Util.WriteDateTime();
+    ConsoleAbstraction.WriteDateTime();
     if (sdkError.Type != SdkErrorType.NoError)
-        Util.WriteRed($"[AutoReconnection.Cancelled] SdkError:[{sdkError}]");
+        ConsoleAbstraction.WriteRed($"[AutoReconnection.Cancelled] SdkError:[{sdkError}]");
     else
-        Util.WriteBlue($"[AutoReconnection.Cancelled]");
+        ConsoleAbstraction.WriteBlue($"[AutoReconnection.Cancelled]");
 
     // If the AutoReconnection service is cancelled, we quit the process
     endProgram = true;
@@ -2489,8 +2521,8 @@ void RbConferences_ConferenceUpdated(Conference conference)
             if (!conferencesInProgress.Contains(conference.Peer.Id))
             {
                 conferencesInProgress.Add(conference.Peer.Id);
-                Util.WriteDateTime();
-                Util.WriteBlue($"[ConferenceUpdated] A conference is active - Id:[{conference.Peer.Id}]");
+                ConsoleAbstraction.WriteDateTime();
+                ConsoleAbstraction.WriteBlue($"[ConferenceUpdated] A conference is active - Id:[{conference.Peer.Id}]");
             }
         }
         else
@@ -2498,8 +2530,8 @@ void RbConferences_ConferenceUpdated(Conference conference)
             if (conferencesInProgress.Contains(conference.Peer.Id))
             {
                 conferencesInProgress.Remove(conference.Peer.Id);
-                Util.WriteDateTime();
-                Util.WriteBlue($"[ConferenceUpdated] A conference is NO MORE active - Id:[{conference.Peer.Id}]");
+                ConsoleAbstraction.WriteDateTime();
+                ConsoleAbstraction.WriteBlue($"[ConferenceUpdated] A conference is NO MORE active - Id:[{conference.Peer.Id}]");
             }
         }
     }
@@ -2507,7 +2539,7 @@ void RbConferences_ConferenceUpdated(Conference conference)
 
 void RbConferences_ConferenceRemoved(Conference conference)
 {
-    Util.WriteDateTime();
+    ConsoleAbstraction.WriteDateTime();
     RbConferences_ConferenceUpdated(conference);
 }
 
@@ -2519,7 +2551,7 @@ async void RbWebRTCCommunications_CallUpdated(Call call)
 {
     if (call == null)
     {
-        Util.WriteRed($"[CallUpdated] Call object is null ...");
+        ConsoleAbstraction.WriteRed($"[CallUpdated] Call object is null ...");
         return;
     }
 
@@ -2530,7 +2562,7 @@ async void RbWebRTCCommunications_CallUpdated(Call call)
         if (!call.IsConference)
         {
             if(call.IsRinging())
-                Util.WriteBlue($"[CallUpdated] New P2P call with:[{call.Peer.ToString(DetailsLevel.Small)}] - Medias:[{Rainbow.Util.MediasToString(call.RemoteMedias)}]");
+                ConsoleAbstraction.WriteBlue($"[CallUpdated] New P2P call with:[{call.Peer.ToString(DetailsLevel.Small)}] - Medias:[{Rainbow.Util.MediasToString(call.RemoteMedias)}]");
         }
     }
 
@@ -2539,7 +2571,7 @@ async void RbWebRTCCommunications_CallUpdated(Call call)
         if (!call.IsInProgress())
         {
             currentCallId = null;
-            Util.WriteBlue($"[CallUpdated] Reset current Call");
+            ConsoleAbstraction.WriteBlue($"[CallUpdated] Reset current Call");
             currentCall = null;
 
             // Hide any window
@@ -2555,9 +2587,9 @@ async void RbWebRTCCommunications_CallUpdated(Call call)
             {
                 var sdkResult = await RbContacts.RollbackPresenceSavedAsync();
                 if (sdkResult.Success)
-                    Util.WriteBlue($"Rollback presence to [{presenceRollback.ToString(DetailsLevel.Small)}]");
+                    ConsoleAbstraction.WriteBlue($"Rollback presence to [{presenceRollback.ToString(DetailsLevel.Small)}]");
                 else
-                    Util.WriteRed($"Cannot rollback presence to [{presenceRollback.ToString(DetailsLevel.Small)}] - Error:[{sdkResult.Result}]");
+                    ConsoleAbstraction.WriteRed($"Cannot rollback presence to [{presenceRollback.ToString(DetailsLevel.Small)}] - Error:[{sdkResult.Result}]");
             }
         }
         else
@@ -2571,19 +2603,19 @@ async void RbWebRTCCommunications_CallUpdated(Call call)
                 if (sdkResult.Success)
                 {
                     var presence = sdkResult.Data;
-                    Util.WriteBlue($"Busy presence updated according local media:[{Rainbow.Util.MediasToString(call.LocalMedias)}] - Presence:[{presence.ToString(DetailsLevel.Small)}]");
+                    ConsoleAbstraction.WriteBlue($"Busy presence updated according local media:[{Rainbow.Util.MediasToString(call.LocalMedias)}] - Presence:[{presence.ToString(DetailsLevel.Small)}]");
                 }
             }
         }
-        Util.WriteDateTime();
-        Util.WriteBlue($"[CallUpdated] CallId:[{call.Id}] - Status:[{call.CallStatus}] - Local:[{Rainbow.Util.MediasToString(call.LocalMedias)}] - Remote:[{Rainbow.Util.MediasToString(call.RemoteMedias)}] - Conf.:[{(call.IsConference ? "True" : "False")}] - IsInitiator.:[{call.IsInitiator}]");
+        ConsoleAbstraction.WriteDateTime();
+        ConsoleAbstraction.WriteBlue($"[CallUpdated] CallId:[{call.Id}] - Status:[{call.CallStatus}] - Local:[{Rainbow.Util.MediasToString(call.LocalMedias)}] - Remote:[{Rainbow.Util.MediasToString(call.RemoteMedias)}] - Conf.:[{(call.IsConference ? "True" : "False")}] - IsInitiator.:[{call.IsInitiator}]");
     }
 }
 
 void RbWebRTCCommunications_OnMediaPublicationUpdated(MediaPublication mediaPublication, Rainbow.WebRTC.MediaPublicationStatus status)
 {
-    Util.WriteDateTime();
-    Util.WriteBlue($"[OnMediaPublicationUpdated] Status:[{status}] - MediaPublication:[{mediaPublication.ToString(DetailsLevel.Full)}]");
+    ConsoleAbstraction.WriteDateTime();
+    ConsoleAbstraction.WriteBlue($"[OnMediaPublicationUpdated] Status:[{status}] - MediaPublication:[{mediaPublication.ToString(DetailsLevel.Full)}]");
 }
 
 void RbWebRTCCommunications_OnDataChannel(string callId, Rainbow.WebRTC.DataChannelDescriptor dataChannelDescriptor)
@@ -2608,8 +2640,8 @@ void RbWebRTCCommunications_OnDataChannel(string callId, Rainbow.WebRTC.DataChan
         }
     }
 
-    Util.WriteDateTime();
-    Util.WriteBlue($"[OnDataChannel] {dataChannelDescriptor.Peer}{Rainbow.Util.LogElementSeparator()}Label:{dataChannelDescriptor.DataChannel.Label}");
+    ConsoleAbstraction.WriteDateTime();
+    ConsoleAbstraction.WriteBlue($"[OnDataChannel] {dataChannelDescriptor.Peer}{Rainbow.Util.LogElementSeparator()}Label:{dataChannelDescriptor.DataChannel.Label}");
 }
 
 void RbWebRTCCommunications_OnTrack(string callId, MediaStreamTrackDescriptor mediaStreamTrackDescriptor)
@@ -2617,8 +2649,8 @@ void RbWebRTCCommunications_OnTrack(string callId, MediaStreamTrackDescriptor me
     if (mediaStreamTrackDescriptor is null)
         return;
 
-    Util.WriteDateTime();
-    Util.WriteBlue($"[OnTrack] {(mediaStreamTrackDescriptor.MediaStreamTrack is null ? "REMOVED" : "ADDED / UPDATED")} {mediaStreamTrackDescriptor.ToString()}");
+    ConsoleAbstraction.WriteDateTime();
+    ConsoleAbstraction.WriteBlue($"[OnTrack] {(mediaStreamTrackDescriptor.MediaStreamTrack is null ? "REMOVED" : "ADDED / UPDATED")} {mediaStreamTrackDescriptor.ToString()}");
 
     // We don't want here to manage local track
     if (mediaStreamTrackDescriptor.LocalTrack)
@@ -2735,14 +2767,14 @@ void DcRemote_OnMessage(string message)
 
 void DcRemote_OnClose()
 {
-    Util.WriteDateTime();
-    Util.WriteBlue($"[OnClose] DataChannel Remote");
+    ConsoleAbstraction.WriteDateTime();
+    ConsoleAbstraction.WriteBlue($"[OnClose] DataChannel Remote");
 }
 
 void DcLocal_OnClose()
 {
-    Util.WriteDateTime();
-    Util.WriteBlue($"[OnClose] DataChannel Local");
+    ConsoleAbstraction.WriteDateTime();
+    ConsoleAbstraction.WriteBlue($"[OnClose] DataChannel Local");
 }
 
 #endregion DataChannel events
@@ -2791,57 +2823,57 @@ void SharingRemoteTrack_OnImage(string mediaId, int width, int height, int strid
 #region DEVICES  events
 void Devices_OnWebcamDeviceRemoved(WebcamDevice webcamDevice)
 {
-    Util.WriteDateTime();
-    Util.WriteBlue($"[OnWebcamDeviceRemoved] {webcamDevice}");
+    ConsoleAbstraction.WriteDateTime();
+    ConsoleAbstraction.WriteBlue($"[OnWebcamDeviceRemoved] {webcamDevice}");
     ListWebCams();
 }
 
 void Devices_OnWebcamDeviceAdded(WebcamDevice webcamDevice)
 {
-    Util.WriteDateTime();
-    Util.WriteBlue($"[OnWebcamDeviceAdded] {webcamDevice}");
+    ConsoleAbstraction.WriteDateTime();
+    ConsoleAbstraction.WriteBlue($"[OnWebcamDeviceAdded] {webcamDevice}");
     ListWebCams();
 }
 
 void Devices_OnScreenDeviceRemoved(ScreenDevice screenDevice)
 {
-    Util.WriteDateTime();
-    Util.WriteBlue($"[OnScreenDeviceRemoved] {screenDevice}");
+    ConsoleAbstraction.WriteDateTime();
+    ConsoleAbstraction.WriteBlue($"[OnScreenDeviceRemoved] {screenDevice}");
     ListScreens();
 }
 
 void Devices_OnScreenDeviceAdded(ScreenDevice screenDevice)
 {
-    Util.WriteDateTime();
-    Util.WriteBlue($"[OnScreenDeviceAdded] {screenDevice}");
+    ConsoleAbstraction.WriteDateTime();
+    ConsoleAbstraction.WriteBlue($"[OnScreenDeviceAdded] {screenDevice}");
     ListScreens();
 }
 
 void Devices_OnAudioOutputDeviceRemoved(Device device)
 {
-    Util.WriteDateTime();
-    Util.WriteBlue($"[OnAudioOutputDeviceRemoved] {device}");
+    ConsoleAbstraction.WriteDateTime();
+    ConsoleAbstraction.WriteBlue($"[OnAudioOutputDeviceRemoved] {device}");
     ListAudioOutputDevices();
 }
 
 void Devices_OnAudioOutputDeviceAdded(Device device)
 {
-    Util.WriteDateTime();
-    Util.WriteBlue($"[OnAudioOutputDeviceAdded] {device}");
+    ConsoleAbstraction.WriteDateTime();
+    ConsoleAbstraction.WriteBlue($"[OnAudioOutputDeviceAdded] {device}");
     ListAudioOutputDevices();
 }
 
 void Devices_OnAudioInputDeviceRemoved(Device device)
 {
-    Util.WriteDateTime();
-    Util.WriteBlue($"[OnAudioInputDeviceRemoved] {device}");
+    ConsoleAbstraction.WriteDateTime();
+    ConsoleAbstraction.WriteBlue($"[OnAudioInputDeviceRemoved] {device}");
     ListAudioInputDevices();
 }
 
 void Devices_OnAudioInputDeviceAdded(Device device)
 {
-    Util.WriteDateTime();
-    Util.WriteBlue($"[OnAudioInputDeviceAdded] {device}");
+    ConsoleAbstraction.WriteDateTime();
+    ConsoleAbstraction.WriteBlue($"[OnAudioInputDeviceAdded] {device}");
     ListAudioInputDevices();
 }
 #endregion DEVICES  events
@@ -2851,7 +2883,7 @@ Boolean ReadExeSettings()
     String exeSettingsFilePath = $".{Path.DirectorySeparatorChar}config{Path.DirectorySeparatorChar}exeSettings.json";
     if (!File.Exists(exeSettingsFilePath))
     {
-        Util.WriteRed($"The file '{exeSettingsFilePath}' has not been found.");
+        ConsoleAbstraction.WriteRed($"The file '{exeSettingsFilePath}' has not been found.");
         return false;
     }
 
@@ -2860,7 +2892,7 @@ Boolean ReadExeSettings()
 
     if ((jsonNode is null) || (!jsonNode.IsObject))
     {
-        Util.WriteRed($"Cannot get JSON data from file '{exeSettingsFilePath}'.");
+        ConsoleAbstraction.WriteRed($"Cannot get JSON data from file '{exeSettingsFilePath}'.");
         return false;
     }
 
@@ -2875,7 +2907,7 @@ Boolean ReadExeSettings()
     }
     else
     {
-        Util.WriteRed($"Cannot read 'exeSettings' object OR invalid/missing data - file:'{exeSettingsFilePath}'.");
+        ConsoleAbstraction.WriteRed($"Cannot read 'exeSettings' object OR invalid/missing data - file:'{exeSettingsFilePath}'.");
         return false;
     }
 
@@ -2887,7 +2919,7 @@ Boolean ReadStreamsSettings()
     var streamsFilePath = $".{Path.DirectorySeparatorChar}config{Path.DirectorySeparatorChar}streams.json";
     if (!File.Exists(streamsFilePath))
     {
-        Util.WriteRed($"The file '{streamsFilePath}' has not been found.");
+        ConsoleAbstraction.WriteRed($"The file '{streamsFilePath}' has not been found.");
         return false;
     }
 
@@ -2896,7 +2928,7 @@ Boolean ReadStreamsSettings()
 
     if ((jsonNode is null) || (!jsonNode.IsObject))
     {
-        Util.WriteRed($"Cannot get JSON data from file '{streamsFilePath}'.");
+        ConsoleAbstraction.WriteRed($"Cannot get JSON data from file '{streamsFilePath}'.");
         return false;
     }
 
@@ -2912,13 +2944,13 @@ Boolean ReadStreamsSettings()
 
         if (streamsList.Count == 0)
         {
-            Util.WriteRed($"Cannot read 'streams' object (no Stream object created) - file:'{streamsFilePath}'.");
+            ConsoleAbstraction.WriteRed($"Cannot read 'streams' object (no Stream object created) - file:'{streamsFilePath}'.");
             return false;
         }
     }
     else
     {
-        Util.WriteRed($"Cannot read 'streams' object OR invalid/missing data - file:'{streamsFilePath}'.");
+        ConsoleAbstraction.WriteRed($"Cannot read 'streams' object OR invalid/missing data - file:'{streamsFilePath}'.");
         return false;
     }
 
@@ -2930,7 +2962,7 @@ Boolean ReadCredentials()
     var credentialsFilePath = $".{Path.DirectorySeparatorChar}config{Path.DirectorySeparatorChar}credentials.json";
     if (!File.Exists(credentialsFilePath))
     {
-        Util.WriteRed($"The file '{credentialsFilePath}' has not been found.");
+        ConsoleAbstraction.WriteRed($"The file '{credentialsFilePath}' has not been found.");
         return false;
     }
 
@@ -2939,7 +2971,7 @@ Boolean ReadCredentials()
 
     if (!Credentials.FromJsonNode(jsonNode["credentials"], out credentials))
     {
-        Util.WriteRed($"Cannot read 'credentials' object OR invalid/missing data.");
+        ConsoleAbstraction.WriteRed($"Cannot read 'credentials' object OR invalid/missing data.");
         return false;
     }
 
@@ -2959,7 +2991,7 @@ const int SW_RESTORE = 9;
 static void FocusConsoleWindow()
 {
     // /!\ It's highly recommended to set a unique Title to the console to have this working
-    IntPtr handle = FindWindowByCaption(IntPtr.Zero, Console.Title);
+    IntPtr handle = FindWindowByCaption(IntPtr.Zero, ConsoleAbstraction.Title);
     ShowWindowAsync(new HandleRef(null, handle), SW_RESTORE);
     SetForegroundWindow(handle);
 }

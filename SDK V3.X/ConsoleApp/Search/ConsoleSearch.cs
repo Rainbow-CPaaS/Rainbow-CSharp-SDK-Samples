@@ -3,7 +3,7 @@ using Rainbow;
 using Rainbow.Consts;
 
 using Rainbow.Example.Common;
-using Util = Rainbow.Example.Common.Util;
+
 using Rainbow.SimpleJSON;
 using Rainbow.Model;
 
@@ -18,7 +18,7 @@ if ((!ReadExeSettings()) || (exeSettings is null))
 if ((!ReadCredentials()) || (credentials is null))
     return;
 
-Util.WriteRed($"Account used: [{credentials.UsersConfig[0].Login}]");
+ConsoleAbstraction.WriteRed($"Account used: [{credentials.UsersConfig[0].Login}]");
 
 // --------------------------------------------------
 
@@ -39,8 +39,19 @@ NLogConfigurator.AddLogger(logPrefix);
 
 Task RbTask = Task.CompletedTask;
 
+// Set restrictions
+Restrictions restrictions = new(true)
+{
+    LogRestRequest = true,
+    LogEvent = true,
+    LogEventParameters = true,
+    LogEventRaised = true,
+
+    EventMode = Rainbow.Enums.SdkEventMode.XMPP, // use Rainbow.Enums.SdkEventMode.NONE instead if you ApiKey for authentication
+};
+
 // Create Rainbow SDK objects
-var RbApplication = new Application(iniFolderFullPathName: logFolderPath, iniFileName: logPrefix +".ini", loggerPrefix: logPrefix);
+var RbApplication = new Application(iniFolderFullPathName: logFolderPath, iniFileName: logPrefix +".ini", loggerPrefix: logPrefix, restrictions: restrictions);
 var RbAutoReconnection = RbApplication.GetAutoReconnection();
 var RbBubbles = RbApplication.GetBubbles();
 var RbContacts = RbApplication.GetContacts();
@@ -61,13 +72,24 @@ RbBubbles.BubbleAffiliationsPerformed += RbBubbles_BubbleAffiliationsPerformed; 
 RbApplication.SetApplicationInfo(credentials.ServerConfig.AppId, credentials.ServerConfig.AppSecret);
 RbApplication.SetHostInfo(credentials.ServerConfig.HostName);
 
-RbApplication.Restrictions.LogRestRequest = true;
-
 await MenuDisplayInfoAsync();
 
 // Start login
-Util.WriteWhite($"{CR}Starting login ...");
-var _ = RbApplication.LoginAsync(credentials.UsersConfig[0].Login, credentials.UsersConfig[0].Password);
+ConsoleAbstraction.WriteWhite($"{CR}Starting login ...");
+
+if (String.IsNullOrEmpty(credentials.UsersConfig[0].ApiKey))
+{
+    var _ = RbApplication.LoginAsync(credentials.UsersConfig[0].Login, credentials.UsersConfig[0].Password);
+}
+else
+{
+    if (RbApplication.Restrictions().EventMode == Rainbow.Enums.SdkEventMode.XMPP)
+    {
+        ConsoleAbstraction.WriteWhite($"{CR}SYou can't use an ApiKey to login and use Rainbow.Enums.SdkEventMode.XMPP as Event Mode ...");
+        return;
+    }
+    var _ = RbApplication.LoginWithApiKeyAsync(credentials.UsersConfig[0].ApiKey);
+}
 do
 {
     await Task.Delay(200);
@@ -76,11 +98,11 @@ do
 
 async Task CheckInputKey()
 {
-    while (Console.KeyAvailable)
+    while (ConsoleAbstraction.KeyAvailable)
     {
-        var userInput = Console.ReadKey(true);
+        var userInput = ConsoleAbstraction.ReadKey();
 
-        switch (userInput.Key)
+        switch (userInput?.Key)
         {
             case ConsoleKey.Escape:
                 await MenuEscapeAsync();
@@ -99,12 +121,12 @@ async Task CheckInputKey()
 
 async Task MenuDisplayInfoAsync()
 {
-    Util.WriteYellow("");
-    Util.WriteYellow("[ESC] at anytime to quit");
-    Util.WriteYellow("[I] (Info) Display this info");
+    ConsoleAbstraction.WriteYellow("");
+    ConsoleAbstraction.WriteYellow("[ESC] at anytime to quit");
+    ConsoleAbstraction.WriteYellow("[I] (Info) Display this info");
 
-    Util.WriteYellow("");
-    Util.WriteYellow("[C] (Contact) To search for a contact");
+    ConsoleAbstraction.WriteYellow("");
+    ConsoleAbstraction.WriteYellow("[C] (Contact) To search for a contact");
 
     await Task.CompletedTask;
 }
@@ -113,7 +135,7 @@ async Task MenuSearchContactAsync()
 {
     if (!RbTask.IsCompleted)
     {
-        Util.WriteRed("Task is already in progress");
+        ConsoleAbstraction.WriteRed("Task is already in progress");
         return;
     }
 
@@ -121,7 +143,7 @@ async Task MenuSearchContactAsync()
     {
         if (!RbApplication.IsConnected())
         {
-            Util.WriteRed($"You are not connected to Rainbow server ...");
+            ConsoleAbstraction.WriteRed($"You are not connected to Rainbow server ...");
             return;
         }
 
@@ -132,22 +154,22 @@ async Task MenuSearchContactAsync()
 
         while (canContinue)
         {
-            Util.WriteYellow($"{Rainbow.Util.CR}Select a the search mode:");
-            Util.WriteYellow($"\t[0] By display name");
-            Util.WriteYellow($"\t[1] By tag");
-            Util.WriteYellow($"\t[2] By phone number (exact match)");
-            Util.WriteYellow($"\t[3] By email");
-            Util.WriteYellow($"{CR}\t[C] to cancel");
-            var userInput = Console.ReadKey();
+            ConsoleAbstraction.WriteYellow($"{Rainbow.Util.CR}Select a the search mode:");
+            ConsoleAbstraction.WriteYellow($"\t[0] By display name");
+            ConsoleAbstraction.WriteYellow($"\t[1] By tag");
+            ConsoleAbstraction.WriteYellow($"\t[2] By phone number (exact match)");
+            ConsoleAbstraction.WriteYellow($"\t[3] By email");
+            ConsoleAbstraction.WriteYellow($"{CR}\t[C] to cancel");
+            var userInput = ConsoleAbstraction.ReadKey();
 
-            if (userInput.Key == ConsoleKey.C)
+            if (userInput?.Key == ConsoleKey.C)
             {
                 canContinue = false;
-                Util.WriteDarkYellow("Cancel search ...");
+                ConsoleAbstraction.WriteDarkYellow("Cancel search ...");
             }
-            else if (char.IsDigit(userInput.KeyChar))
+            else if (userInput.HasValue && char.IsDigit(userInput.Value.KeyChar))
             {
-                var selection = int.Parse(userInput.KeyChar.ToString());
+                var selection = int.Parse(userInput.Value.KeyChar.ToString());
                 if ((selection >= 0) && (selection < 4))
                 {
                     String mode;
@@ -170,16 +192,16 @@ async Task MenuSearchContactAsync()
 
                     while (canContinue)
                     {
-                        Util.WriteYellow($"{Rainbow.Util.CR}Enter a text to search a Contact by {mode}: (empty text to cancel)");
-                        var str = Console.ReadLine();
+                        ConsoleAbstraction.WriteYellow($"{Rainbow.Util.CR}Enter a text to search a Contact by {mode}: (empty text to cancel)");
+                        var str = ConsoleAbstraction.ReadLine();
                         if (String.IsNullOrEmpty(str))
                         {
                             canContinue = false;
-                            Util.WriteDarkYellow($"Cancel search by {mode}...");
+                            ConsoleAbstraction.WriteDarkYellow($"Cancel search by {mode}...");
                         }
                         else
                         {
-                            Util.WriteGreen($"Searching for [{str}] by {mode} ...");
+                            ConsoleAbstraction.WriteGreen($"Searching for [{str}] by {mode} ...");
                             SdkResult<List<ContactFound>> sdkResult;
 
                             switch (selection)
@@ -242,73 +264,73 @@ async Task MenuSearchContactAsync()
                                             .Where(c => !contactsId.Contains(c.Peer.Id)) // Avoid some Id contacts
                                             .ToList();
 
-                                Util.WriteWhite($"Searching Result:");
+                                ConsoleAbstraction.WriteWhite($"Searching Result:");
 
                                 // Manage inMyNetWork results
                                 if (inMyNetWork.Count > 0)
                                 {
-                                    Util.WriteToConsole($"{Util.WHITE}In my network: {Util.BLUE}{inMyNetWork.Count}");
+                                    ConsoleAbstraction.WriteLine($"{ConsoleAbstraction.WHITE}In my network: {ConsoleAbstraction.BLUE}{inMyNetWork.Count}");
                                     foreach (var rbContact in inMyNetWork)
                                     {
                                         var aboutCompany = "";
                                         if (rbContact.CompanyId == company.Id)
-                                            aboutCompany = $" {Util.BLUE}[In your company]";
+                                            aboutCompany = $" {ConsoleAbstraction.BLUE}[In your company]";
                                         else
-                                            aboutCompany = $" {Util.GREEN}[Not in you company]";
+                                            aboutCompany = $" {ConsoleAbstraction.GREEN}[Not in you company]";
 
                                         var aboutPresence = "";
                                         if (!String.IsNullOrEmpty(rbContact.Presence))
-                                            aboutPresence = $"{Util.WHITE} - Presence:[{rbContact.Presence}]";
-                                        Util.WriteToConsole($"\t{Util.WHITE}{rbContact.ToString(DetailsLevel.Small)}{aboutCompany}{aboutPresence}");
+                                            aboutPresence = $"{ConsoleAbstraction.WHITE} - Presence:[{rbContact.Presence}]";
+                                        ConsoleAbstraction.WriteLine($"\t{ConsoleAbstraction.WHITE}{rbContact.ToString(DetailsLevel.Small)}{aboutCompany}{aboutPresence}");
                                     }
                                 }
 
                                 // Manage inMyCompany results
                                 if (inMyCompany.Count > 0)
                                 {
-                                    Util.WriteToConsole($"{Util.WHITE}In my company: {Util.BLUE}{inMyCompany.Count}");
+                                    ConsoleAbstraction.WriteLine($"{ConsoleAbstraction.WHITE}In my company: {ConsoleAbstraction.BLUE}{inMyCompany.Count}");
                                     foreach (var rbContact in inMyCompany)
                                     {
                                         var aboutPresence = "";
                                         if (!String.IsNullOrEmpty(rbContact.Presence))
-                                            aboutPresence = $"{Util.WHITE} - Presence:[{rbContact.Presence}]";
-                                        Util.WriteToConsole($"\t{Util.WHITE}{rbContact.ToString(DetailsLevel.Small)}{aboutPresence}");
+                                            aboutPresence = $"{ConsoleAbstraction.WHITE} - Presence:[{rbContact.Presence}]";
+                                        ConsoleAbstraction.WriteLine($"\t{ConsoleAbstraction.WHITE}{rbContact.ToString(DetailsLevel.Small)}{aboutPresence}");
                                     }
                                 }
 
                                 // Manage personalDirectory results
                                 if (personalDirectory.Count > 0)
                                 {
-                                    Util.WriteToConsole($"{Util.WHITE}In my personal directory: {Util.BLUE}{personalDirectory.Count}");
+                                    ConsoleAbstraction.WriteLine($"{ConsoleAbstraction.WHITE}In my personal directory: {ConsoleAbstraction.BLUE}{personalDirectory.Count}");
                                     foreach (var rbContact in personalDirectory)
                                     {
-                                        Util.WriteToConsole($"\t{Util.WHITE}{rbContact.ToString(DetailsLevel.Small)}");
+                                        ConsoleAbstraction.WriteLine($"\t{ConsoleAbstraction.WHITE}{rbContact.ToString(DetailsLevel.Small)}");
                                     }
                                 }
 
                                 // Manage notInMyCompany results
                                 if (notInMyCompany.Count > 0)
                                 {
-                                    Util.WriteToConsole($"{Util.WHITE}In other companies: {Util.BLUE}{notInMyCompany.Count}");
+                                    ConsoleAbstraction.WriteLine($"{ConsoleAbstraction.WHITE}In other companies: {ConsoleAbstraction.BLUE}{notInMyCompany.Count}");
                                     foreach (var rbContact in notInMyCompany)
                                     {
-                                        Util.WriteToConsole($"\t{Util.WHITE}{rbContact.ToString(DetailsLevel.Small)}");
+                                        ConsoleAbstraction.WriteLine($"\t{ConsoleAbstraction.WHITE}{rbContact.ToString(DetailsLevel.Small)}");
                                     }
                                 }
 
                                 // Manage otherDirectories results
                                 if (otherDirectories.Count > 0)
                                 {
-                                    Util.WriteToConsole($"{Util.WHITE}In other directories: {Util.BLUE}{otherDirectories.Count}");
+                                    ConsoleAbstraction.WriteLine($"{ConsoleAbstraction.WHITE}In other directories: {ConsoleAbstraction.BLUE}{otherDirectories.Count}");
                                     foreach (var rbContact in otherDirectories)
                                     {
-                                        Util.WriteToConsole($"\t{Util.WHITE}{rbContact.ToString(DetailsLevel.Small)}");
+                                        ConsoleAbstraction.WriteLine($"\t{ConsoleAbstraction.WHITE}{rbContact.ToString(DetailsLevel.Small)}");
                                     }
                                 }
                             }
                             else
                             {
-                                Util.WriteRed($"Error:[{sdkResult.Result}]");
+                                ConsoleAbstraction.WriteRed($"Error:[{sdkResult.Result}]");
                             }
                         }
                     }
@@ -317,12 +339,12 @@ async Task MenuSearchContactAsync()
                 }
                 else
                 {
-                    Util.WriteDarkYellow($"{CR}Bad key used ...");
+                    ConsoleAbstraction.WriteDarkYellow($"{CR}Bad key used ...");
                 }
             }
             else
             {
-                Util.WriteDarkYellow($"{CR}Bad key used ...");
+                ConsoleAbstraction.WriteDarkYellow($"{CR}Bad key used ...");
             }
         }
     };
@@ -335,19 +357,19 @@ async Task MenuEscapeAsync()
 {
     if (!RbTask.IsCompleted)
     {
-        Util.WriteRed("Task is already in progress");
+        ConsoleAbstraction.WriteRed("Task is already in progress");
         return;
     }
 
     Action action = async () =>
     {
-        Util.WriteGreen($"Asked to end process using [ESC] key");
+        ConsoleAbstraction.WriteGreen($"Asked to end process using [ESC] key");
         if (RbApplication.IsConnected())
         {
-            Util.WriteGreen($"Asked to quit - Logout");
+            ConsoleAbstraction.WriteGreen($"Asked to quit - Logout");
             var sdkResultBoolean = await RbApplication.LogoutAsync();
             if (!sdkResultBoolean.Success)
-                Util.WriteRed($"Cannot logout - SdkError:[{sdkResultBoolean.Result}]");
+                ConsoleAbstraction.WriteRed($"Cannot logout - SdkError:[{sdkResultBoolean.Result}]");
             await Task.Delay(500);
         }
         System.Environment.Exit(0);
@@ -361,33 +383,33 @@ void RbApplication_ConnectionStateChanged(Rainbow.Model.ConnectionState connecti
 {
     // Display the CurrentNbAttempts
     if (connectionState.Status == ConnectionStatus.Connecting)
-        Util.WriteYellow($"{CR}AutoReconnection.CurrentNbAttempts: [{RbAutoReconnection.CurrentNbAttempts}]");
+        ConsoleAbstraction.WriteYellow($"{CR}AutoReconnection.CurrentNbAttempts: [{RbAutoReconnection.CurrentNbAttempts}]");
 
     // We log connection state in the console - use differnte color according the status
     String color;
     switch (connectionState.Status)
     {
         case ConnectionStatus.Connected:
-            color = Util.BLUE;
+            color = ConsoleAbstraction.BLUE;
             break;
 
         case ConnectionStatus.Disconnected:
-            color = Util.RED;
+            color = ConsoleAbstraction.RED;
             break;
 
         case ConnectionStatus.Connecting:
         default:
-            color = Util.GREEN;
+            color = ConsoleAbstraction.GREEN;
             break;
 
     }
-    Util.WriteToConsole($"{CR}{color}Event Application.ConnectionStateChanged triggered - Connection Status: [{connectionState.Status}]");
+    ConsoleAbstraction.WriteLine($"{CR}{color}Event Application.ConnectionStateChanged triggered - Connection Status: [{connectionState.Status}]");
 
     // If we are disconnected and the AutoReconnection is stopped, nothing more wille happpen
     // So we quit the process
     if ((connectionState.Status == ConnectionStatus.Disconnected) && (!RbAutoReconnection.IsStarted))
     {
-        Util.WriteYellow($"{CR}We quit the process since AutoReconnection is stopped and we are disconnected");
+        ConsoleAbstraction.WriteYellow($"{CR}We quit the process since AutoReconnection is stopped and we are disconnected");
         System.Environment.Exit(0);
     }
 }
@@ -395,35 +417,35 @@ void RbApplication_ConnectionStateChanged(Rainbow.Model.ConnectionState connecti
 void RbApplication_AuthenticationSucceeded()
 {
     // Authentication Succeeded- we display in the console the info
-    Util.WriteBlue($"{CR}Event Application.AuthenticationSucceeded triggered");
+    ConsoleAbstraction.WriteBlue($"{CR}Event Application.AuthenticationSucceeded triggered");
 }
 
 void RbApplication_AuthenticationFailed(SdkError sdkError)
 {
     // Authentication failed - we display in the console the reason
-    Util.WriteRed($"{CR}Event Application.AuthenticationFailed triggered - SdkError:{sdkError}");
+    ConsoleAbstraction.WriteRed($"{CR}Event Application.AuthenticationFailed triggered - SdkError:{sdkError}");
 }
 
 void RbBubbles_BubbleAffiliationsPerformed()
 {
     // Bubble Affiliations Performed - we display in the console the info
-    Util.WriteBlue($"{CR}Event Bubbles_BubbleAffiliationsPerformed triggered");
+    ConsoleAbstraction.WriteBlue($"{CR}Event Bubbles_BubbleAffiliationsPerformed triggered");
 
 }
 
 void RbAutoReconnection_TokenExpired()
 {
-    Util.WriteRed($"{CR}Event AutoReconnection.TokenExpired triggered");
+    ConsoleAbstraction.WriteRed($"{CR}Event AutoReconnection.TokenExpired triggered");
 }
 
 void RbAutoReconnection_MaxNbAttemptsReached()
 {
-    Util.WriteRed($"{CR}Event AutoReconnection.MaxNbAttemptsReached triggered");
+    ConsoleAbstraction.WriteRed($"{CR}Event AutoReconnection.MaxNbAttemptsReached triggered");
 }
 
 void RbAutoReconnection_Started()
 {
-    Util.WriteBlue($"{CR}Event AutoReconnection.Started triggered");
+    ConsoleAbstraction.WriteBlue($"{CR}Event AutoReconnection.Started triggered");
 }
 
 void RbAutoReconnection_Cancelled(SdkError sdkError)
@@ -431,15 +453,15 @@ void RbAutoReconnection_Cancelled(SdkError sdkError)
     if (sdkError.Type == Rainbow.Enums.SdkErrorType.NoError)
     {
         // The service has been cancelled/stopped voluntarily
-        Util.WriteYellow($"{CR}Event AutoReconnection.Cancelled triggered - Done using the SDK voluntarily");
+        ConsoleAbstraction.WriteYellow($"{CR}Event AutoReconnection.Cancelled triggered - Done using the SDK voluntarily");
     }
     else 
     {
         // The service has been cancelled/stopped involuntarily - display the reason
-        Util.WriteBlue($"{CR}Event AutoReconnection.Cancelled triggered - SdkError(Exception]:[{sdkError}]");
+        ConsoleAbstraction.WriteBlue($"{CR}Event AutoReconnection.Cancelled triggered - SdkError(Exception]:[{sdkError}]");
     }
 
-    Util.WriteWhite($"{CR}We quit since the AutoReconnection has been Cancelled");
+    ConsoleAbstraction.WriteWhite($"{CR}We quit since the AutoReconnection has been Cancelled");
     System.Environment.Exit(0);
 }
 
@@ -450,7 +472,7 @@ Boolean ReadExeSettings()
     String exeSettingsFilePath = $".{Path.DirectorySeparatorChar}config{Path.DirectorySeparatorChar}exeSettings.json";
     if (!File.Exists(exeSettingsFilePath))
     {
-        Util.WriteRed($"The file '{exeSettingsFilePath}' has not been found.");
+        ConsoleAbstraction.WriteRed($"The file '{exeSettingsFilePath}' has not been found.");
         return false;
     }
 
@@ -459,7 +481,7 @@ Boolean ReadExeSettings()
 
     if ((jsonNode is null) || (!jsonNode.IsObject))
     {
-        Util.WriteRed($"Cannot get JSON data from file '{exeSettingsFilePath}'.");
+        ConsoleAbstraction.WriteRed($"Cannot get JSON data from file '{exeSettingsFilePath}'.");
         return false;
     }
 
@@ -470,7 +492,7 @@ Boolean ReadExeSettings()
     }
     else
     {
-        Util.WriteRed($"Cannot read 'exeSettings' object OR invalid/missing data - file:'{exeSettingsFilePath}'.");
+        ConsoleAbstraction.WriteRed($"Cannot read 'exeSettings' object OR invalid/missing data - file:'{exeSettingsFilePath}'.");
         return false;
     }
 
@@ -482,7 +504,7 @@ Boolean ReadCredentials(string fileName = "credentials.json")
     var credentialsFilePath = $".{Path.DirectorySeparatorChar}config{Path.DirectorySeparatorChar}{fileName}";
     if (!File.Exists(credentialsFilePath))
     {
-        Util.WriteRed($"The file '{credentialsFilePath}' has not been found.");
+        ConsoleAbstraction.WriteRed($"The file '{credentialsFilePath}' has not been found.");
         return false;
     }
 
@@ -491,7 +513,7 @@ Boolean ReadCredentials(string fileName = "credentials.json")
 
     if (!Credentials.FromJsonNode(jsonNode["credentials"], out credentials))
     {
-        Util.WriteRed($"Cannot read 'credentials' object OR invalid/missing data in file:[{fileName}].");
+        ConsoleAbstraction.WriteRed($"Cannot read 'credentials' object OR invalid/missing data in file:[{fileName}].");
         return false;
     }
 

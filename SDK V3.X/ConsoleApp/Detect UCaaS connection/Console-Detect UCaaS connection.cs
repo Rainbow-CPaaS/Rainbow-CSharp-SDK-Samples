@@ -4,7 +4,7 @@ using Rainbow.Consts;
 using Rainbow.Model;
 using System.Text;
 
-using Util = Rainbow.Example.Common.Util;
+
 using Rainbow.SimpleJSON;
 using Rainbow.Example.Common;
 
@@ -27,17 +27,15 @@ if (credentialsAdmin is null)
 
 Object consoleLockObject = new(); // To lock until the current console display is performed
 
-Console.OutputEncoding = Encoding.UTF8; // We want to display UTF8 on the console
-
 List<RainbowBot> rainbowBots = new ();
 
 
 // Set folder / directory path
 NLogConfigurator.Directory = exeSettings.LogFolderPath;
 var logFullPath = Path.GetFullPath(exeSettings.LogFolderPath);
-Util.WriteBlue($"Logs files will be stored in folder:[{logFullPath}]{Rainbow.Util.CR}");
+ConsoleAbstraction.WriteBlue($"Logs files will be stored in folder:[{logFullPath}]{Rainbow.Util.CR}");
 
-Util.WriteBlue($"Use [ESC] at anytime to quit{Rainbow.Util.CR}");
+ConsoleAbstraction.WriteBlue($"Use [ESC] at anytime to quit{Rainbow.Util.CR}");
 
 // Create admin bot
 var adminBot = new RainbowAdminBot(credentialsAdmin.ServerConfig, credentialsAdmin.UsersConfig[0]);
@@ -70,14 +68,14 @@ do
 
 void CheckInputKey()
 {
-    while (Console.KeyAvailable)
+    while (ConsoleAbstraction.KeyAvailable)
     {
-        var userInput = Console.ReadKey(true);
+        var userInput = ConsoleAbstraction.ReadKey();
 
-        switch (userInput.Key)
+        switch (userInput?.Key)
         {
             case ConsoleKey.Escape:
-                Util.WriteYellow($"Asked to end process using [ESC] key");
+                ConsoleAbstraction.WriteYellow($"Asked to end process using [ESC] key");
                 System.Environment.Exit(0);
                 return;
         }
@@ -90,9 +88,9 @@ void AdminBot_SIPDeviceStatusChanged(SIPDeviceStatus sipDeviceStatus)
 {
     var log = $"Device status changed: Registered[{sipDeviceStatus.Registered}] - ShortNumber:[{sipDeviceStatus.DeviceShortNumber}] - Peer:[{sipDeviceStatus.Peer.ToString("small")}]";
     if (sipDeviceStatus.Registered)
-        Util.WriteDarkYellow(log);
+        ConsoleAbstraction.WriteDarkYellow(log);
     else
-        Util.WriteRed(log);
+        ConsoleAbstraction.WriteRed(log);
 }
 #endregion EVENTS TRIGGERED BY RainbowAdminBot
 
@@ -103,30 +101,30 @@ void RainbowBot_ConnectionStateChanged(UserConfig rainbowAccount, ConnectionStat
     switch(connectionState.Status)
     {
         case ConnectionStatus.Connected:
-            Util.WriteDarkYellow($"Bot using [{rainbowAccount.Login}] is connected{Rainbow.Util.CR}");
+            ConsoleAbstraction.WriteDarkYellow($"Bot using [{rainbowAccount.Login}] is connected{Rainbow.Util.CR}");
             break;
 
         case ConnectionStatus.Connecting:
-            Util.WriteBlue($"Bot using [{rainbowAccount.Login}] is connecting ...{Rainbow.Util.CR}");
+            ConsoleAbstraction.WriteBlue($"Bot using [{rainbowAccount.Login}] is connecting ...{Rainbow.Util.CR}");
             break;
 
         case ConnectionStatus.Disconnected:
-            Util.WriteRed ($"Bot using [{rainbowAccount.Login}] is disconnected{Rainbow.Util.CR}");
+            ConsoleAbstraction.WriteRed ($"Bot using [{rainbowAccount.Login}] is disconnected{Rainbow.Util.CR}");
             break;
     }
 }
 
 void RainbowBot_ConnectionFailed(UserConfig rainbowAccount, SdkError sdkError)
 {
-    Util.WriteRed($"Bot using [{rainbowAccount.Login}] is not connected - Error:[{sdkError}]{Rainbow.Util.CR}");
+    ConsoleAbstraction.WriteRed($"Bot using [{rainbowAccount.Login}] is not connected - Error:[{sdkError}]{Rainbow.Util.CR}");
 }
 
 void RainbowBot_AccountUsedOnAnotherDevice(UserConfig rainbowAccount, Boolean accountUsedOnAnotherDevice)
 {
     if (accountUsedOnAnotherDevice)
-        Util.WriteDarkYellow($"[{rainbowAccount.Login}] is connected using another device{Rainbow.Util.CR}");
+        ConsoleAbstraction.WriteDarkYellow($"[{rainbowAccount.Login}] is connected using another device{Rainbow.Util.CR}");
     else
-        Util.WriteRed($"[{rainbowAccount.Login}] is NOT connected using another device{Rainbow.Util.CR}");
+        ConsoleAbstraction.WriteRed($"[{rainbowAccount.Login}] is NOT connected using another device{Rainbow.Util.CR}");
 }
 
 
@@ -138,7 +136,7 @@ Boolean ReadExeSettings()
     String exeSettingsFilePath = $".{Path.DirectorySeparatorChar}config{Path.DirectorySeparatorChar}exeSettings.json";
     if (!File.Exists(exeSettingsFilePath))
     {
-        Util.WriteRed($"The file '{exeSettingsFilePath}' has not been found.");
+        ConsoleAbstraction.WriteRed($"The file '{exeSettingsFilePath}' has not been found.");
         return false;
     }
 
@@ -147,7 +145,7 @@ Boolean ReadExeSettings()
 
     if ((jsonNode is null) || (!jsonNode.IsObject))
     {
-        Util.WriteRed($"Cannot get JSON data from file '{exeSettingsFilePath}'.");
+        ConsoleAbstraction.WriteRed($"Cannot get JSON data from file '{exeSettingsFilePath}'.");
         return false;
     }
 
@@ -158,7 +156,7 @@ Boolean ReadExeSettings()
     }
     else
     {
-        Util.WriteRed($"Cannot read 'exeSettings' object OR invalid/missing data - file:'{exeSettingsFilePath}'.");
+        ConsoleAbstraction.WriteRed($"Cannot read 'exeSettings' object OR invalid/missing data - file:'{exeSettingsFilePath}'.");
         return false;
     }
 
@@ -170,7 +168,7 @@ Credentials? ReadCredentials(string fileName = "credentials.json")
     var credentialsFilePath = $".{Path.DirectorySeparatorChar}config{Path.DirectorySeparatorChar}{fileName}";
     if (!File.Exists(credentialsFilePath))
     {
-        Util.WriteRed($"The file '{credentialsFilePath}' has not been found.");
+        ConsoleAbstraction.WriteRed($"The file '{credentialsFilePath}' has not been found.");
         return null;
     }
 
@@ -179,7 +177,7 @@ Credentials? ReadCredentials(string fileName = "credentials.json")
 
     if (!Credentials.FromJsonNode(jsonNode["credentials"], out Credentials credentials))
     {
-        Util.WriteRed($"Cannot read 'credentials' object OR invalid/missing data in file:[{fileName}].");
+        ConsoleAbstraction.WriteRed($"Cannot read 'credentials' object OR invalid/missing data in file:[{fileName}].");
         return null;
     }
 

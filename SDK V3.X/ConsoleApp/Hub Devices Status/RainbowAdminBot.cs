@@ -5,7 +5,7 @@ using Rainbow.Delegates;
 using Rainbow.Enums;
 using Rainbow.Example.Common;
 using Rainbow.Model;
-using Util = Rainbow.Example.Common.Util;
+
 
 
 internal class RainbowAdminBot
@@ -58,20 +58,22 @@ internal class RainbowAdminBot
         Swan.Logging.Logger.NoLogging();
         Swan.Logging.Logger.RegisterLogger<SwanLogger>();
 
+        // Set restrictions
+        Restrictions restrictions = new(true)
+        {
+            EventMode = SdkEventMode.NONE, // We don't need event mode
+
+            LogRestRequest = true,
+            LogEvent = true,
+            LogEventParameters = true,
+            LogEventRaised = true,
+        };
 
         _rbApplication = new Rainbow.Application(
                 iniFolderFullPathName: rainbowAccount.IniFolderPath,
                 iniFileName: rainbowAccount.Prefix + "file.ini",
-                loggerPrefix: rainbowAccount.Prefix);
-
-        // Set restrictions
-        _rbApplication.Restrictions.LogRestRequest = true;
-        _rbApplication.Restrictions.LogRestRequestOnError = true;
-        _rbApplication.Restrictions.LogEvent = true;
-        _rbApplication.Restrictions.LogEventRaised = true;
-        _rbApplication.Restrictions.EventMode = SdkEventMode.NONE; // We don't need event mode
-        _rbApplication.Restrictions.UseHubTelephony = true;
-        _rbApplication.Restrictions.UseHybridTelephony = false;
+                loggerPrefix: rainbowAccount.Prefix,
+                restrictions: restrictions);
 
         // Get services
         _rbAutoReconnection = _rbApplication.GetAutoReconnection();
@@ -154,7 +156,7 @@ internal class RainbowAdminBot
         if (specificHeaders?.Count > 0)
             httpRequestDescriptor.AddHeaders(specificHeaders);
 
-        return await httpClient.RequestAsStringAsync(httpRequestDescriptor);
+        return await httpClient.RequestAsStringAsync(httpRequestDescriptor, default);
     }
 
     private async Task<SdkResult<Boolean>> GetAllMandatoryInfoAsync()
@@ -168,10 +170,10 @@ internal class RainbowAdminBot
             sdkResultBoolean = await GetAllContactsInCompanyAsync();
             mustTryAgain = !sdkResultBoolean.Success;
             if (!sdkResultBoolean.Success)
-                Rainbow.Example.Common.Util.WriteRed($"Cannot get all contacts in company - Error:[{sdkResultBoolean.Result}]");
+                ConsoleAbstraction.WriteRed($"Cannot get all contacts in company - Error:[{sdkResultBoolean.Result}]");
         }
         while (mustTryAgain);
-        Util.WriteBlue($"Nb users in company:[{_peersById.Count}]");
+        ConsoleAbstraction.WriteBlue($"Nb users in company:[{_peersById.Count}]");
 
         if (!sdkResultBoolean.Success)
             return sdkResultBoolean;
@@ -182,10 +184,10 @@ internal class RainbowAdminBot
             sdkResultBoolean = await GetAllCloudPbxInCompanyAsync();
             mustTryAgain = !sdkResultBoolean.Success;
             if (!sdkResultBoolean.Success)
-                Rainbow.Example.Common.Util.WriteRed($"Cannot get all Cloud in company - Error:[{sdkResultBoolean.Result}]");
+                ConsoleAbstraction.WriteRed($"Cannot get all Cloud in company - Error:[{sdkResultBoolean.Result}]");
         }
         while (mustTryAgain);
-        Util.WriteBlue($"Nb Cloud PBX  in company:[{_hubAdminCloudPBXInfoList.Count}]");
+        ConsoleAbstraction.WriteBlue($"Nb Cloud PBX  in company:[{_hubAdminCloudPBXInfoList.Count}]");
 
         if (!sdkResultBoolean.Success)
             return sdkResultBoolean;
@@ -196,10 +198,10 @@ internal class RainbowAdminBot
             sdkResultBoolean = await GetAllHubDevicesInCompanyAsync();
             mustTryAgain = !sdkResultBoolean.Success;
             if (!sdkResultBoolean.Success)
-                Rainbow.Example.Common.Util.WriteRed($"Cannot get all Hub Devices in company - Error:[{sdkResultBoolean.Result}]");
+                ConsoleAbstraction.WriteRed($"Cannot get all Hub Devices in company - Error:[{sdkResultBoolean.Result}]");
         }
         while (mustTryAgain);
-        Util.WriteBlue($"Nb Hub Devices in company:[{_hubAdminDevicesById.Count}]");
+        ConsoleAbstraction.WriteBlue($"Nb Hub Devices in company:[{_hubAdminDevicesById.Count}]");
 
         return sdkResultBoolean;
 
@@ -358,15 +360,15 @@ internal class RainbowAdminBot
                 {
                     sdkResultBool = await _rbAdministration.DeleteCompanyEventSubscriptionAsync(sub);
                     if (sdkResultBool.Success)
-                        Util.WriteBlue($"CompanyEventSubscription deleted:[{sub}]");
+                        ConsoleAbstraction.WriteBlue($"CompanyEventSubscription deleted:[{sub}]");
                     else
-                        Util.WriteRed($"CompanyEventSubscription NOT deleted:[{sdkResultBool.Result}]");
+                        ConsoleAbstraction.WriteRed($"CompanyEventSubscription NOT deleted:[{sdkResultBool.Result}]");
                 }
             }
         }
         else
         {
-            Util.WriteRed($"GetCompanyEventSubscriptionsAsync - Error:[{sdkResultSubscriptions.Result}]");
+            ConsoleAbstraction.WriteRed($"GetCompanyEventSubscriptionsAsync - Error:[{sdkResultSubscriptions.Result}]");
             return new SdkResult<Boolean>(sdkResultSubscriptions.Result);
         }
 
@@ -382,15 +384,15 @@ internal class RainbowAdminBot
                 {
                     sdkResultBool = await _rbAdministration.DeleteCompanyEventWebHookAsync(sub);
                     if (sdkResultBool.Success)
-                        Util.WriteBlue($"CompanyEventWebHook deleted:[{sub}]");
+                        ConsoleAbstraction.WriteBlue($"CompanyEventWebHook deleted:[{sub}]");
                     else
-                        Util.WriteRed($"CompanyEventWebHook NOT deleted:[{sdkResultBool.Result}]");
+                        ConsoleAbstraction.WriteRed($"CompanyEventWebHook NOT deleted:[{sdkResultBool.Result}]");
                 }
             }
         }
         else
         {
-            Util.WriteRed($"GetCompanyEventWebHooksAsync - Error:[{sdkResultHooks.Result}]");
+            ConsoleAbstraction.WriteRed($"GetCompanyEventWebHooksAsync - Error:[{sdkResultHooks.Result}]");
             return new SdkResult<Boolean>(sdkResultHooks.Result);
         }
 
@@ -399,7 +401,7 @@ internal class RainbowAdminBot
         if (sdkResultHook.Success)
         {
             _companyEventWebHook = sdkResultHook.Data;
-            Util.WriteBlue($"CompanyEventWebHook created:[{_companyEventWebHook}]");
+            ConsoleAbstraction.WriteBlue($"CompanyEventWebHook created:[{_companyEventWebHook}]");
 
             String eventType = "device_state";
 
@@ -408,19 +410,19 @@ internal class RainbowAdminBot
             if (sdkResultSubscription.Success)
             {
                 _companyEventSubscription = sdkResultSubscription.Data;
-                Util.WriteBlue($"CompanyEventSubscription created:[{_companyEventSubscription}]");
+                ConsoleAbstraction.WriteBlue($"CompanyEventSubscription created:[{_companyEventSubscription}]");
 
                 return new SdkResult<Boolean>(true);
             }
             else
             {
-                Util.WriteRed($"CreateCompanyEventSubscriptionAsync - Error:[{sdkResultSubscription.Result}]");
+                ConsoleAbstraction.WriteRed($"CreateCompanyEventSubscriptionAsync - Error:[{sdkResultSubscription.Result}]");
                 return new SdkResult<Boolean>(sdkResultSubscription.Result);
             }
         }
         else
         {
-            Util.WriteRed($"CreateCompanyEventWebHookAsync - Error:[{sdkResultHook.Result}]");
+            ConsoleAbstraction.WriteRed($"CreateCompanyEventWebHookAsync - Error:[{sdkResultHook.Result}]");
             return new SdkResult<Boolean>(sdkResultHook.Result);
         }
     }

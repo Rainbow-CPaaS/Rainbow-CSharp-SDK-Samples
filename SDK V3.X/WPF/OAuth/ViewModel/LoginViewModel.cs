@@ -180,7 +180,7 @@ namespace WpfSSOSamples.ViewModel
             }
         }
         
-        private async void StartSSO(String uri, String redirectUri)
+        private void StartSSO(String uri, String redirectUri)
         {
             // Ensure to be on UI Thread
             if (System.Windows.Application.Current.Dispatcher.Thread != Thread.CurrentThread)
@@ -188,7 +188,6 @@ namespace WpfSSOSamples.ViewModel
                 System.Windows.Application.Current.Dispatcher.Invoke(new Action(() => { StartSSO(uri, redirectUri); }));
                 return;
             }
-
 
             try
             {
@@ -201,40 +200,42 @@ namespace WpfSSOSamples.ViewModel
                     browser.Title = "Single Sign On";
                 }
 
-                BrowserResult browserResult;
-                browserResult = await browser.InvokeAsync(uri, redirectUri);
-
-                SSOInProgress = false;
-                if (browserResult.Error)
+                browser.InvokeAsync(uri, redirectUri).ContinueWith(async task =>
                 {
-                    if (browserResult.CancelByUser)
-                        SetErrorMessage("The sign-in window was closed before authorization was completed.");
-                    else
+                    BrowserResult browserResult = task.Result;
+                    System.Windows.Application.Current.Dispatcher.Invoke(new Action(() => { SSOInProgress = false; }));
+
+                    if (browserResult.Error)
                     {
-                        String msg = "";
-                        foreach (var key in browserResult.Parameters.Keys)
-                            msg += key + ":" + browserResult.Parameters[key] + " - ";
+                        if (browserResult.CancelByUser)
+                            SetErrorMessage("The sign-in window was closed before authorization was completed.");
+                        else
+                        {
+                            String msg = "";
+                            foreach (var key in browserResult.Parameters.Keys)
+                                msg += key + ":" + browserResult.Parameters[key] + " - ";
 
-                        if (msg.Length > 3)
-                            msg = msg.Substring(0, msg.Length - 3);
-                        SetErrorMessage("Authentication failed:" + msg);
-                    }
-                    SetToBusy(false);
-                }
-                else
-                {
-                    SetErrorMessage("SSO has been performed well. Now using Authorization Code to login on RB Server ...");
-
-                    String code = browserResult.Code;
-
-                    // Now start login with this token
-                    var sdkResult = await CurrentApplication.RbApplication.LoginWithOauthAuthorizationCodeAsync(code, redirectUri);
-                    if (!sdkResult.Success)
-                    {
-                        SetErrorMessage("Login to RB using Authorization Code failed");
+                            if (msg.Length > 3)
+                                msg = msg.Substring(0, msg.Length - 3);
+                            SetErrorMessage("Authentication failed:" + msg);
+                        }
                         SetToBusy(false);
                     }
-                }
+                    else
+                    {
+                        SetErrorMessage("SSO has been performed well. Now using Authorization Code to login on RB Server ...");
+
+                        String code = browserResult.Code;
+
+                        // Now start login with this token
+                        var sdkResult = await CurrentApplication.RbApplication.LoginWithOauthAuthorizationCodeAsync(code, redirectUri);
+                        if (!sdkResult.Success)
+                        {
+                            SetErrorMessage("Login to RB using Authorization Code failed");
+                            SetToBusy(false);
+                        }
+                    }
+                });
             }
             catch (Exception ex)
             {

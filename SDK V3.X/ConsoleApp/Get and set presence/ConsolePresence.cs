@@ -5,7 +5,7 @@ using Rainbow.Model;
 using System.Text;
 
 using Rainbow.Example.Common;
-using Util = Rainbow.Example.Common.Util;
+
 using Rainbow.SimpleJSON;
 
 // --------------------------------------------------
@@ -19,11 +19,9 @@ if ((!ReadExeSettings()) || (exeSettings is null))
 if ((!ReadCredentials()) || (credentials is null))
     return;
 
-Util.WriteRed($"Account used: [{credentials.UsersConfig[0].Login}]");
+ConsoleAbstraction.WriteRed($"Account used: [{credentials.UsersConfig[0].Login}]");
 
 // --------------------------------------------------
-
-Console.OutputEncoding = Encoding.UTF8; // We want to display UTF8 on the console
 
 Object consoleLockObject = new(); // To lock until the current console display is performed
 String CR = Rainbow.Util.CR; // Get carriage return;
@@ -71,17 +69,17 @@ RbApplication.SetHostInfo(credentials.ServerConfig.HostName);
 // The goal here is to understand how events are triggered by the AutoReconnection service
 RbAutoReconnection.MaxNbAttempts = 10; 
 
-Util.WriteGreen($"{CR}Use [ESC] at anytime to quit");
+ConsoleAbstraction.WriteGreen($"{CR}Use [ESC] at anytime to quit");
 
-Util.WriteGreen($"{CR}Use [Q] at anytime once loggued to quit using Logout");
-Util.WriteGreen($"Use [A] at anytime once loggued to cancel/stop AutoReconnection service");
+ConsoleAbstraction.WriteGreen($"{CR}Use [Q] at anytime once loggued to quit using Logout");
+ConsoleAbstraction.WriteGreen($"Use [A] at anytime once loggued to cancel/stop AutoReconnection service");
 
-Util.WriteGreen($"{CR}Use [P] at anytime once loggued to change your presence");
+ConsoleAbstraction.WriteGreen($"{CR}Use [P] at anytime once loggued to change your presence");
 
-Util.WriteGreen($"{CR}Using another account on Rainbow Web client and change his presence to see Presence events");
+ConsoleAbstraction.WriteGreen($"{CR}Using another account on Rainbow Web client and change his presence to see Presence events");
 
 // Start login
-Util.WriteWhite($"{CR}Starting login ...");
+ConsoleAbstraction.WriteWhite($"{CR}Starting login ...");
 var taskSdkResult = RbApplication.LoginAsync(credentials.UsersConfig[0].Login, credentials.UsersConfig[0].Password); // Here we don't wait the Login process before to continue
 
 do
@@ -92,14 +90,14 @@ do
 
 async Task CheckInputKey()
 {
-    while (Console.KeyAvailable)
+    while (ConsoleAbstraction.KeyAvailable)
     {
-        var userInput = Console.ReadKey(true);
+        var userInput = ConsoleAbstraction.ReadKey();
 
-        switch (userInput.Key)
+        switch (userInput?.Key)
         {
             case ConsoleKey.Escape:
-                Util.WriteYellow($"Asked to end process using [ESC] key");
+                ConsoleAbstraction.WriteYellow($"Asked to end process using [ESC] key");
                 System.Environment.Exit(0);
                 return;
 
@@ -113,7 +111,7 @@ async Task CheckInputKey()
                         // We do nothing special here - we manage event Cancelled from AutoReconnexion
                     }
                     else
-                        Util.WriteRed($"LogoutAsync - Error:[{taskSdkResult.Result}]");
+                        ConsoleAbstraction.WriteRed($"LogoutAsync - Error:[{taskSdkResult.Result}]");
                 }
                 return;
 
@@ -121,7 +119,7 @@ async Task CheckInputKey()
             case ConsoleKey.A:
                 if (RbAutoReconnection.IsStarted)
                 {
-                    Util.WriteRed($"{CR}AutoReconnection - Service cancelled/Stopped");
+                    ConsoleAbstraction.WriteRed($"{CR}AutoReconnection - Service cancelled/Stopped");
                     RbAutoReconnection.Cancel();
                 }
                 return;
@@ -204,12 +202,12 @@ async Task ChangePresence()
             if (sdkResult.Result.IncorrectUseError != null)
             {
                 // We try to set an invalid presence
-                Util.WriteRed($"SetPresenceLevel - SdkError:[{sdkResult.Result}]");
+                ConsoleAbstraction.WriteRed($"SetPresenceLevel - SdkError:[{sdkResult.Result}]");
             }
             else
             {
                 // Pb with the server
-                Util.WriteRed($"SetPresenceLevel - SdkError:[{sdkResult.Result}]");
+                ConsoleAbstraction.WriteRed($"SetPresenceLevel - SdkError:[{sdkResult.Result}]");
             }
         }
     }
@@ -226,33 +224,33 @@ void RbApplication_ConnectionStateChanged(Rainbow.Model.ConnectionState connecti
 {
     // Display the CurrentNbAttempts
     if (connectionState.Status == ConnectionStatus.Connecting)
-        Util.WriteYellow($"{CR}AutoReconnection.CurrentNbAttempts: [{RbAutoReconnection.CurrentNbAttempts}]");
+        ConsoleAbstraction.WriteYellow($"{CR}AutoReconnection.CurrentNbAttempts: [{RbAutoReconnection.CurrentNbAttempts}]");
 
     // We log connection state in the console - use differnte color according the status
     String color;
     switch (connectionState.Status)
     {
         case ConnectionStatus.Connected:
-            color = Util.BLUE;
+            color = ConsoleAbstraction.BLUE;
             break;
 
         case ConnectionStatus.Disconnected:
-            color = Util.RED;
+            color = ConsoleAbstraction.RED;
             break;
 
         case ConnectionStatus.Connecting:
         default:
-            color = Util.GREEN;
+            color = ConsoleAbstraction.GREEN;
             break;
 
     }
-    Util.WriteToConsole($"{CR}{color}Event Application.ConnectionStateChanged triggered - Connection Status: [{connectionState.Status}]");
+    ConsoleAbstraction.WriteLine($"{CR}{color}Event Application.ConnectionStateChanged triggered - Connection Status: [{connectionState.Status}]");
 
     // If we are disconnected and the AutoReconnection is stopped, nothing more wille happpen
     // So we quit the process
     if ((connectionState.Status == ConnectionStatus.Disconnected) && (!RbAutoReconnection.IsStarted))
     {
-        Util.WriteYellow($"{CR}We quit the process since AutoReconnection is stopped and we are disconnected");
+        ConsoleAbstraction.WriteYellow($"{CR}We quit the process since AutoReconnection is stopped and we are disconnected");
         System.Environment.Exit(0);
     }
     else if (connectionState.Status == ConnectionStatus.Connected)
@@ -260,7 +258,7 @@ void RbApplication_ConnectionStateChanged(Rainbow.Model.ConnectionState connecti
         var list = RbContacts.GetAllContactsInRoster();
         if(list.Count > 0)
         {
-            Util.WriteDarkYellow($"{CR}Nb Contacts in your roster:[{list.Count}]");
+            ConsoleAbstraction.WriteDarkYellow($"{CR}Nb Contacts in your roster:[{list.Count}]");
         }
     }
 }
@@ -268,28 +266,28 @@ void RbApplication_ConnectionStateChanged(Rainbow.Model.ConnectionState connecti
 void RbApplication_AuthenticationSucceeded()
 {
     // Authentication Succeeded- we display in the console the info
-    Util.WriteBlue($"{CR}Event Application.AuthenticationSucceeded triggered");
+    ConsoleAbstraction.WriteBlue($"{CR}Event Application.AuthenticationSucceeded triggered");
 }
 
 void RbApplication_AuthenticationFailed(SdkError sdkError)
 {
     // Authentication failed - we display in the console the reason
-    Util.WriteRed($"{CR}Event Application.AuthenticationFailed triggered - SdkError:{sdkError}");
+    ConsoleAbstraction.WriteRed($"{CR}Event Application.AuthenticationFailed triggered - SdkError:{sdkError}");
 }
 
 void RbAutoReconnection_TokenExpired()
 {
-    Util.WriteRed($"{CR}Event AutoReconnection.TokenExpired triggered");
+    ConsoleAbstraction.WriteRed($"{CR}Event AutoReconnection.TokenExpired triggered");
 }
 
 void RbAutoReconnection_MaxNbAttemptsReached()
 {
-    Util.WriteRed($"{CR}Event AutoReconnection.MaxNbAttemptsReached triggered");
+    ConsoleAbstraction.WriteRed($"{CR}Event AutoReconnection.MaxNbAttemptsReached triggered");
 }
 
 void RbAutoReconnection_Started()
 {
-    Util.WriteBlue($"{CR}Event AutoReconnection.Started triggered");
+    ConsoleAbstraction.WriteBlue($"{CR}Event AutoReconnection.Started triggered");
 }
 
 void RbAutoReconnection_Cancelled(SdkError sdkError)
@@ -297,28 +295,28 @@ void RbAutoReconnection_Cancelled(SdkError sdkError)
     if (sdkError.Type == Rainbow.Enums.SdkErrorType.NoError)
     {
         // The service has been cancelled/stopped voluntarily
-        Util.WriteYellow($"{CR}Event AutoReconnection.Cancelled triggered - Done using the SDK voluntarily");
+        ConsoleAbstraction.WriteYellow($"{CR}Event AutoReconnection.Cancelled triggered - Done using the SDK voluntarily");
     }
     else 
     {
         // The service has been cancelled/stopped involuntarily - display the reason
-        Util.WriteBlue($"{CR}Event AutoReconnection.Cancelled triggered - SdkError(Exception]:[{sdkError}]");
+        ConsoleAbstraction.WriteBlue($"{CR}Event AutoReconnection.Cancelled triggered - SdkError(Exception]:[{sdkError}]");
     }
 
-    Util.WriteWhite($"{CR}We quit since the AutoReconnection has been Cancelled");
+    ConsoleAbstraction.WriteWhite($"{CR}We quit since the AutoReconnection has been Cancelled");
     System.Environment.Exit(0);
 }
 
 void RbContacts_ContactPresenceUpdated(Rainbow.Model.Presence presence)
 {
     // Presence of a Contact on one of his device has changed
-    Util.WriteYellow($"{CR}Event RbContacts_ContactPresenceUpdated triggered - Contact:[{presence.Contact.ToString(DetailsLevel.Small)}] - Presence:[{presence.ToString(DetailsLevel.Medium)}]");
+    ConsoleAbstraction.WriteYellow($"{CR}Event RbContacts_ContactPresenceUpdated triggered - Contact:[{presence.Contact.ToString(DetailsLevel.Small)}] - Presence:[{presence.ToString(DetailsLevel.Medium)}]");
 }
 
 void RbContacts_ContactAggregatedPresenceUpdated(Rainbow.Model.Presence presence)
 {
     // Aggregated / Unified presence of a Contact has changed
-    Util.WriteBlue($"{CR}Event RbContacts_ContactAggregatedPresenceUpdated triggered - Contact:[{presence.Contact.ToString(DetailsLevel.Small)}] - Presence:[{presence.ToString(DetailsLevel.Small)}]");
+    ConsoleAbstraction.WriteBlue($"{CR}Event RbContacts_ContactAggregatedPresenceUpdated triggered - Contact:[{presence.Contact.ToString(DetailsLevel.Small)}] - Presence:[{presence.ToString(DetailsLevel.Small)}]");
 }
 
 #endregion Events received from the SDK
@@ -328,7 +326,7 @@ Boolean ReadExeSettings()
     String exeSettingsFilePath = $".{Path.DirectorySeparatorChar}config{Path.DirectorySeparatorChar}exeSettings.json";
     if (!File.Exists(exeSettingsFilePath))
     {
-        Util.WriteRed($"The file '{exeSettingsFilePath}' has not been found.");
+        ConsoleAbstraction.WriteRed($"The file '{exeSettingsFilePath}' has not been found.");
         return false;
     }
 
@@ -337,7 +335,7 @@ Boolean ReadExeSettings()
 
     if ((jsonNode is null) || (!jsonNode.IsObject))
     {
-        Util.WriteRed($"Cannot get JSON data from file '{exeSettingsFilePath}'.");
+        ConsoleAbstraction.WriteRed($"Cannot get JSON data from file '{exeSettingsFilePath}'.");
         return false;
     }
 
@@ -348,7 +346,7 @@ Boolean ReadExeSettings()
     }
     else
     {
-        Util.WriteRed($"Cannot read 'exeSettings' object OR invalid/missing data - file:'{exeSettingsFilePath}'.");
+        ConsoleAbstraction.WriteRed($"Cannot read 'exeSettings' object OR invalid/missing data - file:'{exeSettingsFilePath}'.");
         return false;
     }
 
@@ -360,7 +358,7 @@ Boolean ReadCredentials(string fileName = "credentials.json")
     var credentialsFilePath = $".{Path.DirectorySeparatorChar}config{Path.DirectorySeparatorChar}{fileName}";
     if (!File.Exists(credentialsFilePath))
     {
-        Util.WriteRed($"The file '{credentialsFilePath}' has not been found.");
+        ConsoleAbstraction.WriteRed($"The file '{credentialsFilePath}' has not been found.");
         return false;
     }
 
@@ -369,7 +367,7 @@ Boolean ReadCredentials(string fileName = "credentials.json")
 
     if (!Credentials.FromJsonNode(jsonNode["credentials"], out credentials))
     {
-        Util.WriteRed($"Cannot read 'credentials' object OR invalid/missing data in file:[{fileName}].");
+        ConsoleAbstraction.WriteRed($"Cannot read 'credentials' object OR invalid/missing data in file:[{fileName}].");
         return false;
     }
 

@@ -5,7 +5,7 @@ using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Util = Rainbow.Example.Common.Util;
+
 
 namespace BotRag
 {
@@ -16,8 +16,8 @@ namespace BotRag
 
         static async Task Main()
         {
-            Util.WriteGreen($"{Global.ProductName()} v{Global.FileVersion()}");
-            Util.WriteGreen($"[ESC] To stop the bot");
+            ConsoleAbstraction.WriteGreen($"{Global.ProductName()} v{Global.FileVersion()}");
+            ConsoleAbstraction.WriteGreen($"[ESC] To stop the bot");
 
             if (!ReadExeSettings())
                 return;
@@ -38,25 +38,25 @@ namespace BotRag
             catch {}
 
             if (!_botRag.Login())
-                Util.WriteRed("Cannot start login process");
+                ConsoleAbstraction.WriteRed("Cannot start login process");
 
             var isStopped = false;
             while (!isStopped)
             {
                 Thread.Sleep(500);
 
-                //while (Console.KeyAvailable)
+                //while (ConsoleAbstraction.KeyAvailable)
                 //{
-                //    var userInput = Console.ReadKey(true);
+                //    var userInput = ConsoleAbstraction.ReadKey();
 
                 //    // If [ESC] is used, we ask the bot to log out
-                //    if (userInput.Key == ConsoleKey.Escape)
+                //    if (userInput?.Key == ConsoleKey.Escape)
                 //        _botRag.Logout();
                 //}
 
                 (isStopped, var sdkError) = _botRag.IsStopped();
                 if(isStopped)
-                    Util.WriteRed($"Bot as stopped:{Rainbow.Util.CR}{sdkError}");
+                    ConsoleAbstraction.WriteRed($"Bot as stopped:{Rainbow.Util.CR}{sdkError}");
             }
         }
 
@@ -66,7 +66,7 @@ namespace BotRag
             String credentialsFilePath = $".{Path.DirectorySeparatorChar}config{Path.DirectorySeparatorChar}credentials.json";
             if (!File.Exists(credentialsFilePath))
             {
-                Util.WriteRed($"The file '{credentialsFilePath}' has not been found.");
+                ConsoleAbstraction.WriteRed($"The file '{credentialsFilePath}' has not been found.");
                 return false;
             }
             String jsonConfig = File.ReadAllText(credentialsFilePath);
@@ -74,7 +74,7 @@ namespace BotRag
 
             if (jsonNode?["credentials"]?.IsObject != true)
             {
-                Util.WriteRed($"Cannot get JSON object 'credentials' from file '{credentialsFilePath}'.");
+                ConsoleAbstraction.WriteRed($"Cannot get JSON object 'credentials' from file '{credentialsFilePath}'.");
                 return false;
             }
             var jsonNodeBotSettings = jsonNode["credentials"];
@@ -83,7 +83,7 @@ namespace BotRag
             String botConfigurationFilePath = $".{Path.DirectorySeparatorChar}config{Path.DirectorySeparatorChar}botConfiguration.json";
             if (!File.Exists(botConfigurationFilePath))
             {
-                Util.WriteRed($"The file '{botConfigurationFilePath}' has not been found.");
+                ConsoleAbstraction.WriteRed($"The file '{botConfigurationFilePath}' has not been found.");
                 return false;
             }
 
@@ -91,7 +91,7 @@ namespace BotRag
             jsonNode = JSON.Parse(jsonConfig);
             if (jsonNode?["botConfiguration"]?.IsObject != true)
             {
-                Util.WriteRed($"Cannot get JSON object 'botConfiguration' from file '{credentialsFilePath}'.");
+                ConsoleAbstraction.WriteRed($"Cannot get JSON object 'botConfiguration' from file '{credentialsFilePath}'.");
                 return false;
             }
             var jsonNodeBotConfiguration = jsonNode["botConfiguration"];
@@ -99,7 +99,7 @@ namespace BotRag
             _botRag = new();
             if (!(await _botRag.Configure(jsonNodeBotSettings, jsonNodeBotConfiguration)))
             {
-                Util.WriteRed($"Cannot configure bot");
+                ConsoleAbstraction.WriteRed($"Cannot configure bot");
                 return false;
             }
 
@@ -111,7 +111,7 @@ namespace BotRag
             String exeSettingsFilePath = $".{Path.DirectorySeparatorChar}config{Path.DirectorySeparatorChar}exeSettings.json";
             if (!File.Exists(exeSettingsFilePath))
             {
-                Util.WriteRed($"The file '{exeSettingsFilePath}' has not been found.");
+                ConsoleAbstraction.WriteRed($"The file '{exeSettingsFilePath}' has not been found.");
                 return false;
             }
 
@@ -120,20 +120,20 @@ namespace BotRag
 
             if ((jsonNode is null) || (!jsonNode.IsObject))
             {
-                Util.WriteRed($"Cannot get JSON data from file '{exeSettingsFilePath}'.");
+                ConsoleAbstraction.WriteRed($"Cannot get JSON data from file '{exeSettingsFilePath}'.");
                 return false;
             }
 
             if (ExeSettings.FromJsonNode(jsonNode["exeSettings"], out _exeSettings))
             {
                 // Set where log files must be stored
-                Util.WriteBlue($"For logs, folder used:[{_exeSettings.LogFolderPath}] - LogOnConsole:[{_exeSettings.LogOnConsole}]");
+                ConsoleAbstraction.WriteBlue($"For logs, folder used:[{_exeSettings.LogFolderPath}] - LogOnConsole:[{_exeSettings.LogOnConsole}]");
                 NLogConfigurator.Directory = _exeSettings.LogFolderPath;
                 NLogConfigurator.OutputOnConsole = _exeSettings.LogOnConsole;
             }
             else
             {
-                Util.WriteRed($"Cannot read 'exeSettings' object OR invalid/missing data - file:'{exeSettingsFilePath}'.");
+                ConsoleAbstraction.WriteRed($"Cannot read 'exeSettings' object OR invalid/missing data - file:'{exeSettingsFilePath}'.");
                 return false;
             }
 

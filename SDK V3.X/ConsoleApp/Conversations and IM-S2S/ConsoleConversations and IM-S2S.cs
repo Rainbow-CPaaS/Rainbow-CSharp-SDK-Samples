@@ -2,7 +2,7 @@
 using Rainbow.Consts;
 using Rainbow.Model;
 
-using Util = Rainbow.Example.Common.Util;
+
 using Rainbow.SimpleJSON;
 using System.Text;
 using Rainbow.Enums;
@@ -19,19 +19,19 @@ if ((!ReadExeSettings()) || (exeSettings is null))
 
 if (String.IsNullOrEmpty(exeSettings.S2SCallbackURL))
 {
-    Util.WriteRed($"This example demonstrates how to use S2S but you have not set S2S callback URL (in \"exeSttings.json\" file with the property \"S2SCallbackURL\")");
-    Util.WriteRed($"In consequence, XMPP event mode (i.e standard mode and not S2S) will be use instead !");
+    ConsoleAbstraction.WriteRed($"This example demonstrates how to use S2S but you have not set S2S callback URL (in \"exeSttings.json\" file with the property \"S2SCallbackURL\")");
+    ConsoleAbstraction.WriteRed($"In consequence, XMPP event mode (i.e standard mode and not S2S) will be use instead !");
 }
 else
 {
-    Util.WriteRed($"S2SCallbackURL:[{exeSettings.S2SCallbackURL}]");
+    ConsoleAbstraction.WriteRed($"S2SCallbackURL:[{exeSettings.S2SCallbackURL}]");
 }
 
 if ((!ReadCredentials()) || (credentials is null))
     return;
 
 
-Util.WriteRed($"Account used: [{credentials.UsersConfig[0].Login}]");
+ConsoleAbstraction.WriteRed($"Account used: [{credentials.UsersConfig[0].Login}]");
 
 
 // --------------------------------------------------
@@ -54,20 +54,29 @@ Rainbow.Util.SetLogAnonymously(false);
 
 Conversation? lastConversationDeleted = null;
 
+Restrictions restrictions = new(true)
+{
+    StoreMessages = true,
+
+    LogRestRequest = true,
+    LogEvent = true,
+    LogEventParameters = true,
+
+    EventMode = SdkEventMode.S2S
+};
+
 // Create Rainbow SDK objects
-var RbApplication = new Application(iniFolderFullPathName: logFolderPath, iniFileName: logPrefix + ".ini", loggerPrefix: logPrefix);
+var RbApplication = new Application(iniFolderFullPathName: logFolderPath, iniFileName: logPrefix + ".ini", loggerPrefix: logPrefix, restrictions: restrictions);
 
 // If we use S2S:
 //  - we have to indicate to the SDK
-//  - we are using "ngrok" since we have not a public HTTP Server. We have to create a local web server on a correct port - here we uset port 9870
+//  - we are using "ngrok" since we have not a public HTTP Server. We have to create a local web server on a correct port - here we use port 9870
 if (!String.IsNullOrEmpty(exeSettings.S2SCallbackURL))
 {
     RbApplication.SetS2SCallbackUrl(exeSettings.S2SCallbackURL);
-    // When using RbApplication.SetS2SCallbackUrl with a no empty UR, internally this is called too:
-    // RbApplication.Restrictions.EventMode = SdkEventMode.S2S;
 
     // We start a local web server using port 9870
-    var webServer = CreateWebServer("http://localhost:9870");
+    var webServer = CreateWebServer("http://localhost:9870", logPrefix);
     var _ = webServer.RunAsync();
 }
 
@@ -76,8 +85,6 @@ var RbBubbles = RbApplication.GetBubbles();
 var RbContacts = RbApplication.GetContacts();
 var RbInstantMessaging = RbApplication.GetInstantMessaging();
 var RbConversations = RbApplication.GetConversations();
-
-RbApplication.Restrictions.LogRestRequest = true;
 
 // We want to receive events from SDK
 RbApplication.AuthenticationFailed += RbApplication_AuthenticationFailed;       // Triggered when the authentication process will fail
@@ -111,12 +118,12 @@ RbApplication.SetHostInfo(credentials.ServerConfig.HostName);
 // The goal here is to understand how events are triggered by the AutoReconnection service
 RbAutoReconnection.MaxNbAttempts = 10; 
 
-Util.WriteGreen($"{CR}Use [ESC] at anytime to quit");
+ConsoleAbstraction.WriteGreen($"{CR}Use [ESC] at anytime to quit");
 
-Util.WriteGreen($"{CR}Use [Q] at anytime once loggued to quit using Logout");
+ConsoleAbstraction.WriteGreen($"{CR}Use [Q] at anytime once loggued to quit using Logout");
 
 // Start login
-Util.WriteWhite($"{CR}Starting login ...");
+ConsoleAbstraction.WriteWhite($"{CR}Starting login ...");
 var taskSdkResult = RbApplication.LoginAsync(credentials.UsersConfig[0].Login, credentials.UsersConfig[0].Password); // Here we don't wait the Login process before to continue
 
 do
@@ -133,14 +140,14 @@ do
 
 async Task CheckInputKey()
 {
-    while (Console.KeyAvailable)
+    while (ConsoleAbstraction.KeyAvailable)
     {
-        var userInput = Console.ReadKey(true);
+        var userInput = ConsoleAbstraction.ReadKey();
 
-        switch (userInput.Key)
+        switch (userInput?.Key)
         {
             case ConsoleKey.Escape:
-                Util.WriteYellow($"Asked to end process using [ESC] key");
+                ConsoleAbstraction.WriteYellow($"Asked to end process using [ESC] key");
                 System.Environment.Exit(0);
                 return;
 
@@ -154,7 +161,7 @@ async Task CheckInputKey()
                         // Nothing to do here - on success, event Cancelled from AutoReconnexion is triggered
                     }
                     else
-                        Util.WriteRed($"LogoutAsync - Error:[{taskSdkResult.Result}]");
+                        ConsoleAbstraction.WriteRed($"LogoutAsync - Error:[{taskSdkResult.Result}]");
                 }
                 return;
 
@@ -187,24 +194,24 @@ async Task CheckInputKey()
 
 void DisplayInputsInfo()
 {
-    Util.WriteGreen($"{CR}Use [I] to display this [I]nfo menu");
+    ConsoleAbstraction.WriteGreen($"{CR}Use [I] to display this [I]nfo menu");
 
-    Util.WriteGreen($"{CR}Use [C] to list [C]onversations");
+    ConsoleAbstraction.WriteGreen($"{CR}Use [C] to list [C]onversations");
 
-    Util.WriteGreen($"{CR}Use [D] to [D]elete first Conversation from list");
+    ConsoleAbstraction.WriteGreen($"{CR}Use [D] to [D]elete first Conversation from list");
 
-    Util.WriteGreen($"{CR}Use [O] to [O]pen a Conversation previously deleted");
+    ConsoleAbstraction.WriteGreen($"{CR}Use [O] to [O]pen a Conversation previously deleted");
 
-    Util.WriteGreen($"{CR}Use [S] to [S]end an IM to a Contact or a Bubble");
+    ConsoleAbstraction.WriteGreen($"{CR}Use [S] to [S]end an IM to a Contact or a Bubble");
 
-    Util.WriteGreen($"{CR}Use [M] to get older [M]essages exchanged with a Contact or a Bubble");
+    ConsoleAbstraction.WriteGreen($"{CR}Use [M] to get older [M]essages exchanged with a Contact or a Bubble");
 }
 
 async Task<Boolean> OpenConversationDeletedAsync()
 {
     if(lastConversationDeleted == null)
     {
-        Util.WriteRed($"{CR}No conversation previously deleted");
+        ConsoleAbstraction.WriteRed($"{CR}No conversation previously deleted");
         return false;
     }
     else
@@ -213,13 +220,13 @@ async Task<Boolean> OpenConversationDeletedAsync()
         if (sdkResult.Success)
         {
             var conversation = sdkResult.Data;
-            Util.WriteDarkYellow($"{CR}Conversation opened:[{conversation.ToString(DetailsLevel.Medium)}]");
+            ConsoleAbstraction.WriteDarkYellow($"{CR}Conversation opened:[{conversation.ToString(DetailsLevel.Medium)}]");
             lastConversationDeleted = null;
             return true;
         }
         else
         {
-            Util.WriteRed($"{CR}OpenConversationDeletedAsync() - Error occured:{sdkResult.Result}");
+            ConsoleAbstraction.WriteRed($"{CR}OpenConversationDeletedAsync() - Error occured:{sdkResult.Result}");
             return false;
         }
     }
@@ -235,16 +242,16 @@ async Task<Boolean> DeleteFirstConversationAsync()
         if (sdkResult.Success)
         {
             lastConversationDeleted = sdkResult.Data;
-            Util.WriteDarkYellow($"{CR}Conversation deleted:[{lastConversationDeleted.ToString(DetailsLevel.Medium)}]");
+            ConsoleAbstraction.WriteDarkYellow($"{CR}Conversation deleted:[{lastConversationDeleted.ToString(DetailsLevel.Medium)}]");
             return true;
         }
 
-        Util.WriteRed($"{CR}DeleteFirstConversationAsync() - Error occured:{sdkResult.Result}");
+        ConsoleAbstraction.WriteRed($"{CR}DeleteFirstConversationAsync() - Error occured:{sdkResult.Result}");
         return false;
     }
     else
     {
-        Util.WriteDarkYellow($"{CR}No conversations already exists");
+        ConsoleAbstraction.WriteDarkYellow($"{CR}No conversations already exists");
         return false;
     }
 }
@@ -254,15 +261,15 @@ void ListConversations()
     var list = RbConversations.GetAllConversations();
     if(list?.Count > 0)
     {
-        Util.WriteDarkYellow($"{CR}Nb conversations:[{list.Count}]");
+        ConsoleAbstraction.WriteDarkYellow($"{CR}Nb conversations:[{list.Count}]");
         var index = 1;
         foreach (var conversation in list)
         {
-            Util.WriteDarkYellow($"{CR}Conversation {index++:00}:{conversation.ToString(DetailsLevel.Medium)}]");
+            ConsoleAbstraction.WriteDarkYellow($"{CR}Conversation {index++:00}:{conversation.ToString(DetailsLevel.Medium)}]");
         }
     }
     else
-        Util.WriteDarkYellow($"{CR}No conversations already exists");
+        ConsoleAbstraction.WriteDarkYellow($"{CR}No conversations already exists");
 }
 
 async Task GetOlderMessagesAsync()
@@ -274,16 +281,16 @@ async Task GetOlderMessagesAsync()
         if (displayInfo)
         {
             displayInfo = false;
-            Util.WriteGreen($"{CR}Get last message from:");
-            Util.WriteGreen($"\t - [U] User");
-            Util.WriteGreen($"\t - [B] Bubble");
-            Util.WriteGreen($"\t - [C] to cancel");
+            ConsoleAbstraction.WriteGreen($"{CR}Get last message from:");
+            ConsoleAbstraction.WriteGreen($"\t - [U] User");
+            ConsoleAbstraction.WriteGreen($"\t - [B] Bubble");
+            ConsoleAbstraction.WriteGreen($"\t - [C] to cancel");
         }
 
-        while (Console.KeyAvailable)
+        while (ConsoleAbstraction.KeyAvailable)
         {
-            var userInput = Console.ReadKey(false);
-            switch (userInput.Key)
+            var userInput = ConsoleAbstraction.ReadKey();
+            switch (userInput?.Key)
             {
                 case ConsoleKey.U:
                     var contact = SearchForUserInRoster();
@@ -304,7 +311,7 @@ async Task GetOlderMessagesAsync()
                     break;
 
                 default:
-                    Util.WriteYellow($"Invalid key ...");
+                    ConsoleAbstraction.WriteYellow($"Invalid key ...");
                     displayInfo = true;
                     break;
             }
@@ -316,6 +323,11 @@ async Task GetOlderMessagesAsync()
 
 async Task GetOlderMessagesWithPeerAsync(Peer peer)
 {
+    // /!\ According value of Restrictions.StoreMessage, if you want to retrieve step by step older messages by peer you have
+    // - to store the last message exahnge with it
+    // - and use it when calling GetOlderMessagesAsync(...) method
+    // For a full example check the dedicate example to fetch all messages from a peer
+
     var sdkResultMessages = await RbInstantMessaging.GetOlderMessagesAsync(peer, 5);
     if(sdkResultMessages.Success)
     {
@@ -331,15 +343,15 @@ async Task GetOlderMessagesWithPeerAsync(Peer peer)
                 AppendMessage(ref stringBuilder, message, $"{CR}\t");
             }
 
-            Util.WriteDarkYellow($"{CR}Older messages with Peer:[{peer.ToString(DetailsLevel.Small)}]:");
-            Util.WriteDarkYellow($"{CR}{stringBuilder}");
+            ConsoleAbstraction.WriteDarkYellow($"{CR}Older messages with Peer:[{peer.ToString(DetailsLevel.Small)}]:");
+            ConsoleAbstraction.WriteDarkYellow($"{CR}{stringBuilder}");
         }
         else
-            Util.WriteDarkYellow($"{CR}No more older messages to retrieve with Peer:[{peer.ToString(DetailsLevel.Small)}]:");
+            ConsoleAbstraction.WriteDarkYellow($"{CR}No more older messages to retrieve with Peer:[{peer.ToString(DetailsLevel.Small)}]:");
     }
     else
     {
-        Util.WriteBlue($"{CR}Cannot get older messages with [{peer.ToString(DetailsLevel.Small)}]");
+        ConsoleAbstraction.WriteBlue($"{CR}Cannot get older messages with [{peer.ToString(DetailsLevel.Small)}]");
     }
 }
 
@@ -352,16 +364,16 @@ async Task SendIMAsync()
         if (displayInfo)
         {
             displayInfo = false;
-            Util.WriteGreen($"{CR}Send an IM To:");
-            Util.WriteGreen($"\t - [U] User");
-            Util.WriteGreen($"\t - [B] Bubble");
-            Util.WriteGreen($"\t - [C] to cancel");
+            ConsoleAbstraction.WriteGreen($"{CR}Send an IM To:");
+            ConsoleAbstraction.WriteGreen($"\t - [U] User");
+            ConsoleAbstraction.WriteGreen($"\t - [B] Bubble");
+            ConsoleAbstraction.WriteGreen($"\t - [C] to cancel");
         }
 
-        while (Console.KeyAvailable && !displayInfo)
+        while (ConsoleAbstraction.KeyAvailable && !displayInfo)
         {
-            var userInput = Console.ReadKey(false);
-            switch (userInput.Key)
+            var userInput = ConsoleAbstraction.ReadKey();
+            switch (userInput?.Key)
             {
                 case ConsoleKey.U:
                     var contact = SearchForUserInRoster();
@@ -382,7 +394,7 @@ async Task SendIMAsync()
                     break;
 
                 default:
-                    Util.WriteYellow($"Invalid key ...");
+                    ConsoleAbstraction.WriteYellow($"Invalid key ...");
                     displayInfo = true;
                     break;
             }
@@ -394,25 +406,25 @@ async Task SendIMAsync()
 
 async Task SendImToPeerAsync(Peer peer)
 {
-    Util.WriteYellow($"{CR}Enter a text to send it to [{peer.ToString(DetailsLevel.Small)}]: ");
-    var str = Console.ReadLine();
+    ConsoleAbstraction.WriteYellow($"{CR}Enter a text to send it to [{peer.ToString(DetailsLevel.Small)}]: ");
+    var str = ConsoleAbstraction.ReadLine();
     if (str != null)
     {
         var sdkResult = await RbInstantMessaging.SendMessageAsync(peer, str);
         if(sdkResult.Success)
-            Util.WriteBlue($"{CR}IM sent to [{peer.ToString(DetailsLevel.Small)}]");
+            ConsoleAbstraction.WriteBlue($"{CR}IM sent to [{peer.ToString(DetailsLevel.Small)}]");
         else
-            Util.WriteRed($"{CR}Error sending IM: [{sdkResult.Result}]");
+            ConsoleAbstraction.WriteRed($"{CR}Error sending IM: [{sdkResult.Result}]");
     }
     else
-        Util.WriteRed($"No text specified - No IM sent");
+        ConsoleAbstraction.WriteRed($"No text specified - No IM sent");
 }
 
 Contact? SearchForUserInRoster()
 {
     Contact? result = null;
-    Util.WriteYellow($"{CR}Enter a text to search a user from you Roster: ");
-    var str = Console.ReadLine();
+    ConsoleAbstraction.WriteYellow($"{CR}Enter a text to search a user from you Roster: ");
+    var str = ConsoleAbstraction.ReadLine();
     if (str != null)
     {
         var contactsList = RbContacts.GetAllContactsInRoster();
@@ -420,9 +432,9 @@ Contact? SearchForUserInRoster()
     }
 
     if(result == null)
-        Util.WriteRed($"{CR}No contact found with [{str}]");
+        ConsoleAbstraction.WriteRed($"{CR}No contact found with [{str}]");
     else
-        Util.WriteWhite($"Contact found:[{result.ToString(DetailsLevel.Small)}]");
+        ConsoleAbstraction.WriteWhite($"Contact found:[{result.ToString(DetailsLevel.Small)}]");
 
     return result;
 }
@@ -430,8 +442,8 @@ Contact? SearchForUserInRoster()
 Bubble? SearchForBubbles()
 {
     Bubble? result = null;
-    Util.WriteYellow($"{CR}Enter a text to search a Bubble:");
-    var str = Console.ReadLine();
+    ConsoleAbstraction.WriteYellow($"{CR}Enter a text to search a Bubble:");
+    var str = ConsoleAbstraction.ReadLine();
     if (str != null)
     {
         List<String> memberStatus = [ BubbleMemberStatus.Accepted ];
@@ -440,9 +452,9 @@ Bubble? SearchForBubbles()
     }
 
     if (result == null)
-        Util.WriteRed($"{CR}No bubble found with [{str}]");
+        ConsoleAbstraction.WriteRed($"{CR}No bubble found with [{str}]");
     else
-        Util.WriteWhite($"bubble found:[{result.ToString(DetailsLevel.Small)}]");
+        ConsoleAbstraction.WriteWhite($"bubble found:[{result.ToString(DetailsLevel.Small)}]");
 
     return result;
 }
@@ -511,33 +523,33 @@ void RbApplication_ConnectionStateChanged(Rainbow.Model.ConnectionState connecti
 {
     // Display the CurrentNbAttempts
     if (connectionState.Status == ConnectionStatus.Connecting)
-        Util.WriteYellow($"{CR}AutoReconnection.CurrentNbAttempts: [{RbAutoReconnection.CurrentNbAttempts}]");
+        ConsoleAbstraction.WriteYellow($"{CR}AutoReconnection.CurrentNbAttempts: [{RbAutoReconnection.CurrentNbAttempts}]");
 
     // We log connection state in the console - use differnte color according the status
     String color;
     switch (connectionState.Status)
     {
         case ConnectionStatus.Connected:
-            color = Util.BLUE;
+            color = ConsoleAbstraction.BLUE;
             break;
 
         case ConnectionStatus.Disconnected:
-            color = Util.RED;
+            color = ConsoleAbstraction.RED;
             break;
 
         case ConnectionStatus.Connecting:
         default:
-            color = Util.GREEN;
+            color = ConsoleAbstraction.GREEN;
             break;
 
     }
-    Util.WriteToConsole($"{CR}{color}Event Application.ConnectionStateChanged triggered - Connection Status: [{connectionState.Status}]");
+    ConsoleAbstraction.WriteLine($"{CR}{color}Event Application.ConnectionStateChanged triggered - Connection Status: [{connectionState.Status}]");
 
     // If we are disconnected and the AutoReconnection is stopped, nothing more wille happpen
     // So we quit the process
     if ((connectionState.Status == ConnectionStatus.Disconnected) && (!RbAutoReconnection.IsStarted))
     {
-        Util.WriteYellow($"{CR}We quit the process since AutoReconnection is stopped and we are disconnected");
+        ConsoleAbstraction.WriteYellow($"{CR}We quit the process since AutoReconnection is stopped and we are disconnected");
         System.Environment.Exit(0);
     }
 }
@@ -545,28 +557,28 @@ void RbApplication_ConnectionStateChanged(Rainbow.Model.ConnectionState connecti
 void RbApplication_AuthenticationSucceeded()
 {
     // Authentication Succeeded- we display in the console the info
-    Util.WriteBlue($"{CR}Event Application.AuthenticationSucceeded triggered");
+    ConsoleAbstraction.WriteBlue($"{CR}Event Application.AuthenticationSucceeded triggered");
 }
 
 void RbApplication_AuthenticationFailed(SdkError sdkError)
 {
     // Authentication failed - we display in the console the reason
-    Util.WriteRed($"{CR}Event Application.AuthenticationFailed triggered - SdkError:{sdkError}");
+    ConsoleAbstraction.WriteRed($"{CR}Event Application.AuthenticationFailed triggered - SdkError:{sdkError}");
 }
 
 void RbAutoReconnection_TokenExpired()
 {
-    Util.WriteRed($"{CR}Event AutoReconnection.TokenExpired triggered");
+    ConsoleAbstraction.WriteRed($"{CR}Event AutoReconnection.TokenExpired triggered");
 }
 
 void RbAutoReconnection_MaxNbAttemptsReached()
 {
-    Util.WriteRed($"{CR}Event AutoReconnection.MaxNbAttemptsReached triggered");
+    ConsoleAbstraction.WriteRed($"{CR}Event AutoReconnection.MaxNbAttemptsReached triggered");
 }
 
 void RbAutoReconnection_Started()
 {
-    Util.WriteBlue($"{CR}Event AutoReconnection.Started triggered");
+    ConsoleAbstraction.WriteBlue($"{CR}Event AutoReconnection.Started triggered");
 }
 
 void RbAutoReconnection_Cancelled(SdkError sdkError)
@@ -574,15 +586,15 @@ void RbAutoReconnection_Cancelled(SdkError sdkError)
     if (sdkError.Type == Rainbow.Enums.SdkErrorType.NoError)
     {
         // The service has been cancelled/stopped voluntarily
-        Util.WriteYellow($"{CR}Event AutoReconnection.Cancelled triggered - Done using the SDK voluntarily");
+        ConsoleAbstraction.WriteYellow($"{CR}Event AutoReconnection.Cancelled triggered - Done using the SDK voluntarily");
     }
     else 
     {
         // The service has been cancelled/stopped involuntarily - display the reason
-        Util.WriteBlue($"{CR}Event AutoReconnection.Cancelled triggered - SdkError(Exception]:[{sdkError}]");
+        ConsoleAbstraction.WriteBlue($"{CR}Event AutoReconnection.Cancelled triggered - SdkError(Exception]:[{sdkError}]");
     }
 
-    Util.WriteWhite($"{CR}We quit since the AutoReconnection has been Cancelled");
+    ConsoleAbstraction.WriteWhite($"{CR}We quit since the AutoReconnection has been Cancelled");
     System.Environment.Exit(0);
 }
 
@@ -594,7 +606,7 @@ void RbContacts_ContactsAdded(IEnumerable<Rainbow.Model.Contact> contacts)
         displayNames.Add(contact.ToString(DetailsLevel.Small));
     }
 
-    Util.WriteBlue($"{Rainbow.Util.CR}Event ContactsAdded triggered - Nb:[{displayNames.Count}] - Contact(s):[{String.Join(", ", displayNames)}]{Rainbow.Util.CR}");
+    ConsoleAbstraction.WriteBlue($"{Rainbow.Util.CR}Event ContactsAdded triggered - Nb:[{displayNames.Count}] - Contact(s):[{String.Join(", ", displayNames)}]{Rainbow.Util.CR}");
 }
 
 void RbInstantMessaging_MessageReceived(Message message, bool carbonCopy)
@@ -602,16 +614,16 @@ void RbInstantMessaging_MessageReceived(Message message, bool carbonCopy)
     if(message.ToBubble is null)
     {
         // Message has NOT be sent to a Bubble
-        Util.WriteBlue($"{CR}Message received: sent by [{message.FromContact.ToString(DetailsLevel.Small)}] to you:");
+        ConsoleAbstraction.WriteBlue($"{CR}Message received: sent by [{message.FromContact.ToString(DetailsLevel.Small)}] to you:");
     }
     else
     {
         // Message has been sent to a Bubble
-        Util.WriteBlue($"{CR}Message received: sent by [{message.FromContact.ToString(DetailsLevel.Small)}] in Bubble [{message.ToBubble.ToString(DetailsLevel.Small)}]:");
+        ConsoleAbstraction.WriteBlue($"{CR}Message received: sent by [{message.FromContact.ToString(DetailsLevel.Small)}] in Bubble [{message.ToBubble.ToString(DetailsLevel.Small)}]:");
     }
     StringBuilder stringBuilder = new();
     AppendMessage(ref stringBuilder, message, $"{CR}\t");
-    Util.WriteDarkYellow($"{CR}{stringBuilder}");
+    ConsoleAbstraction.WriteDarkYellow($"{CR}{stringBuilder}");
 }
 
 void RbInstantMessaging_ReceiptReceived(Peer peerContext, Message message, MessageReceiptType receiptType)
@@ -625,12 +637,12 @@ void RbInstantMessaging_UserTypingChanged(Peer peerContext, Contact contact, boo
     if(peerContext.Type == EntityType.User)
     {
         // A P2P context
-        Util.WriteBlue($"{CR} Contact [{contact.ToString(DetailsLevel.Small)}] - isTyping:[{isTyping}]");
+        ConsoleAbstraction.WriteBlue($"{CR} Contact [{contact.ToString(DetailsLevel.Small)}] - isTyping:[{isTyping}]");
     }
     else
     {
         // A Bubble context
-        Util.WriteBlue($"{CR} Contact [{contact.ToString(DetailsLevel.Small)}] - isTyping:[{isTyping}] in Bubble:[{peerContext.ToString(DetailsLevel.Small)}]");
+        ConsoleAbstraction.WriteBlue($"{CR} Contact [{contact.ToString(DetailsLevel.Small)}] - isTyping:[{isTyping}] in Bubble:[{peerContext.ToString(DetailsLevel.Small)}]");
     }
 }
 
@@ -642,7 +654,7 @@ Boolean ReadExeSettings()
     String exeSettingsFilePath = $".{Path.DirectorySeparatorChar}config{Path.DirectorySeparatorChar}exeSettings.json";
     if (!File.Exists(exeSettingsFilePath))
     {
-        Util.WriteRed($"The file '{exeSettingsFilePath}' has not been found.");
+        ConsoleAbstraction.WriteRed($"The file '{exeSettingsFilePath}' has not been found.");
         return false;
     }
 
@@ -651,7 +663,7 @@ Boolean ReadExeSettings()
 
     if ((jsonNode is null) || (!jsonNode.IsObject))
     {
-        Util.WriteRed($"Cannot get JSON data from file '{exeSettingsFilePath}'.");
+        ConsoleAbstraction.WriteRed($"Cannot get JSON data from file '{exeSettingsFilePath}'.");
         return false;
     }
 
@@ -662,7 +674,7 @@ Boolean ReadExeSettings()
     }
     else
     {
-        Util.WriteRed($"Cannot read 'exeSettings' object OR invalid/missing data - file:'{exeSettingsFilePath}'.");
+        ConsoleAbstraction.WriteRed($"Cannot read 'exeSettings' object OR invalid/missing data - file:'{exeSettingsFilePath}'.");
         return false;
     }
 
@@ -674,7 +686,7 @@ Boolean ReadCredentials(string fileName = "credentials.json")
     var credentialsFilePath = $".{Path.DirectorySeparatorChar}config{Path.DirectorySeparatorChar}{fileName}";
     if (!File.Exists(credentialsFilePath))
     {
-        Util.WriteRed($"The file '{credentialsFilePath}' has not been found.");
+        ConsoleAbstraction.WriteRed($"The file '{credentialsFilePath}' has not been found.");
         return false;
     }
 
@@ -683,7 +695,7 @@ Boolean ReadCredentials(string fileName = "credentials.json")
 
     if (!Credentials.FromJsonNode(jsonNode["credentials"], out credentials))
     {
-        Util.WriteRed($"Cannot read 'credentials' object OR invalid/missing data in file:[{fileName}].");
+        ConsoleAbstraction.WriteRed($"Cannot read 'credentials' object OR invalid/missing data in file:[{fileName}].");
         return false;
     }
 
@@ -692,7 +704,7 @@ Boolean ReadCredentials(string fileName = "credentials.json")
 
 
 #region CODE USED ONLY IN S2S CONTEXT
-WebServer CreateWebServer(string url)
+WebServer CreateWebServer(string url, string logPrefix)
 {
     WebServer server = new WebServer(o => o
             .WithUrlPrefix(url)
@@ -701,7 +713,7 @@ WebServer CreateWebServer(string url)
 
         // First, we will configure our web server by adding Modules.
         .WithLocalSessionManager()
-        .WithModule(new CallbackWebModule("/"));
+        .WithModule(new CallbackWebModule("/", logPrefix));
 
     server.WithStaticFolder("/", "./", true, configure =>
     {

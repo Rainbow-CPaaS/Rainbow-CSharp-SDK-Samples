@@ -3,7 +3,7 @@ using Rainbow;
 using Rainbow.Consts;
 
 using Rainbow.Console;
-using Util = Rainbow.Example.Common.Util;
+
 using Rainbow.SimpleJSON;
 using Rainbow.Example.Common;
 
@@ -21,14 +21,14 @@ if ((!ReadCredentials()) || (credentials is null))
 if ( (credentials.ServerConfig.OAuthPorts is null) 
     || (credentials.ServerConfig.OAuthPorts.Count == 0) )
 {
-    Util.WriteRed($"No OAuthPorts defined in credentials.json");
+    ConsoleAbstraction.WriteRed($"No OAuthPorts defined in credentials.json");
     return;
 }
 
 String CR = Rainbow.Util.CR; // Get carriage return;
 
-Util.WriteGreen($"{CR}Application used: Id:[{credentials.ServerConfig.AppId}] - HostName:[{credentials.ServerConfig.HostName}]");
-Util.WriteGreen($"{CR}OAuthPorts used: [{String.Join(", ", credentials.ServerConfig.OAuthPorts)}]");
+ConsoleAbstraction.WriteGreen($"{CR}Application used: Id:[{credentials.ServerConfig.AppId}] - HostName:[{credentials.ServerConfig.HostName}]");
+ConsoleAbstraction.WriteGreen($"{CR}OAuthPorts used: [{String.Join(", ", credentials.ServerConfig.OAuthPorts)}]");
 
 // --------------------------------------------------
 
@@ -46,8 +46,17 @@ NLogConfigurator.AddLogger(logPrefix);
 
 Rainbow.Util.SetLogAnonymously(false);
 
+// Set restrictions
+Restrictions restrictions = new(true)
+{
+    LogRestRequest = true,
+    LogEvent = true,
+    LogEventParameters = true,
+    LogEventRaised = true,
+};
+
 // Create Rainbow SDK objects
-var RbApplication = new Application(iniFolderFullPathName: logFolderPath, iniFileName: logPrefix +".ini", loggerPrefix: logPrefix);
+var RbApplication = new Application(iniFolderFullPathName: logFolderPath, iniFileName: logPrefix +".ini", loggerPrefix: logPrefix, restrictions: restrictions);
 var RbAutoReconnection = RbApplication.GetAutoReconnection();
 var RbContacts = RbApplication.GetContacts();
 
@@ -62,7 +71,6 @@ RbAutoReconnection.MaxNbAttemptsReached += RbAutoReconnection_MaxNbAttemptsReach
 RbAutoReconnection.TokenExpired += RbAutoReconnection_TokenExpired;                 // Triggered when the Security Token is expired
 
 // Set global configuration info
-RbApplication.Restrictions.LogRestRequest = true;
 RbApplication.SetApplicationInfo(credentials.ServerConfig.AppId, credentials.ServerConfig.AppSecret);
 RbApplication.SetHostInfo(credentials.ServerConfig.HostName);
 
@@ -82,44 +90,44 @@ try
 }
 catch (Exception exc)
 {
-    Util.WriteRed($"Cannot create systemBrowser - Exception:[{exc}]");
+    ConsoleAbstraction.WriteRed($"Cannot create systemBrowser - Exception:[{exc}]");
     return;
 }
 
 if(systemBrowser is null)
 {
-    Util.WriteRed($"Cannot start local HTTP server using ports:[{String.Join(", ", ports)}]");
+    ConsoleAbstraction.WriteRed($"Cannot start local HTTP server using ports:[{String.Join(", ", ports)}]");
     return;
 }
 
 String redirectUri = $"http://127.0.0.1:{systemBrowser.Port}";
 
 string oAuthAuthorizationUrl = RbApplication.GetOAuthAuthorizationEndPoint(true, redirectUri);
-Util.WriteGreen($"{CR}OAuthAuthorizationUrl used: [{oAuthAuthorizationUrl}]");
+ConsoleAbstraction.WriteGreen($"{CR}OAuthAuthorizationUrl used: [{oAuthAuthorizationUrl}]");
 
 CancellationToken cancellationToken = default; // We don't use here an cancellationToken
 var browserResult = await systemBrowser.InvokeAsync(oAuthAuthorizationUrl, cancellationToken);
 if (browserResult.IsError)
 {
-    Util.WriteRed($"SSO Failed");
+    ConsoleAbstraction.WriteRed($"SSO Failed");
 }
 else
 {
     if (browserResult.Parameters.ContainsKey("code"))
     {
         string code = browserResult.Parameters["code"];
-        Util.WriteBlue($"SSO done successfully{CR}\tAuthorization Code:{code}");
+        ConsoleAbstraction.WriteBlue($"SSO done successfully{CR}\tAuthorization Code:{code}");
 
         if (!String.IsNullOrEmpty(code))
         {
             var sdkResult = await RbApplication.LoginWithOauthAuthorizationCodeAsync(code, redirectUri);
             if(sdkResult.Success)
             {
-                Util.WriteBlue($"Login to RB server done successfully");
+                ConsoleAbstraction.WriteBlue($"Login to RB server done successfully");
             }
             else
             {
-                Util.WriteRed($"LoginWithOauthAuthorizationCodeAsync - Error:[{sdkResult.Result}]");
+                ConsoleAbstraction.WriteRed($"LoginWithOauthAuthorizationCodeAsync - Error:[{sdkResult.Result}]");
                 return;
             }
         }
@@ -130,7 +138,7 @@ else
         foreach (var key in browserResult.Parameters.Keys)
             msg += $"\t{key}:{browserResult.Parameters[key]}";
 
-        Util.WriteRed($"Authentication failed:{CR}{msg}");
+        ConsoleAbstraction.WriteRed($"Authentication failed:{CR}{msg}");
 
         // We wait here a little to ensure to display info to the browser
         await Task.Delay(500);
@@ -141,15 +149,15 @@ else
 
 // ------------------------------------
 
-Util.WriteGreen($"{CR}Use [ESC] at anytime to quit");
+ConsoleAbstraction.WriteGreen($"{CR}Use [ESC] at anytime to quit");
 
-Util.WriteGreen($"{CR}Use [Q] at anytime once loggued to quit using Logout");
-Util.WriteGreen($"Use [A] at anytime once loggued to cancel/stop AutoReconnection service");
+ConsoleAbstraction.WriteGreen($"{CR}Use [Q] at anytime once loggued to quit using Logout");
+ConsoleAbstraction.WriteGreen($"Use [A] at anytime once loggued to cancel/stop AutoReconnection service");
 
-Util.WriteBlue($"{CR}You can change your network connection settgins while the process is running to see how auto-reconnection is working");
+ConsoleAbstraction.WriteBlue($"{CR}You can change your network connection settgins while the process is running to see how auto-reconnection is working");
 
 // Start login
-Util.WriteWhite($"{CR}Starting login ...");
+ConsoleAbstraction.WriteWhite($"{CR}Starting login ...");
 
 var canContinue = true;
 
@@ -163,23 +171,23 @@ await Task.Delay(5000);
 
 async Task CheckInputKey()
 {
-    while (Console.KeyAvailable)
+    while (ConsoleAbstraction.KeyAvailable)
     {
-        var userInput = Console.ReadKey(true);
+        var userInput = ConsoleAbstraction.ReadKey();
 
-        switch (userInput.Key)
+        switch (userInput?.Key)
         {
             case ConsoleKey.Escape:
-                Util.WriteYellow($"Asked to end process using [ESC] key");
+                ConsoleAbstraction.WriteYellow($"Asked to end process using [ESC] key");
                 Environment.Exit(0);
                 return;
 
             case ConsoleKey.I:
                 var sdkResultContact =  await RbContacts.GetContactByIdAsync(RbContacts.GetCurrentContact().Peer.Id);
                 if(sdkResultContact.Success)
-                    Util.WriteRed($"{CR}GetContactByIdAsync done.");
+                    ConsoleAbstraction.WriteRed($"{CR}GetContactByIdAsync done.");
                 else
-                    Util.WriteRed($"{CR}GetContactByIdAsync - Error:[{sdkResultContact.Result}]");
+                    ConsoleAbstraction.WriteRed($"{CR}GetContactByIdAsync - Error:[{sdkResultContact.Result}]");
                 return;
 
             case ConsoleKey.Q:
@@ -192,7 +200,7 @@ async Task CheckInputKey()
                         // Nothing to do here - on success, event Cancelled from AutoReconnexion is triggered
                     }
                     else
-                        Util.WriteRed($"LogoutAsync - Error:[{taskSdkResult.Result}]");
+                        ConsoleAbstraction.WriteRed($"LogoutAsync - Error:[{taskSdkResult.Result}]");
                 }
                 return;
 
@@ -200,7 +208,7 @@ async Task CheckInputKey()
             case ConsoleKey.A:
                 if (RbAutoReconnection.IsStarted)
                 {
-                    Util.WriteRed($"{CR}AutoReconnection - Service cancelled/Stopped");
+                    ConsoleAbstraction.WriteRed($"{CR}AutoReconnection - Service cancelled/Stopped");
                     RbAutoReconnection.Cancel();
                 }
                 return;
@@ -213,33 +221,33 @@ void RbApplication_ConnectionStateChanged(Rainbow.Model.ConnectionState connecti
 {
     // Display the CurrentNbAttempts
     if (connectionState.Status == ConnectionStatus.Connecting)
-        Util.WriteYellow($"{CR}AutoReconnection.CurrentNbAttempts: [{RbAutoReconnection.CurrentNbAttempts}]");
+        ConsoleAbstraction.WriteYellow($"{CR}AutoReconnection.CurrentNbAttempts: [{RbAutoReconnection.CurrentNbAttempts}]");
 
     // We log connection state in the console - use differnte color according the status
     String color;
     switch (connectionState.Status)
     {
         case ConnectionStatus.Connected:
-            color = Util.BLUE;
+            color = ConsoleAbstraction.BLUE;
             break;
 
         case ConnectionStatus.Disconnected:
-            color = Util.RED;
+            color = ConsoleAbstraction.RED;
             break;
 
         case ConnectionStatus.Connecting:
         default:
-            color = Util.GREEN;
+            color = ConsoleAbstraction.GREEN;
             break;
 
     }
-    Util.WriteToConsole($"{CR}{color}Event Application.ConnectionStateChanged triggered - Connection Status: [{connectionState.Status}]");
+    ConsoleAbstraction.WriteLine($"{CR}{color}Event Application.ConnectionStateChanged triggered - Connection Status: [{connectionState.Status}]");
 
     // If we are disconnected and the AutoReconnection is stopped, nothing more wille happpen
     // So we quit the process
     if ((connectionState.Status == ConnectionStatus.Disconnected) && (!RbAutoReconnection.IsStarted))
     {
-        Util.WriteYellow($"{CR}We will quit the process since AutoReconnection is stopped and we are disconnected");
+        ConsoleAbstraction.WriteYellow($"{CR}We will quit the process since AutoReconnection is stopped and we are disconnected");
         canContinue = false;
     }
 }
@@ -247,28 +255,28 @@ void RbApplication_ConnectionStateChanged(Rainbow.Model.ConnectionState connecti
 void RbApplication_AuthenticationSucceeded()
 {
     // Authentication Succeeded- we display in the console the info
-    Util.WriteBlue($"{CR}Event Application.AuthenticationSucceeded triggered");
+    ConsoleAbstraction.WriteBlue($"{CR}Event Application.AuthenticationSucceeded triggered");
 }
 
 void RbApplication_AuthenticationFailed(SdkError sdkError)
 {
     // Authentication failed - we display in the console the reason
-    Util.WriteRed($"{CR}Event Application.AuthenticationFailed triggered - SdkError:{sdkError}");
+    ConsoleAbstraction.WriteRed($"{CR}Event Application.AuthenticationFailed triggered - SdkError:{sdkError}");
 }
 
 void RbAutoReconnection_TokenExpired()
 {
-    Util.WriteRed($"{CR}Event AutoReconnection.TokenExpired triggered");
+    ConsoleAbstraction.WriteRed($"{CR}Event AutoReconnection.TokenExpired triggered");
 }
 
 void RbAutoReconnection_MaxNbAttemptsReached()
 {
-    Util.WriteRed($"{CR}Event AutoReconnection.MaxNbAttemptsReached triggered");
+    ConsoleAbstraction.WriteRed($"{CR}Event AutoReconnection.MaxNbAttemptsReached triggered");
 }
 
 void RbAutoReconnection_Started()
 {
-    Util.WriteBlue($"{CR}Event AutoReconnection.Started triggered");
+    ConsoleAbstraction.WriteBlue($"{CR}Event AutoReconnection.Started triggered");
 }
 
 void RbAutoReconnection_Cancelled(SdkError sdkError)
@@ -276,12 +284,12 @@ void RbAutoReconnection_Cancelled(SdkError sdkError)
     if (sdkError.Type == Rainbow.Enums.SdkErrorType.NoError)
     {
         // The service has been cancelled/stopped voluntarily
-        Util.WriteYellow($"{CR}Event AutoReconnection.Cancelled triggered - Done using the SDK voluntarily");
+        ConsoleAbstraction.WriteYellow($"{CR}Event AutoReconnection.Cancelled triggered - Done using the SDK voluntarily");
     }
     else 
     {
         // The service has been cancelled/stopped involuntarily - display the reason
-        Util.WriteBlue($"{CR}Event AutoReconnection.Cancelled triggered - SdkError(Exception]:[{sdkError}]");
+        ConsoleAbstraction.WriteBlue($"{CR}Event AutoReconnection.Cancelled triggered - SdkError(Exception]:[{sdkError}]");
     }
 }
 
@@ -292,7 +300,7 @@ Boolean ReadExeSettings()
     String exeSettingsFilePath = $".{Path.DirectorySeparatorChar}config{Path.DirectorySeparatorChar}exeSettings.json";
     if (!File.Exists(exeSettingsFilePath))
     {
-        Util.WriteRed($"The file '{exeSettingsFilePath}' has not been found.");
+        ConsoleAbstraction.WriteRed($"The file '{exeSettingsFilePath}' has not been found.");
         return false;
     }
 
@@ -301,7 +309,7 @@ Boolean ReadExeSettings()
 
     if ((jsonNode is null) || (!jsonNode.IsObject))
     {
-        Util.WriteRed($"Cannot get JSON data from file '{exeSettingsFilePath}'.");
+        ConsoleAbstraction.WriteRed($"Cannot get JSON data from file '{exeSettingsFilePath}'.");
         return false;
     }
 
@@ -312,7 +320,7 @@ Boolean ReadExeSettings()
     }
     else
     {
-        Util.WriteRed($"Cannot read 'exeSettings' object OR invalid/missing data - file:'{exeSettingsFilePath}'.");
+        ConsoleAbstraction.WriteRed($"Cannot read 'exeSettings' object OR invalid/missing data - file:'{exeSettingsFilePath}'.");
         return false;
     }
 
@@ -324,7 +332,7 @@ Boolean ReadCredentials(string fileName = "credentials.json")
     var credentialsFilePath = $".{Path.DirectorySeparatorChar}config{Path.DirectorySeparatorChar}{fileName}";
     if (!File.Exists(credentialsFilePath))
     {
-        Util.WriteRed($"The file '{credentialsFilePath}' has not been found.");
+        ConsoleAbstraction.WriteRed($"The file '{credentialsFilePath}' has not been found.");
         return false;
     }
 
@@ -333,7 +341,7 @@ Boolean ReadCredentials(string fileName = "credentials.json")
 
     if (!Credentials.FromJsonNode(jsonNode["credentials"], out credentials))
     {
-        Util.WriteRed($"Cannot read 'credentials' object OR invalid/missing data in file:[{fileName}].");
+        ConsoleAbstraction.WriteRed($"Cannot read 'credentials' object OR invalid/missing data in file:[{fileName}].");
         return false;
     }
 

@@ -1,5 +1,5 @@
 # Specify image
-FROM ubuntu/dotnet-runtime:8.0-24.04_stable
+FROM mcr.microsoft.com/dotnet/sdk:8.0-bookworm-slim
 
 # Define working directory
 WORKDIR /app

@@ -1,11 +1,11 @@
 ﻿
 using Rainbow;
+using Rainbow.Enums;
+using Rainbow.Example.Common;
+using Rainbow.Model;
+using Rainbow.SimpleJSON;
 using System.Text;
 
-using Rainbow.Example.Common;
-using Util = Rainbow.Example.Common.Util;
-using Rainbow.SimpleJSON;
-using Rainbow.Model;
 
 // --------------------------------------------------
 
@@ -20,7 +20,6 @@ if ((!ReadCredentials(credentialsCanBeEmpty: false)) || (credentials is null))
 
 // --------------------------------------------------
 
-Console.OutputEncoding = Encoding.UTF8; // We want to display UTF8 on the console
 String CR = Rainbow.Util.CR; // Get carriage return;
 
 // In "exeSettings.json" using "logFolderPath" property, we defined a folder where the logs must be stored
@@ -37,8 +36,17 @@ NLogConfigurator.AddLogger(logPrefix);
 
 Rainbow.Util.SetLogAnonymously(false);
 
+// Set restrictions
+Restrictions restrictions = new(true)
+{
+    LogRestRequest = true,
+    LogEvent = true,
+    LogEventParameters = true,
+    LogEventRaised = true,
+};
+
 // Create Rainbow SDK objects
-var RbApplication = new Application(iniFolderFullPathName: logFolderPath, loggerPrefix: logPrefix);
+var RbApplication = new Application(iniFolderFullPathName: logFolderPath, loggerPrefix: logPrefix, restrictions: restrictions);
 var RbContacts = RbApplication.GetContacts();
 var RbCustomerCare = RbApplication.GetCustomerCare();
 
@@ -48,64 +56,62 @@ Dictionary<String, String> logRequestsStorage = []; // Key: LogRequestId / Value
 RbApplication.SetApplicationInfo(credentials.ServerConfig.AppId, credentials.ServerConfig.AppSecret);
 RbApplication.SetHostInfo(credentials.ServerConfig.HostName);
 
-RbApplication.Restrictions.LogRestRequest = true;
-
 // Set event we want to manage
 RbCustomerCare.LogRequestAccepted += RbCustomerCare_LogRequestAccepted;
 RbCustomerCare.LogRequestRejected += RbCustomerCare_LogRequestRejected;
 
-Util.WriteGreen($"Starting login using credentials stored in file [.\\config\\credentials.json]");
+ConsoleAbstraction.WriteGreen($"Starting login using credentials stored in file [.\\config\\credentials.json]");
 var sdkResult = await RbApplication.LoginAsync(credentials.UsersConfig[0].Login, credentials.UsersConfig[0].Password);
 
 if (!sdkResult.Success)
 {
-    Util.WriteRed($"{CR}Cannot loggued - Error:[{sdkResult.Result}]");
+    ConsoleAbstraction.WriteRed($"{CR}Cannot loggued - Error:[{sdkResult.Result}]");
 
-    Util.WriteWhite($"{CR}Press any key to quit");
-    var userInput = Console.ReadKey(true);
+    ConsoleAbstraction.WriteWhite($"{CR}Press any key to quit");
+    var userInput = ConsoleAbstraction.ReadKey();
     return;
 }
 
 var currentContact = RbContacts.GetCurrentContact();
 
-Util.WriteWhite($"{CR}Account is now loggued:");
-Util.WriteWhite($"\t- login:[{currentContact.LoginEmail}]");
-Util.WriteWhite($"\t- id:[{currentContact.Peer.Id}]");
-Util.WriteWhite($"\t- resource:[{RbApplication.GetResource()}]");
+ConsoleAbstraction.WriteWhite($"{CR}Account is now loggued:");
+ConsoleAbstraction.WriteWhite($"\t- login:[{currentContact.LoginEmail}]");
+ConsoleAbstraction.WriteWhite($"\t- id:[{currentContact.Peer.Id}]");
+ConsoleAbstraction.WriteWhite($"\t- resource:[{RbApplication.GetResource()}]");
 
 DisplayInfoMenu();
 
 void DisplayInfoMenu()
 {
 
-    Util.WriteBlue($"{CR}[ESC] to quit");
-    Util.WriteBlue($"[L] to ask Log Request");
+    ConsoleAbstraction.WriteBlue($"{CR}[ESC] to quit");
+    ConsoleAbstraction.WriteBlue($"[L] to ask Log Request");
 }
 
 async Task AskLogRequestAsync()
 {
-    Util.WriteBlue($"{CR}Ask log request:");
-    Util.WriteBlue($"Enter Contact Id:");
-    var contactId = Console.ReadLine();
+    ConsoleAbstraction.WriteBlue($"{CR}Ask log request:");
+    ConsoleAbstraction.WriteBlue($"Enter Contact Id:");
+    var contactId = ConsoleAbstraction.ReadLine();
     contactId ??= "";
 
-    Util.WriteBlue($"Enter resource used by the contact:");
-    var resource = Console.ReadLine();
+    ConsoleAbstraction.WriteBlue($"Enter resource used by the contact:");
+    var resource = ConsoleAbstraction.ReadLine();
 
-    Util.WriteBlue($"Enter description to provide for the log request:");
-    var description = Console.ReadLine();
+    ConsoleAbstraction.WriteBlue($"Enter description to provide for the log request:");
+    var description = ConsoleAbstraction.ReadLine();
 
-    Util.WriteGreen($"{CR}Asking log request ...");
+    ConsoleAbstraction.WriteGreen($"{CR}Asking log request ...");
     var sdkResultLogRequest = await RbCustomerCare.AskLogRequestForUserAsync(Peer.FromContactId(contactId), resource, description);
     if(sdkResultLogRequest.Success)
     {
         var logRequestId = sdkResultLogRequest.Data.Id;
         logRequestsStorage[logRequestId] = contactId;
-        Util.WriteWhite($"{CR}Log request asked successfully - logRequestId:[{logRequestId}]");
+        ConsoleAbstraction.WriteWhite($"{CR}Log request asked successfully - logRequestId:[{logRequestId}]");
     }
     else
     {
-        Util.WriteRed($"{CR}Cannot ask log request - Error:[{sdkResultLogRequest.Result}]");
+        ConsoleAbstraction.WriteRed($"{CR}Cannot ask log request - Error:[{sdkResultLogRequest.Result}]");
     }
 
     DisplayInfoMenu();
@@ -119,14 +125,14 @@ do
 
 void CheckInputKey()
 {
-    while (Console.KeyAvailable)
+    while (ConsoleAbstraction.KeyAvailable)
     {
-        var userInput = Console.ReadKey(true);
+        var userInput = ConsoleAbstraction.ReadKey();
 
-        switch (userInput.Key)
+        switch (userInput?.Key)
         {
             case ConsoleKey.Escape:
-                Util.WriteYellow($"Asked to end process using [ESC] key");
+                ConsoleAbstraction.WriteYellow($"Asked to end process using [ESC] key");
                 System.Environment.Exit(0);
                 return;
 
@@ -141,27 +147,27 @@ void CheckInputKey()
 
 void RbCustomerCare_LogRequestRejected(string logRequestId)
 {
-    Util.WriteRed($"{CR}A Log request has been rejected by the user - logRequestId:[{logRequestId}]");
+    ConsoleAbstraction.WriteRed($"{CR}A Log request has been rejected by the user - logRequestId:[{logRequestId}]");
 }
 
 void RbCustomerCare_LogRequestAccepted(string logRequestId)
 {
-    Util.WriteGreen($"{CR}A Log request has been accepted by the user - logRequestId:[{logRequestId}]");
+    ConsoleAbstraction.WriteGreen($"{CR}A Log request has been accepted by the user - logRequestId:[{logRequestId}]");
 
     Action action = async () =>
     {
         if (logRequestsStorage.TryGetValue(logRequestId, out var contactId))
         {
-            Util.WriteGreen($"{CR}Asking log request details...");
+            ConsoleAbstraction.WriteGreen($"{CR}Asking log request details...");
             var sdkResult = await RbCustomerCare.GetLogRequestAsync(Peer.FromContactId(contactId), logRequestId);
             if(sdkResult.Success)
             {
                 var logRequest = sdkResult.Data;
-                Util.WriteBlue($"{CR}Log request details:{logRequest.ToString(Rainbow.Consts.DetailsLevel.Full)}");
+                ConsoleAbstraction.WriteBlue($"{CR}Log request details:{logRequest.ToString(Rainbow.Consts.DetailsLevel.Full)}");
             }
             else
             {
-                Util.WriteRed($"{CR}Cannot get log request details - Error:[{sdkResult.Result}]");
+                ConsoleAbstraction.WriteRed($"{CR}Cannot get log request details - Error:[{sdkResult.Result}]");
             }
         }
     };
@@ -176,7 +182,7 @@ Boolean ReadExeSettings()
     String exeSettingsFilePath = $".{Path.DirectorySeparatorChar}config{Path.DirectorySeparatorChar}exeSettings.json";
     if (!File.Exists(exeSettingsFilePath))
     {
-        Util.WriteRed($"The file '{exeSettingsFilePath}' has not been found.");
+        ConsoleAbstraction.WriteRed($"The file '{exeSettingsFilePath}' has not been found.");
         return false;
     }
 
@@ -185,7 +191,7 @@ Boolean ReadExeSettings()
 
     if ((jsonNode is null) || (!jsonNode.IsObject))
     {
-        Util.WriteRed($"Cannot get JSON data from file '{exeSettingsFilePath}'.");
+        ConsoleAbstraction.WriteRed($"Cannot get JSON data from file '{exeSettingsFilePath}'.");
         return false;
     }
 
@@ -196,7 +202,7 @@ Boolean ReadExeSettings()
     }
     else
     {
-        Util.WriteRed($"Cannot read 'exeSettings' object OR invalid/missing data - file:'{exeSettingsFilePath}'.");
+        ConsoleAbstraction.WriteRed($"Cannot read 'exeSettings' object OR invalid/missing data - file:'{exeSettingsFilePath}'.");
         return false;
     }
 
@@ -208,7 +214,7 @@ Boolean ReadCredentials(string fileName = "credentials.json", Boolean credential
     var credentialsFilePath = $".{Path.DirectorySeparatorChar}config{Path.DirectorySeparatorChar}{fileName}";
     if (!File.Exists(credentialsFilePath))
     {
-        Util.WriteRed($"The file '{credentialsFilePath}' has not been found.");
+        ConsoleAbstraction.WriteRed($"The file '{credentialsFilePath}' has not been found.");
         return false;
     }
 
@@ -217,7 +223,7 @@ Boolean ReadCredentials(string fileName = "credentials.json", Boolean credential
 
     if (!Credentials.FromJsonNode(jsonNode["credentials"], out credentials, credentialsCanBeEmpty))
     {
-        Util.WriteRed($"Cannot read 'credentials' object OR invalid/missing data in file:[{fileName}].");
+        ConsoleAbstraction.WriteRed($"Cannot read 'credentials' object OR invalid/missing data in file:[{fileName}].");
         return false;
     }
 

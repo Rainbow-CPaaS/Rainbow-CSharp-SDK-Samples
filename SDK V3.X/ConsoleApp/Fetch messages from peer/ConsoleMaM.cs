@@ -3,7 +3,7 @@ using Rainbow.Consts;
 using Rainbow.Model;
 
 using Rainbow.Example.Common;
-using Util = Rainbow.Example.Common.Util;
+
 using Rainbow.SimpleJSON;
 using System.Text;
 using Rainbow.Enums;
@@ -19,7 +19,7 @@ if ((!ReadExeSettings()) || (exeSettings is null))
 if ((!ReadCredentials()) || (credentials is null))
     return;
 
-Util.WriteRed($"Account used: [{credentials.UsersConfig[0].Login}]");
+ConsoleAbstraction.WriteRed($"Account used: [{credentials.UsersConfig[0].Login}]");
 
 // --------------------------------------------------
 
@@ -41,8 +41,16 @@ Rainbow.Util.SetLogAnonymously(false);
 
 Boolean saveAllMessages = true;
 
+Restrictions restrictions = new(true)
+{
+    StoreMessages = false, // Set to true or false to test use of cache in SDK
+
+    LogRestRequest = true,
+    LogEvent = true
+};
+
 // Create Rainbow SDK objects
-var RbApplication = new Application(iniFolderFullPathName: logFolderPath, iniFileName: logPrefix+".ini", loggerPrefix: logPrefix);
+var RbApplication = new Application(iniFolderFullPathName: logFolderPath, iniFileName: logPrefix+".ini", loggerPrefix: logPrefix, restrictions: restrictions);
 var RbAutoReconnection = RbApplication.GetAutoReconnection();
 var RbBubbles = RbApplication.GetBubbles();
 var RbContacts = RbApplication.GetContacts();
@@ -68,12 +76,12 @@ RbApplication.SetHostInfo(credentials.ServerConfig.HostName);
 // The goal here is to understand how events are triggered by the AutoReconnection service
 RbAutoReconnection.MaxNbAttempts = 10; 
 
-Util.WriteGreen($"{CR}Use [ESC] at anytime to quit");
+ConsoleAbstraction.WriteGreen($"{CR}Use [ESC] at anytime to quit");
 
-Util.WriteGreen($"{CR}Use [Q] at anytime once loggued to quit using Logout");
+ConsoleAbstraction.WriteGreen($"{CR}Use [Q] at anytime once loggued to quit using Logout");
 
 // Start login
-Util.WriteWhite($"{CR}Starting login ...");
+ConsoleAbstraction.WriteWhite($"{CR}Starting login ...");
 var taskSdkResult = RbApplication.LoginAsync(credentials.UsersConfig[0].Login, credentials.UsersConfig[0].Password); // Here we don't wait the Login process before to continue
 
 do
@@ -90,14 +98,14 @@ do
 
 async Task CheckInputKey()
 {
-    while (Console.KeyAvailable)
+    while (ConsoleAbstraction.KeyAvailable)
     {
-        var userInput = Console.ReadKey(true);
+        var userInput = ConsoleAbstraction.ReadKey();
 
-        switch (userInput.Key)
+        switch (userInput?.Key)
         {
             case ConsoleKey.Escape:
-                Util.WriteYellow($"Asked to end process using [ESC] key");
+                ConsoleAbstraction.WriteYellow($"Asked to end process using [ESC] key");
                 System.Environment.Exit(0);
                 return;
 
@@ -111,7 +119,7 @@ async Task CheckInputKey()
                         // Nothing to do here - on success, event Cancelled from AutoReconnexion is triggered
                     }
                     else
-                        Util.WriteRed($"LogoutAsync - Error:[{taskSdkResult.Result}]");
+                        ConsoleAbstraction.WriteRed($"LogoutAsync - Error:[{taskSdkResult.Result}]");
                 }
                 return;
 
@@ -137,16 +145,16 @@ async Task CheckInputKey()
 
 void DisplayInputsInfo()
 {
-    Util.WriteGreen($"{CR}Use [C] to search a Contact and retrieve messages exchanged with him in Peer to Peer");
+    ConsoleAbstraction.WriteGreen($"{CR}Use [C] to search a Contact and retrieve messages exchanged with him in Peer to Peer");
 
-    Util.WriteGreen($"{CR}Use [B] to search a Bubble and retrieve message exchanged in it");
+    ConsoleAbstraction.WriteGreen($"{CR}Use [B] to search a Bubble and retrieve message exchanged in it");
 }
 
 Contact? SearchForContactsInRoster()
 {
     Contact? result = null;
-    Util.WriteYellow($"{CR}Enter a text to search a contact from you Roster: ");
-    var str = Console.ReadLine();
+    ConsoleAbstraction.WriteYellow($"{CR}Enter a text to search a contact from you Roster: ");
+    var str = ConsoleAbstraction.ReadLine();
     if (str != null)
     {
         var contactsList = RbContacts.GetAllContactsInRoster();
@@ -154,9 +162,9 @@ Contact? SearchForContactsInRoster()
     }
 
     if(result == null)
-        Util.WriteRed($"{CR}No contact found with [{str}]");
+        ConsoleAbstraction.WriteRed($"{CR}No contact found with [{str}]");
     else
-        Util.WriteWhite($"Contact found:[{result.ToString(DetailsLevel.Small)}]");
+        ConsoleAbstraction.WriteWhite($"Contact found:[{result.ToString(DetailsLevel.Small)}]");
 
     return result;
 }
@@ -164,8 +172,8 @@ Contact? SearchForContactsInRoster()
 Bubble? SearchForBubbles()
 {
     Bubble? result = null;
-    Util.WriteYellow($"{CR}Enter a text to search a Bubble:");
-    var str = Console.ReadLine();
+    ConsoleAbstraction.WriteYellow($"{CR}Enter a text to search a Bubble:");
+    var str = ConsoleAbstraction.ReadLine();
     if (str != null)
     {
         List<String> memberStatus = new() { BubbleMemberStatus.Accepted };
@@ -174,9 +182,9 @@ Bubble? SearchForBubbles()
     }
 
     if (result == null)
-        Util.WriteRed($"{CR}No bubble found with [{str}]");
+        ConsoleAbstraction.WriteRed($"{CR}No bubble found with [{str}]");
     else
-        Util.WriteWhite($"bubble found:[{result.ToString(DetailsLevel.Small)}]");
+        ConsoleAbstraction.WriteWhite($"bubble found:[{result.ToString(DetailsLevel.Small)}]");
 
     return result;
 }
@@ -190,38 +198,53 @@ void FetchAllMessagesFromPeer(Peer peer)
     {
         try
         {
-            int nbMessagesByRow = 100;
+            int nbMessagesByRow = 250;
 
             SdkResult<List<Rainbow.Model.Message>> mamSdkResult;
             Boolean canContinue = true;
             Boolean error = false;
             int messagesCount = 0;
 
-            Util.WriteBlue($"Start to fetch all messages from Peer:[{RbApplication.GetPeerDisplayName(peer)}]");
+            ConsoleAbstraction.WriteBlue($"Start to fetch all messages from Peer:[{RbApplication.GetPeerDisplayName(peer)}]");
 
             DateTime start = DateTime.Now;
             DateTime startMsgRow = start;
             DateTime endMsgRow;
             TimeSpan elapsed;
+
+            Dictionary<String, Rainbow.Model.Message> messages = [];
+            Rainbow.Model.Message? lastMessage = null;
             do
             {
                 startMsgRow = DateTime.Now;
-                mamSdkResult = await RbInstantMessaging.GetOlderMessagesAsync(peer, nbMessagesByRow);
+                mamSdkResult = await RbInstantMessaging.GetOlderMessagesAsync(peer, nbMessagesByRow, lastMessage);
                 if (mamSdkResult.Success)
                 {
-                    endMsgRow = DateTime.Now;
-                    elapsed = endMsgRow - startMsgRow;
                     if (mamSdkResult.Data.Count > 0)
                     {
+                        var dicToAdd = mamSdkResult.Data.ToDictionary(m => m.Id, m => m);
+                        if (messages.Count == 0)
+                            messages = dicToAdd;
+                        else
+                            // We add only message with new keys
+                            // If they have same keys, it means it's message which has been updated. So older messages must be removed.
+                            AddRangeNewOnly(messages, dicToAdd);
+
+                        lastMessage = messages.Values.Last();
+
+                        //ConsoleAbstraction.WriteYellow($"LastMessage - Id:[{lastMessage.Id}] - DateKind:[{lastMessage.Date.Kind}] - Date:[{lastMessage.Date:o}] - Epoch:[{Rainbow.Util.DateTimeToUnixTimeStamp(lastMessage.Date, false) * 1000}]");
+
+                        endMsgRow = DateTime.Now;
+                        elapsed = endMsgRow - startMsgRow;
                         messagesCount += mamSdkResult.Data.Count;
-                        Util.WriteYellow($"Retrieved: {mamSdkResult.Data.Count} - Time elapsed:[{elapsed.TotalSeconds} sec] - Count:[{messagesCount}]");
+                        ConsoleAbstraction.WriteYellow($"Retrieved: {mamSdkResult.Data.Count} - Time elapsed:[{elapsed.TotalSeconds} sec] - Count:[{messagesCount}] - CountStored:[{messages.Count}]");// - lastStanzaId:[{lastStanzaId}]");
                     }
                     else
                         canContinue = false;
                 }
                 else
                 {
-                    Util.WriteRed($"SdkError:{mamSdkResult.Result}");
+                    ConsoleAbstraction.WriteRed($"SdkError:{mamSdkResult.Result}");
                     canContinue = false;
                     error = true;
                 }
@@ -231,39 +254,39 @@ void FetchAllMessagesFromPeer(Peer peer)
             if (!error)
             {
                 // Here messages object contains all messages exchanged with the Peer
-                List<Rainbow.Model.Message> messages = RbInstantMessaging.GetOlderMessages(peer);
                 elapsed = DateTime.Now - start;
 
                 if (messagesCount != 0)
-                    Util.WriteBlue($"Nb Messages:[{messagesCount}] - Time elapsed:[{elapsed.TotalSeconds} sec]");
+                    ConsoleAbstraction.WriteBlue($"Nb Messages:[{messagesCount}] - Time elapsed:[{elapsed.TotalSeconds} sec]");
                 else
-                    Util.WriteBlue($"We have already get all messages from this Peer - Nb Messages:[{messages.Count()}] - Time elapsed:[{elapsed.TotalSeconds} sec]");
+                    ConsoleAbstraction.WriteBlue($"We have already get all messages from this Peer - Nb Messages:[{messages.Count()}] - Time elapsed:[{elapsed.TotalSeconds} sec]");
 
                 if (saveAllMessages)
                 {
-                    var fileNameAllMessages = Path.Combine(Directory.GetCurrentDirectory(), $"Messages-ALL-{messagesCount}.txt");
+                    var fileNameAllMessages = Path.Combine(Directory.GetCurrentDirectory(), $"Messages-ALL-{peer.DisplayName}-{messages.Count}{(RbApplication.Restrictions().StoreMessages ? "-usingCache" : "-noCache")}.txt");
 
-                    Util.WriteDarkYellow($"Saving all messages in the file:[{Path.GetFullPath(fileNameAllMessages)}] ...");
+                    ConsoleAbstraction.WriteDarkYellow($"Saving all messages in the file:[{Path.GetFullPath(fileNameAllMessages)}] ...");
 
                     StringBuilder stringBuilder = new StringBuilder();
 
                     // Delete previous one if any
                     File.Delete(fileNameAllMessages);
-                    for (int i = 0; i < messagesCount; i++)
+                    int i = 0;
+                    foreach (var message in messages.Values.ToList())
                     {
-                        var message = messages[i];
                         AppendMessage(ref stringBuilder, message);
 
+                        i++;
                         // Store in file every 500 messages
                         if ((i != 0) && (i % 500 == 0))
                         {
                             File.AppendAllText(fileNameAllMessages, stringBuilder.ToString(), Encoding.UTF8);
                             stringBuilder.Clear();
-                            Util.WriteBlue($"500 Messages stored in file");
+                            ConsoleAbstraction.WriteBlue($"500 Messages stored in file");
                         }
                     }
                     File.AppendAllText(fileNameAllMessages, stringBuilder.ToString(), Encoding.UTF8);
-                    Util.WriteBlue($"All messages have been stored");
+                    ConsoleAbstraction.WriteBlue($"All messages have been stored");
                 }
                 else
                 {
@@ -272,25 +295,23 @@ void FetchAllMessagesFromPeer(Peer peer)
 
                     if (messages.Count > nbMessagesScope)
                     {
-                        var fileNameFirstMessages = Path.Combine(Directory.GetCurrentDirectory(), $"Messages-First{nbMessagesScope}.txt");
+                        var fileNameFirstMessages = Path.Combine(Directory.GetCurrentDirectory(), $"Messages-First-{peer.DisplayName}-{nbMessagesScope}{(RbApplication.Restrictions().StoreMessages ? "-usingCache" : "-noCache")}.txt");
                         StringBuilder stringBuilder = new();
 
                         // Delete previous one if any
                         File.Delete(fileNameFirstMessages);
-                        for (int i = 0; i < nbMessagesScope; i++)
+                        foreach (var message in messages.Values.Take(nbMessagesScope))
                         {
-                            var message = messages[i];
                             AppendMessage(ref stringBuilder, message);
                         }
                         File.AppendAllText(fileNameFirstMessages, stringBuilder.ToString(), Encoding.UTF8);
 
                         stringBuilder.Clear();
-                        var fileNameLastMessages = Path.Combine(Directory.GetCurrentDirectory(), $"Messages-Last{nbMessagesScope}.txt");
+                        var fileNameLastMessages = Path.Combine(Directory.GetCurrentDirectory(), $"Messages-Last-{peer.DisplayName}-{nbMessagesScope}{(RbApplication.Restrictions().StoreMessages ? "-usingCache" : "-noCache")}.txt");
                         // Delete previous one if any
                         File.Delete(fileNameLastMessages);
-                        for (int i = 0; i < nbMessagesScope; i++)
+                        foreach (var message in messages.Values.TakeLast(nbMessagesScope))
                         {
-                            var message = messages[messagesCount - nbMessagesScope + i];
                             AppendMessage(ref stringBuilder, message);
                         }
                         File.AppendAllText(fileNameLastMessages, stringBuilder.ToString(), Encoding.UTF8);
@@ -307,6 +328,14 @@ void FetchAllMessagesFromPeer(Peer peer)
         DisplayInputsInfo();
 
     });
+}
+void AddRangeNewOnly<TKey, TValue>(IDictionary<TKey, TValue> dic, IDictionary<TKey, TValue> dicToAdd)
+{
+    foreach (var kvp in dicToAdd)
+    {
+        if (!dic.ContainsKey(kvp.Key))
+            dic.Add(kvp.Key, kvp.Value);
+    }
 }
 
 void AppendMessage(ref StringBuilder stringBuilder, Rainbow.Model.Message message)
@@ -380,33 +409,33 @@ void RbApplication_ConnectionStateChanged(Rainbow.Model.ConnectionState connecti
 {
     // Display the CurrentNbAttempts
     if (connectionState.Status == ConnectionStatus.Connecting)
-        Util.WriteYellow($"{CR}AutoReconnection.CurrentNbAttempts: [{RbAutoReconnection.CurrentNbAttempts}]");
+        ConsoleAbstraction.WriteYellow($"{CR}AutoReconnection.CurrentNbAttempts: [{RbAutoReconnection.CurrentNbAttempts}]");
 
     // We log connection state in the console - use differnte color according the status
     String color;
     switch (connectionState.Status)
     {
         case ConnectionStatus.Connected:
-            color = Util.BLUE;
+            color = ConsoleAbstraction.BLUE;
             break;
 
         case ConnectionStatus.Disconnected:
-            color = Util.RED;
+            color = ConsoleAbstraction.RED;
             break;
 
         case ConnectionStatus.Connecting:
         default:
-            color = Util.GREEN;
+            color = ConsoleAbstraction.GREEN;
             break;
 
     }
-    Util.WriteToConsole($"{CR}{color}Event Application.ConnectionStateChanged triggered - Connection Status: [{connectionState.Status}]");
+    ConsoleAbstraction.WriteLine($"{CR}{color}Event Application.ConnectionStateChanged triggered - Connection Status: [{connectionState.Status}]");
 
     // If we are disconnected and the AutoReconnection is stopped, nothing more wille happpen
     // So we quit the process
     if ((connectionState.Status == ConnectionStatus.Disconnected) && (!RbAutoReconnection.IsStarted))
     {
-        Util.WriteYellow($"{CR}We quit the process since AutoReconnection is stopped and we are disconnected");
+        ConsoleAbstraction.WriteYellow($"{CR}We quit the process since AutoReconnection is stopped and we are disconnected");
         System.Environment.Exit(0);
     }
 }
@@ -414,28 +443,28 @@ void RbApplication_ConnectionStateChanged(Rainbow.Model.ConnectionState connecti
 void RbApplication_AuthenticationSucceeded()
 {
     // Authentication Succeeded- we display in the console the info
-    Util.WriteBlue($"{CR}Event Application.AuthenticationSucceeded triggered");
+    ConsoleAbstraction.WriteBlue($"{CR}Event Application.AuthenticationSucceeded triggered");
 }
 
 void RbApplication_AuthenticationFailed(SdkError sdkError)
 {
     // Authentication failed - we display in the console the reason
-    Util.WriteRed($"{CR}Event Application.AuthenticationFailed triggered - SdkError:{sdkError}");
+    ConsoleAbstraction.WriteRed($"{CR}Event Application.AuthenticationFailed triggered - SdkError:{sdkError}");
 }
 
 void RbAutoReconnection_TokenExpired()
 {
-    Util.WriteRed($"{CR}Event AutoReconnection.TokenExpired triggered");
+    ConsoleAbstraction.WriteRed($"{CR}Event AutoReconnection.TokenExpired triggered");
 }
 
 void RbAutoReconnection_MaxNbAttemptsReached()
 {
-    Util.WriteRed($"{CR}Event AutoReconnection.MaxNbAttemptsReached triggered");
+    ConsoleAbstraction.WriteRed($"{CR}Event AutoReconnection.MaxNbAttemptsReached triggered");
 }
 
 void RbAutoReconnection_Started()
 {
-    Util.WriteBlue($"{CR}Event AutoReconnection.Started triggered");
+    ConsoleAbstraction.WriteBlue($"{CR}Event AutoReconnection.Started triggered");
 }
 
 void RbAutoReconnection_Cancelled(SdkError sdkError)
@@ -443,15 +472,15 @@ void RbAutoReconnection_Cancelled(SdkError sdkError)
     if (sdkError.Type == Rainbow.Enums.SdkErrorType.NoError)
     {
         // The service has been cancelled/stopped voluntarily
-        Util.WriteYellow($"{CR}Event AutoReconnection.Cancelled triggered - Done using the SDK voluntarily");
+        ConsoleAbstraction.WriteYellow($"{CR}Event AutoReconnection.Cancelled triggered - Done using the SDK voluntarily");
     }
     else 
     {
         // The service has been cancelled/stopped involuntarily - display the reason
-        Util.WriteBlue($"{CR}Event AutoReconnection.Cancelled triggered - SdkError(Exception]:[{sdkError}]");
+        ConsoleAbstraction.WriteBlue($"{CR}Event AutoReconnection.Cancelled triggered - SdkError(Exception]:[{sdkError}]");
     }
 
-    Util.WriteWhite($"{CR}We quit since the AutoReconnection has been Cancelled");
+    ConsoleAbstraction.WriteWhite($"{CR}We quit since the AutoReconnection has been Cancelled");
     System.Environment.Exit(0);
 }
 
@@ -463,7 +492,7 @@ void RbContacts_ContactsAdded(IEnumerable<Rainbow.Model.Contact> contacts)
         displayNames.Add(contact.ToString(DetailsLevel.Small));
     }
 
-    Util.WriteBlue($"{Rainbow.Util.CR}Event ContactsAdded triggered - Nb:[{displayNames.Count}] - Contact(s):[{String.Join(", ", displayNames)}]{Rainbow.Util.CR}");
+    ConsoleAbstraction.WriteBlue($"{Rainbow.Util.CR}Event ContactsAdded triggered - Nb:[{displayNames.Count}] - Contact(s):[{String.Join(", ", displayNames)}]{Rainbow.Util.CR}");
 }
 
 #endregion Events received from the SDK
@@ -472,7 +501,7 @@ Boolean ReadExeSettings()
     String exeSettingsFilePath = $".{Path.DirectorySeparatorChar}config{Path.DirectorySeparatorChar}exeSettings.json";
     if (!File.Exists(exeSettingsFilePath))
     {
-        Util.WriteRed($"The file '{exeSettingsFilePath}' has not been found.");
+        ConsoleAbstraction.WriteRed($"The file '{exeSettingsFilePath}' has not been found.");
         return false;
     }
 
@@ -481,7 +510,7 @@ Boolean ReadExeSettings()
 
     if ((jsonNode is null) || (!jsonNode.IsObject))
     {
-        Util.WriteRed($"Cannot get JSON data from file '{exeSettingsFilePath}'.");
+        ConsoleAbstraction.WriteRed($"Cannot get JSON data from file '{exeSettingsFilePath}'.");
         return false;
     }
 
@@ -492,7 +521,7 @@ Boolean ReadExeSettings()
     }
     else
     {
-        Util.WriteRed($"Cannot read 'exeSettings' object OR invalid/missing data - file:'{exeSettingsFilePath}'.");
+        ConsoleAbstraction.WriteRed($"Cannot read 'exeSettings' object OR invalid/missing data - file:'{exeSettingsFilePath}'.");
         return false;
     }
 
@@ -504,7 +533,7 @@ Boolean ReadCredentials(string fileName = "credentials.json")
     var credentialsFilePath = $".{Path.DirectorySeparatorChar}config{Path.DirectorySeparatorChar}{fileName}";
     if (!File.Exists(credentialsFilePath))
     {
-        Util.WriteRed($"The file '{credentialsFilePath}' has not been found.");
+        ConsoleAbstraction.WriteRed($"The file '{credentialsFilePath}' has not been found.");
         return false;
     }
 
@@ -513,7 +542,7 @@ Boolean ReadCredentials(string fileName = "credentials.json")
 
     if (!Credentials.FromJsonNode(jsonNode["credentials"], out credentials))
     {
-        Util.WriteRed($"Cannot read 'credentials' object OR invalid/missing data in file:[{fileName}].");
+        ConsoleAbstraction.WriteRed($"Cannot read 'credentials' object OR invalid/missing data in file:[{fileName}].");
         return false;
     }
 

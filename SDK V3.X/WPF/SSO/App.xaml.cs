@@ -46,8 +46,16 @@ namespace WpfSSOSamples
 
             log = Rainbow.LogFactory.CreateLogger<App>(prefix);
 
-            RbApplication = new Rainbow.Application(exeSettings.LogFolderPath, prefix + ".ini", prefix);
-            RbApplication.Restrictions.LogRestRequest = true;
+            // Set restrictions
+            Rainbow.Restrictions restrictions = new(true)
+            {
+                LogRestRequest = true,
+                LogEvent = true,
+                LogEventParameters = true,
+                LogEventRaised = true,
+            };
+
+            RbApplication = new Rainbow.Application(exeSettings.LogFolderPath, prefix + ".ini", loggerPrefix: prefix, restrictions: restrictions);
 
             RbApplication.SetApplicationInfo(credentials.ServerConfig.AppId, credentials.ServerConfig.AppSecret);
             RbApplication.SetHostInfo(credentials.ServerConfig.HostName);

@@ -4,13 +4,11 @@ using Microsoft.Extensions.Logging;
 public class CallbackWebModule : WebModuleBase
 {
     // Define log object - use same repository than the SDK
-    private static readonly ILogger log = Rainbow.LogFactory.CreateS2SLogger();
+    private readonly ILogger log;
 
-    private Rainbow.S2SEventPipe s2sEventPipe;
-
-    public CallbackWebModule(string baseRoute) : base(baseRoute)
+    public CallbackWebModule(string baseRoute,string logPrefix) : base(baseRoute)
     {
-        s2sEventPipe = Rainbow.S2SEventPipe.Instance;
+        log = Rainbow.LogFactory.CreateLogger<CallbackWebModule>(logPrefix);
     }
 
     protected override async Task OnRequestAsync(IHttpContext context)
@@ -28,16 +26,14 @@ public class CallbackWebModule : WebModuleBase
         String? contentType = context.Request.Headers["Content-Type"];
 
         // We use Rainbow.S2SEventPipe instance with all this info
-        Boolean result = false;
         log.LogDebug("[OnRequestAsync] RequestedPath:[{Path}] - HttpVerb:[{HttpVerb}]", absolutePath, httpVerb);
 
         if (contentType == "application/json")
         {
-            result = await s2sEventPipe.ParseCallbackContentAsync(httpVerb, absolutePath, body);
+            var sdkResult = await Rainbow.S2SEventPipe.ParseCallbackContentAsync(httpVerb, absolutePath, body);
+            if(!sdkResult.Success)
+                log.LogWarning(sdkResult.Result.ToString());
         }
-
-        if (!result)
-            throw HttpException.NotAcceptable();
     }
 
     public override bool IsFinalHandler { get; } = true;

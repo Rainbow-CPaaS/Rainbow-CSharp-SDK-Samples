@@ -5,7 +5,7 @@ using Rainbow.Model;
 using System.Text;
 
 using Rainbow.Example.Common;
-using Util = Rainbow.Example.Common.Util;
+
 using Rainbow.SimpleJSON;
 
 // --------------------------------------------------
@@ -19,11 +19,10 @@ if ((!ReadExeSettings()) || (exeSettings is null))
 if ((!ReadCredentials()) || (credentials is null))
     return;
 
-Util.WriteRed($"Account used: [{credentials.UsersConfig[0].Login}]");
+ConsoleAbstraction.WriteRed($"Account used: [{credentials.UsersConfig[0].Login}]");
 
 // --------------------------------------------------
 
-Console.OutputEncoding = Encoding.UTF8; // We want to display UTF8 on the console
 var canUseEmoji = true;
 
 String CR = Rainbow.Util.CR; // Get carriage return;
@@ -55,23 +54,23 @@ RbApplication.SetHostInfo(credentials.ServerConfig.HostName);
 RbContacts.ContactsAdded += RbContacts_ContactsAdded; // Triggered when a Contact is added in the cache
 
 // Start login
-Util.WriteWhite("Starting login ...");
+ConsoleAbstraction.WriteWhite("Starting login ...");
 var sdkResult = await RbApplication.LoginAsync(credentials.UsersConfig[0].Login, credentials.UsersConfig[0].Password);
 
 if (sdkResult.Success)
 {
     // We are connected and SDK is ready
-    Util.WriteGreen($"{CR}Connected to Rainbow Server");
+    ConsoleAbstraction.WriteGreen($"{CR}Connected to Rainbow Server");
 
     DisplayInputsPossible();
 }
 else
 {
     // We are not connected - Display why:
-    Util.WriteRed($"{CR}Connection failed - SdkError:{sdkResult.Result}");
+    ConsoleAbstraction.WriteRed($"{CR}Connection failed - SdkError:{sdkResult.Result}");
 }
 
-Util.WriteBlue($"{CR}Use [ESC] at anytime to quit");
+ConsoleAbstraction.WriteBlue($"{CR}Use [ESC] at anytime to quit");
 
 do
 {
@@ -82,21 +81,21 @@ do
 
 void DisplayInputsPossible()
 {
-    Util.WriteBlue($"{CR}Use [1, 2 or 3] to get basic (1) to advanced (3) Bubbles details\r\n");
+    ConsoleAbstraction.WriteBlue($"{CR}Use [1, 2 or 3] to get basic (1) to advanced (3) Bubbles details\r\n");
 
-    Util.WriteBlue($"{CR}Use [C] at anytime to contacts information\r\n");
+    ConsoleAbstraction.WriteBlue($"{CR}Use [C] at anytime to contacts information\r\n");
 }
 
 async Task CheckInputKey()
 {
-    while (Console.KeyAvailable)
+    while (ConsoleAbstraction.KeyAvailable)
     {
-        var userInput = Console.ReadKey(true);
+        var userInput = ConsoleAbstraction.ReadKey();
 
-        switch (userInput.Key)
+        switch (userInput?.Key)
         {
             case ConsoleKey.Escape:
-                Util.WriteYellow($"Asked to end process using [ESC] key");
+                ConsoleAbstraction.WriteYellow($"Asked to end process using [ESC] key");
                 System.Environment.Exit(0);
                 return;
 
@@ -131,16 +130,16 @@ void DisplayContacts()
 
 void DisplayContactsNotInRoster()
 {
-    Util.WriteRed($"{CR}------ START DisplayContactsNotInRoster");
+    ConsoleAbstraction.WriteRed($"{CR}------ START DisplayContactsNotInRoster");
 
     var contacts = RbContacts.GetAllContacts();
     var contactsInRoster = RbContacts.GetAllContactsInRoster();
-    Util.WriteWhite($"Nb Contacts NOT in Roster:[{contacts.Count - contactsInRoster.Count}]");
+    ConsoleAbstraction.WriteWhite($"Nb Contacts NOT in Roster:[{contacts.Count - contactsInRoster.Count}]");
     foreach (var contact in contacts)
         if(!contact.InRoster)
-            Util.WriteBlue($"\t{contact.ToString(DetailsLevel.Small)}");
+            ConsoleAbstraction.WriteBlue($"\t{contact.ToString(DetailsLevel.Small)}");
 
-    Util.WriteRed($"------ END DisplayContactsNotInRoster{CR}");
+    ConsoleAbstraction.WriteRed($"------ END DisplayContactsNotInRoster{CR}");
 }
 
 void DisplayContactsInRoster()
@@ -148,14 +147,14 @@ void DisplayContactsInRoster()
     // We want to display all contacts in Roster.
     // By default they are provided sorted by display name
 
-    Util.WriteRed($"{CR}------ START DisplayContactsInRoster");
+    ConsoleAbstraction.WriteRed($"{CR}------ START DisplayContactsInRoster");
 
     var contacts = RbContacts.GetAllContactsInRoster();
-    Util.WriteWhite($"Nb Contacts in Roster:[{contacts.Count}]");
+    ConsoleAbstraction.WriteWhite($"Nb Contacts in Roster:[{contacts.Count}]");
     foreach (var contact in contacts)
-        Util.WriteBlue($"\t{contact.ToString(DetailsLevel.Small)}");
+        ConsoleAbstraction.WriteBlue($"\t{contact.ToString(DetailsLevel.Small)}");
 
-    Util.WriteRed($"------ END DisplayContactsInRoster{CR}");
+    ConsoleAbstraction.WriteRed($"------ END DisplayContactsInRoster{CR}");
 }
 
 async Task DisplayBubbleInfo(Bubble bubble, Boolean displayBubbleMemberInfo, Boolean displayBubbleMemberInfoAsContact)
@@ -166,7 +165,7 @@ async Task DisplayBubbleInfo(Bubble bubble, Boolean displayBubbleMemberInfo, Boo
     List<String> bubbleMemberStatusList = new();
     List<String> bubbleMemberPrivilegeList = new();
 
-    Util.WriteYellow($"{((bubble.IsActive) ? activeMsg : inactiveMsg)}{bubble.ToString(DetailsLevel.Small)}");
+    ConsoleAbstraction.WriteYellow($"{((bubble.IsActive) ? activeMsg : inactiveMsg)}{bubble.ToString(DetailsLevel.Small)}");
     if (displayBubbleMemberInfo && (!displayBubbleMemberInfoAsContact))
     {
         // /!\ Here we ask BubbleMember - if they are not knownn yet as Contact, their Display Name is not available
@@ -179,17 +178,17 @@ async Task DisplayBubbleInfo(Bubble bubble, Boolean displayBubbleMemberInfo, Boo
         bubbleMemberPrivilegeList.Clear();
         bubbleMemberPrivilegeList.Add(BubbleMemberPrivilege.Moderator);
         var moderators = RbBubbles.GetMembers(bubble, bubbleMemberStatusList: bubbleMemberStatusList, bubbleMemberPrivilegeList: bubbleMemberPrivilegeList); ; ;
-        Util.WriteGreen($"\t\t{bubble.ToString(DetailsLevel.Small)} - Nb Moderator(s): [{moderators.Count}]");
+        ConsoleAbstraction.WriteGreen($"\t\t{bubble.ToString(DetailsLevel.Small)} - Nb Moderator(s): [{moderators.Count}]");
         foreach (var member in moderators)
-            Util.WriteWhite($"\t\t{(String.IsNullOrEmpty(member.Peer.DisplayName) ? member.Peer.Id : member.Peer.DisplayName)}");
+            ConsoleAbstraction.WriteWhite($"\t\t{(String.IsNullOrEmpty(member.Peer.DisplayName) ? member.Peer.Id : member.Peer.DisplayName)}");
 
         // We want Members only and Accepted 
         bubbleMemberPrivilegeList.Clear();
         bubbleMemberPrivilegeList.Add(BubbleMemberPrivilege.User);
         var members = RbBubbles.GetMembers(bubble, bubbleMemberStatusList: bubbleMemberStatusList, bubbleMemberPrivilegeList: bubbleMemberPrivilegeList);
-        Util.WriteGreen($"\t\t{bubble.ToString(DetailsLevel.Small)} - Nb Members (s): [{members.Count}]");
+        ConsoleAbstraction.WriteGreen($"\t\t{bubble.ToString(DetailsLevel.Small)} - Nb Members (s): [{members.Count}]");
         foreach (var member in members)
-            Util.WriteWhite($"\t\t{(String.IsNullOrEmpty(member.Peer.DisplayName) ? member.Peer.Id : member.Peer.DisplayName)}");
+            ConsoleAbstraction.WriteWhite($"\t\t{(String.IsNullOrEmpty(member.Peer.DisplayName) ? member.Peer.Id : member.Peer.DisplayName)}");
     }
     else if(displayBubbleMemberInfoAsContact)
     {
@@ -206,9 +205,9 @@ async Task DisplayBubbleInfo(Bubble bubble, Boolean displayBubbleMemberInfo, Boo
         if (sdkResult.Success)
         {
             var moderators = sdkResult.Data;
-            Util.WriteGreen($"\t\t{bubble.ToString(DetailsLevel.Small)} - Nb Moderator(s): [{moderators.Count}]");
+            ConsoleAbstraction.WriteGreen($"\t\t{bubble.ToString(DetailsLevel.Small)} - Nb Moderator(s): [{moderators.Count}]");
             foreach (var member in moderators)
-                Util.WriteWhite($"\t\t{(String.IsNullOrEmpty(member.Peer.DisplayName) ? member.Peer.Id : member.Peer.DisplayName)}");
+                ConsoleAbstraction.WriteWhite($"\t\t{(String.IsNullOrEmpty(member.Peer.DisplayName) ? member.Peer.Id : member.Peer.DisplayName)}");
         }
 
         // We want Members only and Accepted 
@@ -218,9 +217,9 @@ async Task DisplayBubbleInfo(Bubble bubble, Boolean displayBubbleMemberInfo, Boo
         if (sdkResult.Success)
         {
             var members = sdkResult.Data;
-            Util.WriteGreen($"\t\t{bubble.ToString(DetailsLevel.Small)} - Nb Members (s): [{members.Count}]");
+            ConsoleAbstraction.WriteGreen($"\t\t{bubble.ToString(DetailsLevel.Small)} - Nb Members (s): [{members.Count}]");
             foreach (var member in members)
-                Util.WriteWhite($"\t\t{(String.IsNullOrEmpty(member.Peer.DisplayName) ? member.Peer.Id : member.Peer.DisplayName)}");
+                ConsoleAbstraction.WriteWhite($"\t\t{(String.IsNullOrEmpty(member.Peer.DisplayName) ? member.Peer.Id : member.Peer.DisplayName)}");
         }
     }
 }
@@ -233,7 +232,7 @@ async Task DisplayBubbles(Boolean displayBubbleInfo, Boolean displayBubbleMember
     // We want to display Bubbles info
     // By default they are provided sorted by display name
 
-    Util.WriteRed($"{CR}------ START DisplayBubbles");
+    ConsoleAbstraction.WriteRed($"{CR}------ START DisplayBubbles");
 
     List<String> bubbleMemberStatusList = new();
     List<String> bubbleMemberPrivilegeList = new();
@@ -243,7 +242,7 @@ async Task DisplayBubbles(Boolean displayBubbleInfo, Boolean displayBubbleMember
     bubbleMemberPrivilegeList.Clear();
     bubbleMemberPrivilegeList.Add(BubbleMemberPrivilege.Owner);
     bubblesList = RbBubbles.GetAllBubbles(bubbleMemberPrivilegeList: bubbleMemberPrivilegeList);
-    Util.WriteBlue($"{CR}\tBubble(s) as Owner - Nb:[{bubblesList.Count}]");
+    ConsoleAbstraction.WriteBlue($"{CR}\tBubble(s) as Owner - Nb:[{bubblesList.Count}]");
     if (displayBubbleInfo)
         foreach (var bubble in bubblesList)
             await DisplayBubbleInfo(bubble, displayBubbleMemberInfo, displayBubbleMemberInfoAsContact);
@@ -252,7 +251,7 @@ async Task DisplayBubbles(Boolean displayBubbleInfo, Boolean displayBubbleMember
     bubbleMemberPrivilegeList.Clear();
     bubbleMemberPrivilegeList.Add(BubbleMemberPrivilege.Moderator);
     bubblesList = RbBubbles.GetAllBubbles(bubbleMemberPrivilegeList: bubbleMemberPrivilegeList);
-    Util.WriteBlue($"{CR}\tBubble(s) as Moderator - Nb:[{bubblesList.Count}]");
+    ConsoleAbstraction.WriteBlue($"{CR}\tBubble(s) as Moderator - Nb:[{bubblesList.Count}]");
     if (displayBubbleInfo)
         foreach (var bubble in bubblesList)
             await DisplayBubbleInfo(bubble, displayBubbleMemberInfo, displayBubbleMemberInfoAsContact);
@@ -261,7 +260,7 @@ async Task DisplayBubbles(Boolean displayBubbleInfo, Boolean displayBubbleMember
     bubbleMemberPrivilegeList.Clear();
     bubbleMemberPrivilegeList.Add(BubbleMemberPrivilege.User);
     bubblesList = RbBubbles.GetAllBubbles(bubbleMemberPrivilegeList: bubbleMemberPrivilegeList);
-    Util.WriteBlue($"{CR}\tBubble(s) as User - Nb:[{bubblesList.Count}]");
+    ConsoleAbstraction.WriteBlue($"{CR}\tBubble(s) as User - Nb:[{bubblesList.Count}]");
     if (displayBubbleInfo)
         foreach (var bubble in bubblesList)
             await DisplayBubbleInfo(bubble, displayBubbleMemberInfo, displayBubbleMemberInfoAsContact);
@@ -271,7 +270,7 @@ async Task DisplayBubbles(Boolean displayBubbleInfo, Boolean displayBubbleMember
     bubbleMemberStatusList.Clear();
     bubbleMemberStatusList.Add(BubbleMemberStatus.Accepted);
     bubblesList = RbBubbles.GetAllBubbles(bubbleMemberStatusList: bubbleMemberStatusList);
-    Util.WriteBlue($"{CR}\tBubble(s) as Accepted status - Nb:[{bubblesList.Count}]");
+    ConsoleAbstraction.WriteBlue($"{CR}\tBubble(s) as Accepted status - Nb:[{bubblesList.Count}]");
     if (displayBubbleInfo)
         foreach (var bubble in bubblesList)
             await DisplayBubbleInfo(bubble, displayBubbleMemberInfo, displayBubbleMemberInfoAsContact);
@@ -280,7 +279,7 @@ async Task DisplayBubbles(Boolean displayBubbleInfo, Boolean displayBubbleMember
     bubbleMemberStatusList.Clear();
     bubbleMemberStatusList.Add(BubbleMemberStatus.Invited);
     bubblesList = RbBubbles.GetAllBubbles(bubbleMemberStatusList: bubbleMemberStatusList);
-    Util.WriteBlue($"{CR}\tBubble(s) as Invited status - Nb:[{bubblesList.Count}]");
+    ConsoleAbstraction.WriteBlue($"{CR}\tBubble(s) as Invited status - Nb:[{bubblesList.Count}]");
     if (displayBubbleInfo)
         foreach (var bubble in bubblesList)
             await DisplayBubbleInfo(bubble, displayBubbleMemberInfo, displayBubbleMemberInfoAsContact);
@@ -289,7 +288,7 @@ async Task DisplayBubbles(Boolean displayBubbleInfo, Boolean displayBubbleMember
     bubbleMemberStatusList.Clear();
     bubbleMemberStatusList.Add(BubbleMemberStatus.Unsubscribed);
     bubblesList = RbBubbles.GetAllBubbles(bubbleMemberStatusList: bubbleMemberStatusList);
-    Util.WriteBlue($"\tBubble(s) as Unsubscribed status - Nb:[{bubblesList.Count}]");
+    ConsoleAbstraction.WriteBlue($"\tBubble(s) as Unsubscribed status - Nb:[{bubblesList.Count}]");
     if (displayBubbleInfo)
         foreach (var bubble in bubblesList)
             await DisplayBubbleInfo(bubble, displayBubbleMemberInfo, displayBubbleMemberInfoAsContact);
@@ -300,7 +299,7 @@ async Task DisplayBubbles(Boolean displayBubbleInfo, Boolean displayBubbleMember
     bubbleMemberPrivilegeList.Add(BubbleMemberPrivilege.Owner);
     bubbleMemberPrivilegeList.Add(BubbleMemberPrivilege.Moderator);
     bubblesList = RbBubbles.GetAllBubbles(bubbleMemberPrivilegeList: bubbleMemberPrivilegeList);
-    Util.WriteBlue($"{CR}\tBubble(s) as Owner And Moderator - Nb:[{bubblesList.Count}]");
+    ConsoleAbstraction.WriteBlue($"{CR}\tBubble(s) as Owner And Moderator - Nb:[{bubblesList.Count}]");
     if (displayBubbleInfo)
         foreach (var bubble in bubblesList)
             await DisplayBubbleInfo(bubble, displayBubbleMemberInfo, displayBubbleMemberInfoAsContact);
@@ -310,12 +309,12 @@ async Task DisplayBubbles(Boolean displayBubbleInfo, Boolean displayBubbleMember
     bubbleMemberPrivilegeList.Add(BubbleMemberPrivilege.Moderator);
     bubbleMemberPrivilegeList.Add(BubbleMemberPrivilege.User);
     bubblesList = RbBubbles.GetAllBubbles(bubbleMemberPrivilegeList: bubbleMemberPrivilegeList);
-    Util.WriteBlue($"{CR}\tBubble(s) as Moderator or User - Nb:[{bubblesList.Count}]");
+    ConsoleAbstraction.WriteBlue($"{CR}\tBubble(s) as Moderator or User - Nb:[{bubblesList.Count}]");
     if (displayBubbleInfo)
         foreach (var bubble in bubblesList)
             await DisplayBubbleInfo(bubble, displayBubbleMemberInfo, displayBubbleMemberInfoAsContact);
 
-    Util.WriteRed($"------ END DisplayBubbles{CR}");
+    ConsoleAbstraction.WriteRed($"------ END DisplayBubbles{CR}");
 }
 
 void RbContacts_ContactsAdded(List<Contact> contacts)
@@ -324,7 +323,7 @@ void RbContacts_ContactsAdded(List<Contact> contacts)
     foreach (var contact in contacts)
         displayNames.Add(contact.ToString(DetailsLevel.Small));
 
-    Util.WriteRed($"Event ContactsAdded triggered - Contact(s):[{String.Join(", ", displayNames)}]");
+    ConsoleAbstraction.WriteRed($"Event ContactsAdded triggered - Contact(s):[{String.Join(", ", displayNames)}]");
 }
 
 Boolean ReadExeSettings()
@@ -332,7 +331,7 @@ Boolean ReadExeSettings()
     String exeSettingsFilePath = $".{Path.DirectorySeparatorChar}config{Path.DirectorySeparatorChar}exeSettings.json";
     if (!File.Exists(exeSettingsFilePath))
     {
-        Util.WriteRed($"The file '{exeSettingsFilePath}' has not been found.");
+        ConsoleAbstraction.WriteRed($"The file '{exeSettingsFilePath}' has not been found.");
         return false;
     }
 
@@ -341,7 +340,7 @@ Boolean ReadExeSettings()
 
     if ((jsonNode is null) || (!jsonNode.IsObject))
     {
-        Util.WriteRed($"Cannot get JSON data from file '{exeSettingsFilePath}'.");
+        ConsoleAbstraction.WriteRed($"Cannot get JSON data from file '{exeSettingsFilePath}'.");
         return false;
     }
 
@@ -352,7 +351,7 @@ Boolean ReadExeSettings()
     }
     else
     {
-        Util.WriteRed($"Cannot read 'exeSettings' object OR invalid/missing data - file:'{exeSettingsFilePath}'.");
+        ConsoleAbstraction.WriteRed($"Cannot read 'exeSettings' object OR invalid/missing data - file:'{exeSettingsFilePath}'.");
         return false;
     }
 
@@ -364,7 +363,7 @@ Boolean ReadCredentials(string fileName = "credentials.json")
     var credentialsFilePath = $".{Path.DirectorySeparatorChar}config{Path.DirectorySeparatorChar}{fileName}";
     if (!File.Exists(credentialsFilePath))
     {
-        Util.WriteRed($"The file '{credentialsFilePath}' has not been found.");
+        ConsoleAbstraction.WriteRed($"The file '{credentialsFilePath}' has not been found.");
         return false;
     }
 
@@ -373,7 +372,7 @@ Boolean ReadCredentials(string fileName = "credentials.json")
 
     if (!Credentials.FromJsonNode(jsonNode["credentials"], out credentials))
     {
-        Util.WriteRed($"Cannot read 'credentials' object OR invalid/missing data in file:[{fileName}].");
+        ConsoleAbstraction.WriteRed($"Cannot read 'credentials' object OR invalid/missing data in file:[{fileName}].");
         return false;
     }
 

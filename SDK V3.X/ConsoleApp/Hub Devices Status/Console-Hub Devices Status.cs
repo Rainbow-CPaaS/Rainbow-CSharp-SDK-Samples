@@ -4,7 +4,7 @@ using Rainbow.Consts;
 using Rainbow.Model;
 using System.Text;
 
-using Util = Rainbow.Example.Common.Util;
+
 using Rainbow.SimpleJSON;
 using Rainbow.Example.Common;
 
@@ -20,25 +20,23 @@ if (credentials is null)
 
 // --------------------------------------------------
 
-Console.OutputEncoding = Encoding.UTF8; // We want to display UTF8 on the console
-
 // Check if a Callback URL has been set
 if (String.IsNullOrEmpty(exeSettings.S2SCallbackURL))
 {
-    Util.WriteRed($"No Callback URL has been set. This example needs one to create a WebHook.\r\n Ensure to set one using 'exeSettings.json' file and 's2sCallbackURL' property.");
+    ConsoleAbstraction.WriteRed($"No Callback URL has been set. This example needs one to create a WebHook.\r\n Ensure to set one using 'exeSettings.json' file and 's2sCallbackURL' property.");
     return;
 }
 else
-    Util.WriteBlue($"Callback URL used to create the WebHook:{exeSettings.S2SCallbackURL}");
+    ConsoleAbstraction.WriteBlue($"Callback URL used to create the WebHook:{exeSettings.S2SCallbackURL}");
 
 
 // Set folder / directory path
 NLogConfigurator.Directory = exeSettings.LogFolderPath;
 var logFullPath = Path.GetFullPath(exeSettings.LogFolderPath);
-Util.WriteBlue($"Logs files will be stored in folder:[{logFullPath}]{Rainbow.Util.CR}");
+ConsoleAbstraction.WriteBlue($"Logs files will be stored in folder:[{logFullPath}]{Rainbow.Util.CR}");
 
-Util.WriteBlue($"Use [ESC] at anytime to quit{Rainbow.Util.CR}");
-Util.WriteBlue($"Use [S] to have Company Event Subscription Status (once created)");
+ConsoleAbstraction.WriteBlue($"Use [ESC] at anytime to quit{Rainbow.Util.CR}");
+ConsoleAbstraction.WriteBlue($"Use [S] to have Company Event Subscription Status (once created)");
 
 // Create admin bot
 var adminBot = new RainbowAdminBot(credentials.ServerConfig, credentials.UsersConfig[0], exeSettings.S2SCallbackURL);
@@ -55,14 +53,14 @@ do
 
 void CheckInputKey()
 {
-    while (Console.KeyAvailable)
+    while (ConsoleAbstraction.KeyAvailable)
     {
-        var userInput = Console.ReadKey(true);
+        var userInput = ConsoleAbstraction.ReadKey();
 
-        switch (userInput.Key)
+        switch (userInput?.Key)
         {
             case ConsoleKey.Escape:
-                Util.WriteYellow($"Asked to end process using [ESC] key");
+                ConsoleAbstraction.WriteYellow($"Asked to end process using [ESC] key");
                 System.Environment.Exit(0);
                 return;
 
@@ -71,9 +69,9 @@ void CheckInputKey()
                 {
                     var sdkResult = await adminBot.GetCompanyEventSubscriptionStatusAsync();
                     if (sdkResult.Success)
-                        Util.WriteGreen($"GetCompanyEventSubscriptionStatusAsync:[{sdkResult.Data}]");
+                        ConsoleAbstraction.WriteGreen($"GetCompanyEventSubscriptionStatusAsync:[{sdkResult.Data}]");
                     else
-                        Util.WriteRed($"GetCompanyEventSubscriptionStatusAsync - Error:[{sdkResult.Success}]");
+                        ConsoleAbstraction.WriteRed($"GetCompanyEventSubscriptionStatusAsync - Error:[{sdkResult.Success}]");
                 });
                 return;
         }
@@ -87,31 +85,31 @@ void AdminBot_ConnectionStateChanged(UserConfig rainbowAccount, ConnectionState 
     switch (connectionState.Status)
     {
         case ConnectionStatus.Connected:
-            Util.WriteDarkYellow($"Bot using [{rainbowAccount.Login}] is connected{Rainbow.Util.CR}");
+            ConsoleAbstraction.WriteDarkYellow($"Bot using [{rainbowAccount.Login}] is connected{Rainbow.Util.CR}");
             break;
 
         case ConnectionStatus.Connecting:
-            Util.WriteBlue($"Bot using [{rainbowAccount.Login}] is connecting ...{Rainbow.Util.CR}");
+            ConsoleAbstraction.WriteBlue($"Bot using [{rainbowAccount.Login}] is connecting ...{Rainbow.Util.CR}");
             break;
 
         case ConnectionStatus.Disconnected:
-            Util.WriteRed($"Bot using [{rainbowAccount.Login}] is disconnected{Rainbow.Util.CR}");
+            ConsoleAbstraction.WriteRed($"Bot using [{rainbowAccount.Login}] is disconnected{Rainbow.Util.CR}");
             break;
     }
 }
 
 void AdminBot_ConnectionFailed(UserConfig rainbowAccount, SdkError sdkError)
 {
-    Util.WriteRed($"Bot using [{rainbowAccount.Login}] is not connected - Error:[{sdkError}]{Rainbow.Util.CR}");
+    ConsoleAbstraction.WriteRed($"Bot using [{rainbowAccount.Login}] is not connected - Error:[{sdkError}]{Rainbow.Util.CR}");
 }
 
 void AdminBot_SIPDeviceStatusChanged(SIPDeviceStatus sipDeviceStatus)
 {
     var log = $"Device status changed: Registered[{sipDeviceStatus.Registered}] - ShortNumber:[{sipDeviceStatus.DeviceShortNumber}] - Peer:[{sipDeviceStatus.Peer.ToString("small")}]";
     if (sipDeviceStatus.Registered)
-        Util.WriteDarkYellow(log);
+        ConsoleAbstraction.WriteDarkYellow(log);
     else
-        Util.WriteRed(log);
+        ConsoleAbstraction.WriteRed(log);
 }
 
 #endregion EVENTS TRIGGERED BY RainbowAdminBot
@@ -121,7 +119,7 @@ Boolean ReadExeSettings()
     String exeSettingsFilePath = $".{Path.DirectorySeparatorChar}config{Path.DirectorySeparatorChar}exeSettings.json";
     if (!File.Exists(exeSettingsFilePath))
     {
-        Util.WriteRed($"The file '{exeSettingsFilePath}' has not been found.");
+        ConsoleAbstraction.WriteRed($"The file '{exeSettingsFilePath}' has not been found.");
         return false;
     }
 
@@ -130,7 +128,7 @@ Boolean ReadExeSettings()
 
     if ((jsonNode is null) || (!jsonNode.IsObject))
     {
-        Util.WriteRed($"Cannot get JSON data from file '{exeSettingsFilePath}'.");
+        ConsoleAbstraction.WriteRed($"Cannot get JSON data from file '{exeSettingsFilePath}'.");
         return false;
     }
 
@@ -141,7 +139,7 @@ Boolean ReadExeSettings()
     }
     else
     {
-        Util.WriteRed($"Cannot read 'exeSettings' object OR invalid/missing data - file:'{exeSettingsFilePath}'.");
+        ConsoleAbstraction.WriteRed($"Cannot read 'exeSettings' object OR invalid/missing data - file:'{exeSettingsFilePath}'.");
         return false;
     }
 
@@ -153,7 +151,7 @@ Credentials? ReadCredentials(string fileName = "credentials.json")
     var credentialsFilePath = $".{Path.DirectorySeparatorChar}config{Path.DirectorySeparatorChar}{fileName}";
     if (!File.Exists(credentialsFilePath))
     {
-        Util.WriteRed($"The file '{credentialsFilePath}' has not been found.");
+        ConsoleAbstraction.WriteRed($"The file '{credentialsFilePath}' has not been found.");
         return null;
     }
 
@@ -162,7 +160,7 @@ Credentials? ReadCredentials(string fileName = "credentials.json")
 
     if (!Credentials.FromJsonNode(jsonNode["credentials"], out Credentials credentials))
     {
-        Util.WriteRed($"Cannot read 'credentials' object OR invalid/missing data in file:[{fileName}].");
+        ConsoleAbstraction.WriteRed($"Cannot read 'credentials' object OR invalid/missing data in file:[{fileName}].");
         return null;
     }
 
