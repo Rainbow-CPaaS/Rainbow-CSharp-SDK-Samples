@@ -936,8 +936,8 @@ namespace BotVideoOrchestratorAndBroadcaster
                         bot.Configure(RainbowApplicationInfo.commandStop, new BotManager(_currentContact.LoginEmail, _currentContact.Id, _currentContact.Jid_im));
                         break;
                     }
-                    // If this bot is not already connected, we don't try to check another one
-                    else if (botState != RainbowBotVideoBroadcaster.State.Connected)
+                    // If this bot is not already initialized, we don't try to check another one
+                    else if (botState != RainbowBotVideoBroadcaster.State.Initialized)
                     {
                         break;
                     }
