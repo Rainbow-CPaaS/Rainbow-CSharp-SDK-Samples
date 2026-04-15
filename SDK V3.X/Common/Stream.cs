@@ -17,9 +17,6 @@ namespace Rainbow.Example.Common
         /// </summary>
         public string Media { get; set; }
 
-        // Media used in the conference - not set directly in JSON
-        public String? MediaInConference { get; set; }
-
         /// <summary>
         /// (optional) if it's a video composition, list of streams id used to create it. Their order is important and related to the VideoFilter property
         /// </summary>
@@ -32,7 +29,7 @@ namespace Rainbow.Example.Common
 
         /// <summary>
         /// (optional) if it's not a composition, define the type of the uri: "screen", "webcam", "microphone" or "other" (default value)
-        /// Accoring it's value, Media is set. 
+        /// According it's value, Media is set. 
         /// For example:
         /// - if "screen" is used, Media will be set to "video"
         /// - if "microphone" is used, Media will be set to "audio"
@@ -40,7 +37,7 @@ namespace Rainbow.Example.Common
         public string UriType { get; set; }
 
         /// <summary>
-        /// (optional) if it's not a composition, settings used to connected to the uri (can be null/empty) => ffmpeg parameters",
+        /// (optional) if it's not a composition, settings used to connect to the uri (can be null/empty) => ffmpeg parameters",
         /// </summary>
         public Dictionary<string, string>? UriSettings { get; set; }
 
@@ -55,6 +52,9 @@ namespace Rainbow.Example.Common
         /// </summary>
         public string? VideoFilter { get; set; }
 
+        /// <summary>
+        /// Based on JSON description, used to create VideoFilter
+        /// </summary>
         public JSONNode? VideoFilterJsonNode { get; set; }
 
         // Video Filter used in the conference - not set directly in JSON
@@ -77,9 +77,6 @@ namespace Rainbow.Example.Common
             VideoFilter = null;
             VideoFilterJsonNode = null;
             ForceLiveStream = null;
-
-            VideoFilterInConference = null;
-            MediaInConference = null;
         }
 
         public static Stream FromStream(Stream other)
@@ -96,10 +93,6 @@ namespace Rainbow.Example.Common
                 VideoFilter = other.VideoFilter,
                 VideoFilterJsonNode = other.VideoFilterJsonNode,
                 ForceLiveStream = other.ForceLiveStream,
-
-                // Internal property
-                MediaInConference = other.MediaInConference,
-                VideoFilterInConference = other.VideoFilterInConference,
             };
             return result;
         }
@@ -204,7 +197,6 @@ namespace Rainbow.Example.Common
                 || (other.VideoFilter != VideoFilter)
                 || (other.VideoFilterJsonNode?.ToString() != VideoFilterJsonNode?.ToString())
                 || (other.ForceLiveStream != ForceLiveStream)
-                || (other.MediaInConference != MediaInConference)
                 || ((VideoComposition is not null) && (other.VideoComposition is not null) && (!VideoComposition.SequenceEqual(other.VideoComposition)))
                 )
                 return false;

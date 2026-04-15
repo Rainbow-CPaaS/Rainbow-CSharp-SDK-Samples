@@ -16,6 +16,8 @@ namespace ConsoleMediaPlayer
     {
         // --- To store settings 
         private static ExeSettings? _exeSettings;
+        private static List<Stream>? _streamsList;
+
         private static String _autoPlayAudio = "";
         private static String _autoPlayVideo = "";
         private static String _autoPlaySharing = "";
@@ -54,18 +56,21 @@ namespace ConsoleMediaPlayer
                 return;
 
             if (_exeSettings is null) return;
-            if ((_streamManager.streamsList is null) || (_streamManager.streamsList.Count == 0)) return;
+            //if ((_streamManager.streamsList is null) || (_streamManager.streamsList.Count == 0)) return;
+
+            _streamManager.OnStreamOpened += StreamManager_OnStreamOpened;
+            _streamManager.OnStreamClosed += StreamManager_OnStreamClosed;
 
             _streamManager.OnAudioSample += StreamManager_OnAudioSample;
-            _streamManager.OnAudioStateChanged += StreamManager_OnAudioStateChanged;
+            _streamManager.OnAudioError += StreamManager_OnAudioError;
             _streamManager.OnAudioEndOfFile += StreamManager_OnAudioEndOfFile;
 
             _streamManager.OnVideoImage += StreamManager_OnVideoImage;
-            _streamManager.OnVideoStateChanged += StreamManager_OnVideoStateChanged;
+            _streamManager.OnVideoError += StreamManager_OnVideoError;
             _streamManager.OnVideoEndOfFile += StreamManager_OnVideoEndOfFile;
 
             _streamManager.OnSharingImage += StreamManager_OnSharingImage;
-            _streamManager.OnSharingStateChanged += StreamManager_OnSharingStateChanged;
+            _streamManager.OnSharingError += StreamManager_OnSharingError;
             _streamManager.OnSharingEndOfFile += StreamManager_OnSharingEndOfFile;
 
             PromptStreamsInfo();
@@ -144,7 +149,7 @@ namespace ConsoleMediaPlayer
                     else
                     {
                         var userInput = ConsoleAbstraction.ReadKey();
-                        key = (userInput is null) ? 0 : (int)userInput?.Key;
+                        key = (userInput is null) ? 0 : (int)(userInput.Value.Key);
                     }
 
 
@@ -180,15 +185,15 @@ namespace ConsoleMediaPlayer
                             break;
 
                         case (int)ConsoleKey.S:
-                            PromptManageScreen();
+                            await PromptManageScreenAsync();
                             break;
 
                         case (int)ConsoleKey.M:
-                            PromptManageAudioInput();
+                            await PromptManageAudioInputAsync();
                             break;
 
                         case (int)ConsoleKey.W:
-                            PromptManageWebcam();
+                            await PromptManageWebcamAsync();
                             break;
 
                         case (int)ConsoleKey.T:
@@ -213,37 +218,154 @@ namespace ConsoleMediaPlayer
         {
             Action action = async () =>
             {
-                Stream? audioStream;
-                Stream? videoStream;
-                Stream? sharingStream;
 
-                audioStream = _streamManager.streamsList?.FirstOrDefault(s => s.Id == _autoPlayAudio);
-                videoStream = _streamManager.streamsList?.FirstOrDefault(s => s.Id == _autoPlayVideo);
-                sharingStream = _streamManager.streamsList?.FirstOrDefault(s => s.Id == _autoPlaySharing);
+                Dictionary < int, String> streamsToUse = [];
+                if (!String.IsNullOrEmpty(_autoPlayAudio))
+                {
+                    var stream = _streamsList?.FirstOrDefault(s => s.Id == _autoPlayAudio);
+                    if(stream is null)
+                        ConsoleAbstraction.WriteRed($"Audio - AutoPlay - Stream with Id [{_autoPlayAudio}] not found ");
+                    else
+                        streamsToUse[Rainbow.Consts.Media.AUDIO] = stream.Id;
+                }
 
-                ConsoleAbstraction.WriteGreen($"Auto play set to Audio:[{_autoPlayAudio}] - Video:[{_autoPlayVideo}] - Sharing:[{_autoPlaySharing}]. Trying to set config ...");
+                if (!String.IsNullOrEmpty(_autoPlayVideo))
+                {
+                    var stream = _streamsList?.FirstOrDefault(s => s.Id == _autoPlayVideo);
+                    if (stream is null)
+                        ConsoleAbstraction.WriteRed($"Video - AutoPlay - Stream with Id [{_autoPlayVideo}] not found ");
+                    else
+                        streamsToUse[Rainbow.Consts.Media.VIDEO] = stream.Id;
+                }
 
-                await _streamManager.UseMainStreamAsync(Rainbow.Consts.Media.AUDIO, audioStream);
-                await _streamManager.UseMainStreamAsync(Rainbow.Consts.Media.VIDEO, videoStream);
-                await _streamManager.UseMainStreamAsync(Rainbow.Consts.Media.SHARING, sharingStream);
+                if (!String.IsNullOrEmpty(_autoPlaySharing))
+                {
+                    var stream = _streamsList?.FirstOrDefault(s => s.Id == _autoPlaySharing);
+                    if (stream is null)
+                        ConsoleAbstraction.WriteRed($"Sharing - AutoPlay - Stream with Id [{_autoPlaySharing}] not found ");
+                    else
+                        streamsToUse[Rainbow.Consts.Media.SHARING] = stream.Id;
+                }
 
-                var otherStreams = _streamManager.streamsList?.Where(s => s.Connected);
-                await _streamManager.UseOtherStreamsAsync((otherStreams is null) ? [] : otherStreams.ToArray());
-
-                var audios = _streamManager.GetListOfAudiosMediaUsed();
-                foreach(var audio in audios)
-                    ConsoleAbstraction.WriteGreen($"Audio Media used [{audio.Id}]");
-                var videos = _streamManager.GetListOfVideosMediaUsed();
-                foreach (var video in videos)
-                    ConsoleAbstraction.WriteGreen($"Video Media used [{video.Id}]");
+                _streamManager.SetNewConfiguration(_streamsList, streamsToUse); 
             };
 
             Task.Factory.StartNew(action);
         }
 
-        static async Task StopStreams() => await _streamManager.UseMainStreamAsync(Rainbow.Consts.Media.NONE);
-
     #region StreamManager events
+
+        private static void StreamManager_OnStreamClosed(string streamId, int media)
+        {
+            switch (media)
+            {
+                case Rainbow.Consts.Media.AUDIO:
+                    if (_sdl2AudioOutput is not null)
+                    {
+                        ConsoleAbstraction.WriteGray($"Audio is stopped - Stream:[{streamId}] - Clear Sdl2AudioOutput queue");
+                        _sdl2AudioOutput.ClearQueue();
+                    }
+
+                    // /!\ Need to use Main Thread
+                    _actions.Add(new Action(() =>
+                    {
+                        UpdateVideoWindowTitle();
+                        UpdateSharingWindowTitle();
+                    }));
+                    break;
+
+                case Rainbow.Consts.Media.VIDEO:
+                    // We inform that the video is now stopped
+                    _outputVideoWindow?.VideoStopped = true;
+
+                    // /!\ Need to use Main Thread
+                    _actions.Add(new Action(() =>
+                    {
+                        if (_outputVideoWindow is null) return;
+
+                        Window.DestroyTexture(_outputVideoWindow);
+                        Window.Hide(_outputVideoWindow);
+
+                        ConsoleAbstraction.WriteGray($"Video is stopped - Stream:[{streamId}]");
+                    }));
+                    break;
+
+                case Rainbow.Consts.Media.SHARING:
+                    // We inform that the sharing is now stopped
+                    _outputSharingWindow?.VideoStopped = true;
+
+                    // /!\ Need to use Main Thread
+                    _actions.Add(new Action(() =>
+                    {
+                        if (_outputSharingWindow is null) return;
+
+                        Window.DestroyTexture(_outputSharingWindow);
+                        Window.Hide(_outputSharingWindow);
+
+                        ConsoleAbstraction.WriteGray($"Sharing is stopped - Stream:[{streamId}]");
+                    }));
+                    break;
+            }
+        }
+
+        private static void StreamManager_OnStreamOpened(string streamId, int media)
+        {
+            switch (media)
+            {
+                case Rainbow.Consts.Media.AUDIO:
+                    ConsoleAbstraction.WriteGray($"Audio is started - Stream:[{streamId}]");
+
+                    // /!\ Need to use Main Thread
+                    _actions.Add(new Action(() =>
+                    {
+                        UpdateVideoWindowTitle();
+                    }));
+                    break;
+
+                case Rainbow.Consts.Media.VIDEO:
+                    // /!\ Need to use Main Thread
+                    _actions.Add(new Action(() =>
+                    {
+                        if (_outputVideoWindow.VideoStopped)
+                        {
+                            ConsoleAbstraction.WriteGray($"Video is started - Stream:[{streamId}]");
+                            
+                            Window.Create(_outputVideoWindow);
+                            Window.Show(_outputVideoWindow);
+                            Window.Restore(_outputVideoWindow);
+                            Window.Raise(_outputVideoWindow);
+
+                            Window.ClearRenderer(_outputVideoWindow);
+
+                            UpdateVideoWindowTitle();
+
+                            _outputVideoWindow.VideoStopped = false;
+                        }
+                    }));
+                    break;
+
+                case Rainbow.Consts.Media.SHARING:
+                    // /!\ Need to use Main Thread
+                    _actions.Add(new Action(() =>
+                    {
+                        if (_outputSharingWindow.VideoStopped)
+                        {
+                            ConsoleAbstraction.WriteGray($"Sharing is started - Stream:[{streamId}]");
+                            _outputSharingWindow.VideoStopped = false;
+
+                            Window.Create(_outputSharingWindow);
+                            Window.Show(_outputSharingWindow);
+                            Window.Restore(_outputSharingWindow);
+                            Window.Raise(_outputSharingWindow);
+
+                            Window.ClearRenderer(_outputSharingWindow);
+
+                            UpdateSharingWindowTitle();
+                        }
+                    }));
+                    break;
+            }
+        }
 
         private static void StreamManager_OnAudioSample(string mediaId, uint duration, byte[] sample)
         {
@@ -252,27 +374,14 @@ namespace ConsoleMediaPlayer
                 _sdl2AudioOutput?.QueueSample(sample);
         }
 
-        private static void StreamManager_OnAudioStateChanged(string mediaId, bool isStarted, bool isPaused)
-        {
-            if (!isStarted)
-            {
-                if (_sdl2AudioOutput is not null)
-                {
-                    ConsoleAbstraction.WriteDarkYellow("Clear Sdl2AudioOutput queue");
-                    _sdl2AudioOutput.ClearQueue();
-                }
-            }
-
-            // /!\ Need to use Main Thread
-            _actions.Add(new Action(() =>
-            {
-                UpdateVideoWindowTitle();
-            }));
-        }
-
         private static void StreamManager_OnAudioEndOfFile(string mediaId)
         {
             ConsoleAbstraction.WriteGreen($"Audio MediaInput Id:{mediaId} reached End of File");
+        }
+
+        private static void StreamManager_OnAudioError(string mediaId, string message)
+        {
+            ConsoleAbstraction.WriteRed($"Audio MediaInput Id:{mediaId} error: {message}");
         }
 
         private static void StreamManager_OnVideoImage(string mediaId, int width, int height, int stride, nint data, AVPixelFormat pixelFormat)
@@ -291,50 +400,14 @@ namespace ConsoleMediaPlayer
             }));
         }
 
-        private static void StreamManager_OnVideoStateChanged(string mediaId, bool isStarted, bool isPaused)
-        {
-            // /!\ Need to use Main Thread
-            _actions.Add(new Action(() =>
-            {
-                if (isStarted)
-                {
-                    ConsoleAbstraction.WriteGray("OnVideoStateChanged - IN - Video Started");
-                    _outputVideoWindow.VideoStopped = false;
-
-                    Window.Create(_outputVideoWindow);
-                    Window.Show(_outputVideoWindow);
-                    Window.Restore(_outputVideoWindow);
-                    Window.Raise(_outputVideoWindow);
-
-                    Window.ClearRenderer(_outputVideoWindow);
-
-                    UpdateVideoWindowTitle();
-                }
-                else
-                {
-                    if (_outputVideoWindow.VideoStopped)
-                        ConsoleAbstraction.WriteGray("OnVideoStateChanged - IN");
-                    else
-                    {
-                        ConsoleAbstraction.WriteGray("OnVideoStateChanged - IN - Video Stopped");
-                        // remove any actions
-                        //while (_actions.TryTake(out _)) { }
-
-                        // We inform that the video is now stopped
-                        _outputVideoWindow.VideoStopped = true;
-
-                        Window.DestroyTexture(_outputVideoWindow);
-
-                        Window.Hide(_outputVideoWindow);
-                    }
-                }
-                ConsoleAbstraction.WriteGray("OnVideoStateChanged - OUT");
-            }));
-        }
-
         private static void StreamManager_OnVideoEndOfFile(string mediaId)
         {
             ConsoleAbstraction.WriteGreen($"Video MediaInput Id:{mediaId} reached End of File");
+        }
+
+        private static void StreamManager_OnVideoError(string mediaId, string message)
+        {
+            ConsoleAbstraction.WriteRed($"Video MediaInput Id:{mediaId} error: {message}");
         }
 
         private static void StreamManager_OnSharingImage(string mediaId, int width, int height, int stride, nint data, AVPixelFormat pixelFormat)
@@ -353,50 +426,14 @@ namespace ConsoleMediaPlayer
             }));
         }
 
-        private static void StreamManager_OnSharingStateChanged(string mediaId, bool isStarted, bool isPaused)
-        {
-            // /!\ Need to use Main Thread
-            _actions.Add(new Action(() =>
-            {
-                if (isStarted)
-                {
-                    ConsoleAbstraction.WriteGray("OnSharingStateChanged - IN - Sharing Started");
-                    _outputSharingWindow.VideoStopped = false;
-
-                    Window.Create(_outputSharingWindow);
-                    Window.Show(_outputSharingWindow);
-                    Window.Restore(_outputSharingWindow);
-                    Window.Raise(_outputSharingWindow);
-
-                    Window.ClearRenderer(_outputSharingWindow);
-
-                    UpdateSharingWindowTitle();
-                }
-                else
-                {
-                    if (_outputSharingWindow.VideoStopped)
-                        ConsoleAbstraction.WriteGray("OnSharingStateChanged - IN");
-                    else
-                    {
-                        ConsoleAbstraction.WriteGray("OnSharingStateChanged - IN - Sharing Stopped");
-                        // remove any actions
-                        //while (_actions.TryTake(out _)) { }
-
-                        // We inform that the video is now stopped
-                        _outputSharingWindow.VideoStopped = true;
-
-                        Window.DestroyTexture(_outputSharingWindow);
-
-                        Window.Hide(_outputSharingWindow);
-                    }
-                }
-                ConsoleAbstraction.WriteGray("OnSharingStateChanged - OUT");
-            }));
-        }
-
         private static void StreamManager_OnSharingEndOfFile(string mediaId)
         {
             ConsoleAbstraction.WriteGreen($"Sharing MediaInput Id:{mediaId} reached End of File");
+        }
+
+        private static void StreamManager_OnSharingError(string mediaId, string message)
+        {
+            ConsoleAbstraction.WriteRed($"Sharing MediaInput Id:{mediaId} error: {message}");
         }
 
 #endregion StreamManager events
@@ -407,7 +444,7 @@ namespace ConsoleMediaPlayer
             ConsoleAbstraction.WriteGreen($"{Rainbow.Util.CR}Console Window must have the focus to use the keyboard");
             ConsoleAbstraction.WriteYellow($"[ESC] to quit");
             ConsoleAbstraction.WriteYellow($"[H] Help message (this one)");
-            ConsoleAbstraction.WriteYellow($"[L] Load / reload stream settings ");
+            ConsoleAbstraction.WriteYellow($"[L] Load / reload stream settings");
             ConsoleAbstraction.WriteYellow("");
             ConsoleAbstraction.WriteYellow($"[F] Full screen - toggle");
             ConsoleAbstraction.WriteYellow($"[C] Cancel /Stop current streaming");
@@ -432,12 +469,13 @@ namespace ConsoleMediaPlayer
         static void PromptCancelStreaming()
         {
             ConsoleAbstraction.WriteYellow("=> PromptCancelStreaming()");
-            var _ = StopStreams();
+            _streamManager.SetNewConfiguration(_streamsList, null);
         }
 
         static void PromptInputStreamSelection()
         {
-            if (_streamManager.streamsList?.Count > 0)
+            /*
+            if (_streamsList?.Count > 0)
             {
                 var selected = false;
                 List<Stream>? subStreams = null;
@@ -460,7 +498,7 @@ namespace ConsoleMediaPlayer
                             categoryInfo = "with [audio]";
                             selected = true;
                             ConsoleAbstraction.WriteDarkYellow($"Any with Audio selected ...");
-                            subStreams = _streamManager.streamsList.FindAll(s => s.Media.Contains("audio"));
+                            subStreams = _streamsList.FindAll(s => s.Media.Contains("audio"));
                             break;
 
                         case ConsoleKey.V:
@@ -468,7 +506,7 @@ namespace ConsoleMediaPlayer
                             categoryInfo = "with [video]";
                             selected = true;
                             ConsoleAbstraction.WriteDarkYellow($"Any with Video selected ...");
-                            subStreams = _streamManager.streamsList.FindAll(s => s.Media.Contains("video") || s.Media.Contains("composition"));
+                            subStreams = _streamsList.FindAll(s => s.Media.Contains("video") || s.Media.Contains("composition"));
                             break;
 
                         case ConsoleKey.B:
@@ -476,7 +514,7 @@ namespace ConsoleMediaPlayer
                             categoryInfo = "with [audio+video]";
                             selected = true;
                             ConsoleAbstraction.WriteDarkYellow($"Audio and Video selected ...");
-                            subStreams = _streamManager.streamsList.FindAll(s => s.Media == "audio+video");
+                            subStreams = _streamsList.FindAll(s => s.Media == "audio+video");
                             break;
 
                         case ConsoleKey.R:
@@ -620,9 +658,10 @@ namespace ConsoleMediaPlayer
             }
             else
                 ConsoleAbstraction.WriteRed($"{Rainbow.Util.CR}No streams available");
+            */
         }
 
-        static void PromptManageDevice(String type)
+        static async Task PromptManageDeviceAsync(String type)
         {
             List<Device> devices;
 
@@ -659,7 +698,7 @@ namespace ConsoleMediaPlayer
             }
 
             // Display info about streams defined as device
-            var streamAsDevice = _streamManager.streamsList?.FindAll(s => s.UriType == type);
+            var streamAsDevice = _streamsList?.FindAll(s => s.UriType == type);
             if (streamAsDevice?.Count > 0)
             {
                 ConsoleAbstraction.WriteBlue($"{Rainbow.Util.CR}List of streams defined as [{type}] correctly set in config file: (doesn't mean they can be really used)");
@@ -672,10 +711,10 @@ namespace ConsoleMediaPlayer
 
             ConsoleAbstraction.WriteYellow($"{Rainbow.Util.CR}Do you want to add in config file all [{type}s] available on your system ? [Y]");
             ConsoleAbstraction.WriteRed($"Previous [{type}s] already set will be removed and the file [{_streamsFilePath}] will be totally rewritten.");
-            var consoleKey = ConsoleAbstraction.ReadKey();
+            var consoleKey = await ConsoleAbstraction.ReadKeyAsync();
             if (consoleKey?.Key == ConsoleKey.Y)
             {
-                _streamManager.streamsList?.RemoveAll(s => s.UriType == type);
+                _streamsList?.RemoveAll(s => s.UriType == type);
                 int index = 1;
                 foreach (var device in devices)
                 {
@@ -690,14 +729,14 @@ namespace ConsoleMediaPlayer
                         Uri = device.Name,
                         UriType = type,
                     };
-                    _streamManager.streamsList ??= [];
-                    _streamManager.streamsList.Add(stream);
+                    _streamsList ??= [];
+                    _streamsList.Add(stream);
                 }
 
                 // Create array
-                _streamManager.streamsList ??= [];
+                _streamsList ??= [];
                 var jsonArray = new JSONArray();
-                foreach (var stream in _streamManager.streamsList)
+                foreach (var stream in _streamsList)
                 {
                     var jnode = Stream.ToJsonNode(stream);
                     if (jnode is not null)
@@ -721,11 +760,11 @@ namespace ConsoleMediaPlayer
                 ConsoleAbstraction.WriteYellow($"No updates about [{type}] done");
         }
 
-        static void PromptManageWebcam() => PromptManageDevice("webcam");
+        static async Task PromptManageWebcamAsync() => await PromptManageDeviceAsync("webcam");
 
-        static void PromptManageScreen() => PromptManageDevice("screen");
+        static async Task PromptManageScreenAsync() => await PromptManageDeviceAsync("screen");
 
-        static void PromptManageAudioInput() => PromptManageDevice("microphone");
+        static async Task PromptManageAudioInputAsync() => await PromptManageDeviceAsync("microphone");
 
         static void PromptManageAudioOutput()
         {
@@ -832,11 +871,11 @@ namespace ConsoleMediaPlayer
 
         static void PromptStreamsInfo()
         {
-            if (_streamManager.streamsList is null) return;
+            if (_streamsList is null) return;
 
             ConsoleAbstraction.WriteBlue($"{Rainbow.Util.CR}List of streams correctly set in config file: (doesn't mean they can be really used)");
             int index = 1;
-            foreach (var stream in _streamManager.streamsList)
+            foreach (var stream in _streamsList)
             {
                 ConsoleAbstraction.WriteBlue($"{index++:00} - {stream}");
                 //index++;
@@ -853,14 +892,14 @@ namespace ConsoleMediaPlayer
         static void UpdateVideoWindowTitle()
         {
             ConsoleAbstraction.WriteGray("UpdateVideoWindowTitle");
-            String title = $"SDK C# v3.x - Streaming Audio:[{((_streamManager.mediaInputAudio is not null) ? _streamManager.mediaInputAudio.Name : "NONE")}] - Video:[{((_streamManager.mediaInputVideo is not null) ? $"{_streamManager.mediaInputVideo.Name} - {_streamManager.mediaInputVideo.Width}x{_streamManager.mediaInputVideo.Height}" : "NONE")}]";
+            String title = $"SDK C# v3.x - Streaming Audio:[{((_streamManager._streamIdUsedForAudio is not null) ? _streamManager._streamIdUsedForAudio : "NONE")}] - Video:[{((_streamManager._streamIdUsedForVideo is not null) ? $"{_streamManager._streamIdUsedForVideo}" : "NONE")}]";
             Window.UpdateTitle(_outputVideoWindow, title);
         }
 
         static void UpdateSharingWindowTitle()
         {
             ConsoleAbstraction.WriteGray("UpdateSharingWindowTitle");
-            String title = $"SDK C# v3.x - Streaming Audio:[{((_streamManager.mediaInputAudio is not null) ? _streamManager.mediaInputAudio.Name : "NONE")}] - Sharing:[{((_streamManager.mediaInputSharing is not null) ? $"{_streamManager.mediaInputSharing.Name} - {_streamManager.mediaInputSharing.Width}x{_streamManager.mediaInputSharing.Height}" : "NONE")}]";
+            String title = $"SDK C# v3.x - Streaming Audio:[{((_streamManager._streamIdUsedForAudio is not null) ? _streamManager._streamIdUsedForAudio : "NONE")}] - Sharing:[{((_streamManager._streamIdUsedForSharing is not null) ? $"{_streamManager._streamIdUsedForSharing}" : "NONE")}]";
             Window.UpdateTitle(_outputSharingWindow, title);
         }
 
@@ -888,15 +927,16 @@ namespace ConsoleMediaPlayer
             if (jsonExeSettings?.IsArray == true)
             {
                 List<Stream> compositionsList = [];
-                _streamManager.streamsList = [];
+                _streamsList = [];
                 foreach (var node in jsonExeSettings.Values)
                 {
                     if (Stream.FromJsonNode(node, out Stream stream))
                     {
+                        // Don't add composition nonw - we must ensure to have related video stream to use them
                         if (stream.Media.Equals("composition"))
                             compositionsList.Add(stream);
                         else
-                            _streamManager.streamsList.Add(stream);
+                            _streamsList.Add(stream);
                     }
                 }
 
@@ -906,13 +946,13 @@ namespace ConsoleMediaPlayer
                     if (stream.VideoComposition is null)
                         continue;
 
-                    var streamsFound = _streamManager.streamsList.Where(x => stream.VideoComposition.Contains(x.Id) == true).ToList();
+                    var streamsFound = _streamsList.Where(x => stream.VideoComposition.Contains(x.Id) == true).ToList();
                     if (streamsFound.Count == stream.VideoComposition.Count)
-                        _streamManager.streamsList.Add(stream);
+                        _streamsList.Add(stream);
                 }
 
 
-                if (_streamManager.streamsList.Count == 0)
+                if (_streamsList.Count == 0)
                 {
                     ConsoleAbstraction.WriteRed($"Cannot read 'streams' object (no Stream object created) - file:'{_streamsFilePath}'.");
                     return false;

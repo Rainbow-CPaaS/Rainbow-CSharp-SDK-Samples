@@ -1,6 +1,7 @@
 ﻿using FFmpeg.AutoGen;
 using Rainbow.Example.Common;
 using Rainbow.Medias;
+using System.Collections.Concurrent;
 using System.Drawing;
 using Stream = Rainbow.Example.Common.Stream;
 
@@ -8,333 +9,673 @@ namespace Rainbow.Example.CommonSDL2
 {
     public class StreamManager
     {
-        private readonly SemaphoreSlim semaphoreUseOfStremSlim = new (1, 1);
+        public delegate void StreamDelegate(String streamId, int media);
 
-        // --- To store list of available Streams
-        public List<Stream>? streamsList;
+        // --- To store list of Streams as current configuration and used in current conference
+        private ConcurrentDictionary<String, Stream> _streamsList = [];  // Stream Id as key
+        private Dictionary<int, String> _streamsIdToUse = []; // Media (audio/video/sharing) as key and Stream Id as value
+        private Boolean _newConfigurationReceived;
 
-        // --- To know which Streams are currently used / played
-        public Stream? currentAudioStream;  // Used for audio   => events OnAudioSample / OnAudioStateChanged / OnAudioEndOfFile will be used
-        public Stream? currentVideoStream;  // Used for video   => events OnVideoImage / OnVideoStateChanged / OnVideoEndOfFile will be used
-        public Stream? currentSharingStream;// Used for sharing => events OnSharingImage / OnSharingStateChanged / OnSharingEndOfFile will be used
-        public List<Stream> currentOtherStreams = [];  // Streams to stay opened even if not used for audio/video/sharing
+        private Object lockNewConfiguration = new ();
+        private Object lockStartToOpenOrCloseStreams = new ();
 
-        // --- IMedia used / created 
-        private readonly List<IMediaAudio> _mediasForAudio = [];
-        private readonly List<IMediaVideo> _mediasForVideo = [];
+        private List<String> _streamsToOpen = [];
+        private List<String> _streamsToClose = [];
 
-        // --- IMedia used / created for Input based on the selected Stream
-        public IMediaAudio? mediaInputAudio;
-        public IMediaVideo? mediaInputVideo;
-        public IMediaVideo? mediaInputSharing;
+        internal Task TaskOpenOrCloseStreams = Task.CompletedTask;
+
+        // --- IMedia used / created (i.e. we are connected to them)
+        private readonly ConcurrentDictionary<String, IMediaAudio> _mediasForAudio = []; // Stream Id as key
+        private readonly ConcurrentDictionary<String, IMediaVideo> _mediasForVideo = []; // Stream Id as key
+
+        public String? _streamIdUsedForAudio;      // To know which stream is used for Audio currently used/played
+        public String? _streamIdUsedForVideo;      // To know which stream is used for Video currently used/played
+        public String? _streamIdUsedForSharing;    // To know which stream is used for Sharing currently used/played
+
+        public event StreamDelegate? OnStreamOpened;
+        public event StreamDelegate? OnStreamClosed;
 
         public event SampleDelegate? OnAudioSample;
-        public event StateDelegate? OnAudioStateChanged;
+        public event ErrorDelegate? OnAudioError;
         public event EndOfFileDelegate? OnAudioEndOfFile;
 
         public event ImageDelegate? OnVideoImage;
-        public event StateDelegate? OnVideoStateChanged;
+        public event ErrorDelegate? OnVideoError;
         public event EndOfFileDelegate? OnVideoEndOfFile;
 
         public event ImageDelegate? OnSharingImage;
-        public event StateDelegate? OnSharingStateChanged;
+        public event ErrorDelegate? OnSharingError;
         public event EndOfFileDelegate? OnSharingEndOfFile;
 
-        /// <summary>
-        /// To define which stream to use for main medias (audio, video, sharing) depending of "media" parameter
-        /// 
-        /// Same stream can be used for several main medias.
-        /// 
-        /// If **media** parameter is set Rainbow.Consts.Media.None, all main medias are stopped/closed.
-        /// </summary>
-        /// <param name="media"><see cref="int"/>media(s) to use - see <see cref="Rainbow.Consts.Media"/> for possible values</param>
-        /// <param name="stream">Stream object to use for media(s) specified. Null can be specified to stoppped/closed specified medias</param>
-        /// <returns><see cref="Task"/></returns>
-        public async Task UseMainStreamAsync(int media, Stream? stream = null )
+        public int GetMediaUsedFromStreamId(String streamID)
         {
-            // Ensure to call this method only when it's previous called is already finished
-            if (media == Rainbow.Consts.Media.NONE)
-                await UseStreamsAsync(null, null, null, currentOtherStreams);
-            else
-            {
-                Stream? streamAudio = Rainbow.Util.MediasWithAudio(media) ? stream : currentAudioStream;
-                Stream? streamVideo = Rainbow.Util.MediasWithVideo(media) ? stream : currentVideoStream;
-                Stream? streamSharing = Rainbow.Util.MediasWithSharing(media) ? stream : currentSharingStream;
-
-                await UseStreamsAsync(streamAudio, streamVideo, streamSharing, currentOtherStreams);
-            }
-
-            
+            if (streamID == _streamIdUsedForAudio) return Rainbow.Consts.Media.AUDIO;
+            if (streamID == _streamIdUsedForVideo) return Rainbow.Consts.Media.VIDEO;
+            if (streamID == _streamIdUsedForSharing) return Rainbow.Consts.Media.SHARING;
+            return Rainbow.Consts.Media.NONE;
         }
 
-        /// <summary>
-        /// List of all Streams to keep opened even if not used for main medias (audio, video, sharing).
-        /// 
-        /// If you want to keep open a stream used as main media but which is no more needed as main media, you need to add it also in this list.
-        /// </summary>
-        /// <param name="otherStreams"><see cref="Stream"/>Stream as params. Set Empty to stopped / closed all previous streams specified if they are not used as main media(s)</param>
-        /// <returns><see cref="Task"/></returns>
-        public async Task UseOtherStreamsAsync(params Stream[] otherStreams)
+        public IMediaAudio? GetMediaAudioFromStreamId(String streamID)
         {
-            await UseStreamsAsync(currentAudioStream, currentVideoStream, currentSharingStream, otherStreams.ToList());
+            _mediasForAudio.TryGetValue(streamID, out IMediaAudio? mediaAudio);
+            return mediaAudio;
         }
 
-        public async Task UseStreamsAsync(Stream? streamForAudio, Stream? streamForVideo, Stream? streamForSharing, List<Stream> otherStreams)
+        public IMediaVideo? GetMediaVideoFromStreamId(String streamID)
         {
-            await semaphoreUseOfStremSlim.WaitAsync();
-            ConsoleAbstraction.WriteRed("IN - UseStreamsAsync()");
-
-            // Get list of media used
-            List<IMediaAudio> audiosUsed = GetListOfAudiosMediaUsed();
-            List<IMediaVideo> videosUsed = GetListOfVideosMediaUsed();
-
-            // Clear storage
-            _mediasForAudio.Clear();
-            _mediasForVideo.Clear();
-
-            // Manage Main Media
-            await UseMainMediaStreamAsync(streamForAudio, Rainbow.Consts.Media.AUDIO, audiosUsed, videosUsed);
-            await UseMainMediaStreamAsync(streamForVideo, Rainbow.Consts.Media.VIDEO, audiosUsed, videosUsed);
-            await UseMainMediaStreamAsync(streamForSharing, Rainbow.Consts.Media.SHARING, audiosUsed, videosUsed);
-
-            currentAudioStream = (mediaInputAudio is null) ? null : streamForAudio;
-            currentVideoStream = (mediaInputVideo is null) ? null : streamForVideo; 
-            currentSharingStream = (mediaInputSharing is null) ? null : streamForSharing;
-
-            // Manage Other Streams
-            currentOtherStreams.Clear();
-            foreach(var otherStream in otherStreams)
-            {
-                if(await UseMediaStreamAsync(otherStream, audiosUsed, videosUsed))
-                    currentOtherStreams.Add(otherStream);
-            }
-
-            await Task.Delay(200); // Add a small delay to let some times to close windows according streams in progress
-            await CloseMediasNotUsedAsync(audiosUsed, videosUsed);
-
-            ConsoleAbstraction.WriteRed("OUT - UseStreamsAsync()");
-            // Unlock the semaphore
-            try
-            {
-                if (semaphoreUseOfStremSlim.CurrentCount == 0)
-                    semaphoreUseOfStremSlim.Release();
-            }
-            catch { }
+            _mediasForVideo.TryGetValue(streamID, out IMediaVideo? mediaVideo);
+            return mediaVideo;
         }
 
-        private async Task<Boolean> UseMainMediaStreamAsync(Stream? stream, int media, List<IMediaAudio> audiosUsed, List<IMediaVideo> videosUsed)
+        public void SetNewConfiguration(List<Stream>? streams, Dictionary<int, String>? streamsToUse)
         {
-            IMedia? mediaInput;
-            switch (media)
+            lock (lockNewConfiguration)
             {
-                case Rainbow.Consts.Media.AUDIO:
-                    mediaInput = mediaInputAudio;
-                    break;
-                case Rainbow.Consts.Media.VIDEO:
-                    mediaInput = mediaInputVideo;
-                    break;
-                case Rainbow.Consts.Media.SHARING:
-                    mediaInput = mediaInputSharing;
-                    break;
-                default:
-                    ConsoleAbstraction.WriteRed($"Invalid media specified Media:[{media}]");
-                    return false;
-            }
+                List<String> streamsToBeOpened = [];
 
-            if (stream is null)
-            {
-                // Close previous Main Video MediaInput
-                await StopMainMediaInputAsync(media);
-                return true;
-            }
+                // Reset current information about streams to open and close (we will fill them again with new configuration)
+                _streamsToOpen.Clear();
+                _streamsToClose.Clear();
 
-            String str = Rainbow.Util.MediasToString(media);
-            Boolean needAudio = media == Rainbow.Consts.Media.AUDIO;
+                
+                streams ??= [];
+                streamsToUse ??= [];
 
-            // Do we use the same video input ?
-            if (mediaInput?.Id == stream.Id)
-            {
-                StoreAudioMedia(_mediasForAudio, mediaInput as IMediaAudio);
-                StoreVideoMedia(_mediasForVideo, mediaInput as IMediaVideo);
+                // Check Streams which must stay opened
+                streamsToBeOpened = GetStreamsToOpen(streams) ?? [];
+                var currentStreamsOpened = GetStreamsToOpen(_streamsList?.Values.ToList());
+                if (!CheckIfListsHaveSameContent(streamsToBeOpened, currentStreamsOpened))
+                    _newConfigurationReceived = true;
 
-                if (stream.VideoComposition is not null)
+                // Check AUDIO media set as used/played
                 {
-                    foreach (var id in stream.VideoComposition)
+                    var audioStreamId = _streamsIdToUse.FirstOrDefault(x => x.Key == Consts.Media.AUDIO).Value;
+                    var newAudioStreamId = streamsToUse.FirstOrDefault(x => x.Key == Consts.Media.AUDIO).Value;
+                    if (!string.Equals(audioStreamId, newAudioStreamId, StringComparison.OrdinalIgnoreCase))
                     {
-                        var subVideo = videosUsed.FirstOrDefault(m => m.Id == id);
-                        StoreVideoMedia(_mediasForVideo, subVideo);
-                        var subAudio = audiosUsed.FirstOrDefault(m => m.Id == id);
-                        StoreAudioMedia(_mediasForAudio, subAudio);
+                        _newConfigurationReceived = true;
+                        
+                        // Add new one to the list of stream to open
+                        if (!streamsToBeOpened.Contains(newAudioStreamId))
+                            streamsToBeOpened.Add(newAudioStreamId);
+                        
+                        // Close the previous one (if any)
+                        CheckIfStreamUsedAndTriggerCloseEvent(audioStreamId, Rainbow.Consts.Media.AUDIO);
                     }
                 }
-                return true;
-            }
 
-            // Close previous Main MediaInput
-            await StopMainMediaInputAsync(media);
-
-            IMediaAudio? iMediaAudio = null;
-            IMediaVideo? iMediaVideo = null;
-            List<IMediaAudio> subAudios = [];
-            List<IMediaVideo> subVideos = [];
-
-            // Try to get video input from videos list
-            if(needAudio)
-                iMediaAudio = audiosUsed.FirstOrDefault(m => m.Id == stream.Id);
-            else
-                iMediaVideo = videosUsed.FirstOrDefault(m => m.Id == stream.Id);
-
-            if ( (needAudio && iMediaAudio is null) || ( (!needAudio) && iMediaVideo is null) )
-                (iMediaAudio, iMediaVideo, subAudios, subVideos) = await GetMediaInputs(stream, audiosUsed, videosUsed);
-            else
-            {
-                if (needAudio)
+                // Check VIDEO media set as used/played
                 {
-                    if (iMediaAudio is IMediaVideo v)
-                        iMediaVideo = v;
-                    else
-                        iMediaVideo = null;
-                }
-                else
-                {
-                    if (iMediaVideo is IMediaAudio a)
-                        iMediaAudio = a;
-                    else
-                        iMediaAudio = null;
-                }
-            }
-
-            if (needAudio)
-                mediaInput = iMediaAudio;
-            else
-                mediaInput = iMediaVideo;
-
-            if (mediaInput is not null)
-            {
-                if (mediaInput.IsStarted)
-                    ConsoleAbstraction.WriteDarkYellow($"Re-Use {str} MediaInput with [{mediaInput.Id}] ...");
-                else
-                    ConsoleAbstraction.WriteDarkYellow($"Trying to Init/start {str} MediaInput with [{mediaInput.Id}] ...");
-                if (mediaInput.IsStarted || mediaInput.Init(true))
-                {
-                    // Store audio/video media
-                    StoreAudioMedia(_mediasForAudio, iMediaAudio);
-                    StoreAudioMedia(_mediasForAudio, subAudios.ToArray());
-                    StoreVideoMedia(_mediasForVideo, iMediaVideo);
-                    StoreVideoMedia(_mediasForVideo, subVideos.ToArray());
-
-                    StartMainMediaInputAsync(media, mediaInput);
-
-                    ConsoleAbstraction.WriteDarkYellow($"MediaInput {str} initialized / started [{mediaInput.Id}]");
-                    return true;
-                }
-            }
-            else
-            {
-                ConsoleAbstraction.WriteDarkYellow($"No MediaInput for Media:[{Util.MediasToString(media)}]");
-            }
-            return false;
-        }
-
-        private async Task<Boolean> UseMediaStreamAsync(Stream? stream, List<IMediaAudio> audiosUsed, List<IMediaVideo> videosUsed)
-        {
-            if (stream is null)
-                return true; ;
-
-            IMediaAudio? iMediaAudio = null;
-            IMediaVideo? iMediaVideo = null;
-            List<IMediaAudio> subAudios = [];
-            List<IMediaVideo> subVideos = [];
-
-            iMediaAudio = audiosUsed.FirstOrDefault(m => m.Id == stream.Id);
-            iMediaVideo = videosUsed.FirstOrDefault(m => m.Id == stream.Id);
-
-            if( (iMediaAudio?.IsStarted == true) || (iMediaVideo?.IsStarted == true) )
-            {
-                StoreAudioMedia(_mediasForAudio, iMediaAudio);
-                StoreVideoMedia(_mediasForVideo, iMediaVideo);
-
-                if (stream.VideoComposition is not null)
-                {
-                    foreach (var id in stream.VideoComposition)
+                    var videoStreamId = _streamsIdToUse.FirstOrDefault(x => x.Key == Consts.Media.VIDEO).Value;
+                    var newVideoStreamId = streamsToUse.FirstOrDefault(x => x.Key == Consts.Media.VIDEO).Value;
+                    if (!string.Equals(videoStreamId, newVideoStreamId, StringComparison.OrdinalIgnoreCase))
                     {
-                        iMediaAudio = audiosUsed.FirstOrDefault(m => m.Id == id);
-                        StoreAudioMedia(_mediasForAudio, iMediaAudio);
-                        iMediaVideo = videosUsed.FirstOrDefault(m => m.Id == id);
-                        StoreVideoMedia(_mediasForVideo, iMediaVideo);
+                        _newConfigurationReceived = true;
+
+                        // Add new one to the list of stream to open
+                        if (!streamsToBeOpened.Contains(newVideoStreamId))
+                            streamsToBeOpened.Add(newVideoStreamId);
+
+                        // Close the previous one (if any)
+                        CheckIfStreamUsedAndTriggerCloseEvent(videoStreamId, Rainbow.Consts.Media.VIDEO);
                     }
                 }
-                return true;
-            }
 
-            (iMediaAudio, iMediaVideo, subAudios, subVideos) = await GetMediaInputs(stream, audiosUsed, videosUsed);
-
-            IMedia? iMedia = iMediaAudio is null ? iMediaVideo : iMediaAudio;
-            if (iMedia is not null)
-            {
-                if (iMedia.IsStarted)
-                    ConsoleAbstraction.WriteDarkYellow($"Re-Use MediaInput with [{iMedia.Id}] ...");
-                else
-                    ConsoleAbstraction.WriteDarkYellow($"Trying to Init/startMediaInput with [{iMedia.Id}] ...");
-                if (iMedia.IsStarted || iMedia.Init(true))
+                // Check SHARING media set as used/played
                 {
-                    // Store audio/video media
-                    StoreAudioMedia(_mediasForAudio, iMediaAudio);
-                    StoreAudioMedia(_mediasForAudio, subAudios.ToArray());
-                    StoreVideoMedia(_mediasForVideo, iMediaVideo);
-                    StoreVideoMedia(_mediasForVideo, subVideos.ToArray());
+                    var sharingStreamId = _streamsIdToUse.FirstOrDefault(x => x.Key == Consts.Media.SHARING).Value;
+                    var newSharingStreamId = streamsToUse.FirstOrDefault(x => x.Key == Consts.Media.SHARING).Value;
+                    if (!string.Equals(sharingStreamId, newSharingStreamId, StringComparison.OrdinalIgnoreCase))
+                    {
+                        _newConfigurationReceived = true;
 
+                        /// Add new one to the list of stream to open
+                        if (!streamsToBeOpened.Contains(newSharingStreamId))
+                        streamsToBeOpened.Add(newSharingStreamId);
 
-                    ConsoleAbstraction.WriteDarkYellow($"MediaInput initialized / started [{iMedia.Id}]");
-                    return true;
+                        // Close the previous one (if any)
+                        CheckIfStreamUsedAndTriggerCloseEvent(sharingStreamId, Rainbow.Consts.Media.SHARING);
+                    }
+                }
+
+                if (_newConfigurationReceived)
+                {
+                    // Store new configuration of streams
+                    _streamsList = new ConcurrentDictionary<string, Stream>(streams.ToDictionary(s => s.Id, s => s));
+
+                    /// Store new configuration of streams to use/play
+                    _streamsIdToUse = streamsToUse;
+
+                    var newStreamsToOpen = GetStreamsToOpen(streamsToUse.Values.ToList(), _streamsList);
+                    // Update list of streams to be opened - Merge two lists
+                    streamsToBeOpened = streamsToBeOpened.Union(newStreamsToOpen).ToList();
+
+                    List<string> listStreamsAlreadyOpened = []; // Used only to log info
+                    // First get list of stream to open
+                    foreach (var streamId in streamsToBeOpened)
+                    {
+                        if (String.IsNullOrEmpty(streamId)) continue;
+
+                        // if not already used as audio or video stream add it to the list of stream to open
+                        if ((!_mediasForAudio.ContainsKey(streamId)) && (!_mediasForVideo.ContainsKey(streamId)))
+                        {
+                            if (!_streamsToOpen.Contains(streamId))
+                                _streamsToOpen.Add(streamId);
+                        }
+                        else
+                        {
+                            if (!listStreamsAlreadyOpened.Contains(streamId))
+                                listStreamsAlreadyOpened.Add(streamId);
+                        }
+                    }
+
+                    // Now check audio media to close
+                    foreach (var streamId in _mediasForAudio.Keys)
+                    {
+                        if (String.IsNullOrEmpty(streamId)) continue;
+
+                        if ( (!streamsToBeOpened.Contains(streamId)) && !_streamsToClose.Contains(streamId))
+                            _streamsToClose.Add(streamId);
+                    }
+
+                    // Now check video media to close
+                    foreach (var streamId in _mediasForVideo.Keys)
+                    {
+                        if (String.IsNullOrEmpty(streamId)) continue;
+
+                        if ( (!streamsToBeOpened.Contains(streamId)) && !_streamsToClose.Contains(streamId))
+                            _streamsToClose.Add(streamId);
+                    }
+
+                    ConsoleAbstraction.WriteGreen("New Configuration Set:");
+                    ConsoleAbstraction.WriteGreen($"\tStream(s) already OPENED: [{String.Join(", ", listStreamsAlreadyOpened)}]");
+                    ConsoleAbstraction.WriteGreen($"\tStream(s) which need to be OPENED: [{String.Join(", ", _streamsToOpen)}]");
+                    ConsoleAbstraction.WriteGreen($"\tStream(s) which need to be CLOSED: [{String.Join(", ", _streamsToClose)}]");
+                    var audioStreamId = _streamsIdToUse.FirstOrDefault(x => x.Key == Consts.Media.AUDIO).Value;
+                    var videoStreamId = _streamsIdToUse.FirstOrDefault(x => x.Key == Consts.Media.VIDEO).Value;
+                    var sharingStreamId = _streamsIdToUse.FirstOrDefault(x => x.Key == Consts.Media.SHARING).Value;
+                    ConsoleAbstraction.WriteGreen($"\tStream which must be used for AUDIO:   [{((audioStreamId is not null) ? audioStreamId : "NONE")}]");
+                    ConsoleAbstraction.WriteGreen($"\tStream which must be used for VIDEO:   [{((videoStreamId is not null) ? videoStreamId : "NONE")}]");
+                    ConsoleAbstraction.WriteGreen($"\tStream which must be used for SHARING: [{((sharingStreamId is not null) ? sharingStreamId : "NONE")}]");
+
+                    StartToOpenOrCloseStreams();
+                }
+                else
+                {
+                    ConsoleAbstraction.WriteGreen("No new configuration necessary");
                 }
             }
-            return false;
         }
 
-        private async Task<(IMediaVideo? mediaVideo, List<IMediaAudio> subMediaAudioList, List<IMediaVideo> subMediaVideoList)> GetMediaInputForComposition(Stream stream, List<IMediaAudio> audiosUsed, List<IMediaVideo> videosUsed)
+        internal void StartToOpenOrCloseStreams()
         {
+            if (TaskOpenOrCloseStreams.Status == TaskStatus.Running)
+            {
+                ConsoleAbstraction.WriteYellow("Task to open or close streams is already running => we will not start another one to avoid any conflict - New configuration will be taken into account at the end of current task");
+                return;
+            }
+            TaskOpenOrCloseStreams = Task.Run(OpenOrCloseStreams);
+        }
+
+        internal void OpenOrCloseStreams()
+        {
+            // Algorithm:
+            // We must first know:
+            // - which streams must be opened (audio and/or video, compositions)
+            // - which streams must be closed (audio and/or video, compositions)
+            // - which streams are used/played (audio, video and/or sharing)
+            //
+            // 0] Check if Audio/Video/Sharing streams used/played are no more the same to remove them for. 
+            //
+            // A] Loop on audio and/or video streams to open (not composition). (it includes video which will be used for composition)
+            //      A.1] Starts / Open it and update cache
+            //      A.2] Check if new config and abort this task if it's the case
+            //
+            // B] Loop on composition streams to open .
+            //      B.1] Starts / Open it and update cache
+            //      B.2] Check if new config and abort this task if it's the case
+            //
+            // C] Loop on composition streams to close
+            //      C.1] If used/played trigger event to inform to remove it
+            //      C.2] Close it and update cache
+            //      C.3] Check if new config and abort this task if it's the case
+            //
+            // D] Loop on audio and/or video streams to close
+            //      D.1] If used/played trigger event to inform to remove it
+            //      D.2] Close it and update cache
+            //      D.3] Check if new config and abort this task if it's the case
+            //
+            // E] Inform to add streams used/played
+            //      E.1] If used/played trigger event to inform to add audio
+            //      E.2] Check if new config and abort this task if it's the case
+            //      E.3] If used/played trigger event to inform to add video
+            //      E.4] Check if new config and abort this task if it's the case
+            //      E.5] If used/played trigger event to inform to add sharing
+
+            lock (lockStartToOpenOrCloseStreams)
+            {
+                // There is no new configuration - we can quit
+                if (!_newConfigurationReceived) return;
+
+                // Set new configuration as false
+                _newConfigurationReceived = false;
+
+                // We create a copy of list of stream to open/cloe to avoid any issue if this list is updated while we are opening streams
+                var streamsToOpen = _streamsToOpen.ToList();
+                var streamsToClose = _streamsToClose.ToList();
+
+                // A] Loop on audio and/or video streams to open (not composition). (it includes video which will be used for composition)
+                ConsoleAbstraction.WriteGreen("A] Loop on audio and/or video streams to open (not composition)");
+                foreach (var streamId in streamsToOpen)
+                {
+                    if (_streamsList is not null && _streamsList.TryGetValue(streamId, out Stream? stream)
+                            && stream is not null)
+                    {
+                        // Don't manage here composition
+                        if (stream.VideoComposition is null)
+                        {
+                            // A.1] Starts / Open it and update cache
+                            ConsoleAbstraction.WriteGreen($"A.1] Starts / Open it and update cache - Stream:[{stream.Id}]");
+                            OpenAudioOrVideoStream(stream);
+                        }
+                        else
+                        {
+                            // Nothing special here - we don't manage composition for the moment
+                        }
+                    }
+                    else
+                    {
+                        // Cannot find this stream in list ...
+                    }
+
+                    // A.2] Check if new config and abort this task if it's the case
+                    if (_newConfigurationReceived)
+                    {
+                        ConsoleAbstraction.WriteGreen($"A.2] Check if new config => Yes abort");
+                        CancelableDelay.StartAfter(500, () => StartToOpenOrCloseStreams());
+                        return;
+                    }
+                }
+
+                // B] Loop on composition streams to open .
+                ConsoleAbstraction.WriteGreen("B] Loop on composition streams to open");
+                foreach (var streamId in streamsToOpen)
+                {
+                    if (_streamsList is not null && _streamsList.TryGetValue(streamId, out Stream? stream)
+                            && stream is not null)
+                    {
+                        // Manage here only composition
+                        if (stream.VideoComposition is not null)
+                        {
+                            // B.1] Starts / Open it and update cache
+                            ConsoleAbstraction.WriteGreen($"B.1] Starts / Open it and update cache - Stream:[{stream.Id}]");
+                            OpenCompositionStream(stream);
+                        }
+                        else
+                        {
+                            // Nothing special here - we manage here only composition
+                        }
+                    }
+                    else
+                    {
+                        // Cannot find this stream in list ...
+                    }
+
+                    // B.2] Check if new config and abort this task if it's the case
+                    if (_newConfigurationReceived)
+                    {
+                        ConsoleAbstraction.WriteGreen($"B.2] Check if new config => Yes abort");
+                        CancelableDelay.StartAfter(500, () => StartToOpenOrCloseStreams());
+                        return;
+                    }
+                }
+
+
+                // C] Loop on composition streams to close
+                ConsoleAbstraction.WriteGreen("C] Loop on composition streams to close");
+                foreach (var streamId in streamsToClose)
+                {
+                    if (_streamsList is not null && _streamsList.TryGetValue(streamId, out Stream? stream)
+                                            && stream is not null)
+                    {
+                        // Manage here only composition
+                        if (stream.VideoComposition is not null)
+                        {
+                            // C.1] If used/played trigger event to inform to remove it
+                            ConsoleAbstraction.WriteGreen($"C.1] If used/played trigger event to inform to remove it - Stream:[{stream.Id}]");
+                            CheckIfStreamUsedAndTriggerCloseEvent(stream.Id);
+
+                            // C.2] Close it and update cache
+                            ConsoleAbstraction.WriteGreen($"C.2] Close it and update cache - Stream:[{stream.Id}]");
+                            CloseStream(stream);
+                        }
+                    }
+                    else
+                    {
+                        // Cannot find this stream in list ...
+                    }
+
+                    // C.3] Check if new config and abort this task if it's the case
+                    if (_newConfigurationReceived)
+                    {
+                        ConsoleAbstraction.WriteGreen($"C.3] Check if new config => Yes abort");
+                        CancelableDelay.StartAfter(500, () => StartToOpenOrCloseStreams());
+                        return;
+                    }
+                }
+
+                // D] Loop on audio and/or video streams to close
+                ConsoleAbstraction.WriteGreen("D] Loop on audio and/or video streams to close");
+                foreach (var streamId in streamsToClose)
+                {
+                    if (_streamsList is not null && _streamsList.TryGetValue(streamId, out Stream? stream)
+                                            && stream is not null)
+                    {
+                        // Manage here NOT composition
+                        if (stream.VideoComposition is null)
+                        {
+                            // D.1] If used/played trigger event to inform to remove it
+                            ConsoleAbstraction.WriteGreen($"D.1] If used/played trigger event to inform to remove it - Stream:[{stream.Id}]");
+                            CheckIfStreamUsedAndTriggerCloseEvent(stream.Id);
+
+                            // D.2] Close it and update cache
+                            ConsoleAbstraction.WriteGreen($"D.2] Close it and update cache - Stream:[{stream.Id}]");
+                            CloseStream(stream);
+                        }
+                    }
+                    else
+                    {
+                        // Cannot find this stream in list ...
+                    }
+
+                    // D.3] Check if new config and abort this task if it's the case
+                    if (_newConfigurationReceived)
+                    {
+                        ConsoleAbstraction.WriteGreen($"D.3] Check if new config => Yes abort");
+                        CancelableDelay.StartAfter(500, () => StartToOpenOrCloseStreams());
+                        return;
+                    }
+                }
+
+                // E] Inform to add streams used/played
+                ConsoleAbstraction.WriteGreen("E] Inform to add streams used/played");
+                Dictionary<int, String> streamsToUse = new(_streamsIdToUse);
+                foreach (var kvp in streamsToUse)
+                {
+                    // E.1] If used/played trigger event to inform to add audio
+                    if (kvp.Key == Consts.Media.AUDIO)
+                    {
+                        if (!String.Equals(_streamIdUsedForAudio, kvp.Value, StringComparison.OrdinalIgnoreCase))
+                        {
+                            if (_mediasForAudio.TryGetValue(kvp.Value, out IMediaAudio? mediaAudio) && (mediaAudio?.IsStarted == true))
+                            {
+                                try
+                                {
+                                    ConsoleAbstraction.WriteGreen($"E.1] If used/played trigger event to inform to add audio - Stream:[{kvp.Value}]");
+
+                                    if (OnAudioSample is not null)
+                                        mediaAudio.OnAudioSample += MediaInput_OnAudioSample;
+                                    mediaAudio.OnEndOfFile += MediaInput_OnAudioEndOfFile;
+                                    mediaAudio.OnError += MediaInput_OnAudioError;
+
+                                    OnStreamOpened?.Invoke(kvp.Value, kvp.Key);
+                                }
+                                finally
+                                {
+                                    _streamIdUsedForAudio = kvp.Value;
+                                }
+                            }
+                        }
+                    }
+
+                    //  E.2] Check if new config and abort this task if it's the case
+                    if (_newConfigurationReceived)
+                    {
+                        ConsoleAbstraction.WriteGreen($"E.2] Check if new config => Yes abort");
+                        CancelableDelay.StartAfter(500, () => StartToOpenOrCloseStreams());
+                        return;
+                    }
+
+                    // E.3] If used/played trigger event to inform to add video
+                    if (kvp.Key == Consts.Media.VIDEO)
+                    {
+                        if (!String.Equals(_streamIdUsedForVideo, kvp.Value, StringComparison.OrdinalIgnoreCase))
+                        {
+                            if (_mediasForVideo.TryGetValue(kvp.Value, out IMediaVideo? mediaVideo) && (mediaVideo?.IsStarted == true))
+                            {
+                                try
+                                {
+                                    ConsoleAbstraction.WriteGreen($"E.3] If used/played trigger event to inform to add video - Stream:[{kvp.Value}]");
+
+                                    if (OnVideoImage is not null)
+                                        mediaVideo.OnImage += MediaInput_OnVideoImage;
+                                    mediaVideo.OnEndOfFile += MediaInput_OnVideoEndOfFile;
+                                    mediaVideo.OnError += MediaInput_OnVideoError;
+
+                                    OnStreamOpened?.Invoke(kvp.Value, kvp.Key);
+                                }
+                                finally
+                                {
+                                    _streamIdUsedForVideo = kvp.Value;
+                                }
+                            }
+                        }
+                    }
+
+                    //  E.4] Check if new config and abort this task if it's the case
+                    if (_newConfigurationReceived)
+                    {
+                        ConsoleAbstraction.WriteGreen($"E.4] Check if new config => Yes abort");
+                        CancelableDelay.StartAfter(500, () => StartToOpenOrCloseStreams());
+                        return;
+                    }
+
+                    // E.5] If used/played trigger event to inform to add sharing
+                    if (kvp.Key == Consts.Media.SHARING)
+                    {
+                        if (!String.Equals(_streamIdUsedForSharing, kvp.Value, StringComparison.OrdinalIgnoreCase))
+                        {
+                            if (_mediasForVideo.TryGetValue(kvp.Value, out IMediaVideo? mediaSharing) && (mediaSharing?.IsStarted == true))
+                            {
+                                try
+                                {
+                                    ConsoleAbstraction.WriteGreen($"E.5] If used/played trigger event to inform to add sharing - Stream:[{kvp.Value}]");
+
+                                    if (OnSharingImage is not null)
+                                        mediaSharing.OnImage += MediaInput_OnSharingImage;
+                                    mediaSharing.OnEndOfFile += MediaInput_OnSharingEndOfFile;
+                                    mediaSharing.OnError += MediaInput_OnSharingError;
+
+                                    OnStreamOpened?.Invoke(kvp.Value, kvp.Key);
+                                }
+                                finally
+                                {
+                                    _streamIdUsedForSharing = kvp.Value;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private void CheckIfStreamUsedAndTriggerCloseEvent(String streamId, int media = Rainbow.Consts.Media.NONE)
+        {
+            if (String.IsNullOrEmpty(streamId)) return;
+
+            if (_streamIdUsedForAudio == streamId && 
+                ((media == Rainbow.Consts.Media.AUDIO) || (media == Rainbow.Consts.Media.NONE)))
+            {
+                try
+                {
+                    ConsoleAbstraction.WriteDarkYellow($"Stream:[{streamId}] is currently used for AUDIO - Trigger event to inform to remove it ...");
+                    if (_mediasForAudio.TryGetValue(_streamIdUsedForAudio, out IMediaAudio? mediaAudio) && mediaAudio is not null)
+                    {
+                        mediaAudio.OnAudioSample -= MediaInput_OnAudioSample;
+                        mediaAudio.OnEndOfFile -= MediaInput_OnAudioEndOfFile;
+                        mediaAudio.OnError -= MediaInput_OnAudioError;
+                    }
+
+                    Task.Delay(200).Wait();
+
+                    OnStreamClosed?.Invoke(_streamIdUsedForAudio, Consts.Media.AUDIO);
+                }
+                finally
+                {
+                    _streamIdUsedForAudio = null;
+                }
+            }
+            if (_streamIdUsedForVideo == streamId &&
+                ((media == Rainbow.Consts.Media.VIDEO) || (media == Rainbow.Consts.Media.NONE)))
+            {
+                try
+                {
+                    ConsoleAbstraction.WriteDarkYellow($"Stream:[{streamId}] is currently used for VIDEO - Trigger event to inform to remove it ...");
+                    if (_mediasForVideo.TryGetValue(_streamIdUsedForVideo, out IMediaVideo? mediaVideo) && mediaVideo is not null)
+                    {
+                        mediaVideo.OnImage -= MediaInput_OnVideoImage;
+                        mediaVideo.OnEndOfFile -= MediaInput_OnVideoEndOfFile;
+                        mediaVideo.OnError -= MediaInput_OnVideoError;
+                    }
+
+                    Task.Delay(200).Wait();
+
+                    OnStreamClosed?.Invoke(_streamIdUsedForVideo, Consts.Media.VIDEO);
+                }
+                finally
+                {
+                    _streamIdUsedForVideo = null;
+                }
+            }
+            if (_streamIdUsedForSharing == streamId &&
+                ((media == Rainbow.Consts.Media.SHARING) || (media == Rainbow.Consts.Media.NONE)))
+            {
+                try
+                {
+                    ConsoleAbstraction.WriteDarkYellow($"Stream:[{streamId}] is currently used for SHARING - Trigger event to inform to remove it ...");
+                    if (_mediasForVideo.TryGetValue(_streamIdUsedForSharing, out IMediaVideo? mediaSharing) && mediaSharing is not null)
+                    {
+                        mediaSharing.OnImage -= MediaInput_OnSharingImage;
+                        mediaSharing.OnEndOfFile -= MediaInput_OnSharingEndOfFile;
+                        mediaSharing.OnError -= MediaInput_OnSharingError;
+                    }
+
+                    Task.Delay(200).Wait();
+
+                    OnStreamClosed?.Invoke(_streamIdUsedForSharing, Consts.Media.SHARING);
+                }
+                finally
+                {
+                    _streamIdUsedForSharing = null;
+                }
+            }
+        }
+
+        private void OpenCompositionStream(Stream stream)
+        {
+            // Here we are sure to have a stream with a composition (with several videos)
+
+            IMediaVideo? videoInput = GetMediaInputForComposition(stream); // Here the composition is already started
+            if(videoInput is not null)
+            {
+                // Store it as video
+                _mediasForVideo[stream.Id] = videoInput;
+            }
+            else
+            {
+                // cannot create media input for this composition ...
+            }
+
+        }
+        
+        private void CloseStream(Stream stream)
+        {
+            if (_mediasForAudio.TryRemove(stream.Id, out IMediaAudio? mediaAudio) && mediaAudio?.IsStarted == true)
+            {
+                ConsoleAbstraction.WriteDarkYellow($"Dispose Media for Stream:[{stream.Id}] ...");
+                mediaAudio?.Dispose();
+            }
+
+            if (_mediasForVideo.TryRemove(stream.Id, out IMediaVideo? mediaVideo) && mediaVideo?.IsStarted == true)
+            {
+                ConsoleAbstraction.WriteDarkYellow($"Dispose Media for Stream:[{stream.Id}] ...");
+                mediaVideo?.Dispose();
+            }
+        }
+
+        private void OpenAudioOrVideoStream(Stream stream)
+        {
+            // Here we are sure to have a stream with audio and/or video and not a composition (with several videos)
+
+            // Create media inputs for this stream
+            (IMediaAudio? audioInput, IMediaVideo? videoInput) = GetMediaInputs(stream);
+
+            // Init Media Input
+            if (audioInput is not null)
+            {
+                // Start audio Input
+                if (audioInput.IsStarted || audioInput.Init(true))
+                {
+                    // TODO - Check if we receive an audio frame
+
+                    // Store it as audio
+                    _mediasForAudio[stream.Id] = audioInput;
+
+                    // Store it as video (if necessary)
+                    if (videoInput is not null)
+                        _mediasForVideo[stream.Id] = videoInput;
+                }
+                else
+                {
+                    // Cannot Init Audio Input ...
+                    ConsoleAbstraction.WriteRed($"Cannot open AUDIO stream:[{stream.Id}]");
+                }
+            }
+            else if (videoInput is not null)
+            {
+                // Start audio Input
+                if (videoInput.IsStarted || videoInput.Init(true))
+                {
+                    // TODO - Check if we receive an audio frame
+
+                    // Store it as video
+                    _mediasForVideo[stream.Id] = videoInput;
+                }
+                else
+                {
+                    // Cannot Init Video Input ...
+                    ConsoleAbstraction.WriteRed($"Cannot open VIDEO stream:[{stream.Id}]");
+                }
+            }
+            else
+            {
+                // cannot create media input for this stream ...
+            }
+        }
+
+        private MediaFiltered? GetMediaInputForComposition(Stream stream)
+        {
+            if(stream.VideoComposition is null) return null;
+
             Boolean success = true;
             List<Size> videoSize = [];
 
-            List<IMediaAudio> mediaAudioList = [];
             List<IMediaVideo> mediaVideoList = [];
-
-            if ((streamsList is null) || (stream is null) || (stream.VideoComposition is null))
-                return (null, mediaAudioList, mediaVideoList);
 
             ConsoleAbstraction.WriteGreen($"Trying to create composition for Stream [{stream.Id}] ...");
             foreach (var id in stream.VideoComposition)
             {
-                var s = streamsList.FirstOrDefault(s => s.Id == id);
+                _streamsList.TryGetValue(id, out var s);
                 if (s is not null)
                 {
-                    var mi = videosUsed.FirstOrDefault(m => m.Id == id);
-                    if (mi is null)
+                    _mediasForVideo.TryGetValue(id, out IMediaVideo? iMediaVideo);
                     {
-                        //ConsoleAbstraction.WriteGreen($"For composition, creating MediaInput for Stream:[{id}] ...");
-                        (var iMediaAudio, var iMediaVideo, var subAudios, var subVideos) = await GetMediaInputs(s, audiosUsed, videosUsed);
-
                         if (iMediaVideo is not null)
                         {
-                            if (iMediaVideo.IsStarted || iMediaVideo.Init(true) == true)
-                            {
-                                // Store audio/video media
-                                StoreAudioMedia(mediaAudioList, iMediaAudio);
-                                StoreAudioMedia(mediaAudioList, subAudios.ToArray());
-                                StoreVideoMedia(mediaVideoList, iMediaVideo);
-                                StoreVideoMedia(mediaVideoList, subVideos.ToArray());
+                            var size = new Size(iMediaVideo.Width, iMediaVideo.Height);
+                            videoSize.Add(size);
 
-                                var size = new Size(iMediaVideo.Width, iMediaVideo.Height);
-                                videoSize.Add(size);
-                            }
-                            else
-                            {
-                                // Cannot start 
-                                ConsoleAbstraction.WriteRed($"For composition, MediaInput cannot be started for Stream:[{id}]");
-                                success = false;
-                                break;
-                            }
+                            mediaVideoList.Add(iMediaVideo);
                         }
                         else
                         {
@@ -343,15 +684,6 @@ namespace Rainbow.Example.CommonSDL2
                             success = false;
                             break;
                         }
-                    }
-                    else
-                    {
-                        mediaVideoList.Add(mi);
-
-                        var size = new Size(mi.Width, mi.Height);
-                        videoSize.Add(size);
-
-                        ConsoleAbstraction.WriteDarkYellow($"For composition, re-use MediaInput with Stream:[{id}] ...");
                     }
                 }
                 else
@@ -452,34 +784,26 @@ namespace Rainbow.Example.CommonSDL2
                         {
                             // Store filter used
                             stream.VideoFilterInConference = filter;
-                            return (mediaFiltered, mediaAudioList, mediaVideoList);
+                            return mediaFiltered;
                         }
                         else
-                            ConsoleAbstraction.WriteRed($"For composition, cannot init MediaFiltered ...");
+                            ConsoleAbstraction.WriteRed($"Composition, Cannot start - Stream:[{stream.Id}]");
                     }
                     else
-                        ConsoleAbstraction.WriteRed($"For composition, video filter defined is incorrect:\r\n{stream.VideoFilter}");
+                        ConsoleAbstraction.WriteRed($"Composition, filter is incorrect - Stream:[{stream.Id}]:\r\n{stream.VideoFilter}");
                 }
             }
-            else
-            {
-                // TODO - close medias opened for the composition
-            }
-
-            return (null, mediaAudioList, mediaVideoList);
+            return null;
         }
 
-        private async Task<(IMediaAudio? audioInput, IMediaVideo? videoInput, List<IMediaAudio> subMediaAudioList, List<IMediaVideo> subMediaVideoList)> GetMediaInputs(Stream? stream, List<IMediaAudio> audiosUsed, List<IMediaVideo> videosUsed)
+        static private (IMediaAudio? audioInput, IMediaVideo? videoInput) GetMediaInputs(Stream? stream)
         {
             IMediaAudio? audioInput = null;
             IMediaVideo? videoInput = null;
-            List<IMediaAudio> subMediaAudioList = [];
-            List<IMediaVideo> subMediaVideoList = [];
-            if ((streamsList is null) || (stream is null)) return (audioInput, videoInput, subMediaAudioList, subMediaVideoList);
+            if (stream is null) return (audioInput, videoInput);
 
-            Boolean withComposition = stream.Media.Contains("composition");
             Boolean withAudio = stream.Media.Contains("audio");
-            Boolean withVideo = withComposition || stream.Media.Contains("video");
+            Boolean withVideo = stream.Media.Contains("video");
 
             var options = stream.UriSettings;
 
@@ -529,224 +853,75 @@ namespace Rainbow.Example.CommonSDL2
                     break;
 
                 default:
-                    if (withComposition)
-                    {
-                        (videoInput, subMediaAudioList, subMediaVideoList) = await GetMediaInputForComposition(stream, audiosUsed, videosUsed);
-                    }
-                    else
-                    {
-                        // Check if audio can be re-used
-                        audioInput = audiosUsed.FirstOrDefault(m => m.Id == stream.Id);
+                    ConsoleAbstraction.WriteGreen($"Creating InputStreamDevice: {stream} ...");
+                    var inputStreamDevice = new InputStreamDevice(stream.Id, stream.Id, stream.Uri, withVideo: withVideo, withAudio: withAudio, loop: true, options: options);
 
-                        // Check if video can be re-used
-                        videoInput = videosUsed.FirstOrDefault(m => m.Id == stream.Id);
-
-                        if ((withVideo && videoInput is not null)
-                            || (withAudio && audioInput is not null))
-                        {
-                            if (audioInput is null && videoInput is not null)
-                                audioInput = (IMediaAudio)videoInput;
-
-                            ConsoleAbstraction.WriteDarkYellow($"Not necessary to create new MediaInput {(withVideo ? $"Video [{stream.Id}]" : $"Audio [{stream.Id}]")} - use previous stream");
-                            return (audioInput, videoInput, subMediaAudioList, subMediaVideoList);
-                        }
-
-                        ConsoleAbstraction.WriteGreen($"Creating InputStreamDevice: {stream} ...");
-                        var inputStreamDevice = new InputStreamDevice(stream.Id, stream.Id, stream.Uri, withVideo: withVideo, withAudio: withAudio, loop: true, options: options);
-
-                        ConsoleAbstraction.WriteGreen($"Creating MediaInput for [{stream.Id}] ...");
-                        var mediaInput = new MediaInput(inputStreamDevice, forceLivestream: stream.ForceLiveStream);
-                        if (withVideo)
-                            videoInput = mediaInput;
-                        if (withAudio)
-                            audioInput = mediaInput;
-                    }
+                    ConsoleAbstraction.WriteGreen($"Creating MediaInput for [{stream.Id}] ...");
+                    var mediaInput = new MediaInput(inputStreamDevice, forceLivestream: stream.ForceLiveStream);
+                    if (withVideo)
+                        videoInput = mediaInput;
+                    if (withAudio)
+                        audioInput = mediaInput;
                     break;
             }
 
-            return (audioInput, videoInput, subMediaAudioList, subMediaVideoList);
+            return (audioInput, videoInput);
         }
 
-        static private void StoreAudioMedia(List<IMediaAudio> storageAudio, params IMediaAudio?[] mediaAudios)
+        static private Boolean CheckIfListsHaveSameContent(List<string> array1, List<string> array2)
         {
-            if (mediaAudios?.Length > 0)
-            {
-                foreach (var mediaAudio in mediaAudios)
-                {
-                    if ((mediaAudio is null) || (!mediaAudio.IsStarted))
-                        continue;
+            var set1 = new HashSet<string>(array1);
+            var set2 = new HashSet<string>(array2);
 
-                    var m = storageAudio.FirstOrDefault(m => m.Id == mediaAudio.Id);
-                    if (m is null)
-                    {
-                        storageAudio.Add(mediaAudio);
-                        //ConsoleAbstraction.WriteGray($"Store Audio [{mediaAudio.Id}]");
-                    }
+            return  set1.SetEquals(set2);
+        }
+
+        static private List<String> GetStreamsToOpen(List<Stream>? streams)
+        {
+            List<String> result = [];
+            if(streams is null) return result;
+
+            foreach (var stream in streams)
+            {
+                if (stream.Connected)
+                {
+                    // Add Id of this stream
+                    if (!result.Contains(stream.Id)) result.Add(stream.Id);
+
+                    // If it's a compostion add Id of all streams used for it
+                    if (stream.VideoComposition?.Count > 0)
+                        foreach(var id in stream.VideoComposition)
+                            if(!result.Contains(id)) result.Add(id);
                 }
             }
-        }
-
-        static private void StoreVideoMedia(List<IMediaVideo> storageVideos, params IMediaVideo?[] mediaVideos)
-        {
-            if (mediaVideos?.Length > 0)
-            {
-                foreach (var mediaVideo in mediaVideos)
-                {
-                    if ((mediaVideo is null) || (!mediaVideo.IsStarted))
-                        continue;
-
-                    var m = storageVideos.FirstOrDefault(m => m.Id == mediaVideo.Id);
-                    if (m is null)
-                    {
-                        storageVideos.Add(mediaVideo);
-                        //ConsoleAbstraction.WriteGray($"Store Video [{mediaVideo.Id}]");
-                    }
-                }
-            }
-        }
-
-        public List<IMediaVideo> GetListOfVideosMediaUsed()
-        {
-            List<IMediaVideo> result = [];
-            StoreVideoMedia(result, mediaInputVideo);
-            StoreVideoMedia(result, mediaInputSharing);
-            foreach (var video in _mediasForVideo)
-                StoreVideoMedia(result, video);
-
             return result;
         }
 
-        public List<IMediaAudio> GetListOfAudiosMediaUsed()
+        static private List<String> GetStreamsToOpen(List<String>? streamsId, ConcurrentDictionary<String, Stream>? streams)
         {
-            List<IMediaAudio> result = [];
-            StoreAudioMedia(result, mediaInputAudio);
-            foreach (var audio in _mediasForAudio)
-                StoreAudioMedia(result, audio);
+            List<String> result = [];
+            if (streams is null) return result;
+            if (streamsId is null) return result;
 
+            foreach (var id in streamsId)
+            {
+                if(streams.TryGetValue(id, out Stream? stream) && stream is not null)
+                {
+                    // Add Id of this stream
+                    if (!result.Contains(stream.Id)) result.Add(stream.Id);
+
+                    // If it's a compostion add Id of all streams used for it
+                    if (stream.VideoComposition?.Count > 0)
+                        foreach (var subId in stream.VideoComposition)
+                            if (!result.Contains(subId)) result.Add(subId);
+                }
+            }
             return result;
-        }
-
-        private void StartMainMediaInputAsync(int media, IMedia iMedia)
-        {
-            switch (media)
-            {
-                case Rainbow.Consts.Media.AUDIO:
-                    mediaInputAudio = iMedia as IMediaAudio;
-                    if (mediaInputAudio is null) return;
-
-                    OnAudioStateChanged?.Invoke(iMedia.Id, true, false);
-
-                    mediaInputAudio.OnAudioSample += MediaInput_OnAudioSample;
-                    mediaInputAudio.OnEndOfFile += MediaInput_OnAudioEndOfFile;
-                    break;
-
-                case Rainbow.Consts.Media.VIDEO:
-                    mediaInputVideo = iMedia as IMediaVideo;
-                    if (mediaInputVideo is null) return;
-
-                    OnVideoStateChanged?.Invoke(iMedia.Id, true, false);
-
-                    mediaInputVideo.OnImage += MediaInput_OnVideoImage;
-                    mediaInputVideo.OnEndOfFile += MediaInput_OnVideoEndOfFile;
-                    break;
-
-                case Rainbow.Consts.Media.SHARING:
-                    mediaInputSharing = iMedia as IMediaVideo;
-                    if (mediaInputSharing is null) return;
-
-                    OnSharingStateChanged?.Invoke(iMedia.Id, true, false);
-
-                    mediaInputSharing.OnImage += MediaInput_OnSharingImage;
-                    mediaInputSharing.OnEndOfFile += MediaInput_OnSharingEndOfFile;
-                    break;
-            }
-        }
-
-        private async Task StopMainMediaInputAsync(int media)
-        {
-            switch(media)
-            {
-                case Rainbow.Consts.Media.AUDIO:
-                    // Close Audio MediaInputs
-                    if (mediaInputAudio is not null)
-                    {
-                        mediaInputAudio.OnAudioSample -= MediaInput_OnAudioSample;
-                        mediaInputAudio.OnEndOfFile -= MediaInput_OnAudioEndOfFile;
-
-                        OnAudioStateChanged?.Invoke(mediaInputAudio.Id, false, false);
-
-                        mediaInputAudio = null;
-                    }
-                    else
-                        OnAudioStateChanged?.Invoke("", false, false);
-                    break;
-
-                case Rainbow.Consts.Media.VIDEO:
-                    // Close Video MediaInputs
-                    if (mediaInputVideo is not null)
-                    {
-                        mediaInputVideo.OnImage -= MediaInput_OnVideoImage;
-                        mediaInputVideo.OnEndOfFile -= MediaInput_OnVideoEndOfFile;
-
-                        OnVideoStateChanged?.Invoke(mediaInputVideo.Id, false, false);
-
-                        mediaInputVideo = null;
-                    }
-                    else
-                        OnVideoStateChanged?.Invoke("", false, false);
-                    break;
-
-                case Rainbow.Consts.Media.SHARING:
-                    // Close Sharing MediaInputs
-                    if (mediaInputSharing is not null)
-                    {
-                        mediaInputSharing.OnImage -= MediaInput_OnSharingImage;
-                        mediaInputSharing.OnEndOfFile -= MediaInput_OnSharingEndOfFile;
-
-                        OnSharingStateChanged?.Invoke(mediaInputSharing.Id, false, false);
-
-                        mediaInputSharing = null;
-                    }
-                    else
-                        OnSharingStateChanged?.Invoke("", false, false);
-                    break;
-            }
-        }
-
-        private async Task CloseMediasNotUsedAsync(List<IMediaAudio> audioPreviouslyUsed, List<IMediaVideo> videoOrSharingPreviouslyUsed)
-        {
-            // _mediaForAudio and _mediaVideoOrSharing contains list of medias currently used.
-
-            foreach(var audio in audioPreviouslyUsed)
-            {
-                var resultAudio = _mediasForAudio.FirstOrDefault(m => m.Id == audio.Id);
-                var resultVideo = _mediasForVideo.FirstOrDefault(m => m.Id == audio.Id);
-                var resultPreviouslyUsed = videoOrSharingPreviouslyUsed.FirstOrDefault(m => m.Id == audio.Id);
-                if ( (resultAudio is null) && (resultVideo is null))
-                {
-                    if(resultPreviouslyUsed is not null)
-                        videoOrSharingPreviouslyUsed.Remove(resultPreviouslyUsed);
-
-                    ConsoleAbstraction.WriteDarkYellow($"Dispose previous Audio MediaInput Id:{audio.Id} (no more used)");
-                    audio.Dispose();
-                }
-            }
-
-            foreach (var video in videoOrSharingPreviouslyUsed)
-            {
-                var resultAudio = _mediasForAudio.FirstOrDefault(m => m.Id == video.Id);
-                var resultVideo = _mediasForVideo.FirstOrDefault(m => m.Id == video.Id);
-                if ((resultAudio is null) && (resultVideo is null))
-                {
-                    ConsoleAbstraction.WriteDarkYellow($"Dispose previous Video MediaInput Id:{video.Id} (no more used)");
-                    video.Dispose();
-                }
-            }
         }
 
 #region Device 
 
-        public static Device? GetDevice(string name, string type)
+        static public Device? GetDevice(string name, string type)
         {
             List<Device>? devices = null;
 
@@ -768,20 +943,20 @@ namespace Rainbow.Example.CommonSDL2
             return devices?.FirstOrDefault(d => d.Name == name);
         }
 
-        public static ScreenDevice? GetScreenDevice(string name)
+        static public ScreenDevice? GetScreenDevice(string name)
         {
             var device = GetDevice(name, "screen");
             return (ScreenDevice?)device;
         }
 
-        public static WebcamDevice? GetWebcamDevice(string name)
+        static public WebcamDevice? GetWebcamDevice(string name)
         {
             var device = GetDevice(name, "webcam");
             return (WebcamDevice?)device;
 
         }
 
-        public static Device? GetMicrophoneDevice(string name)
+        static public Device? GetMicrophoneDevice(string name)
         {
             var device = GetDevice(name, "microphone");
             return device;
@@ -801,6 +976,11 @@ namespace Rainbow.Example.CommonSDL2
             OnAudioEndOfFile?.Invoke(mediaId);
         }
 
+        private void MediaInput_OnAudioError(string mediaId, string message)
+        {
+            OnAudioError?.Invoke(mediaId, message);
+        }
+
         private void MediaInput_OnVideoImage(string mediaId, int width, int height, int stride, IntPtr data, AVPixelFormat pixelFormat)
         {
             OnVideoImage?.Invoke(mediaId, width, height, stride, data, pixelFormat);
@@ -809,6 +989,11 @@ namespace Rainbow.Example.CommonSDL2
         private void MediaInput_OnVideoEndOfFile(string mediaId)
         {
             OnVideoEndOfFile?.Invoke(mediaId);
+        }
+
+        private void MediaInput_OnVideoError(string mediaId, string message)
+        {
+            OnVideoError?.Invoke(mediaId, message);
         }
 
         private void MediaInput_OnSharingImage(string mediaId, int width, int height, int stride, IntPtr data, AVPixelFormat pixelFormat)
@@ -821,6 +1006,12 @@ namespace Rainbow.Example.CommonSDL2
             OnSharingEndOfFile?.Invoke(mediaId);
         }
 
+        private void MediaInput_OnSharingError(string mediaId, string message)
+        {
+            OnSharingError?.Invoke(mediaId, message);
+        }
+
 #endregion MediaInput Events
+
     }
 }

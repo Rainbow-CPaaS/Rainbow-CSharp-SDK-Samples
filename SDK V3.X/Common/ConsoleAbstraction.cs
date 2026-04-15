@@ -97,6 +97,17 @@ public static class ConsoleAbstraction
         }
     }
 
+    public static async Task<ConsoleKeyInfo?> ReadKeyAsync()
+    {
+        Init();
+
+        char[] buffer = new char[1];
+        await _consoleIn.ReadAsync(buffer);
+        return CharToConsoleKeyInfo(buffer[0]);
+    }
+
+
+
     /// <summary>
     /// Abstract "Console.ReadLine" to be compatible even in VS Code Debug console
     /// </summary>

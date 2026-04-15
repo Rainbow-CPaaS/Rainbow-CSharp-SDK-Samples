@@ -19,7 +19,7 @@
       "connected": false
     },
     {
-      "id": "video PY",
+      "id": "videoPY",
       "media": "audio+video",
       "uri": "c:\\media\\videotestorig.mp4",
       "connected": true
@@ -83,7 +83,7 @@
     {
       "id": "compo_mosaic_0",
       "media": "composition",
-      "videoComposition": [ "joy_and_heron", "toefl", "big_buck_bunny", "video PY", "jamie", "armello" ],
+      "videoComposition": [ "joy_and_heron", "toefl", "big_buck_bunny", "videoPY", "jamie", "armello" ],
       "videoFilter": {
         "type": "mosaic",
         "data": {
@@ -97,7 +97,7 @@
     {
       "id": "compo_mosaic_1",
       "media": "composition",
-      "videoComposition": [ "joy_and_heron", "toefl", "big_buck_bunny", "video PY", "jamie", "armello" ],
+      "videoComposition": [ "joy_and_heron", "toefl", "big_buck_bunny", "videoPY", "jamie", "armello" ],
       "videoFilter": {
         "type": "mosaic",
         "data": {
@@ -146,10 +146,40 @@
       },
       "connected": false,
       "forceLiveStream": false
+    },
+    {
+      "id": "webcam_1",
+      "media": "video",
+      "uri": "Integrated Camera",
+      "uriType": "webcam"
+    },
+    {
+      "id": "webcam_2",
+      "media": "video",
+      "uri": "HD Pro Webcam C920",
+      "uriType": "webcam"
+    },
+    {
+      "id": "screen_1",
+      "media": "video",
+      "uri": "Composite GDI Display",
+      "uriType": "screen"
+    },
+    {
+      "id": "screen_2",
+      "media": "video",
+      "uri": "Screen_0",
+      "uriType": "screen"
+    },
+    {
+      "id": "screen_3",
+      "media": "video",
+      "uri": "Screen_1",
+      "uriType": "screen"
     }
   ],
 
   "autoPlayAudio": "toefl",
-  "autoPlayVideo": "compo_mosaic_1",
-  "autoPlaySharing": "compo_mosaic_3"
+  "autoPlayVideo": "toefl",
+  "autoPlaySharing": "screen_3"
 }
