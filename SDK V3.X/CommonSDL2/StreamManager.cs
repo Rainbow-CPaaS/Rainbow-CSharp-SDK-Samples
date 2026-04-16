@@ -138,14 +138,14 @@ namespace Rainbow.Example.CommonSDL2
                     }
                 }
 
+                // Store new configuration of streams
+                _streamsList = new ConcurrentDictionary<string, Stream>(streams.ToDictionary(s => s.Id, s => s));
+
+                /// Store new configuration of streams to use/play
+                _streamsIdToUse = streamsToUse;
+
                 if (_newConfigurationReceived)
                 {
-                    // Store new configuration of streams
-                    _streamsList = new ConcurrentDictionary<string, Stream>(streams.ToDictionary(s => s.Id, s => s));
-
-                    /// Store new configuration of streams to use/play
-                    _streamsIdToUse = streamsToUse;
-
                     var newStreamsToOpen = GetStreamsToOpen(streamsToUse.Values.ToList(), _streamsList);
                     // Update list of streams to be opened - Merge two lists
                     streamsToBeOpened = streamsToBeOpened.Union(newStreamsToOpen).ToList();
@@ -203,8 +203,41 @@ namespace Rainbow.Example.CommonSDL2
                 else
                 {
                     ConsoleAbstraction.WriteGreen("No new configuration necessary");
+                    ConsoleAbstraction.WriteGreen($"\tStream(s) already OPENED: [{String.Join(", ", currentStreamsOpened)}]");
                 }
+
+                ConsoleAbstraction.WriteGreen($"\tMediasForAudio: [{String.Join(", ", _mediasForAudio.Keys.ToList())}]");
+                ConsoleAbstraction.WriteGreen($"\tMediasForVideo: [{String.Join(", ", _mediasForVideo.Keys.ToList())}]");
             }
+        }
+
+        /// <summary>
+        /// To update / remove ONLY one media stream. Strema
+        /// </summary>
+        /// <param name="media"></param>
+        /// <param name="streamId"></param>
+        public void UpdateOneStreamToUse(int media, String? streamId)
+        {
+            Dictionary<int, String>? streamsToUse = [];
+            lock (lockNewConfiguration)
+            {
+                if (!String.IsNullOrEmpty(_streamIdUsedForAudio))
+                    streamsToUse[Rainbow.Consts.Media.AUDIO] = _streamIdUsedForAudio;
+                if (!String.IsNullOrEmpty(_streamIdUsedForVideo))
+                    streamsToUse[Rainbow.Consts.Media.VIDEO] = _streamIdUsedForVideo;
+                if (!String.IsNullOrEmpty(_streamIdUsedForSharing))
+                    streamsToUse[Rainbow.Consts.Media.SHARING] = _streamIdUsedForSharing;
+
+                if (String.IsNullOrEmpty(streamId))
+                    streamsToUse.Remove(media);
+                else
+                    streamsToUse[media] = streamId;
+
+
+                if (streamsToUse.Count == 0)
+                    streamsToUse = null;
+            }
+            SetNewConfiguration(_streamsList.Values.ToList(), streamsToUse);
         }
 
         internal void StartToOpenOrCloseStreams()
@@ -292,7 +325,7 @@ namespace Rainbow.Example.CommonSDL2
                     if (_newConfigurationReceived)
                     {
                         ConsoleAbstraction.WriteGreen($"A.2] Check if new config => Yes abort");
-                        CancelableDelay.StartAfter(500, () => StartToOpenOrCloseStreams());
+                        CancelableDelay.StartAfter(500, StartToOpenOrCloseStreams);
                         return;
                     }
                 }
@@ -325,7 +358,7 @@ namespace Rainbow.Example.CommonSDL2
                     if (_newConfigurationReceived)
                     {
                         ConsoleAbstraction.WriteGreen($"B.2] Check if new config => Yes abort");
-                        CancelableDelay.StartAfter(500, () => StartToOpenOrCloseStreams());
+                        CancelableDelay.StartAfter(500, StartToOpenOrCloseStreams);
                         return;
                     }
                 }
@@ -359,7 +392,7 @@ namespace Rainbow.Example.CommonSDL2
                     if (_newConfigurationReceived)
                     {
                         ConsoleAbstraction.WriteGreen($"C.3] Check if new config => Yes abort");
-                        CancelableDelay.StartAfter(500, () => StartToOpenOrCloseStreams());
+                        CancelableDelay.StartAfter(500, StartToOpenOrCloseStreams);
                         return;
                     }
                 }
@@ -392,7 +425,7 @@ namespace Rainbow.Example.CommonSDL2
                     if (_newConfigurationReceived)
                     {
                         ConsoleAbstraction.WriteGreen($"D.3] Check if new config => Yes abort");
-                        CancelableDelay.StartAfter(500, () => StartToOpenOrCloseStreams());
+                        CancelableDelay.StartAfter(500, StartToOpenOrCloseStreams);
                         return;
                     }
                 }
@@ -425,6 +458,14 @@ namespace Rainbow.Example.CommonSDL2
                                     _streamIdUsedForAudio = kvp.Value;
                                 }
                             }
+                            else
+                            {
+
+                            }
+                        }
+                        else
+                        {
+
                         }
                     }
 
@@ -432,7 +473,7 @@ namespace Rainbow.Example.CommonSDL2
                     if (_newConfigurationReceived)
                     {
                         ConsoleAbstraction.WriteGreen($"E.2] Check if new config => Yes abort");
-                        CancelableDelay.StartAfter(500, () => StartToOpenOrCloseStreams());
+                        CancelableDelay.StartAfter(500, StartToOpenOrCloseStreams);
                         return;
                     }
 
@@ -466,7 +507,7 @@ namespace Rainbow.Example.CommonSDL2
                     if (_newConfigurationReceived)
                     {
                         ConsoleAbstraction.WriteGreen($"E.4] Check if new config => Yes abort");
-                        CancelableDelay.StartAfter(500, () => StartToOpenOrCloseStreams());
+                        CancelableDelay.StartAfter(500, StartToOpenOrCloseStreams);
                         return;
                     }
 
