@@ -1217,23 +1217,23 @@ namespace BotLibrary
             return new()
             {
                 // Access to services
-                UseAdministration = false,
-                UseAlerts = false,
-                UseBubbles = true,
-                UseCallsLog = false,
-                UseChannels = false,
-                UseConferences = true,
-                UseCustomerCare = false,
-                UseFavorites = false,
-                UseFileStorage = true,
-                UseGroups = false,
-                UseHubTelephony = true,
-                UseHybridTelephony = true,
-                UseInstantMessaging = true,
-                UseInvitations = true,
-                UseRPC = false,
-                UseSMS = false,
-                UseWebRTC = true,
+                UseAdministration   = false,
+                UseAlerts           = false,
+                UseBubbles          = true,     // By default, Bot use Bubbles
+                UseCallsLog         = false,
+                UseChannels         = false,
+                UseConferences      = false,
+                UseCustomerCare     = false,
+                UseFavorites        = false,
+                UseFileStorage      = true,     // By default, Bot use FileStorage
+                UseGroups           = false,
+                UseHubTelephony     = false,     
+                UseHybridTelephony  = false,
+                UseInstantMessaging = true,     // By default, Bot use InstantMessaging
+                UseInvitations      = true,     // By default, Bot use Invitations
+                UseRPC              = false,
+                UseSMS              = false,
+                UseWebRTC           = false,
 
                 // Application - Option
                 StreamManagement = false,
@@ -1242,14 +1242,14 @@ namespace BotLibrary
                 UseSameResourceId = true,
 
                 // Bubbles - Option
-                AcceptBubbleInvitation = false,
+                AcceptBubbleInvitation = true,  // By default, we accept all bubble invitations
 
                 // Conferences - Option
                 JoinMultipleConferences = false,
 
                 // Contacts - Option
-                AcceptUserInvitation = false,
-                ManagePresence = true,
+                AcceptUserInvitation = true,    // By default, we accept all user invitations
+                ManagePresence = true,          // By default, we manage Presence
 
                 // Conversations - Option
                 ConversationsRetrievedFormat = "full",
@@ -1264,14 +1264,14 @@ namespace BotLibrary
                 StoreMessages = true,
                 MessageMaxLength = 16384,
 
-                // Log - Option
-                LogRestRequestOnError = true,
-                LogRestRequest = true,
-                LogEvent = true,
-                LogEventRaised = true,
-                LogEventParameters = true,
-                LogEventStackTrace = true,
-                LogBubbleMembers = false,
+                // Log - Option (For dev purpose we want maximum info in logs)
+                LogRestRequestOnError   = true,
+                LogRestRequest          = true,
+                LogEvent                = true,
+                LogEventRaised          = true,
+                LogEventParameters      = true,
+                LogEventStackTrace      = true,
+                LogBubbleMembers        = false,
 
                 // FileStorage - Option
                 ChunkSizeUpload = 1048576,
