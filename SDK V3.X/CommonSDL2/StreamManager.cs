@@ -1,6 +1,7 @@
 ﻿using FFmpeg.AutoGen;
 using Rainbow.Example.Common;
 using Rainbow.Medias;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Drawing;
 using Stream = Rainbow.Example.Common.Stream;
@@ -80,6 +81,16 @@ namespace Rainbow.Example.CommonSDL2
         {
             lock (lockNewConfiguration)
             {
+                ConsoleAbstraction.WriteBlue($"{Rainbow.Util.CR}[StreamManager] List of streams correctly set in config file: (doesn't mean they can be really used)");
+                if (_streamsList is null)
+                    ConsoleAbstraction.WriteBlue($"\tNo stream");
+                else
+                {
+                    int index = 0;
+                    foreach (var stream in streams)
+                        ConsoleAbstraction.WriteBlue($"\t{++index:00} - {stream} - Connected:[{stream.Connected}]");
+                }
+
                 List<String> streamsToBeOpened = [];
 
                 // Reset current information about streams to open and close (we will fill them again with new configuration)
@@ -92,7 +103,7 @@ namespace Rainbow.Example.CommonSDL2
 
                 // Check Streams which must stay opened
                 streamsToBeOpened = GetStreamsToOpen(streams) ?? [];
-                var currentStreamsOpened = GetStreamsToOpen(_streamsList?.Values.ToList());
+                var currentStreamsOpened = GetCurrentStreamsOpened();
                 if (!CheckIfListsHaveSameContent(streamsToBeOpened, currentStreamsOpened))
                     _newConfigurationReceived = true;
 
@@ -173,8 +184,9 @@ namespace Rainbow.Example.CommonSDL2
                         }
                         else
                         {
-                            if (!listStreamsAlreadyOpened.Contains(streamId))
-                                listStreamsAlreadyOpened.Add(streamId);
+                            if ( ! ((_mediasForAudio.ContainsKey(streamId) || _mediasForVideo.ContainsKey(streamId))) )
+                                if (!listStreamsAlreadyOpened.Contains(streamId))
+                                    listStreamsAlreadyOpened.Add(streamId);
                         }
                     }
 
@@ -251,7 +263,7 @@ namespace Rainbow.Example.CommonSDL2
 
         internal void StartToOpenOrCloseStreams()
         {
-            if (TaskOpenOrCloseStreams.Status == TaskStatus.Running)
+            if (!TaskOpenOrCloseStreams.IsCompleted)
             {
                 ConsoleAbstraction.WriteYellow("[StreamManager] Task to open or close streams is already running => we will not start another one to avoid any conflict - New configuration will be taken into account at the end of current task");
                 return;
@@ -497,6 +509,7 @@ namespace Rainbow.Example.CommonSDL2
                                 {
                                     ConsoleAbstraction.WriteGreen($"[StreamManager] E.3] If used/played trigger event to inform to add video - Stream:[{kvp.Value}]");
 
+                                    ConsoleAbstraction.WriteDarkYellow($"[StreamManager] Stream:[{kvp.Value}] Add Media Video events ...");
                                     if (OnVideoImage is not null)
                                         mediaVideo.OnImage += MediaInput_OnVideoImage;
                                     mediaVideo.OnEndOfFile += MediaInput_OnVideoEndOfFile;
@@ -1005,6 +1018,21 @@ namespace Rainbow.Example.CommonSDL2
             return result;
         }
 
+
+        private List<String>? GetCurrentStreamsOpened()
+        {
+            var audios = _mediasForAudio?.Keys?.ToList();
+            var videos  = _mediasForVideo?.Keys?.ToList();
+            if (audios is not null)
+            {
+                if(videos is not null)
+                    return audios.Union(videos).ToList(); ;
+                return audios;
+            }
+            return videos;
+        }
+
+
 #region Device 
 
         static public Device? GetDevice(string name, string type)
@@ -1074,11 +1102,13 @@ namespace Rainbow.Example.CommonSDL2
 
         private void MediaInput_OnVideoEndOfFile(string mediaId)
         {
+            ConsoleAbstraction.WriteBlue($"[StreamManager] VIDEO EOF - Stream:[{mediaId}]");
             OnVideoEndOfFile?.Invoke(mediaId);
         }
 
         private void MediaInput_OnVideoError(string mediaId, string message)
         {
+            ConsoleAbstraction.WriteRed($"[StreamManager] VIDEO Error - Stream:[{mediaId}]");
             OnVideoError?.Invoke(mediaId, message);
         }
 
@@ -1089,11 +1119,13 @@ namespace Rainbow.Example.CommonSDL2
 
         private void MediaInput_OnSharingEndOfFile(string mediaId)
         {
+            ConsoleAbstraction.WriteBlue($"[StreamManager] SHARING EOF - Stream:[{mediaId}]");
             OnSharingEndOfFile?.Invoke(mediaId);
         }
 
         private void MediaInput_OnSharingError(string mediaId, string message)
         {
+            ConsoleAbstraction.WriteRed($"[StreamManager] SHARING Error - Stream:[{mediaId}]");
             OnSharingError?.Invoke(mediaId, message);
         }
 
