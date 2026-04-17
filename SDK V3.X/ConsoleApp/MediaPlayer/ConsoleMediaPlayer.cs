@@ -1,4 +1,5 @@
 ﻿using FFmpeg.AutoGen;
+using Rainbow.Consts;
 using Rainbow.Example.Common;
 using Rainbow.Example.CommonSDL2;
 using Rainbow.Medias;
@@ -29,7 +30,7 @@ namespace ConsoleMediaPlayer
         private static Boolean _canContinue = true;
 
         // --- To manage streams (Audio, Video, Composition)
-        private static readonly StreamManager _streamManager = new();
+        private static readonly StreamManager _streamManager = new(true); // StreamManager can dispose of streams
 
         // --- To manage Audio Output
         private static SDL2AudioOutput? _sdl2AudioOutput = null;
@@ -47,7 +48,7 @@ namespace ConsoleMediaPlayer
             // Need to set an unique title
             ConsoleAbstraction.Title = $"SDK C# - MediaPlayer [{Guid.NewGuid()}]";
 
-            ConsoleAbstraction.WriteDarkYellow($"{Global.ProductName()} v{Global.FileVersion()}");
+            ConsoleAbstraction.WriteDarkYellow($"[ConsoleMediaPlayer] {Global.ProductName()} v{Global.FileVersion()}");
 
             if (!ReadExeSettings())
                 return;
@@ -59,7 +60,8 @@ namespace ConsoleMediaPlayer
             //if ((_streamManager.streamsList is null) || (_streamManager.streamsList.Count == 0)) return;
 
             _streamManager.OnStreamOpened += StreamManager_OnStreamOpened;
-            _streamManager.OnStreamClosed += StreamManager_OnStreamClosed;
+            _streamManager.OnStreamRemoved += StreamManager_OnStreamRemoved;
+            _streamManager.OnStreamDisposing += StreamManager_OnStreamDisposing;
 
             _streamManager.OnAudioSample += StreamManager_OnAudioSample;
             _streamManager.OnAudioError += StreamManager_OnAudioError;
@@ -224,7 +226,7 @@ namespace ConsoleMediaPlayer
                 {
                     var stream = _streamsList?.FirstOrDefault(s => s.Id == _autoPlayAudio);
                     if(stream is null)
-                        ConsoleAbstraction.WriteRed($"Audio - AutoPlay - Stream with Id [{_autoPlayAudio}] not found ");
+                        ConsoleAbstraction.WriteRed($"[ConsoleMediaPlayer] Audio - AutoPlay - Stream with Id [{_autoPlayAudio}] not found ");
                     else
                         streamsToUse[Rainbow.Consts.Media.AUDIO] = stream.Id;
                 }
@@ -233,7 +235,7 @@ namespace ConsoleMediaPlayer
                 {
                     var stream = _streamsList?.FirstOrDefault(s => s.Id == _autoPlayVideo);
                     if (stream is null)
-                        ConsoleAbstraction.WriteRed($"Video - AutoPlay - Stream with Id [{_autoPlayVideo}] not found ");
+                        ConsoleAbstraction.WriteRed($"[ConsoleMediaPlayer] Video - AutoPlay - Stream with Id [{_autoPlayVideo}] not found ");
                     else
                         streamsToUse[Rainbow.Consts.Media.VIDEO] = stream.Id;
                 }
@@ -242,7 +244,7 @@ namespace ConsoleMediaPlayer
                 {
                     var stream = _streamsList?.FirstOrDefault(s => s.Id == _autoPlaySharing);
                     if (stream is null)
-                        ConsoleAbstraction.WriteRed($"Sharing - AutoPlay - Stream with Id [{_autoPlaySharing}] not found ");
+                        ConsoleAbstraction.WriteRed($"[ConsoleMediaPlayer] Sharing - AutoPlay - Stream with Id [{_autoPlaySharing}] not found ");
                     else
                         streamsToUse[Rainbow.Consts.Media.SHARING] = stream.Id;
                 }
@@ -255,14 +257,16 @@ namespace ConsoleMediaPlayer
 
     #region StreamManager events
 
-        private static void StreamManager_OnStreamClosed(string streamId, int media)
+        private static void StreamManager_OnStreamRemoved(string streamId, int media, Boolean stillUsed)
         {
+            ConsoleAbstraction.WriteGray($"[ConsoleMediaPlayer] OnStreamRemoved - Stream:[{streamId}] - Media[{Rainbow.Util.MediasToString(media)}] - StillUsed:[{stillUsed}]");
+
             switch (media)
             {
                 case Rainbow.Consts.Media.AUDIO:
                     if (_sdl2AudioOutput is not null)
                     {
-                        ConsoleAbstraction.WriteGray($"Audio is stopped - Stream:[{streamId}] - Clear Sdl2AudioOutput queue");
+                        ConsoleAbstraction.WriteGray($"[ConsoleMediaPlayer] Audio is stopped - Stream:[{streamId}] - Clear Sdl2AudioOutput queue");
                         _sdl2AudioOutput.ClearQueue();
                     }
 
@@ -286,7 +290,7 @@ namespace ConsoleMediaPlayer
                         Window.DestroyTexture(_outputVideoWindow);
                         Window.Hide(_outputVideoWindow);
 
-                        ConsoleAbstraction.WriteGray($"Video is stopped - Stream:[{streamId}]");
+                        ConsoleAbstraction.WriteGray($"[ConsoleMediaPlayer] Video is stopped - Stream:[{streamId}]");
                     }));
                     break;
 
@@ -302,18 +306,20 @@ namespace ConsoleMediaPlayer
                         Window.DestroyTexture(_outputSharingWindow);
                         Window.Hide(_outputSharingWindow);
 
-                        ConsoleAbstraction.WriteGray($"Sharing is stopped - Stream:[{streamId}]");
+                        ConsoleAbstraction.WriteGray($"[ConsoleMediaPlayer] Sharing is stopped - Stream:[{streamId}]");
                     }));
                     break;
             }
         }
 
-        private static void StreamManager_OnStreamOpened(string streamId, int media)
+        private static void StreamManager_OnStreamOpened(string streamId, int media, Boolean stillUsed)
         {
+            ConsoleAbstraction.WriteGray($"[ConsoleMediaPlayer] OnStreamOpened - Stream:[{streamId}] - Media[{Rainbow.Util.MediasToString(media)}] - StillUsed:[{stillUsed}]");
+
             switch (media)
             {
                 case Rainbow.Consts.Media.AUDIO:
-                    ConsoleAbstraction.WriteGray($"Audio is started - Stream:[{streamId}]");
+                    ConsoleAbstraction.WriteGray($"[ConsoleMediaPlayer] Audio is started - Stream:[{streamId}]");
 
                     // /!\ Need to use Main Thread
                     _actions.Add(new Action(() =>
@@ -328,7 +334,7 @@ namespace ConsoleMediaPlayer
                     {
                         if (_outputVideoWindow.VideoStopped)
                         {
-                            ConsoleAbstraction.WriteGray($"Video is started - Stream:[{streamId}]");
+                            ConsoleAbstraction.WriteGray($"[ConsoleMediaPlayer] Video is started - Stream:[{streamId}]");
                             
                             Window.Create(_outputVideoWindow);
                             Window.Show(_outputVideoWindow);
@@ -350,7 +356,7 @@ namespace ConsoleMediaPlayer
                     {
                         if (_outputSharingWindow.VideoStopped)
                         {
-                            ConsoleAbstraction.WriteGray($"Sharing is started - Stream:[{streamId}]");
+                            ConsoleAbstraction.WriteGray($"[ConsoleMediaPlayer] Sharing is started - Stream:[{streamId}]");
                             _outputSharingWindow.VideoStopped = false;
 
                             Window.Create(_outputSharingWindow);
@@ -367,6 +373,15 @@ namespace ConsoleMediaPlayer
             }
         }
 
+        private static void StreamManager_OnStreamDisposing(string streamId)
+        {
+            // /!\ Need to use Main Thread
+            _actions.Add(new Action(() =>
+            {
+                ConsoleAbstraction.WriteGray($"[ConsoleMediaPlayer] OnStreamDisposing - Stream:[{streamId}]");
+            }));
+        }
+
         private static void StreamManager_OnAudioSample(string mediaId, uint duration, byte[] sample)
         {
             // /!\ Don't need to use Main Thread
@@ -376,12 +391,12 @@ namespace ConsoleMediaPlayer
 
         private static void StreamManager_OnAudioEndOfFile(string mediaId)
         {
-            ConsoleAbstraction.WriteGreen($"Audio MediaInput Id:{mediaId} reached End of File");
+            ConsoleAbstraction.WriteDarkYellow($"[ConsoleMediaPlayer] Audio MediaInput Id:{mediaId} reached End of File");
         }
 
         private static void StreamManager_OnAudioError(string mediaId, string message)
         {
-            ConsoleAbstraction.WriteRed($"Audio MediaInput Id:{mediaId} error: {message}");
+            ConsoleAbstraction.WriteRed($"[ConsoleMediaPlayer] Audio MediaInput Id:{mediaId} error: {message}");
         }
 
         private static void StreamManager_OnVideoImage(string mediaId, int width, int height, int stride, nint data, AVPixelFormat pixelFormat)
@@ -402,12 +417,12 @@ namespace ConsoleMediaPlayer
 
         private static void StreamManager_OnVideoEndOfFile(string mediaId)
         {
-            ConsoleAbstraction.WriteGreen($"Video MediaInput Id:{mediaId} reached End of File");
+            ConsoleAbstraction.WriteDarkYellow($"[ConsoleMediaPlayer] Video MediaInput Id:{mediaId} reached End of File");
         }
 
         private static void StreamManager_OnVideoError(string mediaId, string message)
         {
-            ConsoleAbstraction.WriteRed($"Video MediaInput Id:{mediaId} error: {message}");
+            ConsoleAbstraction.WriteRed($"[ConsoleMediaPlayer] Video MediaInput Id:{mediaId} error: {message}");
         }
 
         private static void StreamManager_OnSharingImage(string mediaId, int width, int height, int stride, nint data, AVPixelFormat pixelFormat)
@@ -428,12 +443,12 @@ namespace ConsoleMediaPlayer
 
         private static void StreamManager_OnSharingEndOfFile(string mediaId)
         {
-            ConsoleAbstraction.WriteGreen($"Sharing MediaInput Id:{mediaId} reached End of File");
+            ConsoleAbstraction.WriteDarkYellow($"[ConsoleMediaPlayer] Sharing MediaInput Id:{mediaId} reached End of File");
         }
 
         private static void StreamManager_OnSharingError(string mediaId, string message)
         {
-            ConsoleAbstraction.WriteRed($"Sharing MediaInput Id:{mediaId} error: {message}");
+            ConsoleAbstraction.WriteRed($"[ConsoleMediaPlayer] Sharing MediaInput Id:{mediaId} error: {message}");
         }
 
 #endregion StreamManager events
@@ -459,7 +474,7 @@ namespace ConsoleMediaPlayer
 
         static void PromptLoadStreamSettings()
         {
-            ConsoleAbstraction.WriteYellow("=> PromptLoadStreamSettings()");
+            ConsoleAbstraction.WriteYellow("[ConsoleMediaPlayer] => PromptLoadStreamSettings()");
             ReadStreamsSettings();
             PromptStreamsInfo();
 
@@ -468,7 +483,7 @@ namespace ConsoleMediaPlayer
 
         static void PromptCancelStreaming()
         {
-            ConsoleAbstraction.WriteYellow("=> PromptCancelStreaming()");
+            ConsoleAbstraction.WriteYellow("[ConsoleMediaPlayer] => PromptCancelStreaming()");
             _streamManager.SetNewConfiguration(_streamsList, null);
         }
 
@@ -891,14 +906,14 @@ namespace ConsoleMediaPlayer
 
         static void UpdateVideoWindowTitle()
         {
-            ConsoleAbstraction.WriteGray("UpdateVideoWindowTitle");
+            ConsoleAbstraction.WriteGray("[ConsoleMediaPlayer] UpdateVideoWindowTitle");
             String title = $"SDK C# v3.x - Streaming Audio:[{((_streamManager._streamIdUsedForAudio is not null) ? _streamManager._streamIdUsedForAudio : "NONE")}] - Video:[{((_streamManager._streamIdUsedForVideo is not null) ? $"{_streamManager._streamIdUsedForVideo}" : "NONE")}]";
             Window.UpdateTitle(_outputVideoWindow, title);
         }
 
         static void UpdateSharingWindowTitle()
         {
-            ConsoleAbstraction.WriteGray("UpdateSharingWindowTitle");
+            ConsoleAbstraction.WriteGray("[ConsoleMediaPlayer] UpdateSharingWindowTitle");
             String title = $"SDK C# v3.x - Streaming Audio:[{((_streamManager._streamIdUsedForAudio is not null) ? _streamManager._streamIdUsedForAudio : "NONE")}] - Sharing:[{((_streamManager._streamIdUsedForSharing is not null) ? $"{_streamManager._streamIdUsedForSharing}" : "NONE")}]";
             Window.UpdateTitle(_outputSharingWindow, title);
         }
