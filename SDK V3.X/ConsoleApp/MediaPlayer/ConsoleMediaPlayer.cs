@@ -1,5 +1,4 @@
 ﻿using FFmpeg.AutoGen;
-using Rainbow.Consts;
 using Rainbow.Example.Common;
 using Rainbow.Example.CommonSDL2;
 using Rainbow.Medias;
@@ -32,6 +31,10 @@ namespace ConsoleMediaPlayer
         // --- To manage streams (Audio, Video, Composition)
         private static readonly StreamManager _streamManager = new(true); // StreamManager can dispose of streams
 
+        private static IMediaAudio? _audioStream = null;
+        private static IMediaVideo? _videoStream = null;
+        private static IMediaVideo? _sharingStream = null;
+
         // --- To manage Audio Output
         private static SDL2AudioOutput? _sdl2AudioOutput = null;
         private static Device? _audioOutputDevice = null;
@@ -62,18 +65,6 @@ namespace ConsoleMediaPlayer
             _streamManager.OnStreamOpened += StreamManager_OnStreamOpened;
             _streamManager.OnStreamRemoved += StreamManager_OnStreamRemoved;
             _streamManager.OnStreamDisposing += StreamManager_OnStreamDisposing;
-
-            _streamManager.OnAudioSample += StreamManager_OnAudioSample;
-            _streamManager.OnAudioError += StreamManager_OnAudioError;
-            _streamManager.OnAudioEndOfFile += StreamManager_OnAudioEndOfFile;
-
-            _streamManager.OnVideoImage += StreamManager_OnVideoImage;
-            _streamManager.OnVideoError += StreamManager_OnVideoError;
-            _streamManager.OnVideoEndOfFile += StreamManager_OnVideoEndOfFile;
-
-            _streamManager.OnSharingImage += StreamManager_OnSharingImage;
-            _streamManager.OnSharingError += StreamManager_OnSharingError;
-            _streamManager.OnSharingEndOfFile += StreamManager_OnSharingEndOfFile;
 
             PromptStreamsInfo();
 
@@ -264,6 +255,15 @@ namespace ConsoleMediaPlayer
             switch (media)
             {
                 case Rainbow.Consts.Media.AUDIO:
+
+                    if (_audioStream is not null)
+                    {
+                        _audioStream.OnAudioSample -= Stream_OnAudioSample;
+                        _audioStream.OnEndOfFile -= Stream_OnAudioEndOfFile;
+                        _audioStream.OnError -= Stream_OnAudioError;
+                        _audioStream = null;
+                    }
+
                     if (_sdl2AudioOutput is not null)
                     {
                         ConsoleAbstraction.WriteGray($"[ConsoleMediaPlayer] Audio is stopped - Stream:[{streamId}] - Clear Sdl2AudioOutput queue");
@@ -279,6 +279,15 @@ namespace ConsoleMediaPlayer
                     break;
 
                 case Rainbow.Consts.Media.VIDEO:
+
+                    if (_videoStream is not null)
+                    {
+                        _videoStream.OnImage -= Stream_OnVideoImage;
+                        _videoStream.OnEndOfFile -= Stream_OnVideoEndOfFile;
+                        _videoStream.OnError -= Stream_OnVideoError;
+                        _videoStream = null;
+                    }
+
                     // We inform that the video is now stopped
                     _outputVideoWindow?.VideoStopped = true;
 
@@ -295,6 +304,15 @@ namespace ConsoleMediaPlayer
                     break;
 
                 case Rainbow.Consts.Media.SHARING:
+
+                    if (_sharingStream is not null)
+                    {
+                        _sharingStream.OnImage -= Stream_OnSharingImage;
+                        _sharingStream.OnEndOfFile -= Stream_OnSharingEndOfFile;
+                        _sharingStream.OnError -= Stream_OnSharingError;
+                        _sharingStream = null;
+                    }
+
                     // We inform that the sharing is now stopped
                     _outputSharingWindow?.VideoStopped = true;
 
@@ -321,6 +339,14 @@ namespace ConsoleMediaPlayer
                 case Rainbow.Consts.Media.AUDIO:
                     ConsoleAbstraction.WriteGray($"[ConsoleMediaPlayer] Audio is started - Stream:[{streamId}]");
 
+                    _audioStream = _streamManager.GetMediaAudioFromStreamId(streamId);
+                    if (_audioStream is not null)
+                    {
+                        _audioStream.OnAudioSample += Stream_OnAudioSample;
+                        _audioStream.OnEndOfFile += Stream_OnAudioEndOfFile;
+                        _audioStream.OnError += Stream_OnAudioError;
+                    }
+
                     // /!\ Need to use Main Thread
                     _actions.Add(new Action(() =>
                     {
@@ -329,6 +355,16 @@ namespace ConsoleMediaPlayer
                     break;
 
                 case Rainbow.Consts.Media.VIDEO:
+
+                    _videoStream = _streamManager.GetMediaVideoFromStreamId(streamId);
+                    if (_videoStream is not null)
+                    {
+                        _videoStream.OnImage += Stream_OnVideoImage;
+                        _videoStream.OnEndOfFile += Stream_OnVideoEndOfFile;
+                        _videoStream.OnError += Stream_OnVideoError;
+                    }
+
+
                     // /!\ Need to use Main Thread
                     _actions.Add(new Action(() =>
                     {
@@ -351,6 +387,15 @@ namespace ConsoleMediaPlayer
                     break;
 
                 case Rainbow.Consts.Media.SHARING:
+
+                    _sharingStream = _streamManager.GetMediaVideoFromStreamId(streamId);
+                    if (_sharingStream is not null)
+                    {
+                        _sharingStream.OnImage += Stream_OnSharingImage;
+                        _sharingStream.OnEndOfFile += Stream_OnSharingEndOfFile;
+                        _sharingStream.OnError += Stream_OnSharingError;
+                    }
+
                     // /!\ Need to use Main Thread
                     _actions.Add(new Action(() =>
                     {
@@ -375,31 +420,35 @@ namespace ConsoleMediaPlayer
 
         private static void StreamManager_OnStreamDisposing(string streamId)
         {
-            // /!\ Need to use Main Thread
-            _actions.Add(new Action(() =>
-            {
-                ConsoleAbstraction.WriteGray($"[ConsoleMediaPlayer] OnStreamDisposing - Stream:[{streamId}]");
-            }));
+            ConsoleAbstraction.WriteRed($"[ConsoleMediaPlayer] OnStreamDisposing - Stream:[{streamId}]");
         }
 
-        private static void StreamManager_OnAudioSample(string mediaId, uint duration, byte[] sample)
+#endregion StreamManager events
+
+#region Stream events - Audio
+
+        private static void Stream_OnAudioSample(string mediaId, uint duration, byte[] sample)
         {
             // /!\ Don't need to use Main Thread
             if (_canContinue)
                 _sdl2AudioOutput?.QueueSample(sample);
         }
 
-        private static void StreamManager_OnAudioEndOfFile(string mediaId)
+        private static void Stream_OnAudioEndOfFile(string mediaId)
         {
             ConsoleAbstraction.WriteDarkYellow($"[ConsoleMediaPlayer] Audio MediaInput Id:{mediaId} reached End of File");
         }
 
-        private static void StreamManager_OnAudioError(string mediaId, string message)
+        private static void Stream_OnAudioError(string mediaId, string message)
         {
             ConsoleAbstraction.WriteRed($"[ConsoleMediaPlayer] Audio MediaInput Id:{mediaId} error: {message}");
         }
 
-        private static void StreamManager_OnVideoImage(string mediaId, int width, int height, int stride, nint data, AVPixelFormat pixelFormat)
+#endregion Stream events - Audio
+
+#region Stream events - Video
+
+        private static void Stream_OnVideoImage(string mediaId, int width, int height, int stride, nint data, AVPixelFormat pixelFormat)
         {
             // /!\ Need to use Main Thread
             _actions.Add(new Action(() =>
@@ -415,17 +464,22 @@ namespace ConsoleMediaPlayer
             }));
         }
 
-        private static void StreamManager_OnVideoEndOfFile(string mediaId)
+        private static void Stream_OnVideoEndOfFile(string mediaId)
         {
             ConsoleAbstraction.WriteDarkYellow($"[ConsoleMediaPlayer] Video MediaInput Id:{mediaId} reached End of File");
         }
 
-        private static void StreamManager_OnVideoError(string mediaId, string message)
+        private static void Stream_OnVideoError(string mediaId, string message)
         {
             ConsoleAbstraction.WriteRed($"[ConsoleMediaPlayer] Video MediaInput Id:{mediaId} error: {message}");
         }
 
-        private static void StreamManager_OnSharingImage(string mediaId, int width, int height, int stride, nint data, AVPixelFormat pixelFormat)
+#endregion Stream events - Video
+
+
+#region Stream events - Sharing
+
+        private static void Stream_OnSharingImage(string mediaId, int width, int height, int stride, nint data, AVPixelFormat pixelFormat)
         {
             // /!\ Need to use Main Thread
             _actions.Add(new Action(() =>
@@ -441,17 +495,17 @@ namespace ConsoleMediaPlayer
             }));
         }
 
-        private static void StreamManager_OnSharingEndOfFile(string mediaId)
+        private static void Stream_OnSharingEndOfFile(string mediaId)
         {
             ConsoleAbstraction.WriteDarkYellow($"[ConsoleMediaPlayer] Sharing MediaInput Id:{mediaId} reached End of File");
         }
 
-        private static void StreamManager_OnSharingError(string mediaId, string message)
+        private static void Stream_OnSharingError(string mediaId, string message)
         {
             ConsoleAbstraction.WriteRed($"[ConsoleMediaPlayer] Sharing MediaInput Id:{mediaId} error: {message}");
         }
 
-#endregion StreamManager events
+#endregion Stream events - Sharing
 
 #region Prompts
         static void PromptHelpMenu()
@@ -476,7 +530,6 @@ namespace ConsoleMediaPlayer
         {
             ConsoleAbstraction.WriteYellow("[ConsoleMediaPlayer] => PromptLoadStreamSettings()");
             ReadStreamsSettings();
-            PromptStreamsInfo();
 
             UseStreams();
         }
@@ -769,7 +822,6 @@ namespace ConsoleMediaPlayer
                 ConsoleAbstraction.WriteYellow($"Update done about [{type}] - file updated [{_streamsFilePath}]");
 
                 PromptStreamsInfo();
-
             }
             else
                 ConsoleAbstraction.WriteYellow($"No updates about [{type}] done");
@@ -886,14 +938,17 @@ namespace ConsoleMediaPlayer
 
         static void PromptStreamsInfo()
         {
-            if (_streamsList is null) return;
-
             ConsoleAbstraction.WriteBlue($"{Rainbow.Util.CR}List of streams correctly set in config file: (doesn't mean they can be really used)");
-            int index = 1;
-            foreach (var stream in _streamsList)
+            if (_streamsList is null)
+                ConsoleAbstraction.WriteBlue($"No stream");
+            else
             {
-                ConsoleAbstraction.WriteBlue($"{index++:00} - {stream}");
-                //index++;
+                int index = 1;
+                foreach (var stream in _streamsList)
+                {
+                    ConsoleAbstraction.WriteBlue($"{index++:00} - {stream}");
+                    //index++;
+                }
             }
         }
 
@@ -918,7 +973,7 @@ namespace ConsoleMediaPlayer
             Window.UpdateTitle(_outputSharingWindow, title);
         }
 
-    #region READ CONFIGURATION
+#region READ CONFIGURATION
 
         static Boolean ReadStreamsSettings()
         {

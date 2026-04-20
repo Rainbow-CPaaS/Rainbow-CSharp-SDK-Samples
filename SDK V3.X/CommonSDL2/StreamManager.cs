@@ -1,7 +1,5 @@
-﻿using FFmpeg.AutoGen;
-using Rainbow.Example.Common;
+﻿using Rainbow.Example.Common;
 using Rainbow.Medias;
-using System.Collections;
 using System.Collections.Concurrent;
 using System.Drawing;
 using Stream = Rainbow.Example.Common.Stream;
@@ -27,7 +25,6 @@ namespace Rainbow.Example.CommonSDL2
 
         private Boolean _disposeStreams = false;
 
-
         // --- IMedia used / created (i.e. we are connected to them)
         private readonly ConcurrentDictionary<String, IMediaAudio> _mediasForAudio = []; // Stream Id as key
         private readonly ConcurrentDictionary<String, IMediaVideo> _mediasForVideo = []; // Stream Id as key
@@ -37,20 +34,8 @@ namespace Rainbow.Example.CommonSDL2
         public String? _streamIdUsedForSharing;    // To know which stream is used for Sharing currently used/played
 
         public event StreamDelegate? OnStreamOpened;
-        public event StreamDelegate? OnStreamRemoved; // The stream id specified for the media specified is no more used. Need to remove it
-        public event Rainbow.Delegates.IdDelegate? OnStreamDisposing;
-
-        public event SampleDelegate? OnAudioSample;
-        public event ErrorDelegate? OnAudioError;
-        public event EndOfFileDelegate? OnAudioEndOfFile;
-
-        public event ImageDelegate? OnVideoImage;
-        public event ErrorDelegate? OnVideoError;
-        public event EndOfFileDelegate? OnVideoEndOfFile;
-
-        public event ImageDelegate? OnSharingImage;
-        public event ErrorDelegate? OnSharingError;
-        public event EndOfFileDelegate? OnSharingEndOfFile;
+        public event StreamDelegate? OnStreamRemoved; // The stream id specified for the media specified is no more used.
+        public event Rainbow.Delegates.IdDelegate? OnStreamDisposing; // The stream will be disposing (according _disposeStreams value)
 
         public StreamManager(Boolean disposeStreams)
         {
@@ -467,11 +452,6 @@ namespace Rainbow.Example.CommonSDL2
                                 {
                                     ConsoleAbstraction.WriteGreen($"[StreamManager] E.1] If used/played trigger event to inform to add audio - Stream:[{kvp.Value}]");
 
-                                    if (OnAudioSample is not null)
-                                        mediaAudio.OnAudioSample += MediaInput_OnAudioSample;
-                                    mediaAudio.OnEndOfFile += MediaInput_OnAudioEndOfFile;
-                                    mediaAudio.OnError += MediaInput_OnAudioError;
-
                                     OnStreamOpened?.Invoke(kvp.Value, kvp.Key, true);
                                 }
                                 finally
@@ -509,12 +489,6 @@ namespace Rainbow.Example.CommonSDL2
                                 {
                                     ConsoleAbstraction.WriteGreen($"[StreamManager] E.3] If used/played trigger event to inform to add video - Stream:[{kvp.Value}]");
 
-                                    ConsoleAbstraction.WriteDarkYellow($"[StreamManager] Stream:[{kvp.Value}] Add Media Video events ...");
-                                    if (OnVideoImage is not null)
-                                        mediaVideo.OnImage += MediaInput_OnVideoImage;
-                                    mediaVideo.OnEndOfFile += MediaInput_OnVideoEndOfFile;
-                                    mediaVideo.OnError += MediaInput_OnVideoError;
-
                                     OnStreamOpened?.Invoke(kvp.Value, kvp.Key, true);
                                 }
                                 finally
@@ -543,11 +517,6 @@ namespace Rainbow.Example.CommonSDL2
                                 try
                                 {
                                     ConsoleAbstraction.WriteGreen($"[StreamManager] E.5] If used/played trigger event to inform to add sharing - Stream:[{kvp.Value}]");
-
-                                    if (OnSharingImage is not null)
-                                        mediaSharing.OnImage += MediaInput_OnSharingImage;
-                                    mediaSharing.OnEndOfFile += MediaInput_OnSharingEndOfFile;
-                                    mediaSharing.OnError += MediaInput_OnSharingError;
 
                                     OnStreamOpened?.Invoke(kvp.Value, kvp.Key, true);
                                 }
@@ -580,9 +549,6 @@ namespace Rainbow.Example.CommonSDL2
                         stillUsed = true;
 
                         ConsoleAbstraction.WriteDarkYellow($"[StreamManager] Stream:[{streamId}] Remove Media Audio events ...");
-                        mediaAudio.OnAudioSample -= MediaInput_OnAudioSample;
-                        mediaAudio.OnEndOfFile -= MediaInput_OnAudioEndOfFile;
-                        mediaAudio.OnError -= MediaInput_OnAudioError;
                     }
 
                     if (_mediasForVideo.TryGetValue(_streamIdUsedForAudio, out var mediaVideo) && mediaVideo is not null)
@@ -610,9 +576,6 @@ namespace Rainbow.Example.CommonSDL2
                         stillUsed = true;
 
                         ConsoleAbstraction.WriteDarkYellow($"[StreamManager] Stream:[{streamId}] Remove Media Video events ...");
-                        mediaVideo.OnImage -= MediaInput_OnVideoImage;
-                        mediaVideo.OnEndOfFile -= MediaInput_OnVideoEndOfFile;
-                        mediaVideo.OnError -= MediaInput_OnVideoError;
                     }
 
                     if (_mediasForAudio.TryGetValue(streamId, out var mediaAudio) && mediaAudio is not null)
@@ -640,9 +603,6 @@ namespace Rainbow.Example.CommonSDL2
                         stillUsed = true;
 
                         ConsoleAbstraction.WriteDarkYellow($"[StreamManager] Stream:[{streamId}] Remove Media Video (Sharing case) events ...");
-                        mediaSharing.OnImage -= MediaInput_OnSharingImage;
-                        mediaSharing.OnEndOfFile -= MediaInput_OnSharingEndOfFile;
-                        mediaSharing.OnError -= MediaInput_OnSharingError;
                     }
 
                     if (_mediasForAudio.TryGetValue(streamId, out var mediaAudio) && mediaAudio is not null)
@@ -673,7 +633,6 @@ namespace Rainbow.Example.CommonSDL2
             {
                 // cannot create media input for this composition ...
             }
-
         }
         
         private void CloseStream(Stream stream)
@@ -685,7 +644,6 @@ namespace Rainbow.Example.CommonSDL2
                     ConsoleAbstraction.WriteDarkYellow($"[StreamManager] Dispose Media (Audio case) for Stream:[{stream.Id}] ...");
 
                     OnStreamDisposing?.Invoke(stream.Id);
-
                     if(_disposeStreams) mediaAudio?.Dispose();
                 }
             }
@@ -709,20 +667,33 @@ namespace Rainbow.Example.CommonSDL2
             // Create media inputs for this stream
             (IMediaAudio? audioInput, IMediaVideo? videoInput) = GetMediaInputs(stream);
 
+            Boolean add = false;
+            Boolean init = false;
             // Init Media Input
             if (audioInput is not null)
             {
-                // Start audio Input
-                if (audioInput.IsStarted || audioInput.Init(true))
-                {
-                    // TODO - Check if we receive an audio frame
+                if (audioInput.IsStarted)
+                    add = true;
 
+                // Start audio Input
+                if (audioInput.Init(true))
+                {
+                    add = true;
+                    init = true;
+
+                    ConsoleAbstraction.WriteWhite($"[StreamManager] Stream init/started (Audio context) - Stream:[{stream.Id}]");
+                }
+                    
+                if (add)
+                {
                     // Store it as audio
                     _mediasForAudio[stream.Id] = audioInput;
 
                     // Store it as video (if necessary)
                     if (videoInput is not null)
+                    {
                         _mediasForVideo[stream.Id] = videoInput;
+                    }
                 }
                 else
                 {
@@ -732,11 +703,20 @@ namespace Rainbow.Example.CommonSDL2
             }
             else if (videoInput is not null)
             {
-                // Start audio Input
-                if (videoInput.IsStarted || videoInput.Init(true))
-                {
-                    // TODO - Check if we receive an audio frame
+                if (videoInput.IsStarted)
+                    add = true;
 
+                // Start Video Input
+                if (videoInput.Init(true))
+                {
+                    add = true;
+                    init = true;
+
+                    ConsoleAbstraction.WriteWhite($"[StreamManager] Stream init/started (Video context) - Stream:[{stream.Id}]");
+                }
+                    
+                if(add)
+                {
                     // Store it as video
                     _mediasForVideo[stream.Id] = videoInput;
                 }
@@ -1018,7 +998,6 @@ namespace Rainbow.Example.CommonSDL2
             return result;
         }
 
-
         private List<String>? GetCurrentStreamsOpened()
         {
             var audios = _mediasForAudio?.Keys?.ToList();
@@ -1031,8 +1010,7 @@ namespace Rainbow.Example.CommonSDL2
             }
             return videos;
         }
-
-
+                                                                                                                                                                                 
 #region Device 
 
         static public Device? GetDevice(string name, string type)
@@ -1077,59 +1055,6 @@ namespace Rainbow.Example.CommonSDL2
         }
 
 #endregion Device 
-
-#region MediaInput Events
-
-        private void MediaInput_OnAudioSample(string mediaId, uint duration, byte[] sample)
-        {
-            OnAudioSample?.Invoke(mediaId, duration, sample);
-        }
-
-        private void MediaInput_OnAudioEndOfFile(string mediaId)
-        {
-            OnAudioEndOfFile?.Invoke(mediaId);
-        }
-
-        private void MediaInput_OnAudioError(string mediaId, string message)
-        {
-            OnAudioError?.Invoke(mediaId, message);
-        }
-
-        private void MediaInput_OnVideoImage(string mediaId, int width, int height, int stride, IntPtr data, AVPixelFormat pixelFormat)
-        {
-            OnVideoImage?.Invoke(mediaId, width, height, stride, data, pixelFormat);
-        }
-
-        private void MediaInput_OnVideoEndOfFile(string mediaId)
-        {
-            ConsoleAbstraction.WriteBlue($"[StreamManager] VIDEO EOF - Stream:[{mediaId}]");
-            OnVideoEndOfFile?.Invoke(mediaId);
-        }
-
-        private void MediaInput_OnVideoError(string mediaId, string message)
-        {
-            ConsoleAbstraction.WriteRed($"[StreamManager] VIDEO Error - Stream:[{mediaId}]");
-            OnVideoError?.Invoke(mediaId, message);
-        }
-
-        private void MediaInput_OnSharingImage(string mediaId, int width, int height, int stride, IntPtr data, AVPixelFormat pixelFormat)
-        {
-            OnSharingImage?.Invoke(mediaId, width, height, stride, data, pixelFormat);
-        }
-
-        private void MediaInput_OnSharingEndOfFile(string mediaId)
-        {
-            ConsoleAbstraction.WriteBlue($"[StreamManager] SHARING EOF - Stream:[{mediaId}]");
-            OnSharingEndOfFile?.Invoke(mediaId);
-        }
-
-        private void MediaInput_OnSharingError(string mediaId, string message)
-        {
-            ConsoleAbstraction.WriteRed($"[StreamManager] SHARING Error - Stream:[{mediaId}]");
-            OnSharingError?.Invoke(mediaId, message);
-        }
-
-#endregion MediaInput Events
 
     }
 }
