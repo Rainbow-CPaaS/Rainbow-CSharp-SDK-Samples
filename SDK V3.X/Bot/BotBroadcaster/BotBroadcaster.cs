@@ -1,7 +1,6 @@
 ﻿using BotBroadcaster.Model;
 using BotLibrary.Model;
 using Rainbow;
-using Rainbow.Consts;
 using Rainbow.Example.Common;
 using Rainbow.Example.CommonSDL2;
 using Rainbow.Model;
@@ -11,7 +10,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-
 
 namespace BotBroadcaster
 {
@@ -76,14 +74,6 @@ namespace BotBroadcaster
             _streamManager.OnStreamOpened += StreamManager_OnStreamOpened;
             _streamManager.OnStreamRemoved += StreamManager_OnStreamRemoved;
             _streamManager.OnStreamDisposing += StreamManager_OnStreamDisposing;
-
-            _streamManager.OnAudioError += StreamManager_OnAudioError;
-            _streamManager.OnVideoError += StreamManager_OnVideoError;
-            _streamManager.OnSharingError += StreamManager_OnSharingError;
-
-            _streamManager.OnSharingEndOfFile += StreamManager_OnSharingEndOfFile;
-            _streamManager.OnVideoEndOfFile += StreamManager_OnVideoEndOfFile;
-            _streamManager.OnAudioEndOfFile += StreamManager_OnAudioEndOfFile;
         }
 
         private void RegisterToWebRTCEvents()
@@ -159,7 +149,6 @@ namespace BotBroadcaster
                                 {
                                     // Cannot change audio ....
                                     ConsoleAbstraction.WriteRed($"[{BotName}] Cannot change Audio Track - Stream:[{streamId}] - Error: [{sdkResult.Result}]");
-
                                 }
                             }
                             else
@@ -885,43 +874,25 @@ namespace BotBroadcaster
 
         private void StreamManager_OnStreamDisposing(string streamId)
         {
-            // TODO - Dispo Audio/Video Track associated - a dictionary must store them
-            ConsoleAbstraction.WriteBlue($"[{BotName}] OnStreamDisposing - Stream:[{streamId}]");
+            if (_conferenceStatus.AudioStreamTrack?.Id == streamId)
+            {
+                ConsoleAbstraction.WriteWhite($"[{BotName}] OnStreamDisposing (Audio context) - Stream:[{streamId}]");
+                _conferenceStatus.AudioStreamTrack?.Dispose();
+            }
+
+            if (_conferenceStatus.VideoStreamTrack?.Id == streamId)
+            {
+                ConsoleAbstraction.WriteWhite($"[{BotName}] OnStreamDisposing (Video context) - Stream:[{streamId}]");
+                _conferenceStatus.VideoStreamTrack?.Dispose();
+            }
+
+            if (_conferenceStatus.SharingStreamTrack?.Id == streamId)
+            {
+                ConsoleAbstraction.WriteWhite($"[{BotName}] OnStreamDisposing (Sharing context) - Stream:[{streamId}]");
+                _conferenceStatus.SharingStreamTrack?.Dispose();
+            }
         }
 
-        private void StreamManager_OnAudioEndOfFile(string mediaId)
-        {
-            ConsoleAbstraction.WriteRed($"[{BotName}] Audio EOF - Stream:[{mediaId}]");
-        }
-
-        private void StreamManager_OnVideoEndOfFile(string mediaId)
-        {
-            ConsoleAbstraction.WriteRed($"[{BotName}] Video EOF - Stream:[{mediaId}]");
-        }
-
-        private void StreamManager_OnSharingEndOfFile(string mediaId)
-        {
-            ConsoleAbstraction.WriteRed($"[{BotName}] Sharing EOF - Stream:[{mediaId}]");
-        }
-
-        private void StreamManager_OnSharingError(string mediaId, string message)
-        {
-            // The MediaInput used for Sharing has stoppped ...
-            ConsoleAbstraction.WriteRed($"[{BotName}] SharingError - Stream:[{mediaId}] - Error:[{message}]");
-        }
-
-        private void StreamManager_OnVideoError(string mediaId, string message)
-        {
-            ConsoleAbstraction.WriteRed($"[{BotName}] VideoError - Stream:[{mediaId}] - Error:[{message}]");
-            // The MediaInput used for Video has stoppped ...
-        }
-
-        private void StreamManager_OnAudioError(string mediaId, string message)
-        {
-            // The MediaInput used for Audio has stoppped ...
-            ConsoleAbstraction.WriteRed($"[{BotName}] AudioError - Stream:[{mediaId}] - Error:[{message}]");
-        }
- 
 #endregion Events triggered by StreamManager
 
 
@@ -1045,8 +1016,7 @@ namespace BotBroadcaster
 
         public override async Task StoppedAsync(SdkError sdkError)
         {
-            // TODO - we need to close all media used
-            // Here we do nothing special
+            // TODO - we need to hangup / close all media used
             await Task.CompletedTask;
         }
 
@@ -1116,8 +1086,10 @@ namespace BotBroadcaster
             // Nothing to do here
             await Task.CompletedTask;
         }
-    }
+
     #endregion Messages - AckMessage, ApplicationMessage, InstantMessage, InternalMessage
 
 #endregion OVERRIDE METHODS OF BotBase
+
+    }
 }

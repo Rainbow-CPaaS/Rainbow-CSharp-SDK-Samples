@@ -1,4 +1,5 @@
 ﻿using BotLibrary;
+using BotLibrary.Model;
 using Microsoft.Extensions.Logging;
 using Rainbow;
 using Rainbow.Example.Common;
@@ -6,7 +7,6 @@ using Rainbow.SimpleJSON;
 using System;
 using System.IO;
 using System.Threading.Tasks;
-
 
 namespace BotBroadcaster
 {
@@ -20,6 +20,7 @@ namespace BotBroadcaster
             ConsoleAbstraction.WriteGreen($"{Global.ProductName()} v{Global.FileVersion()}");
 
             ConsoleAbstraction.WriteGreen($"[ESC] To stop the bot");
+            ConsoleAbstraction.WriteGreen($"[L] To (re)load configuration file");
 
             if (!ReadExeSettings())
                 return;
@@ -49,7 +50,7 @@ namespace BotBroadcaster
             SdkError? sdkError = null;
             while (!isStopped)
             {
-                await Task.Delay(1000);
+                await Task.Delay(200);
 
                 while (ConsoleAbstraction.KeyAvailable)
                 {
@@ -58,12 +59,46 @@ namespace BotBroadcaster
                     // If [ESC] is used, we ask the bot to log out
                     if (userInput?.Key == ConsoleKey.Escape)
                         _botBroadcaster.Logout();
+
+                    if (userInput?.Key == ConsoleKey.L)
+                    {
+                        var _ = ReloadConfigurationFile();
+                    }
+
                 }
 
                 (isStopped, sdkError) = _botBroadcaster.IsStopped();
                     
             }
             ConsoleAbstraction.WriteRed($"Bot as stopped:{Rainbow.Util.CR}{sdkError}");
+        }
+
+        static async Task<Boolean> ReloadConfigurationFile()
+        {
+            if (_botBroadcaster?.Application.IsConnected() == true)
+            {
+                ConsoleAbstraction.WriteRed($"{Rainbow.Util.CR}=> ReloadConfigurationFile{Rainbow.Util.CR}");
+
+                String botConfigurationFilePath = $".{Path.DirectorySeparatorChar}config{Path.DirectorySeparatorChar}botConfiguration.json";
+                if (!File.Exists(botConfigurationFilePath))
+                {
+                    ConsoleAbstraction.WriteRed($"The file '{botConfigurationFilePath}' has not been found.");
+                    return false;
+                }
+
+                String jsonConfig = File.ReadAllText(botConfigurationFilePath);
+                var jsonNode = JSON.Parse(jsonConfig);
+                if (jsonNode?["botConfiguration"]?.IsObject != true)
+                {
+                    ConsoleAbstraction.WriteRed($"Cannot get JSON object 'botConfiguration' from file '{botConfigurationFilePath}'.");
+                    return false;
+                }
+                var jsonNodeBotConfiguration = jsonNode["botConfiguration"];
+
+                await _botBroadcaster.BotConfigurationUpdatedAsync(new BotConfigurationUpdate(jsonNodeBotConfiguration, "reload", null));
+                return true;
+            }
+            return false;
         }
 
         static async Task<Boolean> ConfigureBot()
@@ -97,7 +132,7 @@ namespace BotBroadcaster
             jsonNode = JSON.Parse(jsonConfig);
             if (jsonNode?["botConfiguration"]?.IsObject != true)
             {
-                ConsoleAbstraction.WriteRed($"Cannot get JSON object 'botConfiguration' from file '{credentialsFilePath}'.");
+                ConsoleAbstraction.WriteRed($"Cannot get JSON object 'botConfiguration' from file '{botConfigurationFilePath}'.");
                 return false;
             }
             var jsonNodeBotConfiguration = jsonNode["botConfiguration"];
