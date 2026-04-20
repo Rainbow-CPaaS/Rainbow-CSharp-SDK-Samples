@@ -67,7 +67,7 @@ namespace Rainbow.Example.CommonSDL2
             lock (lockNewConfiguration)
             {
                 ConsoleAbstraction.WriteBlue($"{Rainbow.Util.CR}[StreamManager] List of streams correctly set in config file: (doesn't mean they can be really used)");
-                if (_streamsList is null)
+                if (streams is null)
                     ConsoleAbstraction.WriteBlue($"\tNo stream");
                 else
                 {
@@ -149,50 +149,51 @@ namespace Rainbow.Example.CommonSDL2
                 /// Store new configuration of streams to use/play
                 _streamsIdToUse = streamsToUse;
 
+                var newStreamsToOpen = GetStreamsToOpen(streamsToUse.Values.ToList(), _streamsList);
+                // Update list of streams to be opened - Merge two lists
+                streamsToBeOpened = (streamsToBeOpened ?? []).Union(newStreamsToOpen).ToList();
+
+                List<string> listStreamsAlreadyOpened = []; // Used only to log info
+                // First get list of stream to open
+                foreach (var streamId in streamsToBeOpened)
+                {
+                    if (String.IsNullOrEmpty(streamId)) continue;
+
+                    // if not already used as audio or video stream add it to the list of stream to open
+                    if ((!_mediasForAudio.ContainsKey(streamId)) && (!_mediasForVideo.ContainsKey(streamId)))
+                    {
+                        if (!_streamsToOpen.Contains(streamId))
+                            _streamsToOpen.Add(streamId);
+                    }
+                    else
+                    {
+                        if ( ! ((_mediasForAudio.ContainsKey(streamId) || _mediasForVideo.ContainsKey(streamId))) )
+                            if (!listStreamsAlreadyOpened.Contains(streamId))
+                                listStreamsAlreadyOpened.Add(streamId);
+                    }
+                }
+
+                // Now check audio media to close
+                foreach (var streamId in _mediasForAudio.Keys)
+                {
+                    if (String.IsNullOrEmpty(streamId)) continue;
+
+                    if ( (!streamsToBeOpened.Contains(streamId)) && !_streamsToClose.Contains(streamId))
+                        _streamsToClose.Add(streamId);
+                }
+
+                // Now check video media to close
+                foreach (var streamId in _mediasForVideo.Keys)
+                {
+                    if (String.IsNullOrEmpty(streamId)) continue;
+
+                    if ( (!streamsToBeOpened.Contains(streamId)) && !_streamsToClose.Contains(streamId))
+                        _streamsToClose.Add(streamId);
+                }
+
+                _newConfigurationReceived = _newConfigurationReceived || (_streamsToClose.Count > 0) || (_streamsToOpen.Count > 0);
                 if (_newConfigurationReceived)
                 {
-                    var newStreamsToOpen = GetStreamsToOpen(streamsToUse.Values.ToList(), _streamsList);
-                    // Update list of streams to be opened - Merge two lists
-                    streamsToBeOpened = streamsToBeOpened.Union(newStreamsToOpen).ToList();
-
-                    List<string> listStreamsAlreadyOpened = []; // Used only to log info
-                    // First get list of stream to open
-                    foreach (var streamId in streamsToBeOpened)
-                    {
-                        if (String.IsNullOrEmpty(streamId)) continue;
-
-                        // if not already used as audio or video stream add it to the list of stream to open
-                        if ((!_mediasForAudio.ContainsKey(streamId)) && (!_mediasForVideo.ContainsKey(streamId)))
-                        {
-                            if (!_streamsToOpen.Contains(streamId))
-                                _streamsToOpen.Add(streamId);
-                        }
-                        else
-                        {
-                            if ( ! ((_mediasForAudio.ContainsKey(streamId) || _mediasForVideo.ContainsKey(streamId))) )
-                                if (!listStreamsAlreadyOpened.Contains(streamId))
-                                    listStreamsAlreadyOpened.Add(streamId);
-                        }
-                    }
-
-                    // Now check audio media to close
-                    foreach (var streamId in _mediasForAudio.Keys)
-                    {
-                        if (String.IsNullOrEmpty(streamId)) continue;
-
-                        if ( (!streamsToBeOpened.Contains(streamId)) && !_streamsToClose.Contains(streamId))
-                            _streamsToClose.Add(streamId);
-                    }
-
-                    // Now check video media to close
-                    foreach (var streamId in _mediasForVideo.Keys)
-                    {
-                        if (String.IsNullOrEmpty(streamId)) continue;
-
-                        if ( (!streamsToBeOpened.Contains(streamId)) && !_streamsToClose.Contains(streamId))
-                            _streamsToClose.Add(streamId);
-                    }
-
                     ConsoleAbstraction.WriteGreen("[StreamManager] New Configuration Set:");
                     ConsoleAbstraction.WriteGreen($"\tStream(s) already OPENED: [{String.Join(", ", listStreamsAlreadyOpened)}]");
                     ConsoleAbstraction.WriteGreen($"\tStream(s) which need to be OPENED: [{String.Join(", ", _streamsToOpen)}]");
@@ -203,17 +204,12 @@ namespace Rainbow.Example.CommonSDL2
                     ConsoleAbstraction.WriteGreen($"\tStream which must be used for AUDIO:   [{((audioStreamId is not null) ? audioStreamId : "NONE")}]");
                     ConsoleAbstraction.WriteGreen($"\tStream which must be used for VIDEO:   [{((videoStreamId is not null) ? videoStreamId : "NONE")}]");
                     ConsoleAbstraction.WriteGreen($"\tStream which must be used for SHARING: [{((sharingStreamId is not null) ? sharingStreamId : "NONE")}]");
-
-                    StartToOpenOrCloseStreams();
-                }
-                else
-                {
-                    ConsoleAbstraction.WriteGreen("[StreamManager] No new configuration necessary");
-                    ConsoleAbstraction.WriteGreen($"\tStream(s) already OPENED: [{String.Join(", ", currentStreamsOpened)}]");
                 }
 
                 ConsoleAbstraction.WriteGreen($"\tMediasForAudio: [{String.Join(", ", _mediasForAudio.Keys.ToList())}]");
                 ConsoleAbstraction.WriteGreen($"\tMediasForVideo: [{String.Join(", ", _mediasForVideo.Keys.ToList())}]");
+
+                StartToOpenOrCloseStreams();
             }
         }
 
@@ -667,25 +663,13 @@ namespace Rainbow.Example.CommonSDL2
             // Create media inputs for this stream
             (IMediaAudio? audioInput, IMediaVideo? videoInput) = GetMediaInputs(stream);
 
-            Boolean add = false;
-            Boolean init = false;
             // Init Media Input
             if (audioInput is not null)
             {
-                if (audioInput.IsStarted)
-                    add = true;
-
                 // Start audio Input
-                if (audioInput.Init(true))
+                if (audioInput.IsStarted ||audioInput.Init(true))
                 {
-                    add = true;
-                    init = true;
-
                     ConsoleAbstraction.WriteWhite($"[StreamManager] Stream init/started (Audio context) - Stream:[{stream.Id}]");
-                }
-                    
-                if (add)
-                {
                     // Store it as audio
                     _mediasForAudio[stream.Id] = audioInput;
 
@@ -693,6 +677,7 @@ namespace Rainbow.Example.CommonSDL2
                     if (videoInput is not null)
                     {
                         _mediasForVideo[stream.Id] = videoInput;
+                        ConsoleAbstraction.WriteWhite($"[StreamManager] Stream init/started also as Video context - Stream:[{stream.Id}]");
                     }
                 }
                 else
@@ -703,20 +688,11 @@ namespace Rainbow.Example.CommonSDL2
             }
             else if (videoInput is not null)
             {
-                if (videoInput.IsStarted)
-                    add = true;
-
                 // Start Video Input
-                if (videoInput.Init(true))
+                if (videoInput.IsStarted || videoInput.Init(true))
                 {
-                    add = true;
-                    init = true;
-
                     ConsoleAbstraction.WriteWhite($"[StreamManager] Stream init/started (Video context) - Stream:[{stream.Id}]");
-                }
-                    
-                if(add)
-                {
+
                     // Store it as video
                     _mediasForVideo[stream.Id] = videoInput;
                 }
@@ -729,6 +705,7 @@ namespace Rainbow.Example.CommonSDL2
             else
             {
                 // cannot create media input for this stream ...
+                ConsoleAbstraction.WriteRed($"[StreamManager] Cannot create media input for this stream:[{stream.Id}]");
             }
         }
 
@@ -998,7 +975,7 @@ namespace Rainbow.Example.CommonSDL2
             return result;
         }
 
-        private List<String>? GetCurrentStreamsOpened()
+        private List<String> GetCurrentStreamsOpened()
         {
             var audios = _mediasForAudio?.Keys?.ToList();
             var videos  = _mediasForVideo?.Keys?.ToList();
@@ -1008,7 +985,7 @@ namespace Rainbow.Example.CommonSDL2
                     return audios.Union(videos).ToList(); ;
                 return audios;
             }
-            return videos;
+            return videos ?? [];
         }
                                                                                                                                                                                  
 #region Device 

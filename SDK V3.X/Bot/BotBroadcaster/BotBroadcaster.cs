@@ -121,10 +121,9 @@ namespace BotBroadcaster
                         && (streamId is not null))
                     {
                         var mediaAudio = _streamManager.GetMediaAudioFromStreamId(streamId);
-                        if (mediaAudio is null) // It means we didntt ask StreamManager to manage it
+                        if (mediaAudio is null) // It means we didn't ask StreamManager to manage it
                         {
-                            ConsoleAbstraction.WriteDarkYellow($"[{BotName}] Ask StreamManager to manage AUDIO - Stream:[{streamId}]");
-                            _streamManager.UpdateOneStreamToUse(Rainbow.Consts.Media.AUDIO, streamId);
+                            _streamManager.SetNewConfiguration(_configuration?.Streams.Values.ToList(), _conferenceStatus.Streams);
 
                             PostPoneCancelableDelayToCheckConfigAndConference();
                             return;
@@ -182,8 +181,7 @@ namespace BotBroadcaster
                             {
                                 ConsoleAbstraction.WriteYellow($"[{BotName}] AUDIO Media [{streamId}] is not known from StreamManager");
 
-                                ConsoleAbstraction.WriteDarkYellow($"[{BotName}] Ask StreamManager to manage AUDIO Stream:[{streamId}]");
-                                _streamManager.UpdateOneStreamToUse(Rainbow.Consts.Media.AUDIO, streamId);
+                                _streamManager.SetNewConfiguration(_configuration?.Streams.Values.ToList(), _conferenceStatus.Streams);
 
                                 PostPoneCancelableDelayToCheckConfigAndConference();
                                 return;
@@ -254,8 +252,7 @@ namespace BotBroadcaster
                             ConsoleAbstraction.WriteRed($"[{BotName}] Cannot create empty audio track ");
                         }
 
-                        ConsoleAbstraction.WriteDarkYellow($"[{BotName}] Ask StreamManager to no more manage AUDIO Stream");
-                        _streamManager.UpdateOneStreamToUse(Rainbow.Consts.Media.AUDIO, null);
+                        _streamManager.SetNewConfiguration(_configuration?.Streams.Values.ToList(), _conferenceStatus.Streams);
 
                         PostPoneCancelableDelayToCheckConfigAndConference();
                         return;
@@ -320,9 +317,7 @@ namespace BotBroadcaster
                             if (mediaVideo is null) // It means we didn't ask StreamManager to manage it
                             {
                                 ConsoleAbstraction.WriteYellow($"[{BotName}] VIDEO Media [{streamId}] is not known from StreamManager");
-
-                                ConsoleAbstraction.WriteDarkYellow($"[{BotName}] Ask StreamManager to manage VIDEO - Stream:[{streamId}]");
-                                _streamManager.UpdateOneStreamToUse(Rainbow.Consts.Media.VIDEO, streamId);
+                                _streamManager.SetNewConfiguration(_configuration?.Streams.Values.ToList(), _conferenceStatus.Streams);
                             }
                             else
                             {
@@ -361,9 +356,7 @@ namespace BotBroadcaster
                         if (mediaVideo is null) // It means we didn't ask StreamManager to manage it
                         {
                             ConsoleAbstraction.WriteYellow($"[{BotName}] VIDEO Media [{streamId}] is not known from StreamManager");
-
-                            ConsoleAbstraction.WriteDarkYellow($"[{BotName}] Ask StreamManager to manage VIDEO - Stream:[{streamId}]");
-                            _streamManager.UpdateOneStreamToUse(Rainbow.Consts.Media.VIDEO, streamId);
+                            _streamManager.SetNewConfiguration(_configuration?.Streams.Values.ToList(), _conferenceStatus.Streams);
                         }
                         else
                         {
@@ -411,9 +404,7 @@ namespace BotBroadcaster
                             ConsoleAbstraction.WriteRed($"[{BotName}] Cannot remove VIDEO track - Error:[{sdkResult.Result}]");
                         }
 
-                        ConsoleAbstraction.WriteDarkYellow($"[{BotName}] Ask StreamManager to no more manage VIDEO Stream");
-                        _streamManager.UpdateOneStreamToUse(Rainbow.Consts.Media.VIDEO, null);
-
+                        _streamManager.SetNewConfiguration(_configuration?.Streams.Values.ToList(), _conferenceStatus.Streams);
                         PostPoneCancelableDelayToCheckConfigAndConference();
                         return;
                 }
@@ -477,9 +468,7 @@ namespace BotBroadcaster
                             if (mediaSharing is null) // It means we didn't ask StreamManager to manage it
                             {
                                 ConsoleAbstraction.WriteYellow($"[{BotName}] SHARING Media [{streamId}] is not known from StreamManager");
-
-                                ConsoleAbstraction.WriteDarkYellow($"[{BotName}] Ask StreamManager to manage SHARING - Stream:[{streamId}]");
-                                _streamManager.UpdateOneStreamToUse(Rainbow.Consts.Media.SHARING, streamId);
+                                _streamManager.SetNewConfiguration(_configuration?.Streams.Values.ToList(), _conferenceStatus.Streams);
                             }
                             else
                             {
@@ -518,9 +507,7 @@ namespace BotBroadcaster
                         if (mediaSharing is null) // It means we didn't ask StreamManager to manage it
                         {
                             ConsoleAbstraction.WriteYellow($"[{BotName}] SHARING Media [{streamId}] is not known from StreamManager");
-
-                            ConsoleAbstraction.WriteDarkYellow($"[{BotName}] Ask StreamManager to manage SHARING - Stream:[{streamId}]");
-                            _streamManager.UpdateOneStreamToUse(Rainbow.Consts.Media.SHARING, streamId);
+                            _streamManager.SetNewConfiguration(_configuration?.Streams.Values.ToList(), _conferenceStatus.Streams);
                         }
                         else
                         {
@@ -568,8 +555,7 @@ namespace BotBroadcaster
                             ConsoleAbstraction.WriteRed($"[{BotName}] Cannot remove SHARING track - Error:[{sdkResult.Result}]");
                         }
 
-                        ConsoleAbstraction.WriteDarkYellow($"[{BotName}] Ask StreamManager to no more manage SHARING Stream");
-                        _streamManager.UpdateOneStreamToUse(Rainbow.Consts.Media.SHARING, null);
+                        _streamManager.SetNewConfiguration(_configuration?.Streams.Values.ToList(), _conferenceStatus.Streams);
 
                         PostPoneCancelableDelayToCheckConfigAndConference();
                         return;
@@ -695,8 +681,7 @@ namespace BotBroadcaster
                         // Inform streamManager of the new config
                         ConsoleAbstraction.WriteDarkYellow($"[{BotName}] Ask StreamManager to use config file only - no stream to use");
 
-                        var streams = GetAsConnectedStreamsUsed(_configuration.Streams, _conferenceStatus.Streams.Values.ToList());
-                        _streamManager.SetNewConfiguration(streams, null);
+                        _streamManager.SetNewConfiguration(_configuration?.Streams.Values.ToList(), _conferenceStatus.Streams);
                     }
 
 
@@ -728,9 +713,7 @@ namespace BotBroadcaster
                     // Inform streamManager of the new config
                     ConsoleAbstraction.WriteDarkYellow($"[{BotName}] Ask StreamManager to use config file only - no stream to use");
 
-                    var streams = GetAsConnectedStreamsUsed(_configuration?.Streams, _conferenceStatus.Streams.Values.ToList());
-                    _streamManager.SetNewConfiguration(streams, null);
-
+                    _streamManager.SetNewConfiguration(_configuration?.Streams.Values.ToList(), _conferenceStatus.Streams);
 
                     // Check a little later the config to ensure we must no more be in the conf.
                     PostPoneCancelableDelayToCheckConfigAndConference();
