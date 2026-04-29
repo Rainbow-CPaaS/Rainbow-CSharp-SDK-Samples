@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using Rainbow.Model;
 
-namespace BotAdaptiveCards
+namespace BotAdaptiveCards.Model
 {
     /// <summary>
     /// To store the status of one user about the MCQ

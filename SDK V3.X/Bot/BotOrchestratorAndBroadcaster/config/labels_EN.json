@@ -1,0 +1,14 @@
+{
+  "labels": {
+    "title": "112 Surveillance Menu",
+    "joinConf": "Join Conf.:",
+    "audioStream": "Audio Stream:",
+    "videoStream": "Video Stream:",
+    "sharingStream": "Sharing Stream:",
+    "apply": "Apply",
+    "conferencesToJoin": "Conferences to join:",
+    "allConfOrSelection": "All or this selection:",
+    "removeBroadcasterAsMember": "Remove broadcasters when conferences are ended",
+    "conferenceSettings": "Conference - Settings"
+  }
+}

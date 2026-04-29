@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
-namespace BotAdaptiveCards
+namespace BotAdaptiveCards.Model
 {
 
     static public class MCQ
     {
-        static public String MCQ_RESULT_HEADER =
+        public const String MCQ_RESULT_HEADER =
         @"{
         ""$schema"": ""http://adaptivecards.io/schemas/adaptive-card.json"",
         ""type"": ""AdaptiveCard"",
@@ -22,10 +21,10 @@ namespace BotAdaptiveCards
             ""wrap"": true
           }";
 
-        static public String MCQ_RESULT_FOOTER =
+        public const String MCQ_RESULT_FOOTER =
         @"]}";
 
-        static public String MCQ_RESULT_QUESTION =
+        public const String MCQ_RESULT_QUESTION =
         @",{
             ""type"": ""TextBlock"",
             ""size"": ""medium"",
@@ -35,7 +34,7 @@ namespace BotAdaptiveCards
             ""wrap"": true
         }";
 
-        static public String MCQ_RESULT_ANSWER =
+        public const String MCQ_RESULT_ANSWER =
         @",{
             ""type"": ""TextBlock"",
             ""size"": ""medium"",
@@ -46,7 +45,7 @@ namespace BotAdaptiveCards
             ""color"": ""accent""
         }";
 
-        static public String MCQ_RESULT_CORRECT_ANSWER =
+        public const String MCQ_RESULT_CORRECT_ANSWER =
         @",{
             ""type"": ""TextBlock"",
             ""size"": ""medium"",
@@ -65,7 +64,7 @@ namespace BotAdaptiveCards
 
         public MCQInfo()
         {
-            Questions = new List<MCQQuestion>();
+            Questions = [];
         }
     }
 
@@ -108,7 +107,7 @@ namespace BotAdaptiveCards
         public MCQQuestion()
         {
             Title = "";
-            Entries = new List<MCQEntry>();
+            Entries = [];
         }
     }
 

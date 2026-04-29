@@ -36,15 +36,15 @@ namespace BotAdaptiveCards
                 return resources;
             else
             {
-                List<String> result = new List<string>();
+                List<String> result = [];
 
                 folderPath = folderPath.Replace("/", ".");
 
-                if (folderPath.StartsWith("."))
-                    folderPath = folderPath.Substring(1);
+                if (folderPath.StartsWith('.'))
+                    folderPath = folderPath[1..];
 
-                if (folderPath.EndsWith("."))
-                    folderPath = folderPath.Substring(0, folderPath.Length - 1);
+                if (folderPath.EndsWith('.'))
+                    folderPath = folderPath[..^1];
 
                 String path = Helper.NamespaceResources + "." + folderPath + ".";
 
@@ -79,7 +79,7 @@ namespace BotAdaptiveCards
             if (stream != null)
             {
                 stream.Position = 0;
-                using (StreamReader reader = new StreamReader(stream, encoding))
+                using (StreamReader reader = new (stream, encoding))
                     result = reader.ReadToEnd();
 
                 stream.Close();
@@ -161,7 +161,7 @@ namespace BotAdaptiveCards
                 {
                     // Now ensure to get ONLY wanted resources
 
-                    resources = new List<String>();
+                    resources = [];
                     foreach (String resource in rsc)
                     {
                         if (resource.StartsWith(NamespaceResources))

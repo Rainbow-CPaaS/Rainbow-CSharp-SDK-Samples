@@ -1,7 +1,10 @@
-﻿using Rainbow.Example.Common;
+﻿using BotLibrary.Model;
+using Rainbow;
+using Rainbow.Example.Common;
 using Rainbow.SimpleJSON;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace BotBroadcaster.Model
 {
@@ -13,49 +16,130 @@ namespace BotBroadcaster.Model
 
         public BotConfigurationExtended() : base()
         {
-            Streams = new();
-            Conferences = new();
+            Streams = [];
+            Conferences = [];
         }
 
-        public static Boolean FromJsonNode(JSONNode jsonNode, out BotConfigurationExtended botConfigurationExtended)
+#region FromJSON / ToJSON methods
+
+        /// <summary>
+        /// **`static method`** Converts the specified JSON String to its <see cref="BotConfigurationExtended"/> equivalent.
+        /// </summary>
+        /// <param name="jsonString"><see cref="String"/>JSON String</param>
+        /// <param name="nodeName"><see cref="String"/>**`Optional - default value: null`** <br/>Node name to use to start parsing</param>
+        /// <returns><see cref="BotConfigurationExtended"/> - BotConfigurationExtended object or Null on error</returns>
+        public new static BotConfigurationExtended? FromJson(string jsonString, String? nodeName = null)
+            => FromJsonNode(JSON.Parse(jsonString), nodeName);
+
+        /// <summary>
+        /// **`static method`** Converts the specified <see cref="JSONNode"/> to its <see cref="BotConfigurationExtended"/> equivalent.
+        /// </summary>
+        /// <param name="jsonNode"><see cref="JSONNode"/>JSONNode object</param>
+        /// <param name="nodeName"><see cref="String"/>**`Optional - default value: null`** <br/>Node name to use to start parsing</param>
+        /// <returns><see cref="BotConfigurationExtended"/> - BotConfigurationExtended object or Null on error</returns>
+        public new static BotConfigurationExtended? FromJsonNode(JSONNode jsonNode, String? nodeName = null)
         {
-            botConfigurationExtended = new();
-            if (BotLibrary.Model.BotConfiguration.FromJsonNode(jsonNode, out BotLibrary.Model.BotConfiguration botConfiguration))
+            if ((jsonNode == null) || (!jsonNode.IsObject))
+                return null;
+
+            if (!String.IsNullOrWhiteSpace(nodeName))
+                return FromJsonNode(jsonNode[nodeName]);
+
+            var botConfiguration = BotConfiguration.FromJsonNode(jsonNode);
+            if (botConfiguration is null) return null;
+
+            BotConfigurationExtended botConfigurationExtended = new()
             {
-                botConfigurationExtended.Administrators = botConfiguration.Administrators;
-                botConfigurationExtended.GuestsAccepted = botConfiguration.GuestsAccepted;
+                // Get data from BotConfiguration part
+                Administrators = botConfiguration.Administrators,
+                GuestsAccepted = botConfiguration.GuestsAccepted,
+                InstantMessageAutoAccept = botConfiguration.InstantMessageAutoAccept,
+                PrivateMessageAutoAccept = botConfiguration.PrivateMessageAutoAccept,
+                AckMessageAutoAccept = botConfiguration.AckMessageAutoAccept,
+                ApplicationMessageAutoAccept = botConfiguration.ApplicationMessageAutoAccept,
+                BubbleInvitationAutoAccept = botConfiguration.BubbleInvitationAutoAccept,
+                UserInvitationAutoAccept = botConfiguration.UserInvitationAutoAccept,
+                FirstName = botConfiguration.FirstName,
+                LastName = botConfiguration.LastName,
+                Bot = botConfiguration.Bot,
+            };
 
-                botConfigurationExtended.BubbleInvitationAutoAccept = botConfiguration.BubbleInvitationAutoAccept;
-                botConfigurationExtended.UserInvitationAutoAccept = botConfiguration.UserInvitationAutoAccept;
+            // Parse "streams"
+            var streams = JSON.ToList<Stream>(jsonNode["streams"], Stream.FromJsonNode);
+            botConfigurationExtended.Streams = Stream.GetValidStreams(streams).ToDictionary(s => s.Id, s => s);
 
-                // Parse "streams"
-                var jsonNodeStreams = jsonNode["streams"];
-                if (jsonNodeStreams?.IsArray == true)
+            // Parse "conferences"
+            if (jsonNode["conferences"]?.IsArray == true)
+            {
+                foreach (JSONNode jsConf in jsonNode["conferences"])
                 {
-                    botConfigurationExtended.Streams = new();
-                    foreach (var jsonNodeStream in jsonNodeStreams.Values)
-                    {
-                        if (Stream.FromJsonNode(jsonNodeStream, out Stream stream))
-                            botConfigurationExtended.Streams[stream.Id] = stream;
-                    }
+                    var conference = Conference.FromJsonNode(jsConf);
+                    if (conference?.IsValid() == true)
+                        botConfigurationExtended.Conferences.Add(conference);
                 }
-
-                // Parse "conferences"
-                if (jsonNode["conferences"]?.IsArray == true)
-                {
-                    foreach (JSONNode jsConf in jsonNode["conferences"])
-                    {
-                        if (Conference.FromJsonNode(jsConf, out Conference? conference))
-                        {
-                            if (conference is not null)
-                                botConfigurationExtended.Conferences.Add(conference);
-                        }
-                    }
-                }
-
-                return true;
             }
-            return false;
+
+            return botConfigurationExtended;
         }
+
+        /// <summary>
+        /// Returns a JSON String equivalent of this <see cref="BotConfigurationExtended"/> object.
+        /// </summary>
+        /// <param name="avoidNull"><see cref="Boolean"/>**`Optional - default value: true`** <br/>True to avoid null values</param>
+        /// <param name="indent"><see cref="Boolean"/>**`Optional - default value: false`** <br/>True to indent</param>
+        /// <returns><see cref="String"/> - String on success, Null on error</returns>
+        public new String? ToJson(Boolean avoidNull = true, Boolean indent = false)
+            => ToJson(this, avoidNull: avoidNull, indent: indent);
+
+        /// <summary>
+        /// Returns a JSONNode equivalent of this <see cref="BotConfigurationExtended"/> object.
+        /// </summary>
+        /// <returns><see cref="JSONNode"/> - JSONNode object</returns>
+        public new JSONNode? ToJsonNode()
+            => ToJsonNode(this);
+
+        /// <summary>
+        /// **`static method`** Returns a JSON String equivalent of this <see cref="BotConfigurationExtended"/> object.
+        /// </summary>
+        /// <param name="BotConfigurationExtended"><see cref="BotConfigurationExtended"/>Object to serialize in JSON</param>
+        /// <param name="avoidNull"><see cref="Boolean"/>**`Optional - default value: true`** <br/>True to avoid null values</param>
+        /// <param name="indent"><see cref="Boolean"/>**`Optional - default value: false`** <br/>True to indent</param>
+        /// <returns><see cref="String"/> - String on success, Null on error</returns>
+        public static String? ToJson(BotConfigurationExtended BotConfigurationExtended, Boolean avoidNull = true, Boolean indent = false)
+            => ToJsonNode(BotConfigurationExtended)?.ToString(avoidNull: avoidNull, indent: indent);
+
+        /// <summary>
+        /// **`static method`** Returns a JSONNode equivalent of <see cref="BotConfigurationExtended"/> object.
+        /// </summary>
+        /// <param name="BotConfigurationExtended"><see cref="BotConfigurationExtended"/>BotConfigurationExtended object</param>
+        /// <returns><see cref="JSONNode"/> - JSONNode on success, Null on error</returns>
+        public static JSONNode? ToJsonNode(BotConfigurationExtended botConfigurationExtended)
+        {
+            if (botConfigurationExtended == null) return null;
+
+            var jsonNode = BotConfiguration.ToJsonNode(botConfigurationExtended);
+            if (jsonNode is null) return null;
+
+            jsonNode["conferences"] = JSON.ToJSONArray<Conference>(botConfigurationExtended.Conferences, Conference.ToJsonNode);
+            jsonNode["streams"] = JSON.ToJSONArray<Stream>(botConfigurationExtended.Streams?.Values, Stream.ToJsonNode);
+
+            return jsonNode;
+        }
+
+        /// <summary>
+        /// Implicit Constructor from <see cref="BotConfigurationExtended"/> list to <see cref="JSONNode"/>.
+        /// </summary>
+        /// <param name="objectToJsonNode"><see cref="BotConfigurationExtended"/>BotConfigurationExtended</param>
+        public static implicit operator JSONNode?(BotConfigurationExtended objectToJsonNode)
+            => ToJsonNode(objectToJsonNode);
+
+        /// <summary>
+        /// Implicit Constructor from <see cref="JSONNode"/> to <see cref="BotConfigurationExtended"/> list.
+        /// </summary>s
+        /// <param name="jsonNodeToObject"><see cref="JSONNode"/>JSONNode Value</param>
+        public static implicit operator BotConfigurationExtended?(JSONNode jsonNodeToObject)
+            => FromJsonNode(jsonNodeToObject);
+
+#endregion FromJSON / ToJSON methods
     }
 }

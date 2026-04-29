@@ -1,0 +1,413 @@
+﻿{
+  "type": "AdaptiveCard",
+  "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+  "version": "1.5",
+  "body": [
+    {
+      "type": "Image",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/c/ca/1x1.png",
+      "height": "1px",
+      "width": "650px"
+    },
+    {
+      "type": "TextBlock",
+      "text": "${labels.title}",
+      "horizontalAlignment": "Center",
+      "size": "Large",
+      "weight": "Bolder"
+    },
+    {
+      "type": "TextBlock",
+      "text": "Conference __${conferences.current.name}__ is in progress ...",
+      "color": "Accent",
+      "horizontalAlignment": "Center",
+      "isVisible": "${conferences.current.inProgress}"
+    },
+    {
+      "type": "Table",
+      "columns": [
+        {
+          "width": 2
+        },
+        {
+          "width": 3
+        },
+        {
+          "width": 3
+        }
+      ],
+      "rows": [
+        {
+          "type": "TableRow",
+          "cells": [
+            {
+              "type": "TableCell",
+              "items": [
+                {
+                  "type": "TextBlock",
+                  "text": "${labels.joinConf}",
+                  "horizontalAlignment": "Center"
+                }
+              ]
+            },
+            {
+              "type": "TableCell",
+              "items": [
+                {
+                  "type": "TextBlock",
+                  "text": "${labels.audioStream}",
+                  "horizontalAlignment": "Center"
+                }
+              ]
+            },
+            {
+              "type": "TableCell",
+              "items": [
+                {
+                  "type": "TextBlock",
+                  "text": "${labels.videoStream}",
+                  "horizontalAlignment": "Center"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "TableRow",
+          "cells": [
+            {
+              "type": "TableCell",
+              "items": [
+                {
+                  "type": "Input.Toggle",
+                  "id": "join_${broadcasters[0].id}",
+                  "title": "${broadcasters[0].name}",
+                  "value": "${broadcasters[0].inConf}"
+                }
+              ],
+              "horizontalAlignment": "Left"
+            },
+            {
+              "type": "TableCell",
+              "items": [
+                {
+                  "type": "Input.ChoiceSet",
+                  "id": "audio_${broadcasters[0].id}",
+                  "value": "${broadcasters[0].audioStreamId}",
+                  "choices": [
+                    {
+                      "$data": "${streams.withAudio}",
+                      "title": "${title}",
+                      "value": "${value}"
+                    }
+                  ]
+                }
+              ],
+              "horizontalAlignment": "Left"
+            },
+            {
+              "type": "TableCell",
+              "items": [
+                {
+                  "type": "Input.ChoiceSet",
+                  "id": "video_${broadcasters[0].id}",
+                  "value": "${broadcasters[0].videoStreamId}",
+                  "choices": [
+                    {
+                      "$data": "${streams.withVideo}",
+                      "title": "${title}",
+                      "value": "${value}"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "verticalCellContentAlignment": "Center"
+        },
+        {
+          "type": "TableRow",
+          "cells": [
+            {
+              "type": "TableCell",
+              "items": [
+                {
+                  "type": "Input.Toggle",
+                  "id": "join_${broadcasters[1].id}",
+                  "title": "${broadcasters[1].name}",
+                  "value": "${broadcasters[1].inConf}"
+                }
+              ],
+              "horizontalAlignment": "Left"
+            },
+            {
+              "type": "TableCell",
+              "items": [
+                {
+                  "type": "Input.ChoiceSet",
+                  "id": "audio_${broadcasters[1].id}",
+                  "value": "${broadcasters[1].audioStreamId}",
+                  "choices": [
+                    {
+                      "$data": "${streams.withAudio}",
+                      "title": "${title}",
+                      "value": "${value}"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "TableCell",
+              "items": [
+                {
+                  "type": "Input.ChoiceSet",
+                  "id": "video_${broadcasters[1].id}",
+                  "value": "${broadcasters[1].videoStreamId}",
+                  "choices": [
+                    {
+                      "$data": "${streams.withVideo}",
+                      "title": "${title}",
+                      "value": "${value}"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "verticalCellContentAlignment": "Center"
+        },
+        {
+          "type": "TableRow",
+          "cells": [
+            {
+              "type": "TableCell",
+              "items": [
+                {
+                  "type": "Input.Toggle",
+                  "id": "join_${broadcasters[2].id}",
+                  "title": "${broadcasters[2].name}",
+                  "value": "${broadcasters[2].inConf}"
+                }
+              ],
+              "horizontalAlignment": "Left"
+            },
+            {
+              "type": "TableCell",
+              "items": [
+                {
+                  "type": "Input.ChoiceSet",
+                  "id": "audio_${broadcasters[2].id}",
+                  "value": "${broadcasters[2].audioStreamId}",
+                  "choices": [
+                    {
+                      "$data": "${streams.withAudio}",
+                      "title": "${title}",
+                      "value": "${value}"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "TableCell",
+              "items": [
+                {
+                  "type": "Input.ChoiceSet",
+                  "id": "video_${broadcasters[2].id}",
+                  "value": "${broadcasters[2].videoStreamId}",
+                  "choices": [
+                    {
+                      "$data": "${streams.withVideo}",
+                      "title": "${title}",
+                      "value": "${value}"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "verticalCellContentAlignment": "Center"
+        }
+      ],
+      "showGridLines": false
+    },
+    {
+      "type": "Container",
+      "items": [
+        {
+          "type": "ColumnSet",
+          "columns": [
+            {
+              "type": "Column",
+              "width": "auto",
+              "items": [
+                {
+                  "type": "Container",
+                  "items": [
+                    {
+                      "type": "TextBlock",
+                      "text": "${labels.sharingStream}",
+                      "weight": "Bolder"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "Column",
+              "width": "auto",
+              "items": [
+                {
+                  "type": "Input.ChoiceSet",
+                  "id": "sharing_bot",
+                  "value": "${sharingStream.broadcasterId}",
+                  "choices": [
+                    {
+                      "$data": "${broadcasters}",
+                      "title": "${name}",
+                      "value": "${id}"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "Column",
+              "width": "auto",
+              "items": [
+                {
+                  "type": "Input.ChoiceSet",
+                  "id": "sharing_stream",
+                  "value": "${sharingStream.streamId}",
+                  "choices": [
+                    {
+                      "$data": "${streams.withVideo}",
+                      "title": "${title}",
+                      "value": "${value}"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "spacing": "Large",
+      "verticalContentAlignment": "Center",
+      "horizontalAlignment": "Center"
+    },
+    {
+      "type": "Container",
+      "id": "conferenceSettings",
+      "items": [
+        {
+          "type": "ColumnSet",
+          "columns": [
+            {
+              "type": "Column",
+              "width": "auto",
+              "items": [
+                {
+                  "type": "TextBlock",
+                  "text": "${labels.conferencesToJoin}",
+                  "weight": "Bolder"
+                }
+              ]
+            },
+            {
+              "type": "Column",
+              "width": "auto",
+              "items": [
+                {
+                  "type": "Input.Toggle",
+                  "id": "conferences_all",
+                  "value": "${conferences.useAll}",
+                  "title": "${labels.allConfOrSelection}",
+                  "weight": "Bolder"
+                }
+              ]
+            },
+            {
+              "type": "Column",
+              "width": "auto",
+              "items": [
+                {
+                  "type": "Input.ChoiceSet",
+                  "id": "conferences_selected",
+                  "value": "${conferences.selected}",
+                  "choices": [
+                    {
+                      "$data": "${conferences.data}",
+                      "title": "${name}",
+                      "value": "${id}"
+                    }
+                  ],
+                  "isMultiSelect": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "ColumnSet",
+          "columns": [
+            {
+              "type": "Column",
+              "width": "auto",
+              "items": [
+                {
+                  "type": "Input.Toggle",
+                  "id": "remove_broadcaster",
+                  "value": "${conferences.removeBroadcasterAsMember}",
+                  "title": "${labels.removeBroadcasterAsMember}"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "horizontalAlignment": "Center",
+      "verticalContentAlignment": "Center",
+      "spacing": "Large",
+      "isVisible": false
+    },
+    {
+      "type": "RichTextBlock",
+      "inlines": [
+        {
+          "type": "TextRun",
+          "text": "Conference settings",
+          "selectAction": {
+            "type": "Action.ToggleVisibility",
+            "targetElements": [
+              "conferenceSettings"
+            ]
+          }
+        }
+      ],
+      "horizontalAlignment": "Center",
+      "spacing": "Large"
+    },
+    {
+      "type": "ActionSet",
+      "actions": [
+        {
+          "type": "Action.Submit",
+          "title": "${labels.apply}",
+          "style": "positive",
+          "data": {
+            "rainbow": {
+              "id": "apply",
+              "type": "messageBack",
+              "value": {},
+              "text": ""
+            }
+          }
+        }
+      ],
+      "horizontalAlignment": "Center",
+      "spacing": "Large"
+    }
+  ]
+}

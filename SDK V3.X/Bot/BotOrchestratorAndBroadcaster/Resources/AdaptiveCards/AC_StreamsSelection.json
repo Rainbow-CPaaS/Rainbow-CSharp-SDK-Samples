@@ -1,0 +1,260 @@
+﻿{
+  "body": [
+    {
+      "type": "Image",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/c/ca/1x1.png",
+      "height": "1px",
+      "width": "500px"
+    },
+    {
+      "type": "TextBlock",
+      "text": "${labels.title}",
+      "horizontalAlignment": "Center",
+      "size": "Large",
+      "weight": "Bolder"
+    },
+    {
+      "type": "TextBlock",
+      "text": "Conference __${conferences.current.name}__ is in progress ...",
+      "color": "Accent",
+      "horizontalAlignment": "Center",
+      "isVisible": "${conferences.current.inProgress}"
+    },
+    {
+      "type": "Table",
+      "columns": [
+        {
+          "width": 2
+        },
+        {
+          "width": 3
+        },
+        {
+          "width": 3
+        }
+      ],
+      "rows": [
+// START - Table Headers
+        {
+          "type": "TableRow",
+          "cells": [
+            {
+              "type": "TableCell",
+              "items": [
+                {
+                  "type": "TextBlock",
+                  "text": "${labels.joinConf}",
+                  "horizontalAlignment": "Center"
+                }
+              ]
+            },
+            {
+              "type": "TableCell",
+              "items": [
+                {
+                  "type": "TextBlock",
+                  "text": "${labels.audioStream}",
+                  "horizontalAlignment": "Center"
+                }
+              ]
+            },
+            {
+              "type": "TableCell",
+              "items": [
+                {
+                  "type": "TextBlock",
+                  "text": "${labels.videoStream}",
+                  "horizontalAlignment": "Center"
+                }
+              ]
+            }
+          ]
+        },
+// END - Table Headers
+
+// START - Loop On Broadcasters
+$BROADCASTERS$
+// END - Loop On Broadcasters
+
+      ],
+      "showGridLines": false
+    },
+    {
+      "type": "Container",
+      "items": [
+        {
+          "type": "ColumnSet",
+          "columns": [
+            {
+              "type": "Column",
+              "width": "auto",
+              "items": [
+                {
+                  "type": "Container",
+                  "items": [
+                    {
+                      "type": "TextBlock",
+                      "text": "${labels.sharingStream}",
+                      "weight": "Bolder"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "Column",
+              "width": "auto",
+              "items": [
+                {
+                  "type": "Input.ChoiceSet",
+                  "id": "sharing_bot",
+                  "value": "${sharingStream.broadcasterId}",
+                  "choices": [
+                    {
+                      "$data": "${broadcasters}",
+                      "title": "${name}",
+                      "value": "${id}"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "Column",
+              "width": "auto",
+              "items": [
+                {
+                  "type": "Input.ChoiceSet",
+                  "id": "sharing_stream",
+                  "value": "${sharingStream.streamId}",
+                  "choices": [
+                    {
+                      "$data": "${streams.withVideo}",
+                      "title": "${title}",
+                      "value": "${value}"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "spacing": "Large",
+      "verticalContentAlignment": "Center",
+      "horizontalAlignment": "Center"
+    },
+    {
+      "type": "Container",
+      "id": "conferenceSettings",
+      "items": [
+        {
+          "type": "ColumnSet",
+          "columns": [
+            {
+              "type": "Column",
+              "width": "auto",
+              "items": [
+                {
+                  "type": "TextBlock",
+                  "text": "${labels.conferencesToJoin}",
+                  "weight": "Bolder"
+                }
+              ]
+            },
+            {
+              "type": "Column",
+              "width": "auto",
+              "items": [
+                {
+                  "type": "Input.Toggle",
+                  "id": "conferences_all",
+                  "value": "${conferences.useAll}",
+                  "title": "${labels.allConfOrSelection}"
+                }
+              ]
+            },
+            {
+              "type": "Column",
+              "width": "auto",
+              "items": [
+                {
+                  "type": "Input.ChoiceSet",
+                  "id": "conferences_selected",
+                  "value": "${conferences.selected}",
+                  "choices": [
+                    {
+                      "$data": "${conferences.data}",
+                      "title": "${name}",
+                      "value": "${id}"
+                    }
+                  ],
+                  "isMultiSelect": true
+                }
+              ],
+              "horizontalAlignment": "Left"
+            }
+          ]
+        },
+        {
+          "type": "ColumnSet",
+          "columns": [
+            {
+              "type": "Column",
+              "width": "auto",
+              "items": [
+                {
+                  "type": "Input.Toggle",
+                  "id": "remove_broadcaster",
+                  "value": "${conferences.removeBroadcasterAsMember}",
+                  "title": "${labels.removeBroadcasterAsMember}"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "horizontalAlignment": "Center",
+      "verticalContentAlignment": "Center",
+      "spacing": "Large",
+      "isVisible": false
+    },
+    {
+      "type": "RichTextBlock",
+      "inlines": [
+        {
+          "type": "TextRun",
+          "text": "${labels.conferenceSettings}",
+          "selectAction": {
+            "type": "Action.ToggleVisibility",
+            "targetElements": [
+              "conferenceSettings"
+            ]
+          }
+        }
+      ],
+      "horizontalAlignment": "Center",
+      "spacing": "Large"
+    },
+    {
+      "type": "ActionSet",
+      "actions": [
+        {
+          "type": "Action.Submit",
+          "title": "${labels.apply}",
+          "style": "positive",
+          "data": {
+            "rainbow": {
+              "id": "apply",
+              "type": "messageBack",
+              "value": "$GUID$",
+              "text": ""
+            }
+          }
+        }
+      ],
+      "horizontalAlignment": "Center",
+      "spacing": "Large"
+    }
+  ]
+}

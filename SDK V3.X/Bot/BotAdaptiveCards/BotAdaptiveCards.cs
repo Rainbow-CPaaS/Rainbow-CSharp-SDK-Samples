@@ -8,6 +8,7 @@ using Rainbow.Model;
 using Rainbow.SimpleJSON;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -24,8 +25,8 @@ namespace BotAdaptiveCards
         private InstantMessaging? _rbInstantMessaging = null;
 
         private BotConfigurationExtended? _currentBotConfigurationExtended = null;
-        private MCQInfo _mcQInfo;
-        private Dictionary<String, AccountMCQStatus> _accountMCQStatusList; // Key: Jid of Contact
+        private readonly MCQInfo _mcQInfo;
+        private readonly Dictionary<String, AccountMCQStatus> _accountMCQStatusList; // Key: Jid of Contact
 
         public BotBasicMessages()
         {
@@ -34,7 +35,7 @@ namespace BotAdaptiveCards
             if (!Init())
                 throw new Exception("Cannot Init MCQ questions");
 
-            _accountMCQStatusList = new();
+            _accountMCQStatusList = [];
         }
 
         private Boolean Init()
@@ -42,7 +43,7 @@ namespace BotAdaptiveCards
             String question;
             for (int index = 1; index <= MAX_MCQ_QUESTION; index++)
             {
-                String? jsonData = Helper.GetContentOfEmbeddedResource($"mcqQuestion-data-{index.ToString("00")}.json", System.Text.Encoding.UTF8);
+                String? jsonData = Helper.GetContentOfEmbeddedResource($"mcqQuestion-data-{index:00}.json", System.Text.Encoding.UTF8);
                 if (jsonData == null)
                 {
                     ConsoleAbstraction.WriteLine($"Cannot get info about the question [{index}] ... Configuration cannot be done");
@@ -59,7 +60,7 @@ namespace BotAdaptiveCards
 
                 // Get the question
                 question = jsonNode["question"];
-                List<MCQEntry> entries = new List<MCQEntry>();
+                List<MCQEntry> entries = [];
 
                 // Get items - to get list of possible answers
                 var items = jsonNode["items"];
@@ -90,7 +91,7 @@ namespace BotAdaptiveCards
                     entries.Add(entry);
                 }
 
-                MCQQuestion mcqQuestion = new MCQQuestion()
+                MCQQuestion mcqQuestion = new ()
                 {
                     Entries = entries,
                     Title = question
@@ -213,7 +214,7 @@ namespace BotAdaptiveCards
                             _accountMCQStatusList[contact.Peer.Jid] = accountMCQStatus;
 
                             // Send the first message
-                            SendMCQQuestionAsync(accountMCQStatus);
+                            await SendMCQQuestionAsync(accountMCQStatus);
                         }
                     }
                 }
@@ -250,7 +251,7 @@ namespace BotAdaptiveCards
         /// </summary>
         /// <param name="content"><see cref="Rainbow.Model.Message"/>Message received</param>
         /// <returns></returns>
-        private (Boolean isAdaptiveCardAnswer, String? userAnswer) GetUserAnswerFromMCQQuestionAdaptivCardResponse(Message message)
+        static private (Boolean isAdaptiveCardAnswer, String? userAnswer) GetUserAnswerFromMCQQuestionAdaptivCardResponse(Message message)
         {
             Boolean isAdaptiveCardAnswer = false;
             String? answer = null;
@@ -293,7 +294,7 @@ namespace BotAdaptiveCards
             if ((questionIndex >= 0) && (questionIndex <= MAX_MCQ_QUESTION))
             {
                 String? jsonTemplate = Helper.GetContentOfEmbeddedResource("mcqQuestion-template.json", System.Text.Encoding.UTF8);
-                String? jsonData = Helper.GetContentOfEmbeddedResource($"mcqQuestion-data-{questionIndex.ToString("00")}.json", System.Text.Encoding.UTF8);
+                String? jsonData = Helper.GetContentOfEmbeddedResource($"mcqQuestion-data-{questionIndex:00}.json", System.Text.Encoding.UTF8);
 
                 if ((jsonData != null) && (jsonTemplate != null))
                 {
@@ -306,30 +307,29 @@ namespace BotAdaptiveCards
                     {
                         jsonTemplate = jsonTemplate.Replace("\"isVisible\": false", "\"isVisible\": true"); // To display a Textblock previously not visible
                         jsonTemplate = jsonTemplate.Replace("\"actions\"", "\"noActions\""); // To avoid to display action
-                        jsonTemplate = jsonTemplate.Replace("\"MCQSelection\"", $"\"MCQSelection{questionIndex.ToString("00")}\""); // To avoid to have several time the same ID
+                        jsonTemplate = jsonTemplate.Replace("\"MCQSelection\"", $"\"MCQSelection{questionIndex:00}\""); // To avoid to have several time the same ID
 
                         jsonData = jsonData.Replace("\"userAnswer\": \"\"", $"\"userAnswer\": \"{userAnswer}\"");
                     }
 
                     // Get title of the question
                     var jsonNode = JSON.Parse(jsonData);
-                    message = jsonNode["title"];
-
-                    if (message == null)
-                        message = " "; // => Due to a bug in WebClient must not be empty/null
+                    message = jsonNode["title"] ?? " "; // => Due to a bug in WebClient must not be empty/null
 
                     // Create a Template instance from the template payload
-                    AdaptiveCardTemplate template = new AdaptiveCardTemplate(jsonTemplate);
+                    AdaptiveCardTemplate template = new (jsonTemplate);
 
                     // "Expand" the template - this generates the final Adaptive Card payload
                     string cardJson = template.Expand(jsonData);
 
                     // Create an Message Alternative Content
-                    MessageAlternativeContent messageAlternativeContent = new MessageAlternativeContent();
-                    messageAlternativeContent.Type = "form/json";
-                    messageAlternativeContent.Content = cardJson;
+                    MessageAlternativeContent messageAlternativeContent = new()
+                    {
+                        Type = "form/json",
+                        Content = cardJson
+                    };
                     
-                    alternativeContent = new List<MessageAlternativeContent> { messageAlternativeContent };
+                    alternativeContent = [ messageAlternativeContent ];
                 }
             }
 
@@ -351,8 +351,7 @@ namespace BotAdaptiveCards
                 (String? message, List<MessageAlternativeContent>? alternativeContent) = CreateMCQQuestionAdaptiveCard(accountMCQStatus.CurrentQuestion);
                 if ((message != null) && (alternativeContent != null))
                 {
-                    Boolean result = false;
-                    ManualResetEvent pause = new ManualResetEvent(false);
+                    Boolean result;
                     var sdkResult = await _rbInstantMessaging.SendMessageWithAlternativeContentsAsync(accountMCQStatus.Contact, message, alternativeContent, MessageUrgencyType.Std, null);
                     if (sdkResult.Success)
                     {
@@ -414,8 +413,7 @@ namespace BotAdaptiveCards
                     {
                         if (accountMCQStatus.LastAdaptativeCardMessage != null)
                         {
-                            var sdkResult = await _rbInstantMessaging.EditMessageAsync(accountMCQStatus.LastAdaptativeCardMessage, message, alternativeContent);
-
+                            await _rbInstantMessaging.EditMessageAsync(accountMCQStatus.LastAdaptativeCardMessage, message, alternativeContent);
                             return true;
                         }
                         else
@@ -442,14 +440,14 @@ namespace BotAdaptiveCards
         /// <returns></returns>
         private async Task<Boolean> SendMCQResultAsync(AccountMCQStatus accountMCQStatus)
         {
+            if (_rbInstantMessaging is null) return false;
+
             // Create content on the Adaptive Card
             String adaptiveCardResult = "";
             int correctAnswers = 0;
 
             for (int i = 0; i < MAX_MCQ_QUESTION; i++)
             {
-                var question = _mcQInfo.Questions[i].Title;
-
                 adaptiveCardResult += MCQ.MCQ_RESULT_QUESTION.Replace("{question}", $"Question {i + 1}: {_mcQInfo.Questions[i].Title}");
                 adaptiveCardResult += MCQ.MCQ_RESULT_ANSWER.Replace("{answer}", $"Answer expected: {_mcQInfo.Questions[i].CorrectChoice()}");
 
@@ -481,9 +479,11 @@ namespace BotAdaptiveCards
             var message = "MCQ Test - Result";
 
             // Create an Message Alternative Content
-            MessageAlternativeContent messageAlternativeContent = new MessageAlternativeContent();
-            messageAlternativeContent.Type = "form/json";
-            messageAlternativeContent.Content = adaptiveCardResult;
+            MessageAlternativeContent messageAlternativeContent = new()
+            {
+                Type = "form/json",
+                Content = adaptiveCardResult
+            };
 
             var alternativeContent = new List<MessageAlternativeContent> { messageAlternativeContent };
 

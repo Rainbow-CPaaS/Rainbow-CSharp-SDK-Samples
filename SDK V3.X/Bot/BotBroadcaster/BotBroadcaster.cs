@@ -735,6 +735,7 @@ namespace BotBroadcaster
                         
                         if(conferenceInConfig is null)
                         {
+                            ConsoleAbstraction.WriteWhite($"[{BotName}] - We have to hangup from the conference:[{_conferenceStatus.ConferenceId}]");
                             // We must hangup ... How to do it simply ?
                             RbWebRTCCommunications_CallUpdated(null);
                         }
@@ -918,8 +919,7 @@ namespace BotBroadcaster
             {
                 _currentCall = call;
 
-                _conferencesUpdated = true;
-                StartTaskCheckConferencesAndMedias();
+                PostPoneCancelableDelayToCheckConfigAndConference();
                 return;
             }
             else
@@ -997,7 +997,7 @@ namespace BotBroadcaster
             await Task.CompletedTask;
         }
 
-        public override async Task StoppedAsync(SdkError sdkError)
+        public override async Task StoppedAsync(SdkError? sdkError)
         {
             // TODO - we need to hangup / close all media used
             await Task.CompletedTask;
@@ -1018,11 +1018,14 @@ namespace BotBroadcaster
 
             // BotConfigurationExtended object has been created to store data structure specific for this bot
             // We try to parse JSON Node to fill this data structure and if it's correct we update the broadcast configuration
-            if (BotConfigurationExtended.FromJsonNode(botConfigurationUpdate.JSONNodeBotConfiguration, out BotConfigurationExtended botConfigurationExtended))
+            var botConfigurationExtended = BotConfigurationExtended.FromJsonNode(botConfigurationUpdate.JSONNodeBotConfiguration);
+            if (botConfigurationExtended is not null)
             {
                 _configuration = botConfigurationExtended;
 
-                // On start / reload, we inform StreamManager - perhaps some streams must be connected as soon as possible
+                await UpdateFirstAndLastName(_configuration.FirstName, _configuration.LastName);
+
+                // On start, we inform StreamManager - perhaps some streams must be connected as soon as possible
                 if (botConfigurationUpdate.Context == "configFile")
                     _streamManager.SetNewConfiguration(botConfigurationExtended.Streams?.Values?.ToList(), null);
 

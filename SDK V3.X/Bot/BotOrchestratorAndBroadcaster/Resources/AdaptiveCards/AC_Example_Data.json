@@ -1,0 +1,108 @@
+﻿{
+  "labels": {
+    "title": "112 Surveillance Menu",
+    "joinConf": "Join Conf.:",
+    "audioStream": "Audio Stream:",
+    "videoStream": "Video Stream:",
+    "sharingStream": "Sharing Stream:",
+    "apply": "Apply",
+    "conferencesToJoin": "Conferences to join:",
+    "allConfOrSelection": "All or only selection:",
+    "removeBroadcasterAsMember": "Remove broadcasters as member when conferences are ended"
+  },
+  "conferences": {
+    "useAll": "false",
+    "current": {
+      "name": "Conference 1",
+      "inProgress": "false"
+    },
+    "removeBroadcasterAsMember": "false",
+    "selected": "conf1,conf2,conf4",
+    "data": [
+      {
+        "id": "conf1",
+        "name": "Conference 1"
+      },
+      {
+        "id": "conf2",
+        "name": "Conference 2"
+      },
+      {
+        "id": "conf3",
+        "name": "Conference 3"
+      },
+      {
+        "id": "conf4",
+        "name": "Conference 4"
+      }
+    ]
+  },
+
+  "sharingStream": {
+    "broadcasterId": "bot1",
+    "streamId": "parrot"
+  },
+
+  "broadcasters": [
+    {
+      "id": "bot1",
+      "name": "CCTV 1",
+      "inConf": "true",
+      "audioStreamId": "cars",
+      "videoStreamId": "cars"
+    },
+    {
+      "id": "bot2",
+      "name": "CCTV 2",
+      "inConf": "false",
+      "audioStreamId": "-",
+      "videoStreamId": "traffic"
+    },
+    {
+      "id": "bot3",
+      "name": "CCTV 3",
+      "inConf": "true",
+      "audioStreamId": "-",
+      "videoStreamId": "composition"
+    }
+  ],
+
+  "streams": {
+    "withAudio": [
+      {
+        "title": "-",
+        "value": "-"
+      },
+      {
+        "title": "Cars",
+        "value": "cars"
+      },
+      {
+        "title": "Parrot",
+        "value": "parrot"
+      }
+    ],
+    "withVideo": [
+      {
+        "title": "-",
+        "value": "-"
+      },
+      {
+        "title": "Cars",
+        "value": "cars"
+      },
+      {
+        "title": "Traffic",
+        "value": "traffic"
+      },
+      {
+        "title": "Parrot",
+        "value": "parrot"
+      },
+      {
+        "title": "🧱Composition",
+        "value": "composition"
+      }
+    ]
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "labels": {
+    "title": "112 Surveillance Menu",
+    "joinConf": "Joindre Conf.:",
+    "audioStream": "Flux Audio:",
+    "videoStream": "Flux Vidéo:",
+    "sharingStream": "Flux Partage:",
+    "apply": "Appliquer",
+    "conferencesToJoin": "Conférences à rejoindre:",
+    "allConfOrSelection": "Tous ou cette selection:",
+    "removeBroadcasterAsMember": "Retirer les Broadcasters lorsque les conférences sont terminées",
+    "conferenceSettings": "Conference - Options"
+  }
+}

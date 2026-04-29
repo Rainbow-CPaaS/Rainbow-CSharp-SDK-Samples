@@ -1,0 +1,55 @@
+// Table row to fill for each broadcaster
+// $ID$ must be replaced by the broadcaster number (starting from 0)
+{
+  "type": "TableRow",
+  "cells": [
+    {
+      "type": "TableCell",
+      "items": [
+        {
+          "type": "Input.Toggle",
+          "id": "join_${broadcasters[$ID$].id}",
+          "title": "${broadcasters[$ID$].name}",
+          "value": "${broadcasters[$ID$].inConf}"
+        }
+      ],
+      "horizontalAlignment": "Left"
+    },
+    {
+      "type": "TableCell",
+      "items": [
+        {
+          "type": "Input.ChoiceSet",
+          "id": "audio_${broadcasters[$ID$].id}",
+          "value": "${broadcasters[$ID$].audioStreamId}",
+          "choices": [
+            {
+              "$data": "${streams.withAudio}",
+              "title": "${title}",
+              "value": "${value}"
+            }
+          ]
+        }
+      ],
+      "horizontalAlignment": "Left"
+    },
+    {
+      "type": "TableCell",
+      "items": [
+        {
+          "type": "Input.ChoiceSet",
+          "id": "video_${broadcasters[$ID$].id}",
+          "value": "${broadcasters[$ID$].videoStreamId}",
+          "choices": [
+            {
+              "$data": "${streams.withVideo}",
+              "title": "${title}",
+              "value": "${value}"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "verticalCellContentAlignment": "Center"
+}

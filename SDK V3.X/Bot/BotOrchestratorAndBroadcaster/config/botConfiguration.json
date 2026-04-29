@@ -1,0 +1,98 @@
+{
+  "botConfiguration": {
+    "administrators": {
+      "rainbowAccounts": [
+        {
+          "login": "TO DEFINE - it's an email address"
+        }
+      ],
+      "guestsAccepted": false
+    },
+    "instantMessageAutoAccept": false,
+    "privateMessageAutoAccept": false,
+    "ackMessageAutoAccept": false,
+    "applicationMessageAutoAccept": false,
+    "userInvitationAutoAccept": true,
+    "bubbleInvitationAutoAccept": true,
+    "labels": "labels_EN.json",
+
+    "_comment_broadcasters": "Define one or several broadcasters with their login and password. You can also define first name and last name to update these information for the bot if needed. You can also define default stream id to use for audio, video and sharing for each broadcaster. If inConf is set to true, the bot will try to add the broadcaster as member of the conference(s) defined in conferences section and start stream when the bot will be connected.",
+    "broadcasters": [
+      {
+        "login": "TO DEFINE - it's an email address",
+        "password": "TO DEFINE",
+        "firstName": "TO DEFINE if you want update first name of this bot OR left empty string",
+        "lastName": "TO DEFINE if you want update last name of this bot OR left empty string",
+        "audioStreamId": "TO DEFINE audio stream id to user by default OR left empty string",
+        "videoStreamId": "TO DEFINE video stream id to user by default OR left empty string",
+        "sharingStreamId": "TO DEFINE sharing stream id to user by default OR left empty string",
+        "inConf": "true"
+      }
+    ],
+    "conferences": {
+      "useAll": false,
+      "selected": [
+      ],
+      "removeAsMemberBroadcaster": true
+    },
+    "streams": [
+      {
+        "id": "toefl",
+        "media": "audio+video",
+        "uri": "c:\\media\\TOEFLTest.mp4",
+        "connected": false
+      },
+      {
+        "id": "video PY",
+        "media": "audio+video",
+        "uri": "c:\\media\\videotestorig.mp4",
+        "connected": false
+      },
+      {
+        "id": "jamie",
+        "media": "audio+video",
+        "uri": "c:\\media\\caissedesdepots.mp4",
+        "connected": false
+      },
+      {
+        "id": "rtsp",
+        "media": "audio+video",
+        "uri": "rtsp://URI_TO_DEFINE",
+        "uriSettings": {
+          "rtsp_transport": "tcp",
+          "max_delay": "0"
+        },
+        "connected": false,
+        "forceLiveStream": false
+      },
+      {
+        "id": "compo",
+        "media": "composition",
+        "videoComposition": [
+          "jamie",
+          "toefl"
+        ],
+        "connected": false,
+        "videoFilter": "[0]setpts=PTS-STARTPTS,scale=1920:-2,fps=10[o0]; [1]setpts=PTS-STARTPTS,scale=320:240,fps=10[o1]; [o0][o1]overlay=x=W-w:y=0[overlay]; [overlay]fps=10"
+      },
+      {
+        "id": "compo2",
+        "media": "composition",
+        "videoComposition": [
+          "toefl",
+          "video PY",
+          "rtsp"
+        ],
+        "connected": false,
+        "videoFilter": {
+          "type": "mosaic",
+          "data": {
+            "fps": 10,
+            "sizeVignette": "320x240",
+            "layout": "G"
+          }
+        }
+      }
+    ]
+  }
+}
