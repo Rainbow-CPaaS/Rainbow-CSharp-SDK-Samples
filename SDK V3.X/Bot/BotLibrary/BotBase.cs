@@ -9,6 +9,7 @@ using Rainbow.SimpleJSON;
 using Stateless;
 using Stateless.Graph;
 using System.Collections.Concurrent;
+using System.Net;
 using System.Text;
 
 
@@ -69,7 +70,7 @@ namespace BotLibrary
     {
         public ILogger log;
 
-        private const String BOT_CONFIGURATION = "botConfiguration";
+        public const String BOT_CONFIGURATION = "botConfiguration";
 
         private readonly StateMachine<State, Trigger> _machine;
 
@@ -89,7 +90,7 @@ namespace BotLibrary
         
         private readonly ConcurrentQueue<InternalMessage> _queueInternalMessagesReceived;
 
-        private Credentials _credentials;
+        public Credentials _credentials;
         private BotConfiguration _botConfiguration;
         private JSONNode _jsonNodeBotConfiguration;
 
@@ -218,7 +219,8 @@ namespace BotLibrary
             var jsonNodeBotConfiguration = jsonNode[BOT_CONFIGURATION];
             if (jsonNodeBotConfiguration?.IsObject == true)
             {
-                if (BotConfiguration.FromJsonNode(jsonNodeBotConfiguration, out var botConfiguration))
+                var botConfiguration = BotConfiguration.FromJsonNode(jsonNodeBotConfiguration);
+                if (botConfiguration is not null)
                 {
                     // Check if the bot specified is correct
                     if ( (botConfiguration.Bot is not null) && (_currentContact is not null) && (_currentContact.Peer is not null))
@@ -248,6 +250,8 @@ namespace BotLibrary
 
                     // Store new config
                     _botConfiguration = botConfiguration;
+
+                    await UpdateFirstAndLastName(_botConfiguration.FirstName, _botConfiguration.LastName);
 
                     var botConfigurationUpdate = new BotConfigurationUpdate(jsonNodeBotConfiguration, context, contextData);
                     await BotConfigurationUpdatedAsync(botConfigurationUpdate);
@@ -594,6 +598,8 @@ namespace BotLibrary
                     }
                 }
             }
+
+            await UpdateFirstAndLastName(_botConfiguration.FirstName, _botConfiguration.LastName);
 
             try
             {
@@ -960,6 +966,23 @@ namespace BotLibrary
             get { return _credentials.UsersConfig[0].Prefix; }
         }
 
+        public async Task UpdateFirstAndLastName(String? firstName, String? lastName)
+        {
+            if (_rbApplication?.IsConnected() == true)
+            {
+                if ((firstName is not null) || (lastName is not null))
+                {
+                    var contact = _rbContacts.GetCurrentContact();
+                    if ((contact is not null) && ((contact.FirstName != firstName) || (contact.LastName != lastName)))
+                    {
+                        contact.FirstName = firstName ?? contact.FirstName;
+                        contact.LastName = lastName ?? contact.LastName;
+                        await _rbContacts.UpdateCurrentContactAsync(contact);
+                    }
+                }
+            }
+        }
+
         /// <summary>
         /// To configure the bot - must be called before to use <see cref="Login"/>
         /// </summary>
@@ -968,24 +991,36 @@ namespace BotLibrary
         /// <returns></returns>
         public async Task<Boolean> Configure(JSONNode jsonNodeCredentials, JSONNode jsonNodeBotConfiguration)
         {
+            var credentials = Credentials.FromJsonNode(jsonNodeCredentials);
+            if (credentials?.IsValid() != true)
+            {
+                ConsoleAbstraction.WriteRed($"Cannot read 'credentials' object OR invalid/missing data.");
+                return false;
+            }
+            _jsonNodeBotConfiguration = jsonNodeBotConfiguration;
+            return await Configure(credentials, BotConfiguration.FromJsonNode(jsonNodeBotConfiguration));
+        }
+
+        private async Task<Boolean> Configure(Credentials? credentials, BotConfiguration? botConfiguration)
+        {
             // Check that the trigger can be used
             Trigger triggerToUse = Trigger.Configure;
             if (!_machine.CanFire(triggerToUse))
                 return false;
 
-            _jsonNodeBotConfiguration = jsonNodeBotConfiguration;
-
-            if (!Credentials.FromJsonNode(jsonNodeCredentials, out _credentials))
+            if (credentials is null)
             {
                 ConsoleAbstraction.WriteRed($"Cannot read 'credentials' object OR invalid/missing data.");
                 return false;
             }
-
-            if (!BotConfiguration.FromJsonNode(_jsonNodeBotConfiguration, out _botConfiguration))
+            if (botConfiguration is null)
             {
                 ConsoleAbstraction.WriteRed($"Cannot read 'botConfiguration' object OR invalid/missing data.");
                 return false;
             }
+
+            _credentials = credentials;
+            _botConfiguration = botConfiguration;
 
             // At least one administrator must be set or guests accepted
             if (!((_botConfiguration.GuestsAccepted == true) || (_botConfiguration.Administrators?.Count > 0)))
@@ -1283,11 +1318,10 @@ namespace BotLibrary
         public virtual async Task ConnectedAsync()
         {
             await Task.CompletedTask;
-            return;
         }
         
         // Called when the Bot has been stopped (after too many auto-reconnection attempts or after a logout)
-        public virtual async Task StoppedAsync(SdkError sdkerror)
+        public virtual async Task StoppedAsync(SdkError? sdkerror)
         {
             await Task.CompletedTask;
         }

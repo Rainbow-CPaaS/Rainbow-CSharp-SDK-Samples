@@ -67,7 +67,8 @@ public static class Configuration
         String jsonConfig = File.ReadAllText(credentialsFilePath);
         var jsonNode = JSON.Parse(jsonConfig);
 
-        if (!Credentials.FromJsonNode(jsonNode["credentials"], out Credentials))
+        var credentials = Credentials.FromJsonNode(jsonNode["credentials"]);
+        if (credentials?.IsValid() != true)
         {
             ConsoleAbstraction.WriteRed($"Cannot read 'credentials' object OR invalid/missing data.");
             return false;

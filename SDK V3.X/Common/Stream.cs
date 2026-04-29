@@ -167,27 +167,6 @@ namespace Rainbow.Example.Common
             return false;
         }
 
-        public static JSONNode? ToJsonNode(Stream stream)
-        {
-            if (stream == null) return null;
-
-            var jsonNode = new JSONObject();
-
-            jsonNode["id"] = stream.Id;
-            jsonNode["media"] = stream.Media;
-            jsonNode["uri"] = stream.Uri;
-            if (stream.UriType == "other")
-                jsonNode["uriType"] = null;
-            else
-                jsonNode["uriType"] = stream.UriType;
-            jsonNode["uriSettings"] = stream.UriSettings;
-            jsonNode["videoComposition"] = stream.VideoComposition;
-            jsonNode["videoFilter"] = stream.VideoFilter;
-            jsonNode["forceLiveStream"] = stream.ForceLiveStream;
-
-            return jsonNode;
-        }
-
         public Boolean IsSame(Stream? other)
         {
             if ((other is null)
@@ -220,5 +199,214 @@ namespace Rainbow.Example.Common
             }
             return result;
         }
+
+        public Boolean IsValid()
+        {
+            if (String.IsNullOrEmpty(Id))
+                return false;
+
+            if (!uriTypePossible.Contains(UriType))
+                return false;
+
+            if (!mediaPossible.Contains(Media))
+                return false;
+
+            if (Media.Equals("composition", StringComparison.InvariantCultureIgnoreCase))
+            {
+                if ((VideoComposition is null) || (VideoComposition.Count == 0))
+                    return false;
+            }
+            else
+            {
+                if (String.IsNullOrEmpty(Uri))
+                    return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Check one by one if stream is valid. 
+        /// 
+        /// Check if composition can be well created (i.e. they reference streams known)
+        /// 
+        /// Filters are not checked here.
+        /// </summary>
+        /// <param name="listStreams">List of streams to check</param>
+        /// <returns>list of valid streams </returns>
+        static public List<Stream> GetValidStreams(List<Stream> listStreams)
+        {
+            List<Stream> result = new();
+            if (listStreams is not null)
+            {
+                List<Stream> compositionsList = [];
+
+                // Loop to check stream validity - Store a specific list composition to check them after
+                foreach (var stream in listStreams)
+                {
+                    if (stream?.IsValid() == true)
+                    {
+                        // Store composition a part
+                        if (stream.Media.Equals("composition"))
+                            compositionsList.Add(stream);
+                        else
+                            result.Add(stream);
+                    }
+                }
+
+                // Now check if composition are really useable (i.e. they reference media known)
+                foreach (var stream in compositionsList)
+                {
+                    if (stream.VideoComposition is null)
+                        continue;
+
+                    var streamsFound = result.Where(x => stream.VideoComposition.Contains(x.Id) == true).ToList();
+                    if (streamsFound.Count == stream.VideoComposition.Count)
+                        result.Add(stream);
+                }
+            }
+            return result;
+        }
+
+
+#region FromJSON / ToJSON methods
+
+
+        /// <summary>
+        /// **`static method`** Converts the specified JSON String to its <see cref="Stream"/> equivalent.
+        /// </summary>
+        /// <param name="jsonString"><see cref="String"/>JSON String</param>
+        /// <param name="nodeName"><see cref="String"/>**`Optional - default value: null`** <br/>Node name to use to start parsing</param>
+        /// <returns><see cref="Stream"/> - Stream object or Null on error</returns>
+        public static Stream? FromJson(string jsonString, String? nodeName = null)
+            => FromJsonNode(JSON.Parse(jsonString), nodeName);
+
+        /// <summary>
+        /// **`static method`** Converts the specified <see cref="JSONNode"/> to its <see cref="Stream"/> equivalent.
+        /// </summary>
+        /// <param name="jsonNode"><see cref="JSONNode"/>JSONNode object</param>
+        /// <param name="nodeName"><see cref="String"/>**`Optional - default value: null`** <br/>Node name to use to start parsing</param>
+        /// <returns><see cref="Stream"/> - Stream object or Null on error</returns>
+        public static Stream? FromJsonNode(JSONNode jsonNode, String? nodeName = null)
+        {
+            if ((jsonNode == null) || (!jsonNode.IsObject))
+                return null;
+
+            if (!String.IsNullOrWhiteSpace(nodeName))
+                return FromJsonNode(jsonNode[nodeName]);
+
+            Stream stream = new()
+            {
+                Id = jsonNode["id"],
+                Media = jsonNode["media"],
+                VideoComposition = jsonNode["videoComposition"],
+                Uri = jsonNode["uri"],
+                UriType = jsonNode["uriType"],
+                UriSettings = jsonNode["uriSettings"],
+                Connected = jsonNode["connected"],
+                ForceLiveStream = jsonNode["forceLiveStream"],
+            };
+
+            // Set VideoFilterJsonNode / VideoFilter properties
+            if (jsonNode["videoFilter"]?.IsObject == true)
+                stream.VideoFilterJsonNode = jsonNode["videoFilter"];
+            else
+                stream.VideoFilter = jsonNode["videoFilter"];
+
+            // Check UriType
+            if (String.IsNullOrEmpty(stream.UriType))
+                stream.UriType = "other";
+
+            // Set media according UriType
+            switch (stream.UriType)
+            {
+                case "screen":
+                case "webcam":
+                    stream.Media = "video";
+                    break;
+
+                case "microphone":
+                    stream.Media = "audio";
+                    break;
+            }
+
+            return stream;
+        }
+
+        /// <summary>
+        /// Returns a JSON String equivalent of this <see cref="Stream"/> object.
+        /// </summary>
+        /// <param name="avoidNull"><see cref="Boolean"/>**`Optional - default value: true`** <br/>True to avoid null values</param>
+        /// <param name="indent"><see cref="Boolean"/>**`Optional - default value: false`** <br/>True to indent</param>
+        /// <returns><see cref="String"/> - String on success, Null on error</returns>
+        public String? ToJson(Boolean avoidNull = true, Boolean indent = false)
+            => ToJson(this, avoidNull: avoidNull, indent: indent);
+
+        /// <summary>
+        /// Returns a JSONNode equivalent of this <see cref="Stream"/> object.
+        /// </summary>
+        /// <returns><see cref="JSONNode"/> - JSONNode object</returns>
+        public JSONNode? ToJsonNode()
+            => ToJsonNode(this);
+
+        /// <summary>
+        /// **`static method`** Returns a JSON String equivalent of this <see cref="Stream"/> object.
+        /// </summary>
+        /// <param name="Stream"><see cref="Stream"/>Object to serialize in JSON</param>
+        /// <param name="avoidNull"><see cref="Boolean"/>**`Optional - default value: true`** <br/>True to avoid null values</param>
+        /// <param name="indent"><see cref="Boolean"/>**`Optional - default value: false`** <br/>True to indent</param>
+        /// <returns><see cref="String"/> - String on success, Null on error</returns>
+        public static String? ToJson(Stream Stream, Boolean avoidNull = true, Boolean indent = false)
+            => ToJsonNode(Stream)?.ToString(avoidNull: avoidNull, indent: indent);
+
+        /// <summary>
+        /// **`static method`** Returns a JSONNode equivalent of <see cref="Stream"/> object.
+        /// </summary>
+        /// <param name="stream"><see cref="Stream"/>Stream object</param>
+        /// <returns><see cref="JSONNode"/> - JSONNode on success, Null on error</returns>
+        public static JSONNode? ToJsonNode(Stream stream)
+        {
+            if (stream == null) return null;
+
+            var jsonNode = new JSONObject();
+            jsonNode["id"] = stream.Id;
+            jsonNode["media"] = stream.Media;
+            jsonNode["videoComposition"] = stream.VideoComposition;
+            jsonNode["uri"] = stream.Uri;
+            if (stream.UriType == "other")
+                jsonNode["uriType"] = null;
+            else
+                jsonNode["uriType"] = stream.UriType;
+            jsonNode["uriSettings"] = stream.UriSettings;
+            jsonNode["connected"] = stream.Connected;
+            jsonNode["forceLiveStream"] = stream.ForceLiveStream;
+
+            // Set videoFilter
+            jsonNode["videoFilter"] = stream.VideoFilterJsonNode ?? stream.VideoFilter;
+            //if (stream.VideoFilterJsonNode is not null)
+            //    jsonNode["videoFilter"] = stream.VideoFilterJsonNode;
+            //else
+            //    jsonNode["videoFilter"] = stream.VideoFilter;
+
+            return jsonNode;
+        }
+
+        /// <summary>
+        /// Implicit Constructor from <see cref="Stream"/> list to <see cref="JSONNode"/>.
+        /// </summary>
+        /// <param name="objectToJsonNode"><see cref="Stream"/>Stream</param>
+        public static implicit operator JSONNode?(Stream objectToJsonNode)
+            => ToJsonNode(objectToJsonNode);
+
+        /// <summary>
+        /// Implicit Constructor from <see cref="JSONNode"/> to <see cref="Stream"/> list.
+        /// </summary>s
+        /// <param name="jsonNodeToObject"><see cref="JSONNode"/>JSONNode Value</param>
+        public static implicit operator Stream?(JSONNode jsonNodeToObject)
+            => FromJsonNode(jsonNodeToObject);
+
+#endregion FromJSON / ToJSON methods
+
+
     }
 }

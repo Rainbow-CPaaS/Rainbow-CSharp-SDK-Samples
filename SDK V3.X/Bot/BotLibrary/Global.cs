@@ -4,8 +4,8 @@ namespace BotLibrary
 {
     public class Global
     {
-        private static string? _fileVersion = null;
-        private static string? _productName = null;
+        private static string _fileVersion = "";
+        private static string _productName = "";
 
         private static void GetAssemblyInfo()
         {
@@ -14,16 +14,15 @@ namespace BotLibrary
                 AssemblyName? assemblyName = typeof(Global).Assembly.GetName();
                 if (assemblyName is not null)
                 {
-                    _productName = assemblyName.Name;
-                    _fileVersion = assemblyName.Version?.ToString();
+                    _productName = assemblyName.Name ?? _productName;
+                    _fileVersion = assemblyName.Version?.ToString() ?? _fileVersion;
                 }
             }
-            catch
+            catch 
             {
+                _fileVersion = "0.0.0.1";
+                _productName = "BotLibrary(backup)";
             }
-
-            _productName ??= "BotVideoBroadcaster(backup)";
-            _fileVersion ??= "0.0.0.1";
         }
 
         public static String FileVersion()

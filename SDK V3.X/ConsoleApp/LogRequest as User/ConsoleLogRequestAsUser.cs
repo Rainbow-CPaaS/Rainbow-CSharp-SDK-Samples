@@ -290,7 +290,8 @@ Boolean ReadCredentials(string fileName = "credentials.json", Boolean credential
     String jsonConfig = File.ReadAllText(credentialsFilePath);
     var jsonNode = JSON.Parse(jsonConfig);
 
-    if (!Credentials.FromJsonNode(jsonNode["credentials"], out credentials, credentialsCanBeEmpty))
+    var credentials = Credentials.FromJsonNode(jsonNode["credentials"]);
+    if (credentials?.IsValid() != true)
     {
         ConsoleAbstraction.WriteRed($"Cannot read 'credentials' object OR invalid/missing data in file:[{fileName}].");
         return false;

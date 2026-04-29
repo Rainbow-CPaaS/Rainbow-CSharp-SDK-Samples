@@ -993,51 +993,47 @@ namespace ConsoleMediaPlayer
                 return false;
             }
 
-            var jsonExeSettings = jsonNode["streams"];
-            if (jsonExeSettings?.IsArray == true)
-            {
-                List<Stream> compositionsList = [];
-                _streamsList = [];
-                foreach (var node in jsonExeSettings.Values)
-                {
-                    if (Stream.FromJsonNode(node, out Stream stream))
-                    {
-                        // Don't add composition nonw - we must ensure to have related video stream to use them
-                        if (stream.Media.Equals("composition"))
-                            compositionsList.Add(stream);
-                        else
-                            _streamsList.Add(stream);
-                    }
-                }
-
-                // Check if media with composition are really useable (i.e. they reference media known)
-                foreach (var stream in compositionsList)
-                {
-                    if (stream.VideoComposition is null)
-                        continue;
-
-                    var streamsFound = _streamsList.Where(x => stream.VideoComposition.Contains(x.Id) == true).ToList();
-                    if (streamsFound.Count == stream.VideoComposition.Count)
-                        _streamsList.Add(stream);
-                }
-
-
-                if (_streamsList.Count == 0)
-                {
-                    ConsoleAbstraction.WriteRed($"Cannot read 'streams' object (no Stream object created) - file:'{_streamsFilePath}'.");
-                    return false;
-                }
-            }
-            else
+            _streamsList = JSON.ToList<Stream>(jsonNode["streams"], Stream.FromJsonNode);
+            if( (_streamsList is null) || (_streamsList.Count == 0))
             {
                 ConsoleAbstraction.WriteRed($"Cannot read 'streams' object OR invalid/missing data - file:'{_streamsFilePath}'.");
+                return false;
+            }
+
+            _streamsList = Stream.GetValidStreams(_streamsList);
+            if ((_streamsList is null) || (_streamsList.Count == 0))
+            {
+                ConsoleAbstraction.WriteRed($"No valid 'streams' object - file:'{_streamsFilePath}'.");
                 return false;
             }
 
             _autoPlayAudio = jsonNode["autoPlayAudio"];
             _autoPlayVideo = jsonNode["autoPlayVideo"];
             _autoPlaySharing = jsonNode["autoPlaySharing"];
+
+            SaveStreamsSettings();
             return true;
+        }
+
+        static void SaveStreamsSettings()
+        {
+            var filePath = $".{Path.DirectorySeparatorChar}config{Path.DirectorySeparatorChar}streams_saved.json";
+
+            if (_streamsList is null)
+            {
+                File.Delete(filePath);
+                return;
+            }
+
+            var jsonNode = new JSONObject();
+            jsonNode["streams"] = JSON.ToJSONArray(_streamsList, Stream.ToJsonNode);
+            jsonNode["autoPlayAudio"] = _autoPlayAudio;
+            jsonNode["autoPlayVideo"] = _autoPlayVideo;
+            jsonNode["autoPlaySharing"] = _autoPlaySharing;
+
+            // Get json string and store it to  file
+            var str = jsonNode.ToString(indent: true);
+            File.WriteAllText(filePath, str);
         }
 
         static Boolean ReadExeSettings()
