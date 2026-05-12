@@ -317,7 +317,7 @@ public class BotWindow : Window
     {
         if (ShVersion is { })
         {
-            ShVersion.Title = $"{RuntimeEnvironment.OperatingSystem} {RuntimeEnvironment.OperatingSystemVersion}, {Tools.Application?.Driver?.GetVersionInfo()}";
+            ShVersion.Title = $"{RuntimeEnvironment.OperatingSystem} {RuntimeEnvironment.OperatingSystemVersion}, {Tools.Application?.Driver?.GetName()}";
         }
     }
 }
