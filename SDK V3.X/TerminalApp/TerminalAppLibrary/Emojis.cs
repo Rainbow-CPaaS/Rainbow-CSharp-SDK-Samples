@@ -2,7 +2,7 @@
 {
     // Check "CharacterMap.cs" from UICatalog example of Terminalg.GUI to check Emoji availables
     // Need to add a space to have a correct display
-    public const String GUEST           = "𝓰";
+    public static String GUEST           = Char.ConvertFromUtf32(0x0001d4f0) + " "; //"𝓰"
 
     public const String ONE_MEMBER      = "👤";
     public const String TWO_MEMBERS     = "👥";
@@ -15,12 +15,12 @@
     public const String NO_NOTIFICATION = "🔕";
     public const String TAG             = "🔖";
     public const String CONFERENCE      = "🗣️";
-    public const String PRESENTATION    = "🎞️ "; // Need extra space for correct display
+    public static String PRESENTATION    = Char.ConvertFromUtf32(0x0001f39e) + " "; //🎞️
 
     public const String WARNING         = "\u26a0 "; // ⚠
     public const String TIMER           = "\u23F1 "; // ⏱
     public const String CALENDAR2       = "\u23F2 "; // ⏲
-    public const String CALENDAR        = "🗓️ ";
+    public static String CALENDAR        = Char.ConvertFromUtf32(0x0001f5d3) + " "; //🗓
 
     public const String THREE_DOTS      = "\u2026 "; // …
 

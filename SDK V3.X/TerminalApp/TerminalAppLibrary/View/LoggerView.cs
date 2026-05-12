@@ -102,10 +102,14 @@ public partial class LoggerView: View
 
     public void AddScheme(String id, String schemeName, params String[] key)
     {
-        lock(lockRegexes)
-            schemesById[id] = SchemeManager.GetScheme(schemeName);
+        try
+        {
+            lock (lockRegexes)
+                schemesById[id] = SchemeManager.GetScheme(schemeName);
 
-        AddKeyForRegex(id, key);
+            AddKeyForRegex(id, key);
+        }
+        catch { }
     }
     
     public void AddKeyForRegex(String color, params String[] key)

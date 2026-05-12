@@ -265,6 +265,7 @@ public partial class HybridTelephonyCallForwardView : View
         }
 
         contextMenu = new(menuItems);
+        Tools.Application.Popovers?.Register(contextMenu);
         contextMenu.MakeVisible(e.ScreenPosition);
     }
 

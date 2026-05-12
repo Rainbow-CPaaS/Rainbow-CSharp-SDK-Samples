@@ -399,6 +399,7 @@ public partial class HybridTelephonyMakeCallView : View
         }
 
         contextMenu = new(menuItems);
+        Tools.Application.Popovers?.Register(contextMenu);
         contextMenu.MakeVisible(e.ScreenPosition);
     }
 

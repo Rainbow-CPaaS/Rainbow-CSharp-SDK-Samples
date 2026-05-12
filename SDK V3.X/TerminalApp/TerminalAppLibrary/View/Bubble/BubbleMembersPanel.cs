@@ -505,6 +505,7 @@ public class BubbleMembersPanel: View
                     if (menuItems.Count > 0)
                     {
                         contextMenu = new(menuItems);
+                        Tools.Application.Popovers?.Register(contextMenu);
                         contextMenu.MakeVisible(e.Mouse.ScreenPosition);
                     }
                 }
@@ -532,8 +533,8 @@ public class BubbleMembersPanel: View
                     menuItems.Add(item);
 
                     contextMenu = new(menuItems);
+                    Tools.Application.Popovers?.Register(contextMenu);
                     contextMenu.MakeVisible(e.Mouse.ScreenPosition);
-
                 }
             }
         }

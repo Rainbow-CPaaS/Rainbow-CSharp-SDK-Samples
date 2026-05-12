@@ -94,42 +94,46 @@ public class PresenceColorView : View
 
     private void SetScheme(string schemeName)
     {
-        if (SchemeName != schemeName)
+        try
         {
-            SchemeName = schemeName;
-            Scheme scheme;
-            switch (schemeName)
+            if (SchemeName != schemeName)
             {
-                case "InvitationInProgress":
-                    scheme = SchemeManager.GetScheme("PresenceInvitationInProgress");
-                    break;
-                case "Bubble":
-                    scheme = SchemeManager.GetScheme(Tools.DEFAULT_SCHEME_NAME);
-                    break;
-                case "Unavailable":
-                    scheme = SchemeManager.GetScheme(Tools.DEFAULT_SCHEME_NAME); // /!\ seems not necessary to use specific Scheme
-                    break;
-                case "Online":
-                    scheme = SchemeManager.GetScheme("PresenceOnline");
-                    break;
-                case "Offline":
-                    scheme = SchemeManager.GetScheme("PresenceOffline");
-                    break;
-                case "Away":
-                    scheme = SchemeManager.GetScheme("PresenceAway");
-                    break;
-                case "DndOrBusy":
-                    scheme = SchemeManager.GetScheme("PresenceDndOrBusy");
-                    break;
+                SchemeName = schemeName;
+                Scheme scheme;
+                switch (schemeName)
+                {
+                    case "InvitationInProgress":
+                        scheme = SchemeManager.GetScheme("PresenceInvitationInProgress");
+                        break;
+                    case "Bubble":
+                        scheme = SchemeManager.GetScheme(Tools.DEFAULT_SCHEME_NAME);
+                        break;
+                    case "Unavailable":
+                        scheme = SchemeManager.GetScheme(Tools.DEFAULT_SCHEME_NAME); // /!\ seems not necessary to use specific Scheme
+                        break;
+                    case "Online":
+                        scheme = SchemeManager.GetScheme("PresenceOnline");
+                        break;
+                    case "Offline":
+                        scheme = SchemeManager.GetScheme("PresenceOffline");
+                        break;
+                    case "Away":
+                        scheme = SchemeManager.GetScheme("PresenceAway");
+                        break;
+                    case "DndOrBusy":
+                        scheme = SchemeManager.GetScheme("PresenceDndOrBusy");
+                        break;
 
-                default:
-                    // This case should never occurs - just in case
-                    scheme = SchemeManager.GetScheme(Tools.DEFAULT_SCHEME_NAME);
-                    break;
+                    default:
+                        // This case should never occurs - just in case
+                        scheme = SchemeManager.GetScheme(Tools.DEFAULT_SCHEME_NAME);
+                        break;
+                }
+
+                SetScheme(scheme);
             }
-
-            SetScheme(scheme);
         }
+        catch { }
     }
 
     private void SetPresenceColor(String schemeName, char chr)

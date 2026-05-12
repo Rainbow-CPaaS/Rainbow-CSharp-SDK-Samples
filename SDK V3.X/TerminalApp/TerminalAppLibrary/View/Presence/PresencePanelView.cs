@@ -144,6 +144,7 @@ public class PresencePanelView: View
         }
 
         contextMenu = new(menuItems);
+        Tools.Application.Popovers?.Register(contextMenu);
         contextMenu.MakeVisible(e.ScreenPosition);
     }
 
@@ -381,9 +382,7 @@ public class PresencePanelView: View
         menuItems.Add(menuItem);
 
         contextMenu = new(menuItems);
-
         Tools.Application?.Popovers.Register(contextMenu);
-
         contextMenu.MakeVisible(BotWindow.MousePosition);        
     }
 
