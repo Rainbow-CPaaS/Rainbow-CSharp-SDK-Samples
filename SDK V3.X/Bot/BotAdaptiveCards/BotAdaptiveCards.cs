@@ -46,7 +46,7 @@ namespace BotAdaptiveCards
                 String? jsonData = Helper.GetContentOfEmbeddedResource($"mcqQuestion-data-{index:00}.json", System.Text.Encoding.UTF8);
                 if (jsonData == null)
                 {
-                    ConsoleAbstraction.WriteLine($"Cannot get info about the question [{index}] ... Configuration cannot be done");
+                    ConsoleAbstraction.WriteLine($"Cannot get info about the question [{index}] ... Configuration cannot be done", logger: log);
                     return false;
                 }
 
@@ -54,7 +54,7 @@ namespace BotAdaptiveCards
                 var jsonNode = JSON.Parse(jsonData);
                 if (jsonNode?.IsObject != true)
                 {
-                    ConsoleAbstraction.WriteLine($"Info about the question [{index}] is not a valid JSON... Configuration cannot be done");
+                    ConsoleAbstraction.WriteLine($"Info about the question [{index}] is not a valid JSON... Configuration cannot be done", logger: log);
                     return false;
                 }
 
@@ -66,7 +66,7 @@ namespace BotAdaptiveCards
                 var items = jsonNode["items"];
                 if (items == null)
                 {
-                    ConsoleAbstraction.WriteLine($"Info about the question [{index}] is not correct - cannot get items... Configuration cannot be done");
+                    ConsoleAbstraction.WriteLine($"Info about the question [{index}] is not correct - cannot get items... Configuration cannot be done", logger: log);
                     return false;
                 }
 
@@ -79,7 +79,7 @@ namespace BotAdaptiveCards
 
                     if ((choice == null) || (value == null))
                     {
-                        ConsoleAbstraction.WriteLine($"Info about the question [{index}] is not correct - cannot get item info ... Configuration cannot be done");
+                        ConsoleAbstraction.WriteLine($"Info about the question [{index}] is not correct - cannot get item info ... Configuration cannot be done", logger: log);
                         return false;
                     }
                     var entry = new MCQEntry()
@@ -124,7 +124,7 @@ namespace BotAdaptiveCards
                         if ((userMCQStatus.CurrentQuestion > 0) && (userMCQStatus.CurrentQuestion <= MAX_MCQ_QUESTION))
                         {
                             userMCQStatus.Answers[userMCQStatus.CurrentQuestion - 1] = userAnswer;
-                            ConsoleAbstraction.WriteDarkYellow($"[{userMCQStatus.Contact.LoginEmail}] answered to question [{userMCQStatus.CurrentQuestion - 1}] with answer :[{userAnswer}]");
+                            ConsoleAbstraction.WriteDarkYellow($"[{userMCQStatus.Contact.LoginEmail}] answered to question [{userMCQStatus.CurrentQuestion - 1}] with answer :[{userAnswer}]", logger: log);
                         }
 
                         // Edit previous Adaptive Card
@@ -203,7 +203,7 @@ namespace BotAdaptiveCards
                     var contact = await GetContactAsync(account);
                     if(contact is null)
                     {
-                        ConsoleAbstraction.WriteRed($"Cannot find a Contact using this Account:[{account}]");
+                        ConsoleAbstraction.WriteRed($"Cannot find a Contact using this Account:[{account}]", logger: log);
                     }
                     else
                     {
@@ -368,7 +368,7 @@ namespace BotAdaptiveCards
                 }
                 else
                 {
-                    ConsoleAbstraction.WriteRed($"We have a problem to create Adaptive Card for question [{accountMCQStatus.CurrentQuestion}]");
+                    ConsoleAbstraction.WriteRed($"We have a problem to create Adaptive Card for question [{accountMCQStatus.CurrentQuestion}]", logger: log);
                     return false;
                 }
             }
@@ -418,13 +418,13 @@ namespace BotAdaptiveCards
                         }
                         else
                         {
-                            ConsoleAbstraction.WriteLine($"We don't have a valid Message from the previoude Adaptative Card send.");
+                            ConsoleAbstraction.WriteLine($"We don't have a valid Message from the previoude Adaptative Card send.", logger: log);
                             return false;
                         }
                     }
                     else
                     {
-                        ConsoleAbstraction.WriteLine($"We have a problem to create Adaptive Card for question [{questionIndex}]");
+                        ConsoleAbstraction.WriteLine($"We have a problem to create Adaptive Card for question [{questionIndex}]", logger: log);
                         return false;
                     }
                 }
@@ -474,7 +474,7 @@ namespace BotAdaptiveCards
 
             adaptiveCardResult = MCQ.MCQ_RESULT_HEADER.Replace("{result}", $"MCQ Test - Result: {correctAnswers} / {MAX_MCQ_QUESTION}") + adaptiveCardResult;
 
-            ConsoleAbstraction.WriteLine($"[{accountMCQStatus.Contact.LoginEmail}] has finished his test - Result: {correctAnswers} / {MAX_MCQ_QUESTION}");
+            ConsoleAbstraction.WriteLine($"[{accountMCQStatus.Contact.LoginEmail}] has finished his test - Result: {correctAnswers} / {MAX_MCQ_QUESTION}", logger: log);
 
             var message = "MCQ Test - Result";
 

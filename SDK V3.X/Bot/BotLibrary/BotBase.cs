@@ -9,7 +9,6 @@ using Rainbow.SimpleJSON;
 using Stateless;
 using Stateless.Graph;
 using System.Collections.Concurrent;
-using System.Net;
 using System.Text;
 
 
@@ -201,7 +200,7 @@ namespace BotLibrary
                 .SubstateOf(State.Connected)
                 .Permit(Trigger.NextStep, State.CheckingDataAvailability);
 
-            _machine.OnUnhandledTrigger((state, trigger) => ConsoleAbstraction.WriteRed($"[{BotName}] OnUnhandledTrigger - State: {state} with Trigger: {trigger}"));
+            _machine.OnUnhandledTrigger((state, trigger) => ConsoleAbstraction.WriteRed($"[{BotName}] OnUnhandledTrigger - State: {state} with Trigger: {trigger}", logger: log));
 
             _machine.OnTransitionCompleted(transition => {
                 // Store the trigger used
@@ -209,7 +208,7 @@ namespace BotLibrary
 
                 // Log info about transition
                 var parameters = string.Join(", ", transition.Parameters);
-                ConsoleAbstraction.WriteGreen($"[{DateTime.Now:HH:mm:ss.fff}][{_credentials.UsersConfig[0].Prefix}] State [{transition.Destination}] from [{transition.Source}] with Trigger: [{transition.Trigger}]{(String.IsNullOrEmpty(parameters) ? "" : " Parameter(s):[" + parameters + "]")}");
+                ConsoleAbstraction.WriteGreen($"[{BotName}] State [{transition.Destination}] from [{transition.Source}] with Trigger: [{transition.Trigger}]{(String.IsNullOrEmpty(parameters) ? "" : " Parameter(s):[" + parameters + "]")}", logger: log);
             });
         }
 
@@ -645,7 +644,7 @@ namespace BotLibrary
         private Boolean CreateRainbowObjects()
         {
             _rbAutoReconnection = _rbApplication.GetAutoReconnection();
-            _rbAutoReconnection.MaxNbAttempts = 5; // For tests purpose we use here a low value
+            //_rbAutoReconnection.MaxNbAttempts = 5; // For tests purpose we use here a low value
 
             _rbBubbles = _rbApplication.GetBubbles();
             _rbContacts = _rbApplication.GetContacts();
@@ -1297,7 +1296,6 @@ namespace BotLibrary
                 SendReadReceipt = true,
                 SendMessageToConnectedUser = false,
                 StoreMessages = true,
-                MessageMaxLength = 16384,
 
                 // Log - Option (For dev purpose we want maximum info in logs)
                 LogRestRequestOnError   = true,

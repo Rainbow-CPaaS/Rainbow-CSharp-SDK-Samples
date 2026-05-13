@@ -1,6 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
 using System.Globalization;
-using System.IO;
 using System.Text;
 
 public static class ConsoleAbstraction
@@ -106,8 +105,6 @@ public static class ConsoleAbstraction
         return CharToConsoleKeyInfo(buffer[0]);
     }
 
-
-
     /// <summary>
     /// Abstract "Console.ReadLine" to be compatible even in VS Code Debug console
     /// </summary>
@@ -196,60 +193,72 @@ public static class ConsoleAbstraction
     }
 
     // Yellow => To display information with user's interactions
-    public static void WriteYellow(String message)
+    public static void WriteYellow(String message, ILogger? logger = null)
     {
-        WriteLine(YELLOW + message);
+        WriteLine(message, YELLOW, logger); 
     }
 
     // DarkYellow => To confirm user choice
-    public static void WriteDarkYellow(String message)
+    public static void WriteDarkYellow(String message, ILogger? logger = null)
     {
-        WriteLine(DARK_YELLOW + message);
+        WriteLine(message, DARK_YELLOW, logger);
     }
 
-    public static void WriteWhite(String message)
+    public static void WriteWhite(String message, ILogger? logger = null)
     {
-        WriteLine(WHITE + message);
+        WriteLine(message, WHITE, logger);
     }
 
     // Red => Error occurs or major event occurs
-    public static void WriteRed(String message)
+    public static void WriteRed(String message, ILogger? logger = null)
     {
-        WriteLine(RED + message);
+        WriteLine(message, RED, logger);
     }
 
     // WriteGreen => to indicate a process is in progress
-    public static void WriteGreen(String message)
+    public static void WriteGreen(String message, ILogger? logger = null)
     {
-        WriteLine(GREEN + message);
+        WriteLine(message, GREEN, logger); 
     }
 
     // Blue => To display event result
-    public static void WriteBlue(String message)
+    public static void WriteBlue(String message, ILogger? logger = null)
     {
-        WriteLine(BLUE + message);
+        WriteLine(message, BLUE, logger);
     }
 
-    public static void WriteGray(String message)
+    public static void WriteGray(String message, ILogger? logger = null)
     {
-        WriteLine(GRAY + message);
+        WriteLine(message, GRAY, logger);
     }
 
-    public static void WriteLine(object? obj)
+    public static void WriteLine(object? obj, ILogger? logger = null)
     {
-        WriteLine(obj?.ToString() ?? "");
+        if(obj is not null)
+            WriteLine(obj.ToString() ?? "", logger: logger);
     }
 
-    public static void WriteLine(String message, params object?[]? args)
+    public static void WriteLine(String message, String? format = null, ILogger? logger = null, params object?[]? args)
     {
         Init();
         lock (consoleLockObject)
         {
-            if(!String.IsNullOrEmpty(message))
+            if (String.IsNullOrEmpty(message)) return;
+
+            // Add to logger
+            logger?.LogInformation(message);
+
+            // Add Date Time at the beginning of the message
+            message = $"[{DateTime.Now:HH:mm:ss.fff}]{message}";
+
+            if (!String.IsNullOrEmpty(message))
                 // Unsure to return to default mode
                 message += NO_BOLD + NO_FAINT + NO_ITALIC + NO_UNDERLINE + NO_BLINK + NO_REVERSE + NO_STRIKE + DEFAULT + BC_DEFAULT;
 
-            if(args is not null && args.Length > 0)
+            if (!String.IsNullOrEmpty(format))
+                message = format + message;
+
+            if (args is not null && args.Length > 0)
                 System.Console.WriteLine(message, args);
             else
                 System.Console.WriteLine(message);
@@ -259,35 +268,39 @@ public static class ConsoleAbstraction
     public static void WriteDemoOutput()
     {
         Init();
-        WriteLine($"NORMAL: {BLACK}BLACK {DARK_RED}DARK_RED {DARK_GREEN}DARK_GREEN {DARK_YELLOW}DARK_YELLOW {DARK_BLUE}DARK_BLUE {DARK_MAGENTA}DARK_MAGENTA {DARK_CYAN}DARK_CYAN {GRAY}GRAY");
-        WriteLine($"NORMAL: {DARK_GRAY}DARK_GRAY {RED}RED {GREEN}GREEN {YELLOW}YELLOW {BLUE}BLUE {MAGENTA}MAGENTA {CYAN}CYAN {WHITE}WHITE");
 
-        WriteLine($"BOLD: {BOLD}{BLACK}BLACK {DARK_RED}DARK_RED {DARK_GREEN}DARK_GREEN {DARK_YELLOW}DARK_YELLOW {DARK_BLUE}DARK_BLUE {DARK_MAGENTA}DARK_MAGENTA {DARK_CYAN}DARK_CYAN {GRAY}GRAY");
-        WriteLine($"BOLD: {BOLD}{DARK_GRAY}DARK_GRAY {RED}RED {GREEN}GREEN {YELLOW}YELLOW {BLUE}BLUE {MAGENTA}MAGENTA {CYAN}CYAN {WHITE}WHITE");
+        StringBuilder stringBuilder = new();
+        stringBuilder.Append($"{CR}NORMAL: {BLACK}BLACK {DARK_RED}DARK_RED {DARK_GREEN}DARK_GREEN {DARK_YELLOW}DARK_YELLOW {DARK_BLUE}DARK_BLUE {DARK_MAGENTA}DARK_MAGENTA {DARK_CYAN}DARK_CYAN {GRAY}GRAY");
+        stringBuilder.Append($"{CR}NORMAL: {DARK_GRAY}DARK_GRAY {RED}RED {GREEN}GREEN {YELLOW}YELLOW {BLUE}BLUE {MAGENTA}MAGENTA {CYAN}CYAN {WHITE}WHITE");
 
-        WriteLine($"FAINT: {FAINT}{BLACK}BLACK {DARK_RED}DARK_RED {DARK_GREEN}DARK_GREEN {DARK_YELLOW}DARK_YELLOW {DARK_BLUE}DARK_BLUE {DARK_MAGENTA}DARK_MAGENTA {DARK_CYAN}DARK_CYAN {GRAY}GRAY");
-        WriteLine($"FAINT: {FAINT}{DARK_GRAY}DARK_GRAY {RED}RED {GREEN}GREEN {YELLOW}YELLOW {BLUE}BLUE {MAGENTA}MAGENTA {CYAN}CYAN {WHITE}WHITE");
+        stringBuilder.Append($"{CR}BOLD: {BOLD}{BLACK}BLACK {DARK_RED}DARK_RED {DARK_GREEN}DARK_GREEN {DARK_YELLOW}DARK_YELLOW {DARK_BLUE}DARK_BLUE {DARK_MAGENTA}DARK_MAGENTA {DARK_CYAN}DARK_CYAN {GRAY}GRAY");
+        stringBuilder.Append($"{CR}BOLD: {BOLD}{DARK_GRAY}DARK_GRAY {RED}RED {GREEN}GREEN {YELLOW}YELLOW {BLUE}BLUE {MAGENTA}MAGENTA {CYAN}CYAN {WHITE}WHITE");
 
-        WriteLine($"ITALIC: {ITALIC}{BLACK}BLACK {DARK_RED}DARK_RED {DARK_GREEN}DARK_GREEN {DARK_YELLOW}DARK_YELLOW {DARK_BLUE}DARK_BLUE {DARK_MAGENTA}DARK_MAGENTA {DARK_CYAN}DARK_CYAN {GRAY}GRAY");
-        WriteLine($"ITALIC: {ITALIC}{DARK_GRAY}DARK_GRAY {RED}RED {GREEN}GREEN {YELLOW}YELLOW {BLUE}BLUE {MAGENTA}MAGENTA {CYAN}CYAN {WHITE}WHITE");
+        stringBuilder.Append($"{CR}FAINT: {FAINT}{BLACK}BLACK {DARK_RED}DARK_RED {DARK_GREEN}DARK_GREEN {DARK_YELLOW}DARK_YELLOW {DARK_BLUE}DARK_BLUE {DARK_MAGENTA}DARK_MAGENTA {DARK_CYAN}DARK_CYAN {GRAY}GRAY");
+        stringBuilder.Append($"{CR}FAINT: {FAINT}{DARK_GRAY}DARK_GRAY {RED}RED {GREEN}GREEN {YELLOW}YELLOW {BLUE}BLUE {MAGENTA}MAGENTA {CYAN}CYAN {WHITE}WHITE");
 
-        WriteLine($"REVERSE: {REVERSE}{BLACK}BLACK {DARK_RED}DARK_RED {DARK_GREEN}DARK_GREEN {DARK_YELLOW}DARK_YELLOW {DARK_BLUE}DARK_BLUE {DARK_MAGENTA}DARK_MAGENTA {DARK_CYAN}DARK_CYAN {GRAY}GRAY");
-        WriteLine($"REVERSE: {REVERSE}{DARK_GRAY}DARK_GRAY {RED}RED {GREEN}GREEN {YELLOW}YELLOW {BLUE}BLUE {MAGENTA}MAGENTA {CYAN}CYAN {WHITE}WHITE");
+        stringBuilder.Append($"{CR}ITALIC: {ITALIC}{BLACK}BLACK {DARK_RED}DARK_RED {DARK_GREEN}DARK_GREEN {DARK_YELLOW}DARK_YELLOW {DARK_BLUE}DARK_BLUE {DARK_MAGENTA}DARK_MAGENTA {DARK_CYAN}DARK_CYAN {GRAY}GRAY");
+        stringBuilder.Append($"{CR}ITALIC: {ITALIC}{DARK_GRAY}DARK_GRAY {RED}RED {GREEN}GREEN {YELLOW}YELLOW {BLUE}BLUE {MAGENTA}MAGENTA {CYAN}CYAN {WHITE}WHITE");
 
-        WriteLine($"BLINK: {BLINK}{BLACK}BLACK {DARK_RED}DARK_RED {DARK_GREEN}DARK_GREEN {DARK_YELLOW}DARK_YELLOW {DARK_BLUE}DARK_BLUE {DARK_MAGENTA}DARK_MAGENTA {DARK_CYAN}DARK_CYAN {GRAY}GRAY");
-        WriteLine($"BLINK: {BLINK}{DARK_GRAY}DARK_GRAY {RED}RED {GREEN}GREEN {YELLOW}YELLOW {BLUE}BLUE {MAGENTA}MAGENTA {CYAN}CYAN {WHITE}WHITE");
+        stringBuilder.Append($"{CR}REVERSE: {REVERSE}{BLACK}BLACK {DARK_RED}DARK_RED {DARK_GREEN}DARK_GREEN {DARK_YELLOW}DARK_YELLOW {DARK_BLUE}DARK_BLUE {DARK_MAGENTA}DARK_MAGENTA {DARK_CYAN}DARK_CYAN {GRAY}GRAY");
+        stringBuilder.Append($"{CR}REVERSE: {REVERSE}{DARK_GRAY}DARK_GRAY {RED}RED {GREEN}GREEN {YELLOW}YELLOW {BLUE}BLUE {MAGENTA}MAGENTA {CYAN}CYAN {WHITE}WHITE");
 
-        WriteLine($"UNDERLINE: {UNDERLINE}{BLACK}BLACK {DARK_RED}DARK_RED {DARK_GREEN}DARK_GREEN {DARK_YELLOW}DARK_YELLOW {DARK_BLUE}DARK_BLUE {DARK_MAGENTA}DARK_MAGENTA {DARK_CYAN}DARK_CYAN {GRAY}GRAY");
-        WriteLine($"UNDERLINE: {UNDERLINE}{DARK_GRAY}DARK_GRAY {RED}RED {GREEN}GREEN {YELLOW}YELLOW {BLUE}BLUE {MAGENTA}MAGENTA {CYAN}CYAN {WHITE}WHITE");
+        stringBuilder.Append($"{CR}BLINK: {BLINK}{BLACK}BLACK {DARK_RED}DARK_RED {DARK_GREEN}DARK_GREEN {DARK_YELLOW}DARK_YELLOW {DARK_BLUE}DARK_BLUE {DARK_MAGENTA}DARK_MAGENTA {DARK_CYAN}DARK_CYAN {GRAY}GRAY");
+        stringBuilder.Append($"{CR}BLINK: {BLINK}{DARK_GRAY}DARK_GRAY {RED}RED {GREEN}GREEN {YELLOW}YELLOW {BLUE}BLUE {MAGENTA}MAGENTA {CYAN}CYAN {WHITE}WHITE");
 
-        WriteLine($"STRIKE: {STRIKE}{BLACK}BLACK {DARK_RED}DARK_RED {DARK_GREEN}DARK_GREEN {DARK_YELLOW}DARK_YELLOW {DARK_BLUE}DARK_BLUE {DARK_MAGENTA}DARK_MAGENTA {DARK_CYAN}DARK_CYAN {GRAY}GRAY");
-        WriteLine($"STRIKE: {STRIKE}{DARK_GRAY}DARK_GRAY {RED}RED {GREEN}GREEN {YELLOW}YELLOW {BLUE}BLUE {MAGENTA}MAGENTA {CYAN}CYAN {WHITE}WHITE");
+        stringBuilder.Append($"{CR}UNDERLINE: {UNDERLINE}{BLACK}BLACK {DARK_RED}DARK_RED {DARK_GREEN}DARK_GREEN {DARK_YELLOW}DARK_YELLOW {DARK_BLUE}DARK_BLUE {DARK_MAGENTA}DARK_MAGENTA {DARK_CYAN}DARK_CYAN {GRAY}GRAY");
+        stringBuilder.Append($"{CR}UNDERLINE: {UNDERLINE}{DARK_GRAY}DARK_GRAY {RED}RED {GREEN}GREEN {YELLOW}YELLOW {BLUE}BLUE {MAGENTA}MAGENTA {CYAN}CYAN {WHITE}WHITE");
 
-        WriteLine($"FAINT+ITALIC+UNDERLINE: {FAINT}{ITALIC}{UNDERLINE}{BLACK}BLACK {DARK_RED}DARK_RED {DARK_GREEN}DARK_GREEN {DARK_YELLOW}DARK_YELLOW {DARK_BLUE}DARK_BLUE {DARK_MAGENTA}DARK_MAGENTA {DARK_CYAN}DARK_CYAN {GRAY}GRAY");
-        WriteLine($"FAINT+ITALIC+UNDERLINE: {FAINT}{ITALIC}{UNDERLINE}{DARK_GRAY}DARK_GRAY {RED}RED {GREEN}GREEN {YELLOW}YELLOW {BLUE}BLUE {MAGENTA}MAGENTA {CYAN}CYAN {WHITE}WHITE");
+        stringBuilder.Append($"{CR}STRIKE: {STRIKE}{BLACK}BLACK {DARK_RED}DARK_RED {DARK_GREEN}DARK_GREEN {DARK_YELLOW}DARK_YELLOW {DARK_BLUE}DARK_BLUE {DARK_MAGENTA}DARK_MAGENTA {DARK_CYAN}DARK_CYAN {GRAY}GRAY");
+        stringBuilder.Append($"{CR}STRIKE: {STRIKE}{DARK_GRAY}DARK_GRAY {RED}RED {GREEN}GREEN {YELLOW}YELLOW {BLUE}BLUE {MAGENTA}MAGENTA {CYAN}CYAN {WHITE}WHITE");
 
-        WriteLine($"BC_BLUE: {BC_BLUE}BLACK {DARK_RED}DARK_RED {DARK_GREEN}DARK_GREEN {DARK_YELLOW}DARK_YELLOW {DARK_BLUE}DARK_BLUE {DARK_MAGENTA}DARK_MAGENTA {DARK_CYAN}DARK_CYAN {GRAY}GRAY");
-        WriteLine($"BC_BLUE: {BC_BLUE}DARK_GRAY {RED}RED {GREEN}GREEN {YELLOW}YELLOW {BLUE}BLUE {MAGENTA}MAGENTA {CYAN}CYAN {WHITE}WHITE");
+        stringBuilder.Append($"{CR}FAINT+ITALIC+UNDERLINE: {FAINT}{ITALIC}{UNDERLINE}{BLACK}BLACK {DARK_RED}DARK_RED {DARK_GREEN}DARK_GREEN {DARK_YELLOW}DARK_YELLOW {DARK_BLUE}DARK_BLUE {DARK_MAGENTA}DARK_MAGENTA {DARK_CYAN}DARK_CYAN {GRAY}GRAY");
+        stringBuilder.Append($"{CR}FAINT+ITALIC+UNDERLINE: {FAINT}{ITALIC}{UNDERLINE}{DARK_GRAY}DARK_GRAY {RED}RED {GREEN}GREEN {YELLOW}YELLOW {BLUE}BLUE {MAGENTA}MAGENTA {CYAN}CYAN {WHITE}WHITE");
+
+        stringBuilder.Append($"{CR}BC_BLUE: {BC_BLUE}BLACK {DARK_RED}DARK_RED {DARK_GREEN}DARK_GREEN {DARK_YELLOW}DARK_YELLOW {DARK_BLUE}DARK_BLUE {DARK_MAGENTA}DARK_MAGENTA {DARK_CYAN}DARK_CYAN {GRAY}GRAY");
+        stringBuilder.Append($"{CR}BC_BLUE: {BC_BLUE}DARK_GRAY {RED}RED {GREEN}GREEN {YELLOW}YELLOW {BLUE}BLUE {MAGENTA}MAGENTA {CYAN}CYAN {WHITE}WHITE");
+
+        WriteLine(stringBuilder.ToString());
     }
 
 #endregion CONSOLE OUTPUT UTILITY METHODS

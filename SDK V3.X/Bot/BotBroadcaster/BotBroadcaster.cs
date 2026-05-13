@@ -22,7 +22,7 @@ namespace BotBroadcaster
         WebRTCCommunications? _rbWebRTCCommunications = null;
         WebRTCFactory? _rbWebRTCDesktopFactory = null;
 
-        readonly StreamManager _streamManager = new(true); // StreamManager must not dispose Streams - We must do it (to release associated MediaTrack)
+        StreamManager? _streamManager = null;
 
         // ------------------------------
 
@@ -71,6 +71,9 @@ namespace BotBroadcaster
 
         private void CreateStreamManagerEnvironment()
         {
+            //TODO - StreamManager must not dispose Streams - We must do it (to release associated MediaTrack)
+            _streamManager = new(true, Application.LoggerPrefix); 
+
             _streamManager.OnStreamOpened += StreamManager_OnStreamOpened;
             _streamManager.OnStreamRemoved += StreamManager_OnStreamRemoved;
             _streamManager.OnStreamDisposing += StreamManager_OnStreamDisposing;
@@ -88,7 +91,7 @@ namespace BotBroadcaster
         {
             if (!_taskAddOrRemoveMedia.IsCompleted)
             {
-                ConsoleAbstraction.WriteYellow($"[{BotName}] Task to Add/remove media is already running => we will not start another one to avoid any conflict");
+                ConsoleAbstraction.WriteYellow($"[{BotName}] Task to Add/remove media is already running => we will not start another one to avoid any conflict", logger: log);
                 return;
             }
             _taskAddOrRemoveMedia = Task.Run(TaskAddOrRemoveMediaAsync);
@@ -115,7 +118,7 @@ namespace BotBroadcaster
                 // --- START: CHECK AUDIO
                 if (_conferenceStatus.AudioStreamTrack?.IsEmptyTrack == true)
                 {
-                    ConsoleAbstraction.WriteYellow($"[{BotName}] AUDIO Track is an empty track");
+                    ConsoleAbstraction.WriteYellow($"[{BotName}] AUDIO Track is an empty track", logger: log);
 
                     if (_conferenceStatus.Streams.TryGetValue(Rainbow.Consts.Media.AUDIO, out streamId)
                         && (streamId is not null))
@@ -130,7 +133,7 @@ namespace BotBroadcaster
                         }
                         else
                         {
-                            ConsoleAbstraction.WriteYellow($"[{BotName}] AUDIO Track is available using StreamManager - Stream:[{streamId}]");
+                            ConsoleAbstraction.WriteYellow($"[{BotName}] AUDIO Track is available using StreamManager - Stream:[{streamId}]", logger: log);
 
                             //var previousTrack = _conferenceStatus.AudioStreamTrack;
 
@@ -140,20 +143,20 @@ namespace BotBroadcaster
                                 sdkResult = await _rbWebRTCCommunications.ChangeAudioAsync(_currentCall?.Id ?? "", audioTrack);
                                 if (sdkResult.Success)
                                 {
-                                    ConsoleAbstraction.WriteDarkYellow($"[{BotName}] Audio has been changed (from empty track) - Stream:[{streamId}]");
+                                    ConsoleAbstraction.WriteDarkYellow($"[{BotName}] Audio has been changed (from empty track) - Stream:[{streamId}]", logger: log);
                                     _conferenceStatus.AudioStreamTrack = (AudioStreamTrack)audioTrack;
                                     //previousTrack?.Dispose();
                                 }
                                 else
                                 {
                                     // Cannot change audio ....
-                                    ConsoleAbstraction.WriteRed($"[{BotName}] Cannot change Audio Track - Stream:[{streamId}] - Error: [{sdkResult.Result}]");
+                                    ConsoleAbstraction.WriteRed($"[{BotName}] Cannot change Audio Track - Stream:[{streamId}] - Error: [{sdkResult.Result}]", logger: log);
                                 }
                             }
                             else
                             {
                                 // Cannot create audio track ....
-                                ConsoleAbstraction.WriteRed($"[{BotName}] Cannot create Audio Track - Stream:[{streamId}]");
+                                ConsoleAbstraction.WriteRed($"[{BotName}] Cannot create Audio Track - Stream:[{streamId}]", logger: log);
                             }
 
                             PostPoneCancelableDelayToCheckConfigAndConference();
@@ -162,24 +165,24 @@ namespace BotBroadcaster
                     }
                     else
                     {
-                        ConsoleAbstraction.WriteYellow($"[{BotName}] No AUDIO Track to use in this conference");
+                        ConsoleAbstraction.WriteYellow($"[{BotName}] No AUDIO Track to use in this conference", logger: log);
                     }
                 }
                 else
                 {
                     if (_conferenceStatus.Streams.TryGetValue(Rainbow.Consts.Media.AUDIO, out streamId) && !String.IsNullOrEmpty(streamId))
                     {
-                        ConsoleAbstraction.WriteYellow($"[{BotName}] AUDIO Track is not an empty track");
+                        ConsoleAbstraction.WriteYellow($"[{BotName}] AUDIO Track is not an empty track", logger: log);
 
                         // Audio track must be changed
                         if (streamId != _conferenceStatus.AudioStreamTrack?.Id)
                         {
-                            ConsoleAbstraction.WriteYellow($"[{BotName}] AUDIO Track must be updated");
+                            ConsoleAbstraction.WriteYellow($"[{BotName}] AUDIO Track must be updated", logger: log);
 
                             var mediaAudio = _streamManager.GetMediaAudioFromStreamId(streamId);
                             if (mediaAudio is null) // It means we didn't ask StreamManager to manage it
                             {
-                                ConsoleAbstraction.WriteYellow($"[{BotName}] AUDIO Media [{streamId}] is not known from StreamManager");
+                                ConsoleAbstraction.WriteYellow($"[{BotName}] AUDIO Media [{streamId}] is not known from StreamManager", logger: log);
 
                                 _streamManager.SetNewConfiguration(_configuration?.Streams.Values.ToList(), _conferenceStatus.Streams);
 
@@ -188,7 +191,7 @@ namespace BotBroadcaster
                             }
                             else
                             {
-                                ConsoleAbstraction.WriteYellow($"[{BotName}] AUDIO Media [{streamId}] is known from StreamManager");
+                                ConsoleAbstraction.WriteYellow($"[{BotName}] AUDIO Media [{streamId}] is known from StreamManager", logger: log);
 
                                 //var previousTrack = _conferenceStatus.AudioStreamTrack;
 
@@ -198,20 +201,20 @@ namespace BotBroadcaster
                                     sdkResult = await _rbWebRTCCommunications.ChangeAudioAsync(_currentCall?.Id ?? "", audioTrack);
                                     if (sdkResult.Success)
                                     {
-                                        ConsoleAbstraction.WriteDarkYellow($"[{BotName}] Audio has been changed (from a previous track) - Stream:[{streamId}]");
+                                        ConsoleAbstraction.WriteDarkYellow($"[{BotName}] Audio has been changed (from a previous track) - Stream:[{streamId}]", logger: log);
                                         _conferenceStatus.AudioStreamTrack = (AudioStreamTrack)audioTrack;
                                         //previousTrack?.Dispose();
                                     }
                                     else
                                     {
                                         // Cannot change audio ....
-                                        ConsoleAbstraction.WriteRed($"[{BotName}] Cannot change audio track - Stream:[{streamId}] - Error:[{sdkResult.Result}]");
+                                        ConsoleAbstraction.WriteRed($"[{BotName}] Cannot change audio track - Stream:[{streamId}] - Error:[{sdkResult.Result}]", logger: log);
                                     }
                                 }
                                 else
                                 {
                                     // Cannot create audio track ....
-                                    ConsoleAbstraction.WriteRed($"[{BotName}] Cannot create audio track - Stream:[{streamId}]");
+                                    ConsoleAbstraction.WriteRed($"[{BotName}] Cannot create audio track - Stream:[{streamId}]", logger: log);
                                 }
 
                                 PostPoneCancelableDelayToCheckConfigAndConference();
@@ -225,7 +228,7 @@ namespace BotBroadcaster
                     }
                     else
                     {
-                        ConsoleAbstraction.WriteYellow($"[{BotName}] AUDIO Track must be an empty track");
+                        ConsoleAbstraction.WriteYellow($"[{BotName}] AUDIO Track must be an empty track", logger: log);
 
                         // We no more use audio
                         //var previousTrack = _conferenceStatus.AudioStreamTrack;
@@ -236,20 +239,20 @@ namespace BotBroadcaster
                             sdkResult = await _rbWebRTCCommunications.ChangeAudioAsync(_currentCall?.Id ?? "", audioTrack);
                             if (sdkResult.Success)
                             {
-                                ConsoleAbstraction.WriteDarkYellow($"[{BotName}] Audio has been changed (use empty track)");
+                                ConsoleAbstraction.WriteDarkYellow($"[{BotName}] Audio has been changed (use empty track)", logger: log);
                                 _conferenceStatus.AudioStreamTrack = (AudioStreamTrack)audioTrack;
                                 //previousTrack?.Dispose();
                             }
                             else
                             {
                                 // Cannot change audio ....
-                                ConsoleAbstraction.WriteRed($"[{BotName}] Cannot change audio track  (using empty one) - Error:[{sdkResult.Result}]");
+                                ConsoleAbstraction.WriteRed($"[{BotName}] Cannot change audio track  (using empty one) - Error:[{sdkResult.Result}]", logger: log);
                             }
                         }
                         else
                         {
                             // Cannot create audio track ....
-                            ConsoleAbstraction.WriteRed($"[{BotName}] Cannot create empty audio track ");
+                            ConsoleAbstraction.WriteRed($"[{BotName}] Cannot create empty audio track ", logger: log);
                         }
 
                         _streamManager.SetNewConfiguration(_configuration?.Streams.Values.ToList(), _conferenceStatus.Streams);
@@ -301,27 +304,27 @@ namespace BotBroadcaster
                         }
                     }
                 }
-                ConsoleAbstraction.WriteYellow($"[{BotName}] VIDEO Track action:[{videoAction}] - Stream:[{streamId}]");
+                ConsoleAbstraction.WriteYellow($"[{BotName}] VIDEO Track action:[{videoAction}] - Stream:[{streamId}]", logger: log);
 
                 switch (videoAction)
                 {
                     case "add":
                         if (_currentCall?.IsActive() != true)
                         {
-                            ConsoleAbstraction.WriteYellow($"[{BotName}] VIDEO Track must be added - Stream:[{streamId}] but call is not active - we do it later");
+                            ConsoleAbstraction.WriteYellow($"[{BotName}] VIDEO Track must be added - Stream:[{streamId}] but call is not active - we do it later", logger: log);
                         }
                         else
                         {
-                            ConsoleAbstraction.WriteYellow($"[{BotName}] VIDEO Track must be added - Stream:[{streamId}]");
+                            ConsoleAbstraction.WriteYellow($"[{BotName}] VIDEO Track must be added - Stream:[{streamId}]", logger: log);
                             mediaVideo = _streamManager.GetMediaVideoFromStreamId(streamId);
                             if (mediaVideo is null) // It means we didn't ask StreamManager to manage it
                             {
-                                ConsoleAbstraction.WriteYellow($"[{BotName}] VIDEO Media [{streamId}] is not known from StreamManager");
+                                ConsoleAbstraction.WriteYellow($"[{BotName}] VIDEO Media [{streamId}] is not known from StreamManager", logger: log);
                                 _streamManager.SetNewConfiguration(_configuration?.Streams.Values.ToList(), _conferenceStatus.Streams);
                             }
                             else
                             {
-                                ConsoleAbstraction.WriteYellow($"[{BotName}] VIDEO Media is known from StreamManager - Stream:[{streamId}]");
+                                ConsoleAbstraction.WriteYellow($"[{BotName}] VIDEO Media is known from StreamManager - Stream:[{streamId}]", logger: log);
                                 var videoTrack = _rbWebRTCDesktopFactory.CreateVideoTrack(mediaVideo);
                                 if (videoTrack is not null)
                                 {
@@ -329,19 +332,19 @@ namespace BotBroadcaster
                                     sdkResult = await _rbWebRTCCommunications.AddVideoAsync(_currentCall?.Id ?? "", videoTrack);
                                     if (sdkResult.Success)
                                     {
-                                        ConsoleAbstraction.WriteDarkYellow($"[{BotName}] VIDEO has been added - Stream:[{streamId}]");
+                                        ConsoleAbstraction.WriteDarkYellow($"[{BotName}] VIDEO has been added - Stream:[{streamId}]", logger: log);
                                     }
                                     else
                                     {
                                         _conferenceStatus.VideoStreamTrack = null;
                                         // Cannot change VIDEO ....
-                                        ConsoleAbstraction.WriteRed($"[{BotName}] Cannot add VIDEO track - Stream:[{streamId}] - Error:[{sdkResult.Result}]");
+                                        ConsoleAbstraction.WriteRed($"[{BotName}] Cannot add VIDEO track - Stream:[{streamId}] - Error:[{sdkResult.Result}]", logger: log);
                                     }
                                 }
                                 else
                                 {
                                     // Cannot create VIDEO track ....
-                                    ConsoleAbstraction.WriteRed($"[{BotName}] Cannot create VIDEO track - Stream:[{streamId}]");
+                                    ConsoleAbstraction.WriteRed($"[{BotName}] Cannot create VIDEO track - Stream:[{streamId}]", logger: log);
                                 }
                             }
                         }
@@ -350,17 +353,17 @@ namespace BotBroadcaster
                         return;
 
                     case "update":
-                        ConsoleAbstraction.WriteYellow($"[{BotName}] VIDEO Track must be updated - Stream:[{streamId}]");
+                        ConsoleAbstraction.WriteYellow($"[{BotName}] VIDEO Track must be updated - Stream:[{streamId}]", logger: log);
 
                         mediaVideo = _streamManager.GetMediaVideoFromStreamId(streamId);
                         if (mediaVideo is null) // It means we didn't ask StreamManager to manage it
                         {
-                            ConsoleAbstraction.WriteYellow($"[{BotName}] VIDEO Media [{streamId}] is not known from StreamManager");
+                            ConsoleAbstraction.WriteYellow($"[{BotName}] VIDEO Media [{streamId}] is not known from StreamManager", logger: log);
                             _streamManager.SetNewConfiguration(_configuration?.Streams.Values.ToList(), _conferenceStatus.Streams);
                         }
                         else
                         {
-                            ConsoleAbstraction.WriteYellow($"[{BotName}] VIDEO Media is known from StreamManager - Stream:[{streamId}]");
+                            ConsoleAbstraction.WriteYellow($"[{BotName}] VIDEO Media is known from StreamManager - Stream:[{streamId}]", logger: log);
                             var videoTrack = _rbWebRTCDesktopFactory.CreateVideoTrack(mediaVideo);
                             if (videoTrack is not null)
                             {
@@ -368,19 +371,19 @@ namespace BotBroadcaster
                                 sdkResult = await _rbWebRTCCommunications.ChangeVideoAsync(_currentCall?.Id ?? "", videoTrack);
                                 if (sdkResult.Success)
                                 {
-                                    ConsoleAbstraction.WriteDarkYellow($"[{BotName}] VIDEO has been changed - Stream:[{streamId}]");
+                                    ConsoleAbstraction.WriteDarkYellow($"[{BotName}] VIDEO has been changed - Stream:[{streamId}]", logger: log);
                                 }
                                 else
                                 {
                                     _conferenceStatus.VideoStreamTrack = null;
                                     // Cannot change VIDEO ....
-                                    ConsoleAbstraction.WriteRed($"[{BotName}] Cannot changed VIDEO track - Stream:[{streamId}] - Error:[{sdkResult.Result}]");
+                                    ConsoleAbstraction.WriteRed($"[{BotName}] Cannot changed VIDEO track - Stream:[{streamId}] - Error:[{sdkResult.Result}]", logger: log);
                                 }
                             }
                             else
                             {
                                 // Cannot create VIDEO track ....
-                                ConsoleAbstraction.WriteRed($"[{BotName}] Cannot create VIDEO track - Stream:[{streamId}]");
+                                ConsoleAbstraction.WriteRed($"[{BotName}] Cannot create VIDEO track - Stream:[{streamId}]", logger: log);
                             }
                         }
                         PostPoneCancelableDelayToCheckConfigAndConference();
@@ -388,20 +391,20 @@ namespace BotBroadcaster
 
                     case "remove":
                         // We no more use VIDEO
-                        ConsoleAbstraction.WriteYellow($"[{BotName}] VIDEO Track must be removed");
+                        ConsoleAbstraction.WriteYellow($"[{BotName}] VIDEO Track must be removed", logger: log);
 
                         //var previousTrack = _conferenceStatus.VideoStreamTrack;
                         sdkResult = await _rbWebRTCCommunications.RemoveVideoAsync(_currentCall?.Id ?? "");
                         if (sdkResult.Success)
                         {
-                            ConsoleAbstraction.WriteDarkYellow($"[{BotName}] VIDEO has been removed");
+                            ConsoleAbstraction.WriteDarkYellow($"[{BotName}] VIDEO has been removed", logger: log);
                             _conferenceStatus.VideoStreamTrack = null;
                             //previousTrack?.Dispose();
                         }
                         else
                         {
                             // Cannot change VIDEO ....
-                            ConsoleAbstraction.WriteRed($"[{BotName}] Cannot remove VIDEO track - Error:[{sdkResult.Result}]");
+                            ConsoleAbstraction.WriteRed($"[{BotName}] Cannot remove VIDEO track - Error:[{sdkResult.Result}]", logger: log);
                         }
 
                         _streamManager.SetNewConfiguration(_configuration?.Streams.Values.ToList(), _conferenceStatus.Streams);
@@ -452,27 +455,27 @@ namespace BotBroadcaster
                         }
                     }
                 }
-                ConsoleAbstraction.WriteYellow($"[{BotName}] SHARING Track action:[{sharingAction}] - Stream:[{streamId}]");
+                ConsoleAbstraction.WriteYellow($"[{BotName}] SHARING Track action:[{sharingAction}] - Stream:[{streamId}]", logger: log);
                 switch (sharingAction)
                 {
                     case "add":
 
                         if (_currentCall?.IsActive() != true)
                         {
-                            ConsoleAbstraction.WriteYellow($"[{BotName}] SHARING Track must be added - Stream:[{streamId}] but call is not active - we do it later");
+                            ConsoleAbstraction.WriteYellow($"[{BotName}] SHARING Track must be added - Stream:[{streamId}] but call is not active - we do it later", logger: log);
                         }
                         else
                         {
-                            ConsoleAbstraction.WriteYellow($"[{BotName}] SHARING Track must be added - Stream:[{streamId}]");
+                            ConsoleAbstraction.WriteYellow($"[{BotName}] SHARING Track must be added - Stream:[{streamId}]", logger: log);
                             mediaSharing = _streamManager.GetMediaVideoFromStreamId(streamId);
                             if (mediaSharing is null) // It means we didn't ask StreamManager to manage it
                             {
-                                ConsoleAbstraction.WriteYellow($"[{BotName}] SHARING Media [{streamId}] is not known from StreamManager");
+                                ConsoleAbstraction.WriteYellow($"[{BotName}] SHARING Media [{streamId}] is not known from StreamManager", logger: log);
                                 _streamManager.SetNewConfiguration(_configuration?.Streams.Values.ToList(), _conferenceStatus.Streams);
                             }
                             else
                             {
-                                ConsoleAbstraction.WriteYellow($"[{BotName}] SHARING Media is known from StreamManager - Stream:[{streamId}]");
+                                ConsoleAbstraction.WriteYellow($"[{BotName}] SHARING Media is known from StreamManager - Stream:[{streamId}]", logger: log);
                                 var sharingTrack = _rbWebRTCDesktopFactory.CreateVideoTrack(mediaSharing);
                                 if (sharingTrack is not null)
                                 {
@@ -480,19 +483,19 @@ namespace BotBroadcaster
                                     sdkResult = await _rbWebRTCCommunications.AddSharingAsync(_currentCall?.Id ?? "", sharingTrack);
                                     if (sdkResult.Success)
                                     {
-                                        ConsoleAbstraction.WriteDarkYellow($"[{BotName}] SHARING has been added - Stream:[{streamId}]");
+                                        ConsoleAbstraction.WriteDarkYellow($"[{BotName}] SHARING has been added - Stream:[{streamId}]", logger: log);
                                     }
                                     else
                                     {
                                         _conferenceStatus.SharingStreamTrack = null;
                                         // Cannot change SHARING ....
-                                        ConsoleAbstraction.WriteRed($"[{BotName}] Cannot add SHARING track - Stream:[{streamId}] - Error:[{sdkResult.Result}]");
+                                        ConsoleAbstraction.WriteRed($"[{BotName}] Cannot add SHARING track - Stream:[{streamId}] - Error:[{sdkResult.Result}]", logger: log);
                                     }
                                 }
                                 else
                                 {
                                     // Cannot create SHARING track ....
-                                    ConsoleAbstraction.WriteRed($"[{BotName}] Cannot create SHARING track - Stream:[{streamId}]");
+                                    ConsoleAbstraction.WriteRed($"[{BotName}] Cannot create SHARING track - Stream:[{streamId}]", logger: log);
                                 }
                             }
                         }
@@ -501,17 +504,17 @@ namespace BotBroadcaster
                         return;
 
                     case "update":
-                        ConsoleAbstraction.WriteYellow($"[{BotName}] SHARING Track must be updated - Stream:[{streamId}]");
+                        ConsoleAbstraction.WriteYellow($"[{BotName}] SHARING Track must be updated - Stream:[{streamId}]", logger: log);
 
                         mediaSharing = _streamManager.GetMediaVideoFromStreamId(streamId);
                         if (mediaSharing is null) // It means we didn't ask StreamManager to manage it
                         {
-                            ConsoleAbstraction.WriteYellow($"[{BotName}] SHARING Media [{streamId}] is not known from StreamManager");
+                            ConsoleAbstraction.WriteYellow($"[{BotName}] SHARING Media [{streamId}] is not known from StreamManager", logger: log);
                             _streamManager.SetNewConfiguration(_configuration?.Streams.Values.ToList(), _conferenceStatus.Streams);
                         }
                         else
                         {
-                            ConsoleAbstraction.WriteYellow($"[{BotName}] SHARING Media is known from StreamManager - Stream:[{streamId}]");
+                            ConsoleAbstraction.WriteYellow($"[{BotName}] SHARING Media is known from StreamManager - Stream:[{streamId}]", logger: log);
                             var sharingTrack = _rbWebRTCDesktopFactory.CreateVideoTrack(mediaSharing);
                             if (sharingTrack is not null)
                             {
@@ -519,19 +522,19 @@ namespace BotBroadcaster
                                 sdkResult = await _rbWebRTCCommunications.ChangeSharingAsync(_currentCall?.Id ?? "", sharingTrack);
                                 if (sdkResult.Success)
                                 {
-                                    ConsoleAbstraction.WriteDarkYellow($"[{BotName}] SHARING has been changed - Stream:[{streamId}]");
+                                    ConsoleAbstraction.WriteDarkYellow($"[{BotName}] SHARING has been changed - Stream:[{streamId}]", logger: log);
                                 }
                                 else
                                 {
                                     _conferenceStatus.SharingStreamTrack = null;
                                     // Cannot change SHARING ....
-                                    ConsoleAbstraction.WriteRed($"[{BotName}] Cannot changed SHARING track - Stream:[{streamId}] - Error:[{sdkResult.Result}]");
+                                    ConsoleAbstraction.WriteRed($"[{BotName}] Cannot changed SHARING track - Stream:[{streamId}] - Error:[{sdkResult.Result}]", logger: log);
                                 }
                             }
                             else
                             {
                                 // Cannot create SHARING track ....
-                                ConsoleAbstraction.WriteRed($"[{BotName}] Cannot create SHARING track - Stream:[{streamId}]");
+                                ConsoleAbstraction.WriteRed($"[{BotName}] Cannot create SHARING track - Stream:[{streamId}]", logger: log);
                             }
                         }
                         PostPoneCancelableDelayToCheckConfigAndConference();
@@ -539,20 +542,20 @@ namespace BotBroadcaster
 
                     case "remove":
                         // We no more use SHARING
-                        ConsoleAbstraction.WriteYellow($"[{BotName}] SHARING Track must be removed");
+                        ConsoleAbstraction.WriteYellow($"[{BotName}] SHARING Track must be removed", logger: log);
 
                         //var previousTrack = _conferenceStatus.SharingStreamTrack;
                         sdkResult = await _rbWebRTCCommunications.RemoveSharingAsync(_currentCall?.Id ?? "");
                         if (sdkResult.Success)
                         {
-                            ConsoleAbstraction.WriteDarkYellow($"[{BotName}] SHARING has been removed");
+                            ConsoleAbstraction.WriteDarkYellow($"[{BotName}] SHARING has been removed", logger: log);
                             _conferenceStatus.SharingStreamTrack = null;
                             //previousTrack?.Dispose();
                         }
                         else
                         {
                             // Cannot change sharing ....
-                            ConsoleAbstraction.WriteRed($"[{BotName}] Cannot remove SHARING track - Error:[{sdkResult.Result}]");
+                            ConsoleAbstraction.WriteRed($"[{BotName}] Cannot remove SHARING track - Error:[{sdkResult.Result}]", logger: log);
                         }
 
                         _streamManager.SetNewConfiguration(_configuration?.Streams.Values.ToList(), _conferenceStatus.Streams);
@@ -572,7 +575,7 @@ namespace BotBroadcaster
         {
             if (!_taskCheckConferenceAndMedia.IsCompleted)
             {
-                ConsoleAbstraction.WriteYellow($"[{BotName}] Task to check conferences and medias is already running => we will not start another one to avoid any conflict - New configuration will be taken into account at the end of current task");
+                ConsoleAbstraction.WriteYellow($"[{BotName}] Task to check conferences and medias is already running => we will not start another one to avoid any conflict - New configuration will be taken into account at the end of current task", logger: log);
                 return;
             }
             _taskCheckConferenceAndMedia = Task.Run(TaskCheckConferencesAndMediasAsync);
@@ -598,12 +601,12 @@ namespace BotBroadcaster
 
             if (String.IsNullOrEmpty(_conferenceStatus.ConferenceId)) // We are NOT currently managing a conference
             {
-                ConsoleAbstraction.WriteWhite($"[{BotName}] Not currently managing a conference");
+                ConsoleAbstraction.WriteWhite($"[{BotName}] Not currently managing a conference", logger: log);
 
                 if (_currentCall is not null) // A call is in progress ... This case should not happened
                 {
                     // Something to do here ?
-                    ConsoleAbstraction.WriteWhite($"[{BotName}] A current call is in progress ... Strange");
+                    ConsoleAbstraction.WriteWhite($"[{BotName}] A current call is in progress ... Strange", logger: log);
                 }
                 else if (_conferences.Count > 0)
                 {
@@ -612,7 +615,7 @@ namespace BotBroadcaster
                     {
                         if (_conferences.Contains(conferenceInConfig.Id))
                         {
-                            ConsoleAbstraction.WriteWhite($"[{BotName}] We will join this conference:[{conferenceInConfig.Id}]");
+                            ConsoleAbstraction.WriteWhite($"[{BotName}] We will join this conference:[{conferenceInConfig.Id}]", logger: log);
 
                             _conferenceStatus.ConferenceId = conferenceInConfig.Id;
 
@@ -624,18 +627,18 @@ namespace BotBroadcaster
 
                             if (!String.IsNullOrEmpty(conferenceInConfig.AudioStreamId))
                             {
-                                ConsoleAbstraction.WriteWhite($"[{BotName}] AUDIO to use - Stream:[{conferenceInConfig.AudioStreamId}]");
+                                ConsoleAbstraction.WriteWhite($"[{BotName}] AUDIO to use - Stream:[{conferenceInConfig.AudioStreamId}]", logger: log);
                                 _conferenceStatus.Streams[Rainbow.Consts.Media.AUDIO] = conferenceInConfig.AudioStreamId;
                             }
 
                             if (!String.IsNullOrEmpty(conferenceInConfig.VideoStreamId))
                             {
-                                ConsoleAbstraction.WriteWhite($"[{BotName}] VIDEO to use - Stream:[{conferenceInConfig.VideoStreamId}]");
+                                ConsoleAbstraction.WriteWhite($"[{BotName}] VIDEO to use - Stream:[{conferenceInConfig.VideoStreamId}]", logger: log);
                                 _conferenceStatus.Streams[Rainbow.Consts.Media.VIDEO] = conferenceInConfig.VideoStreamId;
                             }
                             if (!String.IsNullOrEmpty(conferenceInConfig.SharingStreamId))
                             {
-                                ConsoleAbstraction.WriteWhite($"[{BotName}] SHARING to use - Stream:[{conferenceInConfig.SharingStreamId}]");
+                                ConsoleAbstraction.WriteWhite($"[{BotName}] SHARING to use - Stream:[{conferenceInConfig.SharingStreamId}]", logger: log);
                                 _conferenceStatus.Streams[Rainbow.Consts.Media.SHARING] = conferenceInConfig.SharingStreamId;
                             }
                             break;
@@ -651,7 +654,7 @@ namespace BotBroadcaster
                         var audioMedia = _streamManager.GetMediaAudioFromStreamId(audioStreamId);
                         if (audioMedia is not null)
                         {
-                            ConsoleAbstraction.WriteWhite($"[{BotName}] Create AUDIO TRACK - Stream:[{audioStreamId}]");
+                            ConsoleAbstraction.WriteWhite($"[{BotName}] Create AUDIO TRACK - Stream:[{audioStreamId}]", logger: log);
                             _conferenceStatus.AudioStreamTrack = (AudioStreamTrack?)_rbWebRTCDesktopFactory.CreateAudioTrack(audioMedia);
                         }
                     }
@@ -659,7 +662,7 @@ namespace BotBroadcaster
                     // Create empty audio track if necessary
                     if (_conferenceStatus.AudioStreamTrack is null)
                     {
-                        ConsoleAbstraction.WriteWhite($"[{BotName}] Create empty AUDIO TRACK");
+                        ConsoleAbstraction.WriteWhite($"[{BotName}] Create empty AUDIO TRACK", logger: log);
                         _conferenceStatus.AudioStreamTrack = (AudioStreamTrack)_rbWebRTCDesktopFactory.CreateEmptyAudioTrack();
                     }
 
@@ -667,7 +670,7 @@ namespace BotBroadcaster
                     var sdkResult = await _rbWebRTCCommunications.JoinConferenceAsync(_conferenceStatus.ConferenceId, _conferenceStatus.AudioStreamTrack);
                     if (!sdkResult.Success)
                     {
-                        ConsoleAbstraction.WriteRed($"[{BotName}] Conference:[{_conferenceStatus.ConferenceId}] - Cannot join:[{sdkResult.Result}]");
+                        ConsoleAbstraction.WriteRed($"[{BotName}] Conference:[{_conferenceStatus.ConferenceId}] - Cannot join:[{sdkResult.Result}]", logger: log);
 
                         // TODO :  Retry later ... Use a counter to avoid unlimited tentative 
                         PostPoneCancelableDelayToCheckConfigAndConference();
@@ -676,10 +679,10 @@ namespace BotBroadcaster
                     {
                         // TODO: If we use a counter (to avoid unlimited tentative to join conf.) - reset it now
 
-                        ConsoleAbstraction.WriteDarkYellow($"[{BotName}] Conference:[{_conferenceStatus.ConferenceId}] - Joined done with success");
+                        ConsoleAbstraction.WriteDarkYellow($"[{BotName}] Conference:[{_conferenceStatus.ConferenceId}] - Joined done with success", logger: log);
 
                         // Inform streamManager of the new config
-                        ConsoleAbstraction.WriteDarkYellow($"[{BotName}] Ask StreamManager to use config file only - no stream to use");
+                        ConsoleAbstraction.WriteDarkYellow($"[{BotName}] Ask StreamManager to use config file only - no stream to use", logger: log);
 
                         _streamManager.SetNewConfiguration(_configuration?.Streams.Values.ToList(), _conferenceStatus.Streams);
                     }
@@ -698,20 +701,20 @@ namespace BotBroadcaster
             }
             else // We are currently managing streams for a conference
             {
-                ConsoleAbstraction.WriteWhite($"[{BotName}] - Currently managing a conference:[{_conferenceStatus.ConferenceId}]");
+                ConsoleAbstraction.WriteWhite($"[{BotName}] - Currently managing a conference:[{_conferenceStatus.ConferenceId}]", logger: log);
 
                 if (_currentCall is null) // The conference has been closed but we don't stopped related streams yet
                 {
-                    ConsoleAbstraction.WriteWhite($"[{BotName}] - Current call is null");
+                    ConsoleAbstraction.WriteWhite($"[{BotName}] - Current call is null", logger: log);
 
                     // Hang up the conference
                     await _rbWebRTCCommunications.HangUpCallAsync(_conferenceStatus.ConferenceId);
 
-                    ConsoleAbstraction.WriteDarkYellow($"[{BotName}] Conference:[{_conferenceStatus.ConferenceId}] - HangUp has been done");
+                    ConsoleAbstraction.WriteDarkYellow($"[{BotName}] Conference:[{_conferenceStatus.ConferenceId}] - HangUp has been done", logger: log);
                     _conferenceStatus.Reset();
 
                     // Inform streamManager of the new config
-                    ConsoleAbstraction.WriteDarkYellow($"[{BotName}] Ask StreamManager to use config file only - no stream to use");
+                    ConsoleAbstraction.WriteDarkYellow($"[{BotName}] Ask StreamManager to use config file only - no stream to use", logger: log);
 
                     _streamManager.SetNewConfiguration(_configuration?.Streams.Values.ToList(), _conferenceStatus.Streams);
 
@@ -728,14 +731,14 @@ namespace BotBroadcaster
                     if(_conferenceStatus.ConferenceId.Equals(_currentCall?.Id, StringComparison.InvariantCultureIgnoreCase))
                     {
 
-                        ConsoleAbstraction.WriteWhite($"[{BotName}] - Currently managing a conference:[{_conferenceStatus.ConferenceId}]");
+                        ConsoleAbstraction.WriteWhite($"[{BotName}] - Currently managing a conference:[{_conferenceStatus.ConferenceId}]", logger: log);
 
                         // Check if this conference is still in the config
                         var conferenceInConfig = _configuration?.Conferences?.FirstOrDefault(c => c.Id == _currentCall?.Id);
                         
                         if(conferenceInConfig is null)
                         {
-                            ConsoleAbstraction.WriteWhite($"[{BotName}] - We have to hangup from the conference:[{_conferenceStatus.ConferenceId}]");
+                            ConsoleAbstraction.WriteWhite($"[{BotName}] - We have to hangup from the conference:[{_conferenceStatus.ConferenceId}]", logger: log);
                             // We must hangup ... How to do it simply ?
                             RbWebRTCCommunications_CallUpdated(null);
                         }
@@ -751,7 +754,7 @@ namespace BotBroadcaster
                             if (!String.IsNullOrEmpty(conferenceInConfig.SharingStreamId))
                                 _conferenceStatus.Streams[Rainbow.Consts.Media.SHARING] = conferenceInConfig.SharingStreamId;
 
-                            ConsoleAbstraction.WriteDarkYellow($"[{BotName}] Conference:[{_conferenceStatus.ConferenceId}] - Status:[{_currentCall?.CallStatus}] - LocalMedias:[{Rainbow.Util.MediasToString(_currentCall?.LocalMedias ?? 0)}]");
+                            ConsoleAbstraction.WriteDarkYellow($"[{BotName}] Conference:[{_conferenceStatus.ConferenceId}] - Status:[{_currentCall?.CallStatus}] - LocalMedias:[{Rainbow.Util.MediasToString(_currentCall?.LocalMedias ?? 0)}]", logger: log);
 
                             if (_currentCall?.IsActive() == true)
                                 StartTaskAddOrRemoveMedia();
@@ -764,7 +767,7 @@ namespace BotBroadcaster
                     }
                     else
                     {
-                        ConsoleAbstraction.WriteRed($"[{BotName}] - Currently managing a conference:[{_conferenceStatus.ConferenceId}] but not the good one ... Current Call:[{_currentCall?.Id}]");
+                        ConsoleAbstraction.WriteRed($"[{BotName}] - Currently managing a conference:[{_conferenceStatus.ConferenceId}] but not the good one ... Current Call:[{_currentCall?.Id}]", logger: log);
 
                         // Is this case possible ?
                         // We are managing a conference but not the good one => We need to change conference and related streams
@@ -802,7 +805,7 @@ namespace BotBroadcaster
                 }
                 else
                 {
-                    ConsoleAbstraction.WriteRed($"[{BotName}] Stream[{streamId}] is not know in the dictionary of Streams ...");
+                    ConsoleAbstraction.WriteRed($"[{BotName}] Stream[{streamId}] is not know in the dictionary of Streams ...", logger: log);
                     streamsToUse.Remove(streamId);
                 }
             }
@@ -843,7 +846,7 @@ namespace BotBroadcaster
         private void StreamManager_OnStreamRemoved(string streamId, int media, Boolean stillUsed)
         {
             // The MediaInput specified must be removed from current conference
-            ConsoleAbstraction.WriteDarkYellow($"[{BotName}] OnStreamRemoved - Media:[{Rainbow.Util.MediasToString(media)}] - Stream:[{streamId}] - StillUsed:[{stillUsed}]");
+            ConsoleAbstraction.WriteDarkYellow($"[{BotName}] OnStreamRemoved - Media:[{Rainbow.Util.MediasToString(media)}] - Stream:[{streamId}] - StillUsed:[{stillUsed}]", logger: log);
 
             StartTaskAddOrRemoveMedia();
         }
@@ -851,7 +854,7 @@ namespace BotBroadcaster
         private void StreamManager_OnStreamOpened(string streamId, int media, Boolean stillUsed)
         {
             // The MediaInput specified must be added from current conference
-            ConsoleAbstraction.WriteDarkYellow($"[{BotName}] OnStreamOpened - Media:[{Rainbow.Util.MediasToString(media)}] - Stream:[{streamId}] - StillUsed:[{stillUsed}]");
+            ConsoleAbstraction.WriteDarkYellow($"[{BotName}] OnStreamOpened - Media:[{Rainbow.Util.MediasToString(media)}] - Stream:[{streamId}] - StillUsed:[{stillUsed}]", logger: log);
 
             StartTaskAddOrRemoveMedia();
         }
@@ -860,19 +863,19 @@ namespace BotBroadcaster
         {
             if (_conferenceStatus.AudioStreamTrack?.Id == streamId)
             {
-                ConsoleAbstraction.WriteWhite($"[{BotName}] OnStreamDisposing (Audio context) - Stream:[{streamId}]");
+                ConsoleAbstraction.WriteWhite($"[{BotName}] OnStreamDisposing (Audio context) - Stream:[{streamId}]", logger: log);
                 _conferenceStatus.AudioStreamTrack?.Dispose();
             }
 
             if (_conferenceStatus.VideoStreamTrack?.Id == streamId)
             {
-                ConsoleAbstraction.WriteWhite($"[{BotName}] OnStreamDisposing (Video context) - Stream:[{streamId}]");
+                ConsoleAbstraction.WriteWhite($"[{BotName}] OnStreamDisposing (Video context) - Stream:[{streamId}]", logger: log);
                 _conferenceStatus.VideoStreamTrack?.Dispose();
             }
 
             if (_conferenceStatus.SharingStreamTrack?.Id == streamId)
             {
-                ConsoleAbstraction.WriteWhite($"[{BotName}] OnStreamDisposing (Sharing context) - Stream:[{streamId}]");
+                ConsoleAbstraction.WriteWhite($"[{BotName}] OnStreamDisposing (Sharing context) - Stream:[{streamId}]", logger: log);
                 _conferenceStatus.SharingStreamTrack?.Dispose();
             }
         }
@@ -894,7 +897,7 @@ namespace BotBroadcaster
                 if (!_conferences.Contains(conference.Peer.Id))
                 {
                     _conferences.Add(conference.Peer.Id);
-                    ConsoleAbstraction.WriteBlue($"[{BotName}] [ConferenceUpdated] A conference is active - Id:[{conference.Peer.Id}]");
+                    ConsoleAbstraction.WriteBlue($"[{BotName}] [ConferenceUpdated] A conference is active - Id:[{conference.Peer.Id}]", logger: log);
 
                     _conferencesUpdated = true;
                     StartTaskCheckConferencesAndMedias();
@@ -905,7 +908,7 @@ namespace BotBroadcaster
 
                 if (_conferences.Remove(conference.Peer.Id))
                 {
-                    ConsoleAbstraction.WriteBlue($"[{BotName}] [ConferenceUpdated] A conference is NO MORE active - Id:[{conference.Peer.Id}]");
+                    ConsoleAbstraction.WriteBlue($"[{BotName}] [ConferenceUpdated] A conference is NO MORE active - Id:[{conference.Peer.Id}]", logger: log);
 
                     _conferencesUpdated = true;
                     StartTaskCheckConferencesAndMedias();
@@ -939,12 +942,12 @@ namespace BotBroadcaster
             {
                 if (call.Equals(_currentCall, true))
                 {
-                    ConsoleAbstraction.WriteRed($"[{BotName}] Same call update received, no changes - checking participants.");
+                    ConsoleAbstraction.WriteRed($"[{BotName}] Same call update received, no changes - checking participants.", logger: log);
                     return;
                 }
                 else if (call.Equals(_currentCall, false))
                 {
-                    ConsoleAbstraction.WriteRed($"[{BotName}] Same call update received, no changes - without checking participants.");
+                    ConsoleAbstraction.WriteRed($"[{BotName}] Same call update received, no changes - without checking participants.", logger: log);
                     return;
                 }
 
@@ -972,7 +975,7 @@ namespace BotBroadcaster
                 }
             }
 
-            ConsoleAbstraction.WriteBlue($"[{BotName}] [CallUpdated] {call.ToString(Rainbow.Consts.DetailsLevel.Medium)}");
+            ConsoleAbstraction.WriteBlue($"[{BotName}] [CallUpdated] {call.ToString(Rainbow.Consts.DetailsLevel.Medium)}", logger: log);
         }
 
 #endregion Events triggered by Rainbow SDK

@@ -1,7 +1,9 @@
-﻿using Rainbow.Example.Common;
+﻿using Microsoft.Extensions.Logging;
+using Rainbow.Example.Common;
 using Rainbow.Medias;
 using System.Collections.Concurrent;
 using System.Drawing;
+using System.Text;
 using Stream = Rainbow.Example.Common.Stream;
 
 namespace Rainbow.Example.CommonSDL2
@@ -9,6 +11,10 @@ namespace Rainbow.Example.CommonSDL2
     public class StreamManager
     {
         public delegate void StreamDelegate(String streamId, int media, Boolean stillUsed);
+
+
+        private readonly ILogger log;
+        private String? loggerPrefix = null;
 
         // --- To store list of Streams as current configuration and used in current conference
         private ConcurrentDictionary<String, Stream> _streamsList = [];  // Stream Id as key
@@ -37,9 +43,12 @@ namespace Rainbow.Example.CommonSDL2
         public event StreamDelegate? OnStreamRemoved; // The stream id specified for the media specified is no more used.
         public event Rainbow.Delegates.IdDelegate? OnStreamDisposing; // The stream will be disposing (according _disposeStreams value)
 
-        public StreamManager(Boolean disposeStreams)
+
+        public StreamManager(Boolean disposeStreams, String? loggerPrefix)
         {
             _disposeStreams = disposeStreams;
+            this.loggerPrefix = loggerPrefix;
+            log = Rainbow.LogFactory.CreateLogger<StreamManager>(loggerPrefix);
         }
 
         public int GetMediaUsedFromStreamId(String streamID)
@@ -66,15 +75,18 @@ namespace Rainbow.Example.CommonSDL2
         {
             lock (lockNewConfiguration)
             {
-                ConsoleAbstraction.WriteBlue($"{Rainbow.Util.CR}[StreamManager] List of streams correctly set in config file: (doesn't mean they can be really used)");
+                StringBuilder stringBuilder = new();
+                stringBuilder.AppendLine($"{Rainbow.Util.CR}[StreamManager] List of streams correctly set in config file: (doesn't mean they can be really used)");
                 if (streams is null)
-                    ConsoleAbstraction.WriteBlue($"\tNo stream");
+                    stringBuilder.AppendLine($"\tNo stream");
                 else
                 {
                     int index = 0;
                     foreach (var stream in streams)
-                        ConsoleAbstraction.WriteBlue($"\t{++index:00} - {stream} - Connected:[{stream.Connected}]");
+                        stringBuilder.AppendLine($"\t{++index:00} - {stream} - Connected:[{stream.Connected}]");
                 }
+                ConsoleAbstraction.WriteBlue(stringBuilder.ToString(), logger: log);
+                stringBuilder.Clear();
 
                 List<String> streamsToBeOpened = [];
 
@@ -191,23 +203,25 @@ namespace Rainbow.Example.CommonSDL2
                         _streamsToClose.Add(streamId);
                 }
 
+
                 _newConfigurationReceived = _newConfigurationReceived || (_streamsToClose.Count > 0) || (_streamsToOpen.Count > 0);
                 if (_newConfigurationReceived)
                 {
-                    ConsoleAbstraction.WriteGreen("[StreamManager] New Configuration Set:");
-                    ConsoleAbstraction.WriteGreen($"\tStream(s) already OPENED: [{String.Join(", ", listStreamsAlreadyOpened)}]");
-                    ConsoleAbstraction.WriteGreen($"\tStream(s) which need to be OPENED: [{String.Join(", ", _streamsToOpen)}]");
-                    ConsoleAbstraction.WriteGreen($"\tStream(s) which need to be CLOSED: [{String.Join(", ", _streamsToClose)}]");
+                    stringBuilder.AppendLine("[StreamManager] New Configuration Set:");
+                    stringBuilder.AppendLine($"\tStream(s) already OPENED: [{String.Join(", ", listStreamsAlreadyOpened)}]");
+                    stringBuilder.AppendLine($"\tStream(s) which need to be OPENED: [{String.Join(", ", _streamsToOpen)}]");
+                    stringBuilder.AppendLine($"\tStream(s) which need to be CLOSED: [{String.Join(", ", _streamsToClose)}]");
                     var audioStreamId = _streamsIdToUse.FirstOrDefault(x => x.Key == Consts.Media.AUDIO).Value;
                     var videoStreamId = _streamsIdToUse.FirstOrDefault(x => x.Key == Consts.Media.VIDEO).Value;
                     var sharingStreamId = _streamsIdToUse.FirstOrDefault(x => x.Key == Consts.Media.SHARING).Value;
-                    ConsoleAbstraction.WriteGreen($"\tStream which must be used for AUDIO:   [{((audioStreamId is not null) ? audioStreamId : "NONE")}]");
-                    ConsoleAbstraction.WriteGreen($"\tStream which must be used for VIDEO:   [{((videoStreamId is not null) ? videoStreamId : "NONE")}]");
-                    ConsoleAbstraction.WriteGreen($"\tStream which must be used for SHARING: [{((sharingStreamId is not null) ? sharingStreamId : "NONE")}]");
+                    stringBuilder.AppendLine($"\tStream which must be used for AUDIO:   [{((audioStreamId is not null) ? audioStreamId : "NONE")}]");
+                    stringBuilder.AppendLine($"\tStream which must be used for VIDEO:   [{((videoStreamId is not null) ? videoStreamId : "NONE")}]");
+                    stringBuilder.AppendLine($"\tStream which must be used for SHARING: [{((sharingStreamId is not null) ? sharingStreamId : "NONE")}]");
                 }
 
-                ConsoleAbstraction.WriteGreen($"\tMediasForAudio: [{String.Join(", ", _mediasForAudio.Keys.ToList())}]");
-                ConsoleAbstraction.WriteGreen($"\tMediasForVideo: [{String.Join(", ", _mediasForVideo.Keys.ToList())}]");
+                stringBuilder.AppendLine($"\tMediasForAudio: [{String.Join(", ", _mediasForAudio.Keys.ToList())}]");
+                stringBuilder.AppendLine($"\tMediasForVideo: [{String.Join(", ", _mediasForVideo.Keys.ToList())}]");
+                ConsoleAbstraction.WriteGreen(stringBuilder.ToString(), logger: log);
 
                 StartToOpenOrCloseStreams();
             }
@@ -246,7 +260,7 @@ namespace Rainbow.Example.CommonSDL2
         {
             if (!TaskOpenOrCloseStreams.IsCompleted)
             {
-                ConsoleAbstraction.WriteYellow("[StreamManager] Task to open or close streams is already running => we will not start another one to avoid any conflict - New configuration will be taken into account at the end of current task");
+                ConsoleAbstraction.WriteYellow("[StreamManager] Task to open or close streams is already running => we will not start another one to avoid any conflict - New configuration will be taken into account at the end of current task", logger: log);
                 return;
             }
             TaskOpenOrCloseStreams = Task.Run(OpenOrCloseStreams);
@@ -300,7 +314,7 @@ namespace Rainbow.Example.CommonSDL2
                 var streamsToClose = _streamsToClose.ToList();
 
                 // A] Loop on audio and/or video streams to open (not composition). (it includes video which will be used for composition)
-                ConsoleAbstraction.WriteGreen("[StreamManager] A] Loop on audio and/or video streams to open (not composition)");
+                ConsoleAbstraction.WriteGreen("[StreamManager] A] Loop on audio and/or video streams to open (not composition)", logger: log);
                 foreach (var streamId in streamsToOpen)
                 {
                     if (_streamsList is not null && _streamsList.TryGetValue(streamId, out Stream? stream)
@@ -310,7 +324,7 @@ namespace Rainbow.Example.CommonSDL2
                         if (stream.VideoComposition is null)
                         {
                             // A.1] Starts / Open it and update cache
-                            ConsoleAbstraction.WriteGreen($"[StreamManager] A.1] Starts / Open it and update cache - Stream:[{stream.Id}]");
+                            ConsoleAbstraction.WriteGreen($"[StreamManager] A.1] Starts / Open it and update cache - Stream:[{stream.Id}]", logger: log);
                             OpenAudioOrVideoStream(stream);
                         }
                         else
@@ -326,14 +340,14 @@ namespace Rainbow.Example.CommonSDL2
                     // A.2] Check if new config and abort this task if it's the case
                     if (_newConfigurationReceived)
                     {
-                        ConsoleAbstraction.WriteGreen($"[StreamManager] A.2] Check if new config => Yes abort");
+                        ConsoleAbstraction.WriteGreen($"[StreamManager] A.2] Check if new config => Yes abort", logger: log);
                         CancelableDelay.StartAfter(500, StartToOpenOrCloseStreams);
                         return;
                     }
                 }
 
                 // B] Loop on composition streams to open .
-                ConsoleAbstraction.WriteGreen("[StreamManager] B] Loop on composition streams to open");
+                ConsoleAbstraction.WriteGreen("[StreamManager] B] Loop on composition streams to open", logger: log);
                 foreach (var streamId in streamsToOpen)
                 {
                     if (_streamsList is not null && _streamsList.TryGetValue(streamId, out Stream? stream)
@@ -343,7 +357,7 @@ namespace Rainbow.Example.CommonSDL2
                         if (stream.VideoComposition is not null)
                         {
                             // B.1] Starts / Open it and update cache
-                            ConsoleAbstraction.WriteGreen($"[StreamManager] B.1] Starts / Open it and update cache - Stream:[{stream.Id}]");
+                            ConsoleAbstraction.WriteGreen($"[StreamManager] B.1] Starts / Open it and update cache - Stream:[{stream.Id}]", logger: log);
                             OpenCompositionStream(stream);
                         }
                         else
@@ -359,7 +373,7 @@ namespace Rainbow.Example.CommonSDL2
                     // B.2] Check if new config and abort this task if it's the case
                     if (_newConfigurationReceived)
                     {
-                        ConsoleAbstraction.WriteGreen($"[StreamManager] B.2] Check if new config => Yes abort");
+                        ConsoleAbstraction.WriteGreen($"[StreamManager] B.2] Check if new config => Yes abort", logger: log);
                         CancelableDelay.StartAfter(500, StartToOpenOrCloseStreams);
                         return;
                     }
@@ -367,7 +381,7 @@ namespace Rainbow.Example.CommonSDL2
 
 
                 // C] Loop on composition streams to close
-                ConsoleAbstraction.WriteGreen("[StreamManager] C] Loop on composition streams to close");
+                ConsoleAbstraction.WriteGreen("[StreamManager] C] Loop on composition streams to close", logger: log);
                 foreach (var streamId in streamsToClose)
                 {
                     if (_streamsList is not null && _streamsList.TryGetValue(streamId, out Stream? stream)
@@ -377,11 +391,11 @@ namespace Rainbow.Example.CommonSDL2
                         if (stream.VideoComposition is not null)
                         {
                             // C.1] If used/played trigger event to inform to remove it
-                            ConsoleAbstraction.WriteGreen($"[StreamManager] C.1] If used/played trigger event to inform to remove it - Stream:[{stream.Id}]");
+                            ConsoleAbstraction.WriteGreen($"[StreamManager] C.1] If used/played trigger event to inform to remove it - Stream:[{stream.Id}]", logger: log);
                             CheckIfStreamUsedAndTriggerCloseEvent(stream.Id);
 
                             // C.2] Close it and update cache
-                            ConsoleAbstraction.WriteGreen($"[StreamManager] C.2] Close it and update cache - Stream:[{stream.Id}]");
+                            ConsoleAbstraction.WriteGreen($"[StreamManager] C.2] Close it and update cache - Stream:[{stream.Id}]", logger: log);
                             CloseStream(stream);
                         }
                     }
@@ -393,14 +407,14 @@ namespace Rainbow.Example.CommonSDL2
                     // C.3] Check if new config and abort this task if it's the case
                     if (_newConfigurationReceived)
                     {
-                        ConsoleAbstraction.WriteGreen($"[StreamManager] C.3] Check if new config => Yes abort");
+                        ConsoleAbstraction.WriteGreen($"[StreamManager] C.3] Check if new config => Yes abort", logger: log);
                         CancelableDelay.StartAfter(500, StartToOpenOrCloseStreams);
                         return;
                     }
                 }
 
                 // D] Loop on audio and/or video streams to close
-                ConsoleAbstraction.WriteGreen("[StreamManager] D] Loop on audio and/or video streams to close");
+                ConsoleAbstraction.WriteGreen("[StreamManager] D] Loop on audio and/or video streams to close", logger: log);
                 foreach (var streamId in streamsToClose)
                 {
                     if (_streamsList is not null && _streamsList.TryGetValue(streamId, out Stream? stream)
@@ -410,11 +424,11 @@ namespace Rainbow.Example.CommonSDL2
                         if (stream.VideoComposition is null)
                         {
                             // D.1] If used/played trigger event to inform to remove it
-                            ConsoleAbstraction.WriteGreen($"[StreamManager] D.1] If used/played trigger event to inform to remove it - Stream:[{stream.Id}]");
+                            ConsoleAbstraction.WriteGreen($"[StreamManager] D.1] If used/played trigger event to inform to remove it - Stream:[{stream.Id}]", logger: log);
                             CheckIfStreamUsedAndTriggerCloseEvent(stream.Id);
 
                             // D.2] Close it and update cache
-                            ConsoleAbstraction.WriteGreen($"[StreamManager] D.2] Close it and update cache - Stream:[{stream.Id}]");
+                            ConsoleAbstraction.WriteGreen($"[StreamManager] D.2] Close it and update cache - Stream:[{stream.Id}]", logger: log);
                             CloseStream(stream);
                         }
                     }
@@ -426,14 +440,14 @@ namespace Rainbow.Example.CommonSDL2
                     // D.3] Check if new config and abort this task if it's the case
                     if (_newConfigurationReceived)
                     {
-                        ConsoleAbstraction.WriteGreen($"[StreamManager] D.3] Check if new config => Yes abort");
+                        ConsoleAbstraction.WriteGreen($"[StreamManager] D.3] Check if new config => Yes abort", logger: log);
                         CancelableDelay.StartAfter(500, StartToOpenOrCloseStreams);
                         return;
                     }
                 }
 
                 // E] Inform to add streams used/played
-                ConsoleAbstraction.WriteGreen("[StreamManager] E] Inform to add streams used/played");
+                ConsoleAbstraction.WriteGreen("[StreamManager] E] Inform to add streams used/played", logger: log);
                 Dictionary<int, String> streamsToUse = new(_streamsIdToUse);
                 foreach (var kvp in streamsToUse)
                 {
@@ -446,7 +460,7 @@ namespace Rainbow.Example.CommonSDL2
                             {
                                 try
                                 {
-                                    ConsoleAbstraction.WriteGreen($"[StreamManager] E.1] If used/played trigger event to inform to add audio - Stream:[{kvp.Value}]");
+                                    ConsoleAbstraction.WriteGreen($"[StreamManager] E.1] If used/played trigger event to inform to add audio - Stream:[{kvp.Value}]", logger: log);
 
                                     OnStreamOpened?.Invoke(kvp.Value, kvp.Key, true);
                                 }
@@ -469,7 +483,7 @@ namespace Rainbow.Example.CommonSDL2
                     //  E.2] Check if new config and abort this task if it's the case
                     if (_newConfigurationReceived)
                     {
-                        ConsoleAbstraction.WriteGreen($"[StreamManager] E.2] Check if new config => Yes abort");
+                        ConsoleAbstraction.WriteGreen($"[StreamManager] E.2] Check if new config => Yes abort", logger: log);
                         CancelableDelay.StartAfter(500, StartToOpenOrCloseStreams);
                         return;
                     }
@@ -483,7 +497,7 @@ namespace Rainbow.Example.CommonSDL2
                             {
                                 try
                                 {
-                                    ConsoleAbstraction.WriteGreen($"[StreamManager] E.3] If used/played trigger event to inform to add video - Stream:[{kvp.Value}]");
+                                    ConsoleAbstraction.WriteGreen($"[StreamManager] E.3] If used/played trigger event to inform to add video - Stream:[{kvp.Value}]", logger: log);
 
                                     OnStreamOpened?.Invoke(kvp.Value, kvp.Key, true);
                                 }
@@ -498,7 +512,7 @@ namespace Rainbow.Example.CommonSDL2
                     //  E.4] Check if new config and abort this task if it's the case
                     if (_newConfigurationReceived)
                     {
-                        ConsoleAbstraction.WriteGreen($"[StreamManager] E.4] Check if new config => Yes abort");
+                        ConsoleAbstraction.WriteGreen($"[StreamManager] E.4] Check if new config => Yes abort", logger: log);
                         CancelableDelay.StartAfter(500, StartToOpenOrCloseStreams);
                         return;
                     }
@@ -512,7 +526,7 @@ namespace Rainbow.Example.CommonSDL2
                             {
                                 try
                                 {
-                                    ConsoleAbstraction.WriteGreen($"[StreamManager] E.5] If used/played trigger event to inform to add sharing - Stream:[{kvp.Value}]");
+                                    ConsoleAbstraction.WriteGreen($"[StreamManager] E.5] If used/played trigger event to inform to add sharing - Stream:[{kvp.Value}]", logger: log);
 
                                     OnStreamOpened?.Invoke(kvp.Value, kvp.Key, true);
                                 }
@@ -539,12 +553,12 @@ namespace Rainbow.Example.CommonSDL2
                 {
                     stillUsed = false;
 
-                    ConsoleAbstraction.WriteDarkYellow($"[StreamManager] Stream:[{streamId}] is currently used for AUDIO - Trigger event to inform to remove it ...");
+                    ConsoleAbstraction.WriteDarkYellow($"[StreamManager] Stream:[{streamId}] is currently used for AUDIO - Trigger event to inform to remove it ...", logger: log);
                     if (_mediasForAudio.TryGetValue(_streamIdUsedForAudio, out IMediaAudio? mediaAudio) && mediaAudio is not null)
                     {
                         stillUsed = true;
 
-                        ConsoleAbstraction.WriteDarkYellow($"[StreamManager] Stream:[{streamId}] Remove Media Audio events ...");
+                        ConsoleAbstraction.WriteDarkYellow($"[StreamManager] Stream:[{streamId}] Remove Media Audio events ...", logger: log);
                     }
 
                     if (_mediasForVideo.TryGetValue(_streamIdUsedForAudio, out var mediaVideo) && mediaVideo is not null)
@@ -566,12 +580,12 @@ namespace Rainbow.Example.CommonSDL2
                 {
                     stillUsed = false;
 
-                    ConsoleAbstraction.WriteDarkYellow($"[StreamManager] Stream:[{streamId}] is currently used for VIDEO - Trigger event to inform to remove it ...");
+                    ConsoleAbstraction.WriteDarkYellow($"[StreamManager] Stream:[{streamId}] is currently used for VIDEO - Trigger event to inform to remove it ...", logger: log);
                     if (_mediasForVideo.TryGetValue(_streamIdUsedForVideo, out IMediaVideo? mediaVideo) && mediaVideo is not null)
                     {
                         stillUsed = true;
 
-                        ConsoleAbstraction.WriteDarkYellow($"[StreamManager] Stream:[{streamId}] Remove Media Video events ...");
+                        ConsoleAbstraction.WriteDarkYellow($"[StreamManager] Stream:[{streamId}] Remove Media Video events ...", logger: log);
                     }
 
                     if (_mediasForAudio.TryGetValue(streamId, out var mediaAudio) && mediaAudio is not null)
@@ -593,12 +607,12 @@ namespace Rainbow.Example.CommonSDL2
                 {
                     stillUsed = false;
 
-                    ConsoleAbstraction.WriteDarkYellow($"[StreamManager] Stream:[{streamId}] is currently used for SHARING - Trigger event to inform to remove it ...");
+                    ConsoleAbstraction.WriteDarkYellow($"[StreamManager] Stream:[{streamId}] is currently used for SHARING - Trigger event to inform to remove it ...", logger: log);
                     if (_mediasForVideo.TryGetValue(_streamIdUsedForSharing, out IMediaVideo? mediaSharing) && mediaSharing is not null)
                     {
                         stillUsed = true;
 
-                        ConsoleAbstraction.WriteDarkYellow($"[StreamManager] Stream:[{streamId}] Remove Media Video (Sharing case) events ...");
+                        ConsoleAbstraction.WriteDarkYellow($"[StreamManager] Stream:[{streamId}] Remove Media Video (Sharing case) events ...", logger: log);
                     }
 
                     if (_mediasForAudio.TryGetValue(streamId, out var mediaAudio) && mediaAudio is not null)
@@ -637,7 +651,7 @@ namespace Rainbow.Example.CommonSDL2
             {
                 if (!_mediasForVideo.ContainsKey(stream.Id))
                 {
-                    ConsoleAbstraction.WriteDarkYellow($"[StreamManager] Dispose Media (Audio case) for Stream:[{stream.Id}] ...");
+                    ConsoleAbstraction.WriteDarkYellow($"[StreamManager] Dispose Media (Audio case) for Stream:[{stream.Id}] ...", logger: log);
 
                     OnStreamDisposing?.Invoke(stream.Id);
                     if(_disposeStreams) mediaAudio?.Dispose();
@@ -648,7 +662,7 @@ namespace Rainbow.Example.CommonSDL2
             {
                 if (!_mediasForAudio.ContainsKey(stream.Id))
                 {
-                    ConsoleAbstraction.WriteDarkYellow($"[StreamManager] Dispose Media (Video case) for Stream:[{stream.Id}] ...");
+                    ConsoleAbstraction.WriteDarkYellow($"[StreamManager] Dispose Media (Video case) for Stream:[{stream.Id}] ...", logger: log);
 
                     OnStreamDisposing?.Invoke(stream.Id);
                     if (_disposeStreams) mediaVideo?.Dispose();
@@ -661,7 +675,7 @@ namespace Rainbow.Example.CommonSDL2
             // Here we are sure to have a stream with audio and/or video and not a composition (with several videos)
 
             // Create media inputs for this stream
-            (IMediaAudio? audioInput, IMediaVideo? videoInput) = GetMediaInputs(stream);
+            (IMediaAudio? audioInput, IMediaVideo? videoInput) = GetMediaInputs(stream, loggerPrefix);
 
             // Init Media Input
             if (audioInput is not null)
@@ -669,7 +683,7 @@ namespace Rainbow.Example.CommonSDL2
                 // Start audio Input
                 if (audioInput.IsStarted ||audioInput.Init(true))
                 {
-                    ConsoleAbstraction.WriteWhite($"[StreamManager] Stream init/started (Audio context) - Stream:[{stream.Id}]");
+                    ConsoleAbstraction.WriteWhite($"[StreamManager] Stream init/started (Audio context) - Stream:[{stream.Id}]", logger: log);
                     // Store it as audio
                     _mediasForAudio[stream.Id] = audioInput;
 
@@ -677,13 +691,13 @@ namespace Rainbow.Example.CommonSDL2
                     if (videoInput is not null)
                     {
                         _mediasForVideo[stream.Id] = videoInput;
-                        ConsoleAbstraction.WriteWhite($"[StreamManager] Stream init/started also as Video context - Stream:[{stream.Id}]");
+                        ConsoleAbstraction.WriteWhite($"[StreamManager] Stream init/started also as Video context - Stream:[{stream.Id}]", logger: log);
                     }
                 }
                 else
                 {
                     // Cannot Init Audio Input ...
-                    ConsoleAbstraction.WriteRed($"[StreamManager] Cannot open AUDIO stream:[{stream.Id}]");
+                    ConsoleAbstraction.WriteRed($"[StreamManager] Cannot open AUDIO stream:[{stream.Id}]", logger: log);
                 }
             }
             else if (videoInput is not null)
@@ -691,7 +705,7 @@ namespace Rainbow.Example.CommonSDL2
                 // Start Video Input
                 if (videoInput.IsStarted || videoInput.Init(true))
                 {
-                    ConsoleAbstraction.WriteWhite($"[StreamManager] Stream init/started (Video context) - Stream:[{stream.Id}]");
+                    ConsoleAbstraction.WriteWhite($"[StreamManager] Stream init/started (Video context) - Stream:[{stream.Id}]", logger: log);
 
                     // Store it as video
                     _mediasForVideo[stream.Id] = videoInput;
@@ -699,13 +713,13 @@ namespace Rainbow.Example.CommonSDL2
                 else
                 {
                     // Cannot Init Video Input ...
-                    ConsoleAbstraction.WriteRed($"[StreamManager] Cannot open VIDEO stream:[{stream.Id}]");
+                    ConsoleAbstraction.WriteRed($"[StreamManager] Cannot open VIDEO stream:[{stream.Id}]", logger: log);
                 }
             }
             else
             {
                 // cannot create media input for this stream ...
-                ConsoleAbstraction.WriteRed($"[StreamManager] Cannot create media input for this stream:[{stream.Id}]");
+                ConsoleAbstraction.WriteRed($"[StreamManager] Cannot create media input for this stream:[{stream.Id}]", logger: log);
             }
         }
 
@@ -718,7 +732,7 @@ namespace Rainbow.Example.CommonSDL2
 
             List<IMediaVideo> mediaVideoList = [];
 
-            ConsoleAbstraction.WriteGreen($"[StreamManager] Trying to create composition for Stream [{stream.Id}] ...");
+            ConsoleAbstraction.WriteGreen($"[StreamManager] Trying to create composition for Stream [{stream.Id}] ...", logger: log);
             foreach (var id in stream.VideoComposition)
             {
                 _streamsList.TryGetValue(id, out var s);
@@ -736,7 +750,7 @@ namespace Rainbow.Example.CommonSDL2
                         else
                         {
                             // Cannot start 
-                            ConsoleAbstraction.WriteRed($"[StreamManager] For composition, MediaInput cannot be created for Stream:[{id}]");
+                            ConsoleAbstraction.WriteRed($"[StreamManager] For composition, MediaInput cannot be created for Stream:[{id}]", logger: log);
                             success = false;
                             break;
                         }
@@ -744,7 +758,7 @@ namespace Rainbow.Example.CommonSDL2
                 }
                 else
                 {
-                    ConsoleAbstraction.WriteRed($"[StreamManager] For composition, no Stream:[{id}] defined ...");
+                    ConsoleAbstraction.WriteRed($"[StreamManager] For composition, no Stream:[{id}] defined ...", logger: log);
                     success = false;
                     break;
                 }
@@ -825,9 +839,9 @@ namespace Rainbow.Example.CommonSDL2
                         }
                     }
                     if (filter is null)
-                        ConsoleAbstraction.WriteRed($"[StreamManager] For composition, using \"template\" cannot create video filter ...");
+                        ConsoleAbstraction.WriteRed($"[StreamManager] For composition, using \"template\" cannot create video filter ...", logger: log);
                     else
-                        ConsoleAbstraction.WriteDarkYellow($"[StreamManager] For composition, using \"template\" filter created:\r\n{filter}");
+                        ConsoleAbstraction.WriteDarkYellow($"[StreamManager] For composition, using \"template\" filter created:\r\n{filter}", logger: log);
                 }
                 else
                     filter = stream.VideoFilter;
@@ -843,16 +857,16 @@ namespace Rainbow.Example.CommonSDL2
                             return mediaFiltered;
                         }
                         else
-                            ConsoleAbstraction.WriteRed($"[StreamManager] Composition, Cannot start - Stream:[{stream.Id}]");
+                            ConsoleAbstraction.WriteRed($"[StreamManager] Composition, Cannot start - Stream:[{stream.Id}]", logger: log);
                     }
                     else
-                        ConsoleAbstraction.WriteRed($"[StreamManager] Composition, filter is incorrect - Stream:[{stream.Id}]:\r\n{stream.VideoFilter}");
+                        ConsoleAbstraction.WriteRed($"[StreamManager] Composition, filter is incorrect - Stream:[{stream.Id}]:\r\n{stream.VideoFilter}", logger: log);
                 }
             }
             return null;
         }
 
-        static private (IMediaAudio? audioInput, IMediaVideo? videoInput) GetMediaInputs(Stream? stream)
+        static private (IMediaAudio? audioInput, IMediaVideo? videoInput) GetMediaInputs(Stream? stream, String? loggerPrefix)
         {
             IMediaAudio? audioInput = null;
             IMediaVideo? videoInput = null;
@@ -913,7 +927,7 @@ namespace Rainbow.Example.CommonSDL2
                     var inputStreamDevice = new InputStreamDevice(stream.Id, stream.Id, stream.Uri, withVideo: withVideo, withAudio: withAudio, loop: true, options: options);
 
                     ConsoleAbstraction.WriteGreen($"[StreamManager] Creating MediaInput for [{stream.Id}] ...");
-                    var mediaInput = new MediaInput(inputStreamDevice, forceLivestream: stream.ForceLiveStream);
+                    var mediaInput = new MediaInput(inputStreamDevice, forceLivestream: stream.ForceLiveStream, loggerPrefix: loggerPrefix);
                     if (withVideo)
                         videoInput = mediaInput;
                     if (withAudio)

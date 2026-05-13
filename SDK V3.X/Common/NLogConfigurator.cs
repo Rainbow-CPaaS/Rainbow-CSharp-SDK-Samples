@@ -128,7 +128,7 @@ namespace Rainbow.Example.Common
                 }
                 catch (Exception ex) 
                 { 
-                    ConsoleAbstraction.WriteLine("NLogConfigurator.AddLogger failed: [{exception}]", ex);
+                    ConsoleAbstraction.WriteLine("NLogConfigurator.AddLogger failed: [{exception}]", args: ex);
                 }
 
                 return false;

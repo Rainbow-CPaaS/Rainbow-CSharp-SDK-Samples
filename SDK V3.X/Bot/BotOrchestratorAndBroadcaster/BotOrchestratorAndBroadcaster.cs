@@ -90,27 +90,26 @@ namespace BotOrchestratorAndBroadcaster
             // once (re)connected - try to get previous message use to set/update AC
             if (_rbInstantMessaging is not null)
             {
-                ConsoleAbstraction.WriteYellow($"[{DateTime.Now:HH:mm:ss.fff}][{_credentials.UsersConfig[0].Prefix}] Trying to retrieve message information ...");
+                ConsoleAbstraction.WriteYellow($"[{BotName}] Trying to retrieve message information ...", logger: log);
                 var messages = _messageByAdminId.Values.ToList();
                 _messageByAdminId.Clear();
                 foreach (var message in messages)
                 {
-                    if (message is null) continue;
+                    if (String.IsNullOrEmpty(message?.Id)) continue;
                     
-                    var contact = message.FromContact;
+                    var contact = message.ToContact;
                     if (contact is null) continue;
 
                     var sdkResult = await _rbInstantMessaging.GetOneMessageAsync(contact, message.Id);
                     if(sdkResult.Success)
                     {
-                        ConsoleAbstraction.WriteYellow($"[{DateTime.Now:HH:mm:ss.fff}][{_credentials.UsersConfig[0].Prefix}] Message retrieved - Id:[{message.Id}] - Contact:[{contact.ToString()}]");
-
                         var msgFromServer = sdkResult.Data;
-                        _messageByAdminId[msgFromServer.Id] = msgFromServer;
+                        ConsoleAbstraction.WriteYellow($"[{BotName}] Message retrieved - Id:[{msgFromServer.Id}] - Contact:[{contact.ToString()}]", logger: log);
+                        _messageByAdminId[contact.Peer.Id] = msgFromServer;
                     }
                     else
                     {
-                        ConsoleAbstraction.WriteRed($"[{DateTime.Now:HH:mm:ss.fff}][{_credentials.UsersConfig[0].Prefix}] Message not retrieved - Id:[{message.Id}] - Contact:[{contact.ToString()}]");
+                        ConsoleAbstraction.WriteRed($"[{BotName}] Message not retrieved - Id:[{message.Id}] - Contact:[{contact.ToString()}]", logger: log);
                     }
                 }
             }
@@ -206,13 +205,13 @@ namespace BotOrchestratorAndBroadcaster
                         _broadcasters[broadcasterInfo.Id] = broadcaster;
 
                         if (!broadcaster.Login())
-                            ConsoleAbstraction.WriteRed("Cannot start login process");
+                            ConsoleAbstraction.WriteRed($"Cannot start login process for '{broadcasterInfo.Login}'", logger: log);
                         else
-                            ConsoleAbstraction.WriteGreen($"BotBroadcaster for '{broadcasterInfo.Login}' started successfully.");
+                            ConsoleAbstraction.WriteGreen($"BotBroadcaster for '{broadcasterInfo.Login}' started successfully.", logger: log);
                     }
                     else
                     {
-                        ConsoleAbstraction.WriteRed($"Cannot configure BotBroadcaster for '{broadcasterInfo.Login}'.");
+                        ConsoleAbstraction.WriteRed($"Cannot configure BotBroadcaster for '{broadcasterInfo.Login}'.", logger: log);
                     }
                 }
                 else
@@ -258,7 +257,7 @@ namespace BotOrchestratorAndBroadcaster
             
             if(needToUpdateConf)
             {
-                ConsoleAbstraction.WriteWhite($"[{DateTime.Now:HH:mm:ss.fff}][{_credentials.UsersConfig[0].Prefix}] Conference updated:[{conference.Peer.Id}] - Active:[{conference.Active}] => Need to update configuration");
+                ConsoleAbstraction.WriteWhite($"[{BotName}] Conference updated:[{conference.Peer.Id}] - Active:[{conference.Active}] => Need to update configuration", logger: log);
 
                 if (conference.Active)
                     await AddOrRemoveBroadcastersFromBubbleAsync(conference.Peer.Id, true);
@@ -275,7 +274,7 @@ namespace BotOrchestratorAndBroadcaster
                 UpdateConfigurationFileOnDiskForEachBroadcaster();
             }
             else
-                ConsoleAbstraction.WriteWhite($"[{DateTime.Now:HH:mm:ss.fff}][{_credentials.UsersConfig[0].Prefix}] Conference updated:[{conference.Peer.Id}] - Active:[{conference.Active}]");
+                ConsoleAbstraction.WriteWhite($"[{BotName}] Conference updated:[{conference.Peer.Id}] - Active:[{conference.Active}]", logger: log);
         }
 
         private Boolean IsValidConferenceInProgress(String confId)
@@ -420,8 +419,8 @@ namespace BotOrchestratorAndBroadcaster
                     {
                         accountAndStreamUsage.Id = contact.Peer.Id;
                         accountAndStreamUsage.Jid = contact.Peer.Jid;
-                        accountAndStreamUsage.FirstName = accountAndStreamUsage.FirstName ?? contact.FirstName;
-                        accountAndStreamUsage.LastName = accountAndStreamUsage.LastName ?? contact.LastName;
+                        accountAndStreamUsage.FirstName ??= contact.FirstName;
+                        accountAndStreamUsage.LastName ??=contact.LastName;
                     }
                 });
 
@@ -494,7 +493,7 @@ namespace BotOrchestratorAndBroadcaster
             }
             catch
             {
-                ConsoleAbstraction.WriteRed($"Cannot write configuration in file '{botConfigurationFilePath}'.");
+                ConsoleAbstraction.WriteRed($"Cannot write configuration in file '{botConfigurationFilePath}'.", logger: log);
             }
         }
 
@@ -598,7 +597,7 @@ namespace BotOrchestratorAndBroadcaster
                 }
                 catch
                 {
-                    ConsoleAbstraction.WriteRed($"Cannot write configuration in file '{broadcasterConfigFilePath}'.");
+                    ConsoleAbstraction.WriteRed($"Cannot write configuration in file '{broadcasterConfigFilePath}'.", logger: log);
                 }
             }
         }
@@ -613,12 +612,12 @@ namespace BotOrchestratorAndBroadcaster
         {
             if (Application.IsConnected())
             {
-                ConsoleAbstraction.WriteRed($"{Rainbow.Util.CR}=> ReloadConfigurationFile{Rainbow.Util.CR}");
+                ConsoleAbstraction.WriteRed($"{Rainbow.Util.CR}=> ReloadConfigurationFile{Rainbow.Util.CR}", logger: log);
 
                 String botConfigurationFilePath = GetConfigurationPathFile();
                 if (!File.Exists(botConfigurationFilePath))
                 {
-                    ConsoleAbstraction.WriteRed($"The file '{botConfigurationFilePath}' has not been found.");
+                    ConsoleAbstraction.WriteRed($"The file '{botConfigurationFilePath}' has not been found.", logger: log);
                     return false;
                 }
 
@@ -626,7 +625,7 @@ namespace BotOrchestratorAndBroadcaster
                 var jsonNode = JSON.Parse(jsonConfig);
                 if (jsonNode?["botConfiguration"]?.IsObject != true)
                 {
-                    ConsoleAbstraction.WriteRed($"Cannot get JSON object 'botConfiguration' from file '{botConfigurationFilePath}'.");
+                    ConsoleAbstraction.WriteRed($"Cannot get JSON object 'botConfiguration' from file '{botConfigurationFilePath}'.", logger: log);
                     return false;
                 }
                 var jsonNodeBotConfiguration = jsonNode["botConfiguration"];
@@ -639,6 +638,8 @@ namespace BotOrchestratorAndBroadcaster
 
         private async Task SendOrUpdateAdaptiveCardToAllAdminAsync()
         {
+            String msgTooBig = "Adaptive card cannot be sent. Its content is too big. Try to reduce: the number of Broadcasters, the number of streams, and/or the number of Bubble where the Orchestrator is moderator.";
+
             await _semaphoreSendOrUpdateAdaptiveCard.WaitAsync();
 
             try
@@ -659,6 +660,8 @@ namespace BotOrchestratorAndBroadcaster
                 // Send AC to all administrators
                 _currentBotConfigurationExtended?.Administrators?.ForEach(async administrator =>
                 {
+                    if(!Application.IsConnected()) return;
+
                     Contact? contact = await GetContactAsync(administrator);
                     if (contact is not null)
                     {
@@ -667,17 +670,57 @@ namespace BotOrchestratorAndBroadcaster
                         // We edit previous message if it exists
                         if (_messageByAdminId.TryGetValue(contact.Peer.Id, out Message? message) && (message is not null))
                         {
+                            ConsoleAbstraction.WriteYellow($"[{BotName}] Edit message - Id:[{message.Id}] - Contact:[{contact.ToString()}]", logger: log);
                             sdkResult = await _rbInstantMessaging.EditMessageAsync(message, body, alternativeContent);
+
+                            // The message could not be modified if:
+                            //  - the remote peer has deleted the original message.
+                            //  - the AdaptiveCard is too big
+                            if (!sdkResult.Success)
+                            {
+                                if (sdkResult.Result.IncorrectUseError.ErrorDetailsCode == (int)Rainbow.Enums.SdkInternalErrorEnum.MESSAGE_NOT_SENT_TOO_BIG)
+                                {
+                                    ConsoleAbstraction.WriteYellow($"[{BotName}] {msgTooBig}", logger: log);
+                                    sdkResult = await _rbInstantMessaging.SendMessageAsync(contact, msgTooBig);
+                                }
+                                else
+                                {
+
+                                    ConsoleAbstraction.WriteDarkYellow($"[{BotName}] Edition Failed - Contact:[{contact.ToString()}] - result:[{sdkResult.Result}]", logger: log);
+
+                                    ConsoleAbstraction.WriteYellow($"[{BotName}] Send message - Contact:[{contact.ToString()}]", logger: log);
+                                    sdkResult = await _rbInstantMessaging.SendMessageWithAlternativeContentsAsync(contact, body, alternativeContent);
+
+                                    if(!sdkResult.Success)
+                                        ConsoleAbstraction.WriteRed($"[{BotName}] Adaptive card cannot be sent: [{sdkResult.Result}]", logger: log);
+                                }
+                            }
                         }
                         else
                         {
-                            sdkResult = await _rbInstantMessaging.SendMessageWithAlternativeContentsAsync(contact, body, alternativeContent);
-                        }
+                            var storageMode = Rainbow.Enums.SdkMessageStorageMode.Store;
 
+                            ConsoleAbstraction.WriteYellow($"[{BotName}] Send message - Contact:[{contact.ToString()}]", logger: log);
+                            sdkResult = await _rbInstantMessaging.SendMessageWithAlternativeContentsAsync(contact, body, alternativeContent, storageMode: storageMode);
+
+                            if (!sdkResult.Success)
+                            {
+                                if (sdkResult.Result.IncorrectUseError.ErrorDetailsCode == (int)Rainbow.Enums.SdkInternalErrorEnum.MESSAGE_NOT_SENT_TOO_BIG)
+                                {
+                                    ConsoleAbstraction.WriteRed($"[{BotName}] {msgTooBig}", logger: log);
+                                    sdkResult = await _rbInstantMessaging.SendMessageAsync(contact, msgTooBig);
+                                }
+                                else
+                                {
+                                    ConsoleAbstraction.WriteRed($"[{BotName}] Adaptive card cannot be sent: [{sdkResult.Result}]", logger: log);
+                                }
+                            }
+                        }
                         if (sdkResult.Success)
                         {
-                            _messageByAdminId[contact.Peer.Id] = sdkResult.Data;
-                        }
+                            message = sdkResult.Data;
+                            _messageByAdminId[contact.Peer.Id] = message;
+                        }                        
                     }
                 });
             }

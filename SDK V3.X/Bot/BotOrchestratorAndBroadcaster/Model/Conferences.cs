@@ -28,7 +28,7 @@ namespace BotOrchestratorAndBroadcaster.Model
         /// <param name="jsonString"><see cref="String"/>JSON String</param>
         /// <param name="nodeName"><see cref="String"/>**`Optional - default value: null`** <br/>Node name to use to start parsing</param>
         /// <returns><see cref="Conferences"/> - Conferences object or Null on error</returns>
-        public static Conferences? FromJson(string jsonString, String? nodeName = null)
+        public static Conferences? FromJson(string? jsonString, String? nodeName = null)
             => FromJsonNode(JSON.Parse(jsonString), nodeName);
 
         /// <summary>
@@ -37,7 +37,7 @@ namespace BotOrchestratorAndBroadcaster.Model
         /// <param name="jsonNode"><see cref="JSONNode"/>JSONNode object</param>
         /// <param name="nodeName"><see cref="String"/>**`Optional - default value: null`** <br/>Node name to use to start parsing</param>
         /// <returns><see cref="Conferences"/> - Conferences object or Null on error</returns>
-        public static Conferences? FromJsonNode(JSONNode jsonNode, String? nodeName = null)
+        public static Conferences? FromJsonNode(JSONNode? jsonNode, String? nodeName = null)
         {
             if ((jsonNode == null) || (!jsonNode.IsObject))
                 return null;
