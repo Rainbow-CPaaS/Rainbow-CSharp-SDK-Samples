@@ -101,7 +101,7 @@ namespace WpfSSOSamples
             String jsonConfig = File.ReadAllText(credentialsFilePath);
             var jsonNode = JSON.Parse(jsonConfig);
 
-            var credentials = Credentials.FromJsonNode(jsonNode["credentials"]);
+            credentials = Credentials.FromJsonNode(jsonNode["credentials"]);
             if (credentials?.IsValid() != true)
                 return false;
 

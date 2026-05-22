@@ -644,8 +644,9 @@ namespace BotRAG.Model
             }
         }
 
-        private void RbFileStorage_FileStorageUpdated(List<FileDescriptor> filesDescriptors, string status)
+        private void RbFileStorage_FileStorageUpdated(List<FileDescriptor> filesDescriptors, string status, Boolean isArchive)
         {
+            if (isArchive) return;
             switch(status)
             {
                 case "create":
