@@ -740,7 +740,7 @@ namespace BotOrchestratorAndBroadcaster
                 return "";
 
             String result = "";
-            String[] lines = json.Split([ System.Environment.NewLine ], StringSplitOptions.None);
+            String[] lines = json.Split([ "\r\n" ], StringSplitOptions.None); // Needs to use explicitly \r\n since the file has been created using these caracters ...
             foreach (String line in lines)
             {
                 if(line.StartsWith("//")) // This line is a comment, we ignore it
@@ -911,7 +911,9 @@ namespace BotOrchestratorAndBroadcaster
 
             String? jsonTemplate = Helper.GetContentOfEmbeddedResource("AC_TableRow_Broadcaster.json", System.Text.Encoding.UTF8);
             if(jsonTemplate is null) return "";
+            
             jsonTemplate = RemoveAllComments(jsonTemplate);
+            log.LogInformation("[AC_CreateTableWithBroadcasters] adding jsonTemplate - content:[{jsonTemplate}]", jsonTemplate);
 
             String result = "";
             for(int i = 0; i < _currentBotConfigurationExtended.Broadcasters.Count; i++)

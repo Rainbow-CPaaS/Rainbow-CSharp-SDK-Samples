@@ -4,12 +4,8 @@
     <OutputType>Exe</OutputType>
     <TargetFrameworks>net10.0</TargetFrameworks>
     <Nullable>enable</Nullable>
-	<Version>0.9.0</Version>
+	<Version>0.10.0</Version>
   </PropertyGroup>
-
-  <ItemGroup>
-    <None Remove="Resources\AdaptiveCards\AC_TableRow_Broadcaster.json" />
-  </ItemGroup>
 
   <ItemGroup>
     <Content Include="config\botConfiguration.json">
@@ -27,17 +23,14 @@
     <Content Include="config\labels_FR.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <EmbeddedResource Include="Resources\AdaptiveCards\AC_Example_Data.json" />
     <EmbeddedResource Include="Resources\AdaptiveCards\AC_Example_StreamsSelection.json" />
+    <EmbeddedResource Include="Resources\AdaptiveCards\AC_StreamsSelection.json" />
     <EmbeddedResource Include="Resources\AdaptiveCards\AC_TableRow_Broadcaster.json" />
     <EmbeddedResource Include="Resources\labels_EN.json">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </EmbeddedResource>
   </ItemGroup>
-
-    <ItemGroup>
-      <EmbeddedResource Include="Resources\AdaptiveCards\AC_StreamsSelection.json" />
-      <EmbeddedResource Include="Resources\AdaptiveCards\AC_Example_Data.json" />
-    </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="AdaptiveCards.Templating" Version="1.5.0" />
