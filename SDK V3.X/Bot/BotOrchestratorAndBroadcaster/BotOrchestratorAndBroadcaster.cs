@@ -1,8 +1,5 @@
 ﻿using AdaptiveCards.Templating;
-using BotBroadcaster.Model;
-using BotLibrary;
 using BotLibrary.Model;
-using BotOrchestratorAndBroadcaster.Model;
 using Microsoft.Extensions.Logging;
 using Rainbow;
 using Rainbow.Consts;
@@ -14,9 +11,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
-using System.Xml.Linq;
 
 namespace BotOrchestratorAndBroadcaster
 {
@@ -375,14 +370,10 @@ namespace BotOrchestratorAndBroadcaster
 
                 _currentBotConfigurationExtended.Conferences.RemoveAsMemberBroadcaster = jsonNode[$"remove_broadcaster"] == "true";
 
-                // Get first available conference
-                if (_currentConferenceId == "")
+                _currentConferenceId = GetValidConferenceInProgress();
+                if (_currentConferenceId != "")
                 {
-                    _currentConferenceId = GetValidConferenceInProgress();
-                    if (_currentConferenceId != "")
-                    {
-                        var _ = AddOrRemoveBroadcastersFromBubbleAsync(_currentConferenceId, true);
-                    }
+                    var _ = AddOrRemoveBroadcastersFromBubbleAsync(_currentConferenceId, true);
                 }
 
                 UpdateConfigurationFileOnDisk();
@@ -441,16 +432,20 @@ namespace BotOrchestratorAndBroadcaster
                 var member = members.FirstOrDefault(m => m.Peer.Id == broadcaster.Id);
                 if ( (member is null) && add && broadcaster.InConf == "true")
                 {
+                    log.LogInformation("[AddOrRemoveBroadcastersFromBubbleAsync] Add broadcaster[{BroadcasterId}] - BubbleId:[{BubbleId}]", broadcaster.Id, bubbleId);
                     var contact = _rbContacts.GetContactById(broadcaster.Id);
                     if (contact is not null)
                         await _rbBubbles.AddMemberAsync(bubble, contact, BubbleMemberPrivilege.User, true);
                 }
                 else  if ( (!add) && _currentBotConfigurationExtended.Conferences.RemoveAsMemberBroadcaster)
                 {
+                    log.LogInformation("[AddOrRemoveBroadcastersFromBubbleAsync] Remove broadcaster[{BroadcasterId}] - BubbleId:[{BubbleId}]", broadcaster.Id, bubbleId);
                     var contact = _rbContacts.GetContactById(broadcaster.Id);
                     if (contact is not null)
                         await _rbBubbles.RemoveMemberAsync(bubble, contact);
                 }
+                else
+                    log.LogInformation("[AddOrRemoveBroadcastersFromBubbleAsync] Do nothing for broadcaster[{BroadcasterId}] - BubbleId:[{BubbleId}]", broadcaster.Id, bubbleId);
             }
         }
 
@@ -734,20 +729,23 @@ namespace BotOrchestratorAndBroadcaster
             }
         }
 
-        static private String RemoveAllComments(String? json)
+        static private string RemoveAllComments(String? json)
         {
-            if (json is null)
+            if (String.IsNullOrWhiteSpace(json))
                 return "";
 
-            String result = "";
-            String[] lines = json.Split([ "\r\n" ], StringSplitOptions.None); // Needs to use explicitly \r\n since the file has been created using these caracters ...
-            foreach (String line in lines)
+            var result = new System.Text.StringBuilder();
+            var lines = json.Split([ "\r\n", "\n", "\r" ], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries); // Ensure to split on all carriage return according whatever the system
+
+            foreach (var line in lines)
             {
-                if(line.StartsWith("//")) // This line is a comment, we ignore it
+                if (line.StartsWith("//")) // This line is a comment, we ignore it
                     continue;
-                result += line.Trim();
+
+                result.Append(line);
             }
-            return result;
+
+            return result.ToString();
         }
 
         private List<Bubble> GetListOfBubblesAsModerator()
@@ -966,7 +964,7 @@ namespace BotOrchestratorAndBroadcaster
             return (message, alternativeContent);
         }
 
-        // TO USE
+        // TO USE FOR TESTS PURPOSE
         private static (String? message, List<MessageAlternativeContent>? alternativeContent) CreateExampleAdaptiveCard()
         {
             String? message = null;
