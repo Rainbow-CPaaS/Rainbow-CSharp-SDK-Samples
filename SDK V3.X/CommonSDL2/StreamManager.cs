@@ -875,13 +875,34 @@ namespace Rainbow.Example.CommonSDL2
             Boolean withAudio = stream.Media.Contains("audio");
             Boolean withVideo = stream.Media.Contains("video");
 
-            var options = stream.UriSettings;
-
-            List<String> settings = [];
-            if (options is not null)
+            var options = stream.UriSettings?.ToDictionary();
+                
+            // Get fps, width and height from options if defined
+            int fps = 0;
+            int width = 0;
+            int height = 0;
+            if(options?.Remove("fps", out var _fps) == true)
             {
-                foreach (var key in options.Keys)
-                    settings.Add(key + ":" + options[key]);
+                int.TryParse(_fps, out fps);
+            }
+
+            if (options?.Remove("size", out var _size) == true)
+            {
+                if(_size.IndexOf('x') > 0)
+                {
+                    var parts = _size.Split('x');
+                    if(parts.Length == 2)
+                    {
+                        int.TryParse(parts[0], out width);
+                        int.TryParse(parts[1], out height);
+
+                        if( width == 0 || height == 0)
+                        {
+                            width = 0;
+                            height = 0;
+                        }
+                    }
+                }
             }
 
             switch (stream.UriType)
@@ -927,7 +948,7 @@ namespace Rainbow.Example.CommonSDL2
                     var inputStreamDevice = new InputStreamDevice(stream.Id, stream.Id, stream.Uri, withVideo: withVideo, withAudio: withAudio, loop: true, options: options);
 
                     ConsoleAbstraction.WriteGreen($"[StreamManager] Creating MediaInput for [{stream.Id}] ...");
-                    var mediaInput = new MediaInput(inputStreamDevice, forceLivestream: stream.ForceLiveStream, loggerPrefix: loggerPrefix);
+                    var mediaInput = new MediaInput(inputStreamDevice, width: width, height:height, fps: fps, forceLivestream: stream.ForceLiveStream, loggerPrefix: loggerPrefix);
                     if (withVideo)
                         videoInput = mediaInput;
                     if (withAudio)
