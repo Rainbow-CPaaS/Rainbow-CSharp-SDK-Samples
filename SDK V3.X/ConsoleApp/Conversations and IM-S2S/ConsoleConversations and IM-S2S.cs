@@ -59,8 +59,6 @@ Restrictions restrictions = new(true)
     StoreMessages = true,
 
     LogRestRequest = true,
-    LogEvent = true,
-    LogEventParameters = true,
 
     EventMode = SdkEventMode.S2S
 };
@@ -238,7 +236,7 @@ async Task<Boolean> DeleteFirstConversationAsync()
     if (list?.Count > 0)
     {
         var conversation = list.First();
-        var sdkResult = await RbConversations.RemoveFromConversationsAsync(conversation);
+        var sdkResult = await RbConversations.RemoveFromConversationAsync(conversation);
         if (sdkResult.Success)
         {
             lastConversationDeleted = sdkResult.Data;

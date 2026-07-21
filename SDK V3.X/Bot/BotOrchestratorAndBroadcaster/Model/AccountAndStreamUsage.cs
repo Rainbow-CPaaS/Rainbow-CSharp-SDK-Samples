@@ -1,8 +1,6 @@
-﻿using BotLibrary.Model;
+﻿using Rainbow.Example.Common;
 using Rainbow.SimpleJSON;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace BotOrchestratorAndBroadcaster.Model
 {

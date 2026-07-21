@@ -9,9 +9,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Common\Common.csproj" />
+
+	<PackageReference Include="Rainbow.CSharp.SDK.Medias" Version="1.9.0" />
 <!--
-	<ProjectReference Include="..\..\..\rainbow-csharp-sdk-test\SDK.Medias\SDK.Medias.csproj" />
+	  <ProjectReference Include="..\..\..\rainbow-csharp-sdk-test\SDK.Medias\SDK.Medias.csproj" />
 -->
-	<PackageReference Include="Rainbow.CSharp.SDK.Medias" Version="1.8.0" />
-</ItemGroup>
+  </ItemGroup>
 </Project>

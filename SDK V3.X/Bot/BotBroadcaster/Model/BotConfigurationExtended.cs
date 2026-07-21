@@ -14,6 +14,8 @@ namespace BotBroadcaster.Model
 
         public List<Conference> Conferences { get; set; }
 
+        public P2P? P2P { get; set; } = null;
+
         public BotConfigurationExtended() : base()
         {
             Streams = [];
@@ -37,7 +39,7 @@ namespace BotBroadcaster.Model
         /// <param name="jsonNode"><see cref="JSONNode"/>JSONNode object</param>
         /// <param name="nodeName"><see cref="String"/>**`Optional - default value: null`** <br/>Node name to use to start parsing</param>
         /// <returns><see cref="BotConfigurationExtended"/> - BotConfigurationExtended object or Null on error</returns>
-        public new static BotConfigurationExtended? FromJsonNode(JSONNode jsonNode, String? nodeName = null)
+        public new static BotConfigurationExtended? FromJsonNode(JSONNode? jsonNode, String? nodeName = null)
         {
             if ((jsonNode == null) || (!jsonNode.IsObject))
                 return null;
@@ -74,10 +76,13 @@ namespace BotBroadcaster.Model
                 foreach (JSONNode jsConf in jsonNode["conferences"])
                 {
                     var conference = Conference.FromJsonNode(jsConf);
-                    if (conference?.IsValid() == true)
+                    if (conference?.IsValid == true)
                         botConfigurationExtended.Conferences.Add(conference);
                 }
             }
+
+            // Parse "p2p"
+            botConfigurationExtended.P2P = P2P.FromJsonNode(jsonNode["p2p"]);
 
             return botConfigurationExtended;
         }
@@ -122,6 +127,7 @@ namespace BotBroadcaster.Model
 
             jsonNode["conferences"] = JSON.ToJSONArray<Conference>(botConfigurationExtended.Conferences, Conference.ToJsonNode);
             jsonNode["streams"] = JSON.ToJSONArray<Stream>(botConfigurationExtended.Streams?.Values, Stream.ToJsonNode);
+            jsonNode["p2p"] = P2P.ToJsonNode(botConfigurationExtended.P2P) ?? JSONNull.CreateOrGet();
 
             return jsonNode;
         }

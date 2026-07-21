@@ -1,15 +1,17 @@
-﻿using Rainbow.WebRTC.Desktop;
+﻿using Rainbow;
+using Rainbow.Model;
+using Rainbow.SimpleJSON;
+using Rainbow.WebRTC.Desktop;
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace BotBroadcaster.Model
 {
-    internal class ConferenceStatus
+    internal class P2PStatus
     {
-        public String? ConferenceId { get; set; } = null;             // Current conference Id - to know which conference we are managing - delay between _currentCall.Id and _currentConferenceId in order to manage streams
-        
-        public Dictionary<int, String> Streams { get; set; } = [];    // Media as key, StreamId as Value
+        public Contact? Remote { get; set; } = null; // Remote as <see cref="Contact"/> in the P2P call
+
+        public Dictionary<int, String> Streams { get; set; } = []; // Media as key, StreamId as Value
 
         // Audio / Video / Sharing Stream track currently used
         public AudioStreamTrack? AudioStreamTrack { get; set; } = null;
@@ -18,7 +20,7 @@ namespace BotBroadcaster.Model
 
         public void Reset()
         {
-            ConferenceId = null;
+            Remote = null;
 
             Streams = [];
 

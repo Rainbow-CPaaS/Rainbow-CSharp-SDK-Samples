@@ -1300,10 +1300,6 @@ namespace BotLibrary
                 // Log - Option (For dev purpose we want maximum info in logs)
                 LogRestRequestOnError   = true,
                 LogRestRequest          = true,
-                LogEvent                = true,
-                LogEventRaised          = true,
-                LogEventParameters      = true,
-                LogEventStackTrace      = true,
                 LogBubbleMembers        = false,
 
                 // FileStorage - Option

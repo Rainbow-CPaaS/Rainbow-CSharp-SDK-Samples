@@ -41,7 +41,6 @@ internal class BotView: View
         Restrictions restrictions = new(true)
         {
             LogRestRequest = true,
-            LogEvent = true,
         };
 
         // Create Rainbow SDK objects

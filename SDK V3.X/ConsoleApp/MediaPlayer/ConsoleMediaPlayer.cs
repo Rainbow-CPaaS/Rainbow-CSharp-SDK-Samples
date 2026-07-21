@@ -4,6 +4,7 @@ using Rainbow.Example.CommonSDL2;
 using Rainbow.Medias;
 using Rainbow.SimpleJSON;
 using System.Collections.Concurrent;
+using System.Net;
 using System.Runtime.InteropServices;
 using Stream = Rainbow.Example.Common.Stream;
 
@@ -29,7 +30,7 @@ namespace ConsoleMediaPlayer
         private static Boolean _canContinue = true;
 
         // --- To manage streams (Audio, Video, Composition)
-        private static readonly StreamManager _streamManager = new(true); // StreamManager can dispose of streams
+        private static StreamManager? _streamManager = null; 
 
         private static IMediaAudio? _audioStream = null;
         private static IMediaVideo? _videoStream = null;
@@ -56,12 +57,19 @@ namespace ConsoleMediaPlayer
             if (!ReadExeSettings())
                 return;
 
+            // Set folder path from logs
+            NLogConfigurator.Directory = _exeSettings?.LogFolderPath ?? ".//logs";
+
+            // Add logger for the prefix specified
+            String prefix = "ConsoleMediaPlayer_";
+            NLogConfigurator.AddLogger(prefix);
+
             if (!ReadStreamsSettings())
                 return;
 
             if (_exeSettings is null) return;
-            //if ((_streamManager.streamsList is null) || (_streamManager.streamsList.Count == 0)) return;
 
+            _streamManager = new(true, prefix); // StreamManager can dispose of streams
             _streamManager.OnStreamOpened += StreamManager_OnStreamOpened;
             _streamManager.OnStreamRemoved += StreamManager_OnStreamRemoved;
             _streamManager.OnStreamDisposing += StreamManager_OnStreamDisposing;

@@ -43,9 +43,6 @@ Task RbTask = Task.CompletedTask;
 Restrictions restrictions = new(true)
 {
     LogRestRequest = true,
-    LogEvent = true,
-    LogEventParameters = true,
-    LogEventRaised = true,
 
     EventMode = Rainbow.Enums.SdkEventMode.XMPP, // use Rainbow.Enums.SdkEventMode.NONE instead if you ApiKey for authentication
 };

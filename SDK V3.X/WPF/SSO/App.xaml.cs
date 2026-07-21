@@ -50,9 +50,6 @@ namespace WpfSSOSamples
             Rainbow.Restrictions restrictions = new(true)
             {
                 LogRestRequest = true,
-                LogEvent = true,
-                LogEventParameters = true,
-                LogEventRaised = true,
             };
 
             RbApplication = new Rainbow.Application(exeSettings.LogFolderPath, prefix + ".ini", loggerPrefix: prefix, restrictions: restrictions);

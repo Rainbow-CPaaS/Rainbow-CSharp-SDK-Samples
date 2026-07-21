@@ -50,9 +50,6 @@ Rainbow.Util.SetLogAnonymously(false);
 Restrictions restrictions = new(true)
 {
     LogRestRequest = true,
-    LogEvent = true,
-    LogEventParameters = true,
-    LogEventRaised = true,
 };
 
 // Create Rainbow SDK objects

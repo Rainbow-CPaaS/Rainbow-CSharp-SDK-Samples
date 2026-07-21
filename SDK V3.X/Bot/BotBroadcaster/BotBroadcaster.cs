@@ -1,14 +1,17 @@
 ﻿using BotBroadcaster.Model;
 using BotLibrary.Model;
 using Rainbow;
+using Rainbow.Consts;
 using Rainbow.Example.Common;
 using Rainbow.Example.CommonSDL2;
 using Rainbow.Model;
 using Rainbow.WebRTC;
+using Rainbow.WebRTC.Abstractions;
 using Rainbow.WebRTC.Desktop;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Principal;
 using System.Threading.Tasks;
 
 namespace BotBroadcaster
@@ -24,6 +27,8 @@ namespace BotBroadcaster
 
         StreamManager? _streamManager = null;
 
+        AudioStreamTrack? _emptyAudioTrack = null;
+
         // ------------------------------
 
         BotConfigurationExtended? _configuration = null;
@@ -36,23 +41,9 @@ namespace BotBroadcaster
         readonly ConferenceStatus _conferenceStatus = new();// Store conference status: media to add/remove, etc ...
 
         Task _taskCheckConferenceAndMedia = Task.CompletedTask;
-        Task _taskAddOrRemoveMedia = Task.CompletedTask;
+        Task _taskAddOrRemoveMediaForConference = Task.CompletedTask;
 
         CancelableDelay? _cancelableDelayToCheckConfigAndConference = null;
-
-        private void CheckConfigAndConference()
-        {
-            _conferencesUpdated = true;
-            StartTaskCheckConferencesAndMedias();
-        }
-
-        private void PostPoneCancelableDelayToCheckConfigAndConference()
-        {
-            if (_cancelableDelayToCheckConfigAndConference is null)
-                _cancelableDelayToCheckConfigAndConference = CancelableDelay.StartAfter(500, CheckConfigAndConference);
-            else
-                _cancelableDelayToCheckConfigAndConference.PostPone();
-        }
 
         private void CreateWebRTCEnvironment()
         {
@@ -61,6 +52,7 @@ namespace BotBroadcaster
                 _rbWebRTCDesktopFactory = new();
                 _rbWebRTCCommunications = WebRTCCommunications.GetOrCreateInstance(Application, _rbWebRTCDesktopFactory);
 
+                _emptyAudioTrack = (AudioStreamTrack)_rbWebRTCDesktopFactory.CreateEmptyAudioTrack();
                 _rbContacts = Application.GetContacts();
                 _rbConferences = Application.GetConferences();
                 _rbBubbles = Application.GetBubbles();
@@ -87,19 +79,38 @@ namespace BotBroadcaster
             _rbConferences?.ConferenceRemoved += RbConferences_ConferenceRemoved;
         }
 
-        private void StartTaskAddOrRemoveMedia()
+#region CONFERENCE MANAGEMENT - Media
+
+        private void PostPoneCancelableDelayToCheckConfigAndConference()
         {
-            if (!_taskAddOrRemoveMedia.IsCompleted)
+            if (_cancelableDelayToCheckConfigAndConference is null)
+                _cancelableDelayToCheckConfigAndConference = CancelableDelay.StartAfter(500, CheckConfigAndConference);
+            else
+                _cancelableDelayToCheckConfigAndConference.PostPone();
+        }
+
+        private void CheckConfigAndConference()
+        {
+            _conferencesUpdated = true;
+            StartTaskCheckConferencesAndMedias();
+        }
+
+        private void StartTaskAddOrRemoveMediaForConference()
+        {
+            if (!_taskAddOrRemoveMediaForConference.IsCompleted)
             {
                 ConsoleAbstraction.WriteYellow($"[{BotName}] Task to Add/remove media is already running => we will not start another one to avoid any conflict", logger: log);
                 return;
             }
-            _taskAddOrRemoveMedia = Task.Run(TaskAddOrRemoveMediaAsync);
+            _taskAddOrRemoveMediaForConference = Task.Run(TaskAddOrRemoveMediaForConferenceAsync);
         }
 
-        private async Task TaskAddOrRemoveMediaAsync()
+        private async Task TaskAddOrRemoveMediaForConferenceAsync()
         {
-            if ((_rbWebRTCDesktopFactory is null) || (_rbWebRTCCommunications is null)) return;
+            if ((_rbWebRTCDesktopFactory is null) 
+                || (_rbWebRTCCommunications is null)
+                || (_streamManager is null)
+                ) return;
 
             String? streamId;
             Rainbow.Medias.IMediaVideo? mediaVideo;
@@ -108,12 +119,10 @@ namespace BotBroadcaster
 
             if ((!String.IsNullOrEmpty(_conferenceStatus.ConferenceId))
                 && (_currentCall?.IsActive() == true)
+                && (_currentCall?.IsConference == true)
                 && (_conferenceStatus.ConferenceId.Equals(_currentCall?.Id, StringComparison.InvariantCultureIgnoreCase)))
             {
                 // We manage Audio first then Video and finally Sharing
-
-                Dictionary<int, String> streamsToUse = [];
-
                 // --------------------------------
                 // --- START: CHECK AUDIO
                 if (_conferenceStatus.AudioStreamTrack?.IsEmptyTrack == true)
@@ -233,7 +242,7 @@ namespace BotBroadcaster
                         // We no more use audio
                         //var previousTrack = _conferenceStatus.AudioStreamTrack;
 
-                        var audioTrack = _rbWebRTCDesktopFactory.CreateEmptyAudioTrack();
+                        var audioTrack = _emptyAudioTrack;
                         if (audioTrack is not null)
                         {
                             sdkResult = await _rbWebRTCCommunications.ChangeAudioAsync(_currentCall?.Id ?? "", audioTrack);
@@ -268,7 +277,6 @@ namespace BotBroadcaster
                 // --- START: CHECK VIDEO
                 String videoAction = "none"; // "add", "remove" "update"
 
-                streamId = null;
                 _conferenceStatus.Streams.TryGetValue(Rainbow.Consts.Media.VIDEO, out streamId);
 
                 if (String.IsNullOrEmpty(streamId))
@@ -283,13 +291,11 @@ namespace BotBroadcaster
                         if (Rainbow.Util.MediasWithVideo(_currentCall?.LocalMedias ?? 0))
                         {
                             videoAction = "update";
-                            //videoAction = "remove"; // We remove then we will add
                         }
                         else
                         {
                             videoAction = "add";
                             // Clear bad status
-                            //_conferenceStatus.VideoStreamTrack?.Dispose();
                             _conferenceStatus.VideoStreamTrack = null;
                         }
                     }
@@ -299,7 +305,6 @@ namespace BotBroadcaster
                         {
                             videoAction = "add";
                             // Clear bad status
-                            //_conferenceStatus.VideoStreamTrack?.Dispose();
                             _conferenceStatus.VideoStreamTrack = null;
                         }
                     }
@@ -309,6 +314,12 @@ namespace BotBroadcaster
                 switch (videoAction)
                 {
                     case "add":
+                        if(streamId is null)
+                        {
+                            ConsoleAbstraction.WriteYellow($"[{BotName}] VIDEO Track must be added but streamId is null", logger: log);
+                            return;
+                        }
+
                         if (_currentCall?.IsActive() != true)
                         {
                             ConsoleAbstraction.WriteYellow($"[{BotName}] VIDEO Track must be added - Stream:[{streamId}] but call is not active - we do it later", logger: log);
@@ -353,6 +364,12 @@ namespace BotBroadcaster
                         return;
 
                     case "update":
+                        if (streamId is null)
+                        {
+                            ConsoleAbstraction.WriteYellow($"[{BotName}] VIDEO Track must be added but streamId is null", logger: log);
+                            return;
+                        }
+
                         ConsoleAbstraction.WriteYellow($"[{BotName}] VIDEO Track must be updated - Stream:[{streamId}]", logger: log);
 
                         mediaVideo = _streamManager.GetMediaVideoFromStreamId(streamId);
@@ -419,7 +436,6 @@ namespace BotBroadcaster
                 // --- START: CHECK SHARING
                 String sharingAction = "none"; // "add", "remove" "update"
 
-                streamId = null;
                 _conferenceStatus.Streams.TryGetValue(Rainbow.Consts.Media.SHARING, out streamId);
                 
                 if (String.IsNullOrEmpty(streamId))
@@ -459,6 +475,11 @@ namespace BotBroadcaster
                 switch (sharingAction)
                 {
                     case "add":
+                        if (streamId is null)
+                        {
+                            ConsoleAbstraction.WriteYellow($"[{BotName}] SHARING Track must be added but streamId is null", logger: log);
+                            return;
+                        }
 
                         if (_currentCall?.IsActive() != true)
                         {
@@ -504,6 +525,12 @@ namespace BotBroadcaster
                         return;
 
                     case "update":
+                        if (streamId is null)
+                        {
+                            ConsoleAbstraction.WriteYellow($"[{BotName}] SHARING Track must be added but streamId is null", logger: log);
+                            return;
+                        }
+
                         ConsoleAbstraction.WriteYellow($"[{BotName}] SHARING Track must be updated - Stream:[{streamId}]", logger: log);
 
                         mediaSharing = _streamManager.GetMediaVideoFromStreamId(streamId);
@@ -583,17 +610,19 @@ namespace BotBroadcaster
 
         private async Task TaskCheckConferencesAndMediasAsync()
         {
+            if ((_rbWebRTCDesktopFactory is null)
+                || (_rbWebRTCCommunications is null)
+                || (_streamManager is null)) return;
+
             // Do we have a configuration update or a conference update to process
             if ( (!_conferencesUpdated) && (!_configurationUpdated)) return;
-
-            if ( (_rbWebRTCDesktopFactory is null) || (_rbWebRTCCommunications is null)) return;
 
             // We must indicates that we have taken into account the current configuration / conferences status to avoid to start again this task at the end of current one because of the same configuration update
             _configurationUpdated = false;
             _conferencesUpdated = false;
 
             // Ensure to set id, jid and name for conference if it's not the case
-            UpdateConferenceSettings(_configuration);
+            //UpdateConferenceSettings(_configuration);
 
             // Create a copy of configuration information to work with - we must not work with _configuration object
             //var streams = (_configuration?.Streams is null) ? [] : new Dictionary<String, Stream>(_configuration.Streams);
@@ -603,7 +632,7 @@ namespace BotBroadcaster
             {
                 ConsoleAbstraction.WriteWhite($"[{BotName}] Not currently managing a conference", logger: log);
 
-                if (_currentCall is not null) // A call is in progress ... This case should not happened
+                if (_currentCall?.IsConference == true) // A conf is in progress ... This case should not happened
                 {
                     // Something to do here ?
                     ConsoleAbstraction.WriteWhite($"[{BotName}] A current call is in progress ... Strange", logger: log);
@@ -663,7 +692,7 @@ namespace BotBroadcaster
                     if (_conferenceStatus.AudioStreamTrack is null)
                     {
                         ConsoleAbstraction.WriteWhite($"[{BotName}] Create empty AUDIO TRACK", logger: log);
-                        _conferenceStatus.AudioStreamTrack = (AudioStreamTrack)_rbWebRTCDesktopFactory.CreateEmptyAudioTrack();
+                        _conferenceStatus.AudioStreamTrack = _emptyAudioTrack;
                     }
 
                     // Join the conference
@@ -726,11 +755,10 @@ namespace BotBroadcaster
                     //  - wait each stream used in this conferenc to by removed
                     //  - close current Tracksss
                 }
-                else
+                else if (_currentCall.IsConference)
                 {
                     if(_conferenceStatus.ConferenceId.Equals(_currentCall?.Id, StringComparison.InvariantCultureIgnoreCase))
                     {
-
                         ConsoleAbstraction.WriteWhite($"[{BotName}] - Currently managing a conference:[{_conferenceStatus.ConferenceId}]", logger: log);
 
                         // Check if this conference is still in the config
@@ -756,9 +784,12 @@ namespace BotBroadcaster
 
                             ConsoleAbstraction.WriteDarkYellow($"[{BotName}] Conference:[{_conferenceStatus.ConferenceId}] - Status:[{_currentCall?.CallStatus}] - LocalMedias:[{Rainbow.Util.MediasToString(_currentCall?.LocalMedias ?? 0)}]", logger: log);
 
+                            
                             if (_currentCall?.IsActive() == true)
-                                StartTaskAddOrRemoveMedia();
-                            else if(_currentCall?.CallStatus == Rainbow.Enums.CallStatus.UNKNOWN)
+                            {
+                                StartTaskAddOrRemoveMediaForConference();
+                            }
+                            else if (_currentCall?.CallStatus == Rainbow.Enums.CallStatus.UNKNOWN)
                             {
                                 _conferencesUpdated = true;
                                 StartTaskCheckConferencesAndMedias();
@@ -776,44 +807,105 @@ namespace BotBroadcaster
             }
         }
 
-        private List<Stream> GetAsConnectedStreamsUsed(Dictionary<String, Stream>? streamsById, List<String>? streamsToUse)
+#endregion CONFERENCE MANAGEMENT
+
+        private Bubble? GetBubble(string id, string jid, string name)
         {
-            List<Stream> result = [];
-
-            if ( (streamsById is null) || (streamsById.Count == 0) 
-                || (streamsToUse is null) || (streamsToUse.Count == 0)) return result;
-
-            var streamsById_Copy = new Dictionary<String, Stream>(streamsById);
-            var streamsToUse_Copy = new List<String>(streamsToUse);
-
-            foreach (var streamId in streamsToUse_Copy)
-            {
-                if(String.IsNullOrEmpty(streamId)) continue;
-
-                if (streamsById_Copy.TryGetValue(streamId, out var stream) && (stream is not null))
-                {
-                    stream.Connected = true;
-
-                    if(stream.VideoComposition?.Count > 0)
-                    {
-                        foreach(var sid in stream.VideoComposition)
-                        {
-                            if (streamsById_Copy.TryGetValue(streamId, out stream) && (stream is not null))
-                                stream.Connected = true;
-                        }
-                    }
-                }
-                else
-                {
-                    ConsoleAbstraction.WriteRed($"[{BotName}] Stream[{streamId}] is not know in the dictionary of Streams ...", logger: log);
-                    streamsToUse.Remove(streamId);
-                }
-            }
-
-            return streamsById_Copy.Values.ToList();
+            if (_rbBubbles is null) return null;
+            
+            Bubble? result = _rbBubbles.GetBubbleById(id);
+            result ??= _rbBubbles.GetBubbleByJid(jid);
+            result ??= _rbBubbles.GetAllBubbles().Find(b => b.Peer.DisplayName.Equals(name, StringComparison.InvariantCultureIgnoreCase));
+            return result;
         }
 
-        private void UpdateConferenceSettings(BotConfigurationExtended? botConfigurationExtended)
+        private async Task<Contact?> GetContactAsync(Account account)
+        {
+            if (_rbContacts is null)
+                return null;
+
+            Contact? result = null;
+            if (!String.IsNullOrEmpty(account.Id))
+                result = await _rbContacts.GetContactByIdInCacheFirstAsync(account.Id);
+
+            if (result is not null)
+                return result;
+
+            if (!String.IsNullOrEmpty(account.Jid))
+                result = await _rbContacts.GetContactByJidInCacheFirstAsync(account.Jid);
+
+            if (result is not null)
+                return result;
+
+            result = GetContactByEmail(account.Login);
+
+            return result;
+        }
+
+        private Contact? GetContactByEmail(String email)
+        {
+            if (_rbContacts is null)
+                return null;
+
+            Contact? result = null;
+            if (!String.IsNullOrEmpty(email))
+                result = _rbContacts.GetAllContacts()?.Find(contact => contact?.LoginEmail?.Equals(email, StringComparison.InvariantCultureIgnoreCase) == true);
+
+            return result;
+        }
+
+        private Account GetAccount(Contact contact)
+        {
+            return new Account()
+            {
+                Id = contact.Peer.Id,
+                Jid = contact.Peer.Jid,
+                Login = contact.LoginEmail,
+                FirstName = contact.FirstName,
+                LastName = contact.LastName
+            };
+        }
+
+        private List<Account> GetAccounts(List<Contact>? contacts)
+        {
+            return [ ..contacts?.Select(c => GetAccount(c)).Where(c => c is not null) ?? []];
+        }
+
+        private async Task UpdateConfigurationWithCorrectDataAsync()
+        {
+            if(Application.IsConnected())
+            {
+                //use a temporary 
+                var _tempConfiguration = _configuration;
+
+                await UpdateAdministratorsConfigurationAsync(_tempConfiguration);
+
+                UpdateConferenceConfiguration(_tempConfiguration);
+
+                UpdateP2PConfiguration(_tempConfiguration);
+
+                _configuration = _tempConfiguration;
+            }
+        }
+
+        private async Task UpdateAdministratorsConfigurationAsync(BotConfigurationExtended? botConfigurationExtended)
+        {
+            // Check Administrators
+            if (botConfigurationExtended?.Administrators?.Count > 0)
+            {
+                List<Contact> contacts = [];
+                foreach (var admin in botConfigurationExtended.Administrators)
+                {
+                    var contact = await GetContactAsync(admin);
+                    if (contact is not null)
+                        contacts.Add(contact);
+                }
+
+                botConfigurationExtended.Administrators = GetAccounts(contacts);
+            }
+        }
+
+        private void UpdateConferenceConfiguration(BotConfigurationExtended? botConfigurationExtended)
         {
             if (botConfigurationExtended?.Conferences?.Count > 0)
             {
@@ -831,24 +923,20 @@ namespace BotBroadcaster
             }
         }
 
-        private Bubble? GetBubble(string id, string jid, string name)
+        private void UpdateP2PConfiguration(BotConfigurationExtended? botConfigurationExtended)
         {
-            if (_rbBubbles is null) return null;
-            
-            Bubble? result = _rbBubbles.GetBubbleById(id);
-            result ??= _rbBubbles.GetBubbleByJid(jid);
-            result ??= _rbBubbles.GetAllBubbles().Find(b => b.Peer.DisplayName.Equals(name, StringComparison.InvariantCultureIgnoreCase));
-            return result;
+            if ( botConfigurationExtended?.P2P?.AllowedFor is not null && !P2P.PossibleValues.Contains(botConfigurationExtended.P2P.AllowedFor))
+                botConfigurationExtended.P2P.Contact = GetContactByEmail(botConfigurationExtended.P2P.AllowedFor);
         }
 
 #region Events triggered by StreamManager
-        
+
         private void StreamManager_OnStreamRemoved(string streamId, int media, Boolean stillUsed)
         {
             // The MediaInput specified must be removed from current conference
             ConsoleAbstraction.WriteDarkYellow($"[{BotName}] OnStreamRemoved - Media:[{Rainbow.Util.MediasToString(media)}] - Stream:[{streamId}] - StillUsed:[{stillUsed}]", logger: log);
 
-            StartTaskAddOrRemoveMedia();
+            StartTaskAddOrRemoveMediaForConference();
         }
 
         private void StreamManager_OnStreamOpened(string streamId, int media, Boolean stillUsed)
@@ -856,7 +944,7 @@ namespace BotBroadcaster
             // The MediaInput specified must be added from current conference
             ConsoleAbstraction.WriteDarkYellow($"[{BotName}] OnStreamOpened - Media:[{Rainbow.Util.MediasToString(media)}] - Stream:[{streamId}] - StillUsed:[{stillUsed}]", logger: log);
 
-            StartTaskAddOrRemoveMedia();
+            StartTaskAddOrRemoveMediaForConference();
         }
 
         private void StreamManager_OnStreamDisposing(string streamId)
@@ -892,6 +980,8 @@ namespace BotBroadcaster
 
         private async void RbConferences_ConferenceUpdated(Rainbow.Model.Conference conference)
         {
+            if (conference is null) return;
+
             if (conference.Active)
             {
                 if (!_conferences.Contains(conference.Peer.Id))
@@ -918,25 +1008,77 @@ namespace BotBroadcaster
 
         private async void RbWebRTCCommunications_CallUpdated(Call? call)
         {
-            if ((call is null) && (_currentCall is not null))
+            // /!\ This method is used with call == null when there is no more conference to manage ...
+            if (call is null)
             {
-                _currentCall = call;
-
-                PostPoneCancelableDelayToCheckConfigAndConference();
+                if(_currentCall?.IsConference == true)
+                {
+                    _currentCall = null;
+                    PostPoneCancelableDelayToCheckConfigAndConference();
+                }
                 return;
             }
-            else
-            {
-                if ((call is null) || String.IsNullOrEmpty(call.Id))
-                    return;
-            } 
+
+            if (String.IsNullOrEmpty(call.Id))
+                return;
 
             if (_currentCall is null)
             {
                 _currentCall = call;
 
-                _conferencesUpdated = true;
-                StartTaskCheckConferencesAndMedias();
+                // Manage Conference
+                if (_currentCall.IsConference)
+                {
+                    _conferencesUpdated = true;
+                    StartTaskCheckConferencesAndMedias();
+                }
+                // Manage P2P
+                else
+                {
+                    if (_currentCall.IsRinging())
+                    {
+                        // Check if we must accept or reject this P2P call based on configuration
+                        Boolean rejectCall = true;
+                        if (_configuration?.P2P?.IsValid == true)
+                        {
+                            switch(_configuration.P2P.AllowedFor)
+                            {
+                                case "all":
+                                    rejectCall = false;
+                                    break;
+
+                                case "none":
+                                    rejectCall = true;
+                                    break;
+
+                                case "administrator":
+                                    var found = _configuration.Administrators?.FirstOrDefault(admin => admin.Id == _currentCall.Peer?.Id || admin.Jid == _currentCall.Peer?.Jid);
+                                    rejectCall = found is null;
+                                    break;
+
+                                default:
+                                    rejectCall = !(_configuration.P2P.Contact?.Peer.Id == _currentCall.Peer?.Id);
+                                    break;
+                            }
+                        }
+
+                        if (rejectCall)
+                        {
+                            _rbWebRTCCommunications?.RejectCallAsync(_currentCall.Id).StartAndForget();
+                            _currentCall = null;
+                        }
+                        else 
+                        {
+                            // Set tracks used to make P2P call
+                            Dictionary<int, IMediaStreamTrack?>? mediaStreamTracks = new()
+                            {
+                                {Media.AUDIO, _emptyAudioTrack }
+                            };
+                            _rbWebRTCCommunications?.AnswerCallAsync(_currentCall.Id, mediaStreamTracks).StartAndForget();
+                        }
+                    }
+                   
+                }
             }
             else if (_currentCall?.Id == call.Id)
             {
@@ -953,16 +1095,27 @@ namespace BotBroadcaster
 
                 // Store new call information
                 _currentCall = call;
-                _conferencesUpdated = true;
-                StartTaskCheckConferencesAndMedias();
+                if (_currentCall.IsConference)
+                {
+                    _conferencesUpdated = true;
+                    StartTaskCheckConferencesAndMedias();
+                }
+                else
+                {
+                    // TODO - P2P Call
+                }
             }
             else
+            {
+                // There is a second call in progress - we don't manage this case
                 return;
+            }
 
+            // Manage presence according medias used
             if (! (_currentCall?.IsInProgress() == true))
             {
                 // The call is NO MORE in Progress => We Rollback presence if any
-                var _1 = _rbContacts?.RollbackPresenceSavedAsync();
+                _rbContacts?.RollbackPresenceSavedAsync().StartAndForget();
                 _currentCall = null;
             }
             else
@@ -971,7 +1124,7 @@ namespace BotBroadcaster
                 if (!(_currentCall?.IsRinging() == true))
                 {
                     // The call is NOT IN RINGING STATE  => We update presence according media
-                    var _1 = _rbContacts?.SetBusyPresenceAccordingMediasAsync(call.LocalMedias);
+                    _rbContacts?.SetBusyPresenceAccordingMediasAsync(call.LocalMedias).StartAndForget();
                 }
             }
 
@@ -996,8 +1149,8 @@ namespace BotBroadcaster
 
         public override async Task ConnectedAsync()
         {
-            // Nothing to do here
-            await Task.CompletedTask;
+            // We must ensure the configuration is well set => set id/jid for example based on login email
+            await UpdateConfigurationWithCorrectDataAsync();
         }
 
         public override async Task StoppedAsync(SdkError? sdkError)
@@ -1009,10 +1162,10 @@ namespace BotBroadcaster
         public override async Task BotConfigurationUpdatedAsync(BotConfigurationUpdate botConfigurationUpdate)
         {
             // Ensure to have an object not null
-            if (botConfigurationUpdate is null)
+            if (botConfigurationUpdate is null)                
                 return;
 
-            // Create WebRTC environment if necessary
+            // Create WebRTC environment if necessary (only on startup so when configuration from file is set)
             if (botConfigurationUpdate.Context == "configFile")
             {
                 CreateWebRTCEnvironment();
@@ -1026,18 +1179,22 @@ namespace BotBroadcaster
             {
                 _configuration = botConfigurationExtended;
 
+                await UpdateConfigurationWithCorrectDataAsync();
+
                 await UpdateFirstAndLastName(_configuration.FirstName, _configuration.LastName);
 
                 // On start, we inform StreamManager - perhaps some streams must be connected as soon as possible
                 if (botConfigurationUpdate.Context == "configFile")
-                    _streamManager.SetNewConfiguration(botConfigurationExtended.Streams?.Values?.ToList(), null);
+                    _streamManager?.SetNewConfiguration(botConfigurationExtended.Streams?.Values?.ToList(), null);
 
                 _configurationUpdated = true;
                 StartTaskCheckConferencesAndMedias();
+                // TODO - check P2P and Medias
             }
         }
 
-    #region Invitations - bubble or user
+    #region Invitations - bubble or user (we do nothing special here)
+
         public override async Task BubbleInvitationReceivedAsync(Rainbow.Model.BubbleInvitation bubbleInvitation)
         {
             // Nothing to do here
@@ -1049,9 +1206,10 @@ namespace BotBroadcaster
             // Nothing to do here
             await Task.CompletedTask;
         }
+
     #endregion Invitations - bubble or user
 
-    #region Messages - AckMessage, ApplicationMessage, InstantMessage, InternalMessage
+    #region Messages - AckMessage, ApplicationMessage, InstantMessage, InternalMessage  (we do nothing special here)
         public override async Task AckMessageReceivedAsync(Rainbow.Model.AckMessage ackMessage)
         {
             // Nothing to do here

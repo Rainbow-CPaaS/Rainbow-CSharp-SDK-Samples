@@ -40,9 +40,6 @@ NLogConfigurator.AddLogger(credentials.UsersConfig[0].Prefix);
 Restrictions restrictions = new(true)
 {
     LogRestRequest = true,
-    LogEvent = true,
-    LogEventParameters = true,
-    LogEventRaised = true,
 };
 
 // Create Rainbow SDK objects

@@ -34,9 +34,6 @@ internal class RainbowBot
         Restrictions restrictions = new(true)
         {
             LogRestRequest = true,
-            LogEvent = true,
-            LogEventParameters = true,
-            LogEventRaised = true,
         };
 
         _rbApplication = new Rainbow.Application(

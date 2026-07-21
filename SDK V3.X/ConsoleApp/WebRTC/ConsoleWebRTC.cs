@@ -80,7 +80,7 @@ String hostName = credentials.ServerConfig.HostName; // To set according your se
 String login = credentials.UsersConfig[0].Login; // To set according your settings
 String password = credentials.UsersConfig[0].Password; // To set according your settings
 
-Boolean endProgram = false;// To know when to quit the app
+Boolean _endProgram = false;// To know when to quit the app
 
 String? currentCallId = null;
 Call? currentCall = null;
@@ -172,9 +172,6 @@ Rainbow.Restrictions restrictions = new(true)
     AcceptUserInvitation = true,
 
     LogRestRequest = true,
-    LogEvent = true,
-    LogEventParameters = true,
-    LogEventRaised = true,
 };
 
 // Create Rainbow Application ROOT object
@@ -327,13 +324,13 @@ async Task MainLoop()
         CheckInputKey(simulatedKey);
         simulatedKey = 0;
 
-        if (!endProgram)
+        if (!_endProgram)
         {
             if (_actions.TryTake(out var action))
                 action.Invoke();
         }
 
-    } while (!endProgram); // Loop until we want to quit
+    } while (!_endProgram); // Loop until we want to quit
 
     await Task.CompletedTask;
 }
@@ -2509,7 +2506,7 @@ void RbAutoReconnection_Cancelled(SdkError sdkError)
         ConsoleAbstraction.WriteBlue($"[AutoReconnection.Cancelled]");
 
     // If the AutoReconnection service is cancelled, we quit the process
-    endProgram = true;
+    _endProgram = true;
 }
 
 void RbConferences_ConferenceUpdated(Conference conference)
@@ -2791,30 +2788,31 @@ void VideoRemoteTrack_OnImage(string mediaId, int width, int height, int stride,
     // /!\ Need to use Main Thread
     _actions.Add(new Action(() =>
     {
-        if (_windowVideo is null || _windowVideo.VideoStopped || endProgram)
-            return;
-
-        if (_windowSharing.Texture == IntPtr.Zero)
-            Window.CreateTexture(_windowVideo, width, height, pixelFormat);
-
-        Window.UpdateTexture(_windowVideo, stride, data);
-        Window.UpdateRenderer(_windowVideo);
+        if(!_endProgram)
+            UpdateWindowTexture(_windowVideo, width, height, stride, data, pixelFormat);
     }));
 }
+
+static void UpdateWindowTexture(Window window, int width, int height, int stride, nint data, AVPixelFormat pixelFormat)
+{
+    if (window is null || window.VideoStopped)
+        return;
+
+    if (window.Texture == IntPtr.Zero)
+        Window.CreateTexture(window, width, height, pixelFormat);
+
+    Window.UpdateTexture(window, stride, data);
+    Window.UpdateRenderer(window);
+}
+
 
 void SharingRemoteTrack_OnImage(string mediaId, int width, int height, int stride, nint data, AVPixelFormat pixelFormat)
 {
     // /!\ Need to use Main Thread
     _actions.Add(new Action(() =>
     {
-        if (_windowSharing is null || _windowSharing.VideoStopped || endProgram)
-            return;
-
-        if (_windowSharing.Texture == IntPtr.Zero)
-            Window.CreateTexture(_windowSharing, width, height, pixelFormat);
-
-        Window.UpdateTexture(_windowSharing, stride, data);
-        Window.UpdateRenderer(_windowSharing);
+        if (!_endProgram)
+            UpdateWindowTexture(_windowSharing, width, height, stride, data, pixelFormat);
     }));
 }
 

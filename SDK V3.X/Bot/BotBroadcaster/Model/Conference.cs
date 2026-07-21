@@ -3,54 +3,30 @@ using System;
 
 namespace BotBroadcaster.Model
 {
-    public class Conference
+    public class Conference: StreamConfig
     {
         /// <summary>
         /// Conference / Bubble Id
         /// </summary>
-        public string Id { get; set; }
+        public string Id { get; set; } = "";
 
         /// <summary>
         /// Conference / Bubble Jid
         /// </summary>
-        public string Jid { get; set; }
+        public string Jid { get; set; } = "";
 
         /// <summary>
         /// Conference / Bubble Jid
         /// </summary>
-        public string Name { get; set; }
+        public string Name { get; set; } = "";
 
         /// <summary>
-        /// Audio Stream Id
+        /// True if the content of this object is valid, false otherwise.
         /// </summary>
-        public string AudioStreamId { get; set; }
-
-        /// <summary>
-        /// Video Stream Id
-        /// </summary>
-        public string VideoStreamId { get; set; }
-
-        /// <summary>
-        /// Sharing Stream Id
-        /// </summary>
-        public string SharingStreamId { get; set; }
-
-        public Conference() 
-        {
-            Id = "";
-            Jid = "";
-            Name = "";
-            AudioStreamId   = "";
-            VideoStreamId   = "";
-            SharingStreamId = "";
-        }
-
-        public Boolean IsValid()
+        public Boolean IsValid
             => !String.IsNullOrEmpty(Id) || !String.IsNullOrEmpty(Jid) || !String.IsNullOrEmpty(Name);
 
-
 #region FromJSON / ToJSON methods
-
 
         /// <summary>
         /// **`static method`** Converts the specified JSON String to its <see cref="Conference"/> equivalent.
@@ -67,7 +43,7 @@ namespace BotBroadcaster.Model
         /// <param name="jsonNode"><see cref="JSONNode"/>JSONNode object</param>
         /// <param name="nodeName"><see cref="String"/>**`Optional - default value: null`** <br/>Node name to use to start parsing</param>
         /// <returns><see cref="Conference"/> - Conference object or Null on error</returns>
-        public static Conference? FromJsonNode(JSONNode jsonNode, String? nodeName = null)
+        public static Conference? FromJsonNode(JSONNode? jsonNode, String? nodeName = null)
         {
             if ((jsonNode == null) || (!jsonNode.IsObject))
                 return null;
@@ -77,12 +53,12 @@ namespace BotBroadcaster.Model
 
             Conference conference = new()
             {
-                Id = jsonNode["id"],
-                Jid = jsonNode["jid"],
-                Name = jsonNode["name"],
-                AudioStreamId = jsonNode["audioStreamId"],
-                VideoStreamId = jsonNode["videoStreamId"],
-                SharingStreamId = jsonNode["sharingStreamId"]
+                Id = (String?)jsonNode["id"] ?? "",
+                Jid = (String?)jsonNode["jid"] ?? "",
+                Name = (String?)jsonNode["name"] ?? "",
+                AudioStreamId = (String?)jsonNode["audioStreamId"] ?? "",
+                VideoStreamId = (String?)jsonNode["videoStreamId"] ?? "",
+                SharingStreamId = (String?)jsonNode["sharingStreamId"] ?? ""    
             };
 
             return conference;

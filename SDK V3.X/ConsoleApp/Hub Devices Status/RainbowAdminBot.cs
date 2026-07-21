@@ -64,9 +64,6 @@ internal class RainbowAdminBot
             EventMode = SdkEventMode.NONE, // We don't need event mode
 
             LogRestRequest = true,
-            LogEvent = true,
-            LogEventParameters = true,
-            LogEventRaised = true,
         };
 
         _rbApplication = new Rainbow.Application(

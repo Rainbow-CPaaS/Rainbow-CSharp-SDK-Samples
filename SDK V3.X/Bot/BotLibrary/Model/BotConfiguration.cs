@@ -1,4 +1,5 @@
-﻿using Rainbow.SimpleJSON;
+﻿using Rainbow.Example.Common;
+using Rainbow.SimpleJSON;
 
 namespace BotLibrary.Model
 {
@@ -25,7 +26,7 @@ namespace BotLibrary.Model
 
         public String? FirstName { get; set; }
 
-        public String LastName { get; set; }
+        public String? LastName { get; set; }
 
         public Account? Bot { get; set; }
 
@@ -65,7 +66,7 @@ namespace BotLibrary.Model
         /// <param name="jsonNode"><see cref="JSONNode"/>JSONNode object</param>
         /// <param name="nodeName"><see cref="String"/>**`Optional - default value: null`** <br/>Node name to use to start parsing</param>
         /// <returns><see cref="BotConfiguration"/> - BotConfiguration object or Null on error</returns>
-        public static BotConfiguration? FromJsonNode(JSONNode jsonNode, String? nodeName = null)
+        public static BotConfiguration? FromJsonNode(JSONNode? jsonNode, String? nodeName = null)
         {
             if ((jsonNode == null) || (!jsonNode.IsObject))
                 return null;
@@ -76,7 +77,7 @@ namespace BotLibrary.Model
             BotConfiguration botConfiguration = new()
             {
                 Administrators = [],
-                GuestsAccepted = jsonNode["administrators"]?["guestsAccepted"],
+                GuestsAccepted = jsonNode["administrators"]?["guestsAccepted"] ?? false,
                 InstantMessageAutoAccept = jsonNode["instantMessageAutoAccept"],
                 PrivateMessageAutoAccept = jsonNode["privateMessageAutoAccept"],
                 AckMessageAutoAccept = jsonNode["ackMessageAutoAccept"],
@@ -146,7 +147,7 @@ namespace BotLibrary.Model
             jsonNode["firstName"] = botConfiguration.FirstName;
             jsonNode["lastName"] = botConfiguration.LastName;
             if (botConfiguration.Bot is not null)
-                jsonNode["bot"] = Account.ToJsonNode(botConfiguration.Bot);
+                jsonNode["bot"] = Account.ToJsonNode(botConfiguration.Bot) ?? JSONNull.CreateOrGet();
             return jsonNode;
         }
 

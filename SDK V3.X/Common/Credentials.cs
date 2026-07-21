@@ -58,7 +58,7 @@ namespace Rainbow.Example.Common
         /// <param name="jsonNode"><see cref="JSONNode"/>JSONNode object</param>
         /// <param name="nodeName"><see cref="String"/>**`Optional - default value: null`** <br/>Node name to use to start parsing</param>
         /// <returns><see cref="Credentials"/> - Credentials object or Null on error</returns>
-        public static Credentials? FromJsonNode(JSONNode jsonNode, String? nodeName = null)
+        public static Credentials? FromJsonNode(JSONNode? jsonNode, String? nodeName = null)
         {
             if ((jsonNode == null) || (!jsonNode.IsObject))
                 return null;

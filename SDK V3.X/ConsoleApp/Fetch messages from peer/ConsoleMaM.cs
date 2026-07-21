@@ -46,7 +46,6 @@ Restrictions restrictions = new(true)
     StoreMessages = false, // Set to true or false to test use of cache in SDK
 
     LogRestRequest = true,
-    LogEvent = true
 };
 
 // Create Rainbow SDK objects

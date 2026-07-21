@@ -6,11 +6,13 @@ using Rainbow.Consts;
 using Rainbow.Example.Common;
 using Rainbow.Model;
 using Rainbow.SimpleJSON;
+using Rainbow.WebRTC.Abstractions;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Principal;
 using System.Threading.Tasks;
 
 namespace BotOrchestratorAndBroadcaster
@@ -254,14 +256,8 @@ namespace BotOrchestratorAndBroadcaster
             {
                 ConsoleAbstraction.WriteWhite($"[{BotName}] Conference updated:[{conference.Peer.Id}] - Active:[{conference.Active}] => Need to update configuration", logger: log);
 
-                if (conference.Active)
-                    await AddOrRemoveBroadcastersFromBubbleAsync(conference.Peer.Id, true);
-                else
-                {
-                    // TODO  need to check config
-                    await AddOrRemoveBroadcastersFromBubbleAsync(conference.Peer.Id, false);
-                }
-
+                await AddOrRemoveBroadcastersFromBubbleAsync(conference.Peer.Id, conference.Active);
+                
                 await SendOrUpdateAdaptiveCardToAllAdminAsync();
 
                 UpdateConfigurationFileOnDisk();
@@ -418,7 +414,7 @@ namespace BotOrchestratorAndBroadcaster
             }
         }
 
-        private async Task AddOrRemoveBroadcastersFromBubbleAsync(String bubbleId, Boolean add)
+        private async Task AddOrRemoveBroadcastersFromBubbleAsync(String bubbleId, Boolean confInProgress)
         {
             if ( (_rbBubbles is null) || (_rbContacts is null) || (_currentBotConfigurationExtended is null) ) return;
             var bubble = _rbBubbles.GetBubbleById(bubbleId);
@@ -430,22 +426,33 @@ namespace BotOrchestratorAndBroadcaster
             {
                 if (broadcaster is null) continue;
                 var member = members.FirstOrDefault(m => m.Peer.Id == broadcaster.Id);
-                if ( (member is null) && add && broadcaster.InConf == "true")
+                if (member is null)
                 {
-                    log.LogInformation("[AddOrRemoveBroadcastersFromBubbleAsync] Add broadcaster[{BroadcasterId}] - BubbleId:[{BubbleId}]", broadcaster.Id, bubbleId);
-                    var contact = _rbContacts.GetContactById(broadcaster.Id);
-                    if (contact is not null)
-                        await _rbBubbles.AddMemberAsync(bubble, contact, BubbleMemberPrivilege.User, true);
-                }
-                else  if ( (!add) && _currentBotConfigurationExtended.Conferences.RemoveAsMemberBroadcaster)
-                {
-                    log.LogInformation("[AddOrRemoveBroadcastersFromBubbleAsync] Remove broadcaster[{BroadcasterId}] - BubbleId:[{BubbleId}]", broadcaster.Id, bubbleId);
-                    var contact = _rbContacts.GetContactById(broadcaster.Id);
-                    if (contact is not null)
-                        await _rbBubbles.RemoveMemberAsync(bubble, contact);
+                    if (broadcaster.InConf == "true" && confInProgress)
+                    {
+                        log.LogInformation("[AddOrRemoveBroadcastersFromBubbleAsync] Add broadcaster[{BroadcasterId}] - BubbleId:[{BubbleId}]", $"{broadcaster.Id}: {broadcaster.FirstName} {broadcaster.LastName}", bubbleId);
+                        var contact = _rbContacts.GetContactById(broadcaster.Id);
+                        if (contact is not null)
+                            await _rbBubbles.AddMemberAsync(bubble, contact, BubbleMemberPrivilege.User, true);
+
+                        continue;
+                    }
                 }
                 else
-                    log.LogInformation("[AddOrRemoveBroadcastersFromBubbleAsync] Do nothing for broadcaster[{BroadcasterId}] - BubbleId:[{BubbleId}]", broadcaster.Id, bubbleId);
+                {
+                    if ( (broadcaster.InConf != "true" && confInProgress)
+                        || ((!confInProgress) && _currentBotConfigurationExtended.Conferences.RemoveAsMemberBroadcaster) )
+                    {
+                        log.LogInformation("[AddOrRemoveBroadcastersFromBubbleAsync] Remove broadcaster[{BroadcasterId}] - BubbleId:[{BubbleId}]", $"{broadcaster.Id}: {broadcaster.FirstName} {broadcaster.LastName}", bubbleId);
+                        var contact = _rbContacts.GetContactById(broadcaster.Id);
+                        if (contact is not null)
+                            await _rbBubbles.RemoveMemberAsync(bubble, contact);
+
+                        continue;
+                    }
+                }
+
+                log.LogInformation("[AddOrRemoveBroadcastersFromBubbleAsync] Do nothing for broadcaster[{BroadcasterId}] - BubbleId:[{BubbleId}]", $"{broadcaster.Id}: {broadcaster.FirstName} {broadcaster.LastName}", bubbleId);
             }
         }
 
@@ -994,6 +1001,18 @@ namespace BotOrchestratorAndBroadcaster
             return (message, alternativeContent);
         }
 
+        private Contact? GetContactByEmail(String email)
+        {
+            if (_rbContacts is null)
+                return null;
+
+            Contact? result = null;
+            if (!String.IsNullOrEmpty(email))
+                result = _rbContacts.GetAllContacts()?.Find(contact => contact?.LoginEmail?.Equals(email, StringComparison.InvariantCultureIgnoreCase) == true);
+
+            return result;
+        }
+
         private async Task<Contact?> GetContactAsync(Account account)
         {
             if (_rbContacts is null)
@@ -1012,8 +1031,7 @@ namespace BotOrchestratorAndBroadcaster
             if (result is not null)
                 return result;
 
-            if (!String.IsNullOrEmpty(account.Login))
-                result = _rbContacts.GetAllContacts()?.Find(contact => contact?.LoginEmail?.Equals(account.Login, StringComparison.InvariantCultureIgnoreCase) == true);
+            result = GetContactByEmail(account.Login);
 
             return result;
         }
