@@ -57,12 +57,8 @@ namespace ConsoleMediaPlayer
             if (!ReadExeSettings())
                 return;
 
-            // Set folder path from logs
-            NLogConfigurator.Directory = _exeSettings?.LogFolderPath ?? ".//logs";
-
             // Add logger for the prefix specified
             String prefix = "ConsoleMediaPlayer_";
-            NLogConfigurator.AddLogger(prefix);
 
             if (!ReadStreamsSettings())
                 return;
@@ -1065,7 +1061,7 @@ namespace ConsoleMediaPlayer
             if (ExeSettings.FromJsonNode(jsonNode["exeSettings"], out _exeSettings))
             {
                 // Set where log files must be stored
-                NLogConfigurator.Directory = _exeSettings.LogFolderPath;
+                LogConfigurator.Configure(_exeSettings.LogFolderPath);
 
                 // Init external librairies: FFmpeg and SDL2
                 if (_exeSettings.UseAudioVideo)

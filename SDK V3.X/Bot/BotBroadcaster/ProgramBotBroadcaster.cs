@@ -172,10 +172,10 @@ namespace BotBroadcaster
             if (ExeSettings.FromJsonNode(jsonNode["exeSettings"], out _exeSettings))
             {
                 // Set where log files must be stored
-                NLogConfigurator.Directory = _exeSettings.LogFolderPath;
+                LogConfigurator.Configure(_exeSettings.LogFolderPath);
 
                 // Init external librairies: FFmpeg and SDL2
-                if(_exeSettings.UseAudioVideo)
+                if (_exeSettings.UseAudioVideo)
                     Rainbow.Medias.Helper.InitExternalLibraries(_exeSettings.FfmpegLibFolderPath);
             }
             else

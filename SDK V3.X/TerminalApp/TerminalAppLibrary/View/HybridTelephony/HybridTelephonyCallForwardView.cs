@@ -1,6 +1,10 @@
-﻿using Rainbow.Consts;
+﻿using Microsoft.Extensions.Logging;
+using Rainbow;
+using Rainbow.Attributes;
+using Rainbow.Consts;
 using Rainbow.Delegates;
 using Rainbow.Model;
+using System.Runtime.CompilerServices;
 using Terminal.Gui.Drawing;
 using Terminal.Gui.Input;
 using Terminal.Gui.ViewBase;
@@ -8,6 +12,8 @@ using Terminal.Gui.Views;
 
 public partial class HybridTelephonyCallForwardView : View
 {
+    readonly ILogger log;
+
     public event StringDelegate? ErrorOccurred;
     readonly Rainbow.Application rbApplication;
     readonly Rainbow.HybridTelephony rbHybridTelephony;
@@ -30,6 +36,9 @@ public partial class HybridTelephonyCallForwardView : View
 
     public HybridTelephonyCallForwardView(Rainbow.Application rbApplication)
     {
+        log = LogFactory.CreateLogger<HybridTelephonyCallForwardView>(rbApplication.LoggerPrefix);
+        LogInjectionManager.RegisterLogger(this, log);
+
         this.rbApplication = rbApplication;
         rbHybridTelephony = rbApplication.GetHybridTelephony();
 
@@ -114,6 +123,13 @@ public partial class HybridTelephonyCallForwardView : View
         UpdateDisplay();
     }
 
+#pragma warning disable CA1822
+    // /!\ This method must NOT be static
+    [LogInjection(PreventException = true)]
+    private void RaiseEvent(Delegate? eventDelegate, Object[] args, [CallerArgumentExpression(nameof(eventDelegate))] string eventName = null)
+        => Rainbow.Util.RaiseEvent(this, eventDelegate, eventName, args);
+
+#pragma warning restore CA1822
     private void CallFwdSelector_SelectedItemUpdated(object? sender, Item e)
     {
         fwdTypeIndexSelected = (int.Parse(e.Id));
@@ -280,7 +296,7 @@ public partial class HybridTelephonyCallForwardView : View
                 if(!sdkResultBoolean.Success)
                 {
                     UpdateDisplay();
-                    Rainbow.Util.RaiseEvent(() => ErrorOccurred, rbApplication, sdkResultBoolean.Result.ToString());
+                    RaiseEvent(ErrorOccurred, [sdkResultBoolean.Result.ToString()]);
                 }
             });
         }
@@ -298,7 +314,7 @@ public partial class HybridTelephonyCallForwardView : View
                         if (!sdkResultBoolean.Success)
                         {
                             UpdateDisplay();
-                            Rainbow.Util.RaiseEvent(() => ErrorOccurred, rbApplication, sdkResultBoolean.Result.ToString());
+                            RaiseEvent(ErrorOccurred, [sdkResultBoolean.Result.ToString()]);
                         }
                     });
                 }
@@ -311,7 +327,7 @@ public partial class HybridTelephonyCallForwardView : View
                         if (!sdkResultBoolean.Success)
                         {
                             UpdateDisplay();
-                            Rainbow.Util.RaiseEvent(() => ErrorOccurred, rbApplication, sdkResultBoolean.Result.ToString());
+                            RaiseEvent(ErrorOccurred, [sdkResultBoolean.Result.ToString()]);
                         }
                     });
                 }
@@ -327,7 +343,7 @@ public partial class HybridTelephonyCallForwardView : View
                         if (!sdkResultBoolean.Success)
                         {
                             UpdateDisplay();
-                            Rainbow.Util.RaiseEvent(() => ErrorOccurred, rbApplication, sdkResultBoolean.Result.ToString());
+                            RaiseEvent(ErrorOccurred, [sdkResultBoolean.Result.ToString()]);
                         }
                     });
                 }

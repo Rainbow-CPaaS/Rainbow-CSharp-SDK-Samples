@@ -35,9 +35,6 @@ internal class BotView: View
         string prefix = rbAccount.Prefix + "_";
         string iniFileName = rbAccount.Prefix + ".ini";
 
-        // We want to log files from SDK for this Bot
-        NLogConfigurator.AddLogger(prefix);
-
         Restrictions restrictions = new(true)
         {
             LogRestRequest = true,

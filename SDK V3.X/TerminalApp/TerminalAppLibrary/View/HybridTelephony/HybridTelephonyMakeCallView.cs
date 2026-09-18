@@ -1,8 +1,12 @@
-﻿using Rainbow.Consts;
+﻿using Microsoft.Extensions.Logging;
+using Rainbow;
+using Rainbow.Attributes;
+using Rainbow.Consts;
 using Rainbow.Delegates;
 using Rainbow.Enums;
 using Rainbow.Model;
 using System.Data;
+using System.Runtime.CompilerServices;
 using Terminal.Gui.Drawing;
 using Terminal.Gui.Input;
 using Terminal.Gui.ViewBase;
@@ -15,6 +19,7 @@ public partial class HybridTelephonyMakeCallView : View
 
     const string LBL_ANY = "Any";
 
+    readonly ILogger log;
     readonly Rainbow.Application rbApplication;
     readonly Rainbow.HybridTelephony rbHybridTelephony;
     readonly Rainbow.Contacts rbContacts;
@@ -50,6 +55,9 @@ public partial class HybridTelephonyMakeCallView : View
 
     public HybridTelephonyMakeCallView(Rainbow.Application rbApplication)
     {
+        log = LogFactory.CreateLogger<HybridTelephonyMakeCallView>(rbApplication.LoggerPrefix);
+        LogInjectionManager.RegisterLogger(this, log);
+
         this.rbApplication = rbApplication;
         rbHybridTelephony = rbApplication.GetHybridTelephony();
         rbContacts = rbApplication.GetContacts();
@@ -233,6 +241,14 @@ public partial class HybridTelephonyMakeCallView : View
         UpdateResource(LBL_ANY);
     }
 
+#pragma warning disable CA1822
+    // /!\ This method must NOT be static
+    [LogInjection(PreventException = true)]
+    private void RaiseEvent(Delegate? eventDelegate, Object[] args, [CallerArgumentExpression(nameof(eventDelegate))] string eventName = null)
+        => Rainbow.Util.RaiseEvent(this, eventDelegate, eventName, args);
+
+#pragma warning restore CA1822
+
     private void RbContacts_UserSettingsUpdated()
     {
         Tools.Application.Invoke(() =>
@@ -335,7 +351,7 @@ public partial class HybridTelephonyMakeCallView : View
                 var sdkResultBoolean = await rbHybridTelephony.MakeCallAsync(textFieldPhoneNumber.Text, subject: textFieldSubject.Text, resource: resource, correlatorData: textFieldCorrelator.Text);
                 if (!sdkResultBoolean.Success)
                 {
-                    Rainbow.Util.RaiseEvent(() => ErrorOccurred, rbApplication, sdkResultBoolean.Result.ToString());
+                    RaiseEvent(ErrorOccurred, [sdkResultBoolean.Result.ToString()]);
                 }
             });
         }
@@ -346,7 +362,7 @@ public partial class HybridTelephonyMakeCallView : View
                 var sdkResultBoolean = await rbHybridTelephony.ConsultationCallAsync(call, textFieldPhoneNumber.Text, correlatorData: textFieldCorrelator.Text);
                 if (!sdkResultBoolean.Success)
                 {
-                    Rainbow.Util.RaiseEvent(() => ErrorOccurred, rbApplication, sdkResultBoolean.Result.ToString());
+                    RaiseEvent(ErrorOccurred, [sdkResultBoolean.Result.ToString()]);
                 }
             });
         }

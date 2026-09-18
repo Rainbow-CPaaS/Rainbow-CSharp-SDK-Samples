@@ -6,23 +6,23 @@ namespace Rainbow.Example.Common
     {
         public String? IniFolderPath { get; set; }
 
-        public string Prefix { get; set; }
+        public string? Prefix { get; set; }
 
-        public string Login { get; set; }
+        public string? Login { get; set; }
 
-        public string Password { get; set; }
+        public string? Password { get; set; }
 
-        public string ApiKey { get; set; }
+        public string? ApiKey { get; set; }
 
         public Boolean AutoLogin { get; set; }
 
         public UserConfig()
         {
             IniFolderPath = null;
-            Login = "";
-            Password = "";
-            Prefix = "";
-            ApiKey = "";
+            Login = null;
+            Password = null;
+            Prefix = null;
+            ApiKey = null;
             AutoLogin = false;
         }
 
@@ -59,7 +59,7 @@ namespace Rainbow.Example.Common
         /// <param name="jsonNode"><see cref="JSONNode"/>JSONNode object</param>
         /// <param name="nodeName"><see cref="String"/>**`Optional - default value: null`** <br/>Node name to use to start parsing</param>
         /// <returns><see cref="UserConfig"/> - UserConfig object or Null on error</returns>
-        public static UserConfig? FromJsonNode(JSONNode jsonNode, String? nodeName = null)
+        public static UserConfig? FromJsonNode(JSONNode? jsonNode, String? nodeName = null)
         {
             if ((jsonNode == null) || (!jsonNode.IsObject))
                 return null;
@@ -73,7 +73,7 @@ namespace Rainbow.Example.Common
                 Prefix = jsonNode["prefix"],
                 Login = jsonNode["login"],
                 Password = jsonNode["password"],
-                ApiKey = jsonNode["apiKey"],
+                ApiKey = jsonNode["apiKey"] ?? "",
                 AutoLogin = jsonNode["autoLogin"]
             };
 

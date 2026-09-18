@@ -1,13 +1,11 @@
 ﻿using Rainbow;
 using Rainbow.Consts;
+using Rainbow.Enums;
+using Rainbow.Example.Common;
+using Rainbow.Example.CommonWebHook;
 using Rainbow.Model;
-
-
 using Rainbow.SimpleJSON;
 using System.Text;
-using Rainbow.Enums;
-using EmbedIO;
-using Rainbow.Example.Common;
 
 // --------------------------------------------------
 
@@ -44,12 +42,6 @@ String logFolderPath = exeSettings.LogFolderPath;
 // In "credentials.json" using "userConfig" object, we defined a prefix used as logger prefix (this prefix permits to have logs stored in specific file for this "userConfig")
 String logPrefix = credentials.UsersConfig[0].Prefix;
 
-// Using NLogConfigurator, we specify the folder where log will be stored
-NLogConfigurator.Directory = logFolderPath;
-
-// Using NLogConfigurator, we add a logger using the preix
-NLogConfigurator.AddLogger(logPrefix);
-
 Rainbow.Util.SetLogAnonymously(false);
 
 Conversation? lastConversationDeleted = null;
@@ -73,8 +65,12 @@ if (!String.IsNullOrEmpty(exeSettings.S2SCallbackURL))
 {
     RbApplication.SetS2SCallbackUrl(exeSettings.S2SCallbackURL);
 
+    // Create Logger for the Web Server
+    Swan.Logging.Logger.NoLogging();
+    Swan.Logging.Logger.RegisterLogger(new SwanLogger(logPrefix));
+
     // We start a local web server using port 9870
-    var webServer = CreateWebServer("http://localhost:9870", logPrefix);
+    var webServer = CallbackS2SModule.CreateWebServer("http://localhost:9870", RbApplication);
     var _ = webServer.RunAsync();
 }
 
@@ -622,6 +618,7 @@ void RbInstantMessaging_MessageReceived(Message message, bool carbonCopy)
     StringBuilder stringBuilder = new();
     AppendMessage(ref stringBuilder, message, $"{CR}\t");
     ConsoleAbstraction.WriteDarkYellow($"{CR}{stringBuilder}");
+
 }
 
 void RbInstantMessaging_ReceiptReceived(Peer peerContext, Message message, MessageReceiptType receiptType)
@@ -643,7 +640,6 @@ void RbInstantMessaging_UserTypingChanged(Peer peerContext, Contact contact, boo
         ConsoleAbstraction.WriteBlue($"{CR} Contact [{contact.ToString(DetailsLevel.Small)}] - isTyping:[{isTyping}] in Bubble:[{peerContext.ToString(DetailsLevel.Small)}]");
     }
 }
-
 
 #endregion Events received from the SDK
 
@@ -668,7 +664,7 @@ Boolean ReadExeSettings()
     if (ExeSettings.FromJsonNode(jsonNode["exeSettings"], out exeSettings))
     {
         // Set where log files must be stored
-        NLogConfigurator.Directory = exeSettings.LogFolderPath;
+        LogConfigurator.Configure(exeSettings.LogFolderPath);
     }
     else
     {
@@ -700,25 +696,3 @@ Boolean ReadCredentials(string fileName = "credentials.json")
 
     return true;
 }
-
-
-#region CODE USED ONLY IN S2S CONTEXT
-WebServer CreateWebServer(string url, string logPrefix)
-{
-    WebServer server = new WebServer(o => o
-            .WithUrlPrefix(url)
-            .WithMode(HttpListenerMode.EmbedIO)
-            )
-
-        // First, we will configure our web server by adding Modules.
-        .WithLocalSessionManager()
-        .WithModule(new CallbackWebModule("/", logPrefix));
-
-    server.WithStaticFolder("/", "./", true, configure =>
-    {
-
-    });
-
-    return server;
-}
-#endregion

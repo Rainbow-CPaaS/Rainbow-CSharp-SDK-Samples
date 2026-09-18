@@ -1,13 +1,18 @@
-﻿using Rainbow;
+﻿using Microsoft.Extensions.Logging;
+using Rainbow;
+using Rainbow.Attributes;
 using Rainbow.Consts;
 using Rainbow.Delegates;
 using Rainbow.Enums;
 using Rainbow.Example.Common;
 using Rainbow.Model;
+using System.Runtime.CompilerServices;
 
 
 internal class RainbowAdminBot
 {
+    internal readonly ILogger log;
+
     const int CLOUDPBX_ROW_SIZE = 5;                        // Cloud PBX list asked in same time
     const int DEVICES_ROW_SIZE = 200;                       // Devices list asked in same time
     const int DEVICE_REGISTRATION_SIMULTANEOUS_CALL = 10;   // Nb of simultaneous HTTP request made to know registration status of devices
@@ -32,7 +37,8 @@ internal class RainbowAdminBot
     {
         RainbowAccount = rainbowAccount;
 
-        NLogConfigurator.AddLogger(rainbowAccount.Prefix);
+        log = LogFactory.CreateLogger<Application>(rainbowAccount.Prefix);
+        LogInjectionManager.RegisterLogger(this, log);
 
         // Set restrictions
         Restrictions restrictions = new(true)
@@ -68,6 +74,14 @@ internal class RainbowAdminBot
         Login();
     }
 
+#pragma warning disable CA1822
+    // /!\ This method must NOT be static
+    [LogInjection(PreventException = true)]
+    private void RaiseEvent(Delegate? eventDelegate, Object[] args, [CallerArgumentExpression(nameof(eventDelegate))] string eventName = null)
+        => Rainbow.Util.RaiseEvent(this, eventDelegate, eventName, args);
+
+#pragma warning restore CA1822
+
     public void Login()
     {
         if (!_rbApplication.IsConnected())
@@ -76,7 +90,7 @@ internal class RainbowAdminBot
             {
                 var sdkResult = obj.Result;
                 if (!sdkResult.Success)
-                    Rainbow.Util.RaiseEvent(() => ConnectionFailed, _rbApplication, sdkResult.Result);
+                    RaiseEvent(ConnectionFailed, [sdkResult.Result]);
             });
         }
     }
@@ -100,7 +114,7 @@ internal class RainbowAdminBot
 
     private async void RbApplication_AuthenticationFailed(SdkError sdkError)
     {
-        Rainbow.Util.RaiseEvent(() => ConnectionFailed, _rbApplication, sdkError);
+        RaiseEvent(ConnectionFailed, [sdkError]);
 
         /*
         // EXAMPLE TO POST DATA USING HTTP
@@ -124,7 +138,7 @@ internal class RainbowAdminBot
 
     private async void RbApplication_ConnectionStateChanged(Rainbow.Model.ConnectionState connectionState)
     {
-        Rainbow.Util.RaiseEvent(() => ConnectionStateChanged, _rbApplication, connectionState);
+        RaiseEvent(ConnectionStateChanged, [connectionState]);
 
         if (connectionState.Status == ConnectionStatus.Connected)
         {
@@ -168,7 +182,7 @@ internal class RainbowAdminBot
             Login();
         }
         else
-            Rainbow.Util.RaiseEvent(() => ConnectionFailed, _rbApplication, sdkError);
+            RaiseEvent(ConnectionFailed, [sdkError]);
     }
 
     private async Task AskHubDeviceRegistrationAsync(String cloudId, String deviceId, String deviceUserId, String deviceShortNumber)
@@ -212,7 +226,7 @@ internal class RainbowAdminBot
             }
 
             if (raiseEvent)
-                Rainbow.Util.RaiseEvent(() => SIPDeviceStatusChanged, _rbApplication, sipDeviceStatus);
+                RaiseEvent(SIPDeviceStatusChanged, [sipDeviceStatus]);
         }
 
     }

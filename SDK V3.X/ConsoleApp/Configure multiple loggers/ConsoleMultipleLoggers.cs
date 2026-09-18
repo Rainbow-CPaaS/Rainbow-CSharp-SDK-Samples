@@ -11,6 +11,7 @@ using Rainbow.Example.Common;
 ExeSettings? exeSettings = null;
 Credentials? credentials = null;
 
+// NOTE: In ReadExeSettings(), log configuration is also set
 if ((!ReadExeSettings()) || (exeSettings is null))
     return;
 
@@ -40,21 +41,7 @@ String logFolderPath = exeSettings.LogFolderPath;
 String logPrefix = credentials.UsersConfig[0].Prefix;
 String logPrefix2 = credentials.UsersConfig[1].Prefix;
 
-// Using NLogConfigurator, we specify the folder where log will be stored
-NLogConfigurator.Directory = logFolderPath;
-
-// Using NLogConfigurator, we add loggers using their prefix
-NLogConfigurator.AddLogger(logPrefix);
-NLogConfigurator.AddLogger(logPrefix2);
-
 // Each time you create a Rainbow.Application a logger prefix is used
-
-/// This logger use NLog but you can use any logger based on Microsoft Extension Logging (MEL)
-/// See https://developers.openrainbow.com/doc/sdk/csharp/core/lts/guides/130_application_logging for more details
-/// By default, two log files are created "RainbowSdk.log" and "RainbowSdk_WebRTC.log" (if WebRTC is used) in the foder where this process is running
-/// See more details in <see cref="NLogConfigurator"/> object.
-
-/// Create Rainbow SDK objects
 
 // We want to have an IniFileName different for each Rainbow Application
 var iniFileName = logPrefix + "_file.ini";
@@ -79,7 +66,6 @@ ConsoleAbstraction.WriteYellow($"\tIniFile name is [{iniFileName2}] and stored i
 /// We create a ILogger from the LogFactory using "ConsoleApp" as CategoryName
 var prefix_consoleApp = "ConsoleApp";
 
-NLogConfigurator.AddLogger(prefix_consoleApp);
 ILogger log = Rainbow.LogFactory.CreateLogger("ConsoleApp", prefix: prefix_consoleApp);
 
 /// And to log info use these
@@ -178,7 +164,7 @@ Boolean ReadExeSettings()
     if (ExeSettings.FromJsonNode(jsonNode["exeSettings"], out exeSettings))
     {
         // Set where log files must be stored
-        NLogConfigurator.Directory = exeSettings.LogFolderPath;
+        LogConfigurator.Configure(exeSettings.LogFolderPath);
     }
     else
     {

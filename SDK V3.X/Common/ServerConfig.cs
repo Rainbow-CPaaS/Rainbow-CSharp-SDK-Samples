@@ -8,7 +8,7 @@ namespace Rainbow.Example.Common
         public string AppSecret { get; set; }
         public string HostName { get; set; }
 
-        public List<int>? OAuthPorts { get; set; }
+        public List<int> OAuthPorts { get; set; }
 
         public String? SSORedirectUrl { get; set; }
 
@@ -17,7 +17,7 @@ namespace Rainbow.Example.Common
             AppId = "";
             AppSecret = "";
             HostName = "";
-            OAuthPorts = null;
+            OAuthPorts = [];
             SSORedirectUrl = null;
         }
 
@@ -42,7 +42,7 @@ namespace Rainbow.Example.Common
         /// <param name="jsonNode"><see cref="JSONNode"/>JSONNode object</param>
         /// <param name="nodeName"><see cref="String"/>**`Optional - default value: null`** <br/>Node name to use to start parsing</param>
         /// <returns><see cref="ServerConfig"/> - ServerConfig object or Null on error</returns>
-        public static ServerConfig? FromJsonNode(JSONNode jsonNode, String? nodeName = null)
+        public static ServerConfig? FromJsonNode(JSONNode? jsonNode, String? nodeName = null)
         {
             if ((jsonNode == null) || (!jsonNode.IsObject))
                 return null;
@@ -52,10 +52,10 @@ namespace Rainbow.Example.Common
 
             ServerConfig ServerConfig = new()
             {
-                AppId = jsonNode["appId"],
-                AppSecret = jsonNode["appSecret"],
-                HostName = jsonNode["hostname"],
-                OAuthPorts = jsonNode["oauthPorts"],
+                AppId = (String?)jsonNode["appId"] ?? "",
+                AppSecret = (String?)jsonNode["appSecret"] ?? "",
+                HostName = (String?)jsonNode["hostname"] ?? "",
+                OAuthPorts = (List<int>?)jsonNode["oauthPorts"] ?? [],
                 SSORedirectUrl = jsonNode["ssoRedirectUrl"]
             };
 

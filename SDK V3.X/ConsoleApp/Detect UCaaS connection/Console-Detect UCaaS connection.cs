@@ -31,7 +31,6 @@ List<RainbowBot> rainbowBots = new ();
 
 
 // Set folder / directory path
-NLogConfigurator.Directory = exeSettings.LogFolderPath;
 var logFullPath = Path.GetFullPath(exeSettings.LogFolderPath);
 ConsoleAbstraction.WriteBlue($"Logs files will be stored in folder:[{logFullPath}]{Rainbow.Util.CR}");
 
@@ -152,7 +151,7 @@ Boolean ReadExeSettings()
     if (ExeSettings.FromJsonNode(jsonNode["exeSettings"], out exeSettings))
     {
         // Set where log files must be stored
-        NLogConfigurator.Directory = exeSettings.LogFolderPath;
+        LogConfigurator.Configure(exeSettings.LogFolderPath);
     }
     else
     {

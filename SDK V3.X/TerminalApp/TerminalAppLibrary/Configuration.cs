@@ -44,7 +44,7 @@ public static class Configuration
         if (ExeSettings.FromJsonNode(jsonNode["exeSettings"], out ExeSettings))
         {
             // Set where log files must be stored
-            NLogConfigurator.Directory = ExeSettings.LogFolderPath;
+            LogConfigurator.Configure(ExeSettings.LogFolderPath);
         }
         else
         {

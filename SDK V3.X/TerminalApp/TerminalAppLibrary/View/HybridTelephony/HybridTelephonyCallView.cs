@@ -1,7 +1,10 @@
-﻿using Rainbow;
+﻿using Microsoft.Extensions.Logging;
+using Rainbow;
+using Rainbow.Attributes;
 using Rainbow.Delegates;
 using Rainbow.Enums;
 using Rainbow.Model;
+using System.Runtime.CompilerServices;
 using Terminal.Gui.Drawing;
 using Terminal.Gui.Input;
 using Terminal.Gui.ViewBase;
@@ -11,6 +14,7 @@ public partial class HybridTelephonyCallView : View
 {
     public event StringDelegate? ErrorOccurred;
 
+    readonly ILogger log;
     readonly Rainbow.Application rbApplication;
     readonly Rainbow.HybridTelephony rbHybridTelephony;
 
@@ -48,6 +52,9 @@ public partial class HybridTelephonyCallView : View
 
     public HybridTelephonyCallView(Rainbow.Application rbApplication, int index)
     {
+        log = LogFactory.CreateLogger<HybridTelephonyCallView>(rbApplication.LoggerPrefix);
+        LogInjectionManager.RegisterLogger(this, log);
+
         int maxLeftLabelLength = 10;
         int maxRightLabelLength = 15;
 
@@ -313,6 +320,14 @@ public partial class HybridTelephonyCallView : View
         UpdateDisplay(null, null);
     }
 
+#pragma warning disable CA1822
+    // /!\ This method must NOT be static
+    [LogInjection(PreventException = true)]
+    private void RaiseEvent(Delegate? eventDelegate, Object[] args, [CallerArgumentExpression(nameof(eventDelegate))] string eventName = null)
+        => Rainbow.Util.RaiseEvent(this, eventDelegate, eventName, args);
+
+#pragma warning restore CA1822
+
     private void BtnDtmf_MouseEvent(object? sender, Mouse e)
     {
         if (currentCall is not null)
@@ -324,7 +339,7 @@ public partial class HybridTelephonyCallView : View
                     var sdkResultBoolean = await rbHybridTelephony.SendDtmfAsync(currentCall, textFieldDTMF.Text);
                     if (!sdkResultBoolean.Success)
                     {
-                        Rainbow.Util.RaiseEvent(() => ErrorOccurred, rbApplication, sdkResultBoolean.Result.ToString());
+                        RaiseEvent(() => ErrorOccurred, [sdkResultBoolean.Result.ToString()]);
                     }
                 });
             }
@@ -342,7 +357,7 @@ public partial class HybridTelephonyCallView : View
                     var sdkResultBoolean = await rbHybridTelephony.DeflectCallToMevoAsync(currentCall);
                     if (!sdkResultBoolean.Success)
                     {
-                        Rainbow.Util.RaiseEvent(() => ErrorOccurred, rbApplication, sdkResultBoolean.Result.ToString());
+                        RaiseEvent(ErrorOccurred, [sdkResultBoolean.Result.ToString()]);
                     }
                 });
             }
@@ -360,7 +375,7 @@ public partial class HybridTelephonyCallView : View
                     var sdkResultBoolean = await rbHybridTelephony.ReleaseCallAsync(currentCall);
                     if (!sdkResultBoolean.Success)
                     {
-                        Rainbow.Util.RaiseEvent(() => ErrorOccurred, rbApplication, sdkResultBoolean.Result.ToString());
+                        RaiseEvent(ErrorOccurred, [sdkResultBoolean.Result.ToString()]);
                     }
                 });
             }
@@ -380,7 +395,7 @@ public partial class HybridTelephonyCallView : View
                         var sdkResultBoolean = await rbHybridTelephony.AlternateCallAsync(otherCall, currentCall);
                         if (!sdkResultBoolean.Success)
                         {
-                            Rainbow.Util.RaiseEvent(() => ErrorOccurred, rbApplication, sdkResultBoolean.Result.ToString());
+                            RaiseEvent(ErrorOccurred, [sdkResultBoolean.Result.ToString()]);
                         }
                     });
                 }
@@ -391,7 +406,7 @@ public partial class HybridTelephonyCallView : View
                         var sdkResultBoolean = await rbHybridTelephony.RetrieveCallAsync(currentCall);
                         if (!sdkResultBoolean.Success)
                         {
-                            Rainbow.Util.RaiseEvent(() => ErrorOccurred, rbApplication, sdkResultBoolean.Result.ToString());
+                            RaiseEvent(ErrorOccurred, [sdkResultBoolean.Result.ToString()]);
                         }
                     });
                 }
@@ -405,7 +420,7 @@ public partial class HybridTelephonyCallView : View
                         var sdkResultBoolean = await rbHybridTelephony.AlternateCallAsync(currentCall, otherCall);
                         if (!sdkResultBoolean.Success)
                         {
-                            Rainbow.Util.RaiseEvent(() => ErrorOccurred, rbApplication, sdkResultBoolean.Result.ToString());
+                            RaiseEvent(ErrorOccurred, [sdkResultBoolean.Result.ToString()]);
                         }
                     });
                 }
@@ -416,7 +431,7 @@ public partial class HybridTelephonyCallView : View
                         var sdkResultBoolean = await rbHybridTelephony.HoldCallAsync(currentCall);
                         if (!sdkResultBoolean.Success)
                         {
-                            Rainbow.Util.RaiseEvent(() => ErrorOccurred, rbApplication, sdkResultBoolean.Result.ToString());
+                            RaiseEvent(ErrorOccurred, [sdkResultBoolean.Result.ToString()]);
                         }
                     });
                 }
@@ -435,7 +450,7 @@ public partial class HybridTelephonyCallView : View
                     var sdkResultBoolean = await rbHybridTelephony.AnswerCallAsync(currentCall);
                     if (!sdkResultBoolean.Success)
                     {
-                        Rainbow.Util.RaiseEvent(() => ErrorOccurred, rbApplication, sdkResultBoolean.Result.ToString());
+                        RaiseEvent(ErrorOccurred, [sdkResultBoolean.Result.ToString()]);
                     }
                 });
             }

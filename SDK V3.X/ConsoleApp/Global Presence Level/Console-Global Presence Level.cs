@@ -31,7 +31,6 @@ else
 
 
 // Set folder / directory path
-NLogConfigurator.Directory = exeSettings.LogFolderPath;
 var logFullPath = Path.GetFullPath(exeSettings.LogFolderPath);
 ConsoleAbstraction.WriteBlue($"Logs files will be stored in folder:[{logFullPath}]{Rainbow.Util.CR}");
 
@@ -40,8 +39,13 @@ ConsoleAbstraction.WriteBlue($"Use [S] to have Company Event Subscription Status
 
 // Create admin bot
 var adminBot = new RainbowAdminBot(credentials.ServerConfig, credentials.UsersConfig[0], exeSettings.S2SCallbackURL);
-adminBot.ConnectionStateChanged += (connectionState) => AdminBot_ConnectionStateChanged(adminBot.RainbowAccount, connectionState);
-adminBot.ConnectionFailed += (sdkError) => AdminBot_ConnectionFailed(adminBot.RainbowAccount, sdkError);
+adminBot.ConnectionStateChanged += AdminBot_ConnectionStateChanged;
+adminBot.ConnectionFailed += AdminBot_ConnectionFailed;
+
+adminBot.ContactPresenceUpdated += AdminBot_ContactPresenceUpdated;
+adminBot.ContactAggregatedPresenceUpdated += AdminBot_ContactAggregatedPresenceUpdated;
+
+
 
 do
 {
@@ -79,29 +83,38 @@ void CheckInputKey()
 
 #region EVENTS TRIGGERED BY RainbowAdminBot
 
-void AdminBot_ConnectionStateChanged(UserConfig rainbowAccount, ConnectionState connectionState)
+void AdminBot_ConnectionStateChanged(ConnectionState connectionState)
 {
     switch (connectionState.Status)
     {
         case ConnectionStatus.Connected:
-            ConsoleAbstraction.WriteDarkYellow($"Bot using [{rainbowAccount.Login}] is connected{Rainbow.Util.CR}");
+            ConsoleAbstraction.WriteDarkYellow($"Bot connected{Rainbow.Util.CR}");
             break;
 
         case ConnectionStatus.Connecting:
-            ConsoleAbstraction.WriteBlue($"Bot using [{rainbowAccount.Login}] is connecting ...{Rainbow.Util.CR}");
+            ConsoleAbstraction.WriteDarkYellow($"Bot is connecting ...{Rainbow.Util.CR}");
             break;
 
         case ConnectionStatus.Disconnected:
-            ConsoleAbstraction.WriteRed($"Bot using [{rainbowAccount.Login}] is disconnected{Rainbow.Util.CR}");
+            ConsoleAbstraction.WriteRed($"Bot is disconnected{Rainbow.Util.CR}");
             break;
     }
 }
 
-void AdminBot_ConnectionFailed(UserConfig rainbowAccount, SdkError sdkError)
+void AdminBot_ConnectionFailed(SdkError sdkError)
 {
-    ConsoleAbstraction.WriteRed($"Bot using [{rainbowAccount.Login}] is not connected - Error:[{sdkError}]{Rainbow.Util.CR}");
+    ConsoleAbstraction.WriteRed($"Bot is not connected - Error:[{sdkError}]{Rainbow.Util.CR}");
 }
 
+void AdminBot_ContactAggregatedPresenceUpdated(Presence presence)
+{
+    ConsoleAbstraction.WriteGreen($"Aggregated presence updated:[{presence.ToString(DetailsLevel.Medium)}]");
+}
+
+void AdminBot_ContactPresenceUpdated(Presence presence)
+{
+    ConsoleAbstraction.WriteGreen($"Presence Updated:[{presence.ToString(DetailsLevel.Medium)}]");
+}
 
 #endregion EVENTS TRIGGERED BY RainbowAdminBot
 
@@ -126,7 +139,7 @@ Boolean ReadExeSettings()
     if (ExeSettings.FromJsonNode(jsonNode["exeSettings"], out exeSettings))
     {
         // Set where log files must be stored
-        NLogConfigurator.Directory = exeSettings.LogFolderPath;
+        LogConfigurator.Configure(exeSettings.LogFolderPath);
     }
     else
     {

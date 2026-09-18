@@ -8,10 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="EmbedIO" Version="3.4.3" />
-  </ItemGroup>
-
-  <ItemGroup>
+    <ProjectReference Include="..\..\CommonWebHook\CommonWebHook.csproj" />
     <ProjectReference Include="..\TerminalAppLibrary\TerminalAppLibrary.csproj" />
   </ItemGroup>
 

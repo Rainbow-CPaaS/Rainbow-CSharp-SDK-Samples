@@ -1,7 +1,11 @@
-﻿using Rainbow.Consts;
+﻿using Microsoft.Extensions.Logging;
+using Rainbow;
+using Rainbow.Attributes;
+using Rainbow.Consts;
 using Rainbow.Delegates;
 using Rainbow.Model;
 using System.Data;
+using System.Runtime.CompilerServices;
 using Terminal.Gui.Drawing;
 using Terminal.Gui.Input;
 using Terminal.Gui.ViewBase;
@@ -9,6 +13,8 @@ using Terminal.Gui.Views;
 
 public partial class HubTelephonyMakeCallView : View
 {
+    readonly ILogger log;
+
     private const String LBL_DESKTOP = "desktop";
     public event StringDelegate? ErrorOccurred;
 
@@ -62,6 +68,9 @@ public partial class HubTelephonyMakeCallView : View
 
     public HubTelephonyMakeCallView(Rainbow.Application rbApplication)
     {
+        log = LogFactory.CreateLogger<HubTelephonyMakeCallView>(rbApplication.LoggerPrefix);
+        LogInjectionManager.RegisterLogger(this, log);
+
         this.rbApplication = rbApplication;
         rbHubTelephony = rbApplication.GetHubTelephony();
         rbContacts = rbApplication.GetContacts();
@@ -305,6 +314,14 @@ public partial class HubTelephonyMakeCallView : View
         UpdateDisplay();
     }
 
+#pragma warning disable CA1822
+    // /!\ This method must NOT be static
+    [LogInjection(PreventException = true)]
+    private void RaiseEvent(Delegate? eventDelegate, Object[] args, [CallerArgumentExpression(nameof(eventDelegate))] string eventName = null)
+        => Rainbow.Util.RaiseEvent(this, eventDelegate, eventName, args);
+
+#pragma warning restore CA1822
+
     private Boolean IsAutoAcceptUserSettingSet()
     {
         Boolean? autoAnswer = rbContacts.GetUserSettingBooleanValue(UserSetting.AutoAnswer);
@@ -546,7 +563,7 @@ private void CheckDeviceAndResourceSelection()
                     var sdkResultBoolean = await rbHubTelephony.SetCurrentDeviceAsync(device);
                     if (!sdkResultBoolean.Success)
                     {
-                        Rainbow.Util.RaiseEvent(() => ErrorOccurred, rbApplication, sdkResultBoolean.Result.ToString());
+                        RaiseEvent(ErrorOccurred, [sdkResultBoolean.Result.ToString()]);
                     }
                 });
             }
@@ -564,7 +581,7 @@ private void CheckDeviceAndResourceSelection()
                 var sdkResultBoolean = await rbHubTelephony.SetCallLineIdentificationRestrictionAsync((item.Id == "0"));
                 if (!sdkResultBoolean.Success)
                 {
-                    Rainbow.Util.RaiseEvent(() => ErrorOccurred, rbApplication, sdkResultBoolean.Result.ToString());
+                    RaiseEvent(ErrorOccurred, [sdkResultBoolean.Result.ToString()]);
                 }
             });
         }
@@ -581,7 +598,7 @@ private void CheckDeviceAndResourceSelection()
                 var sdkResultBoolean = await rbContacts.UpdateUserSettingAsync(UserSetting.AutoAnswer, (item.Id == "0"));
                 if (!sdkResultBoolean.Success)
                 {
-                    Rainbow.Util.RaiseEvent(() => ErrorOccurred, rbApplication, sdkResultBoolean.Result.ToString());
+                    RaiseEvent(ErrorOccurred, [sdkResultBoolean.Result.ToString()]);
                 }
 
                 if (item.Id == "0")
@@ -589,7 +606,7 @@ private void CheckDeviceAndResourceSelection()
                     sdkResultBoolean = await rbContacts.UpdateUserSettingAsync(UserSetting.AutoAnswerByDeviceType, LBL_DESKTOP);
                     if (!sdkResultBoolean.Success)
                     {
-                        Rainbow.Util.RaiseEvent(() => ErrorOccurred, rbApplication, sdkResultBoolean.Result.ToString());
+                        RaiseEvent(ErrorOccurred, [sdkResultBoolean.Result.ToString()]);
                     }
                 }
             });
@@ -605,7 +622,7 @@ private void CheckDeviceAndResourceSelection()
             var sdkResultBoolean = await rbHubTelephony.MakeCallAsync(textFieldPhoneNumber.Text, device: selectedPhoneUsed, resource: selectedResource, callerAutoAnswer: cbAutoAccept.Value == CheckState.Checked);
             if (!sdkResultBoolean.Success)
             {
-                Rainbow.Util.RaiseEvent(() => ErrorOccurred, rbApplication, sdkResultBoolean.Result.ToString());
+                RaiseEvent(ErrorOccurred, [sdkResultBoolean.Result.ToString()]);
             }
         });
 

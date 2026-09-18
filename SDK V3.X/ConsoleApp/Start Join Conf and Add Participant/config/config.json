@@ -1,0 +1,23 @@
+{
+  "_comment_operator_01": "The account to add in the bubble. Once the bubble is started, we wait this account until it joins the conf. Then we add phone numbers ",
+  "_comment_operator_02": "id, and/or jid and/or login can be set here (this order is used to get the associated account)",
+  "operator": {
+    "login": "user2.bob@irleshubdevelopment.test.fr"
+  },
+
+  "_comment_bubble": "Describe the bubble to create",
+  "bubble": {
+    "name": "PA Announcement",
+    "topic": ""
+  },
+
+  "_comment_phoneNumbers": "List of phone numbers to add as participants once the conference has started and when the operator has joined",
+  "phoneNumbers": [ "0123456789", "+33123456789" ],
+
+  "_comment_maxPhoneNumberToAddInFirstRow": "Max number of phone numbers to add in one row the first time. Then they are added one by one (if any)",
+  "maxPhoneNumberToAddInFirstRow": 1,
+
+  "_comment_addNewPhoneNumberWhen_01": "To know when to add a new phone number after the first row when we received event info about a previous phone number",
+  "_comment_addNewPhoneNumberWhen_02": "Possible values are: active, ringing, progress",
+  "addNewPhoneNumberWhen": "active"
+}

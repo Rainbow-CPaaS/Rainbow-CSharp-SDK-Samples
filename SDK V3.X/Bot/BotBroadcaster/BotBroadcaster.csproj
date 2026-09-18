@@ -26,8 +26,8 @@
 	<ProjectReference Include="..\..\..\..\rainbow-csharp-sdk-test\SDK.WebRTC.Desktop\SDK.WebRTC.Desktop.csproj" />
 	<ProjectReference Include="..\..\..\..\rainbow-csharp-sdk-test\SDK.WebRTC\SDK.WebRTC.csproj" />
 -->
-	<PackageReference Include="Rainbow.CSharp.SDK.WebRTC.Desktop" Version="2.7.0" />
-	<PackageReference Include="Rainbow.CSharp.SDK.WebRTC" Version="2.7.0" />
+	<PackageReference Include="Rainbow.CSharp.SDK.WebRTC.Desktop" Version="2.8.0" />
+	<PackageReference Include="Rainbow.CSharp.SDK.WebRTC" Version="2.8.0" />
 
 </ItemGroup>
 

@@ -1,13 +1,17 @@
-﻿using Rainbow;
+﻿using Microsoft.Extensions.Logging;
+using Rainbow;
+using Rainbow.Attributes;
 using Rainbow.Consts;
 using Rainbow.Delegates;
 using Rainbow.Enums;
 using Rainbow.Example.Common;
 using Rainbow.Model;
-
+using System.Runtime.CompilerServices;
 
 internal class RainbowBot
 {
+    internal readonly ILogger log;
+
     public UserConfig RainbowAccount { get; private set; }
 
     private Rainbow.Application _rbApplication;
@@ -28,7 +32,8 @@ internal class RainbowBot
     {
         RainbowAccount = rainbowAccount;
 
-        NLogConfigurator.AddLogger(rainbowAccount.Prefix);
+        log = LogFactory.CreateLogger<Application>(rainbowAccount.Prefix);
+        LogInjectionManager.RegisterLogger(this, log);
 
         // Set restrictions
         Restrictions restrictions = new(true)
@@ -65,6 +70,15 @@ internal class RainbowBot
         Login();
     }
 
+#pragma warning disable CA1822
+    // /!\ This method must NOT be static
+    [LogInjection(PreventException = true)]
+    private void RaiseEvent(Delegate eventDelegate, Object[] args, [CallerArgumentExpression(nameof(eventDelegate))] string eventName = null)
+        => Rainbow.Util.RaiseEvent(this, eventDelegate, eventName, args);
+
+#pragma warning restore CA1822
+
+
     public void Login()
     {
         if (!_rbApplication.IsConnected())
@@ -73,7 +87,7 @@ internal class RainbowBot
             {
                 var sdkResult = obj.Result;
                 if (!sdkResult.Success)
-                    Rainbow.Util.RaiseEvent(() => ConnectionFailed, _rbApplication, sdkResult.Result);
+                    RaiseEvent(ConnectionFailed, [sdkResult.Result]);
             });
         }
     }
@@ -97,7 +111,7 @@ internal class RainbowBot
 
     private async void RbApplication_AuthenticationFailed(SdkError sdkError)
     {
-        Rainbow.Util.RaiseEvent(() => ConnectionFailed, _rbApplication, sdkError);
+        RaiseEvent(ConnectionFailed, [sdkError]);
 
         /*
         // EXAMPLE TO POST DATA USING HTTP
@@ -144,7 +158,7 @@ internal class RainbowBot
                         || ( (!_resourceUsedByAnotherProcess) && (_resourcesUsed.Count > 0)) ) 
                     {
                         _resourceUsedByAnotherProcess = !_resourceUsedByAnotherProcess;
-                        Rainbow.Util.RaiseEvent(() => AccountUsedOnAnotherDevice, _rbApplication, _resourceUsedByAnotherProcess);
+                        RaiseEvent(AccountUsedOnAnotherDevice, [_resourceUsedByAnotherProcess]);
                     }
                 }
             }
@@ -167,7 +181,7 @@ internal class RainbowBot
                 break;
         }
 
-        Rainbow.Util.RaiseEvent(() => ConnectionStateChanged, _rbApplication, connectionState);
+        RaiseEvent(ConnectionStateChanged, [_rbApplication, connectionState]);
 
         /*
         // EXAMPLE TO POST DATA USING HTTP
@@ -191,14 +205,14 @@ internal class RainbowBot
 
     private void RbAutoReconnection_Cancelled(Rainbow.SdkError sdkError)
     {
-        if(sdkError?.IncorrectUseError?.ErrorDetailsCode == (int)SdkInternalErrorEnum.LOGIN_PROCESS_MAX_ATTEMPTS_REACHED)
+        if(sdkError.IncorrectUseError?.ErrorDetailsCode == (int)SdkInternalErrorEnum.LOGIN_PROCESS_MAX_ATTEMPTS_REACHED)
         {
             // The auto reconnection service try to connect on server but failed after a lot of retry ....
             // We do it again and again ... 
             Login();
         }
         else
-            Rainbow.Util.RaiseEvent(() => ConnectionFailed, _rbApplication, sdkError);
+            RaiseEvent(ConnectionFailed, [sdkError]);
     }
 }
 

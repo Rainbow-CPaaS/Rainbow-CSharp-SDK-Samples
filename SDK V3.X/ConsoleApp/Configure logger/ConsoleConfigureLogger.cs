@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
 using Rainbow;
-using System.Text;
 
 using Rainbow.SimpleJSON;
 using Rainbow.Example.Common;
@@ -10,6 +9,7 @@ using Rainbow.Example.Common;
 ExeSettings? exeSettings = null;
 Credentials? credentials = null;
 
+// NOTE: In ReadExeSettings(), log configuration is also set
 if ((!ReadExeSettings()) || (exeSettings is null))
     return;
 
@@ -31,17 +31,6 @@ String logFolderPath = exeSettings.LogFolderPath;
 
 // In "credentials.json" using "userConfig" object, we defined a prefix used as logger prefix (this prefix permits to have logs stored in specific file for this "userConfig")
 String logPrefix = credentials.UsersConfig[0].Prefix;
-
-// Using NLogConfigurator, we specify the folder where log will be stored
-NLogConfigurator.Directory = logFolderPath;
-
-// Using NLogConfigurator, we add a logger using the preix
-NLogConfigurator.AddLogger(logPrefix);
-
-/// This logger use NLog but you can use any logger based on Microsoft Extension Logging (MEL)
-/// See https://developers.openrainbow.com/doc/sdk/csharp/core/lts/guides/130_application_logging for more details
-/// By default, two log files are created "RainbowSdk.log" and "RainbowSdk_WebRTC.log" (if WebRTC is used) in the foder where this process is running
-/// See more details in <see cref="NLogConfigurator"/> object.
 
 /// Create Rainbow SDK objects - using the prefix
 var RbApplication = new Application(loggerPrefix: logPrefix);
@@ -131,8 +120,7 @@ Boolean ReadExeSettings()
 
     if (ExeSettings.FromJsonNode(jsonNode["exeSettings"], out exeSettings))
     {
-        // Set where log files must be stored
-        NLogConfigurator.Directory = exeSettings.LogFolderPath;
+        LogConfigurator.Configure(exeSettings.LogFolderPath);
     }
     else
     {
@@ -155,7 +143,7 @@ Boolean ReadCredentials(string fileName = "credentials.json")
     String jsonConfig = File.ReadAllText(credentialsFilePath);
     var jsonNode = JSON.Parse(jsonConfig);
 
-    credentials = Credentials.FromJsonNode(jsonNode["credentials"]);
+    credentials = Credentials.FromJsonNode(jsonNode?["credentials"]);
     if (credentials?.IsValid() != true)
     {
         ConsoleAbstraction.WriteRed($"Cannot read 'credentials' object OR invalid/missing data in file:[{fileName}].");

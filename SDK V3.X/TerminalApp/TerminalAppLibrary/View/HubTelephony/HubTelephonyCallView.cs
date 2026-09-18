@@ -1,7 +1,10 @@
-﻿using Rainbow;
+﻿using Microsoft.Extensions.Logging;
+using Rainbow;
+using Rainbow.Attributes;
 using Rainbow.Delegates;
 using Rainbow.Enums;
 using Rainbow.Model;
+using System.Runtime.CompilerServices;
 using Terminal.Gui.Drawing;
 using Terminal.Gui.Input;
 using Terminal.Gui.ViewBase;
@@ -11,6 +14,7 @@ public partial class HubTelephonyCallView : View
 {
     public event StringDelegate? ErrorOccurred;
 
+    readonly ILogger log;
     readonly Rainbow.Application rbApplication;
     readonly Rainbow.HubTelephony rbHubTelephony;
 
@@ -46,6 +50,9 @@ public partial class HubTelephonyCallView : View
 
     public HubTelephonyCallView(Rainbow.Application rbApplication, int index)
     {
+        log = LogFactory.CreateLogger<HubTelephonyCallView>(rbApplication.LoggerPrefix);
+        LogInjectionManager.RegisterLogger(this, log);
+
         int viewLeftPercent = 65;
         int maxLeftLabelLength = 14;
         int maxRightLabelLength = 15;
@@ -302,6 +309,14 @@ public partial class HubTelephonyCallView : View
         UpdateDisplay(null, null);
     }
 
+#pragma warning disable CA1822
+    // /!\ This method must NOT be static
+    [LogInjection(PreventException = true)]
+    private void RaiseEvent(Delegate? eventDelegate, Object[] args, [CallerArgumentExpression(nameof(eventDelegate))] string eventName = null)
+        => Rainbow.Util.RaiseEvent(this, eventDelegate, eventName, args);
+
+#pragma warning restore CA1822
+
     public void UpdateDisplay(HubCall? call, HubCall? otherCall)
     {
         currentCall = call;
@@ -457,7 +472,7 @@ public partial class HubTelephonyCallView : View
                     var sdkResultBoolean = await rbHubTelephony.SendDtmfAsync(currentCall, textFieldDTMF.Text);
                     if (!sdkResultBoolean.Success)
                     {
-                        Rainbow.Util.RaiseEvent(() => ErrorOccurred, rbApplication, sdkResultBoolean.Result.ToString());
+                        RaiseEvent(ErrorOccurred, [sdkResultBoolean.Result.ToString()]);
                     }
                 });
             }
@@ -476,7 +491,7 @@ public partial class HubTelephonyCallView : View
                     var sdkResultBoolean = await rbHubTelephony.DeflectCallToMevoAsync(currentCall);
                     if (!sdkResultBoolean.Success)
                     {
-                        Rainbow.Util.RaiseEvent(() => ErrorOccurred, rbApplication, sdkResultBoolean.Result.ToString());
+                        RaiseEvent(ErrorOccurred, [sdkResultBoolean.Result.ToString()]);
                     }
                 });
             }
@@ -495,7 +510,7 @@ public partial class HubTelephonyCallView : View
                     var sdkResultBoolean = await rbHubTelephony.ReleaseCallAsync(currentCall);
                     if (!sdkResultBoolean.Success)
                     {
-                        Rainbow.Util.RaiseEvent(() => ErrorOccurred, rbApplication, sdkResultBoolean.Result.ToString());
+                        RaiseEvent(ErrorOccurred, [sdkResultBoolean.Result.ToString()]);
                     }
                 });
             }
@@ -514,7 +529,7 @@ public partial class HubTelephonyCallView : View
                     var sdkResultBoolean = await rbHubTelephony.RetrieveCallAsync(currentCall);
                     if (!sdkResultBoolean.Success)
                     {
-                        Rainbow.Util.RaiseEvent(() => ErrorOccurred, rbApplication, sdkResultBoolean.Result.ToString());
+                        RaiseEvent(ErrorOccurred, [sdkResultBoolean.Result.ToString()]);
                     }
                 });
 
@@ -549,7 +564,7 @@ public partial class HubTelephonyCallView : View
                     var sdkResultBoolean = await rbHubTelephony.HoldCallAsync(currentCall);
                     if (!sdkResultBoolean.Success)
                     {
-                        Rainbow.Util.RaiseEvent(() => ErrorOccurred, rbApplication, sdkResultBoolean.Result.ToString());
+                        RaiseEvent(ErrorOccurred, [sdkResultBoolean.Result.ToString()]);
                     }
                 });
 
@@ -593,7 +608,7 @@ public partial class HubTelephonyCallView : View
                     var sdkResultBoolean = await rbHubTelephony.AnswerCallAsync(currentCall);
                     if (!sdkResultBoolean.Success)
                     {
-                        Rainbow.Util.RaiseEvent(() => ErrorOccurred, rbApplication, sdkResultBoolean.Result.ToString());
+                        RaiseEvent(ErrorOccurred, [sdkResultBoolean.Result.ToString()]);
                     }
                 });
             }

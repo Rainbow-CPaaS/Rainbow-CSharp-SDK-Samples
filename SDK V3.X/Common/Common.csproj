@@ -1,18 +1,30 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
+    <TargetFrameworks>net10.0</TargetFrameworks>
     <LangVersion>latest</LangVersion>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="NLog.Extensions.Logging" Version="6.0.2" />
 
-    <PackageReference Include="Rainbow.CSharp.SDK" Version="3.9.2" />
+    <PackageReference Include="Rainbow.CSharp.SDK.SimpleJSON" Version="1.0.2" />
+    <PackageReference Include="Rainbow.CSharp.SDK" Version="3.10.0" />
+
 <!--
-	<ProjectReference Include="..\..\..\rainbow-csharp-sdk-test\SDK\SDK.csproj" />
+    <ProjectReference Include="..\..\..\rainbow-csharp-sdk-test\SDK\SDK.csproj" />
 -->
+<!-- PACKAGES TO USE FOR NLOG -->
+    <PackageReference Include="NLog.Extensions.Logging" Version="6.2.0" />
+	  
+<!-- PACKAGES TO USE FOR SERILOG -->
+    <PackageReference Include="Serilog.Enrichers.Thread" Version="4.0.0" />
+    <PackageReference Include="Serilog.Extensions.Logging" Version="10.0.0" />
+    <PackageReference Include="Serilog.Sinks.Async" Version="2.1.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
+    <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
+    <PackageReference Include="Serilog.Sinks.Map" Version="2.0.0" />
+
   </ItemGroup>
 </Project>

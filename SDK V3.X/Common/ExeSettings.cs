@@ -32,14 +32,14 @@ namespace Rainbow.Example.Common
             if (jsonNode is not null)
             {
                 settings.UseAudioVideo = jsonNode["useAudioVideo"];
-                settings.FfmpegLibFolderPath = jsonNode["ffmpegLibFolderPath"];
+                settings.FfmpegLibFolderPath = (String ?)jsonNode["ffmpegLibFolderPath"] ?? "";
 
-                settings.LogFolderPath = jsonNode["logFolderPath"];
+                settings.LogFolderPath = (String?)jsonNode["logFolderPath"] ?? "";
                 settings.LogOnConsole = jsonNode["logOnConsole"];
 
-                settings.S2SCallbackURL = jsonNode["s2sCallbackURL"];
+                settings.S2SCallbackURL = (String?)jsonNode["s2sCallbackURL"] ?? "";
 
-                settings.CultureInfo = jsonNode["cultureInfo"];
+                settings.CultureInfo = (String?)jsonNode["cultureInfo"] ?? "";
 
                 // Check validity
                 if (settings.UseAudioVideo)

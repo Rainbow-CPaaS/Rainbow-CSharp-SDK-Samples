@@ -13,6 +13,7 @@ using Rainbow.WebRTC.Abstractions;
 using Rainbow.WebRTC.Desktop;
 using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
+using System.Text;
 using Stream = Rainbow.Example.Common.Stream;
 
 
@@ -43,12 +44,6 @@ ConsoleAbstraction.WriteRed($"Account used: [{credentials.UsersConfig[0].Login}]
 ConsoleAbstraction.WriteGreen($"Initializing external libraries ...");
 Rainbow.Medias.Helper.InitExternalLibraries(exeSettings.FfmpegLibFolderPath, true);
 ConsoleAbstraction.WriteBlue($"External libraries initialized");
-
-// Set folder path from logs
-NLogConfigurator.Directory = exeSettings.LogFolderPath;
-
-// Add logger for the prefix specified
-NLogConfigurator.AddLogger(credentials.UsersConfig[0].Prefix + "_");
 
 // Instead of a Microphone, an audio stream can be used 
 Stream? audioStream = null;
@@ -175,7 +170,7 @@ Rainbow.Restrictions restrictions = new(true)
 };
 
 // Create Rainbow Application ROOT object
-var RbApplication = new Rainbow.Application(exeSettings.LogFolderPath, restrictions: restrictions);
+var RbApplication = new Rainbow.Application(exeSettings.LogFolderPath, iniFileName: credentials.UsersConfig[0].Prefix + ".ini", restrictions: restrictions);
 
 // Create Rainbow SDK objects
 var RbConferences       = RbApplication.GetConferences();
@@ -185,6 +180,7 @@ var RbAutoReconnection  = RbApplication.GetAutoReconnection();
 var RbHubTelephony      = RbApplication.GetHubTelephony();
 
 var RbWebRTCDesktopFactory = new Rainbow.WebRTC.Desktop.WebRTCFactory();
+
 
 // By default use empty track for audio input
 currentAudioInput = null;
@@ -361,7 +357,7 @@ void CheckInputKey(int simulatedKey)
                 MenuDisplayInfo();
                 return;
 
-            case (int)ConsoleKey.H: // Info
+            case (int)ConsoleKey.H: // Hub telephony
                 MenuHubTelephony();
                 return;
 
@@ -400,6 +396,15 @@ void CheckInputKey(int simulatedKey)
             case (int)ConsoleKey.M:
                 MenuMediaPublications();
                 break;
+
+            case (int)ConsoleKey.W:
+                MenuDisplayWebCamsInfo();
+                break;
+
+            case (int)ConsoleKey.X:
+                MenuDisplayScreensInfo();
+                break;
+                
         }
     }
 }
@@ -573,6 +578,59 @@ void MenuMediaPublications()
         {
             ConsoleAbstraction.WriteRed("No MediaPublication available");
         }
+    };
+    RbTask = Task.Run(action);
+}
+
+void MenuDisplayScreensInfo()
+{
+    if (!RbTask.IsCompleted)
+    {
+        ConsoleAbstraction.WriteRed("Task is already in progress");
+        return;
+    }
+
+    Action action = async () =>
+    {
+        var screens = Devices.GetScreenDevices(true);
+        if (screens?.Count > 0)
+        {
+            foreach (var screen in screens)
+            {
+                ConsoleAbstraction.WriteDarkYellow($"{CR}Screen: {screen.ToString()}");
+            }
+        }
+    };
+    RbTask = Task.Run(action);
+}
+
+void MenuDisplayWebCamsInfo()
+{
+    if (!RbTask.IsCompleted)
+    {
+        ConsoleAbstraction.WriteRed("Task is already in progress");
+        return;
+    }
+
+    Action action = async () =>
+    {
+        var webcams = Devices.GetWebcamDevices(true);
+        if(webcams?.Count > 0)
+        {
+            StringBuilder options = new();
+            foreach (var webcam in webcams)
+            {
+                options.AppendLine($"{CR}Webcam: {webcam.ToString()}");
+                if (webcam.AvailableVideoInputOptions?.Length > 0)
+                {
+                    foreach (var inputOptions in webcam.AvailableVideoInputOptions)
+                        options.AppendLine($"\t{inputOptions.ToString()}");
+                }
+                ConsoleAbstraction.WriteDarkYellow(options.ToString());
+                options.Clear();
+            }
+        }
+
     };
     RbTask = Task.Run(action);
 }
@@ -1433,6 +1491,21 @@ void MenuVideoStream()
                     if (webcamUpdated)
                     {
                         currentWebCam = webcamDevices?[selection];
+
+                        // CODE EXAMPLE TO SET PREFERRED OPTIONS
+                        if (currentWebCam?.AvailableVideoInputOptions?.Length > 0)
+                        {
+                            var preferredOption = currentWebCam.AvailableVideoInputOptions.FirstOrDefault
+                                (o =>
+                                    o.IsRaw == false
+                                    && o.VideoSize.HasValue && o.VideoSize.Value == (320, 240)
+                                    && o.InputFormat == "mjpeg"
+                                );
+                            if (preferredOption is not null)
+                                currentWebCam.SetPreferredVideoInputOptions(preferredOption);
+                        }
+
+
                         ConsoleAbstraction.WriteDarkYellow($"Stream used as Video selected: {currentWebCam?.Name} ({currentWebCam?.Path})]");
                     }
                     else
@@ -1504,6 +1577,8 @@ void MenuVideoStream()
                 {
                     ConsoleAbstraction.WriteRed($"Cannot create video track: Exception: [{exc}]");
                     videoTrack = previousVideoTrack;
+
+                    currentWebCam = null; // is it correct ??
                     return;
                 }
 
@@ -2897,7 +2972,7 @@ Boolean ReadExeSettings()
     if (ExeSettings.FromJsonNode(jsonNode["exeSettings"], out exeSettings))
     {
         // Set where log files must be stored
-        NLogConfigurator.Directory = exeSettings.LogFolderPath;
+        LogConfigurator.Configure(exeSettings.LogFolderPath);
 
         // Init external librairies: FFmpeg and SDL2
         if (exeSettings.UseAudioVideo)

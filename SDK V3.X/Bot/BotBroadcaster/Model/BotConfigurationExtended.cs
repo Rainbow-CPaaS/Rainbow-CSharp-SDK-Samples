@@ -10,16 +10,14 @@ namespace BotBroadcaster.Model
 {
     public class BotConfigurationExtended: BotLibrary.Model.BotConfiguration
     {
-        public Dictionary<String, Stream> Streams { get; set; }
+        public Dictionary<String, Stream> Streams { get; set; } = [];
 
-        public List<Conference> Conferences { get; set; }
+        public List<Conference> Conferences { get; set; } = [];
 
-        public P2P? P2P { get; set; } = null;
+        public P2P P2P { get; set; } = new();
 
         public BotConfigurationExtended() : base()
         {
-            Streams = [];
-            Conferences = [];
         }
 
 #region FromJSON / ToJSON methods
@@ -82,7 +80,7 @@ namespace BotBroadcaster.Model
             }
 
             // Parse "p2p"
-            botConfigurationExtended.P2P = P2P.FromJsonNode(jsonNode["p2p"]);
+            botConfigurationExtended.P2P = P2P.FromJsonNode(jsonNode["p2p"]) ?? new();
 
             return botConfigurationExtended;
         }

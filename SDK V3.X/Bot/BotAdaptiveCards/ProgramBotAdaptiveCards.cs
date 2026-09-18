@@ -127,7 +127,7 @@ namespace BotAdaptiveCards
             if (ExeSettings.FromJsonNode(jsonNode["exeSettings"], out _exeSettings))
             {
                 // Set where log files must be stored
-                NLogConfigurator.Directory = _exeSettings.LogFolderPath;
+                LogConfigurator.Configure(_exeSettings.LogFolderPath);
             }
             else
             {

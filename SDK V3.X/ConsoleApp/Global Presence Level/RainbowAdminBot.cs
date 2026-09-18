@@ -1,15 +1,18 @@
-﻿using EmbedIO;
+﻿using Microsoft.Extensions.Logging;
 using Rainbow;
+using Rainbow.Attributes;
 using Rainbow.Consts;
 using Rainbow.Delegates;
+using Rainbow.Example.CommonWebHook;
 using Rainbow.Enums;
 using Rainbow.Example.Common;
 using Rainbow.Model;
-
-
+using System.Runtime.CompilerServices;
 
 internal class RainbowAdminBot
 {
+    internal readonly ILogger log;
+
     public UserConfig RainbowAccount { get; private set; }
 
     private readonly Rainbow.Application _rbApplication;
@@ -35,11 +38,9 @@ internal class RainbowAdminBot
             callbackUrl += "/";
         _callbackUrl = callbackUrl;
 
-        NLogConfigurator.AddLogger(rainbowAccount.Prefix);
+        log = LogFactory.CreateLogger<Application>(rainbowAccount.Prefix);
+        LogInjectionManager.RegisterLogger(this, log);
 
-        // Create Logger for the Web Server
-        Swan.Logging.Logger.NoLogging();
-        Swan.Logging.Logger.RegisterLogger<SwanLogger>();
 
         // Set restrictions
         Restrictions restrictions = new(true)
@@ -75,13 +76,25 @@ internal class RainbowAdminBot
         _rbContacts.ContactPresenceUpdated += RbContacts_ContactPresenceUpdated;
         _rbContacts.ContactAggregatedPresenceUpdated += RbContacts_ContactAggregatedPresenceUpdated;
 
+        // Create Logger for the Web Server
+        Swan.Logging.Logger.NoLogging();
+        Swan.Logging.Logger.RegisterLogger(new SwanLogger(rainbowAccount.Prefix));
+
         // Create WebServer
-        var webServer = CreateWebServer("http://localhost:9870", callbackUrl);
+        var webServer = CallbackWebHookModule.CreateWebServer("http://localhost:9870", _rbApplication);
         var _ = webServer.RunAsync();
 
         // Start Login
         Login();
     }
+
+#pragma warning disable CA1822
+    // /!\ This method must NOT be static
+    [LogInjection(PreventException = true)]
+    private void RaiseEvent(Delegate? eventDelegate, Object[] args, [CallerArgumentExpression(nameof(eventDelegate))] string eventName = null)
+        => Rainbow.Util.RaiseEvent(this, eventDelegate, eventName, args);
+
+#pragma warning restore CA1822
 
     public void Login()
     {
@@ -91,7 +104,7 @@ internal class RainbowAdminBot
             {
                 var sdkResult = await _rbApplication.LoginAsync(RainbowAccount.Login, RainbowAccount.Password);
                 if (!sdkResult.Success)
-                    Rainbow.Util.RaiseEvent(() => ConnectionFailed, _rbApplication, sdkResult.Result);
+                    RaiseEvent(ConnectionFailed, [sdkResult.Result]);
         });
         }
     }
@@ -99,28 +112,6 @@ internal class RainbowAdminBot
     public async Task<SdkResult<CompanyEventSubscriptionStatus>> GetCompanyEventSubscriptionStatusAsync()
     {
         return await _rbAdministration.GetCompanyEventSubscriptionStatusAsync(_companyEventSubscription);
-    }
-
-    private WebServer CreateWebServer(string url, String callbackUrl)
-    {
-        Uri uri = new(callbackUrl);
-        String callbackAbsolutePath = uri.AbsolutePath;
-
-        WebServer server = new WebServer(o => o
-                .WithUrlPrefix(url)
-                .WithMode(HttpListenerMode.EmbedIO)
-                )
-
-            // First, we will configure our web server by adding Modules.
-            .WithLocalSessionManager()
-            .WithModule(new CallbackWebModule(callbackAbsolutePath, _rbApplication));
-
-        server.WithStaticFolder("/", "./webSiteContent", true, configure =>
-        {
-
-        });
-
-        return server;
     }
 
     private async Task<SdkResult<Boolean>> CreateWebhookAndSubscriptionsAsync()
@@ -210,19 +201,16 @@ internal class RainbowAdminBot
         }
     }
 
-
-
-
 #region Event from RB SDK
 
     private void RbApplication_AuthenticationFailed(SdkError sdkError)
     {
-        Rainbow.Util.RaiseEvent(() => ConnectionFailed, _rbApplication, sdkError);
+        RaiseEvent(ConnectionFailed, [sdkError]);
     }
 
     private void RbApplication_ConnectionStateChanged(Rainbow.Model.ConnectionState connectionState)
     {
-        Rainbow.Util.RaiseEvent(() => ConnectionStateChanged, _rbApplication, connectionState);
+        RaiseEvent(ConnectionStateChanged, [connectionState]);
 
         if (connectionState.Status == ConnectionStatus.Connected)
         {
@@ -255,26 +243,26 @@ internal class RainbowAdminBot
 
     private void RbAutoReconnection_Cancelled(Rainbow.SdkError sdkError)
     {
-        if (sdkError?.IncorrectUseError?.ErrorDetailsCode == (int)SdkInternalErrorEnum.LOGIN_PROCESS_MAX_ATTEMPTS_REACHED)
+        if (sdkError.IncorrectUseError?.ErrorDetailsCode == (int)SdkInternalErrorEnum.LOGIN_PROCESS_MAX_ATTEMPTS_REACHED)
         {
             // The auto reconnection service try to connect on server but failed after a lot of retry ....
             // We do it again and again ... 
             Login();
         }
         else
-            Rainbow.Util.RaiseEvent(() => ConnectionFailed, _rbApplication, sdkError);
+            RaiseEvent(ConnectionFailed, [sdkError]);
     }
 
     private void RbContacts_ContactAggregatedPresenceUpdated(Presence presence)
     {
-        ConsoleAbstraction.WriteDarkYellow($"Aggregated Presence Updated:[{presence.ToString(DetailsLevel.Medium)}]");
-        Rainbow.Util.RaiseEvent(() => ContactAggregatedPresenceUpdated, _rbApplication, presence);
+        //ConsoleAbstraction.WriteDarkYellow($"Aggregated Presence Updated:[{presence.ToString(DetailsLevel.Medium)}]");
+        RaiseEvent(ContactAggregatedPresenceUpdated, [presence]);
     }
 
     private void RbContacts_ContactPresenceUpdated(Presence presence)
     {
-        ConsoleAbstraction.WriteDarkYellow($"Presence Updated:[{presence.ToString(DetailsLevel.Medium)}]");
-        Rainbow.Util.RaiseEvent(() => ContactPresenceUpdated, _rbApplication, presence);
+        //ConsoleAbstraction.WriteDarkYellow($"Presence Updated:[{presence.ToString(DetailsLevel.Medium)}]");
+        RaiseEvent(ContactPresenceUpdated, [presence]);
     }
 
 #endregion Event from RB SDK

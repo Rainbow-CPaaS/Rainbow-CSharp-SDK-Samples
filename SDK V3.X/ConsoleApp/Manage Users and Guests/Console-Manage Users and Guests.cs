@@ -25,16 +25,12 @@ Object consoleLockObject = new(); // To lock until the current console display i
 var CR = Rainbow.Util.CR;
 
 // Set folder / directory path
-NLogConfigurator.Directory = exeSettings.LogFolderPath;
 var logFullPath = Path.GetFullPath(exeSettings.LogFolderPath);
 ConsoleAbstraction.WriteBlue($"Logs files will be stored in folder:[{logFullPath}]");
 
 Rainbow.Util.SetLogAnonymously(false);
 
 // ------------------------------------------------
-
-// Log with first account
-NLogConfigurator.AddLogger(credentials.UsersConfig[0].Prefix);
 
 // Set restrictions
 Restrictions restrictions = new(true)
@@ -749,7 +745,7 @@ Boolean ReadExeSettings()
     if (ExeSettings.FromJsonNode(jsonNode["exeSettings"], out exeSettings))
     {
         // Set where log files must be stored
-        NLogConfigurator.Directory = exeSettings.LogFolderPath;
+        LogConfigurator.Configure(exeSettings.LogFolderPath);
     }
     else
     {

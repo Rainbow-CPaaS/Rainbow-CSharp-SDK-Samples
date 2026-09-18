@@ -21,7 +21,6 @@ ConsoleAbstraction.WriteRed($"Account used: [{credentials.UsersConfig[0].Login}]
 
 // --------------------------------------------------
 
-Object consoleLockObject = new(); // To lock until the current console display is performed
 String CR = Rainbow.Util.CR; // Get carriage return;
 
 // In "exeSettings.json" using "logFolderPath" property, we defined a folder where the logs must be stored
@@ -30,16 +29,15 @@ String logFolderPath = exeSettings.LogFolderPath;
 // In "credentials.json" using "userConfig" object, we defined a prefix used as logger prefix (this prefix permits to have logs stored in specific file for this "userConfig")
 String logPrefix = credentials.UsersConfig[0].Prefix;
 
-// Using NLogConfigurator, we specify the folder where log will be stored
-NLogConfigurator.Directory = logFolderPath;
-
-// Using NLogConfigurator, we add a logger using the preix
-NLogConfigurator.AddLogger(logPrefix);
-
 Rainbow.Util.SetLogAnonymously(false);
 
+var restrictions = new Rainbow.Restrictions(true)
+{
+    LogRestRequest = true
+};
+
 // Create Rainbow SDK objects
-var RbApplication = new Application(iniFolderFullPathName: logFolderPath, iniFileName: logPrefix +".ini", loggerPrefix: logPrefix);
+var RbApplication = new Application(iniFolderFullPathName: logFolderPath, iniFileName: logPrefix +".ini", loggerPrefix: logPrefix, restrictions: restrictions);
 var RbAutoReconnection = RbApplication.GetAutoReconnection();
 var RbBubbles = RbApplication.GetBubbles();
 
@@ -73,6 +71,54 @@ RbAvatars.PeerAvatarUpdated += RbAvatars_PeerAvatarUpdated;
 RbApplication.AuthenticationFailed += RbApplication_AuthenticationFailed;       // Triggered when the authentication process will fail
 RbApplication.AuthenticationSucceeded += RbApplication_AuthenticationSucceeded; // Triggered when the authentication process will succeed
 RbApplication.ConnectionStateChanged += RbApplication_ConnectionStateChanged;   // Triggered when the Connection State will change
+
+var RbContacts = RbApplication.GetContacts();
+RbContacts.UserSettingsUpdated += RbContacts_UserSettingsUpdated;
+RbContacts.RosterContactsRemoved += RbContacts_RosterContactsRemoved;
+void RbContacts_RosterContactsRemoved(List<Rainbow.Model.Contact> contacts)
+{
+
+}
+
+void RbContacts_UserSettingsUpdated()
+{
+    //throw new NotImplementedException();
+}
+
+var RbComparers = RbApplication.GetComparers();
+RbComparers.BotComparerUpdated += RbComparers_BotComparerUpdated;
+RbComparers.BubbleComparerUpdated += RbComparers_BubbleComparerUpdated;
+RbComparers.BubbleMemberComparerUpdated += RbComparers_BubbleMemberComparerUpdated;
+RbComparers.ContactComparerUpdated += RbComparers_ContactComparerUpdated;
+RbComparers.TvComparerUpdated += RbComparers_TvComparerUpdated;
+RbComparers.VoiceMessageComparerUpdated += RbComparers_VoiceMessageComparerUpdated;
+
+RbComparers.StringComparison = StringComparison.CurrentCultureIgnoreCase;
+
+void RbComparers_VoiceMessageComparerUpdated()
+{
+}
+
+void RbComparers_TvComparerUpdated()
+{
+}
+
+void RbComparers_BubbleMemberComparerUpdated()
+{
+}
+
+void RbComparers_ContactComparerUpdated()
+{
+}
+
+;
+void RbComparers_BubbleComparerUpdated()
+{
+}
+
+void RbComparers_BotComparerUpdated()
+{
+}
 
 RbAutoReconnection.Cancelled += RbAutoReconnection_Cancelled;                       // Triggered when AutoReonnection service is cancelled
 RbAutoReconnection.Started += RbAutoReconnection_Started;                           // Triggered when AutoReonnection service is started
@@ -133,12 +179,25 @@ async Task CheckInputKey()
                     RbAutoReconnection.Cancel();
                 }
                 return;
+
+            case ConsoleKey.L:
+                var currentLevel = Rainbow.LogFactory.GetLevel(logPrefix);
+                Microsoft.Extensions.Logging.LogLevel newLevel;
+                if (currentLevel == Microsoft.Extensions.Logging.LogLevel.Debug)
+                    newLevel = Microsoft.Extensions.Logging.LogLevel.Information;
+                else
+                    newLevel = Microsoft.Extensions.Logging.LogLevel.Debug;
+                Rainbow.LogFactory.SetLevel(logPrefix, newLevel);
+                
+
+                ConsoleAbstraction.WriteDarkYellow($"{CR}New log level set:{newLevel}");
+
+                return;
         }
     }
 }
 
 #region Events received from the SDK
-
 
 void RbAvatars_PeerAvatarUpdated(Rainbow.Model.Peer peer)
 {
@@ -270,8 +329,9 @@ Boolean ReadExeSettings()
 
     if (ExeSettings.FromJsonNode(jsonNode["exeSettings"], out exeSettings))
     {
-        // Set where log files must be stored
-        NLogConfigurator.Directory = exeSettings.LogFolderPath;
+        // Set folder where log files are stored
+        LogConfigurator.Configure(exeSettings.LogFolderPath, useConsole: false);
+        //LogConfigurator.ConfigureUsingSerilog(exeSettings.LogFolderPath, useConsole: false);
     }
     else
     {
@@ -294,7 +354,7 @@ Boolean ReadCredentials(string fileName = "credentials.json")
     String jsonConfig = File.ReadAllText(credentialsFilePath);
     var jsonNode = JSON.Parse(jsonConfig);
 
-    credentials = Credentials.FromJsonNode(jsonNode["credentials"] );
+    credentials = Credentials.FromJsonNode(jsonNode?["credentials"] );
     if (credentials?.IsValid() != true)
     {
         ConsoleAbstraction.WriteRed($"Cannot read 'credentials' object OR invalid/missing data in file:[{fileName}].");

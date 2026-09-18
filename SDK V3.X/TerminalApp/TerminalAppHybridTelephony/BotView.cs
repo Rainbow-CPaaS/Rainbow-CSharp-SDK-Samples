@@ -33,7 +33,6 @@ internal class BotView: View
         string iniFileName = rbAccount.Prefix + ".ini";
 
         // We want to log files from SDK for this Bot
-        NLogConfigurator.AddLogger(prefix);
         log = Rainbow.LogFactory.CreateLogger(prefix);
 
         // Set restrictions

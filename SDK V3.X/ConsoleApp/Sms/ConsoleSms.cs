@@ -30,12 +30,6 @@ String logFolderPath = exeSettings.LogFolderPath;
 // In "credentials.json" using "userConfig" object, we defined a prefix used as logger prefix (this prefix permits to have logs stored in specific file for this "userConfig")
 String logPrefix = credentials.UsersConfig[0].Prefix;
 
-// Using NLogConfigurator, we specify the folder where log will be stored
-NLogConfigurator.Directory = logFolderPath;
-
-// Using NLogConfigurator, we add a logger using the preix
-NLogConfigurator.AddLogger(logPrefix);
-
 Rainbow.Util.SetLogAnonymously(false);
 
 // Create Rainbow SDK objects
@@ -147,7 +141,7 @@ Boolean ReadExeSettings()
     if (ExeSettings.FromJsonNode(jsonNode["exeSettings"], out exeSettings))
     {
         // Set where log files must be stored
-        NLogConfigurator.Directory = exeSettings.LogFolderPath;
+        LogConfigurator.Configure(exeSettings.LogFolderPath);
     }
     else
     {

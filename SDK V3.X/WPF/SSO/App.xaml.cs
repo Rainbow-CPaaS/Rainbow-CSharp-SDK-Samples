@@ -42,7 +42,6 @@ namespace WpfSSOSamples
 
             // Get prefix and use it to add a logger
             var prefix = credentials.UsersConfig[0].Prefix;
-            NLogConfigurator.AddLogger(prefix);
 
             log = Rainbow.LogFactory.CreateLogger<App>(prefix);
 
@@ -78,7 +77,7 @@ namespace WpfSSOSamples
             if (ExeSettings.FromJsonNode(jsonNode["exeSettings"], out exeSettings))
             {
                 // Set where log files must be stored
-                NLogConfigurator.Directory = exeSettings.LogFolderPath;
+                LogConfigurator.Configure(exeSettings.LogFolderPath);
             }
             else
             {

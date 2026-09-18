@@ -127,9 +127,7 @@ namespace BotBasic
             if (ExeSettings.FromJsonNode(jsonNode["exeSettings"], out _exeSettings))
             {
                 // Set where log files must be stored
-                NLogConfigurator.Directory = _exeSettings.LogFolderPath;
-                NLogConfigurator.DeleteLogDirectory();
-                //NLogConfigurator.OutputOnConsole = true;
+                LogConfigurator.Configure(_exeSettings.LogFolderPath, deleteDirectory: true);
             }
             else
             {

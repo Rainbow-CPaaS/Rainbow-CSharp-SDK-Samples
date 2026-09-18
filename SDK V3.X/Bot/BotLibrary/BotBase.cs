@@ -1032,8 +1032,7 @@ namespace BotLibrary
             var loggerPrefix = prefix + "_";
 
             // We want to log specifically using a prefix for this bot
-            if (!NLogConfigurator.AddLogger(loggerPrefix))
-                return false;
+            LogConfigurator.Configure(_credentials.UsersConfig[0].IniFolderPath);
 
             //Rainbow.Util.CR = " - ";
             //Rainbow.Util.SetLogElementSeparator(" - ");
@@ -1300,7 +1299,6 @@ namespace BotLibrary
                 // Log - Option (For dev purpose we want maximum info in logs)
                 LogRestRequestOnError   = true,
                 LogRestRequest          = true,
-                LogBubbleMembers        = false,
 
                 // FileStorage - Option
                 ChunkSizeUpload = 1048576,

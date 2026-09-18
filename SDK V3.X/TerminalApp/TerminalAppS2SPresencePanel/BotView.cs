@@ -1,6 +1,7 @@
 ﻿using Rainbow;
 using Rainbow.Consts;
 using Rainbow.Example.Common;
+using Rainbow.Example.CommonWebHook;
 using Rainbow.Model;
 using Terminal.Gui.Drawing;
 using Terminal.Gui.Input;
@@ -35,13 +36,11 @@ internal class BotView : View
         string prefix = rbAccount.Prefix + "_";
         string iniFileName = rbAccount.Prefix + ".ini";
 
-        // We want to log files from SDK for this Bot
-        NLogConfigurator.AddLogger(prefix);
-
         // Set restrictions
         Rainbow.Restrictions restrictions = new(true)
         {
             LogRestRequest = true,
+            EventMode = Rainbow.Enums.SdkEventMode.S2S
         };
 
         // Create Rainbow SDK objects
@@ -49,6 +48,13 @@ internal class BotView : View
 
         // S2S is used in this example - specifi the callback ULR
         rbApplication.SetS2SCallbackUrl(Configuration.ExeSettings.S2SCallbackURL);
+
+        // We want to log info from EmbedIo: cf. https://github.com/unosquare/embedio/issues/475#issuecomment-818469296
+        Swan.Logging.Logger.NoLogging();
+        Swan.Logging.Logger.RegisterLogger(new SwanLogger(prefix));
+
+        var webServer = CallbackS2SModule.CreateWebServer("http://localhost:9870", rbApplication);
+        var _ = webServer.RunAsync();
 
         rbAutoReconnection = rbApplication.GetAutoReconnection();
         rbContacts = rbApplication.GetContacts();

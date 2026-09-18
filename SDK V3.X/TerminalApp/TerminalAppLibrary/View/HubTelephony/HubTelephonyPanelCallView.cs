@@ -1,6 +1,10 @@
-﻿using Rainbow.Delegates;
+﻿using Microsoft.Extensions.Logging;
+using Rainbow;
+using Rainbow.Attributes;
+using Rainbow.Delegates;
 using Rainbow.Enums;
 using Rainbow.Model;
+using System.Runtime.CompilerServices;
 using Terminal.Gui.Drawing;
 using Terminal.Gui.Input;
 using Terminal.Gui.ViewBase;
@@ -10,6 +14,7 @@ public partial class HubTelephonyPanelCallView : View
 {
     public event StringDelegate? ErrorOccurred;
 
+    readonly ILogger log;
     readonly Rainbow.Application rbApplication;
     readonly Rainbow.HubTelephony rbHubTelephony;
 
@@ -29,6 +34,9 @@ public partial class HubTelephonyPanelCallView : View
 
     public HubTelephonyPanelCallView(Rainbow.Application rbApplication)
     {
+        log = LogFactory.CreateLogger<HubTelephonyPanelCallView>(rbApplication.LoggerPrefix);
+        LogInjectionManager.RegisterLogger(this, log);
+
         this.rbApplication = rbApplication;
         rbHubTelephony = rbApplication.GetHubTelephony();
 
@@ -113,6 +121,14 @@ public partial class HubTelephonyPanelCallView : View
         UpdateDisplay();
     }
 
+#pragma warning disable CA1822
+    // /!\ This method must NOT be static
+    [LogInjection(PreventException = true)]
+    private void RaiseEvent(Delegate? eventDelegate, Object[] args, [CallerArgumentExpression(nameof(eventDelegate))] string eventName = null)
+        => Rainbow.Util.RaiseEvent(this, eventDelegate, eventName, args);
+
+#pragma warning restore CA1822
+
     private void ViewCall_ErrorOccurred(string value)
     {
         ErrorOccurred?.Invoke(value);
@@ -150,7 +166,7 @@ public partial class HubTelephonyPanelCallView : View
                     var sdkResultBoolean = await rbHubTelephony.TransferCallAsync(activeCall, holdCall);
                     if (!sdkResultBoolean.Success)
                     {
-                        Rainbow.Util.RaiseEvent(() => ErrorOccurred, rbApplication, sdkResultBoolean.Result.ToString());
+                        RaiseEvent(ErrorOccurred, [sdkResultBoolean.Result.ToString()]);
                     }
                 });
             }

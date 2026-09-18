@@ -16,11 +16,8 @@ internal class BotView: View
         this.rbAccount = rbAccount;
 
         // Set Rainbow objects / events
-        string prefix = rbAccount.Prefix + "_";
+        string prefix = rbAccount.Prefix;
         string iniFileName = rbAccount.Prefix + ".ini";
-
-        // We want to log files from SDK for this Bot
-        NLogConfigurator.AddLogger(prefix);
 
         // Create Rainbow SDK objects
         rbApplication = new Rainbow.Application(iniFolderFullPathName: rbAccount.IniFolderPath, iniFileName: iniFileName, loggerPrefix: prefix);

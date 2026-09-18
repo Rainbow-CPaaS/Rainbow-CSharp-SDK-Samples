@@ -7,29 +7,29 @@ namespace Rainbow.Example.Common
         /// <summary>
         /// Id
         /// </summary>
-        public string Id { get; set; }
+        public string? Id { get; set; }
 
         /// <summary>
         /// Jid
         /// </summary>
-        public string Jid { get; set; }
+        public string? Jid { get; set; }
 
         /// <summary>
         /// Login
         /// </summary>
-        public string Login { get; set; }
+        public string? Login { get; set; }
 
         /// <summary>
         /// Password
         /// </summary>
-        public string Password { get; set; }
+        public string? Password { get; set; }
 
         /// <summary>
         /// NickName
         /// </summary>
-        public string FirstName { get; set; }
+        public string? FirstName { get; set; }
 
-        public string LastName { get; set; }
+        public string? LastName { get; set; }
 
         public Account()
         {
@@ -87,7 +87,7 @@ namespace Rainbow.Example.Common
         /// <param name="jsonNode"><see cref="JSONNode"/>JSONNode object</param>
         /// <param name="nodeName"><see cref="String"/>**`Optional - default value: null`** <br/>Node name to use to start parsing</param>
         /// <returns><see cref="Account"/> - Account object or Null on error</returns>
-        public static Account? FromJsonNode(JSONNode jsonNode, String? nodeName = null)
+        public static Account? FromJsonNode(JSONNode? jsonNode, String? nodeName = null)
         {
             if ((jsonNode == null) || (!jsonNode.IsObject))
                 return null;

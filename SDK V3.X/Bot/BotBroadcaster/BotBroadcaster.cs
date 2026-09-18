@@ -11,7 +11,6 @@ using Rainbow.WebRTC.Desktop;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Principal;
 using System.Threading.Tasks;
 
 namespace BotBroadcaster
@@ -33,17 +32,21 @@ namespace BotBroadcaster
 
         BotConfigurationExtended? _configuration = null;
         Boolean _configurationUpdated = false;
-
-        readonly ConcurrentList<String> _conferences = [];
-        Boolean _conferencesUpdated = false;
-
+        
         Call? _currentCall = null;                          // Current call - updated through event WebRTCCommunications.CallUpdated
-        readonly ConferenceStatus _conferenceStatus = new();// Store conference status: media to add/remove, etc ...
 
-        Task _taskCheckConferenceAndMedia = Task.CompletedTask;
+        Task _taskCheckConferenceAndMedias = Task.CompletedTask;
+        CancelableDelay? _cancelableDelayToCheckConferenceAndMedias = null;
         Task _taskAddOrRemoveMediaForConference = Task.CompletedTask;
+        Boolean _conferencesUpdated = false;
+        readonly ConferenceStatus _conferenceStatus = new();// Store conference status: media to add/remove, etc ...
+        readonly ConcurrentList<String> _conferences = [];
 
-        CancelableDelay? _cancelableDelayToCheckConfigAndConference = null;
+        Task _taskCheckP2PAndMedias = Task.CompletedTask;
+        CancelableDelay? _cancelableDelayToCheckP2PAndMedias = null;
+        Task _taskAddOrRemoveMediaForP2P = Task.CompletedTask;
+        Boolean _p2pUpdated = false;
+        readonly P2PStatus _p2pStatus = new();              // Store P2P call status: media to add/remove, etc ...
 
         private void CreateWebRTCEnvironment()
         {
@@ -79,20 +82,228 @@ namespace BotBroadcaster
             _rbConferences?.ConferenceRemoved += RbConferences_ConferenceRemoved;
         }
 
-#region CONFERENCE MANAGEMENT - Media
+#region CONFERENCE MANAGEMENT - Media + Status
 
-        private void PostPoneCancelableDelayToCheckConfigAndConference()
+        private void PostPoneCancelableDelayToCheckConferencesAndMedias()
         {
-            if (_cancelableDelayToCheckConfigAndConference is null)
-                _cancelableDelayToCheckConfigAndConference = CancelableDelay.StartAfter(500, CheckConfigAndConference);
+            if (_cancelableDelayToCheckConferenceAndMedias is null)
+                _cancelableDelayToCheckConferenceAndMedias = CancelableDelay.StartAfter(500, CheckConferencesAndMedias);
             else
-                _cancelableDelayToCheckConfigAndConference.PostPone();
+                _cancelableDelayToCheckConferenceAndMedias.PostPone();
         }
 
-        private void CheckConfigAndConference()
+        private void CheckConferencesAndMedias()
         {
             _conferencesUpdated = true;
             StartTaskCheckConferencesAndMedias();
+        }
+
+        private void StartTaskCheckConferencesAndMedias()
+        {
+            if (!_taskCheckConferenceAndMedias.IsCompleted)
+            {
+                ConsoleAbstraction.WriteYellow($"[{BotName}] Task to check conferences and medias is already running => we will not start another one to avoid any conflict - New configuration will be taken into account at the end of current task", logger: log);
+                return;
+            }
+            _taskCheckConferenceAndMedias = Task.Run(TaskCheckConferencesAndMediasAsync);
+        }
+
+        private async Task TaskCheckConferencesAndMediasAsync()
+        {
+            if ((_rbWebRTCDesktopFactory is null)
+                || (_rbWebRTCCommunications is null)
+                || (_streamManager is null)) return;
+
+            // Do we have a configuration update or a conference update to process
+            if ((!_conferencesUpdated) && (!_configurationUpdated)) return;
+
+            // We must indicates that we have taken into account the current configuration / conferences status to avoid to start again this task at the end of current one because of the same configuration update
+            _conferencesUpdated = false; 
+            _configurationUpdated = false;
+
+            // Ensure to set id, jid and name for conference if it's not the case
+            //UpdateConferenceSettings(_configuration);
+
+            // Create a copy of configuration information to work with - we must not work with _configuration object
+            var conferencesInConfig = (_configuration?.Conferences is null) ? [] : new List<Model.Conference>(_configuration.Conferences);
+
+            if (String.IsNullOrEmpty(_conferenceStatus.ConferenceId)) // We are NOT currently managing a conference
+            {
+                ConsoleAbstraction.WriteWhite($"[{BotName}] Not currently managing a conference", logger: log);
+
+                if (_currentCall?.IsConference == true) // A conf is in progress ... This case should not happened
+                {
+                    // Something to do here ?
+                    ConsoleAbstraction.WriteWhite($"[{BotName}] A current call is in progress ... Strange", logger: log);
+                }
+                else if (_conferences.Count > 0)
+                {
+                    // Take first conference Id in configuration which is active
+                    foreach (var conferenceInConfig in conferencesInConfig)
+                    {
+                        if (_conferences.Contains(conferenceInConfig.Id))
+                        {
+                            ConsoleAbstraction.WriteWhite($"[{BotName}] We will join this conference:[{conferenceInConfig.Id}]", logger: log);
+
+                            _conferenceStatus.ConferenceId = conferenceInConfig.Id;
+
+                            // Here we must set Streams as CONNECTED which are used as Audio / Video / Sharing (take into account composition)
+                            // The goal is too avoid to close a media if we switch it for Video to Sharing for example
+
+                            // Store media to use for this conference
+                            _conferenceStatus.Streams.Clear();
+
+                            if (!String.IsNullOrEmpty(conferenceInConfig.AudioStreamId))
+                            {
+                                ConsoleAbstraction.WriteWhite($"[{BotName}] AUDIO to use - Stream:[{conferenceInConfig.AudioStreamId}]", logger: log);
+                                _conferenceStatus.Streams[Rainbow.Consts.Media.AUDIO] = conferenceInConfig.AudioStreamId;
+                            }
+
+                            if (!String.IsNullOrEmpty(conferenceInConfig.VideoStreamId))
+                            {
+                                ConsoleAbstraction.WriteWhite($"[{BotName}] VIDEO to use - Stream:[{conferenceInConfig.VideoStreamId}]", logger: log);
+                                _conferenceStatus.Streams[Rainbow.Consts.Media.VIDEO] = conferenceInConfig.VideoStreamId;
+                            }
+                            if (!String.IsNullOrEmpty(conferenceInConfig.SharingStreamId))
+                            {
+                                ConsoleAbstraction.WriteWhite($"[{BotName}] SHARING to use - Stream:[{conferenceInConfig.SharingStreamId}]", logger: log);
+                                _conferenceStatus.Streams[Rainbow.Consts.Media.SHARING] = conferenceInConfig.SharingStreamId;
+                            }
+                            break;
+                        }
+                    }
+                }
+
+                if (!String.IsNullOrEmpty(_conferenceStatus.ConferenceId))
+                {
+                    // Create Audio Stream track - check if already available in StreamManager
+                    if (_conferenceStatus.Streams.TryGetValue(Rainbow.Consts.Media.AUDIO, out var audioStreamId) && audioStreamId != null)
+                    {
+                        var audioMedia = _streamManager.GetMediaAudioFromStreamId(audioStreamId);
+                        if (audioMedia is not null)
+                        {
+                            ConsoleAbstraction.WriteWhite($"[{BotName}] Create AUDIO TRACK - Stream:[{audioStreamId}]", logger: log);
+                            _conferenceStatus.AudioStreamTrack = (AudioStreamTrack?)_rbWebRTCDesktopFactory.CreateAudioTrack(audioMedia);
+                        }
+                    }
+
+                    // Create empty audio track if necessary
+                    if (_conferenceStatus.AudioStreamTrack is null)
+                    {
+                        ConsoleAbstraction.WriteWhite($"[{BotName}] Create empty AUDIO TRACK", logger: log);
+                        _conferenceStatus.AudioStreamTrack = _emptyAudioTrack;
+                    }
+
+                    // Join the conference
+                    var sdkResult = await _rbWebRTCCommunications.JoinConferenceAsync(_conferenceStatus.ConferenceId, _conferenceStatus.AudioStreamTrack);
+                    if (!sdkResult.Success)
+                    {
+                        ConsoleAbstraction.WriteRed($"[{BotName}] Conference:[{_conferenceStatus.ConferenceId}] - Cannot join:[{sdkResult.Result}]", logger: log);
+
+                        // TODO :  Retry later ... Use a counter to avoid unlimited tentative 
+                        PostPoneCancelableDelayToCheckConferencesAndMedias();
+                    }
+                    else
+                    {
+                        // TODO: If we use a counter (to avoid unlimited tentative to join conf.) - reset it now
+
+                        ConsoleAbstraction.WriteDarkYellow($"[{BotName}] Conference:[{_conferenceStatus.ConferenceId}] - Joined done with success", logger: log);
+
+                        // Inform streamManager of the new config
+                        ConsoleAbstraction.WriteDarkYellow($"[{BotName}] Ask StreamManager to use config file only - no stream to use", logger: log);
+
+                        _streamManager.SetNewConfiguration(_configuration?.Streams.Values.ToList(), _conferenceStatus.Streams);
+                    }
+
+
+                    // We need to:
+                    // - start to join a conference (with empty audio track)
+                    // - wait until we have really joined (i.e. we receive the update of the call with status connected and the correct conference Id)
+                    // - ask StreamManager to update streams according configuration
+                    // - wait each stream used in this conference to be added
+                }
+                else
+                {
+                    // We are not currently managing no conference and based on config there is not conf.to join.
+                }
+            }
+            else // We are currently managing streams for a conference
+            {
+                ConsoleAbstraction.WriteWhite($"[{BotName}] - Currently managing a conference:[{_conferenceStatus.ConferenceId}]", logger: log);
+
+                if (_currentCall is null) // The conference has been closed but we don't stopped related streams yet
+                {
+                    ConsoleAbstraction.WriteWhite($"[{BotName}] - Current call is null", logger: log);
+
+                    // Hang up the conference
+                    await _rbWebRTCCommunications.HangUpCallAsync(_conferenceStatus.ConferenceId);
+
+                    ConsoleAbstraction.WriteDarkYellow($"[{BotName}] Conference:[{_conferenceStatus.ConferenceId}] - HangUp has been done", logger: log);
+                    _conferenceStatus.Reset();
+
+                    // Inform streamManager of the new config
+                    ConsoleAbstraction.WriteDarkYellow($"[{BotName}] Ask StreamManager to use config file only - no stream to use", logger: log);
+
+                    _streamManager.SetNewConfiguration(_configuration?.Streams.Values.ToList(), _conferenceStatus.Streams);
+
+                    // Check a little later the config to ensure we must no more be in the conf.
+                    PostPoneCancelableDelayToCheckConferencesAndMedias();
+
+                    // We need to:
+                    //  - ask streamManager to update streams according configuration
+                    //  - wait each stream used in this conferenc to by removed
+                    //  - close current Tracksss
+                }
+                else if (_currentCall.IsConference)
+                {
+                    if (_conferenceStatus.ConferenceId.Equals(_currentCall?.Id, StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        ConsoleAbstraction.WriteWhite($"[{BotName}] - Currently managing a conference:[{_conferenceStatus.ConferenceId}]", logger: log);
+
+                        // Check if this conference is still in the config
+                        var conferenceInConfig = _configuration?.Conferences?.FirstOrDefault(c => c.Id == _currentCall?.Id);
+
+                        if (conferenceInConfig is null)
+                        {
+                            ConsoleAbstraction.WriteWhite($"[{BotName}] - We have to hangup from the conference:[{_conferenceStatus.ConferenceId}]", logger: log);
+                            // We must hangup ... How to do it simply ?
+                            RbWebRTCCommunications_CallUpdated(null);
+                        }
+                        else
+                        {
+                            // we must update streams 
+                            // Store media to use for this conference
+                            _conferenceStatus.Streams.Clear();
+                            if (!String.IsNullOrEmpty(conferenceInConfig.AudioStreamId))
+                                _conferenceStatus.Streams[Rainbow.Consts.Media.AUDIO] = conferenceInConfig.AudioStreamId;
+                            if (!String.IsNullOrEmpty(conferenceInConfig.VideoStreamId))
+                                _conferenceStatus.Streams[Rainbow.Consts.Media.VIDEO] = conferenceInConfig.VideoStreamId;
+                            if (!String.IsNullOrEmpty(conferenceInConfig.SharingStreamId))
+                                _conferenceStatus.Streams[Rainbow.Consts.Media.SHARING] = conferenceInConfig.SharingStreamId;
+
+                            ConsoleAbstraction.WriteDarkYellow($"[{BotName}] Conference:[{_conferenceStatus.ConferenceId}] - Status:[{_currentCall?.CallStatus}] - LocalMedias:[{Rainbow.Util.MediasToString(_currentCall?.LocalMedias ?? 0)}]", logger: log);
+
+
+                            if (_currentCall?.IsActive() == true)
+                            {
+                                StartTaskAddOrRemoveMediaForConference();
+                            }
+                            else if (_currentCall?.CallStatus == Rainbow.Enums.CallStatus.UNKNOWN)
+                            {
+                                _conferencesUpdated = true;
+                                StartTaskCheckConferencesAndMedias();
+                            }
+                        }
+                    }
+                    else
+                    {
+                        ConsoleAbstraction.WriteRed($"[{BotName}] - Currently managing a conference:[{_conferenceStatus.ConferenceId}] but not the good one ... Current Call:[{_currentCall?.Id}]", logger: log);
+
+                        // Is this case possible ?
+                        // We are managing a conference but not the good one => We need to change conference and related streams
+                    }
+                }
+            }
         }
 
         private void StartTaskAddOrRemoveMediaForConference()
@@ -137,7 +348,7 @@ namespace BotBroadcaster
                         {
                             _streamManager.SetNewConfiguration(_configuration?.Streams.Values.ToList(), _conferenceStatus.Streams);
 
-                            PostPoneCancelableDelayToCheckConfigAndConference();
+                            PostPoneCancelableDelayToCheckConferencesAndMedias();
                             return;
                         }
                         else
@@ -168,7 +379,7 @@ namespace BotBroadcaster
                                 ConsoleAbstraction.WriteRed($"[{BotName}] Cannot create Audio Track - Stream:[{streamId}]", logger: log);
                             }
 
-                            PostPoneCancelableDelayToCheckConfigAndConference();
+                            PostPoneCancelableDelayToCheckConferencesAndMedias();
                             return;
                         }
                     }
@@ -195,7 +406,7 @@ namespace BotBroadcaster
 
                                 _streamManager.SetNewConfiguration(_configuration?.Streams.Values.ToList(), _conferenceStatus.Streams);
 
-                                PostPoneCancelableDelayToCheckConfigAndConference();
+                                PostPoneCancelableDelayToCheckConferencesAndMedias();
                                 return;
                             }
                             else
@@ -226,7 +437,7 @@ namespace BotBroadcaster
                                     ConsoleAbstraction.WriteRed($"[{BotName}] Cannot create audio track - Stream:[{streamId}]", logger: log);
                                 }
 
-                                PostPoneCancelableDelayToCheckConfigAndConference();
+                                PostPoneCancelableDelayToCheckConferencesAndMedias();
                                 return;
                             }
                         }
@@ -266,7 +477,7 @@ namespace BotBroadcaster
 
                         _streamManager.SetNewConfiguration(_configuration?.Streams.Values.ToList(), _conferenceStatus.Streams);
 
-                        PostPoneCancelableDelayToCheckConfigAndConference();
+                        PostPoneCancelableDelayToCheckConferencesAndMedias();
                         return;
                     }
                 }
@@ -360,7 +571,7 @@ namespace BotBroadcaster
                             }
                         }
 
-                        PostPoneCancelableDelayToCheckConfigAndConference();
+                        PostPoneCancelableDelayToCheckConferencesAndMedias();
                         return;
 
                     case "update":
@@ -403,7 +614,7 @@ namespace BotBroadcaster
                                 ConsoleAbstraction.WriteRed($"[{BotName}] Cannot create VIDEO track - Stream:[{streamId}]", logger: log);
                             }
                         }
-                        PostPoneCancelableDelayToCheckConfigAndConference();
+                        PostPoneCancelableDelayToCheckConferencesAndMedias();
                         return;
 
                     case "remove":
@@ -425,7 +636,7 @@ namespace BotBroadcaster
                         }
 
                         _streamManager.SetNewConfiguration(_configuration?.Streams.Values.ToList(), _conferenceStatus.Streams);
-                        PostPoneCancelableDelayToCheckConfigAndConference();
+                        PostPoneCancelableDelayToCheckConferencesAndMedias();
                         return;
                 }
                 // --- END: CHECK VIDEO
@@ -521,7 +732,7 @@ namespace BotBroadcaster
                             }
                         }
 
-                        PostPoneCancelableDelayToCheckConfigAndConference();
+                        PostPoneCancelableDelayToCheckConferencesAndMedias();
                         return;
 
                     case "update":
@@ -564,7 +775,7 @@ namespace BotBroadcaster
                                 ConsoleAbstraction.WriteRed($"[{BotName}] Cannot create SHARING track - Stream:[{streamId}]", logger: log);
                             }
                         }
-                        PostPoneCancelableDelayToCheckConfigAndConference();
+                        PostPoneCancelableDelayToCheckConferencesAndMedias();
                         return;
 
                     case "remove":
@@ -587,7 +798,7 @@ namespace BotBroadcaster
 
                         _streamManager.SetNewConfiguration(_configuration?.Streams.Values.ToList(), _conferenceStatus.Streams);
 
-                        PostPoneCancelableDelayToCheckConfigAndConference();
+                        PostPoneCancelableDelayToCheckConferencesAndMedias();
                         return;
                 }
                 // --- END: CHECK SHARING
@@ -598,216 +809,217 @@ namespace BotBroadcaster
             }
         }
 
-        private void StartTaskCheckConferencesAndMedias()
+#endregion CONFERENCE MANAGEMENT - Media + Status
+
+#region P2P MANAGEMENT - Media + Status
+
+        private void PostPoneCancelableDelayToCheckP2PAndMedias()
         {
-            if (!_taskCheckConferenceAndMedia.IsCompleted)
+            if (_cancelableDelayToCheckP2PAndMedias is null)
+                _cancelableDelayToCheckP2PAndMedias = CancelableDelay.StartAfter(500, CheckP2PAndMedias);
+            else
+                _cancelableDelayToCheckP2PAndMedias.PostPone();
+        }
+
+        private void CheckP2PAndMedias()
+        {
+            _p2pUpdated = true;
+            StartTaskCheckP2PAndMedias();
+        }
+
+        private void StartTaskCheckP2PAndMedias()
+        {
+            if (!_taskCheckP2PAndMedias.IsCompleted)
             {
                 ConsoleAbstraction.WriteYellow($"[{BotName}] Task to check conferences and medias is already running => we will not start another one to avoid any conflict - New configuration will be taken into account at the end of current task", logger: log);
                 return;
             }
-            _taskCheckConferenceAndMedia = Task.Run(TaskCheckConferencesAndMediasAsync);
+            _taskCheckP2PAndMedias = Task.Run(TaskCheckP2PAndMedias);
         }
 
-        private async Task TaskCheckConferencesAndMediasAsync()
+        private async Task TaskCheckP2PAndMedias()
         {
             if ((_rbWebRTCDesktopFactory is null)
                 || (_rbWebRTCCommunications is null)
                 || (_streamManager is null)) return;
 
-            // Do we have a configuration update or a conference update to process
-            if ( (!_conferencesUpdated) && (!_configurationUpdated)) return;
+            // Do we have a configuration update or a p2p update to process
+            if ((!_p2pUpdated) && (!_configurationUpdated)) return;
 
-            // We must indicates that we have taken into account the current configuration / conferences status to avoid to start again this task at the end of current one because of the same configuration update
+            // We must indicates that we have taken into account the current configuration / p2p status to avoid to start again this task at the end of current one because of the same configuration update
+            _p2pUpdated = false;
             _configurationUpdated = false;
-            _conferencesUpdated = false;
 
-            // Ensure to set id, jid and name for conference if it's not the case
-            //UpdateConferenceSettings(_configuration);
-
-            // Create a copy of configuration information to work with - we must not work with _configuration object
-            //var streams = (_configuration?.Streams is null) ? [] : new Dictionary<String, Stream>(_configuration.Streams);
-            var conferencesInConfig = (_configuration?.Conferences is null) ? [] : new List<Model.Conference>(_configuration.Conferences);
-
-            if (String.IsNullOrEmpty(_conferenceStatus.ConferenceId)) // We are NOT currently managing a conference
+            if (String.IsNullOrEmpty(_p2pStatus.CallId)) // We are NOT currently managing a P2P call
             {
-                ConsoleAbstraction.WriteWhite($"[{BotName}] Not currently managing a conference", logger: log);
+                ConsoleAbstraction.WriteWhite($"[{BotName}] Not currently managing a P2P call", logger: log);
 
-                if (_currentCall?.IsConference == true) // A conf is in progress ... This case should not happened
+                if (_currentCall?.IsConference == false) // A P2P call is in progress ... 
                 {
-                    // Something to do here ?
-                    ConsoleAbstraction.WriteWhite($"[{BotName}] A current call is in progress ... Strange", logger: log);
-                }
-                else if (_conferences.Count > 0)
-                {
-                    // Take first conference Id in configuration which is active
-                    foreach (var conferenceInConfig in conferencesInConfig)
+                    if (_currentCall?.IsRinging() == true)
                     {
-                        if (_conferences.Contains(conferenceInConfig.Id))
+                        // Check if we must accept or reject this P2P call based on configuration
+                        Boolean rejectCall = true;
+                        if (_configuration?.P2P?.IsValid == true)
                         {
-                            ConsoleAbstraction.WriteWhite($"[{BotName}] We will join this conference:[{conferenceInConfig.Id}]", logger: log);
-
-                            _conferenceStatus.ConferenceId = conferenceInConfig.Id;
-
-                            // Here we must set Streams as CONNECTED which are used as Audio / Video / Sharing (take into account composition)
-                            // The goal is too avoid to close a media if we switch it for Video to Sharing for example
-
-                            // Store media to use for this conference
-                            _conferenceStatus.Streams.Clear();
-
-                            if (!String.IsNullOrEmpty(conferenceInConfig.AudioStreamId))
+                            switch (_configuration.P2P.AllowedFor)
                             {
-                                ConsoleAbstraction.WriteWhite($"[{BotName}] AUDIO to use - Stream:[{conferenceInConfig.AudioStreamId}]", logger: log);
-                                _conferenceStatus.Streams[Rainbow.Consts.Media.AUDIO] = conferenceInConfig.AudioStreamId;
-                            }
+                                case "all":
+                                    rejectCall = false;
+                                    break;
 
-                            if (!String.IsNullOrEmpty(conferenceInConfig.VideoStreamId))
-                            {
-                                ConsoleAbstraction.WriteWhite($"[{BotName}] VIDEO to use - Stream:[{conferenceInConfig.VideoStreamId}]", logger: log);
-                                _conferenceStatus.Streams[Rainbow.Consts.Media.VIDEO] = conferenceInConfig.VideoStreamId;
+                                case "none":
+                                    rejectCall = true;
+                                    break;
+
+                                case "administrator":
+                                    var found = _configuration.Administrators?.FirstOrDefault(admin => admin.Id == _currentCall.Peer?.Id || admin.Jid == _currentCall.Peer?.Jid);
+                                    rejectCall = found is null;
+                                    break;
+
+                                default:
+                                    rejectCall = !(_configuration.P2P.Contact?.Peer.Id == _currentCall.Peer?.Id);
+                                    break;
                             }
-                            if (!String.IsNullOrEmpty(conferenceInConfig.SharingStreamId))
+                        }
+
+                        if (rejectCall)
+                        {
+                            ConsoleAbstraction.WriteWhite($"[{BotName}] P2P call rejected - CallId:[{_currentCall.Id}]", logger: log);
+                            var sdkResult = await _rbWebRTCCommunications.RejectCallAsync(_currentCall.Id);
+                            if (!sdkResult.Success)
+                                ConsoleAbstraction.WriteRed($"[{BotName}] P2P call cannot be rejected:[{sdkResult.Result}]", logger: log);
+                            _currentCall = null;
+                        }
+                        else
+                        {
+                            // Set tracks used to make P2P call
+                            Dictionary<int, IMediaStreamTrack?>? mediaStreamTracks = new()
                             {
-                                ConsoleAbstraction.WriteWhite($"[{BotName}] SHARING to use - Stream:[{conferenceInConfig.SharingStreamId}]", logger: log);
-                                _conferenceStatus.Streams[Rainbow.Consts.Media.SHARING] = conferenceInConfig.SharingStreamId;
-                            }
-                            break;
+                                {Media.AUDIO, _emptyAudioTrack }
+                            };
+                            _p2pStatus.AudioStreamTrack = _emptyAudioTrack;
+                            ConsoleAbstraction.WriteWhite($"[{BotName}] P2P call answered - CallId:[{_currentCall.Id}]", logger: log);
+                            var sdkResult = await _rbWebRTCCommunications.AnswerCallAsync(_currentCall.Id, mediaStreamTracks);
+                            if (!sdkResult.Success)
+                                ConsoleAbstraction.WriteRed($"[{BotName}] P2P call cannot be answered:[{sdkResult.Result}]", logger: log);
+                            else
+                                _p2pStatus.CallId = _currentCall.Id;
                         }
                     }
-                }
-
-                if (!String.IsNullOrEmpty(_conferenceStatus.ConferenceId))
-                {
-                    // Create Audio Stream track - check if already available in StreamManager
-                    if (_conferenceStatus.Streams.TryGetValue(Rainbow.Consts.Media.AUDIO, out var audioStreamId) && audioStreamId != null)
-                    {
-                        var audioMedia = _streamManager.GetMediaAudioFromStreamId(audioStreamId);
-                        if (audioMedia is not null)
-                        {
-                            ConsoleAbstraction.WriteWhite($"[{BotName}] Create AUDIO TRACK - Stream:[{audioStreamId}]", logger: log);
-                            _conferenceStatus.AudioStreamTrack = (AudioStreamTrack?)_rbWebRTCDesktopFactory.CreateAudioTrack(audioMedia);
-                        }
-                    }
-
-                    // Create empty audio track if necessary
-                    if (_conferenceStatus.AudioStreamTrack is null)
-                    {
-                        ConsoleAbstraction.WriteWhite($"[{BotName}] Create empty AUDIO TRACK", logger: log);
-                        _conferenceStatus.AudioStreamTrack = _emptyAudioTrack;
-                    }
-
-                    // Join the conference
-                    var sdkResult = await _rbWebRTCCommunications.JoinConferenceAsync(_conferenceStatus.ConferenceId, _conferenceStatus.AudioStreamTrack);
-                    if (!sdkResult.Success)
-                    {
-                        ConsoleAbstraction.WriteRed($"[{BotName}] Conference:[{_conferenceStatus.ConferenceId}] - Cannot join:[{sdkResult.Result}]", logger: log);
-
-                        // TODO :  Retry later ... Use a counter to avoid unlimited tentative 
-                        PostPoneCancelableDelayToCheckConfigAndConference();
-                    }
-                    else
-                    {
-                        // TODO: If we use a counter (to avoid unlimited tentative to join conf.) - reset it now
-
-                        ConsoleAbstraction.WriteDarkYellow($"[{BotName}] Conference:[{_conferenceStatus.ConferenceId}] - Joined done with success", logger: log);
-
-                        // Inform streamManager of the new config
-                        ConsoleAbstraction.WriteDarkYellow($"[{BotName}] Ask StreamManager to use config file only - no stream to use", logger: log);
-
-                        _streamManager.SetNewConfiguration(_configuration?.Streams.Values.ToList(), _conferenceStatus.Streams);
-                    }
-
-
-                    // We need to:
-                    // - start to join a conference (with empty audio track)
-                    // - wait until we have really joined (i.e. we receive the update of the call with status connected and the correct conference Id)
-                    // - ask StreamManager to update streams according configuration
-                    // - wait each stream used in this conference to be added
-                }
-                else
-                {
-                    // We are not currently managing no conference and based on config there is not conf.to join.
                 }
             }
-            else // We are currently managing streams for a conference
+            else // We are currently managing streams for a p2p call
             {
-                ConsoleAbstraction.WriteWhite($"[{BotName}] - Currently managing a conference:[{_conferenceStatus.ConferenceId}]", logger: log);
+                ConsoleAbstraction.WriteWhite($"[{BotName}] - Currently managing a P2P call:[{_p2pStatus.CallId}]", logger: log);
 
-                if (_currentCall is null) // The conference has been closed but we don't stopped related streams yet
+                if (_currentCall is null) // The P2P call has been closed but we don't stopped related streams yet
                 {
                     ConsoleAbstraction.WriteWhite($"[{BotName}] - Current call is null", logger: log);
 
-                    // Hang up the conference
-                    await _rbWebRTCCommunications.HangUpCallAsync(_conferenceStatus.ConferenceId);
+                    // Hang up the P2P call
+                    await _rbWebRTCCommunications.HangUpCallAsync(_p2pStatus.CallId);
 
-                    ConsoleAbstraction.WriteDarkYellow($"[{BotName}] Conference:[{_conferenceStatus.ConferenceId}] - HangUp has been done", logger: log);
-                    _conferenceStatus.Reset();
+                    ConsoleAbstraction.WriteDarkYellow($"[{BotName}] P2P call:[{_p2pStatus.CallId}] - HangUp has been done", logger: log);
+                    _p2pStatus.Reset();
 
                     // Inform streamManager of the new config
                     ConsoleAbstraction.WriteDarkYellow($"[{BotName}] Ask StreamManager to use config file only - no stream to use", logger: log);
 
-                    _streamManager.SetNewConfiguration(_configuration?.Streams.Values.ToList(), _conferenceStatus.Streams);
+                    _streamManager.SetNewConfiguration(_configuration?.Streams.Values.ToList(), _p2pStatus.Streams);
 
-                    // Check a little later the config to ensure we must no more be in the conf.
-                    PostPoneCancelableDelayToCheckConfigAndConference();
-
-                    // We need to:
-                    //  - ask streamManager to update streams according configuration
-                    //  - wait each stream used in this conferenc to by removed
-                    //  - close current Tracksss
+                    // Check a little later the config to ensure we must no more be in the p2p call.
+                    PostPoneCancelableDelayToCheckP2PAndMedias();
                 }
-                else if (_currentCall.IsConference)
+                else if (!_currentCall.IsConference)
                 {
-                    if(_conferenceStatus.ConferenceId.Equals(_currentCall?.Id, StringComparison.InvariantCultureIgnoreCase))
-                    {
-                        ConsoleAbstraction.WriteWhite($"[{BotName}] - Currently managing a conference:[{_conferenceStatus.ConferenceId}]", logger: log);
 
-                        // Check if this conference is still in the config
-                        var conferenceInConfig = _configuration?.Conferences?.FirstOrDefault(c => c.Id == _currentCall?.Id);
-                        
-                        if(conferenceInConfig is null)
+                    if(_currentCall.Id == _p2pStatus.CallId)
+                    {
+                        ConsoleAbstraction.WriteWhite($"[{BotName}] - Currently managing a P2P call:[{_p2pStatus.CallId}]", logger: log);
+
+                        // TODO - Check if the call is still allowed according the conf
+                        if(!true) // => Config is no more ok
                         {
-                            ConsoleAbstraction.WriteWhite($"[{BotName}] - We have to hangup from the conference:[{_conferenceStatus.ConferenceId}]", logger: log);
-                            // We must hangup ... How to do it simply ?
-                            RbWebRTCCommunications_CallUpdated(null);
+
                         }
                         else
                         {
                             // we must update streams 
                             // Store media to use for this conference
-                            _conferenceStatus.Streams.Clear();
-                            if (!String.IsNullOrEmpty(conferenceInConfig.AudioStreamId))
-                                _conferenceStatus.Streams[Rainbow.Consts.Media.AUDIO] = conferenceInConfig.AudioStreamId;
-                            if (!String.IsNullOrEmpty(conferenceInConfig.VideoStreamId))
-                                _conferenceStatus.Streams[Rainbow.Consts.Media.VIDEO] = conferenceInConfig.VideoStreamId;
-                            if (!String.IsNullOrEmpty(conferenceInConfig.SharingStreamId))
-                                _conferenceStatus.Streams[Rainbow.Consts.Media.SHARING] = conferenceInConfig.SharingStreamId;
+                            _p2pStatus.Streams.Clear();
+                            if (_configuration is not null)
+                            {
+                                if (!String.IsNullOrEmpty(_configuration.P2P.AudioStreamId))
+                                    _conferenceStatus.Streams[Rainbow.Consts.Media.AUDIO] = _configuration.P2P.AudioStreamId;
+                                if (!String.IsNullOrEmpty(_configuration.P2P.VideoStreamId))
+                                    _conferenceStatus.Streams[Rainbow.Consts.Media.VIDEO] = _configuration.P2P.VideoStreamId;
+                                if (!String.IsNullOrEmpty(_configuration.P2P.SharingStreamId))
+                                    _conferenceStatus.Streams[Rainbow.Consts.Media.SHARING] = _configuration.P2P.SharingStreamId;
+                            }
+                            ConsoleAbstraction.WriteDarkYellow($"[{BotName}] Conference:[{_p2pStatus.CallId}] - Status:[{_currentCall?.CallStatus}] - LocalMedias:[{Rainbow.Util.MediasToString(_currentCall?.LocalMedias ?? 0)}]", logger: log);
 
-                            ConsoleAbstraction.WriteDarkYellow($"[{BotName}] Conference:[{_conferenceStatus.ConferenceId}] - Status:[{_currentCall?.CallStatus}] - LocalMedias:[{Rainbow.Util.MediasToString(_currentCall?.LocalMedias ?? 0)}]", logger: log);
-
-                            
                             if (_currentCall?.IsActive() == true)
                             {
-                                StartTaskAddOrRemoveMediaForConference();
+                                StartTaskAddOrRemoveMediaForP2P();
                             }
                             else if (_currentCall?.CallStatus == Rainbow.Enums.CallStatus.UNKNOWN)
                             {
-                                _conferencesUpdated = true;
-                                StartTaskCheckConferencesAndMedias();
+                                _p2pUpdated = true;
+                                StartTaskCheckP2PAndMedias();
                             }
                         }
                     }
                     else
                     {
-                        ConsoleAbstraction.WriteRed($"[{BotName}] - Currently managing a conference:[{_conferenceStatus.ConferenceId}] but not the good one ... Current Call:[{_currentCall?.Id}]", logger: log);
-
-                        // Is this case possible ?
-                        // We are managing a conference but not the good one => We need to change conference and related streams
+                        ConsoleAbstraction.WriteRed($"[{BotName}] - Currently managing a P2P call:[{_p2pStatus.CallId}] but not the good one ... Current Call:[{_currentCall?.Id}]", logger: log);
                     }
                 }
             }
         }
 
-#endregion CONFERENCE MANAGEMENT
+        private void StartTaskAddOrRemoveMediaForP2P()
+        {
+            if (!_taskAddOrRemoveMediaForP2P.IsCompleted)
+            {
+                ConsoleAbstraction.WriteYellow($"[{BotName}] Task to Add/remove media is already running => we will not start another one to avoid any conflict", logger: log);
+                return;
+            }
+            _taskAddOrRemoveMediaForP2P = Task.Run(TaskAddOrRemoveMediaForP2P);
+        }
+
+        private async Task TaskAddOrRemoveMediaForP2P()
+        {
+            if ((_rbWebRTCDesktopFactory is null) 
+                || (_rbWebRTCCommunications is null)
+                || (_streamManager is null)
+                ) return;
+            // TODO
+
+        }
+
+#endregion P2P MANAGEMENT - Media + Status
+
+
+        private void UpdatePresence()
+        {
+            if (_rbContacts is null) return;
+
+            // Manage presence according medias used
+            if ( (_currentCall is null) || (!_currentCall.IsInProgress()))
+            {
+                _rbContacts.SetPresenceLevelAsync(_rbContacts.CreatePresence(PresenceLevel.Online));
+                _currentCall = null;
+            }
+            else
+            {
+                if (_currentCall?.IsRinging() == false)
+                {
+                    // The call is NOT IN RINGING STATE  => We update presence according media
+                    _rbContacts?.SetBusyPresenceAccordingMediasAsync(_currentCall.LocalMedias).StartAndForget();
+                }
+            }
+        }
 
         private Bubble? GetBubble(string id, string jid, string name)
         {
@@ -854,8 +1066,10 @@ namespace BotBroadcaster
             return result;
         }
 
-        private Account GetAccount(Contact contact)
+        static private Account? GetAccount(Contact? contact)
         {
+            if (contact is null) return null;
+
             return new Account()
             {
                 Id = contact.Peer.Id,
@@ -866,9 +1080,21 @@ namespace BotBroadcaster
             };
         }
 
-        private List<Account> GetAccounts(List<Contact>? contacts)
+        private static List<Account> GetAccounts(List<Contact>? contacts)
         {
-            return [ ..contacts?.Select(c => GetAccount(c)).Where(c => c is not null) ?? []];
+            var result = new List<Account>();
+
+            if (contacts is null)
+                return result;
+
+            foreach (var contact in contacts)
+            {
+                var account = GetAccount(contact);
+                if (account is not null)
+                    result.Add(account);
+            }
+
+            return result;
         }
 
         private async Task UpdateConfigurationWithCorrectDataAsync()
@@ -936,7 +1162,13 @@ namespace BotBroadcaster
             // The MediaInput specified must be removed from current conference
             ConsoleAbstraction.WriteDarkYellow($"[{BotName}] OnStreamRemoved - Media:[{Rainbow.Util.MediasToString(media)}] - Stream:[{streamId}] - StillUsed:[{stillUsed}]", logger: log);
 
-            StartTaskAddOrRemoveMediaForConference();
+            if (_currentCall?.IsActive() == true)
+            {
+                if (_currentCall.IsConference == true)
+                    StartTaskAddOrRemoveMediaForConference();
+                else
+                    StartTaskAddOrRemoveMediaForP2P();
+            }
         }
 
         private void StreamManager_OnStreamOpened(string streamId, int media, Boolean stillUsed)
@@ -944,27 +1176,53 @@ namespace BotBroadcaster
             // The MediaInput specified must be added from current conference
             ConsoleAbstraction.WriteDarkYellow($"[{BotName}] OnStreamOpened - Media:[{Rainbow.Util.MediasToString(media)}] - Stream:[{streamId}] - StillUsed:[{stillUsed}]", logger: log);
 
-            StartTaskAddOrRemoveMediaForConference();
+            if (_currentCall?.IsActive() == true)
+            {
+                if (_currentCall.IsConference == true)
+                    StartTaskAddOrRemoveMediaForConference();
+                else
+                    StartTaskAddOrRemoveMediaForP2P();
+            }
         }
 
         private void StreamManager_OnStreamDisposing(string streamId)
         {
+            // Conference
             if (_conferenceStatus.AudioStreamTrack?.Id == streamId)
             {
-                ConsoleAbstraction.WriteWhite($"[{BotName}] OnStreamDisposing (Audio context) - Stream:[{streamId}]", logger: log);
+                ConsoleAbstraction.WriteWhite($"[{BotName}] OnStreamDisposing (Conference - Audio context) - Stream:[{streamId}]", logger: log);
                 _conferenceStatus.AudioStreamTrack?.Dispose();
             }
 
             if (_conferenceStatus.VideoStreamTrack?.Id == streamId)
             {
-                ConsoleAbstraction.WriteWhite($"[{BotName}] OnStreamDisposing (Video context) - Stream:[{streamId}]", logger: log);
+                ConsoleAbstraction.WriteWhite($"[{BotName}] OnStreamDisposing (Conference - Video context) - Stream:[{streamId}]", logger: log);
                 _conferenceStatus.VideoStreamTrack?.Dispose();
             }
 
             if (_conferenceStatus.SharingStreamTrack?.Id == streamId)
             {
-                ConsoleAbstraction.WriteWhite($"[{BotName}] OnStreamDisposing (Sharing context) - Stream:[{streamId}]", logger: log);
+                ConsoleAbstraction.WriteWhite($"[{BotName}] OnStreamDisposing (Conference - Sharing context) - Stream:[{streamId}]", logger: log);
                 _conferenceStatus.SharingStreamTrack?.Dispose();
+            }
+
+            // P2P
+            if (_p2pStatus.AudioStreamTrack?.Id == streamId)
+            {
+                ConsoleAbstraction.WriteWhite($"[{BotName}] OnStreamDisposing (P2P - Audio context) - Stream:[{streamId}]", logger: log);
+                _p2pStatus.AudioStreamTrack?.Dispose();
+            }
+
+            if (_p2pStatus.VideoStreamTrack?.Id == streamId)
+            {
+                ConsoleAbstraction.WriteWhite($"[{BotName}] OnStreamDisposing (P2P - Video context) - Stream:[{streamId}]", logger: log);
+                _p2pStatus.VideoStreamTrack?.Dispose();
+            }
+
+            if (_p2pStatus.SharingStreamTrack?.Id == streamId)
+            {
+                ConsoleAbstraction.WriteWhite($"[{BotName}] OnStreamDisposing (P2P - Sharing context) - Stream:[{streamId}]", logger: log);
+                _p2pStatus.SharingStreamTrack?.Dispose();
             }
         }
 
@@ -974,9 +1232,7 @@ namespace BotBroadcaster
 #region Events triggered by Rainbow SDK
 
         private async void RbConferences_ConferenceRemoved(Rainbow.Model.Conference conference)
-        {
-            RbConferences_ConferenceUpdated(conference);
-        }
+            => RbConferences_ConferenceUpdated(conference);
 
         private async void RbConferences_ConferenceUpdated(Rainbow.Model.Conference conference)
         {
@@ -989,37 +1245,49 @@ namespace BotBroadcaster
                     _conferences.Add(conference.Peer.Id);
                     ConsoleAbstraction.WriteBlue($"[{BotName}] [ConferenceUpdated] A conference is active - Id:[{conference.Peer.Id}]", logger: log);
 
-                    _conferencesUpdated = true;
-                    StartTaskCheckConferencesAndMedias();
+                    if ((_currentCall is null) || (_currentCall.IsConference == true))
+                    {
+                        _conferencesUpdated = true;
+                        StartTaskCheckConferencesAndMedias();
+                    }
                 }
             }
             else
             {
-
                 if (_conferences.Remove(conference.Peer.Id))
                 {
                     ConsoleAbstraction.WriteBlue($"[{BotName}] [ConferenceUpdated] A conference is NO MORE active - Id:[{conference.Peer.Id}]", logger: log);
 
-                    _conferencesUpdated = true;
-                    StartTaskCheckConferencesAndMedias();
+                    if (_currentCall?.IsConference == true)
+                    {
+                        _conferencesUpdated = true;
+                        StartTaskCheckConferencesAndMedias();
+                    }
                 }
             }
         }
 
         private async void RbWebRTCCommunications_CallUpdated(Call? call)
         {
-            // /!\ This method is used with call == null when there is no more conference to manage ...
-            if (call is null)
+            // /!\ This method is used with call == null when there is no more conference / p2p call to manage ...
+            if ( (call is null) && (_currentCall is not null))
             {
-                if(_currentCall?.IsConference == true)
+                if (_currentCall.IsConference)
                 {
                     _currentCall = null;
-                    PostPoneCancelableDelayToCheckConfigAndConference();
+                    PostPoneCancelableDelayToCheckConferencesAndMedias();
                 }
+                else
+                {
+                    _currentCall = null;
+                    PostPoneCancelableDelayToCheckP2PAndMedias();
+                }
+
+                UpdatePresence();
                 return;
             }
 
-            if (String.IsNullOrEmpty(call.Id))
+            if (String.IsNullOrEmpty(call?.Id))
                 return;
 
             if (_currentCall is null)
@@ -1035,49 +1303,8 @@ namespace BotBroadcaster
                 // Manage P2P
                 else
                 {
-                    if (_currentCall.IsRinging())
-                    {
-                        // Check if we must accept or reject this P2P call based on configuration
-                        Boolean rejectCall = true;
-                        if (_configuration?.P2P?.IsValid == true)
-                        {
-                            switch(_configuration.P2P.AllowedFor)
-                            {
-                                case "all":
-                                    rejectCall = false;
-                                    break;
-
-                                case "none":
-                                    rejectCall = true;
-                                    break;
-
-                                case "administrator":
-                                    var found = _configuration.Administrators?.FirstOrDefault(admin => admin.Id == _currentCall.Peer?.Id || admin.Jid == _currentCall.Peer?.Jid);
-                                    rejectCall = found is null;
-                                    break;
-
-                                default:
-                                    rejectCall = !(_configuration.P2P.Contact?.Peer.Id == _currentCall.Peer?.Id);
-                                    break;
-                            }
-                        }
-
-                        if (rejectCall)
-                        {
-                            _rbWebRTCCommunications?.RejectCallAsync(_currentCall.Id).StartAndForget();
-                            _currentCall = null;
-                        }
-                        else 
-                        {
-                            // Set tracks used to make P2P call
-                            Dictionary<int, IMediaStreamTrack?>? mediaStreamTracks = new()
-                            {
-                                {Media.AUDIO, _emptyAudioTrack }
-                            };
-                            _rbWebRTCCommunications?.AnswerCallAsync(_currentCall.Id, mediaStreamTracks).StartAndForget();
-                        }
-                    }
-                   
+                    _p2pUpdated = true;
+                    StartTaskCheckP2PAndMedias();
                 }
             }
             else if (_currentCall?.Id == call.Id)
@@ -1102,7 +1329,8 @@ namespace BotBroadcaster
                 }
                 else
                 {
-                    // TODO - P2P Call
+                    _p2pUpdated = true;
+                    StartTaskCheckP2PAndMedias();
                 }
             }
             else
@@ -1111,22 +1339,7 @@ namespace BotBroadcaster
                 return;
             }
 
-            // Manage presence according medias used
-            if (! (_currentCall?.IsInProgress() == true))
-            {
-                // The call is NO MORE in Progress => We Rollback presence if any
-                _rbContacts?.RollbackPresenceSavedAsync().StartAndForget();
-                _currentCall = null;
-            }
-            else
-            {
-                // Add / Update this call
-                if (!(_currentCall?.IsRinging() == true))
-                {
-                    // The call is NOT IN RINGING STATE  => We update presence according media
-                    _rbContacts?.SetBusyPresenceAccordingMediasAsync(call.LocalMedias).StartAndForget();
-                }
-            }
+            UpdatePresence();
 
             ConsoleAbstraction.WriteBlue($"[{BotName}] [CallUpdated] {call.ToString(Rainbow.Consts.DetailsLevel.Medium)}", logger: log);
         }
@@ -1210,6 +1423,7 @@ namespace BotBroadcaster
     #endregion Invitations - bubble or user
 
     #region Messages - AckMessage, ApplicationMessage, InstantMessage, InternalMessage  (we do nothing special here)
+
         public override async Task AckMessageReceivedAsync(Rainbow.Model.AckMessage ackMessage)
         {
             // Nothing to do here

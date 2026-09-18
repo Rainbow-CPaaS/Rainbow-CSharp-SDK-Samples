@@ -1,5 +1,9 @@
-﻿using Rainbow.Delegates;
+﻿using Microsoft.Extensions.Logging;
+using Rainbow;
+using Rainbow.Attributes;
+using Rainbow.Delegates;
 using Rainbow.Model;
+using System.Runtime.CompilerServices;
 using Terminal.Gui.Drawing;
 using Terminal.Gui.Input;
 using Terminal.Gui.ViewBase;
@@ -9,6 +13,7 @@ public partial class HybridTelephonyNomadicView: View
 {
     public event StringDelegate? ErrorOccurred;
 
+    readonly ILogger log;
     readonly Rainbow.Application rbApplication;
     readonly Rainbow.HybridTelephony rbHybridTelephony;
 
@@ -23,6 +28,9 @@ public partial class HybridTelephonyNomadicView: View
 
     public HybridTelephonyNomadicView(Rainbow.Application rbApplication)
     {
+        log = LogFactory.CreateLogger<HybridTelephonyNomadicView>(rbApplication.LoggerPrefix);
+        LogInjectionManager.RegisterLogger(this, log);
+
         this.rbApplication = rbApplication;
         rbHybridTelephony = rbApplication.GetHybridTelephony();
 
@@ -86,6 +94,14 @@ public partial class HybridTelephonyNomadicView: View
         UpdateDisplay();
     }
 
+#pragma warning disable CA1822
+    // /!\ This method must NOT be static
+    [LogInjection(PreventException = true)]
+    private void RaiseEvent(Delegate? eventDelegate, Object[] args, [CallerArgumentExpression(nameof(eventDelegate))] string eventName = null)
+        => Rainbow.Util.RaiseEvent(this, eventDelegate, eventName, args);
+
+#pragma warning restore CA1822
+
     private void BtnSet_MouseClick(object? sender, Mouse e)
     {
         var canUseOfficePhone = !rbHybridTelephony.IsVirtualTerminal();
@@ -102,7 +118,7 @@ public partial class HybridTelephonyNomadicView: View
                     if (!sdkResultBoolean.Success)
                     {
                         UpdateDisplay();
-                        Rainbow.Util.RaiseEvent(() => ErrorOccurred, rbApplication, sdkResultBoolean.Result.ToString());
+                        RaiseEvent(ErrorOccurred, [sdkResultBoolean.Result.ToString()]);
                     }
                 });
             }
@@ -114,7 +130,7 @@ public partial class HybridTelephonyNomadicView: View
                     if (!sdkResultBoolean.Success)
                     {
                         UpdateDisplay();
-                        Rainbow.Util.RaiseEvent(() => ErrorOccurred, rbApplication, sdkResultBoolean.Result.ToString());
+                        RaiseEvent(ErrorOccurred, [sdkResultBoolean.Result.ToString()]);
                     }
                 });
             }
@@ -126,7 +142,7 @@ public partial class HybridTelephonyNomadicView: View
                     if (!sdkResultBoolean.Success)
                     {
                         UpdateDisplay();
-                        Rainbow.Util.RaiseEvent(() => ErrorOccurred, rbApplication, sdkResultBoolean.Result.ToString());
+                        RaiseEvent(ErrorOccurred, [sdkResultBoolean.Result.ToString()]);
                     }
                 });
             }
@@ -141,7 +157,7 @@ public partial class HybridTelephonyNomadicView: View
                     if (!sdkResultBoolean.Success)
                     {
                         UpdateDisplay();
-                        Rainbow.Util.RaiseEvent(() => ErrorOccurred, rbApplication, sdkResultBoolean.Result.ToString());
+                        RaiseEvent(ErrorOccurred, [sdkResultBoolean.Result.ToString()]);
                     }
                 });
             }
@@ -153,7 +169,7 @@ public partial class HybridTelephonyNomadicView: View
                     if (!sdkResultBoolean.Success)
                     {
                         UpdateDisplay();
-                        Rainbow.Util.RaiseEvent(() => ErrorOccurred, rbApplication, sdkResultBoolean.Result.ToString());
+                        RaiseEvent(ErrorOccurred, [sdkResultBoolean.Result.ToString()]);
                     }
                 });
             }
@@ -166,7 +182,7 @@ public partial class HybridTelephonyNomadicView: View
                 if (!sdkResultBoolean.Success)
                 {
                     UpdateDisplay();
-                    Rainbow.Util.RaiseEvent(() => ErrorOccurred, rbApplication, sdkResultBoolean.Result.ToString());
+                    RaiseEvent(ErrorOccurred, [sdkResultBoolean.Result.ToString()]);
                 }
             });
         }

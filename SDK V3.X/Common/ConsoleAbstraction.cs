@@ -42,7 +42,14 @@ public static class ConsoleAbstraction
 
     public static String Title
     {
-        get => Console.Title;
+        get
+        {
+#if WINDOWS || NET8_0_WINDOWS
+            return Console.Title;
+#else
+            return "";
+#endif
+        }
         set => Console.Title = value;
     }
 
