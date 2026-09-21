@@ -9,12 +9,12 @@
 
   <ItemGroup>
 
-    <PackageReference Include="Rainbow.CSharp.SDK.SimpleJSON" Version="1.0.2" />
-    <PackageReference Include="Rainbow.CSharp.SDK" Version="3.10.0" />
+    <PackageReference Include="Rainbow.CSharp.SDK" Version="3.10.1" />
 
 <!--
     <ProjectReference Include="..\..\..\rainbow-csharp-sdk-test\SDK\SDK.csproj" />
 -->
+	  
 <!-- PACKAGES TO USE FOR NLOG -->
     <PackageReference Include="NLog.Extensions.Logging" Version="6.2.0" />
 	  
