@@ -7,7 +7,7 @@
 	<Version>0.0.3</Version>
   </PropertyGroup>
 
-    <ItemGroup>
+  <ItemGroup>
     <Content Update="config\botConfiguration.json" CopyToPublishDirectory="PreserveNewest" CopyToOutputDirectory="PreserveNewest"/>
     <Content Update="config\credentials.json" CopyToPublishDirectory="PreserveNewest" CopyToOutputDirectory="PreserveNewest"/>
     <Content Update="config\exeSettings.json" CopyToPublishDirectory="PreserveNewest" CopyToOutputDirectory="PreserveNewest"/>
