@@ -80,9 +80,6 @@ internal class RainbowAdminBot
         Swan.Logging.Logger.NoLogging();
         Swan.Logging.Logger.RegisterLogger(new SwanLogger(rainbowAccount.Prefix));
 
-        // Create WebServer
-        var webServer = CallbackWebHookModule.CreateWebServer("http://localhost:9870", _rbApplication);
-        var _ = webServer.RunAsync();
 
         // Start Login
         Login();
@@ -171,11 +168,15 @@ internal class RainbowAdminBot
         }
 
         // Create Company Event Webhook
-        sdkResultHook = await _rbAdministration.CreateCompanyEventWebHookAsync(companyId, _callbackUrl);
+        sdkResultHook = await _rbAdministration.CreateCompanyEventWebHookAsync(companyId, _callbackUrl, "test_token");
         if (sdkResultHook.Success)
         {
             _companyEventWebHook = sdkResultHook.Data;
             ConsoleAbstraction.WriteBlue($"CompanyEventWebHook created:[{_companyEventWebHook}]");
+
+            // Create WebServer
+            var webServer = CallbackWebHookModule.CreateWebServer("http://localhost:9870", _rbApplication, _companyEventWebHook);
+            var _ = webServer.RunAsync();
 
             String eventType = "presence";
 

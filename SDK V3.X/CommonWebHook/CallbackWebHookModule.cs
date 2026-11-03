@@ -1,7 +1,7 @@
 ﻿using EmbedIO;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
+using Rainbow.Model;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace Rainbow.Example.CommonWebHook
@@ -13,24 +13,44 @@ namespace Rainbow.Example.CommonWebHook
 
         private readonly Rainbow.WebHookEventPipe webHookEventPipe;
 
-        public CallbackWebHookModule(string baseRoute, Rainbow.Application application) : base(baseRoute)
+        private readonly CompanyEventWebHook companyEventWebHook;
+
+        public CallbackWebHookModule(string baseRoute, Rainbow.Application application, CompanyEventWebHook companyEventWebHook) : base(baseRoute)
         {
             // Create logger
             log = Rainbow.LogFactory.CreateLogger<CallbackWebHookModule>(application.LoggerPrefix);
 
             webHookEventPipe = application.GetWebHookEventPipe();
+            this.companyEventWebHook = companyEventWebHook;
+        }
+
+        public static string? ComputeWebHookSignature(string? token, string? subscriptionId)
+        {
+            if (String.IsNullOrEmpty(token) || String.IsNullOrEmpty(subscriptionId))
+                return null;
+            byte[] keyBytes = Encoding.UTF8.GetBytes(token);
+            byte[] messageBytes = Encoding.UTF8.GetBytes(subscriptionId);
+
+            using (var hmac = new HMACSHA256(keyBytes))
+            {
+                byte[] hash = hmac.ComputeHash(messageBytes);
+                return Convert.ToBase64String(hash);
+            }
         }
 
         protected override async Task OnRequestAsync(IHttpContext context)
         {
             if (context?.Request is null) return;
 
-            Boolean result = false;
-
             // We need the content-type of the body
             String? contentType = context.Request.Headers["Content-Type"];
             if (contentType == "application/json")
             {
+                String? webHookSignature = context.Request.Headers["X-Rainbow-Wh-Signature"];
+                String? subscriptionId = context.Request.Headers["X-Rainbow-SubscriptionId"];
+                //String? webHookSignatureExpected = Rainbow.Util.ComputeWebHookSignature(companyEventWebHook.Token, subscriptionId);
+                String? webHookSignatureExpected = ComputeWebHookSignature(companyEventWebHook.Token, subscriptionId);
+
                 // We get the body of the request
                 String body = await context.GetRequestBodyAsStringAsync();
 
@@ -40,8 +60,8 @@ namespace Rainbow.Example.CommonWebHook
                 // We get the AbsolutePath of the request
                 String absolutePath = context.Request.Url.AbsolutePath;
 
-                log.LogDebug("[OnRequestAsync] RequestedPath:[{Path}] - HttpVerb:[{HttpVerb}] - Body:[{Body}]", absolutePath, httpVerb, body);
-                result = await webHookEventPipe.ParseCallbackContentAsync(httpVerb, body);
+                log.LogDebug("[OnRequestAsync] RequestedPath:[{Path}] - CorrectWhSignature:[{correctWhSignature}] - HttpVerb:[{HttpVerb}] - Body:[{Body}]", absolutePath, webHookSignatureExpected?.Equals(webHookSignature) == true, httpVerb, body);
+                var result = await webHookEventPipe.ParseCallbackContentAsync(httpVerb, body);
 
                 // /!\ Whatever the result, don't throw an exception, to avoid to unvalidate the web hook.
             }
@@ -49,7 +69,7 @@ namespace Rainbow.Example.CommonWebHook
 
         public override bool IsFinalHandler { get; } = true;
 
-        public static WebServer CreateWebServer(string url, Rainbow.Application application)
+        public static WebServer CreateWebServer(string url, Rainbow.Application application, CompanyEventWebHook companyEventWebHook)
         {
             WebServer server = new WebServer(o => o
                     .WithUrlPrefix(url)
@@ -58,7 +78,7 @@ namespace Rainbow.Example.CommonWebHook
 
                 // First, we will configure our web server by adding Modules.
                 .WithLocalSessionManager()
-                .WithModule(new CallbackWebHookModule("/", application));
+                .WithModule(new CallbackWebHookModule("/", application, companyEventWebHook));
 
             server.WithStaticFolder("/", "./", true, configure =>
             {

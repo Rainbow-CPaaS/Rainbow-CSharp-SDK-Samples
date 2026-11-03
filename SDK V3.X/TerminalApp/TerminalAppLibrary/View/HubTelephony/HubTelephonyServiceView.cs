@@ -22,8 +22,8 @@ public partial class HubTelephonyServiceView: View
         this.rbApplication = rbApplication;
         rbHubTelephony = rbApplication.GetHubTelephony();
 
-        rbHubTelephony.TelephonyStatusUpdated += RbHubTelephony_HybridTelephonyStatusUpdated;
-        rbHubTelephony.PBXAgentInfoUpdated += RbHubTelephony_HybridPBXAgentInfoUpdated;
+        rbHubTelephony.TelephonyStatusUpdated += RbHubTelephony_TelephonyStatusUpdated;
+        rbHubTelephony.PBXAgentInfoUpdated += RbHubTelephony_PBXAgentInfoUpdated;
 
         Title = $"Hub Telephony Service";
         BorderStyle = LineStyle.Dotted;
@@ -127,7 +127,7 @@ public partial class HubTelephonyServiceView: View
         }
     }
 
-    private void RbHubTelephony_HybridTelephonyStatusUpdated(Boolean available)
+    private void RbHubTelephony_TelephonyStatusUpdated(Boolean available)
     {
         Tools.Application.Invoke(() =>
         {
@@ -136,7 +136,7 @@ public partial class HubTelephonyServiceView: View
         });
     }
 
-    private void RbHubTelephony_HybridPBXAgentInfoUpdated(Rainbow.Model.PbxAgentInfo pbxAgentInfo)
+    private void RbHubTelephony_PBXAgentInfoUpdated(Rainbow.Model.PbxAgentInfo pbxAgentInfo)
     {
         Tools.Application.Invoke(() =>
         {

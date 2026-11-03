@@ -17,8 +17,8 @@ namespace BotOrchestratorAndBroadcaster
 
         static async Task Main()
         {
-            ConsoleAbstraction.WriteGreen($"{Global.ProductName()} v{Global.FileVersion()}");
-            ConsoleAbstraction.WriteGreen($"[ESC] To stop the bot");
+            ConsoleAbstraction.WriteGreen($"{Global.ProductName()} v{Global.FileVersion()}", logger: _botOrchestrator?.log);
+            ConsoleAbstraction.WriteGreen($"[ESC] To stop the bot", logger: _botOrchestrator?.log);
 
             if (!ReadExeSettings())
                 return;
@@ -39,7 +39,7 @@ namespace BotOrchestratorAndBroadcaster
             catch {}
 
             if (!_botOrchestrator.Login())
-                ConsoleAbstraction.WriteRed("Cannot start login process");
+                ConsoleAbstraction.WriteRed("Cannot start login process", logger: _botOrchestrator?.log);
 
             var isStopped = false;
             while (!isStopped)
@@ -63,7 +63,7 @@ namespace BotOrchestratorAndBroadcaster
 
                 (isStopped, var sdkError) = _botOrchestrator.IsStopped();
                 if(isStopped)
-                    ConsoleAbstraction.WriteRed($"Bot as stopped:{Rainbow.Util.CR}{sdkError}");
+                    ConsoleAbstraction.WriteRed($"Bot as stopped:{Rainbow.Util.CR}{sdkError}", logger: _botOrchestrator?.log);
             }
         }
 
@@ -71,12 +71,12 @@ namespace BotOrchestratorAndBroadcaster
         {
             if (_botOrchestrator?.Application.IsConnected() == true)
             {
-                ConsoleAbstraction.WriteRed($"{Rainbow.Util.CR}=> ReloadConfigurationFile{Rainbow.Util.CR}");
+                ConsoleAbstraction.WriteRed($"{Rainbow.Util.CR}=> ReloadConfigurationFile{Rainbow.Util.CR}", logger: _botOrchestrator?.log);
 
                 String botConfigurationFilePath = $".{Path.DirectorySeparatorChar}config{Path.DirectorySeparatorChar}botConfiguration.json";
                 if (!File.Exists(botConfigurationFilePath))
                 {
-                    ConsoleAbstraction.WriteRed($"The file '{botConfigurationFilePath}' has not been found.");
+                    ConsoleAbstraction.WriteRed($"The file '{botConfigurationFilePath}' has not been found.", logger: _botOrchestrator?.log);
                     return false;
                 }
 
@@ -84,7 +84,7 @@ namespace BotOrchestratorAndBroadcaster
                 var jsonNode = JSON.Parse(jsonConfig);
                 if (jsonNode?["botConfiguration"]?.IsObject != true)
                 {
-                    ConsoleAbstraction.WriteRed($"Cannot get JSON object 'botConfiguration' from file '{botConfigurationFilePath}'.");
+                    ConsoleAbstraction.WriteRed($"Cannot get JSON object 'botConfiguration' from file '{botConfigurationFilePath}'.", logger: _botOrchestrator?.log);
                     return false;
                 }
                 var jsonNodeBotConfiguration = jsonNode["botConfiguration"];
@@ -100,7 +100,7 @@ namespace BotOrchestratorAndBroadcaster
             String credentialsFilePath = $".{Path.DirectorySeparatorChar}config{Path.DirectorySeparatorChar}credentials.json";
             if (!File.Exists(credentialsFilePath))
             {
-                ConsoleAbstraction.WriteRed($"The file '{credentialsFilePath}' has not been found.");
+                ConsoleAbstraction.WriteRed($"The file '{credentialsFilePath}' has not been found.", logger: _botOrchestrator?.log);
                 return false;
             }
             String jsonConfig = File.ReadAllText(credentialsFilePath);
@@ -108,7 +108,7 @@ namespace BotOrchestratorAndBroadcaster
 
             if (jsonNode?["credentials"]?.IsObject != true)
             {
-                ConsoleAbstraction.WriteRed($"Cannot get JSON object 'credentials' from file '{credentialsFilePath}'.");
+                ConsoleAbstraction.WriteRed($"Cannot get JSON object 'credentials' from file '{credentialsFilePath}'.", logger: _botOrchestrator?.log);
                 return false;
             }
             var jsonNodeBotSettings = jsonNode["credentials"];
@@ -117,7 +117,7 @@ namespace BotOrchestratorAndBroadcaster
             String botConfigurationFilePath = $".{Path.DirectorySeparatorChar}config{Path.DirectorySeparatorChar}botConfiguration.json";
             if (!File.Exists(botConfigurationFilePath))
             {
-                ConsoleAbstraction.WriteRed($"The file '{botConfigurationFilePath}' has not been found.");
+                ConsoleAbstraction.WriteRed($"The file '{botConfigurationFilePath}' has not been found.", logger: _botOrchestrator?.log);
                 return false;
             }
 
@@ -125,7 +125,7 @@ namespace BotOrchestratorAndBroadcaster
             jsonNode = JSON.Parse(jsonConfig);
             if (jsonNode?["botConfiguration"]?.IsObject != true)
             {
-                ConsoleAbstraction.WriteRed($"Cannot get JSON object 'botConfiguration' from file '{botConfigurationFilePath}'.");
+                ConsoleAbstraction.WriteRed($"Cannot get JSON object 'botConfiguration' from file '{botConfigurationFilePath}'.", logger: _botOrchestrator?.log);
                 return false;
             }
             var jsonNodeBotConfiguration = jsonNode["botConfiguration"];
@@ -133,7 +133,7 @@ namespace BotOrchestratorAndBroadcaster
             _botOrchestrator = new();
             if (!(await _botOrchestrator.Configure(jsonNodeBotSettings, jsonNodeBotConfiguration)))
             {
-                ConsoleAbstraction.WriteRed($"Cannot configure bot");
+                ConsoleAbstraction.WriteRed($"Cannot configure bot", logger: _botOrchestrator?.log);
                 return false;
             }
 
@@ -145,7 +145,7 @@ namespace BotOrchestratorAndBroadcaster
             String exeSettingsFilePath = $".{Path.DirectorySeparatorChar}config{Path.DirectorySeparatorChar}exeSettings.json";
             if (!File.Exists(exeSettingsFilePath))
             {
-                ConsoleAbstraction.WriteRed($"The file '{exeSettingsFilePath}' has not been found.");
+                ConsoleAbstraction.WriteRed($"The file '{exeSettingsFilePath}' has not been found.", logger: _botOrchestrator?.log);
                 return false;
             }
 
@@ -154,7 +154,7 @@ namespace BotOrchestratorAndBroadcaster
 
             if ((jsonNode is null) || (!jsonNode.IsObject))
             {
-                ConsoleAbstraction.WriteRed($"Cannot get JSON data from file '{exeSettingsFilePath}'.");
+                ConsoleAbstraction.WriteRed($"Cannot get JSON data from file '{exeSettingsFilePath}'.", logger: _botOrchestrator?.log);
                 return false;
             }
 
@@ -169,7 +169,7 @@ namespace BotOrchestratorAndBroadcaster
             }
             else
             {
-                ConsoleAbstraction.WriteRed($"Cannot read 'exeSettings' object OR invalid/missing data - file:'{exeSettingsFilePath}'.");
+                ConsoleAbstraction.WriteRed($"Cannot read 'exeSettings' object OR invalid/missing data - file:'{exeSettingsFilePath}'.", logger: _botOrchestrator?.log);
                 return false;
             }
 
