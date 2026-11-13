@@ -107,9 +107,14 @@ public static class ConsoleAbstraction
     {
         Init();
 
-        char[] buffer = new char[1];
-        await _consoleIn.ReadAsync(buffer);
-        return CharToConsoleKeyInfo(buffer[0]);
+        // KeyAvailable throws InvalidOperationException when stdin is redirected
+        if (Console.IsInputRedirected)
+            throw new InvalidOperationException("Input is redirected");
+
+        while (!Console.KeyAvailable)
+            await Task.Delay(50);          // throws TaskCanceledException when cancelled
+
+        return Console.ReadKey(intercept: true);   // does not block: a key is already available
     }
 
     /// <summary>

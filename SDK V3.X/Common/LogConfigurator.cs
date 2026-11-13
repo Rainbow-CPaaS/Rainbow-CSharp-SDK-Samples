@@ -1,6 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
-using Serilog;
+﻿using Microsoft.Extensions.Logging.Abstractions;
+//using Serilog;
 using System.Diagnostics;
 
 namespace Rainbow.Example.Common
@@ -142,7 +141,7 @@ namespace Rainbow.Example.Common
                     NLog.LogManager.ReconfigExistingLoggers(); // => necessary
 
                     _configSet = true;
-                    ConsoleAbstraction.WriteBlue($"Log settings used:\r\n{_xmlContent}");
+                    //ConsoleAbstraction.WriteBlue($"Log settings used:\r\n{_xmlContent}");
                 }
                 catch (Exception ex)
                 {
@@ -156,6 +155,13 @@ namespace Rainbow.Example.Common
 
 
 #region SERILOG code part
+
+// Remove comments if you want to use Serilog instead of Nlog
+// You need also :
+//  - to use specific packages =>check package references
+//using Serilog;
+//  - to use "using Serilog"
+/*
 
         public static string SerilogOutputTemplate = "{Timestamp:yyyy-MM-dd HH:mm:ss.ffff} [$LOGGERPREFIX]| {Level:u1} | {ThreadId,-3} | {Caller,40} | {Message:l}{NewLine}{Exception}";
 
@@ -225,7 +231,7 @@ namespace Rainbow.Example.Common
 
                     Serilog.Log.Logger = loggerConfiguration.CreateLogger();
 
-                    var factory = Serilog.SerilogLoggerFactoryExtensions.AddSerilog(new LoggerFactory(), Serilog.Log.Logger, dispose: true);
+                    var factory = Serilog.SerilogLoggerFactoryExtensions.AddSerilog(new Microsoft.Extensions.Logging.LoggerFactory(), Serilog.Log.Logger, dispose: true);
                     Rainbow.LogFactory.Set(factory);
 
                     _configSet = true;
@@ -267,6 +273,7 @@ namespace Rainbow.Example.Common
                 }
             }
         }
-    }
+*/
 #endregion SERILOG code part
+    }
 }
