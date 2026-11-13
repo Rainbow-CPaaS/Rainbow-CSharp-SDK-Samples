@@ -8,28 +8,18 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	<Version>0.9.0</Version>
   </PropertyGroup>
-
+	
   <ItemGroup>
-    <None Remove="config\exeSettings.json" />
+	<ProjectReference Include="..\..\CommonSDL2\CommonSDL2.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="config\exeSettings.json">
+    <Content Include="config\streams.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\CommonSDL2\CommonSDL2.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="config\streams.json">
+    <Content Include="config\exeSettings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="config\exeSettings.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>	  
+    </Content>	  
   </ItemGroup>
 
 </Project>

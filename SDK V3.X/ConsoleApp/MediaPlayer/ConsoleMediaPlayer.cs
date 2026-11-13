@@ -1,10 +1,10 @@
 ﻿using FFmpeg.AutoGen;
+using Rainbow;
 using Rainbow.Example.Common;
 using Rainbow.Example.CommonSDL2;
 using Rainbow.Medias;
 using Rainbow.SimpleJSON;
 using System.Collections.Concurrent;
-using System.Net;
 using System.Runtime.InteropServices;
 using Stream = Rainbow.Example.Common.Stream;
 
@@ -47,6 +47,8 @@ namespace ConsoleMediaPlayer
         // --- To ensure to launch action on main thread
         private static readonly BlockingCollection<Action> _actions = [];
 
+        private static int readingUserInput = 0;   // 0 = idle, 1 = running, 2 = finished
+
         static async Task Main()
         {
             // Need to set an unique title
@@ -78,6 +80,7 @@ namespace ConsoleMediaPlayer
 
             await MainLoop();
         }
+        
 
         static async Task MainLoop()
         {
@@ -133,70 +136,78 @@ namespace ConsoleMediaPlayer
                 Window.CheckUpdateRenderer(_outputVideoWindow);
                 Window.CheckUpdateRenderer(_outputSharingWindow);
 
-                // Check Keys fom Console Window
-                if (ConsoleAbstraction.KeyAvailable || simulatedKey!=0)
+                if (readingUserInput == 0)
                 {
-                    int key;
-                    if (simulatedKey != 0)
+                    // Check Keys fom Console Window
+                    if (ConsoleAbstraction.KeyAvailable || simulatedKey != 0)
                     {
-                        key = simulatedKey;
-                        simulatedKey = 0;
-                        FocusConsoleWindow();
+                        int key;
+                        if (simulatedKey != 0)
+                        {
+                            key = simulatedKey;
+                            simulatedKey = 0;
+                            FocusConsoleWindow();
+                        }
+                        else
+                        {
+                            var userInput = ConsoleAbstraction.ReadKey(); // Here we can use ReadKey() because we are sure that KeyAvailable is true
+                            key = (userInput is null) ? 0 : (int)(userInput.Value.Key);
+                        }
+
+
+                        switch (key)
+                        {
+                            case (int)ConsoleKey.Escape:
+                                PromptCancelStreaming();
+                                _canContinue = false;
+                                break;
+
+                            case (int)ConsoleKey.H:
+                                PromptHelpMenu();
+                                break;
+
+                            case (int)ConsoleKey.L:
+                                PromptLoadStreamSettings();
+                                break;
+
+                            case (int)ConsoleKey.A:
+                                PromptManageAudioOutputAsync().StartAndForget();
+
+                                break;
+
+                            case (int)ConsoleKey.I:
+                                PromptInputStreamSelection();
+                                break;
+
+                            case (int)ConsoleKey.F:
+                                Window.ToggleFullScreen(_outputVideoWindow);
+                                break;
+
+                            case (int)ConsoleKey.C:
+                                PromptCancelStreaming();
+                                break;
+
+                            case (int)ConsoleKey.S:
+                                PromptManageScreenAsync().StartAndForget();
+                                break;
+
+                            case (int)ConsoleKey.M:
+                                PromptManageAudioInputAsync().StartAndForget();
+                                break;
+
+                            case (int)ConsoleKey.W:
+                                PromptManageWebcamAsync().StartAndForget();
+                                break;
+
+                            case (int)ConsoleKey.T:
+                                PromptTest();
+                                break;
+                        }
                     }
-                    else
-                    {
-                        var userInput = ConsoleAbstraction.ReadKey();
-                        key = (userInput is null) ? 0 : (int)(userInput.Value.Key);
-                    }
-
-
-                    switch (key)
-                    {
-                        case (int)ConsoleKey.Escape:
-                            PromptCancelStreaming();
-                            _canContinue = false;
-                            break;
-
-                        case (int)ConsoleKey.H:
-                            PromptHelpMenu();
-                            break;
-
-                        case (int)ConsoleKey.L:
-                            PromptLoadStreamSettings();
-                            break;
-
-                        case (int)ConsoleKey.A:
-                            PromptManageAudioOutput();
-                            break;
-
-                        case (int)ConsoleKey.I:
-                            PromptInputStreamSelection();
-                            break;
-
-                        case (int)ConsoleKey.F:
-                            Window.ToggleFullScreen(_outputVideoWindow);
-                            break;
-
-                        case (int)ConsoleKey.C:
-                            PromptCancelStreaming();
-                            break;
-
-                        case (int)ConsoleKey.S:
-                            await PromptManageScreenAsync();
-                            break;
-
-                        case (int)ConsoleKey.M:
-                            await PromptManageAudioInputAsync();
-                            break;
-
-                        case (int)ConsoleKey.W:
-                            await PromptManageWebcamAsync();
-                            break;
-
-                        case (int)ConsoleKey.T:
-                            PromptTest();
-                            break;
-                    }
+                }
+                else
+                {
+                    simulatedKey = 0;
                 }
 
                 if (_actions.TryTake(out action))
@@ -541,7 +552,7 @@ namespace ConsoleMediaPlayer
         static void PromptCancelStreaming()
         {
             ConsoleAbstraction.WriteYellow("[ConsoleMediaPlayer] => PromptCancelStreaming()");
-            _streamManager.SetNewConfiguration(_streamsList, null);
+            _streamManager?.SetNewConfiguration(_streamsList, null);
         }
 
         static void PromptInputStreamSelection()
@@ -735,100 +746,111 @@ namespace ConsoleMediaPlayer
 
         static async Task PromptManageDeviceAsync(String type)
         {
-            List<Device> devices;
-
-            switch (type)
-            {
-                case "webcam":
-                    devices = Rainbow.Medias.Devices.GetWebcamDevices(false).Select(s => (Device)s).ToList();
-                    break;
-
-                case "screen":
-                    devices = Rainbow.Medias.Devices.GetScreenDevices(false).Select(s => (Device)s).ToList();
-                    break;
-
-                case "microphone":
-                    devices = Rainbow.Medias.Devices.GetAudioInputDevices();
-                    break;
-
-                default:
-                    return;
-            }
-
-            // Display info about devices available on this computer
-            if (devices.Count > 0)
-            {
-                ConsoleAbstraction.WriteBlue($"{Rainbow.Util.CR}List of [{type}] available on this computer:");
-                int index = 1;
-                foreach (var audioInput in devices)
-                    ConsoleAbstraction.WriteBlue($"{index++} - {audioInput.Name}");
-            }
-            else
-            {
-                ConsoleAbstraction.WriteBlue($"{Rainbow.Util.CR}No [{type}] available on this computer");
+            // Atomically claim the "reading user input in progress" state
+            if (Interlocked.CompareExchange(ref readingUserInput, 1, 0) != 0)
                 return;
-            }
 
-            // Display info about streams defined as device
-            var streamAsDevice = _streamsList?.FindAll(s => s.UriType == type);
-            if (streamAsDevice?.Count > 0)
+            try
             {
-                ConsoleAbstraction.WriteBlue($"{Rainbow.Util.CR}List of streams defined as [{type}] correctly set in config file: (doesn't mean they can be really used)");
-                int index = 1;
-                foreach (var audioInput in streamAsDevice)
-                    ConsoleAbstraction.WriteBlue($"{index++} - {audioInput}");
-            }
-            else
-                ConsoleAbstraction.WriteBlue($"{Rainbow.Util.CR}No stream defined as [{type}] correctly set in config file");
+                List<Device> devices;
 
-            ConsoleAbstraction.WriteYellow($"{Rainbow.Util.CR}Do you want to add in config file all [{type}s] available on your system ? [Y]");
-            ConsoleAbstraction.WriteRed($"Previous [{type}s] already set will be removed and the file [{_streamsFilePath}] will be totally rewritten.");
-            var consoleKey = await ConsoleAbstraction.ReadKeyAsync();
-            if (consoleKey?.Key == ConsoleKey.Y)
-            {
-                _streamsList?.RemoveAll(s => s.UriType == type);
-                int index = 1;
-                foreach (var device in devices)
+                switch (type)
                 {
-                    if ((device is null) || (device.Name is null))
-                        continue;
+                    case "webcam":
+                        devices = Rainbow.Medias.Devices.GetWebcamDevices(false).Select(s => (Device)s).ToList();
+                        break;
 
-                    Stream stream = new()
+                    case "screen":
+                        devices = Rainbow.Medias.Devices.GetScreenDevices(false).Select(s => (Device)s).ToList();
+                        break;
+
+                    case "microphone":
+                        devices = Rainbow.Medias.Devices.GetAudioInputDevices();
+                        break;
+
+                    default:
+                        return;
+                }
+
+                // Display info about devices available on this computer
+                if (devices.Count > 0)
+                {
+                    ConsoleAbstraction.WriteBlue($"{Rainbow.Util.CR}List of [{type}] available on this computer:");
+                    int index = 1;
+                    foreach (var audioInput in devices)
+                        ConsoleAbstraction.WriteBlue($"{index++} - {audioInput.Name}");
+                }
+                else
+                {
+                    ConsoleAbstraction.WriteBlue($"{Rainbow.Util.CR}No [{type}] available on this computer");
+                    return;
+                }
+
+                // Display info about streams defined as device
+                var streamAsDevice = _streamsList?.FindAll(s => s.UriType == type);
+                if (streamAsDevice?.Count > 0)
+                {
+                    ConsoleAbstraction.WriteBlue($"{Rainbow.Util.CR}List of streams defined as [{type}] correctly set in config file: (doesn't mean they can be really used)");
+                    int index = 1;
+                    foreach (var audioInput in streamAsDevice)
+                        ConsoleAbstraction.WriteBlue($"{index++} - {audioInput}");
+                }
+                else
+                    ConsoleAbstraction.WriteBlue($"{Rainbow.Util.CR}No stream defined as [{type}] correctly set in config file");
+
+                ConsoleAbstraction.WriteYellow($"{Rainbow.Util.CR}Do you want to add in config file all [{type}s] available on your system ? [Y]");
+                ConsoleAbstraction.WriteRed($"Previous [{type}s] already set will be removed and the file [{_streamsFilePath}] will be totally rewritten.");
+                var consoleKey = await ConsoleAbstraction.ReadKeyAsync();
+                if (consoleKey?.Key == ConsoleKey.Y)
+                {
+                    _streamsList?.RemoveAll(s => s.UriType == type);
+                    int index = 1;
+                    foreach (var device in devices)
                     {
-                        Id = type + "_" + index++,
-                        Connected = false,
-                        Media = type == "microphone" ? "audio" : "video",
-                        Uri = device.Name,
-                        UriType = type,
-                    };
+                        if ((device is null) || (device.Name is null))
+                            continue;
+
+                        Stream stream = new()
+                        {
+                            Id = type + "_" + index++,
+                            Connected = false,
+                            Media = type == "microphone" ? "audio" : "video",
+                            Uri = device.Name,
+                            UriType = type,
+                        };
+                        _streamsList ??= [];
+                        _streamsList.Add(stream);
+                    }
+
+                    // Create array
                     _streamsList ??= [];
-                    _streamsList.Add(stream);
+                    var jsonArray = new JSONArray();
+                    foreach (var stream in _streamsList)
+                    {
+                        var jnode = Stream.ToJsonNode(stream);
+                        if (jnode is not null)
+                            jsonArray.Add(jnode);
+                    }
+
+                    // Create node with jsonArray
+                    var jsonNode = new JSONObject();
+                    jsonNode.Add("streams", jsonArray);
+
+                    // Get json string and store it to  file
+                    var str = jsonNode.ToString(indent: true);
+                    File.WriteAllText(_streamsFilePath, str);
+
+                    ConsoleAbstraction.WriteYellow($"Update done about [{type}] - file updated [{_streamsFilePath}]");
+
+                    PromptStreamsInfo();
                 }
-
-                // Create array
-                _streamsList ??= [];
-                var jsonArray = new JSONArray();
-                foreach (var stream in _streamsList)
-                {
-                    var jnode = Stream.ToJsonNode(stream);
-                    if (jnode is not null)
-                        jsonArray.Add(jnode);
-                }
-
-                // Create node with jsonArray
-                var jsonNode = new JSONObject();
-                jsonNode.Add("streams", jsonArray);
-
-                // Get json string and store it to  file
-                var str = jsonNode.ToString(indent: true);
-                File.WriteAllText(_streamsFilePath, str);
-
-                ConsoleAbstraction.WriteYellow($"Update done about [{type}] - file updated [{_streamsFilePath}]");
-
-                PromptStreamsInfo();
+                else
+                    ConsoleAbstraction.WriteYellow($"No updates about [{type}] done");
             }
-            else
-                ConsoleAbstraction.WriteYellow($"No updates about [{type}] done");
+            finally
+            {
+                Interlocked.Exchange(ref readingUserInput, 0);   // always runs after the work, never before
+            }
         }
 
         static async Task PromptManageWebcamAsync() => await PromptManageDeviceAsync("webcam");
@@ -837,106 +859,123 @@ namespace ConsoleMediaPlayer
 
         static async Task PromptManageAudioInputAsync() => await PromptManageDeviceAsync("microphone");
 
-        static void PromptManageAudioOutput()
+        static async Task PromptManageAudioOutputAsync()
         {
-            // Get list of audio output devices
-            var audioOutputDevices = Rainbow.Medias.Devices.GetAudioOutputDevices();
-            int index = 0;
-            if (audioOutputDevices?.Count > 0)
+            // Atomically claim the "reading user input in progress" state
+            if (Interlocked.CompareExchange(ref readingUserInput, 1, 0) != 0)
+                return;
+
+            try
             {
-                ConsoleAbstraction.WriteYellow($"{Rainbow.Util.CR}Select an Audio output device:");
-                foreach (var audioOutputDevice in audioOutputDevices)
+                // Get list of audio output devices
+                var audioOutputDevices = Rainbow.Medias.Devices.GetAudioOutputDevices();
+                int index = 0;
+                if (audioOutputDevices?.Count > 0)
                 {
-                    if(_audioOutputDevice?.Name == audioOutputDevice?.Name)
-                        ConsoleAbstraction.WriteBlue($"\t[{index}] {audioOutputDevice?.Name} (CURRENT SELECTION)");
-                    else
-                        ConsoleAbstraction.WriteYellow($"\t[{index}] {audioOutputDevice?.Name}");
-                    index++;
-                }
-                if (_audioOutputDevice is null)
-                    ConsoleAbstraction.WriteBlue("\t[N] - No audio output (CURRENT SELECTION)");
-                else
-                    ConsoleAbstraction.WriteYellow("\t[N] - No audio output");
-                ConsoleAbstraction.WriteYellow("\t[C] - Cancel");
-
-                var audioOutputUpdated = false;
-                var selected = false;
-
-                var consoleKey = ConsoleAbstraction.ReadKey();
-                if (consoleKey.HasValue && char.IsDigit(consoleKey.Value.KeyChar))
-                {
-                    var selection = int.Parse(consoleKey.Value.KeyChar.ToString());
-                    if ((selection >= 0) && (selection < index))
+                    ConsoleAbstraction.WriteYellow($"{Rainbow.Util.CR}Select an Audio output device:");
+                    foreach (var audioOutputDevice in audioOutputDevices)
                     {
-                        selected = true;
-                        audioOutputUpdated = _audioOutputDevice?.Path != audioOutputDevices[selection].Path;
+                        if (_audioOutputDevice?.Name == audioOutputDevice?.Name)
+                            ConsoleAbstraction.WriteBlue($"\t[{index}] {audioOutputDevice?.Name} (CURRENT SELECTION)");
+                        else
+                            ConsoleAbstraction.WriteYellow($"\t[{index}] {audioOutputDevice?.Name}");
+                        index++;
+                    }
+                    if (_audioOutputDevice is null)
+                        ConsoleAbstraction.WriteBlue("\t[N] - No audio output (CURRENT SELECTION)");
+                    else
+                        ConsoleAbstraction.WriteYellow("\t[N] - No audio output");
+                    ConsoleAbstraction.WriteYellow("\t[C] - Cancel");
 
-                        if (audioOutputUpdated)
+                    var audioOutputUpdated = false;
+                    var selected = false;
+
+                    if (ConsoleAbstraction.KeyAvailable)
+                    {
+                        var l = ConsoleAbstraction.ReadLine(); // Clear buffer
+                        ConsoleAbstraction.WriteRed("Line available: " + l);
+                    }
+
+                    var consoleKey = await ConsoleAbstraction.ReadKeyAsync();
+                    if (consoleKey.HasValue && char.IsDigit(consoleKey.Value.KeyChar))
+                    {
+                        var selection = int.Parse(consoleKey.Value.KeyChar.ToString());
+                        if ((selection >= 0) && (selection < index))
                         {
-                            _audioOutputDevice = audioOutputDevices[selection];
-                            ConsoleAbstraction.WriteDarkYellow($"Audio Output Device selected: {_audioOutputDevice.Name} ({_audioOutputDevice.Path})]");
+                            selected = true;
+                            audioOutputUpdated = _audioOutputDevice?.Path != audioOutputDevices[selection].Path;
+
+                            if (audioOutputUpdated)
+                            {
+                                _audioOutputDevice = audioOutputDevices[selection];
+                                ConsoleAbstraction.WriteDarkYellow($"Audio Output Device selected: {_audioOutputDevice.Name} ({_audioOutputDevice.Path})]");
+                            }
+                            else
+                                ConsoleAbstraction.WriteDarkYellow($"Same Audio Output Device selected");
                         }
                         else
-                            ConsoleAbstraction.WriteDarkYellow($"Same Audio Output Device selected");
+                            ConsoleAbstraction.WriteDarkYellow($"Invalid key used ...");
+                    }
+                    else if (consoleKey.HasValue && (consoleKey.Value.Key == ConsoleKey.N))
+                    {
+                        audioOutputUpdated = true;
+                        selected = true;
+
+                        _audioOutputDevice = null;
+
+                        ConsoleAbstraction.WriteDarkYellow($"No more Audio Output Device used ...");
+                    }
+                    else if (consoleKey.HasValue && consoleKey.Value.Key == ConsoleKey.C)
+                    {
+                        selected = true;
+                        ConsoleAbstraction.WriteDarkYellow($"Cancel used ...");
                     }
                     else
                         ConsoleAbstraction.WriteDarkYellow($"Invalid key used ...");
-                }
-                else if (consoleKey.HasValue &&  (consoleKey.Value.Key == ConsoleKey.N))
-                {
-                    audioOutputUpdated = true;
-                    selected = true;
-
-                    _audioOutputDevice = null;
-
-                    ConsoleAbstraction.WriteDarkYellow($"No more Audio Output Device used ...");
-                }
-                else if (consoleKey.HasValue && consoleKey.Value.Key == ConsoleKey.C)
-                {
-                    selected = true;
-                    ConsoleAbstraction.WriteDarkYellow($"Cancel used ...");
-                }
-                else
-                    ConsoleAbstraction.WriteDarkYellow($"Invalid key used ...");
 
 
-                if (selected)
-                {
-                    if (audioOutputUpdated)
+                    if (selected)
                     {
-                        // Do we find the one we want ?
-                        if (_audioOutputDevice is not null)
+                        if (audioOutputUpdated)
                         {
-                            // Init / start audio output device
-                            var newSdl2AudioOutput = new SDL2AudioOutput(_audioOutputDevice);
-                            if ((newSdl2AudioOutput is null) || (!newSdl2AudioOutput.Init()) || (!newSdl2AudioOutput.Start()))
+                            // Do we find the one we want ?
+                            if (_audioOutputDevice is not null)
                             {
-                                ConsoleAbstraction.WriteRed("Audio output device cannot be init / start");
-                                return;
+                                // Init / start audio output device
+                                var newSdl2AudioOutput = new SDL2AudioOutput(_audioOutputDevice);
+                                if ((newSdl2AudioOutput is null) || (!newSdl2AudioOutput.Init()) || (!newSdl2AudioOutput.Start()))
+                                {
+                                    ConsoleAbstraction.WriteRed("Audio output device cannot be init / start");
+                                    return;
+                                }
+                                else
+                                {
+                                    var previous = _sdl2AudioOutput;
+                                    _sdl2AudioOutput = newSdl2AudioOutput;
+                                    previous?.Dispose();
+                                }
                             }
                             else
                             {
                                 var previous = _sdl2AudioOutput;
-                                _sdl2AudioOutput = newSdl2AudioOutput;
+                                _sdl2AudioOutput = null;
                                 previous?.Dispose();
                             }
                         }
-                        else
-                        {
-                            var previous = _sdl2AudioOutput;
-                            _sdl2AudioOutput = null;
-                            previous?.Dispose();
-                        }
+                    }
+                    else
+                    {
+                        PromptManageAudioOutputAsync().StartAndForget();
                     }
                 }
                 else
                 {
-                    PromptManageAudioOutput();
+                    ConsoleAbstraction.WriteBlue($"{Rainbow.Util.CR}There is no audio output device available.");
                 }
             }
-            else
+            finally
             {
-                // No audio output devices
+                Interlocked.Exchange(ref readingUserInput, 0);   // always runs after the work, never before
             }
         }
 
