@@ -134,7 +134,7 @@ RbApplication.SetHostInfo(credentials.ServerConfig.HostName);
 ConsoleAbstraction.WriteGreen($"{CR}Use [ESC] at anytime to quit");
 
 ConsoleAbstraction.WriteGreen($"{CR}Use [Q] at anytime once loggued to quit using Logout");
-ConsoleAbstraction.WriteGreen($"Use [A] at anytime once loggued to cancel/stop AutoReconnection service");
+
 // Start login
 ConsoleAbstraction.WriteWhite($"{CR}Starting login ...");
 var _ = RbApplication.LoginAsync(credentials.UsersConfig[0].Login, credentials.UsersConfig[0].Password);
@@ -168,15 +168,6 @@ async Task CheckInputKey()
                     }
                     else
                         ConsoleAbstraction.WriteRed($"LogoutAsync - Error:[{taskSdkResult.Result}]");
-                }
-                return;
-
-
-            case ConsoleKey.A:
-                if (RbAutoReconnection.IsStarted)
-                {
-                    ConsoleAbstraction.WriteRed($"{CR}AutoReconnection - Service cancelled/Stopped");
-                    RbAutoReconnection.Cancel();
                 }
                 return;
 

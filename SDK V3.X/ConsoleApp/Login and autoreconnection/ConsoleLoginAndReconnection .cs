@@ -61,7 +61,6 @@ RbAutoReconnection.MaxNbAttempts = 10;
 ConsoleAbstraction.WriteGreen($"{CR}Use [ESC] at anytime to quit");
 
 ConsoleAbstraction.WriteGreen($"{CR}Use [Q] at anytime once loggued to quit using Logout");
-ConsoleAbstraction.WriteGreen($"Use [A] at anytime once loggued to cancel/stop AutoReconnection service");
 
 ConsoleAbstraction.WriteBlue($"{CR}You can change your network connection settgins while the process is running to see how auto-reconnection is working");
 
@@ -98,15 +97,6 @@ async Task CheckInputKey()
                     }
                     else
                         ConsoleAbstraction.WriteRed($"LogoutAsync - Error:[{taskSdkResult.Result}]");
-                }
-                return;
-
-
-            case ConsoleKey.A:
-                if (RbAutoReconnection.IsStarted)
-                {
-                    ConsoleAbstraction.WriteRed($"{CR}AutoReconnection - Service cancelled/Stopped");
-                    RbAutoReconnection.Cancel();
                 }
                 return;
         }

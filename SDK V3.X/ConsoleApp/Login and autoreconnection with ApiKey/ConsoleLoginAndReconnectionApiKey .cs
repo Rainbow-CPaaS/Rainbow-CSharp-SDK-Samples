@@ -43,7 +43,7 @@ Rainbow.Util.SetLogAnonymously(false);
 Restrictions restrictions = new(true)
 {
     LogRestRequest = true,
-    EventMode = SdkEventMode.NONE,
+    EventMode = SdkEventMode.NONE, // With SDK v3.11.0 (and greater), it's possible to use any event mode (or none) when and Api Key is used for authentication purpose
 };
 
 // Create Rainbow SDK objects
@@ -75,7 +75,6 @@ RbAutoReconnection.MaxNbAttempts = 10;
 ConsoleAbstraction.WriteGreen($"{CR}Use [ESC] at anytime to quit");
 
 ConsoleAbstraction.WriteGreen($"{CR}Use [Q] at anytime once loggued to quit using Logout");
-ConsoleAbstraction.WriteGreen($"Use [A] at anytime once loggued to cancel/stop AutoReconnection service");
 
 ConsoleAbstraction.WriteBlue($"{CR}You can change your network connection settgins while the process is running to see how auto-reconnection is working");
 
@@ -83,6 +82,7 @@ ConsoleAbstraction.WriteBlue($"{CR}You can change your network connection settgi
 ConsoleAbstraction.WriteWhite($"{CR}Starting login ...");
 
 var _ = RbApplication.LoginWithApiKeyAsync(credentials.UsersConfig[0].ApiKey);
+
 
 var canContinue = true;
 do
@@ -116,15 +116,6 @@ async Task CheckInputKey()
                     }
                     else
                         ConsoleAbstraction.WriteRed($"LogoutAsync - Error:[{taskSdkResult.Result}]");
-                }
-                return;
-
-
-            case ConsoleKey.A:
-                if (RbAutoReconnection.IsStarted)
-                {
-                    ConsoleAbstraction.WriteRed($"{CR}AutoReconnection - Service cancelled/Stopped");
-                    RbAutoReconnection.Cancel();
                 }
                 return;
         }

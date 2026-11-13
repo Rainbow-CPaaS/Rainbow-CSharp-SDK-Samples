@@ -681,7 +681,7 @@ namespace Rainbow.Example.CommonSDL2
             if (audioInput is not null)
             {
                 // Start audio Input
-                if (audioInput.IsStarted ||audioInput.Init(true))
+                if (audioInput.IsStarted || audioInput.Init(true))
                 {
                     ConsoleAbstraction.WriteWhite($"[StreamManager] Stream init/started (Audio context) - Stream:[{stream.Id}]", logger: log);
                     // Store it as audio
