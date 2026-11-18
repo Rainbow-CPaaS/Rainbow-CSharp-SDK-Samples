@@ -12,7 +12,6 @@ namespace Rainbow.Example.CommonSDL2
     {
         public delegate void StreamDelegate(String streamId, int media, Boolean stillUsed);
 
-
         private readonly ILogger log;
         private String? loggerPrefix = null;
 
@@ -773,7 +772,7 @@ namespace Rainbow.Example.CommonSDL2
                 if (stream.VideoFilterJsonNode is not null)
                 {
                     // We need to get size of media inputs used.
-                    String type = stream.VideoFilterJsonNode["type"];
+                    String? type = stream.VideoFilterJsonNode["type"];
                     var node = stream.VideoFilterJsonNode["data"];
 
                     if (node is not null)
@@ -794,7 +793,7 @@ namespace Rainbow.Example.CommonSDL2
                                 size ??= videoSize[0];
 
                                 // Get layout
-                                String layout = node["layout"];
+                                String? layout = node["layout"];
                                 if (String.IsNullOrEmpty(layout))
                                     layout = "G";
 
@@ -823,7 +822,7 @@ namespace Rainbow.Example.CommonSDL2
                                 sizeOverlay ??= new Size((int)(videoSize[0].Width / 4), (int)(videoSize[0].Height / 4));
 
                                 // Get overlay position
-                                String positionOverLay = node["positionOverlay"];
+                                String? positionOverLay = node["positionOverlay"];
                                 if (String.IsNullOrEmpty(positionOverLay))
                                     positionOverLay = "TR";
 

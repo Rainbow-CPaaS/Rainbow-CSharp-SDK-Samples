@@ -17,8 +17,7 @@ namespace BotOrchestratorAndBroadcaster
 
         static async Task Main()
         {
-            ConsoleAbstraction.WriteGreen($"{Global.ProductName()} v{Global.FileVersion()}", logger: _botOrchestrator?.log);
-            ConsoleAbstraction.WriteGreen($"[ESC] To stop the bot", logger: _botOrchestrator?.log);
+            
 
             if (!ReadExeSettings())
                 return;
@@ -28,6 +27,16 @@ namespace BotOrchestratorAndBroadcaster
 
             if ((_botOrchestrator is null) || (_exeSettings is null))
                 return;
+
+            ConsoleAbstraction.WriteGreen($"{Global.ProductName()} v{Global.FileVersion()}", logger: _botOrchestrator.log);
+            ConsoleAbstraction.WriteGreen($"[ESC] To stop the bot", logger: _botOrchestrator.log);
+
+            if (_botOrchestrator.log is not null)
+            {
+                if (!Enum.TryParse<Microsoft.Extensions.Logging.LogLevel>(_exeSettings.FfmpegLogLevel, out var logLevel))
+                    logLevel = Microsoft.Extensions.Logging.LogLevel.Error;
+                Rainbow.Medias.Helper.SetFFmpegLog(_botOrchestrator.log, logLevel);
+            }
 
             // Get Dot Graph on the Bot and store it in a file
             var dotGraph = _botOrchestrator.ToDotGraph();
@@ -165,7 +174,9 @@ namespace BotOrchestratorAndBroadcaster
 
                 // Init external librairies: FFmpeg and SDL2
                 if (_exeSettings.UseAudioVideo)
+                {
                     Rainbow.Medias.Helper.InitExternalLibraries(_exeSettings.FfmpegLibFolderPath);
+                }   
             }
             else
             {

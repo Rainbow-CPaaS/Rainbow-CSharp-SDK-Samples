@@ -322,7 +322,7 @@ namespace Rainbow.Example.Common
             return result;
         }
 
-        static public Size? SizeFromString(String str)
+        static public Size? SizeFromString(String? str)
         {
             if(String.IsNullOrEmpty(str))
                 return null;

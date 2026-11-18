@@ -10,11 +10,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-<!--    
-    <PackageReference Include="Rainbow.CSharp.SDK.Common" Version="3.6.0" />
--->
-	<ProjectReference Include="..\..\..\..\rainbow-csharp-sdk-test\SDK.Common\SDK.Common.csproj" />
 
+    <PackageReference Include="Rainbow.CSharp.SDK.Common" Version="3.8.0" />
+<!--
+	<ProjectReference Include="..\..\..\..\rainbow-csharp-sdk-test\SDK.Common\SDK.Common.csproj" />
+-->
 	<ProjectReference Include="..\..\Common\Common.csproj" />
   </ItemGroup>
 

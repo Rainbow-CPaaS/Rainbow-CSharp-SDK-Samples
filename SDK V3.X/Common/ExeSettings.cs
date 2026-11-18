@@ -8,6 +8,8 @@ namespace Rainbow.Example.Common
 
         public String FfmpegLibFolderPath { get; set; }
 
+        public String FfmpegLogLevel { get; set; }
+
         public String LogFolderPath { get; set; }
 
         public Boolean LogOnConsole { get; set; }
@@ -33,6 +35,7 @@ namespace Rainbow.Example.Common
             {
                 settings.UseAudioVideo = jsonNode["useAudioVideo"];
                 settings.FfmpegLibFolderPath = (String ?)jsonNode["ffmpegLibFolderPath"] ?? "";
+                settings.FfmpegLogLevel =  Rainbow.Util.FirstLetterToUpperCase((String?)jsonNode["ffmpegLogLevel"] ?? "none");
 
                 settings.LogFolderPath = (String?)jsonNode["logFolderPath"] ?? "";
                 settings.LogOnConsole = jsonNode["logOnConsole"];

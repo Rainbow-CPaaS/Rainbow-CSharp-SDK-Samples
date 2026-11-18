@@ -8,11 +8,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Update="config\botConfiguration.json" CopyToPublishDirectory="PreserveNewest" CopyToOutputDirectory="PreserveNewest"/>
-    <Content Update="config\credentials.json" CopyToPublishDirectory="PreserveNewest" CopyToOutputDirectory="PreserveNewest"/>
-    <Content Update="config\exeSettings.json" CopyToPublishDirectory="PreserveNewest" CopyToOutputDirectory="PreserveNewest"/>
-    <Content Update="config\labels_EN.json" CopyToPublishDirectory="PreserveNewest" CopyToOutputDirectory="PreserveNewest"/>
-    <Content Update="config\labels_FR.json" CopyToPublishDirectory="PreserveNewest" CopyToOutputDirectory="PreserveNewest"/>
+    <Content Include="config\botConfiguration.json" CopyToPublishDirectory="PreserveNewest" CopyToOutputDirectory="PreserveNewest"/>
+    <Content Include="config\credentials.json" CopyToPublishDirectory="PreserveNewest" CopyToOutputDirectory="PreserveNewest"/>
+    <Content Include="config\exeSettings.json" CopyToPublishDirectory="PreserveNewest" CopyToOutputDirectory="PreserveNewest"/>
+    <Content Include="config\labels_EN.json" CopyToPublishDirectory="PreserveNewest" CopyToOutputDirectory="PreserveNewest"/>
+    <Content Include="config\labels_FR.json" CopyToPublishDirectory="PreserveNewest" CopyToOutputDirectory="PreserveNewest"/>
     <EmbeddedResource Include="Resources\AdaptiveCards\AC_Example_Data.json" />
     <EmbeddedResource Include="Resources\AdaptiveCards\AC_Example_StreamsSelection.json" />
     <EmbeddedResource Include="Resources\AdaptiveCards\AC_StreamsSelection.json" />
