@@ -1,0 +1,14 @@
+﻿{
+  "type": "AdaptiveCard",
+  "$schema": "https://adaptivecards.io/schemas/adaptive-card.json",
+  "version": "1.6",
+  "body": [
+    {
+      "type": "Image",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/c/ca/1x1.png",
+      "height": "1px",
+      "width": "500px",
+      "spacing": "none"
+    }
+  ]
+}

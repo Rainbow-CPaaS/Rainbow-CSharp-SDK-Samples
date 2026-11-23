@@ -1,0 +1,30 @@
+{
+  "type": "Container",
+  "style": "accent",
+  "items": [
+    {
+      "type": "TextBlock",
+      "text": "{callBackTitle}",
+      "wrap": true,
+      "horizontalAlignment": "Center"
+    },
+    {
+      "type": "ActionSet",
+      "horizontalAlignment": "Center",
+      "actions": [
+        {
+          "type": "Action.Submit",
+          "title": "{callBack}",
+          "style": "positive",
+          "data": {
+            "rainbow": {
+              "type": "messageBack",
+              "value": {},
+              "text": ""
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

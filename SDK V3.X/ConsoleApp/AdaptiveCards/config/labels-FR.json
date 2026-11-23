@@ -1,0 +1,24 @@
+﻿{
+  "title": "Annonce",
+  "train": "Train",
+  "phoneNumber": "Numéro de téléphone",
+  "status": "Status",
+  "statusWarning": "Certains trains n'ont pas encore rejoint la conférence...",
+  "statusOk": "Tous les trains sont actifs dans la conférence. Vous pouvez commencer l'annonce.",
+  "callBackTitle": "Souhaitez-vous rappeler les trains qui ne font pas encore partie de la conférence ?",
+  "callBack": "Rappeler",
+
+  "toCall": "Non appellé",
+  "callinProgress": "En cours",
+  "callRinging": "En sonnerie",
+  "callActive": "Active",
+  "callHangUp": "Raccroché",
+
+  "colors": {
+    "toCall": "",
+    "callinProgress": "Accent",
+    "callRinging": "Warning",
+    "callActive": "Good",
+    "callHangUp": "Attention"
+  }
+}

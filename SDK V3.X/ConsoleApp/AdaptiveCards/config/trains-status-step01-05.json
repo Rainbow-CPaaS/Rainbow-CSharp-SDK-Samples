@@ -1,0 +1,24 @@
+﻿{
+  "status": [
+    {
+      "id": "train_id_01",
+      "status": "callActive"
+    },
+    {
+      "id": "train_id_02",
+      "status": "callActive"
+    },
+    {
+      "id": "train_id_03",
+      "status": "callActive"
+    },
+    {
+      "id": "train_id_04",
+      "status": "callHangUp"
+    },
+    {
+      "id": "train_id_05",
+      "status": "callActive"
+    }
+  ]
+}

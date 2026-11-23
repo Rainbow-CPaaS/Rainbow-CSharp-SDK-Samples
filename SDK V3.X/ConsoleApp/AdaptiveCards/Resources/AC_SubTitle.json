@@ -1,0 +1,7 @@
+{
+  "type": "TextBlock",
+  "text": "{subTitle}",
+  "color": "{subTitleColor}",
+  "weight": "Bolder",
+  "horizontalAlignment": "Center"
+}

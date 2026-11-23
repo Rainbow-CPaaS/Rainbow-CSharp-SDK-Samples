@@ -1,0 +1,59 @@
+{
+  "labels": "labels-EN.json",
+  "bubble": {
+    "id": "",
+    "jid": "",
+    "name_": ""
+  },
+  "contact": {
+    "id": "",
+    "jid": "",
+    "login": ""
+  },
+  "trains": [
+    {
+      "id": "train_id_01",
+      "name": "Train 01",
+      "phoneNumber": "0123456789"
+    },
+    {
+      "id": "train_id_02",
+      "name": "Train 02",
+      "phoneNumber": "0223456789"
+    },
+    {
+      "id": "train_id_03",
+      "name": "Train 03",
+      "phoneNumber": "0323456789"
+    },
+    {
+      "id": "train_id_04",
+      "name": "Train 04",
+      "phoneNumber": "0423456789"
+    },
+    {
+      "id": "train_id_05",
+      "name": "Train 05",
+      "phoneNumber": "0523456789"
+    }
+  ],
+  "steps": [
+    {
+      "list": [
+        "trains-status-step01-01.json",
+        "trains-status-step01-02.json",
+        "trains-status-step01-03.json",
+        "trains-status-step01-04.json",
+        "trains-status-step01-05.json"
+      ]
+    },
+    {
+      "list": [
+        "trains-status-step02-01.json",
+        "trains-status-step02-02.json",
+        "trains-status-step02-03.json"
+      ]
+    }
+  ],
+  "delayBetweenAC": 800
+}

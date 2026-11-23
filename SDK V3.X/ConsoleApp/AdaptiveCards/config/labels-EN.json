@@ -1,0 +1,24 @@
+﻿{
+  "title": "PA Announcement",
+  "train": "Train",
+  "phoneNumber": "Phone number",
+  "status": "Status",
+  "statusWarning": "Some trains have not yet reached the conference...",
+  "statusOk": "All trains are active in the conference. You may begin the announcement.",
+  "callBackTitle": "Would you like to call back the trains that are not yet part of the conference?",
+  "callBack": "Call back",
+
+  "toCall": "Not yet called",
+  "callinProgress": "In progress",
+  "callRinging": "Ringing",
+  "callActive": "In conference",
+  "callHangUp": "Hang up",
+
+  "colors": {
+    "toCall": "",
+    "callinProgress": "Accent",
+    "callRinging": "Warning",
+    "callActive": "Good",
+    "callHangUp": "Attention"
+  }
+}

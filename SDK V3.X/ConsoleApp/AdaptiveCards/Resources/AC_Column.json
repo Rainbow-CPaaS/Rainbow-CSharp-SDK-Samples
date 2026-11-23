@@ -1,0 +1,10 @@
+{
+  "type": "Column",
+  "items": [
+    {
+      "type": "TextBlock",
+      "text": "{columnTitle}",
+      "weight": "Bolder"
+    }
+  ]
+}

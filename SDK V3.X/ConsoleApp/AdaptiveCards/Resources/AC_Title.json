@@ -1,0 +1,7 @@
+{
+  "type": "TextBlock",
+  "text": "{title}",
+  "horizontalAlignment": "Center",
+  "size": "Large",
+  "weight": "Bolder"
+}
