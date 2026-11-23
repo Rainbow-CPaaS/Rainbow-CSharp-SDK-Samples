@@ -24,7 +24,7 @@ To have more info about the SDK:
 - Send to the contact (or to the bubble specified) an Adaptive Cards (AC) based on data in files specified in **configuration.json**
 - A delay is used before the next AC is sent / edited
 
-Scenario:
+**Scenario:**
 - a list to trains are called and according the call status with them the AC is updated in consequence.
 
 You must specified at least the node **contact** in **configuration.json** with corect data.

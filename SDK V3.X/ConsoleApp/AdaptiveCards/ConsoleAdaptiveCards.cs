@@ -21,10 +21,6 @@ if ((!ReadConfiguration()) || (configuration is null))
     return;
 ConsoleAbstraction.WriteGreen($"Configuration is correct");
 
-// TO TEST CREATION OF ALL AC
-for(int i=0; i<10; i++)
-    CreateAdaptiveCard();
-
 ConsoleAbstraction.WriteRed($"Rainbow Account used: [{credentials.UsersConfig[0].Login}]");
 
 // --------------------------------------------------
@@ -521,8 +517,8 @@ void IncrementStep()
             }
 
             // For debug save AC in file indented
-            var filePath = GetLogFilePath($"AC-{configuration.CurrentStep:00}-{configuration.CurrentSubStep:00}.json");
-            File.WriteAllText(filePath, jsonNodeRoot.ToString(indent: true), System.Text.Encoding.UTF8);
+            //var filePath = GetLogFilePath($"AC-{configuration.CurrentStep:00}-{configuration.CurrentSubStep:00}.json");
+            //File.WriteAllText(filePath, jsonNodeRoot.ToString(indent: true), System.Text.Encoding.UTF8);
 
             // Get JSON
             resultAC = jsonNodeRoot.ToString(indent: false);
@@ -535,7 +531,7 @@ void IncrementStep()
             };
             alternativeContent = [messageAlternativeContent];
 
-            message = " "; // => Due to a bug in WebClient must not be empty/null
+            message = configuration.Labels["title"];
         }
     }
     catch(Exception ex)
