@@ -1,0 +1,1 @@
+dotnet publish -c Release -f net10.0 -r win-x64 --self-contained true -o .\publish

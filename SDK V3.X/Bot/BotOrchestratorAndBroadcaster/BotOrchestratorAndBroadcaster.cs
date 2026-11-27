@@ -4,13 +4,17 @@ using Microsoft.Extensions.Logging;
 using Rainbow;
 using Rainbow.Consts;
 using Rainbow.Example.Common;
+using Rainbow.Example.CommonSDL2;
+using Rainbow.Example.CommonWebRTC;
 using Rainbow.Model;
 using Rainbow.SimpleJSON;
+using Rainbow.WebRTC.Abstractions;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace BotOrchestratorAndBroadcaster
@@ -30,7 +34,12 @@ namespace BotOrchestratorAndBroadcaster
         private InstantMessaging? _rbInstantMessaging = null;
 
         private Model.BotConfigurationExtended? _currentBotConfigurationExtended = null;
-        private readonly FifoSemaphore _semaphoreSendOrUpdateAdaptiveCard = new(1);
+
+        String msgTooBig = "Adaptive card cannot be sent. Its content is too big. Try to reduce: the number of Broadcasters, the number of streams, and/or the number of Bubble where the Orchestrator is moderator.";
+
+        private int _checkSendOrUpdateAdaptiveCard = 0; // 0 = loop idle, 1 = loop running.Only accessed through Interlocked
+
+        private MediaTrackManager? _mediaTrackManager = null;
 
         public BotOrchestratorAndBroadcaster()
         {
@@ -135,6 +144,13 @@ namespace BotOrchestratorAndBroadcaster
                     _rbConferences.ConferenceUpdated += Conferences_ConferenceUpdated;
                     _rbConferences.ConferenceRemoved += Conferences_ConferenceRemoved;
                 }
+
+                var log = Rainbow.LogFactory.CreateLogger("FFmpeg", Application.LoggerPrefix);
+                Rainbow.Medias.Helper.SetFFmpegLog(log, Rainbow.Medias.Helper.ParseLogLevel("todo"));
+
+                _mediaTrackManager = MediaTrackManager.Instance;
+                _mediaTrackManager.SetLoggerFactory(Rainbow.LogFactory.Get());
+                _mediaTrackManager.SetLoggerPrefix("MediaTrackManager");
             }
 
             // BotConfigurationExtended object has been created to store data structure specific for this bot
@@ -153,7 +169,6 @@ namespace BotOrchestratorAndBroadcaster
             }
         }
 
-
 #endregion Override some methods of BotLibrary.BotBase to add specific features in this Bot
 
 
@@ -161,13 +176,12 @@ namespace BotOrchestratorAndBroadcaster
 
         private async Task StartBroadcastersAsync()
         {
-
-            var broadcastersInfo = _currentBotConfigurationExtended?.Broadcasters.ToList();
+            var broadcastersInfo = _currentBotConfigurationExtended?.Broadcasters?.ToList();
             if (broadcastersInfo is null) return;
 
             foreach (var broadcasterInfo in broadcastersInfo)
             {
-                if (broadcasterInfo is null) continue;
+                if (String.IsNullOrEmpty(broadcasterInfo?.Id)) continue;
 
                  _broadcasters.TryGetValue(broadcasterInfo.Id, out var broadcaster);
 
@@ -192,12 +206,22 @@ namespace BotOrchestratorAndBroadcaster
 
                     var configFile = GetBroadcasterConfigurationPathFile(broadcasterInfo.Id);
                     var botConfiguration = JSON.Parse(File.ReadAllText(configFile));
+                    if (botConfiguration is null) continue;
 
-                    broadcaster = new BotBroadcaster.BotBroadcaster();
+                    broadcaster = new BotBroadcaster.BotBroadcaster(false);
                     var result = await broadcaster.Configure(credentials.ToJsonNode() ?? new JSONObject(), botConfiguration["botConfiguration"]);
                     if (result)
                     {
+                        if (_mediaTrackManager is null)
+                        {
+                            ConsoleAbstraction.WriteRed($"Cannot SetWebRTCEnvironment for BotBroadcaster using '{broadcasterInfo.Login}' since MediaTrackManager is null.", logger: log);
+                            return;
+                        }
+                        // Set WebRTC environment
+                        broadcaster.SetWebRTCEnvironment(_mediaTrackManager);
+
                         _broadcasters[broadcasterInfo.Id] = broadcaster;
+
 
                         if (!broadcaster.Login())
                             ConsoleAbstraction.WriteRed($"Cannot start login process for '{broadcasterInfo.Login}'", logger: log);
@@ -275,7 +299,7 @@ namespace BotOrchestratorAndBroadcaster
             if (_currentBotConfigurationExtended?.Conferences.UseAll == true)
                 result = conferences?.Where(c => c?.Peer.Id == confId).FirstOrDefault()?.Peer.Id ?? "";
             else
-                result = conferences?.Where(c => (_currentBotConfigurationExtended?.Conferences.Selected.Contains(c?.Peer.DisplayName ?? "") == true) && (c?.Peer.Id == confId))?.FirstOrDefault()?.Peer.Id ?? "";
+                result = conferences?.Where(c => (_currentBotConfigurationExtended?.Conferences?.Selected?.Contains(c?.Peer.DisplayName ?? "") == true) && (c?.Peer.Id == confId))?.FirstOrDefault()?.Peer.Id ?? "";
             return result == confId;
         }
 
@@ -286,7 +310,7 @@ namespace BotOrchestratorAndBroadcaster
             if (_currentBotConfigurationExtended?.Conferences.UseAll == true)
                 result = conferences?.FirstOrDefault()?.Peer.Id ?? "";
             else
-                result = conferences?.Where(c => _currentBotConfigurationExtended?.Conferences.Selected.Contains(c?.Peer.DisplayName ?? "") == true)?.FirstOrDefault()?.Peer.Id ?? "";
+                result = conferences?.Where(c => _currentBotConfigurationExtended?.Conferences?.Selected?.Contains(c?.Peer.DisplayName ?? "") == true)?.FirstOrDefault()?.Peer.Id ?? "";
             return result;
         }
 
@@ -323,16 +347,16 @@ namespace BotOrchestratorAndBroadcaster
         {
             if ( (_currentBotConfigurationExtended is null) || (jsonNode is null)) return;
 
-            if(jsonNode.IsObject)
+            if ( jsonNode.IsObject && _currentBotConfigurationExtended.Broadcasters is not null)
             {
                 foreach (var broadcaster in  _currentBotConfigurationExtended.Broadcasters)
                 {
                     if (broadcaster is null) continue;
 
                     var login = broadcaster.Login;
-                    broadcaster.InConf = jsonNode[$"join_{login}"];
-                    broadcaster.AudioStreamId = jsonNode[$"audio_{login}"];
-                    broadcaster.VideoStreamId = jsonNode[$"video_{login}"];
+                    broadcaster.InConf = jsonNode[$"join_{login}"] ?? "false";
+                    broadcaster.AudioStreamId = jsonNode[$"audio_{login}"] ?? "";
+                    broadcaster.VideoStreamId = jsonNode[$"video_{login}"] ?? "";
                     broadcaster.SharingStreamId = "-";
                 }
 
@@ -414,7 +438,8 @@ namespace BotOrchestratorAndBroadcaster
 
         private async Task AddOrRemoveBroadcastersFromBubbleAsync(String bubbleId, Boolean confInProgress)
         {
-            if ( (_rbBubbles is null) || (_rbContacts is null) || (_currentBotConfigurationExtended is null) ) return;
+            if ( (_rbBubbles is null) || (_rbContacts is null) || (_currentBotConfigurationExtended is null) || (_currentBotConfigurationExtended.Broadcasters is null) ) return;
+
             var bubble = _rbBubbles.GetBubbleById(bubbleId);
             if (bubble is null) return;
 
@@ -465,7 +490,7 @@ namespace BotOrchestratorAndBroadcaster
                     if (alternativeContent.Type == "rainbow/json")
                     {
                         jsonNode = JSON.Parse(alternativeContent.Content);
-                        if (jsonNode["rainbow"]?["value"] == _guid)
+                        if (jsonNode?["rainbow"]?["value"] == _guid)
                         {
                             isAdaptiveCardAnswer = true;
                             break;
@@ -482,10 +507,17 @@ namespace BotOrchestratorAndBroadcaster
         {
             if (_currentBotConfigurationExtended is null) return;
 
+            var configNode = _currentBotConfigurationExtended.ToJsonNode();
+            if (configNode is null)
+            {
+                ConsoleAbstraction.WriteRed($"Cannot get config as JSONNode...", logger: log);
+                return;
+            }
+
             String botConfigurationFilePath = GetConfigurationPathFile(); // + "_copy";
 
             var json = new JSONObject();
-            json["botConfiguration"] = _currentBotConfigurationExtended.ToJsonNode();
+            json["botConfiguration"] = configNode;
             var content = json.ToString(avoidNull: true, indent: true);
             try
             {
@@ -500,6 +532,8 @@ namespace BotOrchestratorAndBroadcaster
         private void UpdateConfigurationFileOnDiskForEachBroadcaster()
         {
             if ( (_currentBotConfigurationExtended is null) || (_rbContacts is null) || (_rbBubbles is null)) return;
+
+            if (_currentBotConfigurationExtended.Broadcasters is null) return;
 
             var currentContact = _rbContacts.GetCurrentContact();
             if (currentContact is null) return;
@@ -525,20 +559,59 @@ namespace BotOrchestratorAndBroadcaster
                 BubbleInvitationAutoAccept = true
             };
 
-            var jsonNode = new JSONObject();
-            jsonNode["botConfiguration"] = new JSONObject();
-            //var jsonNodeBotConfiguration = jsonNode["botConfiguration"];
+            var configNode = BotConfiguration.ToJsonNode(botConfiguration);
+            if (configNode is null)
+            {
+                ConsoleAbstraction.WriteRed("Cannot create JSONNode from configuration ...", logger: log);
+                return;
+            }
 
-            jsonNode["botConfiguration"] = BotConfiguration.ToJsonNode(botConfiguration);
-            var jsonNodeBotConfiguration = jsonNode["botConfiguration"];
-            //jsonNodeBotConfiguration["administrators"] = BotConfiguration.ToJsonNode(botConfiguration)?["administrators"];
+            var bubbleWithConfInProgress = _rbBubbles.GetBubbleById(_currentConferenceId);
 
-            jsonNodeBotConfiguration["streams"] = JSON.ToJSONArray<Rainbow.Example.Common.Stream>(_currentBotConfigurationExtended.Streams, Rainbow.Example.Common.Stream.ToJsonNode);
+            // ------------------------------------------------
+            // We have to inform StreamInputManager of streams to use
+            List<Rainbow.Example.Common.Stream> streams = _currentBotConfigurationExtended.Streams?.ToList() ?? [];
+            List<StreamUsage> streamsToUse = [];
+            // Store list of streams with connected status
+            var streamsConnected = streams.Where(s => s.Connected == true).ToList();
+            if (streamsConnected?.Count > 0)
+            {
+                foreach (var stream in streamsConnected)
+                {
+                    streamsToUse.Add(new() { Id = stream.Id, Media = StreamUsage.MediaFromString(stream.Media) });
+                }
+            }
 
-            // Now loop on each Boradcaster to create specific configuration file for each of them
             foreach(var broadcaster in _currentBotConfigurationExtended.Broadcasters)
             {
-                if (broadcaster is null) continue;
+                if (String.IsNullOrEmpty(broadcaster?.Id)) continue;
+                if (broadcaster.InConf != "true") continue;
+                if (bubbleWithConfInProgress is null) continue;
+
+
+                if ( (!String.IsNullOrEmpty(broadcaster.AudioStreamId)) && (broadcaster.AudioStreamId != "-"))
+                    streamsToUse.Add(new() { Id = broadcaster.AudioStreamId, Media = Rainbow.Consts.Media.AUDIO });
+
+                if ((!String.IsNullOrEmpty(broadcaster.VideoStreamId)) && (broadcaster.VideoStreamId != "-"))
+                    streamsToUse.Add(new() { Id = broadcaster.VideoStreamId, Media = Rainbow.Consts.Media.VIDEO });
+
+                if ((!String.IsNullOrEmpty(broadcaster.SharingStreamId)) && (broadcaster.SharingStreamId != "-"))
+                    streamsToUse.Add(new() { Id = broadcaster.SharingStreamId, Media = Rainbow.Consts.Media.VIDEO });
+            }
+            StreamInputManager.Instance.SetNewConfiguration(streams, streamsToUse);
+
+
+            // ------------------------------------------------
+
+            var jsonNode = new JSONObject();
+            jsonNode["botConfiguration"] = configNode;
+            var jsonNodeBotConfiguration = jsonNode["botConfiguration"];
+            jsonNodeBotConfiguration["streams"] = JSON.ToJSONArray<Rainbow.Example.Common.Stream>(_currentBotConfigurationExtended.Streams, Rainbow.Example.Common.Stream.ToJsonNode);
+
+            // Now loop on each Broadcaster to create specific configuration file for each of them
+            foreach(var broadcaster in _currentBotConfigurationExtended.Broadcasters)
+            {
+                if (String.IsNullOrEmpty(broadcaster?.Id)) continue;
                 
                 // Set firstName and lastName
                 jsonNodeBotConfiguration["firstName"] = broadcaster.FirstName;
@@ -549,8 +622,6 @@ namespace BotOrchestratorAndBroadcaster
 
                 var jsonConference = new JSONObject();
                 jsonNodeBotConfiguration["conferences"].Add(jsonConference);
-
-                var bubbleWithConfInProgress = _rbBubbles.GetBubbleById(_currentConferenceId);
 
                 if (broadcaster.SharingStreamId == "") broadcaster.SharingStreamId = "-";
 
@@ -588,12 +659,7 @@ namespace BotOrchestratorAndBroadcaster
                     File.WriteAllText(broadcasterConfigFilePath, content);
 
                     if (_broadcasters.TryGetValue(broadcaster.Id, out var botBroadcaster) && botBroadcaster is not null)
-                    {
-                        //if(botBroadcaster.Application.IsConnected())
-                        {
-                            AsyncHelper.RunSync(async () => await botBroadcaster.BotConfigurationUpdatedAsync(new BotConfigurationUpdate(jsonNode["botConfiguration"], "reload", null)).ConfigureAwait(false));
-                        }
-                    }
+                        botBroadcaster.BotConfigurationUpdatedAsync(new BotConfigurationUpdate(jsonNode["botConfiguration"], "reload", null)).StartAndForget();
                 }
                 catch
                 {
@@ -638,9 +704,8 @@ namespace BotOrchestratorAndBroadcaster
 
         private async Task SendOrUpdateAdaptiveCardToAllAdminAsync()
         {
-            String msgTooBig = "Adaptive card cannot be sent. Its content is too big. Try to reduce: the number of Broadcasters, the number of streams, and/or the number of Bubble where the Orchestrator is moderator.";
-
-            await _semaphoreSendOrUpdateAdaptiveCard.WaitAsync();
+            if (Interlocked.CompareExchange(ref _checkSendOrUpdateAdaptiveCard, 1, 0) != 0)
+                return;
 
             try
             {
@@ -726,11 +791,7 @@ namespace BotOrchestratorAndBroadcaster
             }
             finally
             {
-                try
-                {
-                    _semaphoreSendOrUpdateAdaptiveCard?.Release();
-                }
-                catch { }
+                Interlocked.Exchange(ref _checkSendOrUpdateAdaptiveCard, 0);
             }
         }
 
@@ -769,7 +830,6 @@ namespace BotOrchestratorAndBroadcaster
             var bubblesList = GetListOfBubblesAsModerator();
             Bubble? currentConference = _rbBubbles?.GetBubbleById(_currentConferenceId);
 
-            var jsonObject = new JSONObject();
 
             // Manage "labels" node
             String labelFilePath = $".{Path.DirectorySeparatorChar}config{Path.DirectorySeparatorChar}{_currentBotConfigurationExtended.Labels}";
@@ -779,8 +839,7 @@ namespace BotOrchestratorAndBroadcaster
             else // Use labels in embedded resource as default value
                 jsonLabels = Helper.GetContentOfEmbeddedResource("labels_EN.json", System.Text.Encoding.UTF8);
 
-            var jsonNodeLabels = 
-            jsonObject = (JSONObject) JSON.Parse(jsonLabels);
+            var jsonObject = ((JSONObject?) JSON.Parse(jsonLabels)) ?? new JSONObject();
 
             // Manage "Conferences" node
             var jsonConferences = new JSONObject();
@@ -789,16 +848,19 @@ namespace BotOrchestratorAndBroadcaster
 
             // Need to set bubble id in this JSON and not name
             List<String> bubblesId = [];
-            foreach(var bubbleName in _currentBotConfigurationExtended.Conferences.Selected)
+            if (_currentBotConfigurationExtended.Conferences.Selected is not null)
             {
-                var bubble = bubblesList.FirstOrDefault(b => b.Peer.DisplayName.Equals(bubbleName, StringComparison.InvariantCultureIgnoreCase));
-                if (bubble is not null)
-                    bubblesId.Add(bubble.Peer.Id);
-                else
+                foreach (var bubbleName in _currentBotConfigurationExtended.Conferences.Selected)
                 {
-                    bubble = bubblesList.FirstOrDefault(b => b.Peer.Id.Equals(bubbleName, StringComparison.InvariantCultureIgnoreCase));
+                    var bubble = bubblesList.FirstOrDefault(b => b.Peer.DisplayName.Equals(bubbleName, StringComparison.InvariantCultureIgnoreCase));
                     if (bubble is not null)
                         bubblesId.Add(bubble.Peer.Id);
+                    else
+                    {
+                        bubble = bubblesList.FirstOrDefault(b => b.Peer.Id.Equals(bubbleName, StringComparison.InvariantCultureIgnoreCase));
+                        if (bubble is not null)
+                            bubblesId.Add(bubble.Peer.Id);
+                    }
                 }
             }
             jsonConferences["selected"] = String.Join(",", bubblesId);
@@ -827,15 +889,15 @@ namespace BotOrchestratorAndBroadcaster
 
             String broadcasterId = "";
             String streamId = "";
-            var sharingBroadcaster =  _currentBotConfigurationExtended.Broadcasters.FirstOrDefault(b => (!String.IsNullOrEmpty(b.SharingStreamId)) && (b.SharingStreamId != "-"));
+            var sharingBroadcaster =  _currentBotConfigurationExtended.Broadcasters?.FirstOrDefault(b => (!String.IsNullOrEmpty(b.SharingStreamId)) && (b.SharingStreamId != "-"));
             if(sharingBroadcaster is not null)
             {
-                broadcasterId = sharingBroadcaster.Login;
-                streamId = sharingBroadcaster.SharingStreamId;
+                broadcasterId = sharingBroadcaster.Login ?? "";
+                streamId = sharingBroadcaster.SharingStreamId ?? "";
             }
 
             if(String.IsNullOrEmpty(broadcasterId))
-                broadcasterId = _currentBotConfigurationExtended.Broadcasters[0].Login;
+                broadcasterId = _currentBotConfigurationExtended.Broadcasters?[0]?.Login ?? "";
 
             if (String.IsNullOrEmpty(streamId))
                 streamId = "-";
@@ -846,25 +908,28 @@ namespace BotOrchestratorAndBroadcaster
 
             // Manage "broadcasters" node
             var jsonBroadcasters = new JSONArray();
-            foreach(var broadcaster in _currentBotConfigurationExtended.Broadcasters)
+            if (_currentBotConfigurationExtended.Broadcasters is not null)
             {
-                if(broadcaster is null) continue;
-                var jsonBroadcaster = new JSONObject();
-                jsonBroadcaster["id"] = broadcaster.Login;
-                jsonBroadcaster["name"] = broadcaster.LastName + " " + broadcaster.FirstName;
-                jsonBroadcaster["inConf"] = broadcaster.InConf;
+                foreach (var broadcaster in _currentBotConfigurationExtended.Broadcasters)
+                {
+                    if (broadcaster is null) continue;
+                    var jsonBroadcaster = new JSONObject();
+                    jsonBroadcaster["id"] = broadcaster.Login;
+                    jsonBroadcaster["name"] = broadcaster.LastName + " " + broadcaster.FirstName;
+                    jsonBroadcaster["inConf"] = broadcaster.InConf;
 
-                if(String.IsNullOrEmpty(broadcaster.AudioStreamId))
-                    jsonBroadcaster["audioStreamId"] = "-";
-                else
-                    jsonBroadcaster["audioStreamId"] = broadcaster.AudioStreamId;
+                    if (String.IsNullOrEmpty(broadcaster.AudioStreamId))
+                        jsonBroadcaster["audioStreamId"] = "-";
+                    else
+                        jsonBroadcaster["audioStreamId"] = broadcaster.AudioStreamId;
 
-                if (String.IsNullOrEmpty(broadcaster.VideoStreamId))
-                    jsonBroadcaster["videoStreamId"] = "-";
-                else
-                    jsonBroadcaster["videoStreamId"] = broadcaster.VideoStreamId;
+                    if (String.IsNullOrEmpty(broadcaster.VideoStreamId))
+                        jsonBroadcaster["videoStreamId"] = "-";
+                    else
+                        jsonBroadcaster["videoStreamId"] = broadcaster.VideoStreamId;
 
-                jsonBroadcasters.Add(jsonBroadcaster);
+                    jsonBroadcasters.Add(jsonBroadcaster);
+                }
             }
             jsonObject["broadcasters"] = jsonBroadcasters;
 
@@ -880,7 +945,7 @@ namespace BotOrchestratorAndBroadcaster
 
             var jsonWithAudio = new JSONArray();
             jsonWithAudio.Add(jsonStreamInfo);
-            _currentBotConfigurationExtended.Streams.Where(stream => stream.Media.StartsWith("audio")).ToList().ForEach(stream =>
+            _currentBotConfigurationExtended.Streams?.Where(stream => stream.Media.StartsWith("audio")).ToList().ForEach(stream =>
             {
                 var jsonStreamInfo = new JSONObject();
                 jsonStreamInfo["title"] = stream.Id;
@@ -891,7 +956,7 @@ namespace BotOrchestratorAndBroadcaster
 
             var jsonWithVideo = new JSONArray();
             jsonWithVideo.Add(jsonStreamInfo);
-            _currentBotConfigurationExtended.Streams.Where(stream => stream.Media.Contains("video") || stream.Media.Contains("composition")).ToList().ForEach(stream =>
+            _currentBotConfigurationExtended.Streams?.Where(stream => stream.Media.Contains("video") || stream.Media.Contains("composition")).ToList().ForEach(stream =>
             {
                 var jsonStreamInfo = new JSONObject();
                 jsonStreamInfo["title"] = stream.Media.Contains("composition") ? "🧱" + stream.Id : stream.Id;
@@ -910,7 +975,7 @@ namespace BotOrchestratorAndBroadcaster
 
         private String AC_CreateTableWithBroadcasters()
         {
-            if (_currentBotConfigurationExtended is null) return "";
+            if (_currentBotConfigurationExtended?.Broadcasters is null) return "";
 
             String? jsonTemplate = Helper.GetContentOfEmbeddedResource("AC_TableRow_Broadcaster.json", System.Text.Encoding.UTF8);
             if(jsonTemplate is null) return "";
@@ -941,7 +1006,7 @@ namespace BotOrchestratorAndBroadcaster
             jsonTemplate = RemoveAllComments(jsonTemplate);
 
             var broadcastersTable = AC_CreateTableWithBroadcasters();
-            jsonTemplate = jsonTemplate.Replace("$BROADCASTERS$", broadcastersTable);
+            jsonTemplate = jsonTemplate.Replace("\"$BROADCASTERS$\"", broadcastersTable);
             jsonTemplate = jsonTemplate.Replace("$GUID$", _guid); // add GUID to ensure we will manage only AC create by this Orchestrator
 
             // Create a Template instance from the template payload
@@ -949,6 +1014,9 @@ namespace BotOrchestratorAndBroadcaster
 
             // "Expand" the template - this generates the final Adaptive Card payload
             string cardJson = template.Expand(jsonData);
+
+            cardJson = cardJson.Replace("\"isVisible\":\"true\"", "\"isVisible\":true").Replace("\"isVisible\":\"false\"", "\"isVisible\":false"); 
+
             return cardJson;
         }
 
@@ -999,7 +1067,7 @@ namespace BotOrchestratorAndBroadcaster
             return (message, alternativeContent);
         }
 
-        private Contact? GetContactByEmail(String email)
+        private Contact? GetContactByEmail(String? email)
         {
             if (_rbContacts is null)
                 return null;

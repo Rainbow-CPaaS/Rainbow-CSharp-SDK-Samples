@@ -31,7 +31,7 @@ namespace Rainbow.Example.CommonSDL2
 
         private Object lockNewConfiguration = new ();
         private Object lockStartToOpenOrCloseStreams = new ();
-
+        private int _checkOpenOrCloseStreams = 0; // 0 = loop idle, 1 = loop running.Only accessed through Interlocked
         private List<String> _streamsToOpen = [];
         private List<String> _streamsToClose = [];
 
@@ -53,7 +53,7 @@ namespace Rainbow.Example.CommonSDL2
             if ( (this.loggerPrefix is null) && (!String.IsNullOrEmpty(loggerPrefix)))
             {
                 this.loggerPrefix = loggerPrefix;
-                log = Rainbow.LogFactory.CreateLogger<StreamManager>(loggerPrefix);
+                log = Rainbow.LogFactory.CreateLogger<StreamInputManager>(loggerPrefix);
             }
         }
 
@@ -76,6 +76,9 @@ namespace Rainbow.Example.CommonSDL2
         /// <param name="streamsToUse"></param>
         public void SetNewConfiguration(List<Stream>? streams, List<StreamUsage>? streamsToUse)
         {
+            if (_checkOpenOrCloseStreams != 0) 
+                return;
+
             lock (lockNewConfiguration)
             {
                 StringBuilder stringBuilder = new();
@@ -175,7 +178,7 @@ namespace Rainbow.Example.CommonSDL2
 
                 InformAboutStreamsStillOpened(listStreamsAlreadyOpened, streamsToUse);
 
-                StartToOpenOrCloseStreams();
+                CheckOpenOrCloseStreams();
             }
         }
 
@@ -245,17 +248,56 @@ namespace Rainbow.Example.CommonSDL2
             }
         }
 
-        private void StartToOpenOrCloseStreams()
+        private void CheckOpenOrCloseStreams()
         {
-            if (!TaskOpenOrCloseStreams.IsCompleted)
-            {
-                ConsoleAbstraction.WriteYellow("[StreamManager] Task to open or close streams is already running => we will not start another one to avoid any conflict - New configuration will be taken into account at the end of current task", logger: log);
+            // Atomically "claim" the loop. 
+            if (Interlocked.CompareExchange(ref _checkOpenOrCloseStreams, 1, 0) != 0)
                 return;
+
+            try
+            {
+                // Task.Run: never block the caller (it can be an event handler / UI thread)
+                // and never run the first iteration synchronously.
+                _ = Task.Run(() => TaskCheckConferenceAsync());
             }
-            TaskOpenOrCloseStreams = Task.Run(OpenOrCloseStreams);
+            catch (Exception ex)
+            {
+                // Could not start the loop: release the flag, otherwise it would never run again
+                Interlocked.Exchange(ref _checkOpenOrCloseStreams, 0);
+                ConsoleAbstraction.WriteRed("[CheckOpenOrCloseStreams] Cannot start TaskCheckConferenceAsync", logger: log);
+            }
         }
 
-        private void OpenOrCloseStreams()
+        private async Task TaskCheckConferenceAsync()
+        {
+            try
+            {
+                await TaskCheckConferenceDoWorkAsync();
+            }
+            catch (Exception ex)
+            {
+                ConsoleAbstraction.WriteRed($"[TaskCheckConferenceAsync] Error occurred using TaskCheckConferenceDoWorkAsync - Exception:[{ex}]", logger: log);
+            }
+            finally
+            {
+                // Release the loop BEFORE executing the "completed" part:
+                // so a call to StartTaskCheckConference() from there (or from an event handler) could start a new run.
+                Interlocked.Exchange(ref _checkOpenOrCloseStreams, 0);
+            }
+
+            try
+            {
+                if (_newConfigurationReceived)
+                    CheckOpenOrCloseStreams(); // Start a new iteration (not recursive: it's scheduled on the thread pool)
+
+            }
+            catch (Exception ex)
+            {
+                ConsoleAbstraction.WriteRed("Error occurred using CheckOpenOrCloseStreams - Exception:[{ex}]", logger: log);
+            }
+        }
+
+        private async Task TaskCheckConferenceDoWorkAsync()
         {
             // Algorithm:
             // We must first know:
@@ -327,7 +369,7 @@ namespace Rainbow.Example.CommonSDL2
                     if (_newConfigurationReceived)
                     {
                         ConsoleAbstraction.WriteGreen($"[StreamManager] A.2] Check if new config => Yes abort", logger: log);
-                        CancelableDelay.StartAfter(500, StartToOpenOrCloseStreams);
+                        //CancelableDelay.StartAfter(500, CheckOpenOrCloseStreams);
                         return;
                     }
                 }
@@ -343,7 +385,7 @@ namespace Rainbow.Example.CommonSDL2
                         if (stream.VideoComposition is not null)
                         {
                             // B.1] Starts / Open it and update cache
-                            ConsoleAbstraction.WriteGreen($"[StreamManager] B.1] Starts / Open it and update cache - Stream:[{stream.Id}]", logger: log);
+                            ConsoleAbstraction.WriteGreen($"[StreamManager] B.1] Starts / Opens it and update cache - Stream:[{stream.Id}]", logger: log);
                             OpenCompositionStream(stream);
                         }
                         else
@@ -360,7 +402,7 @@ namespace Rainbow.Example.CommonSDL2
                     if (_newConfigurationReceived)
                     {
                         ConsoleAbstraction.WriteGreen($"[StreamManager] B.2] Check if new config => Yes abort", logger: log);
-                        CancelableDelay.StartAfter(500, StartToOpenOrCloseStreams);
+                        //CancelableDelay.StartAfter(500, CheckOpenOrCloseStreams);
                         return;
                     }
                 }
@@ -394,7 +436,7 @@ namespace Rainbow.Example.CommonSDL2
                     if (_newConfigurationReceived)
                     {
                         ConsoleAbstraction.WriteGreen($"[StreamManager] C.3] Check if new config => Yes abort", logger: log);
-                        CancelableDelay.StartAfter(500, StartToOpenOrCloseStreams);
+                        //CancelableDelay.StartAfter(500, CheckOpenOrCloseStreams);
                         return;
                     }
                 }
@@ -427,7 +469,7 @@ namespace Rainbow.Example.CommonSDL2
                     if (_newConfigurationReceived)
                     {
                         ConsoleAbstraction.WriteGreen($"[StreamManager] D.3] Check if new config => Yes abort", logger: log);
-                        CancelableDelay.StartAfter(500, StartToOpenOrCloseStreams);
+                        //CancelableDelay.StartAfter(500, CheckOpenOrCloseStreams);
                         return;
                     }
                 }
@@ -470,7 +512,7 @@ namespace Rainbow.Example.CommonSDL2
                     if (_newConfigurationReceived)
                     {
                         ConsoleAbstraction.WriteGreen($"[StreamManager] E.2] Check if new config => Yes abort", logger: log);
-                        CancelableDelay.StartAfter(500, StartToOpenOrCloseStreams);
+                        //CancelableDelay.StartAfter(500, CheckOpenOrCloseStreams);
                         return;
                     }
 
@@ -602,7 +644,7 @@ namespace Rainbow.Example.CommonSDL2
                     if (videoInput is not null)
                     {
                         _mediasForVideo[stream.Id] = videoInput;
-                        ConsoleAbstraction.WriteWhite($"[StreamManager] Stream init/started also as Video context - Stream:[{stream.Id}]", logger: log);
+                        ConsoleAbstraction.WriteWhite($"[StreamManager] Stream init/started ALSO as Video context - Stream:[{stream.Id}]", logger: log);
                     }
                 }
                 else
@@ -781,7 +823,7 @@ namespace Rainbow.Example.CommonSDL2
             return null;
         }
 
-        static private (IMediaAudio? audioInput, IMediaVideo? videoInput) GetMediaInputs(Stream? stream, String? loggerPrefix)
+        private (IMediaAudio? audioInput, IMediaVideo? videoInput) GetMediaInputs(Stream? stream, String? loggerPrefix)
         {
             IMediaAudio? audioInput = null;
             IMediaVideo? videoInput = null;
@@ -828,10 +870,10 @@ namespace Rainbow.Example.CommonSDL2
                     {
                         videoInput = MediaInput.FromWebcamDevice(webcamDevice, false);
                         if (videoInput is null)
-                            ConsoleAbstraction.WriteRed($"[StreamManager] Cannot create and/or start MediaInput using this webcamDevice:[{webcamDevice}]");
+                            ConsoleAbstraction.WriteRed($"[StreamManager] Cannot create and/or start MediaInput using this webcamDevice:[{webcamDevice}]", logger: log);
                     }
                     else
-                        ConsoleAbstraction.WriteRed($"[StreamManager] Cannot get a webcamDevice with uri:[{stream.Uri}]");
+                        ConsoleAbstraction.WriteRed($"[StreamManager] Cannot get a webcamDevice with uri:[{stream.Uri}]", logger: log);
                     break;
 
                 case "screen":
@@ -840,10 +882,10 @@ namespace Rainbow.Example.CommonSDL2
                     {
                         videoInput = MediaInput.FromScreenDevice(screenDevice, false);
                         if (videoInput is null)
-                            ConsoleAbstraction.WriteRed($"[StreamManager] Cannot create and/or start MediaInput using this screenDevice:[{screenDevice}]");
+                            ConsoleAbstraction.WriteRed($"[StreamManager] Cannot create and/or start MediaInput using this screenDevice:[{screenDevice}]", logger: log);
                     }
                     else
-                        ConsoleAbstraction.WriteRed($"[StreamManager] Cannot get a screenDevice with uri:[{stream.Uri}]");
+                        ConsoleAbstraction.WriteRed($"[StreamManager] Cannot get a screenDevice with uri:[{stream.Uri}]", logger: log);
                     break;
 
                 case "microphone":
@@ -852,17 +894,17 @@ namespace Rainbow.Example.CommonSDL2
                     {
                         audioInput = new SDL2AudioInput(microphoneDevice);
                         if (audioInput is null)
-                            ConsoleAbstraction.WriteRed($"[StreamManager] Cannot create and/or start MediaInput using this screenDevice:[{microphoneDevice}]");
+                            ConsoleAbstraction.WriteRed($"[StreamManager] Cannot create and/or start MediaInput using this screenDevice:[{microphoneDevice}]", logger: log);
                     }
                     else
-                        ConsoleAbstraction.WriteRed($"[StreamManager] Cannot get a screenDevice with uri:[{stream.Uri}]");
+                        ConsoleAbstraction.WriteRed($"[StreamManager] Cannot get a screenDevice with uri:[{stream.Uri}]", logger: log);
                     break;
 
                 default:
-                    ConsoleAbstraction.WriteGreen($"[StreamManager] Creating InputStreamDevice: {stream} ...");
+                    ConsoleAbstraction.WriteGreen($"[StreamManager] Creating InputStreamDevice: {stream} ...", logger: log);
                     var inputStreamDevice = new InputStreamDevice(stream.Id, stream.Id, stream.Uri, withVideo: withVideo, withAudio: withAudio, loop: true, options: options);
 
-                    ConsoleAbstraction.WriteGreen($"[StreamManager] Creating MediaInput for [{stream.Id}] ...");
+                    ConsoleAbstraction.WriteGreen($"[StreamManager] Creating MediaInput for [{stream.Id}] ...", logger: log);
                     var mediaInput = new MediaInput(inputStreamDevice, width: width, height:height, fps: fps, forceLivestream: stream.ForceLiveStream, loggerPrefix: loggerPrefix);
                     if (withVideo)
                         videoInput = mediaInput;
@@ -946,8 +988,8 @@ namespace Rainbow.Example.CommonSDL2
 
         private void MediaInput_OnError(string mediaId, string message)
         {
-            ConsoleAbstraction.WriteRed($"[ConsoleMediaPlayer] MediaInput_OnError - Id:{mediaId} error: {message}");
-        
+            ConsoleAbstraction.WriteRed($"[ConsoleMediaPlayer] MediaInput_OnError - Id:{mediaId} error: {message}", logger: log);
+
             if (_streamsList.TryGetValue(mediaId, out var stream) && stream is not null)
             {
                 int media = Rainbow.Util.StringToMedias(stream.Media);

@@ -1,36 +1,42 @@
-﻿using Microsoft.Extensions.Logging;
-using Rainbow.Example.Common;
-using Rainbow.Medias;
+﻿using Common.Logging;
+using Microsoft.Extensions.Logging;
+using Rainbow.Example.CommonSDL2;
 using Rainbow.WebRTC.Abstractions;
 using Rainbow.WebRTC.Desktop;
 using System.Collections.Concurrent;
-using System.Drawing;
-using System.Text;
-using static System.Net.Mime.MediaTypeNames;
-using Stream = Rainbow.Example.Common.Stream;
 
-namespace Rainbow.Example.CommonSDL2
+namespace Rainbow.Example.CommonWebRTC
 {
     public class MediaTrackManager
     {
         public delegate void MediaTrackDelegate(String streamId, int media);
 
-        private ILogger? log;
-        private String? loggerPrefix = null;
+        private ILogger? _log;
+        private String? _loggerPrefix = null;
 
-        private ConcurrentDictionary<String, IAudioStreamTrack> audioStreamTracks = [];
-        private ConcurrentDictionary<String, IVideoStreamTrack> videoStreamTracks = [];
+        private Object _lockCreateMediaTrack = new(); // To ensure to create MediaTrack one by one
+
+        private readonly AudioStreamTrack _emptyAudioTrack; 
+
+        private ConcurrentDictionary<String, IAudioStreamTrack> _audioStreamTracks = [];
+        private ConcurrentDictionary<String, IVideoStreamTrack> _videoStreamTracks = [];
 
         private WebRTCFactory _rbWebRTCDesktopFactory;
         private StreamInputManager _streamInputManager;
 
+#region Public API
+
         public static MediaTrackManager Instance { get { return Nested.instance; } }
+
+        public AudioStreamTrack EmptyAudioTrack => _emptyAudioTrack;
+
+        public WebRTCFactory WebRTCFactory => _rbWebRTCDesktopFactory;
 
         public IAudioStreamTrack? GetAudioStreamTrack(String id)
         {
             IAudioStreamTrack? result = null;
             if (!String.IsNullOrEmpty(id))
-                audioStreamTracks.TryGetValue(id, out result);
+                _audioStreamTracks.TryGetValue(id, out result);
             return result;
         }
 
@@ -38,40 +44,8 @@ namespace Rainbow.Example.CommonSDL2
         {
             IVideoStreamTrack? result = null;
             if (!String.IsNullOrEmpty(id))
-                videoStreamTracks.TryGetValue(id, out result);
+                _videoStreamTracks.TryGetValue(id, out result);
             return result;
-        }
-
-        private IAudioStreamTrack? CreateAudioStreamTrack(string id)
-        {
-            var stream = _streamInputManager.GetMediaAudioFromStreamId(id);
-            if (stream is null)
-                return _rbWebRTCDesktopFactory.CreateAudioTrack(stream);
-            return null;
-        }
-
-        private IVideoStreamTrack? CreateVideoStreamTrack(string id)
-        {
-            var stream = _streamInputManager.GetMediaVideoFromStreamId(id);
-            if (stream is null)
-                return _rbWebRTCDesktopFactory.CreateVideoTrack(stream);
-            return null;
-        }
-
-        private void RemoveAudioStreamTrack(string id)
-        {
-            if (audioStreamTracks.TryRemove(id, out var result) && result is not null)
-            {
-                result.Dispose();
-            }
-        }
-
-        private void RemoveVideoStreamTrack(string id)
-        {
-            if (videoStreamTracks.TryRemove(id, out var result) && result is not null)
-            {
-                result.Dispose();
-            }
         }
 
         public void SetLoggerFactory(ILoggerFactory loggerFactory)
@@ -81,91 +55,102 @@ namespace Rainbow.Example.CommonSDL2
 
         public void SetLoggerPrefix(String loggerPrefix)
         {
-            if ( (this.loggerPrefix is null) && (!String.IsNullOrEmpty(loggerPrefix)))
+            if ( (this._loggerPrefix is null) && (!String.IsNullOrEmpty(loggerPrefix)))
             {
-                this.loggerPrefix = loggerPrefix;
-                log = Rainbow.LogFactory.CreateLogger<StreamManager>(loggerPrefix);
+                this._loggerPrefix = loggerPrefix;
+                _log = Rainbow.LogFactory.CreateLogger<StreamInputManager>(loggerPrefix); // We use same logguer thant StreamInputManager
 
                 _rbWebRTCDesktopFactory.SetLoggerPrefix(loggerPrefix);
                 _streamInputManager.SetLoggerPrefix(loggerPrefix);
             }
         }
 
-#region StreamManager events
+#endregion Public API
 
-        private void StreamManager_OnStreamRemoved(string streamId, int media, Boolean stillUsed)
+#region Private API
+
+        private IAudioStreamTrack? CreateAudioStreamTrack(string id)
         {
-            ConsoleAbstraction.WriteGray($"[ConsoleMediaPlayer] OnStreamRemoved - Stream:[{streamId}] - Media[{Rainbow.Util.MediasToString(media)}] - StillUsed:[{stillUsed}]");
-
-            switch (media)
+            lock (_lockCreateMediaTrack)
             {
-                case Rainbow.Consts.Media.AUDIO:
-                    if (!stillUsed)
-                        RemoveAudioStreamTrack(streamId);
+                if (String.IsNullOrEmpty(id)) return null;
 
-                    break;
+                var result = GetAudioStreamTrack(id);
+                if (result is not null) return result;
 
-                case Rainbow.Consts.Media.VIDEO:
-                    if (!stillUsed)
-                        RemoveVideoStreamTrack(streamId);
-                    break;
-            }
-        }
-
-        private void StreamManager_OnStreamAvailable(string streamId, int media, bool stillUsed)
-        {
-            ConsoleAbstraction.WriteGray($"[ConsoleMediaPlayer] OnStreamAvailable - Stream:[{streamId}] - Media[{Rainbow.Util.MediasToString(media)}] - StillUsed:[{stillUsed}]");
-
-            switch (media)
-            {
-                case Rainbow.Consts.Media.AUDIO:
-                    // TODO
-                    break;
-
-
-                case Rainbow.Consts.Media.VIDEO:
-                    // TODO
-                    break;
-
-            }
-        }
-
-        private void StreamManager_OnStreamOpened(string streamId, int media, Boolean stillUsed)
-        {
-            ConsoleAbstraction.WriteGray($"[ConsoleMediaPlayer] OnStreamOpened - Stream:[{streamId}] - Media[{Rainbow.Util.MediasToString(media)}] - StillUsed:[{stillUsed}]");
-
-            switch (media)
-            {
-                case Rainbow.Consts.Media.AUDIO:
-                    var resultAudio = CreateAudioStreamTrack(streamId);
-                    if (resultAudio is not null)
+                var stream = _streamInputManager.GetMediaAudioFromStreamId(id);
+                if (stream is not null)
+                {
+                    try
                     {
-                        //TODO
+                        result = _rbWebRTCDesktopFactory.CreateAudioTrack(stream);
+                        if (result is not null)
+                            _audioStreamTracks[id] = result;
+                        else
+                            ConsoleAbstraction.WriteRed($"[MediaTrackManager] Cannot create Audio Track using Id:[{id}]", logger: _log);
                     }
-                    break;
-
-
-                case Rainbow.Consts.Media.VIDEO:
-                    var resultVideo = CreateVideoStreamTrack(streamId);
-                    if (resultVideo is not null)
+                    catch (Exception ex)
                     {
-                        //TODO
+                        ConsoleAbstraction.WriteRed($"[MediaTrackManager] Cannot create Audio Track using Id:[{id}] - Exception:[{ex}]", logger: _log);
                     }
-                    break;
-
+                }
+                else
+                    ConsoleAbstraction.WriteRed($"[MediaTrackManager] Cannot get Audio Stream using Id:[{id}]", logger: _log);
+                return result;
             }
         }
 
-        private void StreamManager_OnStreamDisposing(string streamId)
+        private IVideoStreamTrack? CreateVideoStreamTrack(string id)
         {
-            ConsoleAbstraction.WriteRed($"[ConsoleMediaPlayer] OnStreamDisposing - Stream:[{streamId}]");
+            lock (_lockCreateMediaTrack)
+            {
+                if (String.IsNullOrEmpty(id)) return null;
+
+                var result = GetVideoStreamTrack(id);
+                if (result is not null) return result;
+
+                var stream = _streamInputManager.GetMediaVideoFromStreamId(id);
+                if (stream is not null)
+                {
+                    try
+                    { 
+                        result = _rbWebRTCDesktopFactory.CreateVideoTrack(stream);
+                        if (result is not null)
+                            _videoStreamTracks[id] = result;
+                        else
+                            ConsoleAbstraction.WriteRed($"[MediaTrackManager] Cannot create Video Tack using Id:[{id}]", logger: _log);
+                    }
+                    catch (Exception ex)
+                    {
+                        ConsoleAbstraction.WriteRed($"[MediaTrackManager] Cannot create VideoTrack using Id:[{id}] - Exception:[{ex}]", logger: _log);
+                    }
+                }
+                else
+                    ConsoleAbstraction.WriteRed($"[MediaTrackManager] Cannot get Video Stream using Id:[{id}]", logger: _log);
+                return result;
+            }
         }
 
-#endregion StreamManager events
+        private void RemoveAudioStreamTrack(string id)
+        {
+            if (_audioStreamTracks.TryRemove(id, out var result) && result is not null)
+            {
+                result.Dispose();
+            }
+        }
+
+        private void RemoveVideoStreamTrack(string id)
+        {
+            if (_videoStreamTracks.TryRemove(id, out var result) && result is not null)
+            {
+                result.Dispose();
+            }
+        }
 
         private MediaTrackManager()
         {
             _rbWebRTCDesktopFactory = new();
+            _emptyAudioTrack = (AudioStreamTrack)_rbWebRTCDesktopFactory.CreateEmptyAudioTrack();
 
             _streamInputManager = StreamInputManager.Instance;
             _streamInputManager.OnStreamOpened      += StreamManager_OnStreamOpened;
@@ -184,5 +169,74 @@ namespace Rainbow.Example.CommonSDL2
 
             internal static readonly MediaTrackManager instance = new();
         }
+
+#endregion Private API
+
+#region StreamManager events
+
+        private void StreamManager_OnStreamRemoved(string streamId, int media, Boolean stillUsed)
+        {
+            ConsoleAbstraction.WriteGray($"[MediaTrackManage] OnStreamRemoved - Stream:[{streamId}] - Media[{Rainbow.Util.MediasToString(media)}] - StillUsed:[{stillUsed}]", logger: _log);
+
+            switch (media)
+            {
+                case Rainbow.Consts.Media.AUDIO:
+                    if (!stillUsed)
+                        RemoveAudioStreamTrack(streamId);
+
+                    break;
+
+                case Rainbow.Consts.Media.VIDEO:
+                    if (!stillUsed)
+                        RemoveVideoStreamTrack(streamId);
+                    break;
+            }
+        }
+
+        private void StreamManager_OnStreamAvailable(string streamId, int media, bool stillUsed)
+        {
+            ConsoleAbstraction.WriteGray($"[MediaTrackManage] OnStreamAvailable - Stream:[{streamId}] - Media[{Rainbow.Util.MediasToString(media)}] - StillUsed:[{stillUsed}]", logger: _log);
+
+            switch (media)
+            {
+                case Rainbow.Consts.Media.AUDIO:
+                    CreateAudioStreamTrack(streamId); // Will do nothing if audio track already exist
+                    break;
+
+
+                case Rainbow.Consts.Media.VIDEO:
+                    CreateVideoStreamTrack(streamId); // Will do nothing if audio track already exist
+                    break;
+
+            }
+        }
+
+        private void StreamManager_OnStreamOpened(string streamId, int media, Boolean stillUsed)
+        {
+            ConsoleAbstraction.WriteGray($"[MediaTrackManage] OnStreamOpened - Stream:[{streamId}] - Media[{Rainbow.Util.MediasToString(media)}] - StillUsed:[{stillUsed}]", logger: _log);
+
+            switch (media)
+            {
+                case Rainbow.Consts.Media.AUDIO:
+                    CreateAudioStreamTrack(streamId);
+                    break;
+
+
+                case Rainbow.Consts.Media.VIDEO:
+                    CreateVideoStreamTrack(streamId);
+                    break;
+
+            }
+        }
+
+        private void StreamManager_OnStreamDisposing(string streamId)
+        {
+            RemoveAudioStreamTrack(streamId);
+            RemoveVideoStreamTrack(streamId);
+        }
+
+#endregion StreamManager events
+
+
     }
 }

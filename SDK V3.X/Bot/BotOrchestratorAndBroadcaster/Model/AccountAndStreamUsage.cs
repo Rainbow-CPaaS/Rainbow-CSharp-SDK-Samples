@@ -6,13 +6,13 @@ namespace BotOrchestratorAndBroadcaster.Model
 {
     public class AccountAndStreamUsage: Account
     {
-        public String AudioStreamId { get; set; } = String.Empty;
+        public String? AudioStreamId { get; set; } = String.Empty;
 
-        public String VideoStreamId { get; set; } = String.Empty;
+        public String? VideoStreamId { get; set; } = String.Empty;
 
-        public String SharingStreamId { get; set; } = String.Empty;
+        public String? SharingStreamId { get; set; } = String.Empty;
 
-        public String InConf{ get; set; } = "false";
+        public String? InConf{ get; set; } = "false";
 
 
 #region FromJSON / ToJSON methods
@@ -33,7 +33,7 @@ namespace BotOrchestratorAndBroadcaster.Model
         /// <param name="jsonNode"><see cref="JSONNode"/>JSONNode object</param>
         /// <param name="nodeName"><see cref="String"/>**`Optional - default value: null`** <br/>Node name to use to start parsing</param>
         /// <returns><see cref="AccountAndStreamUsage"/> - AccountAndStreamUsage object or Null on error</returns>
-        public static new AccountAndStreamUsage? FromJsonNode(JSONNode jsonNode, String? nodeName = null)
+        public static new AccountAndStreamUsage? FromJsonNode(JSONNode? jsonNode, String? nodeName = null)
         {
             if ((jsonNode == null) || (!jsonNode.IsObject))
                 return null;

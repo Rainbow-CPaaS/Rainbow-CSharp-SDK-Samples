@@ -25,11 +25,20 @@ namespace Rainbow.Example.Common
         public string? Password { get; set; }
 
         /// <summary>
-        /// NickName
+        /// FirstName
         /// </summary>
         public string? FirstName { get; set; }
 
+        /// <summary>
+        /// LastName
+        /// </summary>
         public string? LastName { get; set; }
+
+
+        /// <summary>
+        /// Name (used for bubble)
+        /// </summary>
+        public string? Name { get; set; }
 
         public Account()
         {
@@ -39,6 +48,7 @@ namespace Rainbow.Example.Common
             Password = "";
             FirstName = "";
             LastName = "";
+            Name = "";
         }
 
         public override string ToString()
@@ -59,12 +69,15 @@ namespace Rainbow.Example.Common
             if (!String.IsNullOrEmpty(LastName))
                 result += $"LastName:[{LastName}] ";
 
+            if (!String.IsNullOrEmpty(Name))
+                result += $"Name:[{Name}] ";
+
             return result.Trim();
         }
 
         public Boolean IsValid()
         {
-            if (String.IsNullOrEmpty(Id) && String.IsNullOrEmpty(Jid) && String.IsNullOrEmpty(Login))
+            if (String.IsNullOrEmpty(Id) && String.IsNullOrEmpty(Jid) && String.IsNullOrEmpty(Login) && String.IsNullOrEmpty(Name))
                 return false;
             return true;
         }
@@ -102,7 +115,8 @@ namespace Rainbow.Example.Common
                 Login = jsonNode["login"],
                 Password = jsonNode["password"],
                 FirstName = jsonNode["firstName"],
-                LastName = jsonNode["lastName"]
+                LastName = jsonNode["lastName"],
+                Name = jsonNode["name"]
             };
             return Account;
         }
@@ -149,6 +163,7 @@ namespace Rainbow.Example.Common
             jsonNode["password"] = Account.Password;
             jsonNode["firstName"] = Account.FirstName;
             jsonNode["lastName"] = Account.LastName;
+            jsonNode["name"] = Account.Name;
             return jsonNode;
         }
 

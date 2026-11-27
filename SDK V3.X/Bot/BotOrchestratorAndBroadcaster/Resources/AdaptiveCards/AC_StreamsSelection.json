@@ -34,7 +34,7 @@
         }
       ],
       "rows": [
-// START - Table Headers
+        // START - Table Headers
         {
           "type": "TableRow",
           "cells": [
@@ -70,11 +70,11 @@
             }
           ]
         },
-// END - Table Headers
+        // END - Table Headers
 
-// START - Loop On Broadcasters
-$BROADCASTERS$
-// END - Loop On Broadcasters
+        // START - Loop On Broadcasters
+        "$BROADCASTERS$"
+        // END - Loop On Broadcasters
 
       ],
       "showGridLines": false

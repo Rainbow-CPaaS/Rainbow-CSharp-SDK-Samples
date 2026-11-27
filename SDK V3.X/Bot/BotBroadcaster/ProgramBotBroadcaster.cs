@@ -3,6 +3,7 @@ using BotLibrary.Model;
 using Microsoft.Extensions.Logging;
 using Rainbow;
 using Rainbow.Example.Common;
+using Rainbow.Example.CommonWebRTC;
 using Rainbow.SimpleJSON;
 using System;
 using System.IO;
@@ -17,11 +18,6 @@ namespace BotBroadcaster
 
         static async Task Main()
         {
-            ConsoleAbstraction.WriteGreen($"{Global.ProductName()} v{Global.FileVersion()}", logger: _botBroadcaster?.log);
-
-            ConsoleAbstraction.WriteGreen($"[ESC] To stop the bot", logger: _botBroadcaster?.log);
-            ConsoleAbstraction.WriteGreen($"[L] To (re)load configuration file", logger: _botBroadcaster?.log);
-
             if (!ReadExeSettings())
                 return;
 
@@ -30,6 +26,11 @@ namespace BotBroadcaster
 
             if ( (_botBroadcaster is null) || (_exeSettings is null) )
                 return;
+
+            ConsoleAbstraction.WriteGreen($"{Global.ProductName()} v{Global.FileVersion()}", logger: _botBroadcaster.log);
+
+            ConsoleAbstraction.WriteGreen($"[ESC] To stop the bot", logger: _botBroadcaster.log);
+            ConsoleAbstraction.WriteGreen($"[L] To (re)load configuration file", logger: _botBroadcaster.log);
 
             // Get Dot Graph and store it in a file
             var dotGraph = _botBroadcaster.ToDotGraph();
@@ -44,7 +45,7 @@ namespace BotBroadcaster
             }
 
             if (!_botBroadcaster.Login())
-                ConsoleAbstraction.WriteRed("Cannot start login process", logger: _botBroadcaster?.log);
+                ConsoleAbstraction.WriteRed("Cannot start login process", logger: _botBroadcaster.log);
 
             var isStopped = false;
             SdkError? sdkError = null;
@@ -56,15 +57,17 @@ namespace BotBroadcaster
                 {
                     var userInput = ConsoleAbstraction.ReadKey();
 
-                    // If [ESC] is used, we ask the bot to log out
-                    if (userInput?.Key == ConsoleKey.Escape)
-                        _botBroadcaster.Logout();
 
-                    if (userInput?.Key == ConsoleKey.L)
+                    switch(userInput?.Key)
                     {
-                        var _ = ReloadConfigurationFile();
-                    }
+                        case ConsoleKey.Escape:
+                            _botBroadcaster.Logout();
+                            break;
 
+                        case ConsoleKey.L:
+                            var _ = ReloadConfigurationFileAsync();
+                            break;
+                    }
                 }
 
                 (isStopped, sdkError) = _botBroadcaster.IsStopped();
@@ -73,16 +76,18 @@ namespace BotBroadcaster
             ConsoleAbstraction.WriteRed($"Bot as stopped:{Rainbow.Util.CR}{sdkError}", logger: _botBroadcaster?.log);
         }
 
-        static async Task<Boolean> ReloadConfigurationFile()
+        static async Task<Boolean> ReloadConfigurationFileAsync()
         {
-            if (_botBroadcaster?.Application.IsConnected() == true)
+            if (_botBroadcaster is null) return false;
+
+            if (_botBroadcaster.Application.IsConnected() == true)
             {
-                ConsoleAbstraction.WriteRed($"{Rainbow.Util.CR}=> ReloadConfigurationFile{Rainbow.Util.CR}", logger: _botBroadcaster?.log);
+                ConsoleAbstraction.WriteRed($"{Rainbow.Util.CR}=> ReloadConfigurationFile{Rainbow.Util.CR}", logger: _botBroadcaster.log);
 
                 String botConfigurationFilePath = $".{Path.DirectorySeparatorChar}config{Path.DirectorySeparatorChar}botConfiguration.json";
                 if (!File.Exists(botConfigurationFilePath))
                 {
-                    ConsoleAbstraction.WriteRed($"The file '{botConfigurationFilePath}' has not been found.", logger: _botBroadcaster?.log);
+                    ConsoleAbstraction.WriteRed($"The file '{botConfigurationFilePath}' has not been found.", logger: _botBroadcaster.log);
                     return false;
                 }
 
@@ -90,7 +95,7 @@ namespace BotBroadcaster
                 var jsonNode = JSON.Parse(jsonConfig);
                 if (jsonNode?["botConfiguration"]?.IsObject != true)
                 {
-                    ConsoleAbstraction.WriteRed($"Cannot get JSON object 'botConfiguration' from file '{botConfigurationFilePath}'.", logger: _botBroadcaster?.log);
+                    ConsoleAbstraction.WriteRed($"Cannot get JSON object 'botConfiguration' from file '{botConfigurationFilePath}'.", logger: _botBroadcaster.log);
                     return false;
                 }
                 var jsonNodeBotConfiguration = jsonNode["botConfiguration"];
@@ -137,7 +142,7 @@ namespace BotBroadcaster
             }
             var jsonNodeBotConfiguration = jsonNode["botConfiguration"];
 
-            _botBroadcaster = new();
+            _botBroadcaster = new(true);
             if (!(await _botBroadcaster.Configure(jsonNodeBotSettings, jsonNodeBotConfiguration)))
             {
                 ConsoleAbstraction.WriteRed($"Cannot configure bot", logger: _botBroadcaster?.log);
@@ -145,7 +150,14 @@ namespace BotBroadcaster
             }
 
             var log = Rainbow.LogFactory.CreateLogger("FFmpeg", _botBroadcaster.BotName + "_");
-            Rainbow.Medias.Helper.SetFFmpegLog(log, LogLevel.Error);
+            Rainbow.Medias.Helper.SetFFmpegLog(log, Rainbow.Medias.Helper.ParseLogLevel(_exeSettings?.FfmpegLogLevel ?? ""));
+
+            var mediaTrackManager = Rainbow.Example.CommonWebRTC.MediaTrackManager.Instance;
+            mediaTrackManager.SetLoggerFactory(Rainbow.LogFactory.Get());
+            mediaTrackManager.SetLoggerPrefix("MediaTrackManager");
+
+            // Set WebRTC environment
+            _botBroadcaster.SetWebRTCEnvironment(mediaTrackManager);
 
             return true;
         }

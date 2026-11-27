@@ -969,7 +969,7 @@ namespace BotLibrary
         {
             if (_rbApplication?.IsConnected() == true)
             {
-                if ((firstName is not null) || (lastName is not null))
+                if ((firstName is not null) && (lastName is not null))
                 {
                     var contact = _rbContacts.GetCurrentContact();
                     if ((contact is not null) && ((contact.FirstName != firstName) || (contact.LastName != lastName)))
@@ -1048,8 +1048,6 @@ namespace BotLibrary
             // Set APP_ID, APP_SECRET_KET and HOSTNAME
             _rbApplication.SetApplicationInfo(_credentials.ServerConfig.AppId, _credentials.ServerConfig.AppSecret);
             _rbApplication.SetHostInfo(_credentials.ServerConfig.HostName);
-
-            _rbApplication.SetTimeout(10000);
 
             // Create others Rainbow SDK Objects
             if (!CreateRainbowObjects())
@@ -1286,9 +1284,6 @@ namespace BotLibrary
 
                 // Conversations - Option
                 ConversationsRetrievedFormat = "full",
-
-                // HTTP - Option
-                MaxConnectionsPerServer = 5,
 
                 // InstantMessaging - Option
                 ManageUserTyping = true,

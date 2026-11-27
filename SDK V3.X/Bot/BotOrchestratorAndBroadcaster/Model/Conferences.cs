@@ -12,11 +12,11 @@ namespace BotOrchestratorAndBroadcaster.Model
         // Not necessary: we use all bubbles where the orchestrator is a moderator
         //public List<String> List { get; set; } = [];
 
-        public List<String> Selected { get; set; } = [];
+        public List<String>? Selected { get; set; } = [];
 
         public Boolean RemoveAsMemberBroadcaster { get; set; } = false;
 
-        public List<String> BroadcastersJoiningConf { get; set; } = [];
+        public List<String>? BroadcastersJoiningConf { get; set; } = [];
 
 
 #region FromJSON / ToJSON methods

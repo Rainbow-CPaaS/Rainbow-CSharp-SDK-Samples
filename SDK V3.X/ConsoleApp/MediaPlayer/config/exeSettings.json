@@ -9,6 +9,9 @@
     "_comment_url_for_dwl_windows": "https://github.com/GyanD/codexffmpeg/releases/download/7.0.1/ffmpeg-7.0.1-full_build-shared.zip",
     "ffmpegLibFolderPath": "C:\\ffmpeg-7.0.1-full_build-shared\\bin",
 
+    "_comment_ffmpegLogLevel": "If audio and/or video media are used, the log level to set for ffmpeg library - possible values: none, trace, debug, information, warning, error, critical",
+    "ffmpegLogLevel": "trace",
+
     "_comment_logFolderPath": "Folder path where logs wile be stored",
     "logFolderPath": "./logs"
   }

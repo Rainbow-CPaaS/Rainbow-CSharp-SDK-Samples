@@ -8,13 +8,13 @@ namespace BotOrchestratorAndBroadcaster.Model
 {
     public class BotConfigurationExtended : BotLibrary.Model.BotConfiguration
     {
-        public String Labels { get; set; } = "labels_EN.json";
+        public String? Labels { get; set; } = "labels_EN.json";
 
-        public List<AccountAndStreamUsage> Broadcasters { get; set; } = [];
+        public List<AccountAndStreamUsage>? Broadcasters { get; set; } = [];
 
         public Conferences Conferences { get; set; } = new();
 
-        public List<Stream> Streams { get; set; } = [];
+        public List<Stream>? Streams { get; set; } = [];
 
         public BotConfigurationExtended() : base()
         {
@@ -38,7 +38,7 @@ namespace BotOrchestratorAndBroadcaster.Model
         /// <param name="jsonNode"><see cref="JSONNode"/>JSONNode object</param>
         /// <param name="nodeName"><see cref="String"/>**`Optional - default value: null`** <br/>Node name to use to start parsing</param>
         /// <returns><see cref="BotConfigurationExtended"/> - BotConfigurationExtended object or Null on error</returns>
-        public static new BotConfigurationExtended? FromJsonNode(JSONNode jsonNode, String? nodeName = null)
+        public static new BotConfigurationExtended? FromJsonNode(JSONNode? jsonNode, String? nodeName = null)
         {
             if ((jsonNode == null) || (!jsonNode.IsObject))
                 return null;

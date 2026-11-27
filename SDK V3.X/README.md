@@ -66,6 +66,7 @@ They are listed in order of priority / complexity.
 | **Avatars**, Bubbles, Channels, Contacts | Get last **Avatars** of Bubbles, Channels and Contacts| [README](./ConsoleApp/Avatars/README.md) |
 | **Guest, GuestMode**, Company Link, Bubble Link, Contacts, Organisations, Companies | Manage Contacts, Guests and GuestMode (need admin account)  | [README](./ConsoleApp/Manage%20Users%20and%20Guests/README.md) |
 | Conversations, **InstantMessaging**, Bubbles, Contacts | Manage Conversations, Send/Reveive Messages, Receipts | [README](./ConsoleApp/Conversations%20and%20IM/README.md) |
+| **Adaptive Cards**, InstantMessaging, Bubbles, Contacts | **Adaptive Cards** (send, edit, interaction) | [README](./ConsoleApp/AdaptiveCards/README.md) |
 | **S2S**, Conversations, InstantMessaging, Bubbles, Contacts | In S2S, Manage Conversations, Send/Reveive Messages, Receipts | [README](./ConsoleApp/Conversations%20and%20IM-S2S/README.md) |
 | **InstantMessaging**, Bubbles, Contacts | Fetch all messages archived from a Peer | [README](./ConsoleApp/Fetch%20messages%20from%20peer/README.md) |
 | **Customer Care**, administrator | As administrator asks log request for user | [README](./ConsoleApp/LogRequest%20as%20Admin/README.md) |
